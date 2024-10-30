@@ -6,14 +6,7 @@
 name: SonarCloud
 
 on:
-  workflow_run:
-    workflows:
-      - PR
-    types:
-      - completed
-
-permissions:
-  actions: read
+  workflow_call:
 
 jobs:
   sonarcloud:

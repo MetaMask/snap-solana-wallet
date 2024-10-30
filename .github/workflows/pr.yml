@@ -20,3 +20,7 @@ jobs:
   build-lint-test:
     name: Validate
     uses: ./.github/workflows/build-lint-test.yml
+
+  sonarcloud:
+    name: Validate
+    uses: ./.github/workflows/sonarcloud.yml
