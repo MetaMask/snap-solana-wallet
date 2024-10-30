@@ -7,6 +7,15 @@ name: SonarCloud
 
 on:
   workflow_call:
+    inputs:
+      github-token:
+        description: 'GitHub Token'
+        required: true
+        type: string
+      sonar-token:
+        description: 'SonarCloud Token'
+        required: true
+        type: string
 
 jobs:
   sonarcloud:
