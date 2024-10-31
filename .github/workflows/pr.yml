@@ -22,7 +22,7 @@ jobs:
 
   sonarcloud:
     name: SonarCloud
-    # needs: build-lint-test
+    needs: build-lint-test
     uses: ./.github/workflows/sonarcloud.yml
     secrets:
       sonar_token: ${{ secrets.SONAR_TOKEN }}
