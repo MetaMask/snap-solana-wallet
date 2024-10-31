@@ -4,15 +4,16 @@ set -x
 set -e
 set -o pipefail
 
-RELEASE_BRANCH_NAME="release/$(jq -r .version < package.json)"
-
-if [[ -z $RELEASE_BRANCH_NAME ]]; then
-  echo "Error: No release branch specified."
-  exit 1
-fi
-
 git config user.name github-actions
 git config user.email github-actions@github.com
+
+# Fetch all branches
+git fetch --all
+
+# List all branches that match the release pattern and sort them by commit date
+RELEASE_BRANCH_NAME=$(git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/heads/release/* | head -n 1)
+
+echo "The latest release branch is: $RELEASE_BRANCH_NAME"
 
 git checkout "${RELEASE_BRANCH_NAME}"
 
