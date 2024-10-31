@@ -10,11 +10,26 @@ git config user.email github-actions@github.com
 # Fetch all branches
 git fetch --all
 
+# List all branches to help diagnose the issue
+echo "Listing all branches:"
+git branch -a
+
 # List all branches that match the release pattern and sort them by commit date
-RELEASE_BRANCH_NAME=$(git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/heads/release/* | head -n 1)
+RELEASE_BRANCH_NAME=$(git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/remotes/origin/release/* | head -n 1)
 
-echo "The latest release branch is: $RELEASE_BRANCH_NAME"
+# Check if RELEASE_BRANCH_NAME is empty
+if [ -z "${RELEASE_BRANCH_NAME}" ]; then
+  echo "No release branches found."
+  exit 1
+fi
 
+echo "The latest release branch is: ${RELEASE_BRANCH_NAME}"
+
+# Strip the 'refs/remotes/origin/' prefix from the branch name
+RELEASE_BRANCH_NAME=${RELEASE_BRANCH_NAME#refs/remotes/origin/}
+
+# Checkout the latest release branch
+echo "Checking out branch: ${RELEASE_BRANCH_NAME}"
 git checkout "${RELEASE_BRANCH_NAME}"
 
 yarn --immutable --immutable-cache
