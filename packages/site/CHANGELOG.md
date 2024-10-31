@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2]
+
+### Uncategorized
+
+- 0.1.1
+- ci: remove pages from pr
+- ci: configs
+- fix: husky + jest/types
+- chore: upgrade versions
+- chore: edit lint scripts for both site and snap
+- chore: adds CHANGELOG files
+- chore: adds correct info to packages json, snap manifest, adds sol logo, preinstall script, updates packages and adds utils package
+- Initial commit
+
 ## [0.1.1]
 
 ### Uncategorized
@@ -25,5 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: TBA
 - feat: init commit
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/MetaMask/snap-solana-wallet/releases/tag/v0.1.1
