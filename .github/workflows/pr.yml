@@ -21,8 +21,11 @@ jobs:
     uses: ./.github/workflows/build-lint-test.yml
 
   sonarcloud:
-    name: sonarcloud
-    uses: ./.github/workflows/sonarcloud.yml
-    with:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
-      sonar-token: ${{ secrets.SONAR_TOKEN }}
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call SonarCloud Workflow
+        uses: ./.github/workflows/sonarcloud.yml
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
