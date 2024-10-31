@@ -6,9 +6,6 @@ permissions:
 on:
   workflow_call:
     secrets:
-      github_token:
-        description: Github token
-        required: false
       sonar_token:
         description: SonarCloud token
         required: true

@@ -24,5 +24,4 @@ jobs:
     name: SonarCloud
     uses: ./.github/workflows/sonarcloud.yml
     secrets:
-      github_token: ${{ secrets.GITHUB_TOKEN }}
       sonar_token: ${{ secrets.SONAR_TOKEN }}
