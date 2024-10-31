@@ -24,8 +24,8 @@ jobs:
     name: SonarCloud
     runs-on: ubuntu-latest
     steps:
-      - name: Call SonarCloud Workflow
-        uses: ./.github/workflows/sonarcloud.yml
+      - name: Run SonarCloud Scan
+        uses: ./.github/actions/sonarcloud.yml
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           sonar_token: ${{ secrets.SONAR_TOKEN }}
