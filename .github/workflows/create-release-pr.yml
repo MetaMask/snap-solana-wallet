@@ -52,6 +52,6 @@ jobs:
       - name: Update Snap Version
         id: update-release-pr
         shell: bash
-        run: ${{ github.action_path }}/scripts/update-release-pr.sh
+        run: ./scripts/update-release-pr.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
