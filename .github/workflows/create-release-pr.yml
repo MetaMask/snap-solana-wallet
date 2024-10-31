@@ -53,7 +53,7 @@ jobs:
       - name: Update Snap Version
         id: update-release-pr
         shell: bash
-        run: | 
+        run: |
           chmod +x ./scripts/update-release-pr.sh
           ./scripts/update-release-pr.sh
         env:
