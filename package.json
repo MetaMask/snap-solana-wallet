@@ -21,7 +21,7 @@
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,jsx,ts,tsx",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
-    "lint:misc": "prettier '**/*.json' '**/*.md' '!**/CHANGELOG.md' '**/*.yml' --ignore-path .gitignore",
+    "lint:misc": "prettier '**/*.md' '!**/CHANGELOG.md' '**/*.yml' --ignore-path .gitignore",
     "prepare": "husky",
     "prettier:check": "prettier --check 'packages/**/*.{ts,json,js,tsx}'",
     "prettier:fix": "prettier --write 'packages/**/*.{ts,json,js,tsx}'",
