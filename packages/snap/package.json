@@ -1,6 +1,6 @@
 {
   "name": "@metamask/solana-wallet-snap",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A Solana wallet Snap.",
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "test:watch": "jest --watch --passWithNoTests"
   },
   "dependencies": {
+    "@metamask/keyring-api": "^9.0.0",
     "@metamask/snaps-sdk": "^6.9.0",
     "buffer": "^6.0.3"
   },

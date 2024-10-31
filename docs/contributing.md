@@ -7,7 +7,7 @@ Make sure you have followed all the setup steps from
 
 ## Branches
 
-We strongly recommaned to use the "Create branch" feature from Jira, this will generate a well named branch including tiket id (ie: `SOL-10`) and ticket description.
+We strongly recommend to use the "Create branch" feature from Jira, this will generate a well named branch including tiket id (ie: `SOL-10`) and ticket description.
 
 ## Commits
 

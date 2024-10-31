@@ -39,3 +39,22 @@ jobs:
         with:
           release-type: ${{ github.event.inputs.release-type }}
           release-version: ${{ github.event.inputs.release-version }}
+  update-snap-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: create-release-pr
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Update Snap Version
+        id: update-release-pr
+        shell: bash
+        run: | 
+          chmod +x ./scripts/update-release-pr.sh
+          ./scripts/update-release-pr.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

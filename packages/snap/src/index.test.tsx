@@ -1,39 +1,7 @@
 import { expect } from '@jest/globals';
 import { installSnap } from '@metamask/snaps-jest';
-import { Bold, Box, Text } from '@metamask/snaps-sdk/jsx';
 
 describe('onRpcRequest', () => {
-  describe('hello', () => {
-    it('shows a confirmation dialog', async () => {
-      const { request } = await installSnap();
-
-      const origin = 'Jest';
-      const response = request({
-        method: 'hello',
-        origin,
-      });
-
-      const ui = await response.getInterface();
-      expect(ui.type).toBe('confirmation');
-      expect(ui).toRender(
-        <Box>
-          <Text>
-            Hello, <Bold>{origin}</Bold>!
-          </Text>
-          <Text>This custom confirmation is just for display purposes.</Text>
-          <Text>
-            But you can edit the snap source code to make it do something, if
-            you want to!
-          </Text>
-        </Box>,
-      );
-
-      await ui.ok();
-
-      expect(await response).toRespondWith(true);
-    });
-  });
-
   it('throws an error if the requested method does not exist', async () => {
     const { request } = await installSnap();
 
@@ -42,8 +10,30 @@ describe('onRpcRequest', () => {
     });
 
     expect(response).toRespondWithError({
-      code: -32603,
-      message: 'Method not found.',
+      code: 4100,
+      message: 'Permission denied',
+      stack: expect.any(String),
+    });
+  });
+});
+
+describe('onKeyringRequest', () => {
+  it('throws an error if the requested method does not exist', async () => {
+    const { request } = await installSnap();
+
+    const response = await request({
+      method: 'wallet_invokeSnap',
+      params: {
+        snapId: 'npm:@metamask/solana-wallet-snap',
+        request: {
+          method: 'foo',
+        },
+      },
+    });
+
+    expect(response).toRespondWithError({
+      code: 4100,
+      message: 'Permission denied',
       stack: expect.any(String),
     });
   });

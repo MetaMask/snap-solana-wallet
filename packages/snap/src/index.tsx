@@ -1,5 +1,29 @@
-import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
-import { Bold, Box, Text } from '@metamask/snaps-sdk/jsx';
+import { handleKeyringRequest } from '@metamask/keyring-api';
+import type { Json, OnKeyringRequestHandler } from '@metamask/snaps-sdk';
+import {
+  MethodNotFoundError,
+  SnapError,
+  UnauthorizedError,
+  type OnRpcRequestHandler,
+} from '@metamask/snaps-sdk';
+
+import { SolanaKeyring } from './core/services/keyring';
+import { isSnapRpcError } from './core/utils/errors';
+import logger from './core/utils/logger';
+import { originPermissions } from './permissions';
+
+export const validateOrigin = (origin: string, method: string): void => {
+  if (!origin) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
+    throw new UnauthorizedError('Origin not found');
+  }
+  if (!originPermissions.get(origin)?.has(method)) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
+    throw new UnauthorizedError(`Permission denied`);
+  }
+};
+
+const keyring = new SolanaKeyring();
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -8,36 +32,66 @@ import { Bold, Box, Text } from '@metamask/snaps-sdk/jsx';
  * @param args.origin - The origin of the request, e.g., the website that
  * invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
- * @returns The result of `snap_dialog`.
  * @throws If the request method is not valid for this snap.
  */
 export const onRpcRequest: OnRpcRequestHandler = async ({
   origin,
   request,
 }) => {
-  switch (request.method) {
-    case 'hello':
-      return snap.request({
-        method: 'snap_dialog',
-        params: {
-          type: 'confirmation',
-          content: (
-            <Box>
-              <Text>
-                Hello, <Bold>{origin}</Bold>!
-              </Text>
-              <Text>
-                This custom confirmation is just for display purposes.
-              </Text>
-              <Text>
-                But you can edit the snap source code to make it do something,
-                if you want to!
-              </Text>
-            </Box>
-          ),
-        },
-      });
-    default:
-      throw new Error('Method not found.');
+  try {
+    const { method } = request;
+
+    validateOrigin(origin, method);
+
+    switch (method) {
+      default:
+        throw new MethodNotFoundError() as unknown as Error;
+    }
+  } catch (error: any) {
+    let snapError = error;
+
+    if (!isSnapRpcError(error)) {
+      snapError = new SnapError(error);
+    }
+    logger.error(
+      `onRpcRequest error: ${JSON.stringify(snapError.toJSON(), null, 2)}`,
+    );
+    throw snapError;
+  }
+};
+
+/**
+ * Handle incoming keyring requests.
+ *
+ * @param args - The request handler args as object.
+ * @param args.origin - The origin of the request, e.g., the website that
+ * invoked the snap.
+ * @param args.request - A validated keyring request object.
+ * @returns A promise that resolves to a JSON object.
+ * @throws If the request method is not valid for this snap.
+ */
+export const onKeyringRequest: OnKeyringRequestHandler = async ({
+  origin,
+  request,
+}): Promise<Json> => {
+  try {
+    validateOrigin(origin, request.method);
+
+    return (await handleKeyringRequest(
+      keyring,
+      request,
+    )) as unknown as Promise<Json>;
+  } catch (error: any) {
+    let snapError = error;
+
+    if (!isSnapRpcError(error)) {
+      snapError = new SnapError(error);
+    }
+
+    logger.error(
+      `onKeyringRequest error: ${JSON.stringify(snapError.toJSON(), null, 2)}`,
+    );
+
+    throw snapError;
   }
 };

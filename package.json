@@ -1,6 +1,6 @@
 {
   "name": "solana-wallet-snap-monorepo",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "",
   "homepage": "https://github.com/MetaMask/snap-solana-wallet#readme",
@@ -26,7 +26,7 @@
     "prettier:check": "prettier --check 'packages/**/*.{ts,json,js,tsx}'",
     "prettier:fix": "prettier --write 'packages/**/*.{ts,json,js,tsx}'",
     "start": "yarn workspaces foreach --parallel --interlaced --worktree --verbose run start",
-    "test": "yarn workspace @metamask/solana-wallet-snap run test",
+    "test": "yarn workspace @metamask/solana-wallet-snap run test --detectOpenHandles",
     "test:watch": "yarn workspace @metamask/solana-wallet-snap run test:watch"
   },
   "lint-staged": {

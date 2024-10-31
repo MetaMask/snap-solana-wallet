@@ -3734,6 +3734,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/keyring-api@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "@metamask/keyring-api@npm:9.0.0"
+  dependencies:
+    "@metamask/snaps-sdk": "npm:^6.7.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^9.2.1"
+    "@types/uuid": "npm:^9.0.8"
+    bech32: "npm:^2.0.0"
+    uuid: "npm:^9.0.1"
+    webextension-polyfill: "npm:^0.12.0"
+  peerDependencies:
+    "@metamask/providers": ^17.2.0
+  checksum: 10/ff552c04a4d06c7b1a43d52809a9c141d38772586388f0ab96123bce445f148aa7f7e8165d03fa92ac391351de252c4b299fc2c16e690193f669b5329941fe75
+  languageName: node
+  linkType: hard
+
 "@metamask/number-to-bn@npm:^1.7.1":
   version: 1.7.1
   resolution: "@metamask/number-to-bn@npm:1.7.1"
@@ -4112,7 +4129,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-sdk@npm:^6.0.0, @metamask/snaps-sdk@npm:^6.1.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.8.0, @metamask/snaps-sdk@npm:^6.9.0":
+"@metamask/snaps-sdk@npm:^6.0.0, @metamask/snaps-sdk@npm:^6.1.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.7.0, @metamask/snaps-sdk@npm:^6.8.0, @metamask/snaps-sdk@npm:^6.9.0":
   version: 6.9.0
   resolution: "@metamask/snaps-sdk@npm:6.9.0"
   dependencies:
@@ -4205,6 +4222,7 @@ __metadata:
   dependencies:
     "@jest/globals": "npm:^29.5.0"
     "@metamask/auto-changelog": "npm:^4.0.0"
+    "@metamask/keyring-api": "npm:^9.0.0"
     "@metamask/snaps-cli": "npm:^6.2.1"
     "@metamask/snaps-jest": "npm:8.2.0"
     "@metamask/snaps-sdk": "npm:^6.9.0"
@@ -6287,6 +6305,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/uuid@npm:^9.0.8":
+  version: 9.0.8
+  resolution: "@types/uuid@npm:9.0.8"
+  checksum: 10/b8c60b7ba8250356b5088302583d1704a4e1a13558d143c549c408bf8920535602ffc12394ede77f8a8083511b023704bc66d1345792714002bfa261b17c5275
+  languageName: node
+  linkType: hard
+
 "@types/yargs-parser@npm:*":
   version: 21.0.0
   resolution: "@types/yargs-parser@npm:21.0.0"
@@ -7703,6 +7728,13 @@ __metadata:
   version: 2.0.0
   resolution: "base64id@npm:2.0.0"
   checksum: 10/e3312328429e512b0713469c5312f80b447e71592cae0a5bddf3f1adc9c89d1b2ed94156ad7bb9f529398f310df7ff6f3dbe9550735c6a759f247c088ea67364
+  languageName: node
+  linkType: hard
+
+"bech32@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "bech32@npm:2.0.0"
+  checksum: 10/fa15acb270b59aa496734a01f9155677b478987b773bf701f465858bf1606c6a970085babd43d71ce61895f1baa594cb41a2cd1394bd2c6698f03cc2d811300e
   languageName: node
   linkType: hard
 
@@ -21756,6 +21788,13 @@ __metadata:
   version: 1.2.2
   resolution: "weak-lru-cache@npm:1.2.2"
   checksum: 10/441f86236d34b9750ccf2bae1658cc62b49e805b740b3f3bf4b1d78e8cac50b6c05d31791f3f5bbf00f3b544834ae20c0f5a374efc833b7ba2a11dd8af37a790
+  languageName: node
+  linkType: hard
+
+"webextension-polyfill@npm:^0.12.0":
+  version: 0.12.0
+  resolution: "webextension-polyfill@npm:0.12.0"
+  checksum: 10/77e648b958b573ef075e75a0c180e2bbd74dee17b3145e86d21fcbb168c4999e4a311654fe634b8178997bee9b35ea5808d8d3d3e5ff2ad138f197f4f0ea75d9
   languageName: node
   linkType: hard
 
