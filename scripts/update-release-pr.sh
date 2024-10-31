@@ -25,7 +25,7 @@ echo "The latest release branch is: ${RELEASE_BRANCH_NAME}"
 echo "Checking out branch: ${RELEASE_BRANCH_NAME}"
 git checkout "${RELEASE_BRANCH_NAME}"
 
-yarn --immutable --immutable-cache
+yarn --immutable
 yarn workspace @metamask/solana-wallet-snap build
 
 if ! (git add . && git commit -m "chore: update snap version");
