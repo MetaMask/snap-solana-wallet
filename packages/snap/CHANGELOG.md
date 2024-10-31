@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3]
+
+### Uncategorized
+
+- Ci/missing config ([#29](https://github.com/MetaMask/snap-solana-wallet/pull/29))
+- Ci/missing config ([#28](https://github.com/MetaMask/snap-solana-wallet/pull/28))
+- 0.1.2 ([#26](https://github.com/MetaMask/snap-solana-wallet/pull/26))
+- chore: review fixes
+- feat: add keyring and rpc listeners
+- chore: update snap build
+- 0.1.1
+- docs: add developer docs
+- ci: configs
+- fix: husky + jest/types
+- chore: upgrade versions
+- chore: update both README
+- chore: edit lint scripts for both site and snap
+- chore: adds CHANGELOG files
+- chore: adds correct info to packages json, snap manifest, adds sol logo, preinstall script, updates packages and adds utils package
+- Initial commit
+
 ## [0.1.2]
 
 ### Uncategorized
@@ -44,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: TBA
 - feat: init commit
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/MetaMask/snap-solana-wallet/releases/tag/v0.1.1
