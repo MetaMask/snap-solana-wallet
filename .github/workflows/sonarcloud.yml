@@ -6,12 +6,12 @@ permissions:
 on:
   workflow_call:
     secrets:
-      env_vars:
-        description: Include environment variables
+      github_token:
+        description: Github token
         required: false
       sonar_token:
         description: SonarCloud token
-        required: false
+        required: true
 
 jobs:
   sonarcloud-scan:
