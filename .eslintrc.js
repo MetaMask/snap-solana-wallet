@@ -35,6 +35,7 @@ module.exports = {
   ],
 
   ignorePatterns: [
+    '**/snap.manifest.json',
     '!.prettierrc.js',
     '**/!.eslintrc.js',
     '**/dist*/',
