@@ -47,7 +47,7 @@ export const Header = ({
     <HeaderWrapper>
       <LogoWrapper>
         <SnapLogo color={theme.colors.icon?.default} size={36} />
-        <Title>solana-snap</Title>
+        <Title>solana-snap-wallet</Title>
       </LogoWrapper>
       <RightContainer>
         <Toggle
