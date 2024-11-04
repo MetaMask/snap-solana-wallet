@@ -2,7 +2,7 @@ name: Main
 
 permissions:
   contents: write
-
+  checks: write
 on:
   push:
     branches: [main]

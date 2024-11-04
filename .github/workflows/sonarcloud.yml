@@ -2,6 +2,7 @@ name: Validate application code
 
 permissions:
   contents: write
+  checks: write
 
 on:
   workflow_call:
