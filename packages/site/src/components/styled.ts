@@ -5,8 +5,8 @@ export const Container = styled.div`
   flex-direction: column;
   align-items: center;
   flex: 1;
-  margin-top: 7.6rem;
-  margin-bottom: 7.6rem;
+  margin-top: 20px;
+  margin-bottom: 20px;
   ${({ theme }) => theme.mediaQueries.small} {
     padding-left: 2.4rem;
     padding-right: 2.4rem;
@@ -17,8 +17,8 @@ export const Container = styled.div`
 `;
 
 export const Heading = styled.h1`
-  margin-top: 0;
-  margin-bottom: 2.4rem;
+  margin-top: 10px;
+  margin-bottom: 18px;
   text-align: center;
   display: flex;
   align-items: center;
@@ -26,7 +26,11 @@ export const Heading = styled.h1`
 
 export const Span = styled.span`
   display: flex;
-  margin-left: 5px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  font-size: 1.4em;
+  font-weight: 600;
+  margin-top: 16px;
 `;
 
 export const CardContainer = styled.div`
@@ -34,7 +38,7 @@ export const CardContainer = styled.div`
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
-  max-width: 64.8rem;
+  max-width: 1024px;
   width: 100%;
   height: 100%;
   margin-top: 1.5rem;

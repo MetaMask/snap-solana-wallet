@@ -13,12 +13,12 @@ const theme = {
     code: 'ui-monospace,Menlo,Monaco,"Cascadia Mono","Segoe UI Mono","Roboto Mono","Oxygen Mono","Ubuntu Monospace","Source Code Pro","Fira Mono","Droid Sans Mono","Courier New", monospace',
   },
   fontSizes: {
-    heading: '5.2rem',
-    mobileHeading: '3.6rem',
-    title: '2.4rem',
-    large: '2rem',
-    text: '1.6rem',
-    small: '1.4rem',
+    heading: '32px',
+    mobileHeading: '24px',
+    title: '24px',
+    large: '16px',
+    text: '14px',
+    small: '12px',
   },
   radii: {
     default: '24px',
@@ -81,7 +81,7 @@ export const light: DefaultTheme = {
 export const dark: DefaultTheme = {
   colors: {
     background: {
-      default: '#24272A',
+      default: 'rgb(9, 9, 11)',
       alternative: '#141618',
       inverse: '#FFFFFF',
     },
@@ -121,67 +121,14 @@ export const dark: DefaultTheme = {
  * @returns Global style React component.
  */
 export const GlobalStyle = createGlobalStyle`
-  html {
-    /* 62.5% of the base size of 16px = 10px.*/
-    font-size: 62.5%;
-  }
 
   body {
     background-color: ${(props) => props.theme.colors.background?.default};
     color: ${(props) => props.theme.colors.text?.default};
-    font-family: ${(props) => props.theme.fonts.default};
-    font-size: ${(props) => props.theme.fontSizes.text};
     margin: 0;
   }
 
   * {
     transition: background-color .1s linear;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-size: ${(props) => props.theme.fontSizes.heading};
-    ${(props) => props.theme.mediaQueries.small} {
-      font-size: ${(props) => props.theme.fontSizes.mobileHeading};
-    }
-  }
-
-  code {
-    background-color: ${(props) => props.theme.colors.background?.alternative};
-    font-family: ${(props) => props.theme.fonts.code};
-    padding: 1.2rem;
-    font-weight: normal;
-    font-size: ${(props) => props.theme.fontSizes.text};
-  }
-
-  button {
-    font-size: ${(props) => props.theme.fontSizes.small};
-    border-radius: ${(props) => props.theme.radii.button};
-    background-color: ${(props) => props.theme.colors.background?.inverse};
-    color: ${(props) => props.theme.colors.text?.inverse};
-    border: 1px solid ${(props) => props.theme.colors.background?.inverse};
-    font-weight: bold;
-    padding: 1rem;
-    min-height: 4.2rem;
-    cursor: pointer;
-    transition: all .2s ease-in-out;
-
-    &:hover {
-      background-color: transparent;
-      border: 1px solid ${(props) => props.theme.colors.background?.inverse};
-      color: ${(props) => props.theme.colors.text?.default};
-    }
-
-    &:disabled,
-    &[disabled] {
-      border: 1px solid ${(props) => props.theme.colors.background?.inverse};
-      cursor: not-allowed;
-    }
-
-    &:disabled:hover,
-    &[disabled]:hover {
-      background-color: ${(props) => props.theme.colors.background?.inverse};
-      color: ${(props) => props.theme.colors.text?.inverse};
-      border: 1px solid ${(props) => props.theme.colors.background?.inverse};
-    }
   }
 `;

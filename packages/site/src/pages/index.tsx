@@ -1,4 +1,5 @@
 import { Card, InstallFlaskButton, SolanaLogo } from '../components';
+import { Accounts } from '../components/Accounts/Accounts';
 import {
   CardContainer,
   Container,
@@ -30,7 +31,11 @@ const Index = () => {
             <b>An error happened:</b> {error.message}
           </ErrorMessage>
         )}
-        {!isMetaMaskReady && (
+        {isMetaMaskReady ? (
+          <>
+            <Accounts />
+          </>
+        ) : (
           <Card
             content={{
               title: 'Install',

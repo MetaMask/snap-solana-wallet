@@ -10,7 +10,7 @@ const HeaderWrapper = styled.header`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 2.4rem;
+  padding: 20px;
   border-bottom: 1px solid ${(props) => props.theme.colors.border?.default};
 `;
 
