@@ -1,14 +1,14 @@
 import { Card, InstallFlaskButton, SolanaLogo } from '../components';
-import { defaultSnapOrigin } from '../config';
-import { useMetaMask, useMetaMaskContext } from '../hooks';
-import { isLocalSnap } from '../utils';
 import {
   CardContainer,
   Container,
   ErrorMessage,
   Heading,
   Span,
-} from './index.styled';
+} from '../components/styled';
+import { defaultSnapOrigin } from '../config';
+import { useMetaMask, useMetaMaskContext } from '../hooks';
+import { isLocalSnap } from '../utils';
 
 const Index = () => {
   const { error } = useMetaMaskContext();
