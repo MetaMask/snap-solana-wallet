@@ -5,6 +5,19 @@ type StateValue = {
   keyringAccounts?: Record<string, KeyringAccount>;
 } | null;
 
+/**
+ * One SRP -> Multiple Addresses
+ * Each address is a Keyring Account
+ * ... One SRP -> Multiple KeyringAccounts
+ * ... Each address is KeyringAccount
+ */
+
+// type: "eip155:eoa" | "eip155:erc4337" | "bip122:p2wpkh";
+// id: string;
+// address: string;
+// options: Record<string, Json>;
+// methods: string[];
+
 export class SolanaState {
   async get(): Promise<StateValue> {
     const state = await this.#getState();
