@@ -1,7 +1,7 @@
 import {
   emitSnapKeyringEvent,
-  KeyringEvent,
-  SolAccountType,
+  type KeyringEvent,
+  // SolAccountType,
   type Keyring,
   type KeyringAccount,
   type KeyringRequest,
@@ -23,60 +23,78 @@ export class SolanaKeyring implements Keyring {
   }
 
   async listAccounts(): Promise<KeyringAccount[]> {
-    // TODO: Implement method, this is a placeholder
-    return [];
+    try {
+      const currentState = await this.#state.get();
+      return Object.values(currentState?.keyringAccounts ?? {});
+    } catch (error: any) {
+      logger.error({ error }, 'Error listing accounts');
+      throw new Error('Error listing accounts');
+    }
   }
 
   async getAccount(id: string): Promise<KeyringAccount | undefined> {
     try {
       const currentState = await this.#state.get();
-      const keyringAccounts = currentState?.keyringAccounts ?? [];
+      const keyringAccounts = currentState?.keyringAccounts ?? {};
 
-      return keyringAccounts?.find((account) => account.id === id);
+      return keyringAccounts?.[id];
     } catch (error: any) {
-      throw new Error(error);
+      logger.error({ error }, 'Error getting account');
+      throw new Error('Error getting account');
     }
   }
 
   async createAccount(options?: Record<string, Json>): Promise<KeyringAccount> {
-    const solanaWallet = new SolanaWallet(); // TODO: naming
+    try {
+      const solanaWallet = new SolanaWallet(); // TODO: naming
 
-    const currentState = await this.#state.get();
-    const keyringAccounts = currentState?.keyringAccounts ?? [];
-    const newIndex = keyringAccounts.length;
+      const currentState = await this.#state.get();
+      const keyringAccounts = currentState?.keyringAccounts ?? {};
+      const newIndex = Object.keys(keyringAccounts).length;
 
-    const newAddress = await solanaWallet.deriveAddress(newIndex);
+      const newAddress = await solanaWallet.deriveAddress(newIndex);
 
-    logger.log({ newAddress }, 'New address derived');
+      if (!newAddress) {
+        throw new Error('No address derived');
+      }
 
-    const keyringAccount: KeyringAccount = {
-      type: SolAccountType.DataAccount, // TODO: Pending package bump `@metamask/keyring-api`
-      id: uuidv4(),
-      address: newAddress,
-      options: options ?? {},
-      methods: [],
-    };
+      logger.log({ newAddress }, 'New address derived');
 
-    logger.log(
-      { keyringAccount },
-      `New keyring account created, updating state...`,
-    );
-
-    await this.#state.update((state) => {
-      return {
-        ...state,
-        keyringAccounts: [...(state?.keyringAccounts ?? []), keyringAccount],
+      const keyringAccount: KeyringAccount = {
+        type: 'solana:data-account', // SolAccountType.DataAccount TODO: Pending package bump `@metamask/keyring-api`
+        id: uuidv4(),
+        address: newAddress,
+        options: options ?? {},
+        methods: [],
       };
-    });
 
-    logger.log({ keyringAccount }, `State updated with new keyring account`);
+      logger.log(
+        { keyringAccount },
+        `New keyring account created, updating state...`,
+      );
 
-    await this.#emitEvent(KeyringEvent.AccountCreated, {
-      account: keyringAccount,
-      accountNameSuggestion: `Solana Account ${newIndex}`,
-    });
+      await this.#state.update((state) => {
+        return {
+          ...state,
+          keyringAccounts: {
+            ...(state?.keyringAccounts ?? {}),
+            [keyringAccount.id]: keyringAccount,
+          },
+        };
+      });
 
-    return keyringAccount;
+      logger.log({ keyringAccount }, `State updated with new keyring account`);
+
+      // await this.#emitEvent(KeyringEvent.AccountCreated, {
+      //   account: keyringAccount,
+      //   accountNameSuggestion: `Solana Account ${newIndex}`,
+      // });
+
+      return keyringAccount;
+    } catch (error: any) {
+      logger.error({ error }, 'Error creating account');
+      throw new Error('Error creating account');
+    }
   }
 
   async #emitEvent(

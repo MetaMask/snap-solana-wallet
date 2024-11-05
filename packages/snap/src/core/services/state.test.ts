@@ -16,6 +16,10 @@ describe('SolanaState', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    snap.request.mockReset();
+  });
+
   it('gets the state', async () => {
     const mockState = { wallets: [] };
     snap.request.mockResolvedValue(mockState);
@@ -31,15 +35,15 @@ describe('SolanaState', () => {
 
   it('sets the state', async () => {
     const newState = {
-      keyringAccounts: [
-        {
+      keyringAccounts: {
+        '1': {
           type: 'eip155:eoa' as const,
           id: '1',
           address: 'address-1',
           options: {},
           methods: [],
         },
-      ],
+      },
     };
 
     await solanaState.set(newState);
@@ -55,47 +59,47 @@ describe('SolanaState', () => {
 
   it('updates the state', async () => {
     const initialState = {
-      keyringAccounts: [
-        {
+      keyringAccounts: {
+        '1': {
           type: 'eip155:eoa' as const,
           id: '1',
           address: 'address-1',
           options: {},
           methods: [],
         },
-      ],
+      },
     };
     const updatedState = {
-      keyringAccounts: [
-        {
+      keyringAccounts: {
+        '1': {
           type: 'eip155:eoa' as const,
           id: '1',
           address: 'address-1',
           options: {},
           methods: [],
         },
-        {
+        '2': {
           type: 'eip155:eoa' as const,
           id: '2',
           address: 'address-2',
           options: {},
           methods: [],
         },
-      ],
+      },
     };
     snap.request.mockResolvedValueOnce(initialState);
 
     await solanaState.update((state) => ({
-      keyringAccounts: [
-        ...(state.keyringAccounts ?? []),
-        {
+      keyringAccounts: {
+        ...(state?.keyringAccounts ?? {}),
+        '2': {
           type: 'eip155:eoa' as const,
           id: '2',
           address: 'address-2',
           options: {},
           methods: [],
         },
-      ],
+      },
     }));
 
     expect(snap.request).toHaveBeenCalledWith({
