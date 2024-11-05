@@ -8,7 +8,7 @@ import type { KeyringAccount } from '@metamask/keyring-api';
 export type Wallet = {
   account: KeyringAccount;
   hdPath: string;
-  index: number;
+  index: number;  
   scope: string;
 };
 
@@ -27,22 +27,13 @@ export class SolanaWallet {
    */
   #DERIVATION_PATH = [`m`, `44'`, `501'`]
 
-  /**
-   * If you pass an address index we need to derive all addresses from 0 to the index received
-   */
-  static async create({
-    addressIndex = 0,
-  }: {
-    addressIndex?: number;
-  }) {
+  async deriveAddress(index: number): Promise<string> {
     logger.log({}, 'Generating solana wallet')
     
-    const hdPath = [`0'`, `0'`, addressIndex];
-
+    const hdPath = [`0'`, `0'`, `${index}`];
     const rootNode = await getBip32Deriver(this.#DERIVATION_PATH, 'ed25519')
-
     const node = await SLIP10Node.fromJSON(rootNode);
-    const slipNode = await node.derive(hdPath.map((segment) => `slip10:${segment}`));
+    const slipNode = await node.derive((hdPath as any).map((segment: unknown) => `slip10:${segment}`));
 
     console.log('SOLANA keypair: ' + JSON.stringify(slipNode, null, 2))
 
@@ -54,10 +45,6 @@ export class SolanaWallet {
 
     console.log('SOLANA: ' + JSON.stringify(pubkey, null, 2))
 
-    return pubkey;
-  }
-
-  async deriveAddress(index: number) {
-    
+    return pubkey; 
   }
 }

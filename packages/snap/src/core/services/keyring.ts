@@ -1,12 +1,17 @@
-import type {
-  Keyring,
-  KeyringAccount,
-  KeyringRequest,
-  KeyringResponse,
+import {
+  emitSnapKeyringEvent,
+  KeyringEvent,
+  type Keyring,
+  type KeyringAccount,
+  type KeyringRequest,
+  type KeyringResponse,
 } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
+import { v4 as uuidv4 } from 'uuid';
 
 import { SolanaState } from './state';
+import { SolanaWallet } from './wallet';
+import { getProvider } from '../utils/get-provider';
 
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
@@ -36,43 +41,45 @@ export class SolanaKeyring implements Keyring {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options?: Record<string, Json>,
   ): Promise<KeyringAccount> {
-    // TODO: Implement method, this is a placeholder
-
-    // const lastAddressIndex = await this.#state.get()
-    // const account = await SolanaWallet.create({ index: 0 })
-    // this.#state.update((state) => {
-    // return { wallets: [...state.wallets, account] }
-    //})
-    // await this.#emitEvent(KeyringEvent.AccountCreated, {
-    //   account: keyringAccount,
-    //   accountNameSuggestion: this.getKeyringAccountNameSuggestion(options),
-    // });
-
-    
     /**
-     * Get the derivationPath from request.params
-     * Call the  method: 'snap_getBip32Entropy',
-     * From there we get the rootNode (Similar to BTC way)
-     * await SLIP10Node.fromJSON(rootNode);
-     * await node.derive(derivationPath.map((segment) => `slip10:${segment}`));
-     * we try to get a valid signing key pair with: const myKeypair = nacl.sign.keyPair.fromSeed(Uint8Array.from(slipNode.privateKeyBytes));
-     * Finally encode the publicKey with:     const pubkey = bs58.encode(myKeypair.publicKey);
+     * Generate one KeyringAccount (Address) for Solana
      */
+    const solanaWallet = new SolanaWallet() // TODO: naming
 
-    // const keyringAccount = this.newKeyringAccount(account, {
-    //   scope: options.scope,
-    //   index,
-    // });
+    const { keyringAccounts } = await this.#state.get()
+    const lastIndex = keyringAccounts.length
+    const newIndex = lastIndex + 1
 
+    const newKeyringAccount = await solanaWallet.deriveAddress(newIndex)
+    
+    await this.#state.update((state) => {
+      // TODO: newKeyringAccount cannot be a string...
+      return { keyringAccounts: [...state.keyringAccounts, newKeyringAccount] }
+    })
 
+    await this.#emitEvent(KeyringEvent.AccountCreated, {
+      account: newKeyringAccount,
+      // TODO: Maybe we need to generate a suggestion here. Let's try first without it.
+      // Leave it blank to fallback to auto-suggested name on the extension side
+      accountNameSuggestion: `Solana Account ${newIndex}`,
+    });
 
     return {
-      type: 'eip155:eoa',
-      id: 'new-id',
-      address: 'new-address',
-      options: {},
-      methods: [],
-    };
+      type: 'solana:TODO',
+      id: uuidv4(),
+      address: account.address,
+      options: {
+        ...options,
+      },
+      methods: this._methods,
+    } as unknown as KeyringAccount;
+  }
+
+  async #emitEvent(
+    event: KeyringEvent,
+    data: Record<string, Json>,
+  ): Promise<void> {
+    await emitSnapKeyringEvent(getProvider(), event, data);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
