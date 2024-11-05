@@ -76,8 +76,5 @@
       "sharp": true,
       "@commitlint/cli>@commitlint/load>ts-node>@swc/core": false
     }
-  },
-  "dependencies": {
-    "bs58": "^6.0.0"
   }
 }

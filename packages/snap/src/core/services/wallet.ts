@@ -1,14 +1,16 @@
-import { getBip32Deriver } from '../utils/get-bip32-deriver';
 import { SLIP10Node } from '@metamask/key-tree';
-import nacl from 'tweetnacl';
-import bs58 from 'bs58';
-import logger from '../utils/logger'
+import type { SLIP10PathNode } from '@metamask/key-tree';
 import type { KeyringAccount } from '@metamask/keyring-api';
+import bs58 from 'bs58';
+import nacl from 'tweetnacl';
+
+import { getBip32Deriver } from '../utils/get-bip32-deriver';
+import logger from '../utils/logger';
 
 export type Wallet = {
   account: KeyringAccount;
   hdPath: string;
-  index: number;  
+  index: number;
   scope: string;
 };
 
@@ -20,31 +22,41 @@ export type Wallet = {
 export class SolanaWallet {
   /**
    * Derivations path constant
-   * 
+   *
    * m - stands for Master. See: https://learnmeabitcoin.com/technical/keys/hd-wallets/derivation-paths/
    * 44' - stands for BIP44. See: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
    * 501' - stands for Solana. See: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
    */
-  #DERIVATION_PATH = [`m`, `44'`, `501'`]
+  #derivationPath = [`m`, `44'`, `501'`];
 
   async deriveAddress(index: number): Promise<string> {
-    logger.log({}, 'Generating solana wallet')
-    
+    logger.log({ index }, 'Generating solana wallet');
+
     const hdPath = [`0'`, `0'`, `${index}`];
-    const rootNode = await getBip32Deriver(this.#DERIVATION_PATH, 'ed25519')
+    const rootNode = await getBip32Deriver(this.#derivationPath, 'ed25519');
+
     const node = await SLIP10Node.fromJSON(rootNode);
-    const slipNode = await node.derive((hdPath as any).map((segment: unknown) => `slip10:${segment}`));
 
-    console.log('SOLANA keypair: ' + JSON.stringify(slipNode, null, 2))
+    const slip10Path: SLIP10PathNode[] = hdPath.map(
+      (segment: string) => `slip10:${segment}` as SLIP10PathNode,
+    );
 
-    // @ts-ignore
-    const myKeypair = nacl.sign.keyPair.fromSeed(Uint8Array.from(slipNode.privateKeyBytes));
-    console.log('SOLANA sign myKeypair: ' + JSON.stringify(myKeypair, null, 2))
+    const slipNode = await node.derive(slip10Path);
 
-    const pubkey = bs58.encode(myKeypair.publicKey);
+    if (!slipNode.privateKeyBytes) {
+      throw new Error('Unable to derive private key');
+    }
 
-    console.log('SOLANA: ' + JSON.stringify(pubkey, null, 2))
+    const keypair = nacl.sign.keyPair.fromSeed(
+      Uint8Array.from(slipNode.privateKeyBytes),
+    );
 
-    return pubkey; 
+    logger.log({ keypair }, 'New keypair generated');
+
+    const pubkey = bs58.encode(keypair.publicKey);
+
+    logger.log({ pubkey }, 'Encoded public key');
+
+    return pubkey;
   }
 }
