@@ -1,4 +1,4 @@
-import { SnapsProvider } from "@metamask/snaps-sdk";
+import type { SnapsProvider } from '@metamask/snaps-sdk';
 
 /**
  * Retrieves the current SnapsProvider.

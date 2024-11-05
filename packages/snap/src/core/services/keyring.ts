@@ -1,6 +1,7 @@
 import {
   emitSnapKeyringEvent,
   KeyringEvent,
+  SolAccountType,
   type Keyring,
   type KeyringAccount,
   type KeyringRequest,
@@ -9,9 +10,10 @@ import {
 import type { Json } from '@metamask/snaps-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
+import { getProvider } from '../utils/get-provider';
+import logger from '../utils/logger';
 import { SolanaState } from './state';
 import { SolanaWallet } from './wallet';
-import { getProvider } from '../utils/get-provider';
 
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
@@ -25,54 +27,56 @@ export class SolanaKeyring implements Keyring {
     return [];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getAccount(id: string): Promise<KeyringAccount | undefined> {
-    // TODO: Implement method, this is a placeholder
-    return {
-      type: 'eip155:eoa',
-      id: 'default-id',
-      address: 'default-address',
-      options: {},
-      methods: [],
-    };
+    try {
+      const currentState = await this.#state.get();
+      const keyringAccounts = currentState?.keyringAccounts ?? [];
+
+      return keyringAccounts?.find((account) => account.id === id);
+    } catch (error: any) {
+      throw new Error(error);
+    }
   }
 
-  async createAccount(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options?: Record<string, Json>,
-  ): Promise<KeyringAccount> {
-    /**
-     * Generate one KeyringAccount (Address) for Solana
-     */
-    const solanaWallet = new SolanaWallet() // TODO: naming
+  async createAccount(options?: Record<string, Json>): Promise<KeyringAccount> {
+    const solanaWallet = new SolanaWallet(); // TODO: naming
 
-    const { keyringAccounts } = await this.#state.get()
-    const lastIndex = keyringAccounts.length
-    const newIndex = lastIndex + 1
+    const currentState = await this.#state.get();
+    const keyringAccounts = currentState?.keyringAccounts ?? [];
+    const newIndex = keyringAccounts.length;
 
-    const newKeyringAccount = await solanaWallet.deriveAddress(newIndex)
-    
+    const newAddress = await solanaWallet.deriveAddress(newIndex);
+
+    logger.log({ newAddress }, 'New address derived');
+
+    const keyringAccount: KeyringAccount = {
+      type: SolAccountType.DataAccount, // TODO: Pending package bump `@metamask/keyring-api`
+      id: uuidv4(),
+      address: newAddress,
+      options: options ?? {},
+      methods: [],
+    };
+
+    logger.log(
+      { keyringAccount },
+      `New keyring account created, updating state...`,
+    );
+
     await this.#state.update((state) => {
-      // TODO: newKeyringAccount cannot be a string...
-      return { keyringAccounts: [...state.keyringAccounts, newKeyringAccount] }
-    })
+      return {
+        ...state,
+        keyringAccounts: [...(state?.keyringAccounts ?? []), keyringAccount],
+      };
+    });
+
+    logger.log({ keyringAccount }, `State updated with new keyring account`);
 
     await this.#emitEvent(KeyringEvent.AccountCreated, {
-      account: newKeyringAccount,
-      // TODO: Maybe we need to generate a suggestion here. Let's try first without it.
-      // Leave it blank to fallback to auto-suggested name on the extension side
+      account: keyringAccount,
       accountNameSuggestion: `Solana Account ${newIndex}`,
     });
 
-    return {
-      type: 'solana:TODO',
-      id: uuidv4(),
-      address: account.address,
-      options: {
-        ...options,
-      },
-      methods: this._methods,
-    } as unknown as KeyringAccount;
+    return keyringAccount;
   }
 
   async #emitEvent(

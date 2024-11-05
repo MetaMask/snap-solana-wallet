@@ -4,6 +4,7 @@ export enum InternalRpcMethod {}
 
 const dappPermissions = new Set([
   // Keyring methods
+  KeyringRpcMethod.CreateAccount,
   KeyringRpcMethod.ListAccounts,
   KeyringRpcMethod.GetAccount,
   KeyringRpcMethod.GetAccountBalances,
@@ -26,10 +27,10 @@ const metamaskPermissions = new Set([
 ]);
 
 const allowedOrigins = [
+  'http://localhost:3000',
   'https://portfolio.metamask.io',
   'https://portfolio-builds.metafi-dev.codefi.network',
   'https://dev.portfolio.metamask.io',
-  'http://localhost:3000',
   'https://ramps-dev.portfolio.metamask.io',
 ];
 

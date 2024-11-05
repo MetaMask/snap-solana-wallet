@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "OdEcbxwc9KJOk8tsg/dQ/usLXmuk6bAviHwc3cyh7lw=",
+    "shasum": "14ulOGs/Q+9Oks6vEBdC6xSzH8aIQDtH0P39tYp/Lnk=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -40,7 +40,11 @@
     },
     "snap_getBip32Entropy": [
       {
-        "path": ["m", "44'", "501'"],
+        "path": [
+          "m",
+          "44'",
+          "501'"
+        ],
         "curve": "ed25519"
       }
     ],

@@ -4560,6 +4560,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     ts-jest: "npm:^29.1.0"
     tweetnacl: "npm:^1.0.3"
+    uuid: "npm:^11.0.2"
   languageName: unknown
   linkType: soft
 
@@ -4570,6 +4571,7 @@ __metadata:
     "@chakra-ui/react": "npm:^3.0.2"
     "@emotion/react": "npm:^11.13.3"
     "@metamask/eslint-config-browser": "npm:^12.1.0"
+    "@metamask/keyring-api": "npm:^9.0.0"
     "@metamask/providers": "npm:^18.1.0"
     "@svgr/webpack": "npm:^8.1.0"
     "@testing-library/dom": "npm:^10.4.0"
@@ -23697,6 +23699,15 @@ __metadata:
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: 10/5d6949693d58cb2e636a84f3ee1c6e7b2f9c16cb1d42d0ecb386d8c025c69e327205aa1c69e2868cc06a01e5e20681fbba55a4e0ed0cce913d60334024eae798
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^11.0.2":
+  version: 11.0.2
+  resolution: "uuid@npm:11.0.2"
+  bin:
+    uuid: dist/esm/bin/uuid
+  checksum: 10/b98082f398fa2ece8cacc2264402f739256ca70def4bb82e3a14ec70777d189c01ce1054764c3b59b8fc098b62b135a15d1b24914712904c988822e2ac9b4f44
   languageName: node
   linkType: hard
 
