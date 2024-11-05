@@ -4546,6 +4546,7 @@ __metadata:
   dependencies:
     "@jest/globals": "npm:^29.5.0"
     "@metamask/auto-changelog": "npm:^4.0.0"
+    "@metamask/key-tree": "npm:^9.1.2"
     "@metamask/keyring-api": "npm:^9.0.0"
     "@metamask/snaps-cli": "npm:^6.2.1"
     "@metamask/snaps-jest": "npm:8.2.0"
@@ -4553,10 +4554,12 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.6.2"
     "@types/react": "npm:18.2.4"
     "@types/react-dom": "npm:18.2.4"
+    bs58: "npm:^6.0.0"
     buffer: "npm:^6.0.3"
     jest: "npm:^29.5.0"
     rimraf: "npm:^6.0.1"
     ts-jest: "npm:^29.1.0"
+    tweetnacl: "npm:^1.0.3"
   languageName: unknown
   linkType: soft
 
@@ -21943,7 +21946,6 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.42.1"
     "@typescript-eslint/parser": "npm:^5.42.1"
     babel-plugin-styled-components: "npm:^2.1.4"
-    bs58: "npm:^6.0.0"
     eslint: "npm:^8.45.0"
     eslint-config-prettier: "npm:^8.5.0"
     eslint-plugin-import: "npm:~2.26.0"
