@@ -4584,6 +4584,26 @@ __metadata:
     react-is: ^18.3.1
     rimraf: ^6.0.1
     styled-components: 6.1.13
+    "@chakra-ui/react": "npm:^3.0.2"
+    "@emotion/react": "npm:^11.13.3"
+    "@metamask/eslint-config-browser": "npm:^12.1.0"
+    "@metamask/keyring-api": "npm:^9.0.0"
+    "@metamask/providers": "npm:^18.1.0"
+    "@svgr/webpack": "npm:^8.1.0"
+    "@testing-library/dom": "npm:^10.4.0"
+    "@testing-library/jest-dom": "npm:^6.6.2"
+    "@testing-library/react": "npm:^16.0.1"
+    "@testing-library/user-event": "npm:^14.5.2"
+    "@types/styled-components": "npm:^5.1.34"
+    gatsby: "npm:^5.13.7"
+    gatsby-plugin-manifest: "npm:^5.13.1"
+    gatsby-plugin-styled-components: "npm:^6.13.1"
+    gatsby-plugin-svgr: "npm:^3.0.0-beta.0"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    react-is: "npm:^18.3.1"
+    rimraf: "npm:^6.0.1"
+    styled-components: "npm:6.1.13"
   languageName: unknown
   linkType: soft
 
