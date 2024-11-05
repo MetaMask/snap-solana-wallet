@@ -1,0 +1,23 @@
+import { type SLIP10NodeInterface } from '@metamask/key-tree';
+
+/**
+ * Retrieves a `SLIP10NodeInterface` object for the specified path and curve.
+ *
+ * @param path - The BIP32 derivation path for which to retrieve a `SLIP10NodeInterface`.
+ * @param curve - The elliptic curve to use for key derivation.
+ * @returns A Promise that resolves to a `SLIP10NodeInterface` object.
+ */
+export async function getBip32Deriver(
+  path: string[],
+  curve: 'secp256k1' | 'ed25519',
+): Promise<SLIP10NodeInterface> {
+  const node = await snap.request({
+    method: 'snap_getBip32Entropy',
+    params: {
+          path: [`m`, `44'`, `501'`],
+          curve: 'ed25519'
+    },
+  });
+  
+  return node as SLIP10NodeInterface;
+}
