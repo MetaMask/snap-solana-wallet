@@ -14,10 +14,10 @@ export async function getBip32Deriver(
   const node = await snap.request({
     method: 'snap_getBip32Entropy',
     params: {
-          path: [`m`, `44'`, `501'`],
-          curve: 'ed25519'
+      path,
+      curve,
     },
   });
-  
+
   return node as SLIP10NodeInterface;
 }

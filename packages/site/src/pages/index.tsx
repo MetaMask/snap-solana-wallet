@@ -23,7 +23,7 @@ const Index = () => {
     <Container>
       <Heading>
         <SolanaLogo size={60} />
-        <Span>Solana wallet</Span>
+        <Span>olana wallet</Span>
       </Heading>
       <CardContainer>
         {error && (

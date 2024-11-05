@@ -29,34 +29,61 @@ export class SolanaWallet {
    */
   #derivationPath = [`m`, `44'`, `501'`];
 
+  /**
+   * Elliptic curve
+   *
+   * See: https://cryptography.io/en/latest/hazmat/primitives/asymmetric/ed25519/
+   */
+  #curve = 'ed25519' as const;
+
   async deriveAddress(index: number): Promise<string> {
     logger.log({ index }, 'Generating solana wallet');
 
-    const hdPath = [`0'`, `0'`, `${index}`];
-    const rootNode = await getBip32Deriver(this.#derivationPath, 'ed25519');
+    /**
+     * Derivation path for Solana addresses matching Phantom
+     * https://help.phantom.app/hc/en-us/articles/12988493966227-What-derivation-paths-does-Phantom-wallet-support
+     * They already match our derivation path for Ethereum addresses.
+     * Other wallets might follow a different logic
+     */
+    const hdPath = [`${index}'`, `0'`];
 
-    const node = await SLIP10Node.fromJSON(rootNode);
+    try {
+      const rootNode = await getBip32Deriver(this.#derivationPath, this.#curve);
 
-    const slip10Path: SLIP10PathNode[] = hdPath.map(
-      (segment: string) => `slip10:${segment}` as SLIP10PathNode,
-    );
+      logger.log({ rootNode });
 
-    const slipNode = await node.derive(slip10Path);
+      const node = await SLIP10Node.fromJSON(rootNode);
 
-    if (!slipNode.privateKeyBytes) {
-      throw new Error('Unable to derive private key');
+      logger.log({ node });
+
+      const slip10Path: SLIP10PathNode[] = hdPath.map(
+        (segment: string) => `slip10:${segment}` as SLIP10PathNode,
+      );
+
+      logger.log({ slip10Path });
+
+      const slipNode = await node.derive(slip10Path);
+
+      logger.log({ slipNode });
+
+      if (!slipNode.privateKeyBytes) {
+        throw new Error('Unable to derive private key');
+      }
+
+      const keypair = nacl.sign.keyPair.fromSeed(
+        Uint8Array.from(slipNode.privateKeyBytes),
+      );
+
+      logger.log({ keypair }, 'New keypair generated');
+
+      const pubkey = bs58.encode(keypair.publicKey);
+
+      logger.log({ pubkey }, 'Encoded public key');
+
+      return pubkey;
+    } catch (error: any) {
+      logger.error({ error }, 'Error deriving address');
+      throw new Error(error);
     }
-
-    const keypair = nacl.sign.keyPair.fromSeed(
-      Uint8Array.from(slipNode.privateKeyBytes),
-    );
-
-    logger.log({ keypair }, 'New keypair generated');
-
-    const pubkey = bs58.encode(keypair.publicKey);
-
-    logger.log({ pubkey }, 'Encoded public key');
-
-    return pubkey;
   }
 }
