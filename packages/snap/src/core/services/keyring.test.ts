@@ -5,6 +5,17 @@ import type {
 } from '@metamask/keyring-api';
 
 import { SolanaKeyring } from './keyring';
+import { SolanaWallet } from './wallet';
+
+const snap = {
+  request: jest.fn(),
+};
+
+(globalThis as any).snap = snap;
+
+const SOLANA_ADDRESS = 'sV5yt1P3fyiuTGMsbaX5tB9nXmVWYNv7tqTRBLeV8Aj';
+
+jest.mock('./wallet');
 
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
@@ -13,30 +24,129 @@ describe('SolanaKeyring', () => {
     keyring = new SolanaKeyring();
   });
 
-  it('list accounts', async () => {
-    const accounts = await keyring.listAccounts();
-    expect(accounts).toStrictEqual([]);
+  afterEach(() => {
+    snap.request.mockReset();
+    jest.clearAllMocks();
   });
 
-  it('gets account by id', async () => {
-    const account = await keyring.getAccount('default-id');
-    expect(account).toStrictEqual({
-      type: 'eip155:eoa',
-      id: 'default-id',
-      address: 'default-address',
-      options: {},
-      methods: [],
+  describe('listAccounts', () => {
+    it('lists accounts from the state', async () => {
+      const keyringAccounts = {
+        '1': {
+          type: 'eip155:eoa',
+          id: '1',
+          address: 'address-1',
+          options: {},
+          methods: [],
+        },
+        '2': {
+          type: 'eip155:eoa',
+          id: '2',
+          address: 'address-2',
+          options: {},
+          methods: [],
+        },
+      };
+
+      snap.request.mockReturnValue({
+        keyringAccounts,
+      });
+
+      const accounts = await keyring.listAccounts();
+      expect(accounts).toStrictEqual(accounts);
+    });
+
+    it('returns empty array if no accounts are found', async () => {
+      snap.request.mockReturnValue(null);
+
+      const accounts = await keyring.listAccounts();
+      expect(accounts).toStrictEqual([]);
+    });
+
+    it('throws an error if state fails to be retrieved', async () => {
+      snap.request.mockRejectedValue(null);
+
+      await expect(keyring.listAccounts()).rejects.toThrow(
+        'Error listing accounts',
+      );
     });
   });
 
-  it('creates a new account', async () => {
-    const account = await keyring.createAccount();
-    expect(account).toStrictEqual({
-      type: 'eip155:eoa',
-      id: 'new-id',
-      address: 'new-address',
-      options: {},
-      methods: [],
+  describe('getAccount', () => {
+    it('gets account by id', async () => {
+      const keyringAccounts = {
+        '1': {
+          type: 'eip155:eoa',
+          id: '1',
+          address: 'address-1',
+          options: {},
+          methods: [],
+        },
+      };
+
+      snap.request.mockReturnValue({
+        keyringAccounts,
+      });
+
+      const account = await keyring.getAccount('1');
+      expect(account).toStrictEqual(keyringAccounts['1']);
+    });
+
+    it('returns undefined if account is not found', async () => {
+      snap.request.mockReturnValue(null);
+
+      const account = await keyring.getAccount('1');
+      expect(account).toBeUndefined();
+    });
+
+    it('throws an error if state fails to be retrieved', async () => {
+      snap.request.mockRejectedValue(null);
+
+      await expect(keyring.getAccount('1')).rejects.toThrow(
+        'Error getting account',
+      );
+    });
+  });
+
+  describe('createAccount', () => {
+    it('creates a new account', async () => {
+      jest.mocked(SolanaWallet).mockImplementation(() => {
+        return {
+          deriveAddress: () => SOLANA_ADDRESS,
+        } as unknown as SolanaWallet;
+      });
+
+      const account = await keyring.createAccount();
+
+      expect(account).toStrictEqual({
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS,
+        options: {},
+        methods: [],
+      });
+    });
+
+    it('throws when deriving address fails', async () => {
+      jest.mocked(SolanaWallet).mockImplementation(() => {
+        return {
+          deriveAddress: () => {
+            throw new Error('Error deriving address');
+          },
+        } as unknown as SolanaWallet;
+      });
+
+      await expect(keyring.createAccount()).rejects.toThrow(
+        'Error creating account',
+      );
+    });
+
+    it('throws an error if state fails to be retrieved', async () => {
+      snap.request.mockRejectedValue(null);
+
+      await expect(keyring.createAccount()).rejects.toThrow(
+        'Error creating account',
+      );
     });
   });
 

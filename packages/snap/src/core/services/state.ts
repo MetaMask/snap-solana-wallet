@@ -2,7 +2,7 @@ import type { KeyringAccount } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 
 type StateValue = {
-  keyringAccounts?: KeyringAccount[];
+  keyringAccounts?: Record<string, KeyringAccount>;
 } | null;
 
 export class SolanaState {

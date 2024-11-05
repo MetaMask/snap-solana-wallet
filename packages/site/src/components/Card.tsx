@@ -11,7 +11,9 @@ type CardProps = {
   fullWidth?: boolean;
 };
 
-const CardWrapper = styled.div<{
+const CardWrapper = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['fullWidth'].includes(prop),
+})<{
   fullWidth?: boolean | undefined;
   disabled?: boolean | undefined;
 }>`
