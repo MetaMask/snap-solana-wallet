@@ -37,6 +37,35 @@ export class SolanaKeyring implements Keyring {
     options?: Record<string, Json>,
   ): Promise<KeyringAccount> {
     // TODO: Implement method, this is a placeholder
+
+    // const lastAddressIndex = await this.#state.get()
+    // const account = await SolanaWallet.create({ index: 0 })
+    // this.#state.update((state) => {
+    // return { wallets: [...state.wallets, account] }
+    //})
+    // await this.#emitEvent(KeyringEvent.AccountCreated, {
+    //   account: keyringAccount,
+    //   accountNameSuggestion: this.getKeyringAccountNameSuggestion(options),
+    // });
+
+    
+    /**
+     * Get the derivationPath from request.params
+     * Call the  method: 'snap_getBip32Entropy',
+     * From there we get the rootNode (Similar to BTC way)
+     * await SLIP10Node.fromJSON(rootNode);
+     * await node.derive(derivationPath.map((segment) => `slip10:${segment}`));
+     * we try to get a valid signing key pair with: const myKeypair = nacl.sign.keyPair.fromSeed(Uint8Array.from(slipNode.privateKeyBytes));
+     * Finally encode the publicKey with:     const pubkey = bs58.encode(myKeypair.publicKey);
+     */
+
+    // const keyringAccount = this.newKeyringAccount(account, {
+    //   scope: options.scope,
+    //   index,
+    // });
+
+
+
     return {
       type: 'eip155:eoa',
       id: 'new-id',
