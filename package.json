@@ -17,7 +17,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn workspaces foreach --parallel --topological --verbose --worktree run build",
+    "build": "yarn workspaces foreach --parallel --topological --verbose run build",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,jsx,ts,tsx",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
@@ -25,7 +25,7 @@
     "prepare": "husky",
     "prettier:check": "prettier --check 'packages/**/*.{ts,json,js,tsx}'",
     "prettier:fix": "prettier --write 'packages/**/*.{ts,json,js,tsx}'",
-    "start": "yarn workspaces foreach --parallel --interlaced --worktree --verbose run start",
+    "start": "yarn workspaces foreach --parallel --interlaced --verbose run start",
     "test": "yarn workspace @metamask/solana-wallet-snap run test --detectOpenHandles",
     "test:watch": "yarn workspace @metamask/solana-wallet-snap run test:watch"
   },
@@ -66,7 +66,7 @@
     "sharp": "^0.33.5",
     "typescript": "^5.6.3"
   },
-  "packageManager": "yarn@4.5.1",
+  "packageManager": "yarn@3.8.6",
   "engines": {
     "node": ">=20.17.0"
   },
