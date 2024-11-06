@@ -10,6 +10,12 @@ jobs:
     uses: ./.github/workflows/build-lint-test.yml
 
   sonarcloud:
+    permissions:
+      id-token: write
+      contents: write
+      checks: write
+      pull-requests: write
+      actions: read
     name: SonarCloud
     needs: build-lint-test
     uses: ./.github/workflows/sonarcloud.yml
