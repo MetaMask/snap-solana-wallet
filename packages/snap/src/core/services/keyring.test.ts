@@ -4,6 +4,7 @@ import type {
   KeyringResponse,
 } from '@metamask/keyring-api';
 
+import { SOLANA_ADDRESS } from '../constants/address';
 import { SolanaKeyring } from './keyring';
 import { SolanaWallet } from './wallet';
 
@@ -12,8 +13,6 @@ const snap = {
 };
 
 (globalThis as any).snap = snap;
-
-const SOLANA_ADDRESS = 'sV5yt1P3fyiuTGMsbaX5tB9nXmVWYNv7tqTRBLeV8Aj';
 
 jest.mock('./wallet');
 

@@ -34,23 +34,15 @@ export const Accounts = () => {
           Accounts
         </ChakraText>
         <Flex>
-          <Button
-            data-test-id="refresh"
-            colorPalette="purple"
-            onClick={fetchAccounts}
-            marginRight="3"
-          >
+          <Button data-test-id="refresh" colorPalette="purple" onClick={fetchAccounts} marginRight="3">
             Refresh
           </Button>
-          <Button
-            data-test-id="add-account"
-            colorPalette="purple"
-            onClick={handleCreateAccount}
-          >
+          <Button data-test-id="add-account" colorPalette="purple" onClick={handleCreateAccount}>
             Add account
           </Button>
         </Flex>
       </Flex>
+
       <Table.Root data-test-id="accounts-table" marginTop="4" variant="line">
         <Table.Header>
           <Table.Row>
@@ -62,16 +54,10 @@ export const Accounts = () => {
         <Table.Body>
           {accounts?.map((account) => (
             <Table.Row data-test-id={account.id} key={account.id}>
-              <Table.Cell data-test-id="address" fontFamily="monospace">
-                {account.address}
-              </Table.Cell>
+              <Table.Cell data-test-id="address" fontFamily="monospace">{account.address}</Table.Cell>
               <Table.Cell data-test-id="balance">N/A</Table.Cell>
               <Table.Cell textAlign="end">
-                <Button
-                  data-test-id="remove"
-                  variant="outline"
-                  colorPalette="purple"
-                >
+                <Button data-test-id="remove" variant="outline" colorPalette="purple">
                   Remove
                 </Button>
               </Table.Cell>
