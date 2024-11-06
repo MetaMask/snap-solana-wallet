@@ -1,7 +1,11 @@
 name: Validate application code
 
 permissions:
-  contents: read
+  id-token: write
+  contents: write
+  checks: write
+  pull-requests: write
+  actions: read
 
 on:
   workflow_call:
