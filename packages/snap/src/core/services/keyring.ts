@@ -1,6 +1,6 @@
 import {
   emitSnapKeyringEvent,
-  type KeyringEvent,
+  KeyringEvent,
   // SolAccountType,
   type Keyring,
   type KeyringAccount,
@@ -85,10 +85,10 @@ export class SolanaKeyring implements Keyring {
 
       logger.log({ keyringAccount }, `State updated with new keyring account`);
 
-      // await this.#emitEvent(KeyringEvent.AccountCreated, {
-      //   account: keyringAccount,
-      //   accountNameSuggestion: `Solana Account ${newIndex}`,
-      // });
+      await this.#emitEvent(KeyringEvent.AccountCreated, {
+        account: keyringAccount,
+        accountNameSuggestion: `Solana Account ${newIndex}`,
+      });
 
       return keyringAccount;
     } catch (error: any) {
