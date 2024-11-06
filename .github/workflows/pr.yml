@@ -1,12 +1,5 @@
 name: PR
 
-permissions:
-  id-token: write
-  contents: write
-  checks: write
-  pull-requests: write
-  actions: read
-
 on:
   pull_request:
 
