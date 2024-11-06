@@ -31,7 +31,7 @@
     "test:watch": "jest --watch --passWithNoTests"
   },
   "dependencies": {
-    "@metamask/keyring-api": "^9.0.0",
+    "@metamask/keyring-api": "npm:@metamask-previews/keyring-api@9.0.0-f9cd26b",
     "@metamask/snaps-sdk": "^6.9.0",
     "buffer": "^6.0.3"
   },
