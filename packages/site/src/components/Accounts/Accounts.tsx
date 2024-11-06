@@ -34,15 +34,24 @@ export const Accounts = () => {
           Accounts
         </ChakraText>
         <Flex>
-          <Button colorPalette="purple" onClick={fetchAccounts} marginRight="3">
+          <Button
+            data-test-id="refresh"
+            colorPalette="purple"
+            onClick={fetchAccounts}
+            marginRight="3"
+          >
             Refresh
           </Button>
-          <Button colorPalette="purple" onClick={handleCreateAccount}>
+          <Button
+            data-test-id="add-account"
+            colorPalette="purple"
+            onClick={handleCreateAccount}
+          >
             Add account
           </Button>
         </Flex>
       </Flex>
-      <Table.Root marginTop="4" variant="line">
+      <Table.Root data-test-id="accounts-table" marginTop="4" variant="line">
         <Table.Header>
           <Table.Row>
             <Table.ColumnHeader>Address</Table.ColumnHeader>
@@ -52,11 +61,17 @@ export const Accounts = () => {
         </Table.Header>
         <Table.Body>
           {accounts?.map((account) => (
-            <Table.Row key={account.id}>
-              <Table.Cell fontFamily="monospace">{account.address}</Table.Cell>
-              <Table.Cell>N/A</Table.Cell>
+            <Table.Row data-test-id={account.id} key={account.id}>
+              <Table.Cell data-test-id="address" fontFamily="monospace">
+                {account.address}
+              </Table.Cell>
+              <Table.Cell data-test-id="balance">N/A</Table.Cell>
               <Table.Cell textAlign="end">
-                <Button variant="outline" colorPalette="purple">
+                <Button
+                  data-test-id="remove"
+                  variant="outline"
+                  colorPalette="purple"
+                >
                   Remove
                 </Button>
               </Table.Cell>

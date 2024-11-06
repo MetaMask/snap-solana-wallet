@@ -50,7 +50,7 @@ export const ConnectButton = (props: ComponentProps<typeof Button>) => {
 
 export const ReconnectButton = (props: ComponentProps<typeof Button>) => {
   return (
-    <Button {...props}>
+    <Button data-test-id="reconnect" {...props}>
       <FlaskFox />
       <ButtonText>Reconnect</ButtonText>
     </Button>

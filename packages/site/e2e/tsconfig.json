@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+      "baseUrl": "http://localhost:3000",
+      "paths": {
+        "@myhelper/*": ["packages/site/e2e/*"] // This mapping is relative to "baseUrl".
+      }
+    }
+  }
