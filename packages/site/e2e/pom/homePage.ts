@@ -4,7 +4,7 @@ interface Account {
     address: string,
     balance: string
 }
-class HomePage {
+export default class HomePage {
   page: Page;
   addAccountButton: string;
   refreshButton: string;
@@ -45,5 +45,3 @@ class HomePage {
   }
 
 }
-
-module.exports = HomePage;
