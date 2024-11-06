@@ -27,6 +27,7 @@ jobs:
       - name: Install
         run: |
           yarn install
+          npm rebuild --verbose sharp
           yarn build
       - uses: actions/cache@v4
         id: restore-build

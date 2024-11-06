@@ -1,6 +1,6 @@
 {
   "name": "@metamask/solana-wallet-test-dapp",
-  "version": "0.1.5",
+  "version": "0.1.8",
   "private": true,
   "description": "A sample dapp to test the Solana wallet Snap.",
   "license": "(MIT-0 OR Apache-2.0)",
