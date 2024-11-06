@@ -4563,6 +4563,7 @@ __metadata:
   dependencies:
     "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": ^4.0.0
+    "@metamask/key-tree": ^9.1.2
     "@metamask/keyring-api": "npm:@metamask-previews/keyring-api@9.0.0-f9cd26b"
     "@metamask/snaps-cli": ^6.2.1
     "@metamask/snaps-jest": 8.2.0
@@ -4570,10 +4571,13 @@ __metadata:
     "@testing-library/jest-dom": ^6.6.2
     "@types/react": 18.2.4
     "@types/react-dom": 18.2.4
+    bs58: ^6.0.0
     buffer: ^6.0.3
     jest: ^29.5.0
     rimraf: ^6.0.1
     ts-jest: ^29.1.0
+    tweetnacl: ^1.0.3
+    uuid: ^11.0.2
   languageName: unknown
   linkType: soft
 
@@ -10057,6 +10061,15 @@ __metadata:
   dependencies:
     fast-json-stable-stringify: "npm:2.x"
   checksum: d34bdaf68c64bd099ab97c3ea608c9ae7d3f5faa1178b3f3f345acd94e852e608b2d4f9103fb2e503f5e69780e98293df41691b84be909b41cf5045374d54606
+  languageName: node
+  linkType: hard
+
+"bs58@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "bs58@npm:6.0.0"
+  dependencies:
+    base-x: ^5.0.0
+  checksum: 820334f9513bba6195136dfc9dfbd1f5aded6c7864639f3ee7b63c2d9d6f9f2813b9949b1f6beb9c161237be2a461097444c2ff587c8c3b824fe18878fa22448
   languageName: node
   linkType: hard
 
