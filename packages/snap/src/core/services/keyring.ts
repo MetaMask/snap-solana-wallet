@@ -1,7 +1,7 @@
 import {
   emitSnapKeyringEvent,
   KeyringEvent,
-  // SolAccountType,
+  SolAccountType,
   type Keyring,
   type KeyringAccount,
   type KeyringRequest,
@@ -61,7 +61,7 @@ export class SolanaKeyring implements Keyring {
       logger.log({ newAddress }, 'New address derived');
 
       const keyringAccount: KeyringAccount = {
-        type: 'solana:data-account', // SolAccountType.DataAccount TODO: Pending package bump `@metamask/keyring-api`
+        type: SolAccountType.DataAccount,
         id: uuidv4(),
         address: newAddress,
         options: options ?? {},
