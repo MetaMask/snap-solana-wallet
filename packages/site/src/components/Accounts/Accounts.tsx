@@ -1,4 +1,10 @@
-import { Flex, Table, Text as ChakraText, Button } from '@chakra-ui/react';
+import {
+  Flex,
+  Table,
+  Text as ChakraText,
+  Button,
+  Link,
+} from '@chakra-ui/react';
 import type { KeyringAccount } from '@metamask/keyring-api';
 import { useEffect, useState } from 'react';
 
@@ -65,6 +71,15 @@ export const Accounts = () => {
               <Table.Cell fontFamily="monospace">{account.address}</Table.Cell>
               <Table.Cell>N/A</Table.Cell>
               <Table.Cell textAlign="end">
+                <Link
+                  colorPalette="purple"
+                  href={`https://explorer.solana.com/address/${account.address}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  marginRight="5"
+                >
+                  View
+                </Link>
                 <Button
                   variant="outline"
                   colorPalette="purple"
