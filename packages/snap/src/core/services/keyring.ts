@@ -13,7 +13,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { getProvider } from '../utils/get-provider';
 import logger from '../utils/logger';
 import { SolanaState } from './state';
-import { SolanaWallet } from './wallet';
+import { deriveSolanaAddress } from '../utils/derive-solana-address';
+
+/**
+ * We need to store the index of the KeyringAccount in the state because
+ * we want to be able to restore any account with a previously used index.
+ */
+export type SolanaKeyringAccount = {
+  index: number;
+} & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
@@ -44,15 +52,29 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  async createAccount(options?: Record<string, Json>): Promise<KeyringAccount> {
+  async createAccount(
+    options?: Record<string, Json>,
+  ): Promise<SolanaKeyringAccount> {
     try {
-      const solanaWallet = new SolanaWallet(); // TODO: naming
-
       const currentState = await this.#state.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
-      const newIndex = Object.keys(keyringAccounts).length;
 
-      const newAddress = await solanaWallet.deriveAddress(newIndex);
+      /**
+       * Generating a new index for the KeyringAccount is not as straightforward as one might think.
+       * We cannot assume that this number will continuosly increase because one can delete an account with
+       * an index in the middle. The right way to do it is to loop through the keyringAccounts
+       * and get the lowest index that is not yet used.
+       */
+      const newAccountIndex = Object.values(keyringAccounts).reduce(
+        (lowestUnusedIndex, currentAccount) => {
+          return currentAccount.index >= lowestUnusedIndex
+            ? lowestUnusedIndex + 1
+            : lowestUnusedIndex;
+        },
+        0,
+      );
+
+      const newAddress = await deriveSolanaAddress(newAccountIndex);
 
       if (!newAddress) {
         throw new Error('No address derived');
@@ -60,7 +82,8 @@ export class SolanaKeyring implements Keyring {
 
       logger.log({ newAddress }, 'New address derived');
 
-      const keyringAccount: KeyringAccount = {
+      const keyringAccount: SolanaKeyringAccount = {
+        index: newAccountIndex,
         type: SolAccountType.DataAccount,
         id: uuidv4(),
         address: newAddress,
@@ -86,8 +109,14 @@ export class SolanaKeyring implements Keyring {
       logger.log({ keyringAccount }, `State updated with new keyring account`);
 
       await this.#emitEvent(KeyringEvent.AccountCreated, {
-        account: keyringAccount,
-        accountNameSuggestion: `Solana Account ${newIndex}`,
+        account: {
+          type: keyringAccount.type,
+          id: keyringAccount.id,
+          address: keyringAccount.address,
+          options: keyringAccount.options,
+          methods: keyringAccount.methods,
+        },
+        accountNameSuggestion: `Solana Account ${newAccountIndex}`,
       });
 
       return keyringAccount;

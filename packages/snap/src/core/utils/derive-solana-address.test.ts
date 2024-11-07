@@ -1,5 +1,3 @@
-import { SolanaWallet } from './wallet';
-
 /**
  * Test seed phrase is:
  * sugar interest animal afford dog imitate relief lizard width strategy embark midnight
@@ -25,6 +23,9 @@ import { SolanaWallet } from './wallet';
  * #1 - FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo
  * #2 - 27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD
  */
+
+import { deriveSolanaAddress } from './derive-solana-address';
+
 const mockGetBip32Deriver = jest.fn().mockResolvedValue({
   depth: 2,
   masterFingerprint: 3974444335,
@@ -43,47 +44,30 @@ jest.mock('../utils/get-bip32-deriver', () => ({
   getBip32Deriver: () => mockGetBip32Deriver(),
 }));
 
-describe('SolanaWallet', () => {
-  let solanaWallet: SolanaWallet;
-
-  beforeEach(() => {
-    solanaWallet = new SolanaWallet();
-  });
-
+describe('deriveSolanaAddress', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('deriveAddress', () => {
-    it('should derive address #1 correctly', async () => {
-      const index = 0;
-      const address = await solanaWallet.deriveAddress(index);
+  it('should derive address #1 correctly', async () => {
+    const address = await deriveSolanaAddress(0);
+    expect(address).toBe('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP');
+  });
 
-      expect(address).toBe('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP');
-    });
+  it('should derive address #2 correctly', async () => {
+    const address = await deriveSolanaAddress(1);
+    expect(address).toBe('FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo');
+  });
 
-    it('should derive address #2 correctly', async () => {
-      const index = 1;
-      const address = await solanaWallet.deriveAddress(index);
+  it('should derive address #3 correctly', async () => {
+    const address = await deriveSolanaAddress(2);
+    expect(address).toBe('27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD');
+  });
 
-      expect(address).toBe('FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo');
-    });
+  it('logs an error if derivation fails', async () => {
+    const mockError = new Error('Could not derive address');
+    mockGetBip32Deriver.mockRejectedValueOnce(mockError);
 
-    it('should derive address #3 correctly', async () => {
-      const index = 2;
-      const address = await solanaWallet.deriveAddress(index);
-
-      expect(address).toBe('27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD');
-    });
-
-    it('logs an error if derivation fails', async () => {
-      const mockError = new Error('Could not derive address');
-
-      mockGetBip32Deriver.mockRejectedValueOnce(mockError);
-
-      await expect(solanaWallet.deriveAddress(0)).rejects.toThrow(
-        mockError.message,
-      );
-    });
+    await expect(deriveSolanaAddress(0)).rejects.toThrow(mockError.message);
   });
 });

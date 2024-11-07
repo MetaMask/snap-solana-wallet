@@ -6,15 +6,18 @@ import type {
 
 import { SOLANA_ADDRESS } from '../constants/address';
 import { SolanaKeyring } from './keyring';
-import { SolanaWallet } from './wallet';
+import { deriveSolanaAddress } from '../utils/derive-solana-address';
+
+// Add this at the top of the file, after the imports
+jest.mock('../utils/derive-solana-address', () => ({
+  deriveSolanaAddress: jest.fn().mockResolvedValue(SOLANA_ADDRESS),
+}));
 
 const snap = {
   request: jest.fn(),
 };
 
 (globalThis as any).snap = snap;
-
-jest.mock('./wallet');
 
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
@@ -109,15 +112,10 @@ describe('SolanaKeyring', () => {
 
   describe('createAccount', () => {
     it('creates a new account', async () => {
-      jest.mocked(SolanaWallet).mockImplementation(() => {
-        return {
-          deriveAddress: () => SOLANA_ADDRESS,
-        } as unknown as SolanaWallet;
-      });
-
       const account = await keyring.createAccount();
 
       expect(account).toStrictEqual({
+        index: 0,
         type: 'solana:data-account',
         id: expect.any(String),
         address: SOLANA_ADDRESS,
@@ -127,12 +125,8 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws when deriving address fails', async () => {
-      jest.mocked(SolanaWallet).mockImplementation(() => {
-        return {
-          deriveAddress: () => {
-            throw new Error('Error deriving address');
-          },
-        } as unknown as SolanaWallet;
+      jest.mocked(deriveSolanaAddress).mockImplementation(() => {
+        return Promise.reject(new Error('Error deriving address'));
       });
 
       await expect(keyring.createAccount()).rejects.toThrow(
