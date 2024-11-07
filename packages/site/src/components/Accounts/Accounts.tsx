@@ -38,6 +38,17 @@ export const Accounts = () => {
     await fetchAccounts();
   };
 
+  const handleGetBalance = async (id: string) => {
+    await invokeKeyring({
+      method: 'keyring_getAccountBalances',
+      params: {
+        id,
+        assets: ['SOL'],
+      },
+    });
+    await fetchAccounts();
+  };
+
   useEffect(() => {
     fetchAccounts();
   }, []);
@@ -80,6 +91,13 @@ export const Accounts = () => {
                 >
                   View
                 </Link>
+                <Button
+                  variant="outline"
+                  colorPalette="purple"
+                  onClick={async () => handleGetBalance(account.id)}
+                >
+                  Balance
+                </Button>
                 <Button
                   variant="outline"
                   colorPalette="purple"

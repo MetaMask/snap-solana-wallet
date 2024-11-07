@@ -34,6 +34,7 @@
     "@metamask/key-tree": "^9.1.2",
     "@metamask/keyring-api": "npm:@metamask-previews/keyring-api@9.0.0-f9cd26b",
     "@metamask/snaps-sdk": "^6.9.0",
+    "@solana/web3.js": "^1.95.4",
     "bs58": "^6.0.0",
     "buffer": "^6.0.3",
     "tweetnacl": "^1.0.3",

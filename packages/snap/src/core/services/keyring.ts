@@ -2,6 +2,8 @@ import {
   emitSnapKeyringEvent,
   KeyringEvent,
   SolAccountType,
+  type Balance,
+  type CaipAssetType,
   type Keyring,
   type KeyringAccount,
   type KeyringRequest,
@@ -10,10 +12,12 @@ import {
 import type { Json } from '@metamask/snaps-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
+import { SOL_CAIP_19, SOL_SYMBOL } from '../constants/solana';
 import { deriveSolanaAddress } from '../utils/derive-solana-address';
 import { getLowestUnusedKeyringAccountIndex } from '../utils/get-lowest-unused-keyring-account-index';
 import { getProvider } from '../utils/get-provider';
 import logger from '../utils/logger';
+import { SolanaOnChain } from './onchain';
 import { SolanaState } from './state';
 
 /**
@@ -115,6 +119,33 @@ export class SolanaKeyring implements Keyring {
     } catch (error: any) {
       logger.error({ error }, 'Error creating account');
       throw new Error('Error creating account');
+    }
+  }
+
+  async getAccountBalances(
+    id: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    assets: CaipAssetType[],
+  ): Promise<Record<CaipAssetType, Balance>> {
+    try {
+      const account = await this.getAccount(id);
+
+      if (!account) {
+        throw new Error('Account not found');
+      }
+
+      const onchain = new SolanaOnChain({ cluster: 'devnet' });
+      const balances = await onchain.getBalance(account.address);
+
+      return {
+        [SOL_CAIP_19]: {
+          balance: balances.toString(),
+          unit: SOL_SYMBOL,
+        },
+      } as any;
+    } catch (error: any) {
+      logger.error({ error }, 'Error getting account balances');
+      throw new Error('Error getting account balances');
     }
   }
 
