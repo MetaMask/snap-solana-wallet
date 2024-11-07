@@ -3,20 +3,80 @@ import type {
   KeyringRequest,
   KeyringResponse,
 } from '@metamask/keyring-api';
+import type { Json } from '@metamask/snaps-sdk';
 
-import { SOLANA_ADDRESS } from '../constants/address';
-import { SolanaKeyring } from './keyring';
+import {
+  SOLANA_ADDRESS_1,
+  SOLANA_ADDRESS_2,
+  SOLANA_ADDRESS_3,
+  SOLANA_ADDRESS_4,
+  SOLANA_ADDRESS_5,
+  SOLANA_ADDRESS_6,
+} from '../constants/address';
 import { deriveSolanaAddress } from '../utils/derive-solana-address';
+import { SolanaKeyring } from './keyring';
 
-// Add this at the top of the file, after the imports
-jest.mock('../utils/derive-solana-address', () => ({
-  deriveSolanaAddress: jest.fn().mockResolvedValue(SOLANA_ADDRESS),
+jest.mock('@metamask/keyring-api', () => ({
+  ...jest.requireActual('@metamask/keyring-api'),
+  emitSnapKeyringEvent: jest.fn().mockResolvedValue(null),
 }));
 
-const snap = {
-  request: jest.fn(),
-};
+jest.mock('../utils/derive-solana-address', () => ({
+  deriveSolanaAddress: jest.fn().mockImplementation((index) => {
+    switch (index) {
+      case 0:
+        return SOLANA_ADDRESS_1;
+      case 1:
+        return SOLANA_ADDRESS_2;
+      case 2:
+        return SOLANA_ADDRESS_3;
+      case 3:
+        return SOLANA_ADDRESS_4;
+      case 4:
+        return SOLANA_ADDRESS_5;
+      case 5:
+        return SOLANA_ADDRESS_6;
+      default:
+        throw new Error('[deriveSolanaAddress] Not enough mocked indices');
+    }
+  }),
+}));
 
+/**
+ * Mock the snap_manageState method to control the state
+ */
+let mockState: any = { keyringAccounts: {} };
+const snap = {
+  request: jest
+    .fn()
+    .mockImplementation(
+      async ({
+        method,
+        params,
+      }: {
+        method: string;
+        params: { operation: string; newState: Record<string, Json> };
+      }) => {
+        switch (method) {
+          case 'snap_manageState':
+            switch (params.operation) {
+              case 'get':
+                return mockState;
+              case 'update':
+                mockState = params.newState;
+                return null;
+              case 'clear':
+                mockState = {};
+                return null;
+              default:
+                throw new Error(`Unknown operation: ${params.operation}`);
+            }
+          default:
+            throw new Error(`Unknown method: ${method}`);
+        }
+      },
+    ),
+};
 (globalThis as any).snap = snap;
 
 describe('SolanaKeyring', () => {
@@ -24,49 +84,63 @@ describe('SolanaKeyring', () => {
 
   beforeEach(() => {
     keyring = new SolanaKeyring();
-  });
-
-  afterEach(() => {
-    snap.request.mockReset();
+    mockState = {};
     jest.clearAllMocks();
   });
 
   describe('listAccounts', () => {
     it('lists accounts from the state', async () => {
-      const keyringAccounts = {
-        '1': {
-          type: 'eip155:eoa',
-          id: '1',
-          address: 'address-1',
-          options: {},
-          methods: [],
-        },
-        '2': {
-          type: 'eip155:eoa',
-          id: '2',
-          address: 'address-2',
-          options: {},
-          methods: [],
+      mockState = {
+        keyringAccounts: {
+          '2': {
+            index: 1,
+            type: 'solana:data-account',
+            id: '2',
+            address: SOLANA_ADDRESS_1,
+            options: {},
+            methods: [],
+          },
+          '1': {
+            index: 0,
+            type: 'solana:data-account',
+            id: '1',
+            address: SOLANA_ADDRESS_2,
+            options: {},
+            methods: [],
+          },
         },
       };
 
-      snap.request.mockReturnValue({
-        keyringAccounts,
-      });
-
       const accounts = await keyring.listAccounts();
-      expect(accounts).toStrictEqual(accounts);
+      expect(accounts).toStrictEqual([
+        {
+          index: 0,
+          type: 'solana:data-account',
+          id: '1',
+          address: SOLANA_ADDRESS_2,
+          options: {},
+          methods: [],
+        },
+        {
+          index: 1,
+          type: 'solana:data-account',
+          id: '2',
+          address: SOLANA_ADDRESS_1,
+          options: {},
+          methods: [],
+        },
+      ]);
     });
 
     it('returns empty array if no accounts are found', async () => {
-      snap.request.mockReturnValue(null);
+      snap.request.mockReturnValueOnce(null);
 
       const accounts = await keyring.listAccounts();
       expect(accounts).toStrictEqual([]);
     });
 
     it('throws an error if state fails to be retrieved', async () => {
-      snap.request.mockRejectedValue(null);
+      snap.request.mockRejectedValueOnce(null);
 
       await expect(keyring.listAccounts()).rejects.toThrow(
         'Error listing accounts',
@@ -76,34 +150,38 @@ describe('SolanaKeyring', () => {
 
   describe('getAccount', () => {
     it('gets account by id', async () => {
-      const keyringAccounts = {
-        '1': {
-          type: 'eip155:eoa',
-          id: '1',
-          address: 'address-1',
-          options: {},
-          methods: [],
+      mockState = {
+        keyringAccounts: {
+          '1': {
+            index: 0,
+            type: 'solana:data-account',
+            id: '1',
+            address: SOLANA_ADDRESS_2,
+            options: {},
+            methods: [],
+          },
         },
       };
 
-      snap.request.mockReturnValue({
-        keyringAccounts,
-      });
-
       const account = await keyring.getAccount('1');
-      expect(account).toStrictEqual(keyringAccounts['1']);
+
+      expect(account).toStrictEqual({
+        index: 0,
+        type: 'solana:data-account',
+        id: '1',
+        address: SOLANA_ADDRESS_2,
+        options: {},
+        methods: [],
+      });
     });
 
     it('returns undefined if account is not found', async () => {
-      snap.request.mockReturnValue(null);
-
       const account = await keyring.getAccount('1');
       expect(account).toBeUndefined();
     });
 
     it('throws an error if state fails to be retrieved', async () => {
-      snap.request.mockRejectedValue(null);
-
+      snap.request.mockRejectedValueOnce(null);
       await expect(keyring.getAccount('1')).rejects.toThrow(
         'Error getting account',
       );
@@ -111,21 +189,126 @@ describe('SolanaKeyring', () => {
   });
 
   describe('createAccount', () => {
-    it('creates a new account', async () => {
-      const account = await keyring.createAccount();
+    it('creates new accounts with increasing indices', async () => {
+      const firstAccount = await keyring.createAccount();
+      const secondAccount = await keyring.createAccount();
+      const thirdAccount = await keyring.createAccount();
 
-      expect(account).toStrictEqual({
+      expect(firstAccount).toStrictEqual({
         index: 0,
         type: 'solana:data-account',
         id: expect.any(String),
-        address: SOLANA_ADDRESS,
+        address: SOLANA_ADDRESS_1,
+        options: {},
+        methods: [],
+      });
+      expect(secondAccount).toStrictEqual({
+        index: 1,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_2,
+        options: {},
+        methods: [],
+      });
+      expect(thirdAccount).toStrictEqual({
+        index: 2,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_3,
+        options: {},
+        methods: [],
+      });
+    });
+
+    it('recreates accounts with missing indices, in order', async () => {
+      const firstAccount = await keyring.createAccount();
+      const secondAccount = await keyring.createAccount();
+      const thirdAccount = await keyring.createAccount();
+      const fourthAccount = await keyring.createAccount();
+      const fifthAccount = await keyring.createAccount();
+
+      delete mockState.keyringAccounts[secondAccount.id];
+      delete mockState.keyringAccounts[fourthAccount.id];
+
+      const regeneratedSecondAccount = await keyring.createAccount();
+      const regeneratedFourthAccount = await keyring.createAccount();
+      const sixthAccount = await keyring.createAccount();
+
+      /**
+       * Accounts are created in order
+       */
+      expect(firstAccount).toStrictEqual({
+        index: 0,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_1,
+        options: {},
+        methods: [],
+      });
+      expect(secondAccount).toStrictEqual({
+        index: 1,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_2,
+        options: {},
+        methods: [],
+      });
+      expect(thirdAccount).toStrictEqual({
+        index: 2,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_3,
+        options: {},
+        methods: [],
+      });
+      expect(fourthAccount).toStrictEqual({
+        index: 3,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_4,
+        options: {},
+        methods: [],
+      });
+      expect(fifthAccount).toStrictEqual({
+        index: 4,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_5,
+        options: {},
+        methods: [],
+      });
+      expect(sixthAccount).toStrictEqual({
+        index: 5,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_6,
+        options: {},
+        methods: [],
+      });
+
+      /**
+       * Regenerated accounts should pick up the missing indices
+       */
+      expect(regeneratedSecondAccount).toStrictEqual({
+        index: 1,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_2,
+        options: {},
+        methods: [],
+      });
+      expect(regeneratedFourthAccount).toStrictEqual({
+        index: 3,
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: SOLANA_ADDRESS_4,
         options: {},
         methods: [],
       });
     });
 
     it('throws when deriving address fails', async () => {
-      jest.mocked(deriveSolanaAddress).mockImplementation(() => {
+      jest.mocked(deriveSolanaAddress).mockImplementation(async () => {
         return Promise.reject(new Error('Error deriving address'));
       });
 
@@ -135,7 +318,7 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws an error if state fails to be retrieved', async () => {
-      snap.request.mockRejectedValue(null);
+      snap.request.mockRejectedValueOnce(null);
 
       await expect(keyring.createAccount()).rejects.toThrow(
         'Error creating account',
@@ -145,56 +328,25 @@ describe('SolanaKeyring', () => {
 
   describe('deleteAccount', () => {
     it('deletes an account', async () => {
-      /**
-       * State before deletion. Mock once for the get, and another for the update (which does a get too)
-       */
-      snap.request
-        .mockReturnValueOnce({
-          keyringAccounts: {
-            'delete-id': {
-              type: 'solana:data-account',
-              id: 'delete-id',
-              address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
-              options: {},
-              methods: [],
-            },
+      mockState = {
+        keyringAccounts: {
+          '1': {
+            index: 0,
+            type: 'solana:data-account',
+            id: '1',
+            address: SOLANA_ADDRESS_2,
+            options: {},
+            methods: [],
           },
-        })
-        .mockReturnValueOnce({
-          keyringAccounts: {
-            'delete-id': {
-              type: 'solana:data-account',
-              id: 'delete-id',
-              address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
-              options: {},
-              methods: [],
-            },
-          },
-        });
+        },
+      };
 
-      const accountBeforeDeletion = await keyring.getAccount('delete-id');
+      const accountBeforeDeletion = await keyring.getAccount('1');
       expect(accountBeforeDeletion).toBeDefined();
 
-      await keyring.deleteAccount('delete-id');
-      /**
-       * Make sure the state was updated
-       */
-      expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_manageState',
-        params: {
-          operation: 'update',
-          newState: { keyringAccounts: {} },
-        },
-      });
+      await keyring.deleteAccount('1');
 
-      /**
-       * Now mock the empty state
-       */
-      snap.request.mockReturnValueOnce({
-        keyringAccounts: {},
-      });
-
-      const deletedAccount = await keyring.getAccount('delete-id');
+      const deletedAccount = await keyring.getAccount('1');
       expect(deletedAccount).toBeUndefined();
     });
 

@@ -1,5 +1,6 @@
 import type { Json } from '@metamask/snaps-sdk';
-import { SolanaKeyringAccount } from './keyring';
+
+import type { SolanaKeyringAccount } from './keyring';
 
 type StateValue = {
   keyringAccounts?: Record<string, SolanaKeyringAccount>;

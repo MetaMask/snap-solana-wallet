@@ -10,10 +10,11 @@ import {
 import type { Json } from '@metamask/snaps-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
+import { deriveSolanaAddress } from '../utils/derive-solana-address';
+import { getLowestUnusedKeyringAccountIndex } from '../utils/get-lowest-unused-keyring-account-index';
 import { getProvider } from '../utils/get-provider';
 import logger from '../utils/logger';
 import { SolanaState } from './state';
-import { deriveSolanaAddress } from '../utils/derive-solana-address';
 
 /**
  * We need to store the index of the KeyringAccount in the state because
@@ -30,10 +31,12 @@ export class SolanaKeyring implements Keyring {
     this.#state = new SolanaState();
   }
 
-  async listAccounts(): Promise<KeyringAccount[]> {
+  async listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
       const currentState = await this.#state.get();
-      return Object.values(currentState?.keyringAccounts ?? {});
+      const keyringAccounts = currentState?.keyringAccounts ?? {};
+
+      return Object.values(keyringAccounts).sort((a, b) => a.index - b.index);
     } catch (error: any) {
       logger.error({ error }, 'Error listing accounts');
       throw new Error('Error listing accounts');
@@ -56,24 +59,9 @@ export class SolanaKeyring implements Keyring {
     options?: Record<string, Json>,
   ): Promise<SolanaKeyringAccount> {
     try {
-      const currentState = await this.#state.get();
-      const keyringAccounts = currentState?.keyringAccounts ?? {};
-
-      /**
-       * Generating a new index for the KeyringAccount is not as straightforward as one might think.
-       * We cannot assume that this number will continuosly increase because one can delete an account with
-       * an index in the middle. The right way to do it is to loop through the keyringAccounts
-       * and get the lowest index that is not yet used.
-       */
-      const newAccountIndex = Object.values(keyringAccounts).reduce(
-        (lowestUnusedIndex, currentAccount) => {
-          return currentAccount.index >= lowestUnusedIndex
-            ? lowestUnusedIndex + 1
-            : lowestUnusedIndex;
-        },
-        0,
-      );
-
+      const keyringAccounts = await this.listAccounts();
+      const newAccountIndex =
+        getLowestUnusedKeyringAccountIndex(keyringAccounts);
       const newAddress = await deriveSolanaAddress(newAccountIndex);
 
       if (!newAddress) {
@@ -109,6 +97,10 @@ export class SolanaKeyring implements Keyring {
       logger.log({ keyringAccount }, `State updated with new keyring account`);
 
       await this.#emitEvent(KeyringEvent.AccountCreated, {
+        /**
+         * We can't pass the `keyringAccount` object because it contains the index
+         * and the snaps sdk does not allow extra properties.
+         */
         account: {
           type: keyringAccount.type,
           id: keyringAccount.id,
@@ -149,6 +141,7 @@ export class SolanaKeyring implements Keyring {
         delete state?.keyringAccounts?.[id];
         return state;
       });
+      await this.#emitEvent(KeyringEvent.AccountDeleted, { id });
     } catch (error: any) {
       logger.error({ error }, 'Error deleting account');
       throw new Error('Error deleting account');
