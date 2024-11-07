@@ -8,19 +8,28 @@ export const Accounts = () => {
   const [accounts, setAccounts] = useState<KeyringAccount[]>();
   const invokeKeyring = useInvokeKeyring();
 
-  const handleCreateAccount = async () => {
-    await invokeKeyring({
-      method: 'keyring_createAccount',
-      params: { options: {} },
-    });
-  };
-
   const fetchAccounts = async () => {
     const accountList = (await invokeKeyring({
       method: 'keyring_listAccounts',
     })) as KeyringAccount[];
 
     setAccounts(accountList);
+  };
+
+  const handleCreateAccount = async () => {
+    await invokeKeyring({
+      method: 'keyring_createAccount',
+      params: { options: {} },
+    });
+    await fetchAccounts();
+  };
+
+  const handleDeleteAccount = async (id: string) => {
+    await invokeKeyring({
+      method: 'keyring_deleteAccount',
+      params: { id },
+    });
+    await fetchAccounts();
   };
 
   useEffect(() => {
@@ -56,7 +65,11 @@ export const Accounts = () => {
               <Table.Cell fontFamily="monospace">{account.address}</Table.Cell>
               <Table.Cell>N/A</Table.Cell>
               <Table.Cell textAlign="end">
-                <Button variant="outline" colorPalette="purple">
+                <Button
+                  variant="outline"
+                  colorPalette="purple"
+                  onClick={async () => handleDeleteAccount(account.id)}
+                >
                   Remove
                 </Button>
               </Table.Cell>

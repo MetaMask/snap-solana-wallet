@@ -7,6 +7,7 @@ const dappPermissions = new Set([
   KeyringRpcMethod.CreateAccount,
   KeyringRpcMethod.ListAccounts,
   KeyringRpcMethod.GetAccount,
+  KeyringRpcMethod.DeleteAccount,
   KeyringRpcMethod.GetAccountBalances,
   KeyringRpcMethod.SubmitRequest,
   // RPC methods

@@ -149,6 +149,70 @@ describe('SolanaKeyring', () => {
     });
   });
 
+  describe('deleteAccount', () => {
+    it('deletes an account', async () => {
+      /**
+       * State before deletion. Mock once for the get, and another for the update (which does a get too)
+       */
+      snap.request
+        .mockReturnValueOnce({
+          keyringAccounts: {
+            'delete-id': {
+              type: 'solana:data-account',
+              id: 'delete-id',
+              address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+              options: {},
+              methods: [],
+            },
+          },
+        })
+        .mockReturnValueOnce({
+          keyringAccounts: {
+            'delete-id': {
+              type: 'solana:data-account',
+              id: 'delete-id',
+              address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+              options: {},
+              methods: [],
+            },
+          },
+        });
+
+      const accountBeforeDeletion = await keyring.getAccount('delete-id');
+      expect(accountBeforeDeletion).toBeDefined();
+
+      await keyring.deleteAccount('delete-id');
+      /**
+       * Make sure the state was updated
+       */
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_manageState',
+        params: {
+          operation: 'update',
+          newState: { keyringAccounts: {} },
+        },
+      });
+
+      /**
+       * Now mock the empty state
+       */
+      snap.request.mockReturnValueOnce({
+        keyringAccounts: {},
+      });
+
+      const deletedAccount = await keyring.getAccount('delete-id');
+      expect(deletedAccount).toBeUndefined();
+    });
+
+    it('throws an error if state fails to be retrieved', async () => {
+      snap.request.mockRejectedValueOnce(null);
+
+      await expect(keyring.deleteAccount('delete-id')).rejects.toThrow(
+        'Error deleting account',
+      );
+    });
+  });
+
   it('filters account chains', async () => {
     const chains = await keyring.filterAccountChains('some-id', [
       'chain1',
@@ -169,13 +233,6 @@ describe('SolanaKeyring', () => {
     jest.spyOn(keyring, 'getAccount').mockResolvedValueOnce(account);
     const updatedAccount = await keyring.getAccount('update-id');
     expect(updatedAccount).toStrictEqual(account);
-  });
-
-  it('deletes an account', async () => {
-    await keyring.deleteAccount('delete-id');
-    jest.spyOn(keyring, 'getAccount').mockResolvedValueOnce(undefined);
-    const deletedAccount = await keyring.getAccount('delete-id');
-    expect(deletedAccount).toBeUndefined();
   });
 
   it('submits a request', async () => {

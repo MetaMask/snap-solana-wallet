@@ -114,9 +114,16 @@ export class SolanaKeyring implements Keyring {
     // TODO: Implement method, this is a placeholder
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async deleteAccount(id: string): Promise<void> {
-    // TODO: Implement method, this is a placeholder
+    try {
+      await this.#state.update((state) => {
+        delete state?.keyringAccounts?.[id];
+        return state;
+      });
+    } catch (error: any) {
+      logger.error({ error }, 'Error deleting account');
+      throw new Error('Error deleting account');
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
