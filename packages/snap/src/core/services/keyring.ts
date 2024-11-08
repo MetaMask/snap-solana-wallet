@@ -10,10 +10,19 @@ import {
 import type { Json } from '@metamask/snaps-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
+import { deriveSolanaAddress } from '../utils/derive-solana-address';
+import { getLowestUnusedKeyringAccountIndex } from '../utils/get-lowest-unused-keyring-account-index';
 import { getProvider } from '../utils/get-provider';
 import logger from '../utils/logger';
 import { SolanaState } from './state';
-import { SolanaWallet } from './wallet';
+
+/**
+ * We need to store the index of the KeyringAccount in the state because
+ * we want to be able to restore any account with a previously used index.
+ */
+export type SolanaKeyringAccount = {
+  index: number;
+} & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
@@ -22,10 +31,12 @@ export class SolanaKeyring implements Keyring {
     this.#state = new SolanaState();
   }
 
-  async listAccounts(): Promise<KeyringAccount[]> {
+  async listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
       const currentState = await this.#state.get();
-      return Object.values(currentState?.keyringAccounts ?? {});
+      const keyringAccounts = currentState?.keyringAccounts ?? {};
+
+      return Object.values(keyringAccounts).sort((a, b) => a.index - b.index);
     } catch (error: any) {
       logger.error({ error }, 'Error listing accounts');
       throw new Error('Error listing accounts');
@@ -44,15 +55,14 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  async createAccount(options?: Record<string, Json>): Promise<KeyringAccount> {
+  async createAccount(
+    options?: Record<string, Json>,
+  ): Promise<SolanaKeyringAccount> {
     try {
-      const solanaWallet = new SolanaWallet(); // TODO: naming
-
-      const currentState = await this.#state.get();
-      const keyringAccounts = currentState?.keyringAccounts ?? {};
-      const newIndex = Object.keys(keyringAccounts).length;
-
-      const newAddress = await solanaWallet.deriveAddress(newIndex);
+      const keyringAccounts = await this.listAccounts();
+      const newAccountIndex =
+        getLowestUnusedKeyringAccountIndex(keyringAccounts);
+      const newAddress = await deriveSolanaAddress(newAccountIndex);
 
       if (!newAddress) {
         throw new Error('No address derived');
@@ -60,7 +70,8 @@ export class SolanaKeyring implements Keyring {
 
       logger.log({ newAddress }, 'New address derived');
 
-      const keyringAccount: KeyringAccount = {
+      const keyringAccount: SolanaKeyringAccount = {
+        index: newAccountIndex,
         type: SolAccountType.DataAccount,
         id: uuidv4(),
         address: newAddress,
@@ -86,8 +97,18 @@ export class SolanaKeyring implements Keyring {
       logger.log({ keyringAccount }, `State updated with new keyring account`);
 
       await this.#emitEvent(KeyringEvent.AccountCreated, {
-        account: keyringAccount,
-        accountNameSuggestion: `Solana Account ${newIndex}`,
+        /**
+         * We can't pass the `keyringAccount` object because it contains the index
+         * and the snaps sdk does not allow extra properties.
+         */
+        account: {
+          type: keyringAccount.type,
+          id: keyringAccount.id,
+          address: keyringAccount.address,
+          options: keyringAccount.options,
+          methods: keyringAccount.methods,
+        },
+        accountNameSuggestion: `Solana Account ${newAccountIndex}`,
       });
 
       return keyringAccount;
@@ -114,9 +135,17 @@ export class SolanaKeyring implements Keyring {
     // TODO: Implement method, this is a placeholder
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async deleteAccount(id: string): Promise<void> {
-    // TODO: Implement method, this is a placeholder
+    try {
+      await this.#state.update((state) => {
+        delete state?.keyringAccounts?.[id];
+        return state;
+      });
+      await this.#emitEvent(KeyringEvent.AccountDeleted, { id });
+    } catch (error: any) {
+      logger.error({ error }, 'Error deleting account');
+      throw new Error('Error deleting account');
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

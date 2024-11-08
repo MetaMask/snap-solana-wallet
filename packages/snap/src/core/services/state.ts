@@ -1,22 +1,10 @@
-import type { KeyringAccount } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 
+import type { SolanaKeyringAccount } from './keyring';
+
 type StateValue = {
-  keyringAccounts?: Record<string, KeyringAccount>;
+  keyringAccounts?: Record<string, SolanaKeyringAccount>;
 } | null;
-
-/**
- * One SRP -> Multiple Addresses
- * Each address is a Keyring Account
- * ... One SRP -> Multiple KeyringAccounts
- * ... Each address is KeyringAccount
- */
-
-// type: "eip155:eoa" | "eip155:erc4337" | "bip122:p2wpkh";
-// id: string;
-// address: string;
-// options: Record<string, Json>;
-// methods: string[];
 
 export class SolanaState {
   async get(): Promise<StateValue> {

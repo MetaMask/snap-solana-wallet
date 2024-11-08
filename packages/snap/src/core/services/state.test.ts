@@ -37,6 +37,7 @@ describe('SolanaState', () => {
     const newState = {
       keyringAccounts: {
         '1': {
+          index: 0,
           type: 'eip155:eoa' as const,
           id: '1',
           address: 'address-1',
@@ -61,6 +62,7 @@ describe('SolanaState', () => {
     const initialState = {
       keyringAccounts: {
         '1': {
+          index: 0,
           type: 'eip155:eoa' as const,
           id: '1',
           address: 'address-1',
@@ -72,6 +74,7 @@ describe('SolanaState', () => {
     const updatedState = {
       keyringAccounts: {
         '1': {
+          index: 0,
           type: 'eip155:eoa' as const,
           id: '1',
           address: 'address-1',
@@ -79,6 +82,7 @@ describe('SolanaState', () => {
           methods: [],
         },
         '2': {
+          index: 1,
           type: 'eip155:eoa' as const,
           id: '2',
           address: 'address-2',
@@ -93,6 +97,7 @@ describe('SolanaState', () => {
       keyringAccounts: {
         ...(state?.keyringAccounts ?? {}),
         '2': {
+          index: 1,
           type: 'eip155:eoa' as const,
           id: '2',
           address: 'address-2',
