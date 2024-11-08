@@ -360,17 +360,30 @@ describe('SolanaKeyring', () => {
     });
   });
 
-  describe.skip('getAccountBalances', () => {
+  describe('getAccountBalances', () => {
     it('gets account balance', async () => {
-      const balance = 1000;
+      mockState = {
+        keyringAccounts: {
+          '1': {
+            index: 0,
+            type: 'solana:data-account',
+            id: '1',
+            address: SOLANA_ADDRESS_2,
+            options: {},
+            methods: [],
+          },
+        },
+      };
 
-      snap.request.mockReturnValueOnce(balance);
-
-      const accountBalance = await keyring.getAccountBalances(
-        'get-balance-id',
-        [SOL_CAIP_19],
-      );
-      expect(accountBalance).toBe(balance);
+      const accountBalance = await keyring.getAccountBalances('1', [
+        SOL_CAIP_19,
+      ]);
+      expect(accountBalance).toStrictEqual({
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:0': {
+          amount: '0',
+          unit: 'SOL',
+        },
+      });
     });
 
     it('throws an error if balance fails to be retrieved', async () => {
