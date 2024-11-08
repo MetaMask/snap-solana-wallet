@@ -5,11 +5,8 @@ export default defineConfig({
   // ...
   projects: [
     {
-      name: 'setup db',
+      name: 'Snap Solana Wallet',
       testMatch: /global\.setup\.ts/,
     },
-    // {
-    //   other project
-    // }
   ]
 });
