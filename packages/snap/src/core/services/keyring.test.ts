@@ -13,6 +13,7 @@ import {
   SOLANA_ADDRESS_5,
   SOLANA_ADDRESS_6,
 } from '../constants/address';
+import { SOL_CAIP_19 } from '../constants/solana';
 import { deriveSolanaAddress } from '../utils/derive-solana-address';
 import { SolanaKeyring } from './keyring';
 
@@ -356,6 +357,28 @@ describe('SolanaKeyring', () => {
       await expect(keyring.deleteAccount('delete-id')).rejects.toThrow(
         'Error deleting account',
       );
+    });
+  });
+
+  describe.skip('getAccountBalances', () => {
+    it('gets account balance', async () => {
+      const balance = 1000;
+
+      snap.request.mockReturnValueOnce(balance);
+
+      const accountBalance = await keyring.getAccountBalances(
+        'get-balance-id',
+        [SOL_CAIP_19],
+      );
+      expect(accountBalance).toBe(balance);
+    });
+
+    it('throws an error if balance fails to be retrieved', async () => {
+      snap.request.mockRejectedValue(null);
+
+      await expect(
+        keyring.getAccountBalances('get-balance-id', [SOL_CAIP_19]),
+      ).rejects.toThrow('Error getting account balance');
     });
   });
 

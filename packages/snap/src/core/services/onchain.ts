@@ -13,10 +13,10 @@ export class SolanaOnChain {
     this.#connection = new Connection(clusterApiUrl(cluster));
   }
 
-  async getBalance(address: string): Promise<number> {
+  async getBalance(address: string): Promise<string> {
     const publicKey = new PublicKey(address);
     const balance = await this.#connection.getBalance(publicKey);
 
-    return balance / LAMPORTS_PER_SOL;
+    return String(balance / LAMPORTS_PER_SOL);
   }
 }

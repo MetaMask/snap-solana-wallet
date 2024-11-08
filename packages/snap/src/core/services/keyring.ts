@@ -10,6 +10,7 @@ import {
   type KeyringResponse,
 } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
+import { assert } from 'superstruct';
 import { v4 as uuidv4 } from 'uuid';
 
 import { SOL_CAIP_19, SOL_SYMBOL } from '../constants/solana';
@@ -17,6 +18,7 @@ import { deriveSolanaAddress } from '../utils/derive-solana-address';
 import { getLowestUnusedKeyringAccountIndex } from '../utils/get-lowest-unused-keyring-account-index';
 import { getProvider } from '../utils/get-provider';
 import logger from '../utils/logger';
+import { GetAccounBalancesResponseStruct } from '../validation';
 import { SolanaOnChain } from './onchain';
 import { SolanaState } from './state';
 
@@ -124,26 +126,37 @@ export class SolanaKeyring implements Keyring {
 
   async getAccountBalances(
     id: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     assets: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
     try {
       const account = await this.getAccount(id);
+      const balances = new Map<string, string>();
 
       if (!account) {
         throw new Error('Account not found');
       }
 
       const onchain = new SolanaOnChain({ cluster: 'devnet' });
-      const balances = await onchain.getBalance(account.address);
 
-      return {
-        [SOL_CAIP_19]: {
-          balance: balances.toString(),
-          unit: SOL_SYMBOL,
-        },
-      } as any;
+      for (const asset of assets) {
+        if (asset === SOL_CAIP_19) {
+          const balance = await onchain.getBalance(account.address);
+          balances.set(asset, balance);
+        }
+      }
+
+      const response = Object.fromEntries(
+        [...balances.entries()].map(([key, value]) => [
+          key,
+          { amount: value, unit: SOL_SYMBOL },
+        ]),
+      );
+
+      assert(response, GetAccounBalancesResponseStruct);
+
+      return response;
     } catch (error: any) {
+      console.log({ error });
       logger.error({ error }, 'Error getting account balances');
       throw new Error('Error getting account balances');
     }

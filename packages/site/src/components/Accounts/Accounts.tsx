@@ -1,14 +1,9 @@
-import {
-  Flex,
-  Table,
-  Text as ChakraText,
-  Button,
-  Link,
-} from '@chakra-ui/react';
+import { Flex, Table, Text as ChakraText, Button } from '@chakra-ui/react';
 import type { KeyringAccount } from '@metamask/keyring-api';
 import { useEffect, useState } from 'react';
 
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
+import { AccountRow } from './AccountRow';
 
 export const Accounts = () => {
   const [accounts, setAccounts] = useState<KeyringAccount[]>();
@@ -34,17 +29,6 @@ export const Accounts = () => {
     await invokeKeyring({
       method: 'keyring_deleteAccount',
       params: { id },
-    });
-    await fetchAccounts();
-  };
-
-  const handleGetBalance = async (id: string) => {
-    await invokeKeyring({
-      method: 'keyring_getAccountBalances',
-      params: {
-        id,
-        assets: ['SOL'],
-      },
     });
     await fetchAccounts();
   };
@@ -77,37 +61,15 @@ export const Accounts = () => {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {accounts?.map((account) => (
-            <Table.Row key={account.id}>
-              <Table.Cell fontFamily="monospace">{account.address}</Table.Cell>
-              <Table.Cell>N/A</Table.Cell>
-              <Table.Cell textAlign="end">
-                <Link
-                  colorPalette="purple"
-                  href={`https://explorer.solana.com/address/${account.address}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  marginRight="5"
-                >
-                  View
-                </Link>
-                <Button
-                  variant="outline"
-                  colorPalette="purple"
-                  onClick={async () => handleGetBalance(account.id)}
-                >
-                  Balance
-                </Button>
-                <Button
-                  variant="outline"
-                  colorPalette="purple"
-                  onClick={async () => handleDeleteAccount(account.id)}
-                >
-                  Remove
-                </Button>
-              </Table.Cell>
-            </Table.Row>
-          ))}
+          {accounts?.map((account) => {
+            return (
+              <AccountRow
+                key={account.id}
+                account={account}
+                onRemove={handleDeleteAccount}
+              />
+            );
+          })}
         </Table.Body>
       </Table.Root>
     </Flex>
