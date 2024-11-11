@@ -379,7 +379,7 @@ describe('SolanaKeyring', () => {
         SOL_CAIP_19,
       ]);
       expect(accountBalance).toStrictEqual({
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:0': {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
           amount: '0',
           unit: 'SOL',
         },

@@ -156,7 +156,6 @@ export class SolanaKeyring implements Keyring {
 
       return response;
     } catch (error: any) {
-      console.log({ error });
       logger.error({ error }, 'Error getting account balances');
       throw new Error('Error getting account balances');
     }
