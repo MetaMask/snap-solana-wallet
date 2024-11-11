@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 
-const SOLANA_CAIP_19 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:0';
+const SOLANA_CAIP_19 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
 
 export const AccountRow = ({
   account,
