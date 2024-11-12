@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0]
+
+### Uncategorized
+
+- feat: get account balances ([#67](https://github.com/MetaMask/snap-solana-wallet/pull/67))
+- Create and remove index mismatch ([#66](https://github.com/MetaMask/snap-solana-wallet/pull/66))
+- feat: implement delete account keyring method ([#64](https://github.com/MetaMask/snap-solana-wallet/pull/64))
+- Create + List Solana accounts ([#54](https://github.com/MetaMask/snap-solana-wallet/pull/54))
+- feat: adds the keyring-api package with solana support ([#63](https://github.com/MetaMask/snap-solana-wallet/pull/63))
+
 ## [0.1.9]
 
 ## [0.1.8]
@@ -148,7 +158,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: TBA
 - feat: init commit
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.9...v1.0.0
 [0.1.9]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.6...v0.1.7
