@@ -1,6 +1,7 @@
 import type { Json } from '@metamask/snaps-sdk';
 
 import { SolanaState } from './state';
+import { Keypair } from '@solana/web3.js';
 
 const snap = {
   request: jest.fn(),
@@ -41,6 +42,7 @@ describe('SolanaState', () => {
           type: 'eip155:eoa' as const,
           id: '1',
           address: 'address-1',
+          keypair: new Keypair(),
           options: {},
           methods: [],
         },
@@ -100,6 +102,7 @@ describe('SolanaState', () => {
           index: 1,
           type: 'eip155:eoa' as const,
           id: '2',
+          keypair: new Keypair(),
           address: 'address-2',
           options: {},
           methods: [],

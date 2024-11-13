@@ -8,19 +8,21 @@ import {
   type KeyringAccount,
   type KeyringRequest,
   type KeyringResponse,
+  SolMethod,
 } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 import { v4 as uuidv4 } from 'uuid';
 
 import { SOL_CAIP_19, SOL_SYMBOL } from '../constants/solana';
-import { deriveSolanaAddress } from '../utils/derive-solana-address';
 import { getLowestUnusedKeyringAccountIndex } from '../utils/get-lowest-unused-keyring-account-index';
 import { getProvider } from '../utils/get-provider';
 import logger from '../utils/logger';
 import { GetAccounBalancesResponseStruct } from '../validation';
-import { SolanaOnChain } from './onchain';
 import { SolanaState } from './state';
+import { deriveSolanaKeypair } from '../utils/derive-solana-keypair';
+import { RpcConnection } from './rpc-connection';
+import { Keypair } from '@solana/web3.js';
 
 /**
  * We need to store the index of the KeyringAccount in the state because
@@ -28,6 +30,7 @@ import { SolanaState } from './state';
  */
 export type SolanaKeyringAccount = {
   index: number;
+  keypair: Keypair;
 } & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
@@ -49,14 +52,14 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  async getAccount(id: string): Promise<KeyringAccount | undefined> {
+  async getAccount(id: string): Promise<SolanaKeyringAccount | undefined> {
     try {
       const currentState = await this.#state.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
       return keyringAccounts?.[id];
     } catch (error: any) {
-      logger.error({ error }, 'Error getting account');
+      logger.error({ error }, 'Error getting account'); // TODO: This can only fail in one way. Failed to read the state.
       throw new Error('Error getting account');
     }
   }
@@ -65,24 +68,21 @@ export class SolanaKeyring implements Keyring {
     options?: Record<string, Json>,
   ): Promise<SolanaKeyringAccount> {
     try {
+      const id = uuidv4();
       const keyringAccounts = await this.listAccounts();
-      const newAccountIndex =
-        getLowestUnusedKeyringAccountIndex(keyringAccounts);
-      const newAddress = await deriveSolanaAddress(newAccountIndex);
+      const index = getLowestUnusedKeyringAccountIndex(keyringAccounts);
 
-      if (!newAddress) {
-        throw new Error('No address derived');
-      }
-
-      logger.log({ newAddress }, 'New address derived');
+      const keypair = await deriveSolanaKeypair(index);
+      const address = keypair.publicKey.toBase58();
 
       const keyringAccount: SolanaKeyringAccount = {
-        index: newAccountIndex,
+        id,
+        index,
+        keypair,
         type: SolAccountType.DataAccount,
-        id: uuidv4(),
-        address: newAddress,
+        address,
         options: options ?? {},
-        methods: [],
+        methods: [`${SolMethod.SendAndConfirmTransaction}`],
       };
 
       logger.log(
@@ -114,7 +114,7 @@ export class SolanaKeyring implements Keyring {
           options: keyringAccount.options,
           methods: keyringAccount.methods,
         },
-        accountNameSuggestion: `Solana Account ${newAccountIndex}`,
+        accountNameSuggestion: `Solana Account ${index + 1}`,
       });
 
       return keyringAccount;
@@ -136,7 +136,7 @@ export class SolanaKeyring implements Keyring {
         throw new Error('Account not found');
       }
 
-      const onchain = new SolanaOnChain({ cluster: 'devnet' });
+      const onchain = new RpcConnection({ cluster: 'devnet' });
 
       for (const asset of assets) {
         if (asset === SOL_CAIP_19) {

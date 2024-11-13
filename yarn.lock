@@ -22200,6 +22200,7 @@ __metadata:
     "@metamask/eslint-config-nodejs": ^12.1.0
     "@metamask/eslint-config-typescript": ^12.1.0
     "@metamask/utils": ^10.0.0
+    "@solana/web3.js": ^1.95.4
     "@types/jest": ^27.5.2
     "@types/react": ^18.0.15
     "@types/react-dom": ^18.0.6

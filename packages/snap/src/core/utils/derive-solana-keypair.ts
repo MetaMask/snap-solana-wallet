@@ -1,10 +1,8 @@
 import { SLIP10Node } from '@metamask/key-tree';
 import type { SLIP10PathNode } from '@metamask/key-tree';
-import bs58 from 'bs58';
-import nacl from 'tweetnacl';
-
 import { getBip32Entropy } from './get-bip32-entropy';
 import logger from './logger';
+import { Keypair } from '@solana/web3.js';
 
 /**
  * Derivations path constant
@@ -38,7 +36,7 @@ const CURVE = 'ed25519' as const;
  * @see {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki} BIP44 specification
  * @see {@link https://github.com/satoshilabs/slips/blob/master/slip-0044.md} SLIP-0044 for coin types.
  */
-export async function deriveSolanaAddress(index: number): Promise<string> {
+export async function deriveSolanaKeypair(index: number): Promise<Keypair> {
   logger.log({ index }, 'Generating solana wallet');
 
   /**
@@ -72,19 +70,11 @@ export async function deriveSolanaAddress(index: number): Promise<string> {
       throw new Error('Unable to derive private key');
     }
 
-    const keypair = nacl.sign.keyPair.fromSeed(
-      Uint8Array.from(slipNode.privateKeyBytes),
-    );
+    const keypair = Keypair.fromSecretKey(slipNode.privateKeyBytes);
 
-    logger.log({ keypair }, 'New keypair generated');
-
-    const pubkey = bs58.encode(keypair.publicKey);
-
-    logger.log({ pubkey }, 'Encoded public key');
-
-    return pubkey;
+    return keypair;
   } catch (error: any) {
-    logger.error({ error }, 'Error deriving address');
+    logger.error({ error }, 'Error deriving keypair');
     throw new Error(error);
   }
 }
