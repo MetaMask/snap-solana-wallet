@@ -14,7 +14,9 @@ export class RpcConnection {
   #connection: Connection;
 
   constructor({ cluster }: { cluster: Cluster }) {
-    this.#connection = new Connection(clusterApiUrl(cluster));
+    this.#connection = new Connection(clusterApiUrl(cluster), {
+      commitment: 'confirmed',
+    });
   }
 
   async getBalance(address: string): Promise<string> {
@@ -36,6 +38,10 @@ export class RpcConnection {
         lamports: solAmount * LAMPORTS_PER_SOL,
       }),
     );
+
+    // const signature = await this.#connection.sendTransaction(transaction, [
+    //   from,
+    // ]);
 
     const signature = await sendAndConfirmTransaction(
       this.#connection,

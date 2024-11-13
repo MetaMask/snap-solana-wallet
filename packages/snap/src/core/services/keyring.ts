@@ -10,7 +10,7 @@ import {
   type KeyringResponse,
   SolMethod,
 } from '@metamask/keyring-api';
-import type { Json } from '@metamask/snaps-sdk';
+import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,7 +22,18 @@ import { GetAccounBalancesResponseStruct } from '../validation';
 import { SolanaState } from './state';
 import { deriveSolanaKeypair } from '../utils/derive-solana-keypair';
 import { RpcConnection } from './rpc-connection';
-import { Keypair } from '@solana/web3.js';
+import {
+  clusterApiUrl,
+  Connection,
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+  VersionedTransaction,
+} from '@solana/web3.js';
+import { CAIP2_TO_SOLANA_CLUSTER } from '../constants/caip2-to-solana-cluster';
 
 /**
  * We need to store the index of the KeyringAccount in the state because
@@ -30,7 +41,7 @@ import { Keypair } from '@solana/web3.js';
  */
 export type SolanaKeyringAccount = {
   index: number;
-  keypair: Keypair;
+  secretKey: number[];
 } & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
@@ -73,12 +84,14 @@ export class SolanaKeyring implements Keyring {
       const index = getLowestUnusedKeyringAccountIndex(keyringAccounts);
 
       const keypair = await deriveSolanaKeypair(index);
+      const secretKey = Array.from(keypair.secretKey);
+
       const address = keypair.publicKey.toBase58();
 
       const keyringAccount: SolanaKeyringAccount = {
         id,
         index,
-        keypair,
+        secretKey,
         type: SolAccountType.DataAccount,
         address,
         options: options ?? {},
@@ -87,20 +100,8 @@ export class SolanaKeyring implements Keyring {
 
       logger.log(
         { keyringAccount },
-        `New keyring account created, updating state...`,
+        `New keyring account object created, sending it to the extension...`,
       );
-
-      await this.#state.update((state) => {
-        return {
-          ...state,
-          keyringAccounts: {
-            ...(state?.keyringAccounts ?? {}),
-            [keyringAccount.id]: keyringAccount,
-          },
-        };
-      });
-
-      logger.log({ keyringAccount }, `State updated with new keyring account`);
 
       await this.#emitEvent(KeyringEvent.AccountCreated, {
         /**
@@ -116,6 +117,22 @@ export class SolanaKeyring implements Keyring {
         },
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
+
+      logger.log(
+        `Account created in the extension, now updating the snap state...`,
+      );
+
+      await this.#state.update((state) => {
+        return {
+          ...state,
+          keyringAccounts: {
+            ...(state?.keyringAccounts ?? {}),
+            [keyringAccount.id]: keyringAccount,
+          },
+        };
+      });
+
+      logger.log({ keyringAccount }, `State updated with new keyring account`);
 
       return keyringAccount;
     } catch (error: any) {
@@ -136,11 +153,11 @@ export class SolanaKeyring implements Keyring {
         throw new Error('Account not found');
       }
 
-      const onchain = new RpcConnection({ cluster: 'devnet' });
+      const rpcConnection = new RpcConnection({ cluster: 'devnet' });
 
       for (const asset of assets) {
         if (asset === SOL_CAIP_19) {
-          const balance = await onchain.getBalance(account.address);
+          const balance = await rpcConnection.getBalance(account.address);
           balances.set(asset, balance);
         }
       }
@@ -191,9 +208,67 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async submitRequest(request: KeyringRequest): Promise<KeyringResponse> {
-    // TODO: Implement method, this is a placeholder
-    return { pending: true };
+    // method: 'keyring_submitRequest',
+    // {
+    //   id: uuidV4(),
+    //   account,
+    //   scope: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+    //   request: {
+    //     method: `${SolMethod.SendAndConfirmTransaction}`,
+    //     params: {
+    //       to: SOL_ADDRESS,
+    //       amount: '0.00000500', solana amount
+    //     },
+    //   },
+    // },
+
+    const { scope, account: accountId } = request;
+    const { method, params } = request.request;
+    console.log({ scope, accountId, method, params });
+
+    const account = await this.getAccount(accountId);
+    console.log({ account });
+
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
+    switch (method) {
+      case `${SolMethod.SendAndConfirmTransaction}`: {
+        const cluster = CAIP2_TO_SOLANA_CLUSTER[scope];
+
+        if (!cluster) {
+          throw new Error(`Unrecognized scope: ${scope}`);
+        }
+
+        if (!params) {
+          throw new Error(`Method ${method} called without params`);
+        }
+
+        if (!('to' in params)) {
+          throw new Error('Missing required parameter: to');
+        }
+
+        if (!('amount' in params)) {
+          throw new Error('Missing required parameter: amount');
+        }
+
+        const from = Keypair.fromSecretKey(Uint8Array.from(account.secretKey));
+        const to = new PublicKey(String(params.to));
+        const amount = Number(params.amount);
+
+        console.log('Sending transaction...');
+
+        const rpcConnection = new RpcConnection({ cluster });
+        const signature = await rpcConnection.transferSol(from, to, amount);
+
+        console.log(`Transaction sent, signature: ${signature}`);
+
+        return { pending: false, result: signature };
+      }
+      default:
+        throw new MethodNotFoundError() as Error;
+    }
   }
 }

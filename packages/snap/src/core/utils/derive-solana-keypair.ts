@@ -70,7 +70,7 @@ export async function deriveSolanaKeypair(index: number): Promise<Keypair> {
       throw new Error('Unable to derive private key');
     }
 
-    const keypair = Keypair.fromSecretKey(slipNode.privateKeyBytes);
+    const keypair = Keypair.fromSeed(Uint8Array.from(slipNode.privateKeyBytes));
 
     return keypair;
   } catch (error: any) {
