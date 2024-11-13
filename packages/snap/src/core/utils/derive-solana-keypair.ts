@@ -2,7 +2,6 @@ import { SLIP10Node } from '@metamask/key-tree';
 import type { SLIP10PathNode } from '@metamask/key-tree';
 import { getBip32Entropy } from './get-bip32-entropy';
 import logger from './logger';
-import { Keypair } from '@solana/web3.js';
 
 /**
  * Derivations path constant
@@ -70,7 +69,7 @@ export async function deriveSolanaKeypair(index: number): Promise<Keypair> {
       throw new Error('Unable to derive private key');
     }
 
-    const keypair = Keypair.fromSecretKey(slipNode.privateKeyBytes);
+    const keypair = Keypair.fromSeed(Uint8Array.from(slipNode.privateKeyBytes));
 
     return keypair;
   } catch (error: any) {

@@ -43,6 +43,27 @@ jest.mock('../utils/derive-solana-address', () => ({
   }),
 }));
 
+jest.mock('../utils/derive-solana-keypair', () => ({
+  deriveSolanaAddress: jest.fn().mockImplementation((index) => {
+    switch (index) {
+      case 0:
+        return SOLANA_ADDRESS_1;
+      case 1:
+        return SOLANA_ADDRESS_2;
+      case 2:
+        return SOLANA_ADDRESS_3;
+      case 3:
+        return SOLANA_ADDRESS_4;
+      case 4:
+        return SOLANA_ADDRESS_5;
+      case 5:
+        return SOLANA_ADDRESS_6;
+      default:
+        throw new Error('[deriveSolanaAddress] Not enough mocked indices');
+    }
+  }),
+}));
+
 /**
  * Mock the snap_manageState method to control the state
  */

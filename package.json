@@ -75,12 +75,14 @@
       "@lavamoat/preinstall-always-fail": false,
       "sharp": true,
       "@commitlint/cli>@commitlint/load>ts-node>@swc/core": false,
-      "@solana/web3.js>bigint-buffer": false,
-      "@solana/web3.js>rpc-websockets>bufferutil": false,
-      "@solana/web3.js>rpc-websockets>utf-8-validate": false
+      "@solana/web3.js>bigint-buffer": true,
+      "@solana/web3.js>rpc-websockets>bufferutil": true,
+      "@solana/web3.js>rpc-websockets>utf-8-validate": true,
+      "@solana/web3.js>@solana/rpc-subscriptions>@solana/rpc-subscriptions-channel-websocket>ws>bufferutil": false,
+      "@solana/web3.js>@solana/rpc-subscriptions>@solana/rpc-subscriptions-channel-websocket>ws>utf-8-validate": false
     }
   },
   "dependencies": {
-    "@solana/web3.js": "^1.95.4"
+    "@solana/web3.js": "2"
   }
 }
