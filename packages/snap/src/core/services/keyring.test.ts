@@ -13,7 +13,7 @@ import {
   SOLANA_ADDRESS_5,
   SOLANA_ADDRESS_6,
 } from '../constants/address';
-import { SOL_CAIP_19 } from '../constants/solana';
+import { SolanaCaip19Tokens, SolanaCaip2Networks } from '../constants/solana';
 import { deriveSolanaAddress } from '../utils/derive-solana-address';
 import { SolanaKeyring } from './keyring';
 
@@ -376,7 +376,7 @@ describe('SolanaKeyring', () => {
       };
 
       const accountBalance = await keyring.getAccountBalances('1', [
-        SOL_CAIP_19,
+        `${SolanaCaip2Networks.Mainnet}/${SolanaCaip19Tokens.SOL}`,
       ]);
       expect(accountBalance).toStrictEqual({
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
@@ -390,7 +390,7 @@ describe('SolanaKeyring', () => {
       snap.request.mockRejectedValue(null);
 
       await expect(
-        keyring.getAccountBalances('get-balance-id', [SOL_CAIP_19]),
+        keyring.getAccountBalances('get-balance-id', [SolanaCaip19Tokens.SOL]),
       ).rejects.toThrow('Error getting account balance');
     });
   });

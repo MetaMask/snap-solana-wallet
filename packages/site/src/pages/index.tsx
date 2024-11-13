@@ -1,5 +1,6 @@
 import { Card, InstallFlaskButton, SolanaLogo } from '../components';
 import { Accounts } from '../components/Accounts/Accounts';
+import { NetworkSelector } from '../components/NetworkSelector/NetworkSelector';
 import {
   CardContainer,
   Container,
@@ -33,6 +34,7 @@ const Index = () => {
         )}
         {isMetaMaskReady ? (
           <>
+            <NetworkSelector />
             <Accounts />
           </>
         ) : (

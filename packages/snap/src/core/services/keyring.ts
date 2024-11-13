@@ -13,13 +13,18 @@ import type { Json } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 import { v4 as uuidv4 } from 'uuid';
 
-import { SOL_CAIP_19, SOL_SYMBOL } from '../constants/solana';
+import {
+  SOL_SYMBOL,
+  SolanaCaip19Tokens,
+  type SolanaCaip2Networks,
+} from '../constants/solana';
 import { deriveSolanaAddress } from '../utils/derive-solana-address';
 import { getLowestUnusedKeyringAccountIndex } from '../utils/get-lowest-unused-keyring-account-index';
+import { getNetworkFromToken } from '../utils/get-network-from-token';
 import { getProvider } from '../utils/get-provider';
 import logger from '../utils/logger';
 import { GetAccounBalancesResponseStruct } from '../validation';
-import { SolanaOnChain } from './onchain';
+import { RpcConnection } from './rpc-connection';
 import { SolanaState } from './state';
 
 /**
@@ -130,25 +135,42 @@ export class SolanaKeyring implements Keyring {
   ): Promise<Record<CaipAssetType, Balance>> {
     try {
       const account = await this.getAccount(id);
-      const balances = new Map<string, string>();
+      const balances = new Map<string, [string, string]>();
 
       if (!account) {
         throw new Error('Account not found');
       }
 
-      const onchain = new SolanaOnChain({ cluster: 'devnet' });
+      const assetsByNetwork: Record<SolanaCaip2Networks, string[]> = (
+        Object as any
+      ).groupBy(assets, (asset: string) => getNetworkFromToken(asset));
 
-      for (const asset of assets) {
-        if (asset === SOL_CAIP_19) {
-          const balance = await onchain.getBalance(account.address);
-          balances.set(asset, balance);
+      for (const network of Object.keys(assetsByNetwork)) {
+        const currentNetwork = network as SolanaCaip2Networks;
+        const networkAssets = assetsByNetwork[currentNetwork];
+
+        const rpcConnection = new RpcConnection({ network: currentNetwork });
+
+        for (const asset of networkAssets) {
+          if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
+            // native SOL balance
+            const balance = await rpcConnection.getBalance(account.address);
+            balances.set(asset, [SOL_SYMBOL, balance]);
+            logger.log(
+              { asset, balance, network: currentNetwork },
+              'Native SOL balance',
+            );
+          } else {
+            // Tokens: unssuported
+            logger.log({ asset, network: currentNetwork }, 'Unsupported asset');
+          }
         }
       }
 
       const response = Object.fromEntries(
-        [...balances.entries()].map(([key, value]) => [
+        [...balances.entries()].map(([key, [unit, amount]]) => [
           key,
-          { amount: value, unit: SOL_SYMBOL },
+          { amount, unit },
         ]),
       );
 
@@ -156,6 +178,7 @@ export class SolanaKeyring implements Keyring {
 
       return response;
     } catch (error: any) {
+      console.log(error);
       logger.error({ error }, 'Error getting account balances');
       throw new Error('Error getting account balances');
     }

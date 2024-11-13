@@ -1,9 +1,17 @@
 import { enums, object, record } from 'superstruct';
 
-import { SOL_CAIP_19, SOL_SYMBOL } from '../constants/solana';
+import {
+  SOL_SYMBOL,
+  SolanaCaip19Tokens,
+  SolanaCaip2Networks,
+} from '../constants/solana';
 import { PositiveNumberStringStruct } from './number';
 
-export const AssetsStruct = enums([SOL_CAIP_19 as string]);
+export const AssetsStruct = enums([
+  `${SolanaCaip2Networks.Mainnet}/${SolanaCaip19Tokens.SOL}`,
+  `${SolanaCaip2Networks.Testnet}/${SolanaCaip19Tokens.SOL}`,
+  `${SolanaCaip2Networks.Devnet}/${SolanaCaip19Tokens.SOL}`,
+]);
 
 export const GetAccounBalancesResponseStruct = record(
   AssetsStruct,

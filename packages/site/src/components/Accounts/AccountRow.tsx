@@ -2,9 +2,10 @@ import { Button, Link, Table } from '@chakra-ui/react';
 import type { KeyringAccount, Balance } from '@metamask/keyring-api';
 import { useState } from 'react';
 
+import { useNetwork } from '../../context/network';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 
-const SOLANA_CAIP_19 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+const SOLANA_TOKEN = 'slip44:501';
 
 export const AccountRow = ({
   account,
@@ -14,6 +15,7 @@ export const AccountRow = ({
   onRemove: (id: string) => void;
 }) => {
   const invokeKeyring = useInvokeKeyring();
+  const { network } = useNetwork();
 
   const [balance, setBalance] = useState('0');
 
@@ -22,11 +24,11 @@ export const AccountRow = ({
       method: 'keyring_getAccountBalances',
       params: {
         id: account.id,
-        assets: [SOLANA_CAIP_19],
+        assets: [`${network}/${SOLANA_TOKEN}`],
       },
     })) as Record<string, Balance>;
 
-    setBalance(response?.[SOLANA_CAIP_19]?.amount ?? '0');
+    setBalance(response?.[`${network}/${SOLANA_TOKEN}`]?.amount ?? '0');
   };
 
   return (
