@@ -24,6 +24,8 @@ export default class HomePage {
 
   async visit() {
     await this.page.goto('/');
+    await this.page.waitForLoadState()
+    await this.page.waitForTimeout(10)
   }
 
   async addAccount() {
@@ -32,12 +34,13 @@ export default class HomePage {
 
   async getAccounts() {
     const accountList = await this.page.locator(this.accountTable).all();
-    let accountFinalList
+    let accountFinalList = []
     accountList.forEach(async account => {
         const accountObject : Account = {
             address: await account.locator(this.address).innerText(),
             balance: await account.locator(this.balance).innerText(),
         }
+        console.log(accountObject)
         accountFinalList.push(accountObject)
 
     });
