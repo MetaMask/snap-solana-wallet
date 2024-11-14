@@ -28,7 +28,6 @@ const metamaskPermissions = new Set([
 ]);
 
 const allowedOrigins = [
-  'local:http://localhost:8080',
   'http://localhost:3000',
   'https://portfolio.metamask.io',
   'https://portfolio-builds.metafi-dev.codefi.network',
