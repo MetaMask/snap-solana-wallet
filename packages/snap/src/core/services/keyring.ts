@@ -16,6 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   SOL_SYMBOL,
   SolanaCaip19Tokens,
+  SolanaSubmitRequestMethods,
   type SolanaCaip2Networks,
 } from '../constants/solana';
 import { deriveSolanaAddress } from '../utils/derive-solana-address';
@@ -214,9 +215,21 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async submitRequest(request: KeyringRequest): Promise<KeyringResponse> {
-    // TODO: Implement method, this is a placeholder
-    return { pending: true };
+    return { pending: false, result: await this.#handleSubmitRequest(request) };
+  }
+
+  async #handleSubmitRequest(request: KeyringRequest): Promise<Json> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { method, params } = request.request;
+
+    switch (method) {
+      case SolanaSubmitRequestMethods.SendSolana:
+        // TODO: to be implemented
+        return {};
+
+      default:
+        throw new Error(`Method not supported: ${method}`);
+    }
   }
 }

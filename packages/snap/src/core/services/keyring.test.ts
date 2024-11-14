@@ -13,7 +13,11 @@ import {
   SOLANA_ADDRESS_5,
   SOLANA_ADDRESS_6,
 } from '../constants/address';
-import { SolanaCaip19Tokens, SolanaCaip2Networks } from '../constants/solana';
+import {
+  SolanaCaip19Tokens,
+  SolanaCaip2Networks,
+  SolanaSubmitRequestMethods,
+} from '../constants/solana';
 import { deriveSolanaAddress } from '../utils/derive-solana-address';
 import { SolanaKeyring } from './keyring';
 
@@ -422,9 +426,12 @@ describe('SolanaKeyring', () => {
       id: 'test-id',
       scope: 'test-scope',
       account: 'test-account',
-      request: { method: 'test_method', params: [] },
+      request: { method: SolanaSubmitRequestMethods.SendSolana, params: [] },
     };
     const response: KeyringResponse = await keyring.submitRequest(request);
-    expect(response).toStrictEqual({ pending: true });
+    expect(response).toStrictEqual({
+      pending: false,
+      result: expect.any(Object),
+    });
   });
 });

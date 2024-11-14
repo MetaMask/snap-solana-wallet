@@ -1,5 +1,9 @@
 import { handleKeyringRequest } from '@metamask/keyring-api';
-import type { Json, OnKeyringRequestHandler } from '@metamask/snaps-sdk';
+import type {
+  Json,
+  OnKeyringRequestHandler,
+  OnUserInputHandler,
+} from '@metamask/snaps-sdk';
 import {
   MethodNotFoundError,
   SnapError,
@@ -7,9 +11,12 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
+import { SolanaInternalRpcMethods } from './core/constants/solana';
 import { SolanaKeyring } from './core/services/keyring';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
+import { handleSendEvents, isSendFormEvent } from './features/send/events';
+import { renderSend } from './features/send/render';
 import { originPermissions } from './permissions';
 
 export const validateOrigin = (origin: string, method: string): void => {
@@ -32,6 +39,7 @@ const keyring = new SolanaKeyring();
  * @param args.origin - The origin of the request, e.g., the website that
  * invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
+ * @returns A promise that resolves to the result of the RPC request.
  * @throws If the request method is not valid for this snap.
  */
 export const onRpcRequest: OnRpcRequestHandler = async ({
@@ -44,6 +52,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
     validateOrigin(origin, method);
 
     switch (method) {
+      case SolanaInternalRpcMethods.StartSendSolanaFlow:
+        return await renderSend();
       default:
         throw new MethodNotFoundError() as unknown as Error;
     }
@@ -93,5 +103,20 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
     );
 
     throw snapError;
+  }
+};
+
+/**
+ * Handle user events requests.
+ *
+ * @param args - The request handler args as object.
+ * @param args.id - The interface id associated with the event.
+ * @param args.event - The event object.
+ * @returns A promise that resolves to a JSON object.
+ * @throws If the request method is not valid for this snap.
+ */
+export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
+  if (isSendFormEvent(event)) {
+    await handleSendEvents({ id, event });
   }
 };

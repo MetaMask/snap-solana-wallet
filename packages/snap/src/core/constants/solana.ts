@@ -13,3 +13,11 @@ export enum SolanaCaip2Networks {
 export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',
 }
+
+export enum SolanaSubmitRequestMethods {
+  SendSolana = 'sendSolana',
+}
+
+export enum SolanaInternalRpcMethods {
+  StartSendSolanaFlow = 'startSendSolanaFlow',
+}

@@ -18,14 +18,7 @@ export const NetworkSelector: React.FC = () => {
   const { network, setNetwork } = useNetwork();
 
   return (
-    <Flex
-      alignItems="center"
-      justifyContent="center"
-      direction="column"
-      gap="2"
-      marginBottom="5"
-      width="full"
-    >
+    <Flex direction="column" gap="2" marginBottom="5" width="full">
       <Text fontWeight="bold">Network</Text>
       <Flex gap="2">
         {Object.keys(networks).map((net) => (
