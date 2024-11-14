@@ -19,5 +19,5 @@ export enum SolanaSubmitRequestMethods {
 }
 
 export enum SolanaInternalRpcMethods {
-  StartSendSolanaFlow = 'startSendSolanaFlow',
+  StartSendTransactionFlow = 'startSendTransactionFlow',
 }

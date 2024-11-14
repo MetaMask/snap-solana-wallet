@@ -52,7 +52,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
     validateOrigin(origin, method);
 
     switch (method) {
-      case SolanaInternalRpcMethods.StartSendSolanaFlow:
+      case SolanaInternalRpcMethods.StartSendTransactionFlow:
         return await renderSend();
       default:
         throw new MethodNotFoundError() as unknown as Error;

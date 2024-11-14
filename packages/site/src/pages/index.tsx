@@ -24,7 +24,7 @@ const Index = () => {
     : snapsDetected;
 
   const handleSend = async () => {
-    await invokeSnap({ method: 'startSendSolanaFlow' });
+    await invokeSnap({ method: 'startSendTransactionFlow' });
   };
 
   return (
