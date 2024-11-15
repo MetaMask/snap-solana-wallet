@@ -1,7 +1,7 @@
 import { SLIP10Node } from '@metamask/key-tree';
 import { Keypair } from '@solana/web3.js';
+import { deriveSolanaKeypair } from './derive-solana-private-key';
 import { getBip32Entropy } from './get-bip32-entropy';
-import { deriveSolanaKeypair } from './derive-solana-keypair';
 
 // Mock the external dependencies
 jest.mock('./get-bip32-entropy');

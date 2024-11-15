@@ -6,3 +6,5 @@ export const CAIP2 = {
   SOLANA_DEVNET: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
   SOLANA_TESTNET: 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
 };
+
+export const LAMPORTS_PER_SOL = 1_000_000_000;

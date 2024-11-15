@@ -7,10 +7,19 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
+import { install } from './core/polyfills/ed25519/install';
 import { SolanaKeyring } from './core/services/keyring';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
 import { originPermissions } from './permissions';
+
+/**
+ * Install polyfills
+ * - Add Ed25519 cryptography functionality to the browser crypto API
+ */
+install();
+
+const keyring = new SolanaKeyring();
 
 export const validateOrigin = (origin: string, method: string): void => {
   if (!origin) {
@@ -22,8 +31,6 @@ export const validateOrigin = (origin: string, method: string): void => {
     throw new UnauthorizedError(`Permission denied`);
   }
 };
-
-const keyring = new SolanaKeyring();
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
