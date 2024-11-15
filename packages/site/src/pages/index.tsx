@@ -24,7 +24,13 @@ const Index = () => {
     : snapsDetected;
 
   const handleSend = async () => {
-    await invokeSnap({ method: 'startSendTransactionFlow' });
+    await invokeSnap({
+      method: 'startSendTransactionFlow',
+      params: {
+        scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        account: '123',
+      },
+    });
   };
 
   return (

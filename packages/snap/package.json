@@ -33,7 +33,7 @@
   "dependencies": {
     "@metamask/key-tree": "^9.1.2",
     "@metamask/keyring-api": "npm:@metamask-previews/keyring-api@9.0.0-f9cd26b",
-    "@metamask/snaps-sdk": "^6.9.0",
+    "@metamask/snaps-sdk": "^6.10.0",
     "@solana/web3.js": "^1.95.4",
     "bs58": "^6.0.0",
     "buffer": "^6.0.3",
@@ -45,7 +45,7 @@
     "@jest/globals": "^29.5.0",
     "@metamask/auto-changelog": "^4.0.0",
     "@metamask/snaps-cli": "^6.2.1",
-    "@metamask/snaps-jest": "8.2.0",
+    "@metamask/snaps-jest": "8.7.0",
     "@testing-library/jest-dom": "^6.6.2",
     "@types/react": "18.2.4",
     "@types/react-dom": "18.2.4",

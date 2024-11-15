@@ -17,6 +17,10 @@ import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
 import { handleSendEvents, isSendFormEvent } from './features/send/events';
 import { renderSend } from './features/send/render';
+import type {
+  SendContext,
+  StartSendTransactionFlowParams,
+} from './features/send/types/send';
 import { originPermissions } from './permissions';
 
 export const validateOrigin = (origin: string, method: string): void => {
@@ -53,7 +57,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
     switch (method) {
       case SolanaInternalRpcMethods.StartSendTransactionFlow:
-        return await renderSend();
+        return await renderSend(
+          request.params as StartSendTransactionFlowParams,
+        );
       default:
         throw new MethodNotFoundError() as unknown as Error;
     }
@@ -112,11 +118,16 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
  * @param args - The request handler args as object.
  * @param args.id - The interface id associated with the event.
  * @param args.event - The event object.
+ * @param args.context - The context object.
  * @returns A promise that resolves to a JSON object.
  * @throws If the request method is not valid for this snap.
  */
-export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
+export const onUserInput: OnUserInputHandler = async ({
+  id,
+  event,
+  context,
+}) => {
   if (isSendFormEvent(event)) {
-    await handleSendEvents({ id, event });
+    await handleSendEvents({ id, event, context: context as SendContext });
   }
 };
