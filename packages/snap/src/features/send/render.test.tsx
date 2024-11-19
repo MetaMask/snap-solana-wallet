@@ -53,11 +53,10 @@ describe('Send', () => {
     expect(screen).toRender(<SendForm context={mockContext} />);
   });
 
-  // TODO: Fix this test
-  it.skip('fails when wrong params are given', async () => {
+  it('fails when wrong params are given', async () => {
     const { request } = await installSnap();
 
-    const response = request({
+    const response = await request({
       origin: TEST_ORIGIN,
       method: SolanaInternalRpcMethods.StartSendTransactionFlow,
       params: {
@@ -66,6 +65,10 @@ describe('Send', () => {
       },
     });
 
-    expect(response).toThrow();
+    expect(response).toRespondWithError({
+      code: expect.any(Number),
+      message: expect.stringMatching(/At path: scope/u),
+      stack: expect.any(String),
+    });
   });
 });
