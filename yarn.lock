@@ -5629,6 +5629,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@root/asn1@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@root/asn1@npm:1.0.2"
+  dependencies:
+    "@root/encoding": ^1.0.1
+    "@types/root__asn1": ^1.0.0
+  checksum: 2b600314e0be671fb2242bb92b4bc31a799e5316ef05ff4ba4ba74e2c95b99cf52e87a024d06a48a774f178dfb249bea26418409f2b8931472b4ece7c2e88e22
+  languageName: node
+  linkType: hard
+
+"@root/encoding@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@root/encoding@npm:1.0.1"
+  checksum: e2a20e30ff3b0c3ffbd18806050c62f5037156acd008d49d2b10cf36d6eb5e9df3d169da3c03f5e83117350cd454a042852cf1fe903e2cc5e8cd669d89baab87
+  languageName: node
+  linkType: hard
+
 "@scure/base@npm:^1.0.0, @scure/base@npm:^1.1.1, @scure/base@npm:^1.1.3, @scure/base@npm:~1.1.0, @scure/base@npm:~1.1.3":
   version: 1.1.3
   resolution: "@scure/base@npm:1.1.3"
@@ -7193,6 +7210,13 @@ __metadata:
     "@types/glob": "npm:*"
     "@types/node": "npm:*"
   checksum: e388f546840704a240fb31536498921623bca4ec1230925013d6b6d7c7d2211c8ec07fcbbd2606151d7549cbbc28a01c18fb0df502107a9293860a5ff64bc147
+  languageName: node
+  linkType: hard
+
+"@types/root__asn1@npm:^1.0.0":
+  version: 1.0.5
+  resolution: "@types/root__asn1@npm:1.0.5"
+  checksum: 52704f926d2fb7bda23fceb53ab5cb4e6379c5bedd5ecc71fe45694a372df2f557655ce7351aea360da959e414b258b56682f204a4157da6c4a2c07c072bc5f6
   languageName: node
   linkType: hard
 

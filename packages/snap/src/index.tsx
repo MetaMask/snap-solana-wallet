@@ -30,6 +30,10 @@ import { originPermissions } from './permissions';
 
 /**
  * Install polyfills
+ * - Add Ed25519 cryptography functionality to the Webcrypto API
+ * - Add queueMicrotask polyfill
+ * - Add intl polyfill
+ * - Add DOMException polyfill
  */
 install();
 installQueueMicrotask();

@@ -1,524 +1,311 @@
-/* eslint-disable jsdoc/require-description */
-/* eslint-disable jsdoc/check-indentation */
-/**
- *      HEY!   <== SECRET KEY KOALA
- *      |/     <== WOULD LIKE YOUR
- *   ʕ·͡ᴥ·ʔ     <== ATTENTION PLEASE
- *
- * Key material generated in this module must stay in this module. So long as the secrets cache and
- * the methods that interact with it are not exported from `@solana/webcrypto-ed25519-polyfill`,
- * accidental logging of the actual bytes of a secret key (eg. to the console, or to a remote
- * server) should not be possible.
- *
- * WARNING: This does not imply that the secrets cache is secure against supply-chain attacks.
- * Untrusted code in your JavaScript context can easily override `WeakMap.prototype.set` to steal
- * private keys as they are written to the cache, without alerting you to its presence or affecting
- * the regular operation of the cache.
- */
-import {
-  getPublicKeyAsync,
-  signAsync,
-  utils,
-  verifyAsync,
-} from '@noble/ed25519';
+import * as ed from '@noble/ed25519';
 
-const PROHIBITED_KEY_USAGES = new Set<KeyUsage>([
-  'decrypt',
-  'deriveBits',
-  'deriveKey',
-  'encrypt',
-  'unwrapKey',
-  'wrapKey',
-]);
+import { bufferSourceAsUint8Array } from './utils/buffer-source-as-uint8-array';
+import { uint8ArrayAsBufferSource } from './utils/uint8-array-as-buffer-source';
 
-const ED25519_PKCS8_HEADER =
-  // prettier-ignore
-  [
-        /**
-         * PKCS#8 header
-         */
-        0x30, // ASN.1 sequence tag
-        0x2e, // Length of sequence (46 more bytes)
+const slot = '8d9df0f7-1363-4d2c-8152-ce4ed78f27d8';
 
-            0x02, // ASN.1 integer tag
-            0x01, // Length of integer
-                0x00, // Version number
-
-            0x30, // ASN.1 sequence tag
-            0x05, // Length of sequence
-                0x06, // ASN.1 object identifier tag
-                0x03, // Length of object identifier
-                    // Edwards curve algorithms identifier https://oid-rep.orange-labs.fr/get/1.3.101.112
-                        0x2b, // iso(1) / identified-organization(3) (The first node is multiplied by the decimal 40 and the result is added to the value of the second node)
-                        0x65, // thawte(101)
-                    // Ed25519 identifier
-                        0x70, // id-Ed25519(112)
-
-        /**
-         * Private key payload
-         */
-        0x04, // ASN.1 octet string tag
-        0x22, // String length (34 more bytes)
-
-            // Private key bytes as octet string
-            0x04, // ASN.1 octet string tag
-            0x20, // String length (32 bytes)
-    ];
-
-/**
- *
- * @param data
- */
-function bufferSourceToUint8Array(data: BufferSource): Uint8Array {
-  return data instanceof Uint8Array
-    ? data
-    : new Uint8Array(ArrayBuffer.isView(data) ? data.buffer : data);
+interface Ed25519CryptoKey extends CryptoKey {
+  [slot]: Uint8Array;
 }
 
-let storageKeyBySecretKey_INTERNAL_ONLY_DO_NOT_EXPORT:
-  | WeakMap<CryptoKey, Uint8Array>
-  | undefined;
-
-// Map of public key bytes. These are the result of calling `getPublicKey`
-let publicKeyBytesStore: WeakMap<CryptoKey, Uint8Array> | undefined;
-
-/**
- *
- * @param bytes
- * @param extractable
- * @param keyUsages
- */
-function createKeyPairFromBytes(
-  bytes: Uint8Array,
-  extractable: boolean,
-  keyUsages: readonly KeyUsage[],
-): CryptoKeyPair {
-  const keyPair = createKeyPair_INTERNAL_ONLY_DO_NOT_EXPORT(
-    extractable,
-    keyUsages,
-  );
-  const cache = (storageKeyBySecretKey_INTERNAL_ONLY_DO_NOT_EXPORT ||=
-    new WeakMap());
-  cache.set(keyPair.privateKey, bytes);
-  cache.set(keyPair.publicKey, bytes);
-  return keyPair;
-}
+const ED25519_PKCS8_HEADER = [
+  0x30,
+  0x2e, // SEQUENCE + length
+  0x02,
+  0x01,
+  0x00, // INTEGER + length + version
+  0x30,
+  0x05,
+  0x06,
+  0x03,
+  0x2b,
+  0x65,
+  0x70, // Algorithm identifier
+  0x04,
+  0x22,
+  0x04,
+  0x20, // OCTET STRING wrappers
+];
 
 /**
+ * Convert a Uint8Array to a base64 string with URL-safe characters
  *
- * @param extractable
- * @param keyUsages
+ * @param input - The Uint8Array to convert
+ * @returns The base64 string with URL-safe characters
  */
-function createKeyPair_INTERNAL_ONLY_DO_NOT_EXPORT(
-  extractable: boolean,
-  keyUsages: readonly KeyUsage[],
-): CryptoKeyPair {
-  if (keyUsages.length === 0) {
-    throw new DOMException(
-      'Usages cannot be empty when creating a key.',
-      'SyntaxError',
-    );
-  }
-  if (keyUsages.some((usage) => PROHIBITED_KEY_USAGES.has(usage))) {
-    throw new DOMException(
-      'Unsupported key usage for an Ed25519 key.',
-      'SyntaxError',
-    );
-  }
-  const base = {
-    [Symbol.toStringTag]: 'CryptoKey',
-    algorithm: Object.freeze({ name: 'Ed25519' }),
-  };
-  const privateKey = {
-    ...base,
-    extractable,
-    type: 'private',
-    usages: Object.freeze(
-      keyUsages.filter((usage) => usage === 'sign'),
-    ) as KeyUsage[],
-  } as CryptoKey;
-  const publicKey = {
-    ...base,
-    extractable: true,
-    type: 'public',
-    usages: Object.freeze(
-      keyUsages.filter((usage) => usage === 'verify'),
-    ) as KeyUsage[],
-  } as CryptoKey;
-  return Object.freeze({
-    privateKey: Object.freeze(privateKey),
-    publicKey: Object.freeze(publicKey),
-  });
-}
-
-/**
- *
- * @param key
- */
-function getSecretKeyBytes_INTERNAL_ONLY_DO_NOT_EXPORT(
-  key: CryptoKey,
-): Uint8Array {
-  const secretKeyBytes =
-    storageKeyBySecretKey_INTERNAL_ONLY_DO_NOT_EXPORT?.get(key);
-  if (secretKeyBytes === undefined) {
-    throw new Error(
-      'Could not find secret key material associated with this `CryptoKey`',
-    );
-  }
-  return secretKeyBytes;
-}
-
-/**
- *
- * @param key
- */
-async function getPublicKeyBytes(key: CryptoKey): Promise<Uint8Array> {
-  // Try to find the key in the public key store first
-  const publicKeyStore = (publicKeyBytesStore ||= new WeakMap());
-  const fromPublicStore = publicKeyStore.get(key);
-  if (fromPublicStore) {
-    return fromPublicStore;
-  }
-
-  // If not available, get the key from the secrets store instead
-  const publicKeyBytes = await getPublicKeyAsync(
-    getSecretKeyBytes_INTERNAL_ONLY_DO_NOT_EXPORT(key),
-  );
-
-  // Store the public key bytes in the public key store for next time
-  publicKeyStore.set(key, publicKeyBytes);
-  return publicKeyBytes;
-}
-
-/**
- *
- * @param bytes
- */
-function base64UrlEncode(bytes: Uint8Array): string {
-  return btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(''))
+export function toBase64(input: Uint8Array) {
+  return Buffer.from(input)
+    .toString('base64')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
-    .replace(/[=]+$/, '');
+    .replace(/=/g, '');
 }
 
 /**
+ * Convert a base64 string with URL-safe characters to a Uint8Array
  *
- * @param value
+ * @param b64u - The base64 string with URL-safe characters
+ * @returns The Uint8Array
  */
-function base64UrlDecode(value: string): Uint8Array {
-  const m = value.length % 4;
-  const base64Value = value
-    .replace(/-/g, '+')
-    .replace(/_/g, '/')
-    .padEnd(value.length + (m === 0 ? 0 : 4 - m), '=');
-  return Uint8Array.from(atob(base64Value), (c) => c.charCodeAt(0));
+export function toBuffer(b64u: string) {
+  const a = b64u.replace(/-/g, '+').replace(/_/g, '/');
+  const b = new Uint8Array(Buffer.from(a, 'base64'));
+
+  return b;
 }
 
-export async function exportKeyPolyfill(
-  format: 'jwk',
-  key: CryptoKey,
-): Promise<JsonWebKey>;
-export async function exportKeyPolyfill(
-  format: KeyFormat,
-  key: CryptoKey,
-): Promise<ArrayBuffer>;
-/**
- *
- * @param format
- * @param key
- */
-export async function exportKeyPolyfill(
-  format: KeyFormat,
-  key: CryptoKey,
-): Promise<ArrayBuffer | JsonWebKey> {
+export async function exportKey(format: KeyFormat, key: CryptoKey) {
   if (!key.extractable) {
     throw new DOMException('key is not extractable', 'InvalidAccessException');
   }
+
+  const raw = (key as Ed25519CryptoKey)[slot];
+
   switch (format) {
     case 'raw': {
       if (key.type !== 'public') {
         throw new DOMException(
-          `Unable to export a raw Ed25519 ${key.type} key`,
+          'Unable to export a raw Ed25519 private key',
           'InvalidAccessError',
         );
       }
-      const publicKeyBytes = await getPublicKeyBytes(key);
-      return publicKeyBytes;
+      return raw.buffer;
     }
     case 'pkcs8': {
       if (key.type !== 'private') {
         throw new DOMException(
-          `Unable to export a pkcs8 Ed25519 ${key.type} key`,
+          'Unable to export a pkcs8 Ed25519 public key',
           'InvalidAccessError',
         );
       }
-      const secretKeyBytes = getSecretKeyBytes_INTERNAL_ONLY_DO_NOT_EXPORT(key);
-      return new Uint8Array([...ED25519_PKCS8_HEADER, ...secretKeyBytes]);
+      return new Uint8Array([...ED25519_PKCS8_HEADER, ...raw]).buffer;
     }
     case 'jwk': {
-      const publicKeyBytes = await getPublicKeyBytes(key);
       const base = {
-        crv /* curve */: 'Ed25519',
-        ext /* extractable */: key.extractable,
-        key_ops /* key operations */: key.usages,
-        kty /* key type */: 'OKP' /* octet key pair */,
-        x /* public key x-coordinate (base64-URL encoded) */:
-          base64UrlEncode(publicKeyBytes),
+        crv: 'Ed25519',
+        ext: key.extractable,
+        key_ops: key.usages,
+        kty: 'OKP',
       };
+
       if (key.type === 'private') {
-        const secretKeyBytes =
-          getSecretKeyBytes_INTERNAL_ONLY_DO_NOT_EXPORT(key);
+        const publicKey = await ed.getPublicKeyAsync(raw);
         return Object.freeze({
           ...base,
-          d /* private key (base64-URL encoded) */:
-            base64UrlEncode(secretKeyBytes),
+          d: toBase64(raw),
+          x: toBase64(publicKey),
         });
       }
-      return Object.freeze({ ...base });
+
+      return Object.freeze({
+        ...base,
+        x: toBase64(raw),
+      });
+    }
+    case 'spki': {
+      if (key.type !== 'public') {
+        throw new DOMException(
+          'Only public keys can be exported as SPKI',
+          'InvalidAccessError',
+        );
+      }
+      const algorithmIdentifier = new Uint8Array([
+        0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70,
+      ]);
+      const bitString = new Uint8Array([0x03, raw.length + 1, 0x00, ...raw]);
+      const sequence = new Uint8Array([
+        0x30,
+        algorithmIdentifier.length + bitString.length,
+        ...algorithmIdentifier,
+        ...bitString,
+      ]);
+      return sequence.buffer;
     }
     default:
-      throw new Error(
-        `Exporting polyfilled Ed25519 keys in the "${format}" format is unimplemented`,
-      );
+      throw new Error(`Unsupported export format: ${format}`);
   }
 }
 
-/**
- * This function generates a key pair and stores the secret bytes associated with it in a
- * module-private cache. Instead of vending the actual secret bytes, it returns a `CryptoKeyPair`
- * that you can use with other methods in this package to produce signatures and derive public keys
- * associated with the secret.
- * @param extractable
- * @param keyUsages
- */
-export function generateKeyPolyfill(
+export async function generateKey(
+  _algorithm: AlgorithmIdentifier | KeyAlgorithm,
   extractable: boolean,
-  keyUsages: readonly KeyUsage[],
-): CryptoKeyPair {
-  const privateKeyBytes = utils.randomPrivateKey();
-  const keyPair = createKeyPairFromBytes(
-    privateKeyBytes,
+  keyUsages: KeyUsage[],
+): Promise<CryptoKeyPair> {
+  const privateKey = ed.utils.randomPrivateKey();
+  const publicKey = await ed.getPublicKeyAsync(privateKey);
+  const usages = Array.from(keyUsages);
+
+  const privateKeyObject: Ed25519CryptoKey = {
+    algorithm: { name: 'Ed25519' },
     extractable,
-    keyUsages,
-  );
-  return keyPair;
+    type: 'private',
+    usages,
+    [slot]: privateKey,
+  };
+
+  const publicKeyObject: Ed25519CryptoKey = {
+    algorithm: { name: 'Ed25519' },
+    extractable: true,
+    type: 'public',
+    usages,
+    [slot]: publicKey,
+  };
+
+  return { privateKey: privateKeyObject, publicKey: publicKeyObject };
 }
 
-/**
- *
- * @param key
- */
-export function isPolyfilledKey(key: CryptoKey): boolean {
-  return (
-    Boolean(storageKeyBySecretKey_INTERNAL_ONLY_DO_NOT_EXPORT?.has(key)) ||
-    Boolean(publicKeyBytesStore?.has(key))
-  );
+export function importKey(
+  format: KeyFormat,
+  keyData: BufferSource | JsonWebKey,
+  _algorithm: AlgorithmIdentifier | KeyAlgorithm,
+  extractable: boolean,
+  keyUsages: KeyUsage[],
+) {
+  const usages = Array.from(keyUsages);
+
+  switch (format) {
+    case 'raw': {
+      const bytes = bufferSourceAsUint8Array(keyData as BufferSource);
+      if (bytes.length !== 32) {
+        throw new DOMException(
+          'Ed25519 raw keys must be exactly 32-bytes',
+          'DataError',
+        );
+      }
+
+      return {
+        algorithm: { name: 'Ed25519' },
+        extractable,
+        type: 'public',
+        usages: usages.filter((usage) => usage === 'verify'),
+        [slot]: bytes,
+      } as Ed25519CryptoKey;
+    }
+    case 'pkcs8': {
+      const bytes = bufferSourceAsUint8Array(keyData as BufferSource);
+      if (bytes.length !== 48) {
+        // 16-byte header + 32-byte key
+        throw new DOMException('Invalid PKCS8 key data length', 'DataError');
+      }
+
+      const header = bytes.slice(0, 16);
+      if (!header.every((val, i) => val === ED25519_PKCS8_HEADER[i])) {
+        throw new DOMException('Invalid PKCS8 header', 'DataError');
+      }
+
+      return {
+        algorithm: { name: 'Ed25519' },
+        extractable,
+        type: 'private',
+        usages: usages.filter((usage) => usage === 'sign'),
+        [slot]: bytes.slice(16),
+      } as Ed25519CryptoKey;
+    }
+    case 'jwk': {
+      const jwk = keyData as JsonWebKey;
+      if (jwk.kty !== 'OKP' || jwk.crv !== 'Ed25519') {
+        throw new DOMException('Invalid Ed25519 JWK', 'DataError');
+      }
+
+      const type = 'd' in jwk ? 'private' : 'public';
+
+      if (type === 'public' && !jwk.x) {
+        throw new DOMException(
+          'Ed25519 JWK is missing public key',
+          'DataError',
+        );
+      }
+      if (type === 'private' && (!jwk.d || !jwk.x)) {
+        throw new DOMException('Ed25519 JWK is missing key data', 'DataError');
+      }
+
+      return {
+        algorithm: { name: 'Ed25519' },
+        extractable,
+        type,
+        usages: usages.filter((usage) =>
+          type === 'private' ? usage === 'sign' : usage === 'verify',
+        ),
+        [slot]: type === 'private' ? toBuffer(jwk.d!) : toBuffer(jwk.x!),
+      } as Ed25519CryptoKey;
+    }
+    case 'spki': {
+      const data = bufferSourceAsUint8Array(keyData as BufferSource);
+
+      if (data[0] !== 0x30) {
+        throw new DOMException('Invalid SPKI format', 'DataError');
+      }
+
+      const algorithmStart = 2;
+      if (
+        data[algorithmStart] !== 0x30 ||
+        data[algorithmStart + 2] !== 0x06 ||
+        data[algorithmStart + 3] !== 0x03 ||
+        data[algorithmStart + 4] !== 0x2b ||
+        data[algorithmStart + 5] !== 0x65 ||
+        data[algorithmStart + 6] !== 0x70
+      ) {
+        throw new DOMException('Not an Ed25519 key', 'DataError');
+      }
+
+      const keyStart = algorithmStart + 7 + 2;
+      return {
+        algorithm: { name: 'Ed25519' },
+        extractable: true,
+        type: 'public',
+        usages: usages.filter((usage) => usage === 'verify'),
+        [slot]: data.slice(keyStart),
+      } as Ed25519CryptoKey;
+    }
+    default:
+      throw new Error(`Unsupported import format: ${format}`);
+  }
 }
 
-/**
- *
- * @param key
- * @param data
- */
-export async function signPolyfill(
+export async function sign(
+  _algorithm: AlgorithmIdentifier,
   key: CryptoKey,
   data: BufferSource,
-): Promise<ArrayBuffer> {
-  if (key.type !== 'private' || !key.usages.includes('sign')) {
-    throw new DOMException(
-      'Unable to use this key to sign',
-      'InvalidAccessError',
-    );
+): Promise<BufferSource> {
+  if (key.type !== 'private') {
+    throw new DOMException('Key is not private', 'NotAllowedError');
   }
-  const privateKeyBytes = getSecretKeyBytes_INTERNAL_ONLY_DO_NOT_EXPORT(key);
-  const payload = bufferSourceToUint8Array(data);
-  const signature = await signAsync(payload, privateKeyBytes);
-  return signature;
+
+  if (!key.usages.includes('sign')) {
+    throw new DOMException('Key usage not allowed', 'NotAllowedError');
+  }
+
+  const message = bufferSourceAsUint8Array(data);
+  const privateKey = (key as Ed25519CryptoKey)[slot];
+  const signature = await ed.signAsync(message, privateKey);
+  const signatureAsBufferSource = uint8ArrayAsBufferSource(signature);
+
+  return signatureAsBufferSource;
 }
 
-/**
- *
- * @param key
- * @param signature
- * @param data
- */
-export async function verifyPolyfill(
+export async function verify(
+  _algorithm: AlgorithmIdentifier,
   key: CryptoKey,
   signature: BufferSource,
   data: BufferSource,
 ): Promise<boolean> {
-  if (key.type !== 'public' || !key.usages.includes('verify')) {
-    throw new DOMException(
-      'Unable to use this key to verify',
-      'InvalidAccessError',
-    );
-  }
-  const publicKeyBytes = await getPublicKeyBytes(key);
-  try {
-    return await verifyAsync(
-      bufferSourceToUint8Array(signature),
-      bufferSourceToUint8Array(data),
-      publicKeyBytes,
-    );
-  } catch {
-    return false;
-  }
-}
-
-/**
- *
- * @param keyUsages
- * @param type
- */
-function assertValidKeyUsages(
-  keyUsages: readonly KeyUsage[],
-  type: 'private' | 'public',
-) {
-  const prohibitedKeyUses = new Set<KeyUsage>([
-    ...((type === 'private' ? ['verify'] : ['sign']) as KeyUsage[]),
-    ...PROHIBITED_KEY_USAGES,
-  ]);
-  if (keyUsages.some((usage) => prohibitedKeyUses.has(usage))) {
-    throw new DOMException(
-      'Unsupported key usage for a Ed25519 key',
-      'SyntaxError',
-    );
-  }
-}
-
-export function importKeyPolyfill(
-  format: 'jwk',
-  keyData: JsonWebKey,
-  extractable: boolean,
-  keyUsages: readonly KeyUsage[],
-): CryptoKey;
-export function importKeyPolyfill(
-  format: Exclude<KeyFormat, 'jwk'>,
-  keyData: BufferSource,
-  extractable: boolean,
-  keyUsages: readonly KeyUsage[],
-): CryptoKey;
-/**
- *
- * @param format
- * @param keyData
- * @param extractable
- * @param keyUsages
- */
-export function importKeyPolyfill(
-  format: KeyFormat,
-  keyData: BufferSource | JsonWebKey,
-  extractable: boolean,
-  keyUsages: readonly KeyUsage[],
-): CryptoKey {
-  if (format === 'raw') {
-    const bytes = bufferSourceToUint8Array(keyData as BufferSource);
-    assertValidKeyUsages(keyUsages, 'public');
-    if (bytes.length !== 32) {
-      throw new DOMException(
-        'Ed25519 raw keys must be exactly 32-bytes',
-        'DataError',
-      );
-    }
-    const publicKey = {
-      [Symbol.toStringTag]: 'CryptoKey',
-      algorithm: Object.freeze({ name: 'Ed25519' }),
-      extractable,
-      type: 'public',
-      usages: Object.freeze(
-        keyUsages.filter((usage) => usage === 'verify'),
-      ) as KeyUsage[],
-    } as CryptoKey;
-
-    const cache = (publicKeyBytesStore ||= new WeakMap());
-    cache.set(publicKey, bytes);
-
-    return publicKey;
+  if (key.type !== 'public') {
+    throw new DOMException('Key is not public', 'NotAllowedError');
   }
 
-  if (format === 'pkcs8') {
-    const bytes = bufferSourceToUint8Array(keyData as BufferSource);
-    assertValidKeyUsages(keyUsages, 'private');
-    // 48 bytes: 16-byte PKCS8 header + 32 byte secret key
-    if (bytes.length !== 48) {
-      throw new DOMException('Invalid keyData', 'DataError');
-    }
-    // Must start with exactly the Ed25519 pkcs8 header
-    const header = bytes.slice(0, 16);
-    if (!header.every((val, i) => val === ED25519_PKCS8_HEADER[i])) {
-      throw new DOMException('Invalid keyData', 'DataError');
-    }
-    const secretKeyBytes = bytes.slice(16);
-
-    const privateKey = {
-      [Symbol.toStringTag]: 'CryptoKey',
-      algorithm: Object.freeze({ name: 'Ed25519' }),
-      extractable,
-      type: 'private',
-      usages: Object.freeze(
-        keyUsages.filter((usage) => usage === 'sign'),
-      ) as KeyUsage[],
-    } as CryptoKey;
-
-    const cache = (storageKeyBySecretKey_INTERNAL_ONLY_DO_NOT_EXPORT ||=
-      new WeakMap());
-    cache.set(privateKey, secretKeyBytes);
-
-    return privateKey;
+  if (!key.usages.includes('verify')) {
+    throw new DOMException('Key usage not allowed', 'NotAllowedError');
   }
 
-  if (format === 'jwk') {
-    const jwk = keyData as JsonWebKey;
-    const type = 'd' in jwk ? 'private' : 'public';
-    assertValidKeyUsages(keyUsages, type);
-    const keyOps = new Set(jwk.key_ops ?? []);
-    const sameKeyUsages =
-      keyUsages.length === keyOps.size &&
-      [...keyUsages].every((x) => keyOps.has(x));
-    if (
-      jwk.kty !== 'OKP' ||
-      jwk.crv !== 'Ed25519' ||
-      jwk.ext !== extractable ||
-      !sameKeyUsages
-    ) {
-      throw new DOMException('Invalid Ed25519 JWK', 'DataError');
-    }
-    if (type === 'public' && !jwk.x) {
-      throw new DOMException(
-        'Ed25519 JWK is missing public key coordinates',
-        'DataError',
-      );
-    }
-    if (type === 'private' && !jwk.d) {
-      throw new DOMException(
-        'Ed25519 JWK is missing private key coordinates',
-        'DataError',
-      );
-    }
-    const usageToKeep = type === 'public' ? 'verify' : 'sign';
-    const key = Object.freeze({
-      [Symbol.toStringTag]: 'CryptoKey',
-      algorithm: Object.freeze({ name: 'Ed25519' }),
-      extractable,
-      type,
-      usages: Object.freeze(
-        keyUsages.filter((usage) => usage === usageToKeep),
-      ) as KeyUsage[],
-    }) as CryptoKey;
-
-    if (type === 'public') {
-      const cache = (publicKeyBytesStore ||= new WeakMap());
-      cache.set(key, base64UrlDecode(jwk.x!));
-    } else {
-      const cache = (storageKeyBySecretKey_INTERNAL_ONLY_DO_NOT_EXPORT ||=
-        new WeakMap());
-      cache.set(key, base64UrlDecode(jwk.d!));
-    }
-
-    return key;
-  }
-
-  throw new Error(
-    `Importing Ed25519 keys in the "${format}" format is unimplemented`,
+  const signatureAsUint8Array = bufferSourceAsUint8Array(signature);
+  const message = bufferSourceAsUint8Array(data);
+  const privateKey = (key as Ed25519CryptoKey)[slot];
+  const verified = await ed.verifyAsync(
+    signatureAsUint8Array,
+    message,
+    privateKey,
   );
+
+  return verified;
 }

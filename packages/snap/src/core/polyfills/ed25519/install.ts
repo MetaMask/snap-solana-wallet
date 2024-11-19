@@ -1,15 +1,11 @@
-/* eslint-disable jsdoc/match-description */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-restricted-globals */
 import {
-  exportKeyPolyfill,
-  generateKeyPolyfill,
-  importKeyPolyfill,
-  isPolyfilledKey,
-  signPolyfill,
-  verifyPolyfill,
+  exportKey as exportKeyPolyfill,
+  generateKey as generateKeyPolyfill,
+  importKey as importKeyPolyfill,
+  sign as signPolyfill,
+  verify as verifyPolyfill,
 } from './polyfill';
+import { isEd25519Algorithm } from './utils/is-ed25519-algorithm';
 
 /**
  * Adds Ed25519 support to Web Crypto API's native methods.
@@ -21,10 +17,6 @@ import {
 export function install() {
   const { subtle } = globalThis.crypto;
 
-  /**
-   * Store the original methods
-   */
-
   Object.defineProperty(globalThis, 'isSecureContext', {
     value: true,
     writable: true,
@@ -32,35 +24,34 @@ export function install() {
   });
 
   /**
-   * Override `SubtleCrypto#exportKey`
+   * Override `SubtleCrypto#generateKey`
    */
-  const originalExportKey = subtle?.exportKey?.bind(subtle);
-  Object.defineProperty(subtle, 'exportKey', {
-    value: async (...args: Parameters<SubtleCrypto['exportKey']>) => {
-      const [_, key] = args;
-      if (isPolyfilledKey(key)) {
-        return await exportKeyPolyfill(...args);
+  Object.defineProperty(subtle, 'generateKey', {
+    value: async (...args: Parameters<SubtleCrypto['generateKey']>) => {
+      const algorithm = args[0];
+
+      if (!isEd25519Algorithm(algorithm)) {
+        return await globalThis.crypto.subtle.generateKey(...args);
       }
-      return await originalExportKey(...args);
+
+      return await generateKeyPolyfill(...args);
     },
     writable: true,
     configurable: true,
   });
 
   /**
-   * Override `SubtleCrypto#generateKey`
+   * Override `SubtleCrypto#exportKey`
    */
-  const originalGenerateKey = subtle?.generateKey?.bind(subtle);
-  Object.defineProperty(subtle, 'generateKey', {
-    value: async (...args: Parameters<SubtleCrypto['generateKey']>) => {
-      const [algorithm] = args;
+  Object.defineProperty(subtle, 'exportKey', {
+    value: async (...args: Parameters<SubtleCrypto['exportKey']>) => {
+      const key = args[1];
 
-      if (algorithm !== 'Ed25519') {
-        return await originalGenerateKey(...args);
+      if (!isEd25519Algorithm(key.algorithm)) {
+        return await globalThis.crypto.subtle.exportKey(...args);
       }
 
-      const [_, extractable, keyUsages] = args;
-      return generateKeyPolyfill(extractable, keyUsages);
+      return await exportKeyPolyfill(...args);
     },
     writable: true,
     configurable: true,
@@ -69,15 +60,18 @@ export function install() {
   /**
    * Override `SubtleCrypto#sign`
    */
-  const originalSign = subtle?.sign?.bind(subtle);
   Object.defineProperty(subtle, 'sign', {
     value: async (...args: Parameters<SubtleCrypto['sign']>) => {
-      const [_, key] = args;
-      if (isPolyfilledKey(key)) {
-        const [_, ...rest] = args;
-        return await signPolyfill(...rest);
+      const [algorithm, key] = args;
+
+      if (
+        !isEd25519Algorithm(algorithm) ||
+        !isEd25519Algorithm(key.algorithm)
+      ) {
+        return await globalThis.crypto.subtle.sign(...args);
       }
-      return await originalSign(...args);
+
+      return await signPolyfill(...args);
     },
     writable: true,
     configurable: true,
@@ -86,15 +80,18 @@ export function install() {
   /**
    * Override `SubtleCrypto#verify`
    */
-  const originalVerify = subtle?.verify?.bind(subtle);
   Object.defineProperty(subtle, 'verify', {
     value: async (...args: Parameters<SubtleCrypto['verify']>) => {
-      const [_, key] = args;
-      if (isPolyfilledKey(key)) {
-        const [_, ...rest] = args;
-        return await verifyPolyfill(...rest);
+      const [algorithm, key] = args;
+
+      if (
+        !isEd25519Algorithm(algorithm) ||
+        !isEd25519Algorithm(key.algorithm)
+      ) {
+        return await globalThis.crypto.subtle.verify(...args);
       }
-      return await originalVerify(...args);
+
+      return await verifyPolyfill(...args);
     },
     writable: true,
     configurable: true,
@@ -103,16 +100,15 @@ export function install() {
   /**
    * Override `SubtleCrypto#importKey`
    */
-  const originalImportKey = subtle?.importKey?.bind(subtle);
   Object.defineProperty(subtle, 'importKey', {
     value: async (...args: Parameters<SubtleCrypto['importKey']>) => {
-      const [format, keyData, algorithm, extractable, keyUsages] = args;
+      const algorithm = args[2];
 
-      if (algorithm !== 'Ed25519') {
-        return originalImportKey(...args);
+      if (!isEd25519Algorithm(algorithm)) {
+        return await globalThis.crypto.subtle.importKey(...args);
       }
 
-      return importKeyPolyfill(format, keyData, extractable, keyUsages);
+      return await importKeyPolyfill(...args);
     },
     writable: true,
     configurable: true,
