@@ -4,6 +4,7 @@ import { createContext, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 
 import { dark, light } from './config/theme';
+import { NetworkProvider } from './context/network';
 import { MetaMaskProvider } from './hooks';
 import { getThemePreference, setLocalStorage } from './utils';
 
@@ -30,7 +31,9 @@ export const Root: FunctionComponent<RootProps> = ({ children }) => {
       <ThemeProvider theme={darkTheme ? dark : light}>
         <MetaMaskProvider>
           <ChakraProvider value={defaultSystem}>
-            <main className={darkTheme ? 'dark' : ''}>{children}</main>
+            <NetworkProvider>
+              <main className={darkTheme ? 'dark' : ''}>{children}</main>
+            </NetworkProvider>
           </ChakraProvider>
         </MetaMaskProvider>
       </ThemeProvider>

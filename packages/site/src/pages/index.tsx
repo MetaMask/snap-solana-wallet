@@ -1,5 +1,8 @@
+import { Button, Flex } from '@chakra-ui/react';
+
 import { Card, InstallFlaskButton, SolanaLogo } from '../components';
 import { Accounts } from '../components/Accounts/Accounts';
+import { NetworkSelector } from '../components/NetworkSelector/NetworkSelector';
 import {
   CardContainer,
   Container,
@@ -8,16 +11,21 @@ import {
   Span,
 } from '../components/styled';
 import { defaultSnapOrigin } from '../config';
-import { useMetaMask, useMetaMaskContext } from '../hooks';
+import { useInvokeSnap, useMetaMask, useMetaMaskContext } from '../hooks';
 import { isLocalSnap } from '../utils';
 
 const Index = () => {
   const { error } = useMetaMaskContext();
   const { isFlask, snapsDetected } = useMetaMask();
+  const invokeSnap = useInvokeSnap();
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? isFlask
     : snapsDetected;
+
+  const handleSend = async () => {
+    await invokeSnap({ method: 'startSendTransactionFlow' });
+  };
 
   return (
     <Container>
@@ -33,6 +41,12 @@ const Index = () => {
         )}
         {isMetaMaskReady ? (
           <>
+            <Flex width="full" justifyContent="space-between">
+              <NetworkSelector />
+              <Button colorPalette="purple" marginLeft="3" onClick={handleSend}>
+                Send
+              </Button>
+            </Flex>
             <Accounts />
           </>
         ) : (

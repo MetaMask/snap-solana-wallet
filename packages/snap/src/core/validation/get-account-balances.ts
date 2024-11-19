@@ -1,16 +1,11 @@
-import type { Infer } from 'superstruct';
-import { enums, number, object, pattern, record, string } from 'superstruct';
+import { enums, object, record } from 'superstruct';
 
 import {
   SOL_SYMBOL,
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
 } from '../constants/solana';
-
-export const PositiveNumberStringStruct = pattern(
-  string(),
-  /^(?!0\d)(\d+(\.\d+)?)$/u,
-);
+import { PositiveNumberStringStruct } from './number';
 
 export const AssetsStruct = enums([
   `${SolanaCaip2Networks.Mainnet}/${SolanaCaip19Tokens.SOL}`,
@@ -25,10 +20,3 @@ export const GetAccounBalancesResponseStruct = record(
     unit: enums([SOL_SYMBOL as string]),
   }),
 );
-
-export const TransferSolParamsStruct = object({
-  to: string(),
-  amount: number(),
-});
-
-export type TransferSolParams = Infer<typeof TransferSolParamsStruct>;

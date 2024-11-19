@@ -29,6 +29,7 @@ module.exports = {
       files: ['*.test.ts', '*.test.tsx'],
       rules: {
         '@typescript-eslint/unbound-method': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
       },
     },
   ],
