@@ -1,7 +1,11 @@
 import type { Json } from '@metamask/snaps-sdk';
 
+import {
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1,
+  MOCK_SOLANA_KEYRING_ACCOUNT_2,
+} from '../test/mocks/solana-keyring-accounts';
 import { SolanaState } from './state';
-import { Keypair } from '@solana/web3.js';
 
 const snap = {
   request: jest.fn(),
@@ -37,15 +41,7 @@ describe('SolanaState', () => {
   it('sets the state', async () => {
     const newState = {
       keyringAccounts: {
-        '1': {
-          index: 0,
-          type: 'eip155:eoa' as const,
-          id: '1',
-          address: 'address-1',
-          keypair: new Keypair(),
-          options: {},
-          methods: [],
-        },
+        '0': MOCK_SOLANA_KEYRING_ACCOUNT_0,
       },
     };
 
@@ -63,34 +59,13 @@ describe('SolanaState', () => {
   it('updates the state', async () => {
     const initialState = {
       keyringAccounts: {
-        '1': {
-          index: 0,
-          type: 'eip155:eoa' as const,
-          id: '1',
-          address: 'address-1',
-          options: {},
-          methods: [],
-        },
+        '1': MOCK_SOLANA_KEYRING_ACCOUNT_1,
       },
     };
     const updatedState = {
       keyringAccounts: {
-        '1': {
-          index: 0,
-          type: 'eip155:eoa' as const,
-          id: '1',
-          address: 'address-1',
-          options: {},
-          methods: [],
-        },
-        '2': {
-          index: 1,
-          type: 'eip155:eoa' as const,
-          id: '2',
-          address: 'address-2',
-          options: {},
-          methods: [],
-        },
+        '1': MOCK_SOLANA_KEYRING_ACCOUNT_1,
+        '2': MOCK_SOLANA_KEYRING_ACCOUNT_2,
       },
     };
     snap.request.mockResolvedValueOnce(initialState);
@@ -98,15 +73,7 @@ describe('SolanaState', () => {
     await solanaState.update((state) => ({
       keyringAccounts: {
         ...(state?.keyringAccounts ?? {}),
-        '2': {
-          index: 1,
-          type: 'eip155:eoa' as const,
-          id: '2',
-          keypair: new Keypair(),
-          address: 'address-2',
-          options: {},
-          methods: [],
-        },
+        '2': MOCK_SOLANA_KEYRING_ACCOUNT_2,
       },
     }));
 
@@ -114,6 +81,7 @@ describe('SolanaState', () => {
       method: 'snap_manageState',
       params: { operation: 'get' },
     });
+
     expect(snap.request).toHaveBeenCalledWith({
       method: 'snap_manageState',
       params: {

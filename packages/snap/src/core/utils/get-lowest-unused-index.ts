@@ -1,4 +1,6 @@
-import type { SolanaKeyringAccount } from '../services/keyring';
+export type WithIndex = {
+  index: number;
+};
 
 /**
  * Generating a new index for the KeyringAccount is not as straightforward as one might think.
@@ -6,22 +8,22 @@ import type { SolanaKeyringAccount } from '../services/keyring';
  * an index in the middle of the list. The right way to do it is to loop through the keyringAccounts
  * and get the lowest index that is not yet used.
  *
+ * This function does precisely that, in a generic way, as it can work with any array of items that
+ * have a field `index`.
+ *
  * Eg:
  * Used Indices: [] -> Lowest is 0.
  * Used Indices: [0, 1, 2, 4] -> Lowest is 3.
- * @param keyringAccounts - The keyring accounts to check.
+ *
+ * @param items - The items to check.
  * @returns The lowest unused index.
  */
-export function getLowestUnusedKeyringAccountIndex(
-  keyringAccounts: SolanaKeyringAccount[],
-): number {
-  if (keyringAccounts.length === 0) {
+export function getLowestUnusedIndex(items: WithIndex[]): number {
+  if (items.length === 0) {
     return 0;
   }
 
-  const usedIndices = keyringAccounts
-    .map((account) => account.index)
-    .sort((a, b) => a - b);
+  const usedIndices = items.map((item) => item.index).sort((a, b) => a - b);
 
   let lowestUnusedIndex = 0;
 

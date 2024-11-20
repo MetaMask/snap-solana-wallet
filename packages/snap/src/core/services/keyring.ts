@@ -46,7 +46,7 @@ import {
   type SolanaCaip2Networks,
 } from '../constants/solana';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
-import { getLowestUnusedKeyringAccountIndex } from '../utils/get-lowest-unused-keyring-account-index';
+import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
 import logger from '../utils/logger';
 import type { TransferSolParams } from '../validation/structs';
@@ -107,7 +107,7 @@ export class SolanaKeyring implements Keyring {
     try {
       const id = uuidv4();
       const keyringAccounts = await this.listAccounts();
-      const index = getLowestUnusedKeyringAccountIndex(keyringAccounts);
+      const index = getLowestUnusedIndex(keyringAccounts);
 
       const privateKeyBytes = await deriveSolanaPrivateKey(index);
       const privateKeyBytesAsNum = Array.from(privateKeyBytes);

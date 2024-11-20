@@ -65,8 +65,6 @@ describe('deriveSolanaPrivateKey', () => {
   });
 
   it('should successfully derive a Solana keypair', async () => {
-    // const keypairSpy = jest.spyOn(Keypair, 'fromSecretKey');
-
     await deriveSolanaPrivateKey(0);
 
     // Verify getBip32Entropy was called with correct parameters
@@ -81,9 +79,6 @@ describe('deriveSolanaPrivateKey', () => {
     // Verify derive was called with correct path
     const mockNode = await SLIP10Node.fromJSON(mockRootNode);
     expect(mockNode.derive).toHaveBeenCalledWith(["slip10:0'", "slip10:0'"]);
-
-    // Verify Keypair creation
-    // expect(keypairSpy).toHaveBeenCalledWith(mockPrivateKeyBytes);
   });
 
   it('should throw error if unable to derive private key', async () => {
@@ -95,7 +90,7 @@ describe('deriveSolanaPrivateKey', () => {
     };
     (SLIP10Node.fromJSON as jest.Mock).mockResolvedValue(mockSlipNode);
 
-    await expect(deriveSolanaKeypair(0)).rejects.toThrow(
+    await expect(deriveSolanaPrivateKey(0)).rejects.toThrow(
       'Unable to derive private key',
     );
   });
@@ -104,7 +99,7 @@ describe('deriveSolanaPrivateKey', () => {
     const errorMessage = 'Failed to get entropy';
     (getBip32Entropy as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
-    await expect(deriveSolanaKeypair(0)).rejects.toThrow(errorMessage);
+    await expect(deriveSolanaPrivateKey(0)).rejects.toThrow(errorMessage);
   });
 
   it('should throw error if SLIP10Node.fromJSON fails', async () => {
@@ -113,14 +108,12 @@ describe('deriveSolanaPrivateKey', () => {
       new Error(errorMessage),
     );
 
-    await expect(deriveSolanaKeypair(0)).rejects.toThrow(errorMessage);
+    await expect(deriveSolanaPrivateKey(0)).rejects.toThrow(errorMessage);
   });
 
   it('should derive different keypairs for different indices', async () => {
-    const keypairSpy = jest.spyOn(Keypair, 'fromSecretKey');
-
-    await deriveSolanaKeypair(0);
-    await deriveSolanaKeypair(1);
+    await deriveSolanaPrivateKey(0);
+    await deriveSolanaPrivateKey(1);
 
     const mockNode = await SLIP10Node.fromJSON(mockRootNode);
 

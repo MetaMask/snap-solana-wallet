@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { address as addressValidator } from '@solana/web3.js';
 import { nonempty, string, validate } from 'superstruct';
 
 import type {
@@ -55,7 +55,7 @@ export const address: ValidationFunction = (message: string) => {
   return (value: string) => {
     try {
       // eslint-disable-next-line no-new
-      new PublicKey(value);
+      addressValidator(value);
       return null;
     } catch {
       return { message, value };
