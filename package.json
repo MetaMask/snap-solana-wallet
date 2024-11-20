@@ -81,8 +81,5 @@
       "@solana/web3.js>@solana/rpc-subscriptions>@solana/rpc-subscriptions-channel-websocket>ws>bufferutil": false,
       "@solana/web3.js>@solana/rpc-subscriptions>@solana/rpc-subscriptions-channel-websocket>ws>utf-8-validate": false
     }
-  },
-  "dependencies": {
-    "@solana/web3.js": "2"
   }
 }
