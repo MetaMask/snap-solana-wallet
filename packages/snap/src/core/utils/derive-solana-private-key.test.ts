@@ -1,20 +1,46 @@
 import { SLIP10Node } from '@metamask/key-tree';
-import { Keypair } from '@solana/web3.js';
-import { deriveSolanaKeypair } from './derive-solana-private-key';
+
+import { deriveSolanaPrivateKey } from './derive-solana-private-key';
 import { getBip32Entropy } from './get-bip32-entropy';
+
+/**
+ * Test seed phrase is:
+ * sugar interest animal afford dog imitate relief lizard width strategy embark midnight
+ *
+ * Which yields the following root node from getBip32Deriver:
+ * ```json
+ * {
+ *   "depth": 2,
+ *   "masterFingerprint": 3974444335,
+ *   "parentFingerprint": 2046425034,
+ *   "index": 2147484149,
+ *   "curve": "ed25519",
+ *   "privateKey": "0x7acf6060833428c2196ce6e2c5ba5455394602814b9ec6b9bac453b357be7b24",
+ *   "publicKey": "0x00389ed03449fbc42a3ec134609b664a50e7a78bad800bad1629113590bfc9af9b",
+ *   "chainCode": "0x99d7cef35ae591a92eab31e0007f0199e3bea62d211a219526bf2ae06799886d"
+ * }
+ * ```
+ *
+ * And returns the following addresses per index, using Solana's derivation path
+ * `m`, `44'`, `501'`, `${index}'`, `0'`
+ *
+ * #0 - BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP
+ * #1 - FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo
+ * #2 - 27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD
+ */
 
 // Mock the external dependencies
 jest.mock('./get-bip32-entropy');
 jest.mock('@metamask/key-tree');
 jest.mock('./logger');
 
-describe('deriveSolanaKeypair', () => {
+describe('deriveSolanaPrivateKey', () => {
   const mockRootNode = {
     depth: 2,
     masterFingerprint: 3974444335,
     parentFingerprint: 2046425034,
     index: 2147484149,
-    curve: 'ed25519',
+    curve: 'ed25519' as const,
     privateKey:
       '0x7acf6060833428c2196ce6e2c5ba5455394602814b9ec6b9bac453b357be7b24',
     publicKey:
@@ -39,9 +65,9 @@ describe('deriveSolanaKeypair', () => {
   });
 
   it('should successfully derive a Solana keypair', async () => {
-    const keypairSpy = jest.spyOn(Keypair, 'fromSecretKey');
+    // const keypairSpy = jest.spyOn(Keypair, 'fromSecretKey');
 
-    await deriveSolanaKeypair(0);
+    await deriveSolanaPrivateKey(0);
 
     // Verify getBip32Entropy was called with correct parameters
     expect(getBip32Entropy).toHaveBeenCalledWith(
@@ -57,7 +83,7 @@ describe('deriveSolanaKeypair', () => {
     expect(mockNode.derive).toHaveBeenCalledWith(["slip10:0'", "slip10:0'"]);
 
     // Verify Keypair creation
-    expect(keypairSpy).toHaveBeenCalledWith(mockPrivateKeyBytes);
+    // expect(keypairSpy).toHaveBeenCalledWith(mockPrivateKeyBytes);
   });
 
   it('should throw error if unable to derive private key', async () => {
