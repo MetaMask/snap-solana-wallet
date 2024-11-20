@@ -72,6 +72,7 @@ export async function deriveSolanaPrivateKey(
     if (!privateKeyBytes) {
       throw new Error('Unable to derive private key');
     }
+
     return privateKeyBytes;
   } catch (error: any) {
     logger.error({ error }, 'Error deriving keypair');

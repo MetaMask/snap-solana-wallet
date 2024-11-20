@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import * as ed from '@noble/ed25519';
 
 import { bufferSourceAsUint8Array } from './utils/buffer-source-as-uint8-array';
@@ -5,9 +6,9 @@ import { uint8ArrayAsBufferSource } from './utils/uint8-array-as-buffer-source';
 
 const slot = '8d9df0f7-1363-4d2c-8152-ce4ed78f27d8';
 
-interface Ed25519CryptoKey extends CryptoKey {
+type Ed25519CryptoKey = {
   [slot]: Uint8Array;
-}
+} & CryptoKey;
 
 const ED25519_PKCS8_HEADER = [
   0x30,
@@ -29,33 +30,40 @@ const ED25519_PKCS8_HEADER = [
 ];
 
 /**
- * Convert a Uint8Array to a base64 string with URL-safe characters
+ * Convert a Uint8Array to a base64 string with URL-safe characters.
  *
- * @param input - The Uint8Array to convert
- * @returns The base64 string with URL-safe characters
+ * @param input - The Uint8Array to convert.
+ * @returns The base64 string with URL-safe characters.
  */
 export function toBase64(input: Uint8Array) {
   return Buffer.from(input)
     .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
+    .replace(/\+/gu, '-')
+    .replace(/\//gu, '_')
+    .replace(/[=]/gu, '');
 }
 
 /**
- * Convert a base64 string with URL-safe characters to a Uint8Array
+ * Convert a base64 string with URL-safe characters to a Uint8Array.
  *
- * @param b64u - The base64 string with URL-safe characters
- * @returns The Uint8Array
+ * @param b64u - The base64 string with URL-safe characters.
+ * @returns The Uint8Array.
  */
 export function toBuffer(b64u: string) {
-  const a = b64u.replace(/-/g, '+').replace(/_/g, '/');
+  const a = b64u.replace(/-/gu, '+').replace(/_/gu, '/');
   const b = new Uint8Array(Buffer.from(a, 'base64'));
 
   return b;
 }
 
-export async function exportKey(format: KeyFormat, key: CryptoKey) {
+/**
+ * Export a key.
+ *
+ * @param format - The format of the key data.
+ * @param key - The key to export.
+ * @returns The exported key data.
+ */
+export async function exportKey(format: KeyFormat | string, key: CryptoKey) {
   if (!key.extractable) {
     throw new DOMException('key is not extractable', 'InvalidAccessException');
   }
@@ -85,6 +93,7 @@ export async function exportKey(format: KeyFormat, key: CryptoKey) {
       const base = {
         crv: 'Ed25519',
         ext: key.extractable,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         key_ops: key.usages,
         kty: 'OKP',
       };
@@ -127,6 +136,14 @@ export async function exportKey(format: KeyFormat, key: CryptoKey) {
   }
 }
 
+/**
+ * Generate a key pair.
+ *
+ * @param _algorithm - The algorithm to use.
+ * @param extractable - Whether the key is extractable.
+ * @param keyUsages - The key usages.
+ * @returns The key pair.
+ */
 export async function generateKey(
   _algorithm: AlgorithmIdentifier | KeyAlgorithm,
   extractable: boolean,
@@ -155,8 +172,18 @@ export async function generateKey(
   return { privateKey: privateKeyObject, publicKey: publicKeyObject };
 }
 
-export function importKey(
-  format: KeyFormat,
+/**
+ * Import a key.
+ *
+ * @param format - The format of the key data.
+ * @param keyData - The key data to import.
+ * @param _algorithm - The algorithm to use.
+ * @param extractable - Whether the key is extractable.
+ * @param keyUsages - The key usages.
+ * @returns The imported key.
+ */
+export async function importKey(
+  format: KeyFormat | string,
   keyData: BufferSource | JsonWebKey,
   _algorithm: AlgorithmIdentifier | KeyAlgorithm,
   extractable: boolean,
@@ -220,6 +247,9 @@ export function importKey(
         throw new DOMException('Ed25519 JWK is missing key data', 'DataError');
       }
 
+      const slotData =
+        type === 'private' ? (jwk.d as string) : (jwk.x as string);
+
       return {
         algorithm: { name: 'Ed25519' },
         extractable,
@@ -227,7 +257,7 @@ export function importKey(
         usages: usages.filter((usage) =>
           type === 'private' ? usage === 'sign' : usage === 'verify',
         ),
-        [slot]: type === 'private' ? toBuffer(jwk.d!) : toBuffer(jwk.x!),
+        [slot]: toBuffer(slotData),
       } as Ed25519CryptoKey;
     }
     case 'spki': {
@@ -263,6 +293,14 @@ export function importKey(
   }
 }
 
+/**
+ * Sign data using an Ed25519 private key.
+ *
+ * @param _algorithm - The algorithm to use.
+ * @param key - The private key to use.
+ * @param data - The data to sign.
+ * @returns The signature.
+ */
 export async function sign(
   _algorithm: AlgorithmIdentifier,
   key: CryptoKey,
@@ -284,6 +322,15 @@ export async function sign(
   return signatureAsBufferSource;
 }
 
+/**
+ * Verify a signature using an Ed25519 public key.
+ *
+ * @param _algorithm - The algorithm to use.
+ * @param key - The public key to use.
+ * @param signature - The signature to verify.
+ * @param data - The data to verify.
+ * @returns True if the signature is valid, false otherwise.
+ */
 export async function verify(
   _algorithm: AlgorithmIdentifier,
   key: CryptoKey,

@@ -9,10 +9,11 @@ import { isEd25519Algorithm } from './utils/is-ed25519-algorithm';
 
 /**
  * Adds Ed25519 support to Web Crypto API's native methods.
- * Uses `defineProperty` to overwrite the native methods with polyfilled versions because we can't
- * overwrite the native methods directly.
  *
- * Based on: https://github.com/solana-labs/solana-web3.js/tree/master/packages/webcrypto-ed25519-polyfill
+ * Based on the following libraries:
+ * https://github.com/solana-labs/solana-web3.js/tree/master/packages/webcrypto-ed25519-polyfill
+ * https://github.com/yoursunny/webcrypto-ed25519.
+ *
  */
 export function install() {
   const { subtle } = globalThis.crypto;
@@ -27,6 +28,7 @@ export function install() {
    * Override `SubtleCrypto#generateKey`
    */
   Object.defineProperty(subtle, 'generateKey', {
+    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['generateKey']>) => {
       const algorithm = args[0];
 
@@ -44,6 +46,7 @@ export function install() {
    * Override `SubtleCrypto#exportKey`
    */
   Object.defineProperty(subtle, 'exportKey', {
+    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['exportKey']>) => {
       const key = args[1];
 
@@ -61,6 +64,7 @@ export function install() {
    * Override `SubtleCrypto#sign`
    */
   Object.defineProperty(subtle, 'sign', {
+    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['sign']>) => {
       const [algorithm, key] = args;
 
@@ -81,6 +85,7 @@ export function install() {
    * Override `SubtleCrypto#verify`
    */
   Object.defineProperty(subtle, 'verify', {
+    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['verify']>) => {
       const [algorithm, key] = args;
 
@@ -101,6 +106,7 @@ export function install() {
    * Override `SubtleCrypto#importKey`
    */
   Object.defineProperty(subtle, 'importKey', {
+    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['importKey']>) => {
       const algorithm = args[2];
 
