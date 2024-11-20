@@ -47,7 +47,6 @@ import {
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
 import { getLowestUnusedKeyringAccountIndex } from '../utils/get-lowest-unused-keyring-account-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
-import { getProvider } from '../utils/get-provider';
 import logger from '../utils/logger';
 import type { TransferSolParams } from '../validation/structs';
 import {
@@ -231,7 +230,7 @@ export class SolanaKeyring implements Keyring {
     event: KeyringEvent,
     data: Record<string, Json>,
   ): Promise<void> {
-    await emitSnapKeyringEvent(getProvider(), event, data);
+    await emitSnapKeyringEvent(snap, event, data);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

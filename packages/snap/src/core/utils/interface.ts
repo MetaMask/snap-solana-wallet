@@ -32,17 +32,20 @@ export async function createInterface(
  *
  * @param id - The ID for the interface to update.
  * @param ui - The UI component or element.
+ * @param context - The context for the interface.
  * @returns A promise that resolves to a string.
  */
 export async function updateInterface(
   id: string,
   ui: ComponentOrElement,
+  context: Record<string, Json>,
 ): Promise<UpdateInterfaceResult> {
   return snap.request({
     method: 'snap_updateInterface',
     params: {
       id,
       ui,
+      context,
     },
   });
 }

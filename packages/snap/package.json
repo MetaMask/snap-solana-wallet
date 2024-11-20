@@ -46,7 +46,7 @@
     "@jest/globals": "^29.5.0",
     "@metamask/auto-changelog": "^4.0.0",
     "@metamask/snaps-cli": "^6.2.1",
-    "@metamask/snaps-jest": "8.2.0",
+    "@metamask/snaps-jest": "8.7.0",
     "@testing-library/jest-dom": "^6.6.2",
     "@types/intl": "^1.2.2",
     "@types/react": "18.2.4",
