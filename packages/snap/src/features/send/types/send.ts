@@ -14,6 +14,7 @@ export type SendContext = {
   selectedAccountId: string;
   accounts: SolanaKeyringAccount[];
   validation: Partial<Record<SendFormNames, FormFieldError>>;
+  clearToField: boolean;
 };
 
 export type SendState = {

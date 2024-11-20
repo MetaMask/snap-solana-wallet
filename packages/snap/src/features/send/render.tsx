@@ -22,9 +22,12 @@ export async function renderSend(params: StartSendTransactionFlowParams) {
     accounts: Object.values(currentState?.keyringAccounts ?? {}),
     selectedAccountId: params.account,
     validation: {},
+    clearToField: false,
   };
 
-  const id = await createInterface(<SendForm context={context} />, context);
+  const id = await createInterface(<SendForm 
+    context={context}
+    />, context);
 
   return showDialog(id);
 }

@@ -1,4 +1,14 @@
-import { Box, Button, Container, Footer, Form } from '@metamask/snaps-sdk/jsx';
+import {
+  Box,
+  Button,
+  Container,
+  Footer,
+  Form,
+  Field,
+  Icon,
+  Input,
+  IconName,
+} from '@metamask/snaps-sdk/jsx';
 
 import { Header } from '../../../../core/components/Header/Header';
 import { SendFormNames } from '../../types/form';
@@ -10,8 +20,13 @@ type SendFormProps = {
 };
 
 export const SendForm = ({
-  context: { accounts, selectedAccountId, validation },
+  context: { accounts, selectedAccountId, validation, clearToField },
 }: SendFormProps) => {
+
+console.log(
+  'Clear to field: ', clearToField,
+)
+
   return (
     <Container>
       <Box>
@@ -22,6 +37,23 @@ export const SendForm = ({
             accounts={accounts}
             selectedAccountId={selectedAccountId}
           />
+          <Field
+            label="To account"
+            error={validation?.[SendFormNames.To]?.message ?? ''}
+          >
+            <Input
+              name={SendFormNames.To}
+              placeholder="Enter receiving address"
+              value={clearToField ? '' : undefined }
+            />
+            {Boolean(true) && (
+              <Box>
+                <Button name={SendFormNames.Clear}>
+                  <Icon name={IconName.Close} color="primary" />
+                </Button>
+              </Box>
+            )}
+          </Field>
         </Form>
       </Box>
       <Footer>

@@ -42,10 +42,16 @@ export async function handleSendEvents({
   const state = (await getInterfaceState(id)) as SendState;
   const name = event.name as SendFormNames;
 
+  context.clearToField = false;
+  
+  console.log(
+    'Context: ', context,
+    'State: ', state,
+  )
   switch (event.type) {
     case UserInputEventType.ButtonClickEvent:
       // eslint-disable-next-line @typescript-eslint/await-thenable
-      await handleButtonEvents({ id, name });
+      await handleButtonEvents({ id, name, context });
       break;
     case UserInputEventType.InputChangeEvent:
       await handleInputChangeEvents({
@@ -115,15 +121,21 @@ async function handleInputChangeEvents({
 async function handleButtonEvents({
   id,
   name,
+  context,
 }: {
   id: string;
   name?: string | undefined;
+  context: SendContext;
 }): Promise<void | null> {
   switch (name) {
     case SendFormNames.Cancel:
     case SendFormNames.BackButton:
       await resolveInterface(id, false);
       return null;
+    case SendFormNames.Clear:
+      context.clearToField = true;
+      await updateInterface(id, <SendForm context={context} />, context);
+      break;
     default:
       return null;
   }
