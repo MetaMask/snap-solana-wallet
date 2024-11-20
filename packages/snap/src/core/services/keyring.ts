@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
 import {
   emitSnapKeyringEvent,
   KeyringEvent,
@@ -163,9 +164,21 @@ export class SolanaKeyring implements Keyring {
 
       return keyringAccount;
     } catch (error: any) {
-      console.error('Error creating account', error);
       logger.error({ error }, 'Error creating account');
       throw new Error('Error creating account');
+    }
+  }
+
+  async deleteAccount(id: string): Promise<void> {
+    try {
+      await this.#state.update((state) => {
+        delete state?.keyringAccounts?.[id];
+        return state;
+      });
+      await this.#emitEvent(KeyringEvent.AccountDeleted, { id });
+    } catch (error: any) {
+      logger.error({ error }, 'Error deleting account');
+      throw new Error('Error deleting account');
     }
   }
 
@@ -181,9 +194,16 @@ export class SolanaKeyring implements Keyring {
         throw new Error('Account not found');
       }
 
-      const assetsByNetwork: Record<SolanaCaip2Networks, string[]> = (
-        Object as any
-      ).groupBy(assets, (asset: string) => getNetworkFromToken(asset));
+      const assetsByNetwork = assets.reduce<
+        Record<SolanaCaip2Networks, string[]>
+      >((groups, asset) => {
+        const network = getNetworkFromToken(asset) as SolanaCaip2Networks;
+        if (!groups[network]) {
+          groups[network] = [];
+        }
+        groups[network].push(asset);
+        return groups;
+      }, {} as Record<SolanaCaip2Networks, string[]>);
 
       for (const network of Object.keys(assetsByNetwork)) {
         const currentNetwork = network as SolanaCaip2Networks;
@@ -220,7 +240,6 @@ export class SolanaKeyring implements Keyring {
 
       return response;
     } catch (error: any) {
-      console.log(error);
       logger.error({ error }, 'Error getting account balances');
       throw new Error('Error getting account balances');
     }
@@ -233,27 +252,12 @@ export class SolanaKeyring implements Keyring {
     await emitSnapKeyringEvent(snap, event, data);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async filterAccountChains(id: string, chains: string[]): Promise<string[]> {
-    return [];
+    throw new Error(`Implement me! ${id} ${chains.toString()}`);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async updateAccount(account: KeyringAccount): Promise<void> {
-    // TODO: Implement method, this is a placeholder
-  }
-
-  async deleteAccount(id: string): Promise<void> {
-    try {
-      await this.#state.update((state) => {
-        delete state?.keyringAccounts?.[id];
-        return state;
-      });
-      await this.#emitEvent(KeyringEvent.AccountDeleted, { id });
-    } catch (error: any) {
-      logger.error({ error }, 'Error deleting account');
-      throw new Error('Error deleting account');
-    }
+    throw new Error(`Implement me! ${JSON.stringify(account)}`);
   }
 
   async submitRequest(request: KeyringRequest): Promise<KeyringResponse> {
