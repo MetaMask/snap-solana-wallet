@@ -1,12 +1,12 @@
 import { Button, Link, Table } from '@chakra-ui/react';
 import {
-  type KeyringAccount,
   type Balance,
+  type KeyringAccount,
   SolMethod,
 } from '@metamask/keyring-api';
 import { useState } from 'react';
-import { CAIP2 } from '../../../../snap/src/core/constants/solana';
 
+import { SolanaCaip2Networks } from '../../../../snap/src/core/constants/solana';
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 
@@ -42,12 +42,12 @@ export const AccountRow = ({
       params: {
         id: accountId, // TODO: this should be a unique request ID
         account: accountId,
-        scope: CAIP2.SOLANA_DEVNET,
+        scope: SolanaCaip2Networks.Devnet,
         request: {
           method: SolMethod.SendAndConfirmTransaction,
           params: {
             to: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
-            amount: '0.1',
+            amount: 0.1,
           },
         },
       },
@@ -77,7 +77,7 @@ export const AccountRow = ({
           variant="outline"
           colorPalette="purple"
           marginRight="5"
-          onClick={() => onTransfer(account.id)}
+          onClick={async () => onTransfer(account.id)}
         >
           Transfer 0.1 SOL
         </Button>

@@ -12,7 +12,11 @@ import {
 } from '@metamask/snaps-sdk';
 
 import { SolanaInternalRpcMethods } from './core/constants/solana';
+import { installDOMException } from './core/polyfills/DOMException';
 import { install } from './core/polyfills/ed25519/install';
+import { installIntl } from './core/polyfills/intl';
+import { installQueueMicrotask } from './core/polyfills/queueMicrotask';
+import { SolanaConnection } from './core/services/connection';
 import { SolanaKeyring } from './core/services/keyring';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
@@ -22,11 +26,14 @@ import { originPermissions } from './permissions';
 
 /**
  * Install polyfills
- * - Add Ed25519 cryptography functionality to the browser crypto API
  */
 install();
+installQueueMicrotask();
+installIntl();
+installDOMException();
 
-const keyring = new SolanaKeyring();
+const connection = new SolanaConnection();
+const keyring = new SolanaKeyring(connection);
 
 export const validateOrigin = (origin: string, method: string): void => {
   if (!origin) {

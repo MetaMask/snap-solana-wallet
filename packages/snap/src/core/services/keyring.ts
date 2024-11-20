@@ -16,26 +16,19 @@ import {
   getTransferSolInstruction,
   isSystemError,
 } from '@solana-program/system';
-import type {
-  Blockhash,
-  Rpc,
-  RpcSubscriptions,
-  SolanaRpcApi,
-  SolanaRpcSubscriptionsApi,
-} from '@solana/web3.js';
+import type { Blockhash } from '@solana/web3.js';
 import {
   address,
   appendTransactionMessageInstruction,
   createKeyPairFromPrivateKeyBytes,
   createKeyPairSignerFromPrivateKeyBytes,
-  createSolanaRpc,
-  createSolanaRpcSubscriptions,
   createTransactionMessage,
   getAddressFromPublicKey,
   getSignatureFromTransaction,
   isSolanaError,
+  lamports,
   pipe,
-  sendAndConfirmTransactionFactory,
+  sendTransactionWithoutConfirmingFactory,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
   signTransactionMessageWithSigners,
@@ -45,11 +38,10 @@ import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
 import { v4 as uuidv4 } from 'uuid';
 
-import { CAIP2_TO_SOLANA_CLUSTER } from '../constants/caip2-to-solana-cluster';
 import {
+  LAMPORTS_PER_SOL,
   SOL_SYMBOL,
   SolanaCaip19Tokens,
-  SolanaSubmitRequestMethods,
   type SolanaCaip2Networks,
 } from '../constants/solana';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
@@ -63,7 +55,7 @@ import {
   TransferSolParamsStruct,
 } from '../validation/structs';
 import { validateRequest } from '../validation/validators';
-import { RpcConnection } from './rpc-connection';
+import type { SolanaConnection } from './connection';
 import { SolanaState } from './state';
 
 /**
@@ -78,32 +70,11 @@ export type SolanaKeyringAccount = {
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
 
-  readonly #rpc: Rpc<SolanaRpcApi>;
+  readonly #connection: SolanaConnection;
 
-  readonly #rpcSubscriptions: RpcSubscriptions<SolanaRpcSubscriptionsApi>;
-
-  readonly #sendAndConfirmTransaction: any; // Type isn't exported from the `@solana/web3.js` package
-
-  constructor() {
+  constructor(connection: SolanaConnection) {
     this.#state = new SolanaState();
-    this.#rpc = createSolanaRpc('https://api.devnet.solana.com');
-    this.#rpcSubscriptions = createSolanaRpcSubscriptions(
-      'ws://api.devnet.solana.com:8900',
-    );
-    // Create a reusable transaction sender.
-    this.#sendAndConfirmTransaction = sendAndConfirmTransactionFactory({
-      /**
-       * The RPC implements a `sendTransaction` method which relays transactions to the network.
-       */
-      rpc: this.#rpc,
-      /**
-       * RPC subscriptions allow the transaction sender to subscribe to the status of our transaction.
-       * The sender will resolve when the transaction is reported to have been confirmed, or will
-       * reject in the event of an error, or a timeout if the transaction lifetime is thought to have
-       * expired.
-       */
-      rpcSubscriptions: this.#rpcSubscriptions,
-    });
+    this.#connection = connection;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -140,14 +111,10 @@ export class SolanaKeyring implements Keyring {
 
       const privateKeyBytes = await deriveSolanaPrivateKey(index);
       const privateKeyBytesAsNum = Array.from(privateKeyBytes);
-      console.log('🦊', 'privateKeyBytes', privateKeyBytes);
-      console.log('🦊', 'privateKeyBytesAsNum', privateKeyBytesAsNum);
 
       const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
-      console.log('🦊', 'keyPair', keyPair);
 
       const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
-      console.log('🦊', 'accountAddress', accountAddress);
 
       const keyringAccount: SolanaKeyringAccount = {
         id,
@@ -156,9 +123,8 @@ export class SolanaKeyring implements Keyring {
         type: SolAccountType.DataAccount,
         address: accountAddress,
         options: options ?? {},
-        methods: [`${SolMethod.SendAndConfirmTransaction}`],
+        methods: [SolMethod.SendAndConfirmTransaction],
       };
-      console.log('🦊', 'keyringAccount', keyringAccount);
 
       logger.log(
         { keyringAccount },
@@ -224,19 +190,21 @@ export class SolanaKeyring implements Keyring {
         const currentNetwork = network as SolanaCaip2Networks;
         const networkAssets = assetsByNetwork[currentNetwork];
 
-        const rpcConnection = new RpcConnection({ network: currentNetwork });
-
         for (const asset of networkAssets) {
           if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
-            // native SOL balance
-            const balance = await rpcConnection.getBalance(account.address);
+            const response = await this.#connection
+              .getRpc(currentNetwork)
+              .getBalance(address(account.address))
+              .send();
+
+            const balance = String(Number(response.value) / LAMPORTS_PER_SOL);
             balances.set(asset, [SOL_SYMBOL, balance]);
             logger.log(
               { asset, balance, network: currentNetwork },
               'Native SOL balance',
             );
           } else {
-            // Tokens: unssuported
+            // Tokens: unsuported
             logger.log({ asset, network: currentNetwork }, 'Unsupported asset');
           }
         }
@@ -297,11 +265,6 @@ export class SolanaKeyring implements Keyring {
     const { scope, account: accountId } = request;
     const { method, params } = request.request;
 
-    const cluster = CAIP2_TO_SOLANA_CLUSTER[scope];
-    if (!cluster) {
-      throw new Error(`Unrecognized scope: ${scope}`);
-    }
-
     const account = await this.getAccount(accountId);
     if (!account) {
       throw new Error('Account not found');
@@ -312,13 +275,9 @@ export class SolanaKeyring implements Keyring {
         const signature = await this.#transferSol(
           account,
           params as TransferSolParams,
+          scope as SolanaCaip2Networks,
         );
         return { signature };
-      }
-
-      case SolanaSubmitRequestMethods.SendSolana: {
-        // TODO: to be implemented
-        return {};
       }
 
       default:
@@ -326,14 +285,30 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
+  /**
+   * Transfer SOL from one account to another.
+   *
+   * @param account - The account from which the SOL will be transferred.
+   * @param params - The parameters for the transfer.
+   * @param network - The network on which to transfer the SOL.
+   * @returns The signature of the transaction.
+   * @see https://github.com/solana-labs/solana-web3.js/blob/master/examples/transfer-lamports/src/example.ts
+   */
   async #transferSol(
     account: SolanaKeyringAccount,
     params: TransferSolParams,
+    network: SolanaCaip2Networks,
   ): Promise<string> {
     logger.log({ params }, 'Transferring SOL...');
 
     validateRequest(params, TransferSolParamsStruct as Struct<any>);
     const { to, amount } = params;
+    const amountInLamports = lamports(BigInt(amount * LAMPORTS_PER_SOL));
+
+    const sendTransactionWithoutConfirming =
+      sendTransactionWithoutConfirmingFactory({
+        rpc: this.#connection.getRpc(network),
+      });
 
     /**
      * The source account from which the tokens will be transferred needs to sign the transaction. We need to
@@ -349,7 +324,7 @@ export class SolanaKeyring implements Keyring {
      */
     const toAddress = address(to);
 
-    const latestBlockhash = await this.#getLatestBlockhash();
+    const latestBlockhash = await this.#getLatestBlockhash(network);
 
     /**
      * Create the transaction message.
@@ -372,7 +347,7 @@ export class SolanaKeyring implements Keyring {
            * to create a transfer instruction for the system program.
            */
           getTransferSolInstruction({
-            amount,
+            amount: amountInLamports,
             destination: toAddress,
             /**
              * By supplying a `TransactionSigner` here instead of just an address, we give this
@@ -409,7 +384,7 @@ export class SolanaKeyring implements Keyring {
     );
 
     try {
-      await this.#sendAndConfirmTransaction(signedTransaction, {
+      await sendTransactionWithoutConfirming(signedTransaction, {
         commitment: 'confirmed',
       });
       logger.info('Transfer confirmed');
@@ -450,15 +425,19 @@ export class SolanaKeyring implements Keyring {
    * TIP: It is desirable for the program to fetch this block hash as late as possible before signing
    * and sending the transaction so as to ensure that it's as 'fresh' as possible.
    *
+   * @param network - The network on which to get the latest blockhash.
    * @returns The latest blockhash and the last valid block height.
    */
-  async #getLatestBlockhash(): Promise<
+  async #getLatestBlockhash(network: SolanaCaip2Networks): Promise<
     Readonly<{
       blockhash: Blockhash;
       lastValidBlockHeight: bigint;
     }>
   > {
-    const latestBlockhashResponse = await this.#rpc.getLatestBlockhash().send();
+    const latestBlockhashResponse = await this.#connection
+      .getRpc(network)
+      .getLatestBlockhash()
+      .send();
 
     return latestBlockhashResponse.value;
   }
