@@ -7,6 +7,12 @@ on:
         required: true
       SLACK_WEBHOOK_URL:
         required: true
+      RPC_URL_MAINNET:
+        required: true
+      RPC_URL_DEVNET:
+        required: true
+      RPC_URL_TESTNET:
+        required: true
 
 jobs:
   publish-release:
@@ -28,6 +34,10 @@ jobs:
         run: |
           yarn install
           yarn workspace @metamask/solana-wallet-snap build
+        env:
+          RPC_URL_MAINNET: ${{ secrets.RPC_URL_MAINNET }}
+          RPC_URL_DEVNET: ${{ secrets.RPC_URL_DEVNET }}
+          RPC_URL_TESTNET: ${{ secrets.RPC_URL_TESTNET }}
       - uses: actions/cache@v4
         id: restore-build
         with:
