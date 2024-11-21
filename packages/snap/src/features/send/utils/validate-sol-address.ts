@@ -2,7 +2,7 @@
  * Validates a Solana address by checking if it follows the Base58 encoding format.
  *
  * @param address - The address string to validate.
- * @returns A promise that resolves to a boolean indicating whether the address is valid.
+ * @returns A boolean indicating whether the address is valid.
  * @description
  * Valid addresses must:
  * - Be between 32 and 44 characters long
@@ -10,7 +10,7 @@
  *
  * Note: Future implementation will support .sol domain names.
  */
-export async function validateSolAddress(address: string): Promise<boolean> {
+export function validateSolAddress(address: string): boolean {
   // to be used later
   // const isSolDomain = typeof address === 'string' && address?.endsWith('.sol');
 

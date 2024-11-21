@@ -108,7 +108,7 @@ async function handleInputChangeEvents({
     case SendFormNames.To:
       context.showClearButton = hasToAddress;
 
-      if (hasToAddress && !(await validateSolAddress(toAddress as string))) {
+      if (hasToAddress && !validateSolAddress(toAddress as string)) {
         context.validation[SendFormNames.To] = {
           message: 'Invalid Solana address',
           value: toAddress as string,

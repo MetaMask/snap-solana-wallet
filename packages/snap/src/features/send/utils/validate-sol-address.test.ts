@@ -1,18 +1,18 @@
 import { validateSolAddress } from './validate-sol-address';
 
 describe('validateSolAddress', () => {
-  it('should return true for valid Solana addresses', async () => {
+  it('should return true for valid Solana addresses', () => {
     const validAddresses = [
       'ErJwUq5Uzo88NDNHRxyGgz9St1N9kPfMD2yVGCPksnyK',
       'SoLFoodE4xjDWwa7vKB5qWEnBqhQFm1RPbJnwbS3Qyr',
     ];
 
     for (const address of validAddresses) {
-      expect(await validateSolAddress(address)).toBe(true);
+      expect(validateSolAddress(address)).toBe(true);
     }
   });
 
-  it('should return false for invalid Solana addresses', async () => {
+  it('should return false for invalid Solana addresses', () => {
     const invalidAddresses = [
       '',
       'too-short',
@@ -24,13 +24,13 @@ describe('validateSolAddress', () => {
     ];
 
     for (const address of invalidAddresses) {
-      expect(await validateSolAddress(address)).toBe(false);
+      expect(validateSolAddress(address)).toBe(false);
     }
   });
 
   // Future .sol domain implementation
-  it.skip('should handle .sol domains (TBA)', async () => {
+  it.skip('should handle .sol domains (TBA)', () => {
     const solDomain = 'banana.sol';
-    expect(await validateSolAddress(solDomain)).toBe(true);
+    expect(validateSolAddress(solDomain)).toBe(true);
   });
 });
