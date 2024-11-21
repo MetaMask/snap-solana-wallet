@@ -2,7 +2,7 @@ import type { Json } from '@metamask/snaps-sdk';
 
 import type { SolanaKeyringAccount } from './keyring';
 
-type StateValue = {
+export type StateValue = {
   keyringAccounts?: Record<string, SolanaKeyringAccount>;
 } | null;
 

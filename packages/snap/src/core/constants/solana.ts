@@ -14,10 +14,14 @@ export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',
 }
 
-export enum SolanaSubmitRequestMethods {
-  SendSolana = 'sendSolana',
-}
-
 export enum SolanaInternalRpcMethods {
   StartSendTransactionFlow = 'startSendTransactionFlow',
 }
+
+export const LAMPORTS_PER_SOL = 1_000_000_000;
+
+export const SOLANA_NETWORK_TO_RPC_URLS: Record<SolanaCaip2Networks, string> = {
+  [SolanaCaip2Networks.Mainnet]: 'https://api.mainnet-beta.solana.com',
+  [SolanaCaip2Networks.Devnet]: 'https://api.devnet.solana.com',
+  [SolanaCaip2Networks.Testnet]: 'https://api.testnet.solana.com',
+};

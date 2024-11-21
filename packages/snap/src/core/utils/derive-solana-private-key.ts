@@ -1,9 +1,7 @@
-import { SLIP10Node } from '@metamask/key-tree';
 import type { SLIP10PathNode } from '@metamask/key-tree';
-import bs58 from 'bs58';
-import nacl from 'tweetnacl';
+import { SLIP10Node } from '@metamask/key-tree';
 
-import { getBip32Deriver } from './get-bip32-deriver';
+import { getBip32Entropy } from './get-bip32-entropy';
 import logger from './logger';
 
 /**
@@ -23,22 +21,23 @@ const DERIVATION_PATH = [`m`, `44'`, `501'`];
 const CURVE = 'ed25519' as const;
 
 /**
- * Derives a Solana address from a given index using BIP44 derivation path.
+ * Derives a Solana private key from a given index using BIP44 derivation path.
  * The derivation path follows Phantom wallet's standard: m/44'/501'/index'/0'.
  *
  * @param index - The account index to derive. Must be a non-negative integer.
- * @returns A Promise that resolves to a base58-encoded Solana public key address.
+ * @returns A Promise that resolves to a Uint8Array of the private key.
  * @throws {Error} If unable to derive private key or if derivation fails.
  * @example
  * ```typescript
- * const address = await deriveSolanaAddress(0);
- * // Returns: "BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP"
+ * const privateKey = await deriveSolanaPrivateKey(0);
  * ```
  * @see {@link https://help.phantom.app/hc/en-us/articles/12988493966227-What-derivation-paths-does-Phantom-wallet-support} Phantom wallet derivation paths
  * @see {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki} BIP44 specification
  * @see {@link https://github.com/satoshilabs/slips/blob/master/slip-0044.md} SLIP-0044 for coin types.
  */
-export async function deriveSolanaAddress(index: number): Promise<string> {
+export async function deriveSolanaPrivateKey(
+  index: number,
+): Promise<Uint8Array> {
   logger.log({ index }, 'Generating solana wallet');
 
   /**
@@ -50,7 +49,7 @@ export async function deriveSolanaAddress(index: number): Promise<string> {
   const hdPath = [`${index}'`, `0'`];
 
   try {
-    const rootNode = await getBip32Deriver(DERIVATION_PATH, CURVE);
+    const rootNode = await getBip32Entropy(DERIVATION_PATH, CURVE);
 
     logger.log({ rootNode });
 
@@ -68,23 +67,15 @@ export async function deriveSolanaAddress(index: number): Promise<string> {
 
     logger.log({ slipNode });
 
-    if (!slipNode.privateKeyBytes) {
+    const { privateKeyBytes } = slipNode;
+
+    if (!privateKeyBytes) {
       throw new Error('Unable to derive private key');
     }
 
-    const keypair = nacl.sign.keyPair.fromSeed(
-      Uint8Array.from(slipNode.privateKeyBytes),
-    );
-
-    logger.log({ keypair }, 'New keypair generated');
-
-    const pubkey = bs58.encode(keypair.publicKey);
-
-    logger.log({ pubkey }, 'Encoded public key');
-
-    return pubkey;
+    return privateKeyBytes;
   } catch (error: any) {
-    logger.error({ error }, 'Error deriving address');
+    logger.error({ error }, 'Error deriving keypair');
     throw new Error(error);
   }
 }

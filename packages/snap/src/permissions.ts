@@ -4,9 +4,10 @@ import { SolanaInternalRpcMethods } from './core/constants/solana';
 
 const dappPermissions = new Set([
   // Keyring methods
-  KeyringRpcMethod.CreateAccount,
   KeyringRpcMethod.ListAccounts,
   KeyringRpcMethod.GetAccount,
+  KeyringRpcMethod.CreateAccount,
+  KeyringRpcMethod.FilterAccountChains,
   KeyringRpcMethod.DeleteAccount,
   KeyringRpcMethod.GetAccountBalances,
   KeyringRpcMethod.SubmitRequest,
@@ -19,7 +20,6 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.ListAccounts,
   KeyringRpcMethod.GetAccount,
   KeyringRpcMethod.CreateAccount,
-  KeyringRpcMethod.FilterAccountChains,
   KeyringRpcMethod.DeleteAccount,
   KeyringRpcMethod.GetAccountBalances,
   KeyringRpcMethod.SubmitRequest,

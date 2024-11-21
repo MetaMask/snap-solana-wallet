@@ -4,25 +4,17 @@ import {
   SolanaCaip2Networks,
   SolanaInternalRpcMethods,
 } from '../../core/constants/solana';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../core/test/mocks/solana-keyring-accounts';
 import { TEST_ORIGIN } from '../../core/test/utils';
 import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
 
-const solanaKeyringAccounts = [
-  {
-    id: '123',
-    address: '123',
-    index: 0,
-    methods: [],
-    options: {},
-    type: 'solana:data-account' as const,
-  },
-];
+const solanaKeyringAccounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
 
 const mockContext = {
   accounts: solanaKeyringAccounts,
   scope: SolanaCaip2Networks.Devnet,
-  selectedAccountId: '123',
+  selectedAccountId: '0',
   validation: {},
   showClearButton: false,
   clearToField: false,
@@ -42,7 +34,7 @@ describe('Send', () => {
       method: SolanaInternalRpcMethods.StartSendTransactionFlow,
       params: {
         scope: SolanaCaip2Networks.Mainnet,
-        account: '123',
+        account: '0',
       },
     });
 
@@ -50,7 +42,7 @@ describe('Send', () => {
 
     expect(screen).toRender(<SendForm context={mockContext} />);
 
-    await screen.selectFromSelector(SendFormNames.AccountSelector, '123');
+    await screen.selectFromSelector(SendFormNames.AccountSelector, '0');
 
     expect(screen).toRender(<SendForm context={mockContext} />);
   });
@@ -63,7 +55,7 @@ describe('Send', () => {
       method: SolanaInternalRpcMethods.StartSendTransactionFlow,
       params: {
         scope: 'wrong scope',
-        account: '123',
+        account: '0',
       },
     });
 

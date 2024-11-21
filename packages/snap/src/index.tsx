@@ -12,6 +12,8 @@ import {
 } from '@metamask/snaps-sdk';
 
 import { SolanaInternalRpcMethods } from './core/constants/solana';
+import { install as installPolyfills } from './core/polyfills';
+import { SolanaConnection } from './core/services/connection';
 import { SolanaKeyring } from './core/services/keyring';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
@@ -23,6 +25,11 @@ import type {
 } from './features/send/types/send';
 import { originPermissions } from './permissions';
 
+installPolyfills();
+
+const connection = new SolanaConnection();
+const keyring = new SolanaKeyring(connection);
+
 export const validateOrigin = (origin: string, method: string): void => {
   if (!origin) {
     // eslint-disable-next-line @typescript-eslint/no-throw-literal
@@ -33,8 +40,6 @@ export const validateOrigin = (origin: string, method: string): void => {
     throw new UnauthorizedError(`Permission denied`);
   }
 };
-
-const keyring = new SolanaKeyring();
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
