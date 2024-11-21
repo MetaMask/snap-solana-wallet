@@ -1,4 +1,4 @@
-import { type UserInputEvent, UserInputEventType } from '@metamask/snaps-sdk';
+import { type UserInputEvent, UserInputEventType } from '@metamask/snaps-sdk';;
 
 import {
   getInterfaceState,
@@ -10,7 +10,7 @@ import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
 import type { SendContext, SendState } from './types/send';
 import { validation } from './utils/validation';
-
+import { getPublicKeyFromSolDomain } from './utils/resolve-sol-domain';
 /**
  * Checks if the given event is a send event.
  *
@@ -46,6 +46,8 @@ export async function handleSendEvents({
 
   switch (event.type) {
     case UserInputEventType.ButtonClickEvent:
+      context.clearToField = false;
+
       // eslint-disable-next-line @typescript-eslint/await-thenable
       await handleButtonEvents({ id, name, context });
       break;

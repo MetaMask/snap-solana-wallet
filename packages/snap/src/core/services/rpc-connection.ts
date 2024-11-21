@@ -23,6 +23,10 @@ export class RpcConnection {
     );
   }
 
+  get connection(): Connection {
+    return this.#connection;
+  }
+
   async getBalance(address: string): Promise<string> {
     const publicKey = new PublicKey(address);
     const balance = await this.#connection.getBalance(publicKey);
