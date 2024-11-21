@@ -40,7 +40,7 @@ export const AccountRow = ({
     await invokeKeyring({
       method: 'keyring_submitRequest',
       params: {
-        id: accountId, // TODO: this should be a unique request ID
+        id: crypto.randomUUID(),
         account: accountId,
         scope: SolanaCaip2Networks.Devnet,
         request: {

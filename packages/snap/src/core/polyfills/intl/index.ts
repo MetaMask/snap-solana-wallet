@@ -1,4 +1,7 @@
-export const installIntl = () => {
+/**
+ * Adds support for the Intl object's Collator#toLocaleString method.
+ */
+export function install() {
   class Collator {
     toLocaleString() {
       return this.toString();
@@ -13,4 +16,4 @@ export const installIntl = () => {
     configurable: true,
     enumerable: true,
   });
-};
+}

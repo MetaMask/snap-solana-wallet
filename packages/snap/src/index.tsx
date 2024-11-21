@@ -12,10 +12,7 @@ import {
 } from '@metamask/snaps-sdk';
 
 import { SolanaInternalRpcMethods } from './core/constants/solana';
-import { installDOMException } from './core/polyfills/DOMException';
-import { install } from './core/polyfills/ed25519/install';
-import { installIntl } from './core/polyfills/intl';
-import { installQueueMicrotask } from './core/polyfills/queueMicrotask';
+import { install as installPolyfills } from './core/polyfills';
 import { SolanaConnection } from './core/services/connection';
 import { SolanaKeyring } from './core/services/keyring';
 import { isSnapRpcError } from './core/utils/errors';
@@ -28,17 +25,7 @@ import type {
 } from './features/send/types/send';
 import { originPermissions } from './permissions';
 
-/**
- * Install polyfills
- * - Add Ed25519 cryptography functionality to the Webcrypto API
- * - Add queueMicrotask polyfill
- * - Add intl polyfill
- * - Add DOMException polyfill
- */
-install();
-installQueueMicrotask();
-installIntl();
-installDOMException();
+installPolyfills();
 
 const connection = new SolanaConnection();
 const keyring = new SolanaKeyring(connection);

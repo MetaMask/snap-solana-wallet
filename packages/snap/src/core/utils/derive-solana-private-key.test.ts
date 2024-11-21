@@ -1,13 +1,20 @@
 import { SLIP10Node } from '@metamask/key-tree';
 
+import {
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1,
+  MOCK_SOLANA_KEYRING_ACCOUNT_2,
+  MOCK_SOLANA_KEYRING_ACCOUNT_3,
+  MOCK_SOLANA_KEYRING_ACCOUNT_4,
+} from '../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from './derive-solana-private-key';
 import { getBip32Entropy } from './get-bip32-entropy';
 
 /**
- * Test seed phrase is:
+ * Using the seed phrase:
  * sugar interest animal afford dog imitate relief lizard width strategy embark midnight
  *
- * Which yields the following root node from getBip32Deriver:
+ * Yields the following root node from getBip32Deriver:
  * ```json
  * {
  *   "depth": 2,
@@ -21,17 +28,19 @@ import { getBip32Entropy } from './get-bip32-entropy';
  * }
  * ```
  *
- * And returns the following addresses per index, using Solana's derivation path
- * `m`, `44'`, `501'`, `${index}'`, `0'`
+ * Returns the following addresses per index, using Solana's derivation path
+ * `m`, `44'`, `501'`, `${index}'`, `0'`:
  *
  * #0 - BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP
  * #1 - FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo
  * #2 - 27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD
+ * #3 - 3SYHDFbhoxuTCYCGRw7KSL8GbwUoByjtvyy7pUZeAhh8
+ * #4 - FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK
+ *
+ * And the private keys you see in the first test case below.
  */
 
-// Mock the external dependencies
 jest.mock('./get-bip32-entropy');
-jest.mock('@metamask/key-tree');
 jest.mock('./logger');
 
 describe('deriveSolanaPrivateKey', () => {
@@ -49,46 +58,43 @@ describe('deriveSolanaPrivateKey', () => {
       '0x99d7cef35ae591a92eab31e0007f0199e3bea62d211a219526bf2ae06799886d',
   };
 
-  const mockPrivateKeyBytes = new Uint8Array([1, 2, 3, 4]); // Example private key bytes
-
   beforeEach(() => {
     jest.clearAllMocks();
     (getBip32Entropy as jest.Mock).mockResolvedValue(mockRootNode);
-
-    // Mock SLIP10Node implementation
-    const mockSlipNode = {
-      derive: jest.fn().mockResolvedValue({
-        privateKeyBytes: mockPrivateKeyBytes,
-      }),
-    };
-    (SLIP10Node.fromJSON as jest.Mock).mockResolvedValue(mockSlipNode);
   });
 
-  it('should successfully derive a Solana keypair', async () => {
-    await deriveSolanaPrivateKey(0);
+  it('should successfully derive Solana private keys', async () => {
+    const firstPrivateKey = await deriveSolanaPrivateKey(0);
+    const secondPrivateKey = await deriveSolanaPrivateKey(1);
+    const thirdPrivateKey = await deriveSolanaPrivateKey(2);
+    const fourthPrivateKey = await deriveSolanaPrivateKey(3);
+    const fifthPrivateKey = await deriveSolanaPrivateKey(4);
 
-    // Verify getBip32Entropy was called with correct parameters
-    expect(getBip32Entropy).toHaveBeenCalledWith(
-      ['m', `44'`, `501'`],
-      'ed25519',
+    expect(firstPrivateKey).toStrictEqual(
+      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_0.privateKeyBytesAsNum),
     );
-
-    // Verify SLIP10Node.fromJSON was called with root node
-    expect(SLIP10Node.fromJSON).toHaveBeenCalledWith(mockRootNode);
-
-    // Verify derive was called with correct path
-    const mockNode = await SLIP10Node.fromJSON(mockRootNode);
-    expect(mockNode.derive).toHaveBeenCalledWith(["slip10:0'", "slip10:0'"]);
+    expect(secondPrivateKey).toStrictEqual(
+      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_1.privateKeyBytesAsNum),
+    );
+    expect(thirdPrivateKey).toStrictEqual(
+      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_2.privateKeyBytesAsNum),
+    );
+    expect(fourthPrivateKey).toStrictEqual(
+      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_3.privateKeyBytesAsNum),
+    );
+    expect(fifthPrivateKey).toStrictEqual(
+      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_4.privateKeyBytesAsNum),
+    );
   });
 
   it('should throw error if unable to derive private key', async () => {
-    // Mock SLIP10Node to return node without privateKeyBytes
-    const mockSlipNode = {
-      derive: jest.fn().mockResolvedValue({
-        privateKeyBytes: null,
-      }),
+    const mockDeriveMethod = jest.fn().mockResolvedValue({
+      privateKeyBytes: null,
+    });
+    const mockNode = {
+      derive: mockDeriveMethod,
     };
-    (SLIP10Node.fromJSON as jest.Mock).mockResolvedValue(mockSlipNode);
+    jest.spyOn(SLIP10Node, 'fromJSON').mockResolvedValue(mockNode as any);
 
     await expect(deriveSolanaPrivateKey(0)).rejects.toThrow(
       'Unable to derive private key',
@@ -100,25 +106,5 @@ describe('deriveSolanaPrivateKey', () => {
     (getBip32Entropy as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
     await expect(deriveSolanaPrivateKey(0)).rejects.toThrow(errorMessage);
-  });
-
-  it('should throw error if SLIP10Node.fromJSON fails', async () => {
-    const errorMessage = 'Failed to create node';
-    (SLIP10Node.fromJSON as jest.Mock).mockRejectedValue(
-      new Error(errorMessage),
-    );
-
-    await expect(deriveSolanaPrivateKey(0)).rejects.toThrow(errorMessage);
-  });
-
-  it('should derive different keypairs for different indices', async () => {
-    await deriveSolanaPrivateKey(0);
-    await deriveSolanaPrivateKey(1);
-
-    const mockNode = await SLIP10Node.fromJSON(mockRootNode);
-
-    // Verify derive was called with different paths
-    expect(mockNode.derive).toHaveBeenCalledWith(["slip10:0'", "slip10:0'"]);
-    expect(mockNode.derive).toHaveBeenCalledWith(["slip10:1'", "slip10:0'"]);
   });
 });

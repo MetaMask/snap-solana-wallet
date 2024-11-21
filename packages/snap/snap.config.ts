@@ -9,7 +9,7 @@ const config: SnapConfig = {
   },
   polyfills: {
     buffer: true,
-    crypto: true, // needs to have ed25519 support
+    crypto: true,
   },
 };
 

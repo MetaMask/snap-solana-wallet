@@ -37,7 +37,6 @@ import {
 } from '@solana/web3.js';
 import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
-import { v4 as uuidv4 } from 'uuid';
 
 import {
   LAMPORTS_PER_SOL,
@@ -105,7 +104,8 @@ export class SolanaKeyring implements Keyring {
     options?: Record<string, Json>,
   ): Promise<SolanaKeyringAccount> {
     try {
-      const id = uuidv4();
+      // eslint-disable-next-line no-restricted-globals
+      const id = crypto.randomUUID();
       const keyringAccounts = await this.listAccounts();
       const index = getLowestUnusedIndex(keyringAccounts);
 

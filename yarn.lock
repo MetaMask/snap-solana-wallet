@@ -4627,16 +4627,13 @@ __metadata:
     "@solana-program/system": ^0.6.2
     "@solana/web3.js": 2
     "@testing-library/jest-dom": ^6.6.2
-    "@types/intl": ^1.2.2
     "@types/react": 18.2.4
     "@types/react-dom": 18.2.4
     buffer: ^6.0.3
-    intl: ^1.2.5
     jest: ^29.5.0
     rimraf: ^6.0.1
     superstruct: ^2.0.2
     ts-jest: ^29.1.0
-    uuid: ^11.0.2
   languageName: unknown
   linkType: soft
 
@@ -6947,13 +6944,6 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 491320bce3565bbb6c7d39d25b54bce626237cfb6b09e60ee7f77b56ae7c6cbad76f08d47fe01eaa706781124ee3dfad9bb737049254491efd98ed1f014c4e83
-  languageName: node
-  linkType: hard
-
-"@types/intl@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@types/intl@npm:1.2.2"
-  checksum: c278b0184f9a0c3f4f2cbdaa6087b00e7bd71bc784012e3158b48d20ad0e9ce732ac7609846627ce1c7fd69dac1b52e4b02fa881e45d1529a71c4872e9c8648d
   languageName: node
   linkType: hard
 
@@ -16246,13 +16236,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"intl@npm:^1.2.5":
-  version: 1.2.5
-  resolution: "intl@npm:1.2.5"
-  checksum: 54c2444ec334b4e7f501c1b988ccfdae96d62a6275a915b9c75a38fc42d611bfc7dd33447e94079b7a8fdb3fbf36b95afd13132af4bfd70e2ec4bf9c9e0935f9
-  languageName: node
-  linkType: hard
-
 "invariant@npm:^2.2.4":
   version: 2.2.4
   resolution: "invariant@npm:2.2.4"
@@ -24294,15 +24277,6 @@ __metadata:
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: c81095493225ecfc28add49c106ca4f09cdf56bc66731aa8dabc2edbbccb1e1bfe2de6a115e5c6a380d3ea166d1636410b62ef216bb07b3feb1cfde1d95d5080
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^11.0.2":
-  version: 11.0.2
-  resolution: "uuid@npm:11.0.2"
-  bin:
-    uuid: dist/esm/bin/uuid
-  checksum: 9b322963db18623d22f46cf98f51b45830f956715577fb24d272ec29324fe919bedbedc6e29627aced490ac3f982ee53c80441651daf4a6ef74f2af58689f2e0
   languageName: node
   linkType: hard
 
