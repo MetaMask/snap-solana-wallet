@@ -28,7 +28,6 @@ export const SendForm = ({
     showClearButton,
   },
 }: SendFormProps) => {
-
   return (
     <Container>
       <Box>
