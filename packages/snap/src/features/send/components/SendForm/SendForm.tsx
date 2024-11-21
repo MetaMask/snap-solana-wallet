@@ -20,12 +20,16 @@ type SendFormProps = {
 };
 
 export const SendForm = ({
-  context: { accounts, selectedAccountId, validation, clearToField },
+  context: {
+    accounts,
+    selectedAccountId,
+    validation,
+    clearToField,
+    showClearButton,
+  },
 }: SendFormProps) => {
-
-console.log(
-  'Clear to field: ', clearToField,
-)
+  console.log('Clear to field: ', clearToField);
+  console.log('Show clear button: ', showClearButton);
 
   return (
     <Container>
@@ -44,9 +48,9 @@ console.log(
             <Input
               name={SendFormNames.To}
               placeholder="Enter receiving address"
-              value={clearToField ? '' : undefined }
+              value={clearToField ? '' : undefined}
             />
-            {Boolean(true) && (
+            {showClearButton && (
               <Box>
                 <Button name={SendFormNames.Clear}>
                   <Icon name={IconName.Close} color="primary" />

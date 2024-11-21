@@ -23,11 +23,10 @@ export async function renderSend(params: StartSendTransactionFlowParams) {
     selectedAccountId: params.account,
     validation: {},
     clearToField: false,
+    showClearButton: false,
   };
 
-  const id = await createInterface(<SendForm 
-    context={context}
-    />, context);
+  const id = await createInterface(<SendForm context={context} />, context);
 
   return showDialog(id);
 }

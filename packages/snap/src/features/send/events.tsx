@@ -43,11 +43,7 @@ export async function handleSendEvents({
   const name = event.name as SendFormNames;
 
   context.clearToField = false;
-  
-  console.log(
-    'Context: ', context,
-    'State: ', state,
-  )
+
   switch (event.type) {
     case UserInputEventType.ButtonClickEvent:
       // eslint-disable-next-line @typescript-eslint/await-thenable
@@ -105,6 +101,12 @@ async function handleInputChangeEvents({
 
       await updateInterface(id, <SendForm context={context} />, context);
       break;
+    case SendFormNames.To:
+      context.showClearButton =
+        state[SendFormNames.Form][SendFormNames.To] !== '' &&
+        state[SendFormNames.Form][SendFormNames.To] !== null;
+      await updateInterface(id, <SendForm context={context} />, context);
+      break;
     default:
       break;
   }
@@ -116,6 +118,7 @@ async function handleInputChangeEvents({
  * @param params - The parameters for the function.
  * @param params.id - The ID associated with the event.
  * @param [params.name] - The name of the button event.
+ * @param params.context - The context for the send event.
  * @returns Returns null after handling the event.
  */
 async function handleButtonEvents({
@@ -130,12 +133,14 @@ async function handleButtonEvents({
   switch (name) {
     case SendFormNames.Cancel:
     case SendFormNames.BackButton:
-      await resolveInterface(id, false);
-      return null;
+      return await resolveInterface(id, false);
+
     case SendFormNames.Clear:
       context.clearToField = true;
-      await updateInterface(id, <SendForm context={context} />, context);
-      break;
+      context.showClearButton = false;
+
+      return await updateInterface(id, <SendForm context={context} />, context);
+
     default:
       return null;
   }
