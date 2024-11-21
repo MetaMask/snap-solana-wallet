@@ -1,4 +1,4 @@
-import { type UserInputEvent, UserInputEventType } from '@metamask/snaps-sdk';;
+import { type UserInputEvent, UserInputEventType } from '@metamask/snaps-sdk';
 
 import {
   getInterfaceState,
@@ -10,7 +10,7 @@ import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
 import type { SendContext, SendState } from './types/send';
 import { validation } from './utils/validation';
-import { getPublicKeyFromSolDomain } from './utils/resolve-sol-domain';
+import { validateSolAddress } from './utils/validate-sol-address';
 /**
  * Checks if the given event is a send event.
  *
@@ -104,9 +104,18 @@ async function handleInputChangeEvents({
       await updateInterface(id, <SendForm context={context} />, context);
       break;
     case SendFormNames.To:
-      context.showClearButton =
-        state[SendFormNames.Form][SendFormNames.To] !== '' &&
-        state[SendFormNames.Form][SendFormNames.To] !== null;
+      const toAddress = state[SendFormNames.Form][SendFormNames.To];
+      context.showClearButton = toAddress !== '' && toAddress !== null;
+
+      const isValidSolAddress = await validateSolAddress(toAddress as string);
+
+      if (toAddress && !isValidSolAddress) {
+        context.validation[SendFormNames.To] = {
+          message: 'Invalid Solana address',
+          value: toAddress as string,
+        };
+      }
+
       await updateInterface(id, <SendForm context={context} />, context);
       break;
     default:

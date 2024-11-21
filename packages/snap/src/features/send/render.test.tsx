@@ -24,6 +24,8 @@ const mockContext = {
   scope: SolanaCaip2Networks.Devnet,
   selectedAccountId: '123',
   validation: {},
+  showClearButton: false,
+  clearToField: false,
 };
 
 describe('Send', () => {

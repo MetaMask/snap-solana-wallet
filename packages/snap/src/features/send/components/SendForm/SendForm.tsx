@@ -28,8 +28,6 @@ export const SendForm = ({
     showClearButton,
   },
 }: SendFormProps) => {
-  console.log('Clear to field: ', clearToField);
-  console.log('Show clear button: ', showClearButton);
 
   return (
     <Container>
