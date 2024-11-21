@@ -74,10 +74,7 @@
     "allowScripts": {
       "@lavamoat/preinstall-always-fail": false,
       "sharp": true,
-      "@commitlint/cli>@commitlint/load>ts-node>@swc/core": false,
-      "@bonfida/spl-name-service>@solana/spl-token>@solana/buffer-layout-utils>bigint-buffer": false,
-      "@bonfida/spl-name-service>@solana/web3.js>@solana/rpc-subscriptions>@solana/rpc-subscriptions-channel-websocket>ws>bufferutil": false,
-      "@bonfida/spl-name-service>@solana/web3.js>@solana/rpc-subscriptions>@solana/rpc-subscriptions-channel-websocket>ws>utf-8-validate": false
+      "@commitlint/cli>@commitlint/load>ts-node>@swc/core": false
     }
   },
   "dependencies": {
