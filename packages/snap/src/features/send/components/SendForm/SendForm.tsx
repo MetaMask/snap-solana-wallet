@@ -1,19 +1,10 @@
-import {
-  Box,
-  Button,
-  Container,
-  Footer,
-  Form,
-  Field,
-  Icon,
-  Input,
-  IconName,
-} from '@metamask/snaps-sdk/jsx';
+import { Box, Button, Container, Footer, Form } from '@metamask/snaps-sdk/jsx';
 
 import { Header } from '../../../../core/components/Header/Header';
 import { SendFormNames } from '../../types/form';
 import type { SendContext } from '../../types/send';
 import { AccountSelector } from '../AccountSelector/AccountSelector';
+import { ToAddressField } from '../ToAddressField/ToAddressField';
 
 type SendFormProps = {
   context: SendContext;
@@ -38,23 +29,11 @@ export const SendForm = ({
             accounts={accounts}
             selectedAccountId={selectedAccountId}
           />
-          <Field
-            label="To account"
-            error={validation?.[SendFormNames.To]?.message ?? ''}
-          >
-            <Input
-              name={SendFormNames.To}
-              placeholder="Enter receiving address"
-              value={clearToField ? '' : undefined}
-            />
-            {showClearButton && (
-              <Box>
-                <Button name={SendFormNames.Clear}>
-                  <Icon name={IconName.Close} color="primary" />
-                </Button>
-              </Box>
-            )}
-          </Field>
+          <ToAddressField
+            validation={validation}
+            clearToField={clearToField}
+            showClearButton={showClearButton}
+          />
         </Form>
       </Box>
       <Footer>

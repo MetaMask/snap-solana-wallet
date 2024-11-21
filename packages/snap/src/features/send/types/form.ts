@@ -5,6 +5,6 @@ export enum SendFormNames {
   AccountSelector = 'send-account-selector',
   Cancel = 'send-cancel',
   Send = 'send-submit',
-  Clear = 'clear',
-  Close = 'close',
+  Clear = 'send-clear',
+  Close = 'send-close',
 }

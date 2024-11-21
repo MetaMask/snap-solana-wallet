@@ -17,4 +17,8 @@ export const validation: Partial<
     required('Account is required'),
     address('Invalid account'),
   ],
+  [SendFormNames.To]: [
+    required('To address is required'),
+    address('Invalid Solana address'),
+  ],
 };

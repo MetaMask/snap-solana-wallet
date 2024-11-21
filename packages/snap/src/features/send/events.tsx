@@ -9,7 +9,6 @@ import { validateField } from '../../core/validation/form';
 import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
 import type { SendContext, SendState } from './types/send';
-import { validateSolAddress } from './utils/validate-sol-address';
 import { validation } from './utils/validation';
 /**
  * Checks if the given event is a send event.
@@ -89,7 +88,6 @@ async function handleInputChangeEvents({
   const fieldName = name as SendFormNames;
   const fieldValue = formState[fieldName] as string;
   const toAddress = state[SendFormNames.Form][SendFormNames.To];
-  const hasToAddress = Boolean(toAddress);
 
   context.validation[fieldName] = validateField<SendFormNames>(
     fieldName,
@@ -106,16 +104,10 @@ async function handleInputChangeEvents({
       await updateInterface(id, <SendForm context={context} />, context);
       break;
     case SendFormNames.To:
-      context.showClearButton = hasToAddress;
-
-      if (hasToAddress && !validateSolAddress(toAddress as string)) {
-        context.validation[SendFormNames.To] = {
-          message: 'Invalid Solana address',
-          value: toAddress as string,
-        };
-      }
+      context.showClearButton = Boolean(toAddress);
 
       await updateInterface(id, <SendForm context={context} />, context);
+
       break;
     default:
       break;

@@ -1,7 +1,5 @@
-// import { getDomainKeySync, NameRegistryState } from '@bonfida/spl-name-service';
-
-import { SolanaCaip2Networks } from '../../../core/constants/solana';
-import { RpcConnection } from '../../../core/services/rpc-connection';
+import type { SolanaCaip2Networks } from '../../../core/constants/solana';
+import { SolanaConnection } from '../../../core/services/connection';
 import logger from '../../../core/utils/logger';
 
 /**
@@ -22,13 +20,11 @@ export async function getPublicKeyFromSolDomain(
     // @ts-expect-error remove this after installing the @bonfida/spl-name-service
     const { pubkey } = getDomainKeySync(domain);
 
-    const rpcConnection = new RpcConnection({
-      network: SolanaCaip2Networks.Mainnet,
-    });
+    const rpcConnection = new SolanaConnection();
 
     // @ts-expect-error remove this after installing the @bonfida/spl-name-service
     const registry = await NameRegistryState.retrieve(
-      rpcConnection.connection,
+      rpcConnection.getRpc(_currentNetwork),
       pubkey,
     );
 
