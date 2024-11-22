@@ -22,10 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - prepare
-    env:
-      RPC_URL_MAINNET: ${{ secrets.RPC_URL_MAINNET }}
-      RPC_URL_DEVNET: ${{ secrets.RPC_URL_DEVNET }}
-      RPC_URL_TESTNET: ${{ secrets.RPC_URL_TESTNET }}
+    # env:
+    #   RPC_URL_MAINNET: ${{ secrets.RPC_URL_MAINNET }}
+    #   RPC_URL_DEVNET: ${{ secrets.RPC_URL_DEVNET }}
+    #   RPC_URL_TESTNET: ${{ secrets.RPC_URL_TESTNET }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
