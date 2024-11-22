@@ -1,6 +1,5 @@
-import { Button, Flex } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 
-import { SolanaCaip2Networks } from '../../../snap/src/core/constants/solana';
 import { Card, InstallFlaskButton, SolanaLogo } from '../components';
 import { Accounts } from '../components/Accounts/Accounts';
 import { NetworkSelector } from '../components/NetworkSelector/NetworkSelector';
@@ -12,27 +11,16 @@ import {
   Span,
 } from '../components/styled';
 import { defaultSnapOrigin } from '../config';
-import { useInvokeSnap, useMetaMask, useMetaMaskContext } from '../hooks';
+import { useMetaMask, useMetaMaskContext } from '../hooks';
 import { isLocalSnap } from '../utils';
 
 const Index = () => {
   const { error } = useMetaMaskContext();
   const { isFlask, snapsDetected } = useMetaMask();
-  const invokeSnap = useInvokeSnap();
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? isFlask
     : snapsDetected;
-
-  const handleSend = async () => {
-    await invokeSnap({
-      method: 'startSendTransactionFlow',
-      params: {
-        scope: SolanaCaip2Networks.Mainnet,
-        account: '123',
-      },
-    });
-  };
 
   return (
     <Container>
@@ -50,9 +38,6 @@ const Index = () => {
           <>
             <Flex width="full" justifyContent="space-between">
               <NetworkSelector />
-              <Button colorPalette="purple" marginLeft="3" onClick={handleSend}>
-                Send
-              </Button>
             </Flex>
             <Accounts />
           </>

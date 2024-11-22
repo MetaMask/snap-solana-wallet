@@ -1,4 +1,7 @@
+import type { Balance } from '@metamask/keyring-api';
+import type { GetCurrencyRateResult } from '@metamask/snaps-sdk';
 import {
+  Address,
   Card,
   Field,
   Selector,
@@ -6,17 +9,29 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
+import type { SolanaCaip2Networks } from '../../../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../../../core/services/keyring';
+import { addressToCaip10 } from '../../../../core/utils/address-to-caip10';
+import { formatCurrency } from '../../../../core/utils/format-currency';
+import { formatTokens } from '../../../../core/utils/format-tokens';
+import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
 import { SendFormNames } from '../../types/form';
+import { SendCurrency } from '../../types/send';
 
 type AccountSelectorProps = {
   accounts: SolanaKeyringAccount[];
+  balances: Record<string, Balance>;
+  rates: GetCurrencyRateResult;
+  scope: SolanaCaip2Networks;
   selectedAccountId: string;
   error?: string;
 };
 
 export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
   accounts,
+  balances,
+  rates,
+  scope,
   error,
 }) => {
   return (
@@ -25,7 +40,26 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
         {accounts.map((account) => {
           return (
             <SelectorOption value={account.id}>
-              <Card title={'Solana Account 1'} value={account.address} />
+              <Card
+                value={formatTokens(
+                  balances[account.id]?.amount ?? '0',
+                  balances[account.id]?.unit ?? SendCurrency.SOL,
+                )}
+                extra={formatCurrency(
+                  tokenToFiat(
+                    balances[account.id]?.amount ?? '0',
+                    rates?.conversionRate ?? 0,
+                  ),
+                )}
+                title={
+                  <Address
+                    address={addressToCaip10(scope, account.address)}
+                    truncate
+                    displayName
+                    avatar
+                  />
+                }
+              />
             </SelectorOption>
           );
         })}

@@ -1,9 +1,9 @@
 import { assert } from 'superstruct';
 
-import { SolanaState } from '../../core/services/state';
-import { createInterface, showDialog } from '../../core/utils/interface';
+import { showDialog, createInterface } from '../../core/utils/interface';
 import { SendForm } from './components/SendForm/SendForm';
-import type { SendContext, StartSendTransactionFlowParams } from './types/send';
+import { type StartSendTransactionFlowParams } from './types/send';
+import { getSendContext } from './utils/context';
 import { StartSendTransactionFlowParamsStruct } from './utils/validation';
 
 /**
@@ -14,17 +14,13 @@ import { StartSendTransactionFlowParamsStruct } from './utils/validation';
 export async function renderSend(params: StartSendTransactionFlowParams) {
   assert(params, StartSendTransactionFlowParamsStruct);
 
-  const state = new SolanaState();
-  const currentState = await state.get();
-
-  const context: SendContext = {
-    scope: params.scope,
-    accounts: Object.values(currentState?.keyringAccounts ?? {}),
+  const context = await getSendContext({
     selectedAccountId: params.account,
     validation: {},
     clearToField: false,
     showClearButton: false,
-  };
+    scope: params.scope,
+  });
 
   const id = await createInterface(<SendForm context={context} />, context);
 

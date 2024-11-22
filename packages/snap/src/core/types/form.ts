@@ -6,4 +6,7 @@ export type FormState<FormNames extends string | number | symbol> = Record<
 >;
 
 export type FieldValidationFunction = (value: string) => FormFieldError;
-export type ValidationFunction = (message: string) => FieldValidationFunction;
+export type ValidationFunction = (
+  message: string,
+  value?: any,
+) => FieldValidationFunction;

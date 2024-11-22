@@ -8,16 +8,22 @@ import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../core/test/mocks/solana-keyr
 import { TEST_ORIGIN } from '../../core/test/utils';
 import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
+import { type SendContext, SendCurrency } from './types/send';
 
 const solanaKeyringAccounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
 
-const mockContext = {
+const mockContext: SendContext = {
   accounts: solanaKeyringAccounts,
   scope: SolanaCaip2Networks.Devnet,
   selectedAccountId: '0',
   validation: {},
   showClearButton: false,
   clearToField: false,
+  currencySymbol: SendCurrency.SOL,
+  balances: {},
+  rates: null,
+  canReview: false,
+  maxBalance: false,
 };
 
 describe('Send', () => {

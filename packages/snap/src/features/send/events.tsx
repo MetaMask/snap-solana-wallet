@@ -8,7 +8,9 @@ import {
 import { validateField } from '../../core/validation/form';
 import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
-import type { SendContext, SendState } from './types/send';
+import { SendCurrency, type SendContext, type SendState } from './types/send';
+import { validateBalance } from './utils/balance';
+import { getSendContext } from './utils/context';
 import { validation } from './utils/validation';
 /**
  * Checks if the given event is a send event.
@@ -24,9 +26,9 @@ export function isSendFormEvent(event: UserInputEvent): boolean {
  * Handles send events based on the provided event type.
  *
  * @param params - The parameters for the function.
+ * @param params.context - The context for the send event.
  * @param params.id - The ID associated with the event.
  * @param params.event - The user input event.
- * @param params.context - The context for the send event.
  * @returns Returns null after handling the event.
  */
 export async function handleSendEvents({
@@ -41,12 +43,30 @@ export async function handleSendEvents({
   const state = (await getInterfaceState(id)) as SendState;
   const name = event.name as SendFormNames;
 
-  context.clearToField = false;
+  const formState = state[SendFormNames.Form];
+
+  // validate only the field that has changed
+  Object.keys(formState).forEach((key) => {
+    const fieldName = key as SendFormNames;
+    const fieldValue = formState[fieldName] as string;
+    if (formState[fieldName] === null) {
+      context.validation[fieldName] = null;
+    } else {
+      context.validation[fieldName] = validateField<SendFormNames>(
+        fieldName,
+        fieldValue,
+        validation,
+      );
+    }
+  });
+
+  // the form can only review if all fields are filled and valid
+  context.canReview =
+    Object.values(formState).every(Boolean) &&
+    !Object.values(context.validation).every(Boolean);
 
   switch (event.type) {
     case UserInputEventType.ButtonClickEvent:
-      context.clearToField = false;
-
       // eslint-disable-next-line @typescript-eslint/await-thenable
       await handleButtonEvents({ id, name, context });
       break;
@@ -84,24 +104,36 @@ async function handleInputChangeEvents({
   state: SendState;
   context: SendContext;
 }): Promise<void> {
+  const toAddress = state[SendFormNames.Form][SendFormNames.To];
   const formState = state[SendFormNames.Form];
   const fieldName = name as SendFormNames;
   const fieldValue = formState[fieldName] as string;
-  const toAddress = state[SendFormNames.Form][SendFormNames.To];
-
-  context.validation[fieldName] = validateField<SendFormNames>(
-    fieldName,
-    fieldValue,
-    validation,
-  );
 
   switch (name) {
     case SendFormNames.AccountSelector:
-      if (!context.validation[SendFormNames.AccountSelector]) {
-        break;
+    case SendFormNames.AmountInput:
+      if (name === SendFormNames.AccountSelector) {
+        context.selectedAccountId = fieldValue;
       }
 
-      await updateInterface(id, <SendForm context={context} />, context);
+      if (fieldName === SendFormNames.AmountInput) {
+        context.validation[fieldName] =
+          context.validation[fieldName] ?? validateBalance(fieldValue, context);
+      }
+
+      // eslint-disable-next-line no-case-declarations
+      const updatedContext = await getSendContext({
+        validation: context.validation,
+        scope: context.scope,
+        currencySymbol: context.currencySymbol,
+        selectedAccountId: context.selectedAccountId,
+      });
+
+      await updateInterface(
+        id,
+        <SendForm context={updatedContext} />,
+        updatedContext,
+      );
       break;
     case SendFormNames.To:
       context.showClearButton = Boolean(toAddress);
@@ -119,8 +151,8 @@ async function handleInputChangeEvents({
  *
  * @param params - The parameters for the function.
  * @param params.id - The ID associated with the event.
- * @param [params.name] - The name of the button event.
  * @param params.context - The context for the send event.
+ * @param params.name - The name of the button event.
  * @returns Returns null after handling the event.
  */
 async function handleButtonEvents({
@@ -135,14 +167,44 @@ async function handleButtonEvents({
   switch (name) {
     case SendFormNames.Cancel:
     case SendFormNames.BackButton:
-      return await resolveInterface(id, false);
+      await resolveInterface(id, false);
+      return null;
 
+    case SendFormNames.SwapCurrency:
     case SendFormNames.Clear:
-      context.clearToField = true;
-      context.showClearButton = false;
+    case SendFormNames.AmountInputMax:
+      if (name === SendFormNames.SwapCurrency) {
+        context.currencySymbol =
+          context.currencySymbol === SendCurrency.SOL
+            ? SendCurrency.FIAT
+            : SendCurrency.SOL;
+      }
 
-      return await updateInterface(id, <SendForm context={context} />, context);
+      if (name === SendFormNames.AmountInputMax) {
+        context.maxBalance = true;
+      }
 
+      if (name === SendFormNames.Clear) {
+        context.clearToField = true;
+        context.showClearButton = false;
+      }
+
+      // eslint-disable-next-line no-case-declarations
+      const updatedContext = await getSendContext({
+        validation: context.validation,
+        scope: context.scope,
+        currencySymbol: context.currencySymbol,
+        maxBalance: context.maxBalance,
+        clearToField: context.clearToField,
+        showClearButton: context.showClearButton,
+      });
+
+      await updateInterface(
+        id,
+        <SendForm context={updatedContext} />,
+        updatedContext,
+      );
+      return null;
     default:
       return null;
   }

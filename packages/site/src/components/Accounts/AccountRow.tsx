@@ -75,6 +75,16 @@ export const AccountRow = ({
     });
   };
 
+  const handleSend = async (id: string) => {
+    await invokeSnap({
+      method: 'startSendTransactionFlow',
+      params: {
+        scope: network,
+        account: id,
+      },
+    });
+  };
+
   return (
     <Table.Row key={account.id}>
       <Table.Cell fontFamily="monospace">{account.address}</Table.Cell>
@@ -82,6 +92,13 @@ export const AccountRow = ({
         {balance} SOL{' '}
         <Button marginLeft="3" onClick={fetchBalance}>
           Fetch
+        </Button>
+        <Button
+          colorPalette="purple"
+          marginLeft="3"
+          onClick={async () => handleSend(account.id)}
+        >
+          Send
         </Button>
       </Table.Cell>
       <Table.Cell textAlign="end">
