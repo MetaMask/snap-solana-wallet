@@ -22,6 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - prepare
+    env:
+      RPC_URL_MAINNET: ${{ secrets.RPC_URL_MAINNET }}
+      RPC_URL_DEVNET: ${{ secrets.RPC_URL_DEVNET }}
+      RPC_URL_TESTNET: ${{ secrets.RPC_URL_TESTNET }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
@@ -33,10 +37,6 @@ jobs:
       - run: |
           npm rebuild --verbose sharp
           yarn build
-        env:
-          RPC_URL_MAINNET: ${{ secrets.RPC_URL_MAINNET }}
-          RPC_URL_DEVNET: ${{ secrets.RPC_URL_DEVNET }}
-          RPC_URL_TESTNET: ${{ secrets.RPC_URL_TESTNET }}
       - name: Cache snap build
         uses: actions/cache@v3
         with:
