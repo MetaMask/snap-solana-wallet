@@ -21,6 +21,7 @@ export class SolanaConnection {
   readonly #networkToRpc: Map<SolanaCaip2Networks, Rpc<SolanaRpcApi>>;
 
   constructor() {
+    console.log('hey');
     // For each network, create a dedicated RPC client and a dedicated RPC subscription client
     this.#networkToRpc = new Map();
 
