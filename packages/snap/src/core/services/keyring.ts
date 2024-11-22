@@ -378,7 +378,6 @@ export class SolanaKeyring implements Keyring {
      */
     const cluster = getClusterFromScope(network)?.toLowerCase() ?? 'mainnet';
     logger.info(
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `Sending transaction: https://explorer.solana.com/tx/${signature}?cluster=${cluster}`,
     );
 

@@ -40,7 +40,7 @@ export function validateField<FieldNames extends string | number | symbol>(
  */
 export const required: ValidationFunction = (message: string) => {
   return (value: string) => {
-    const error = value === '' ? { message, value: '' } : null;
+    const error = value === '' ? { message, value } : null;
     return error ? { message: error.message, value } : null;
   };
 };
@@ -69,7 +69,7 @@ export const address: ValidationFunction = (message: string) => {
  * @param message - The error message to return if validation fails.
  * @returns True if the value is valid, otherwise an object with the error message.
  */
-export const gt0: ValidationFunction = (message: string) => {
+export const greatherThanZero: ValidationFunction = (message: string) => {
   return (value: string) => {
     const [error] = validate(
       parseFloat(value),
