@@ -4,8 +4,11 @@ on:
   workflow_call:
     secrets:
       RPC_URL_MAINNET:
+        required: true
       RPC_URL_DEVNET:
+        required: true
       RPC_URL_TESTNET:
+        required: true
 
 jobs:
   prepare:
