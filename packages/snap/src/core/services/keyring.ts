@@ -12,11 +12,7 @@ import {
   type KeyringResponse,
 } from '@metamask/keyring-api';
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
-import {
-  getSystemErrorMessage,
-  getTransferSolInstruction,
-  isSystemError,
-} from '@solana-program/system';
+import { getTransferSolInstruction } from '@solana-program/system';
 import type { Blockhash } from '@solana/web3.js';
 import {
   address,
@@ -26,14 +22,12 @@ import {
   createTransactionMessage,
   getAddressFromPublicKey,
   getSignatureFromTransaction,
-  isSolanaError,
   lamports,
   pipe,
   sendTransactionWithoutConfirmingFactory,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
   signTransactionMessageWithSigners,
-  SOLANA_ERROR__JSON_RPC__SERVER_ERROR_SEND_TRANSACTION_PREFLIGHT_FAILURE,
 } from '@solana/web3.js';
 import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
@@ -49,6 +43,7 @@ import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
 import { getClusterFromScope } from '../utils/getNetworkFromCaip2Network';
 import logger from '../utils/logger';
+import { logMaybeSolanaError } from '../utils/logMaybeSolanaError';
 import type { TransferSolParams } from '../validation/structs';
 import {
   GetAccounBalancesResponseStruct,
@@ -241,6 +236,7 @@ export class SolanaKeyring implements Keyring {
 
       return response;
     } catch (error: any) {
+      logMaybeSolanaError(error);
       logger.error({ error }, 'Error getting account balances');
       throw new Error('Error getting account balances');
     }
@@ -395,27 +391,7 @@ export class SolanaKeyring implements Keyring {
       logger.info('Transfer confirmed');
       return signature;
     } catch (error: any) {
-      if (
-        isSolanaError(
-          error,
-          SOLANA_ERROR__JSON_RPC__SERVER_ERROR_SEND_TRANSACTION_PREFLIGHT_FAILURE,
-        )
-      ) {
-        const preflightErrorContext = error.context;
-        const preflightErrorMessage = error.message;
-        const errorDetailMessage = isSystemError(
-          error.cause,
-          transactionMessage,
-        )
-          ? getSystemErrorMessage(error.cause.context.code)
-          : error.cause?.message;
-        logger.error(
-          preflightErrorContext,
-          '%s: %s',
-          preflightErrorMessage,
-          errorDetailMessage,
-        );
-      }
+      logMaybeSolanaError(error, transactionMessage);
       throw error;
     }
   }
@@ -439,11 +415,16 @@ export class SolanaKeyring implements Keyring {
       lastValidBlockHeight: bigint;
     }>
   > {
-    const latestBlockhashResponse = await this.#connection
-      .getRpc(network)
-      .getLatestBlockhash()
-      .send();
+    try {
+      const latestBlockhashResponse = await this.#connection
+        .getRpc(network)
+        .getLatestBlockhash()
+        .send();
 
-    return latestBlockhashResponse.value;
+      return latestBlockhashResponse.value;
+    } catch (error: any) {
+      logMaybeSolanaError(error);
+      throw error;
+    }
   }
 }
