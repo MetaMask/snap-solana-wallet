@@ -299,9 +299,8 @@ export class SolanaKeyring implements Keyring {
     params: TransferSolParams,
     network: SolanaCaip2Networks,
   ): Promise<string> {
-    logger.log({ params }, 'Transferring SOL...');
-
     validateRequest(params, TransferSolParamsStruct as Struct<any>);
+
     const { to, amount } = params;
     const amountInLamports = lamports(BigInt(amount * LAMPORTS_PER_SOL));
 
@@ -323,7 +322,6 @@ export class SolanaKeyring implements Keyring {
      * to receive them, we only need an address.
      */
     const toAddress = address(to);
-
     const latestBlockhash = await this.#getLatestBlockhash(network);
 
     /**
@@ -378,7 +376,6 @@ export class SolanaKeyring implements Keyring {
      * (eg. the network has progressed past the `lastValidBlockHeight` of the transaction's blockhash
      * lifetime constraint).
      */
-
     const cluster = getClusterFromScope(network)?.toLowerCase() ?? 'mainnet';
     logger.info(
       `Sending transaction: https://explorer.solana.com/tx/${signature}?cluster=${cluster}`,
@@ -388,7 +385,6 @@ export class SolanaKeyring implements Keyring {
       await sendTransactionWithoutConfirming(signedTransaction, {
         commitment: 'confirmed',
       });
-      logger.info('Transfer confirmed');
       return signature;
     } catch (error: any) {
       logMaybeSolanaError(error, transactionMessage);

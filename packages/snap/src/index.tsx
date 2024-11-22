@@ -23,6 +23,15 @@ import type {
   SendContext,
   StartSendTransactionFlowParams,
 } from './features/send/types/send';
+import {
+  type TransactionConfirmationContext,
+  type TransactionConfirmationParams,
+} from './features/transaction-confirmation/components/TransactionConfirmation/types';
+import {
+  handleTransactionConfirmationEvents,
+  isTransactionConfirmationEvent,
+} from './features/transaction-confirmation/events';
+import { renderTransactionConfirmation } from './features/transaction-confirmation/render';
 import { originPermissions } from './permissions';
 
 installPolyfills();
@@ -64,6 +73,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       case SolanaInternalRpcMethods.StartSendTransactionFlow:
         return await renderSend(
           request.params as StartSendTransactionFlowParams,
+        );
+      case SolanaInternalRpcMethods.ShowTransactionConfirmation:
+        return await renderTransactionConfirmation(
+          request.params as TransactionConfirmationParams,
         );
       default:
         throw new MethodNotFoundError() as unknown as Error;
@@ -134,5 +147,12 @@ export const onUserInput: OnUserInputHandler = async ({
 }) => {
   if (isSendFormEvent(event)) {
     await handleSendEvents({ id, event, context: context as SendContext });
+  }
+  if (isTransactionConfirmationEvent(event)) {
+    await handleTransactionConfirmationEvents({
+      id,
+      event,
+      context: context as TransactionConfirmationContext,
+    });
   }
 };

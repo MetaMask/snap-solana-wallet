@@ -11,12 +11,19 @@ export enum SolanaCaip2Networks {
   Testnet = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
 }
 
+export const SolanaNetworksNames: Record<SolanaCaip2Networks, string> = {
+  [SolanaCaip2Networks.Mainnet]: 'Solana Mainnet',
+  [SolanaCaip2Networks.Devnet]: 'Solana Devnet',
+  [SolanaCaip2Networks.Testnet]: 'Solana Testnet',
+};
+
 export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',
 }
 
 export enum SolanaInternalRpcMethods {
   StartSendTransactionFlow = 'startSendTransactionFlow',
+  ShowTransactionConfirmation = 'showTransactionConfirmation',
 }
 
 export const LAMPORTS_PER_SOL = 1_000_000_000;

@@ -6,8 +6,13 @@ import {
 } from '@metamask/keyring-api';
 import { useState } from 'react';
 
+import {
+  SolanaCaip19Tokens,
+  SolanaInternalRpcMethods,
+} from '../../../../snap/src/core/constants/solana';
+import { type TransactionConfirmationParams } from '../../../../snap/src/features/transaction-confirmation/components/TransactionConfirmation/types';
 import { useNetwork } from '../../context/network';
-import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
+import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
 
 const SOLANA_TOKEN = 'slip44:501';
 
@@ -19,6 +24,7 @@ export const AccountRow = ({
   onRemove: (id: string) => void;
 }) => {
   const invokeKeyring = useInvokeKeyring();
+  const invokeSnap = useInvokeSnap();
   const { network } = useNetwork();
 
   const [balance, setBalance] = useState('0');
@@ -53,6 +59,22 @@ export const AccountRow = ({
     });
   };
 
+  const onTransferWithConfirmation = async (accountId: string) => {
+    await invokeSnap({
+      method: SolanaInternalRpcMethods.ShowTransactionConfirmation,
+      params: {
+        scope: network,
+        fromAccountId: accountId,
+        toAddress: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
+        amount: '0.1',
+        fee: '0.000005',
+        tokenSymbol: 'SOL',
+        tokenContractAddress: SolanaCaip19Tokens.SOL,
+        tokenPrice: 0,
+      } as TransactionConfirmationParams,
+    });
+  };
+
   return (
     <Table.Row key={account.id}>
       <Table.Cell fontFamily="monospace">{account.address}</Table.Cell>
@@ -79,6 +101,14 @@ export const AccountRow = ({
           onClick={async () => onTransfer(account.id)}
         >
           Transfer 0.1 SOL
+        </Button>
+        <Button
+          variant="outline"
+          colorPalette="purple"
+          marginRight="5"
+          onClick={async () => onTransferWithConfirmation(account.id)}
+        >
+          Transfer 0.1 SOL with Confirmation
         </Button>
         <Button
           variant="outline"

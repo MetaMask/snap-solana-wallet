@@ -1,5 +1,6 @@
 import { Button, Flex } from '@chakra-ui/react';
 
+import { SolanaCaip2Networks } from '../../../snap/src/core/constants/solana';
 import { Card, InstallFlaskButton, SolanaLogo } from '../components';
 import { Accounts } from '../components/Accounts/Accounts';
 import { NetworkSelector } from '../components/NetworkSelector/NetworkSelector';
@@ -27,7 +28,7 @@ const Index = () => {
     await invokeSnap({
       method: 'startSendTransactionFlow',
       params: {
-        scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        scope: SolanaCaip2Networks.Mainnet,
         account: '123',
       },
     });

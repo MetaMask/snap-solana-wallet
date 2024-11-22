@@ -1,7 +1,7 @@
 import { assert } from 'superstruct';
 
 import { SolanaState } from '../../core/services/state';
-import { showDialog, createInterface } from '../../core/utils/interface';
+import { createInterface, showDialog } from '../../core/utils/interface';
 import { SendForm } from './components/SendForm/SendForm';
 import type { SendContext, StartSendTransactionFlowParams } from './types/send';
 import { StartSendTransactionFlowParamsStruct } from './utils/validation';
