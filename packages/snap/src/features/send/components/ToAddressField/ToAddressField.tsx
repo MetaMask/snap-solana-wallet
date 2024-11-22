@@ -22,12 +22,12 @@ export const ToAddressField = ({
   showClearButton,
 }: ToAddressFieldProps) => (
   <Field
-    label="To account"
+    label="To"
     error={validation?.[SendFormNames.To]?.message ?? ''}
   >
     <Input
       name={SendFormNames.To}
-      placeholder="Enter receiving address"
+      placeholder="Enter public address"
       value={clearToField ? '' : undefined}
     />
     {showClearButton && (
