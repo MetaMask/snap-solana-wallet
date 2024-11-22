@@ -19,8 +19,6 @@ const rawEnvironment = {
   RPC_URL_TESTNET: process.env.RPC_URL_TESTNET,
 };
 
-console.log('💜💜💜💜💜💜💜rawEnvironment', rawEnvironment);
-
 // Validate the environment variables, and retrieve the parsed values
 const environment = create(rawEnvironment, EnvConfigStruct);
 
