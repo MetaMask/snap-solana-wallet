@@ -21,10 +21,7 @@ export const ToAddressField = ({
   clearToField,
   showClearButton,
 }: ToAddressFieldProps) => (
-  <Field
-    label="To"
-    error={validation?.[SendFormNames.To]?.message ?? ''}
-  >
+  <Field label="To" error={validation?.[SendFormNames.To]?.message ?? ''}>
     <Input
       name={SendFormNames.To}
       placeholder="Enter public address"
