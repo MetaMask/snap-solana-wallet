@@ -6,7 +6,6 @@ import {
 } from '@metamask/keyring-api';
 import { useState } from 'react';
 
-import { SolanaCaip2Networks } from '../../../../snap/src/core/constants/solana';
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 
@@ -42,7 +41,7 @@ export const AccountRow = ({
       params: {
         id: crypto.randomUUID(),
         account: accountId,
-        scope: SolanaCaip2Networks.Devnet,
+        scope: network,
         request: {
           method: SolMethod.SendAndConfirmTransaction,
           params: {

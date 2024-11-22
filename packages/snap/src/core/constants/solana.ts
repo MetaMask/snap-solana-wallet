@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';
 
 /**
@@ -21,7 +22,7 @@ export enum SolanaInternalRpcMethods {
 export const LAMPORTS_PER_SOL = 1_000_000_000;
 
 export const SOLANA_NETWORK_TO_RPC_URLS: Record<SolanaCaip2Networks, string> = {
-  [SolanaCaip2Networks.Mainnet]: 'https://api.mainnet-beta.solana.com',
-  [SolanaCaip2Networks.Devnet]: 'https://api.devnet.solana.com',
-  [SolanaCaip2Networks.Testnet]: 'https://api.testnet.solana.com',
+  [SolanaCaip2Networks.Mainnet]: process.env.RPC_URL_MAINNET ?? '',
+  [SolanaCaip2Networks.Devnet]: process.env.RPC_URL_DEVNET ?? '',
+  [SolanaCaip2Networks.Testnet]: process.env.RPC_URL_TESTNET ?? '',
 };
