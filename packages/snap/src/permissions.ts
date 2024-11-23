@@ -1,20 +1,8 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
 
-export enum InternalRpcMethod {}
+import { SolanaInternalRpcMethods } from './core/constants/solana';
 
 const dappPermissions = new Set([
-  // Keyring methods
-  KeyringRpcMethod.CreateAccount,
-  KeyringRpcMethod.ListAccounts,
-  KeyringRpcMethod.GetAccount,
-  KeyringRpcMethod.DeleteAccount,
-  KeyringRpcMethod.GetAccountBalances,
-  KeyringRpcMethod.SubmitRequest,
-  // RPC methods
-  // ...
-]);
-
-const metamaskPermissions = new Set([
   // Keyring methods
   KeyringRpcMethod.ListAccounts,
   KeyringRpcMethod.GetAccount,
@@ -24,7 +12,19 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.GetAccountBalances,
   KeyringRpcMethod.SubmitRequest,
   // RPC methods
-  // ...
+  SolanaInternalRpcMethods.StartSendTransactionFlow,
+]);
+
+const metamaskPermissions = new Set([
+  // Keyring methods
+  KeyringRpcMethod.ListAccounts,
+  KeyringRpcMethod.GetAccount,
+  KeyringRpcMethod.CreateAccount,
+  KeyringRpcMethod.DeleteAccount,
+  KeyringRpcMethod.GetAccountBalances,
+  KeyringRpcMethod.SubmitRequest,
+  // RPC methods
+  SolanaInternalRpcMethods.StartSendTransactionFlow,
 ]);
 
 const allowedOrigins = [

@@ -8,6 +8,10 @@ jobs:
   build-lint-test:
     name: Validate
     uses: ./.github/workflows/build-lint-test.yml
+    secrets:
+      RPC_URL_MAINNET: ${{ secrets.RPC_URL_MAINNET }}
+      RPC_URL_DEVNET: ${{ secrets.RPC_URL_DEVNET }}
+      RPC_URL_TESTNET: ${{ secrets.RPC_URL_TESTNET }}
 
   sonarcloud:
     permissions:
@@ -96,3 +100,6 @@ jobs:
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      RPC_URL_MAINNET: ${{ secrets.RPC_URL_MAINNET }}
+      RPC_URL_DEVNET: ${{ secrets.RPC_URL_DEVNET }}
+      RPC_URL_TESTNET: ${{ secrets.RPC_URL_TESTNET }}

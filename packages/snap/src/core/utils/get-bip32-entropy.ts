@@ -7,7 +7,7 @@ import { type SLIP10NodeInterface } from '@metamask/key-tree';
  * @param curve - The elliptic curve to use for key derivation.
  * @returns A Promise that resolves to a `SLIP10NodeInterface` object.
  */
-export async function getBip32Deriver(
+export async function getBip32Entropy(
   path: string[],
   curve: 'secp256k1' | 'ed25519',
 ): Promise<SLIP10NodeInterface> {
