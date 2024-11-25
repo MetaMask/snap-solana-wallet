@@ -29,6 +29,12 @@ jobs:
           path: coverage
           pattern: tests-artifacts-*
           merge-multiple: true
+      - name: Ls for testing
+        run: |
+          ls -l -R packages/snap
+      - name: Ls for testing
+        run: |
+          ls -l
       - name: Display structure of downloaded files
         run: |
           if [ -d packages/snap/coverage ]; then
