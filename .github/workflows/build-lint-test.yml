@@ -116,7 +116,7 @@ jobs:
       - name: ls -l -R
         shell: bash
         run: |
-          ls -l -R
+          ls -l -R packages/snap
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
         with:
