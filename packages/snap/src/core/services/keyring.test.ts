@@ -338,7 +338,7 @@ describe('SolanaKeyring', () => {
 
   describe('handleSubmitRequest', () => {
     describe('when method is SendAndConfirmTransaction', () => {
-      it('should throw error when params are invalid', async () => {
+      it('throws error when params are invalid', async () => {
         const request = {
           id: 'some-id',
           scope: 'solana:devnet',
@@ -383,7 +383,7 @@ describe('SolanaKeyring', () => {
       });
     });
 
-    it('should throw error when account is not found', async () => {
+    it('throws error when account is not found', async () => {
       jest.spyOn(keyring as any, 'getAccount').mockResolvedValue(undefined);
 
       const request = {
@@ -401,7 +401,7 @@ describe('SolanaKeyring', () => {
       );
     });
 
-    it('should throw MethodNotFoundError for unsupported methods', async () => {
+    it('throws MethodNotFoundError for unsupported methods', async () => {
       const request = {
         id: 'some-id',
         scope: 'solana:devnet',

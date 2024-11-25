@@ -1,5 +1,5 @@
 import { address as addressValidator } from '@solana/web3.js';
-import { nonempty, string, validate } from 'superstruct';
+import { min, number, validate } from 'superstruct';
 
 import type {
   FieldValidationFunction,
@@ -40,7 +40,7 @@ export function validateField<FieldNames extends string | number | symbol>(
  */
 export const required: ValidationFunction = (message: string) => {
   return (value: string) => {
-    const [error] = validate(value, nonempty(string()), { message });
+    const error = value === '' ? { message, value } : null;
     return error ? { message: error.message, value } : null;
   };
 };
@@ -60,5 +60,24 @@ export const address: ValidationFunction = (message: string) => {
     } catch {
       return { message, value };
     }
+  };
+};
+
+/**
+ * Validates that the given value is a number and meets the minimum value requirement using superstruct.
+ *
+ * @param message - The error message to return if validation fails.
+ * @returns True if the value is valid, otherwise an object with the error message.
+ */
+export const greatherThanZero: ValidationFunction = (message: string) => {
+  return (value: string) => {
+    const [error] = validate(
+      parseFloat(value),
+      min(number(), 0, { exclusive: false }),
+      {
+        message,
+      },
+    );
+    return error ? { message: error.message, value } : null;
   };
 };

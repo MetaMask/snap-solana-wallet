@@ -5,6 +5,7 @@ import type {
   UpdateInterfaceResult,
   GetInterfaceStateResult,
   ResolveInterfaceResult,
+  GetCurrencyRateResult,
 } from '@metamask/snaps-sdk';
 
 /**
@@ -98,6 +99,23 @@ export async function showDialog(id: string): Promise<DialogResult> {
     method: 'snap_dialog',
     params: {
       id,
+    },
+  });
+}
+
+/**
+ * Retrieves the currency rates from MetaMask for the specified asset.
+ *
+ * @param currency - The currency for which to retrieve the currency rates.
+ * @returns A Promise that resolves to the currency rates.
+ */
+export async function getRatesFromMetamask(
+  currency: string,
+): Promise<GetCurrencyRateResult> {
+  return await snap.request({
+    method: 'snap_getCurrencyRate',
+    params: {
+      currency: currency as any,
     },
   });
 }

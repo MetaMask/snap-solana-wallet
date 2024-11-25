@@ -2,7 +2,11 @@ import { enums, nonempty, object, string } from 'superstruct';
 
 import { SolanaCaip2Networks } from '../../../core/constants/solana';
 import type { FieldValidationFunction } from '../../../core/types/form';
-import { address, required } from '../../../core/validation/form';
+import {
+  address,
+  greatherThanZero,
+  required,
+} from '../../../core/validation/form';
 import { SendFormNames } from '../types/form';
 
 export const StartSendTransactionFlowParamsStruct = object({
@@ -13,9 +17,10 @@ export const StartSendTransactionFlowParamsStruct = object({
 export const validation: Partial<
   Record<SendFormNames, FieldValidationFunction[]>
 > = {
-  [SendFormNames.AccountSelector]: [
-    required('Account is required'),
-    address('Invalid account'),
+  [SendFormNames.AccountSelector]: [required('Account is required')],
+  [SendFormNames.AmountInput]: [
+    required('Amount is required'),
+    greatherThanZero('Amount must be greater than 0'),
   ],
   [SendFormNames.To]: [
     required('To address is required'),
