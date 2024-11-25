@@ -113,7 +113,7 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
-      - name: ls -l
+      - name: ls -l -R
         shell: bash
         run: |
           ls -l
@@ -121,4 +121,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tests-artifacts-coverage
-          path: coverage
+          path: packages/snap/coverage
