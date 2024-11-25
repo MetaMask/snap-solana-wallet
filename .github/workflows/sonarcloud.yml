@@ -8,6 +8,9 @@ permissions:
   actions: read
 
 on:
+  push:
+    branches:
+      - main
   workflow_call:
     secrets:
       sonar_token:
