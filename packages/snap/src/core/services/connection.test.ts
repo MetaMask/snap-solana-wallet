@@ -21,7 +21,7 @@ describe('SolanaConnection', () => {
       connection = new SolanaConnection();
     });
 
-    it('should return the correct RPC client for a valid network', () => {
+    it('returns the correct RPC client for a valid network', () => {
       const rpc = connection.getRpc(SolanaCaip2Networks.Mainnet);
       expect(rpc).toBeDefined();
       expect(rpc).toStrictEqual({
@@ -29,19 +29,19 @@ describe('SolanaConnection', () => {
       });
     });
 
-    it('should return the same RPC client for the same network', () => {
+    it('returns the same RPC client for the same network', () => {
       const rpc1 = connection.getRpc(SolanaCaip2Networks.Mainnet);
       const rpc2 = connection.getRpc(SolanaCaip2Networks.Mainnet);
       expect(rpc1).toBe(rpc2);
     });
 
-    it('should return different RPC clients for different networks', () => {
+    it('returns different RPC clients for different networks', () => {
       const rpc1 = connection.getRpc(SolanaCaip2Networks.Mainnet);
       const rpc2 = connection.getRpc(SolanaCaip2Networks.Devnet);
       expect(rpc1).not.toBe(rpc2);
     });
 
-    it('should throw an error for an invalid network', () => {
+    it('throws an error for an invalid network', () => {
       expect(() => {
         connection.getRpc('invalid-network' as SolanaCaip2Networks);
       }).toThrow('Invalid network: invalid-network');

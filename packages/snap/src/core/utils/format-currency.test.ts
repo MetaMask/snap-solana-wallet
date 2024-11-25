@@ -21,15 +21,15 @@ describe('formatCurrency', () => {
     expect(formatCurrency('0')).toBe('$0.00');
   });
 
-  it('should handle amounts with no decimal part', () => {
+  it('handles amounts with no decimal part', () => {
     expect(formatCurrency('1000')).toBe('$1,000.00');
   });
 
-  it('should handle amounts with more than two decimal places', () => {
+  it('handles amounts with more than two decimal places', () => {
     expect(formatCurrency('1234.5678')).toBe('$1,234.57');
   });
 
-  it('should handle negative amounts with more than two decimal places', () => {
+  it('handles negative amounts with more than two decimal places', () => {
     expect(formatCurrency('-1234.5678')).toBe('-$1,234.57');
   });
 });

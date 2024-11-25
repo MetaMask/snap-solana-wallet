@@ -77,7 +77,7 @@ export const AccountRow = ({
 
   const handleSend = async (id: string) => {
     await invokeSnap({
-      method: 'startSendTransactionFlow',
+      method: SolanaInternalRpcMethods.StartSendTransactionFlow,
       params: {
         scope: network,
         account: id,

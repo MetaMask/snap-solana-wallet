@@ -63,7 +63,7 @@ describe('deriveSolanaPrivateKey', () => {
     (getBip32Entropy as jest.Mock).mockResolvedValue(mockRootNode);
   });
 
-  it('should successfully derive Solana private keys', async () => {
+  it('successfully derives Solana private keys', async () => {
     const firstPrivateKey = await deriveSolanaPrivateKey(0);
     const secondPrivateKey = await deriveSolanaPrivateKey(1);
     const thirdPrivateKey = await deriveSolanaPrivateKey(2);
@@ -87,7 +87,7 @@ describe('deriveSolanaPrivateKey', () => {
     );
   });
 
-  it('should throw error if unable to derive private key', async () => {
+  it('throws error if unable to derive private key', async () => {
     const mockDeriveMethod = jest.fn().mockResolvedValue({
       privateKeyBytes: null,
     });
@@ -101,7 +101,7 @@ describe('deriveSolanaPrivateKey', () => {
     );
   });
 
-  it('should throw error if getBip32Entropy fails', async () => {
+  it('throws error if getBip32Entropy fails', async () => {
     const errorMessage = 'Failed to get entropy';
     (getBip32Entropy as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
