@@ -118,7 +118,7 @@ jobs:
         run: |
           ls -l
       - name: Upload test artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: tests-artifacts-coverage
           path: coverage
