@@ -50,7 +50,7 @@ export async function handleSendEvents({
     const fieldName = key as SendFormNames;
     const fieldValue = formState[fieldName] as string;
     if (formState[fieldName] === null) {
-      context.validation[fieldName] = null;
+      context.validation[fieldName] = context.validation[fieldName] ?? null;
     } else {
       context.validation[fieldName] = validateField<SendFormNames>(
         fieldName,
@@ -122,12 +122,7 @@ async function handleInputChangeEvents({
       }
 
       // eslint-disable-next-line no-case-declarations
-      const updatedContext = await getSendContext({
-        validation: context.validation,
-        scope: context.scope,
-        currencySymbol: context.currencySymbol,
-        selectedAccountId: context.selectedAccountId,
-      });
+      const updatedContext = await getSendContext(context);
 
       await updateInterface(
         id,
@@ -190,14 +185,7 @@ async function handleButtonEvents({
       }
 
       // eslint-disable-next-line no-case-declarations
-      const updatedContext = await getSendContext({
-        validation: context.validation,
-        scope: context.scope,
-        currencySymbol: context.currencySymbol,
-        maxBalance: context.maxBalance,
-        clearToField: context.clearToField,
-        showClearButton: context.showClearButton,
-      });
+      const updatedContext = await getSendContext(context);
 
       await updateInterface(
         id,

@@ -31,10 +31,7 @@ export async function getSendContext(
       throw new Error('No solana accounts found');
     }
 
-    // TODO: Fetch balances only once
     const result = await Promise.all([
-      // TODO: Uncomment this line when the rates are available.
-      // getRatesFromMetamask(SendCurrency.SOL),
       ...accounts.map(async (account) => {
         const balance = await keyring.getAccountBalances(account.id, [token]);
 
@@ -50,7 +47,8 @@ export async function getSendContext(
       {},
     );
 
-    // TODO: Remove this mock data when the rates are available.
+    // getRatesFromMetamask(SendCurrency.SOL),
+    // TODO: Remove this mock data when the rates are available to fetch.
     const rates = {
       conversionDate: Date.now(),
       conversionRate: 261,

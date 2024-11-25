@@ -112,12 +112,10 @@ export async function showDialog(id: string): Promise<DialogResult> {
 export async function getRatesFromMetamask(
   currency: string,
 ): Promise<GetCurrencyRateResult> {
-  return (await snap.request({
-    // @ts-expect-error TODO: snaps will fix this type error
+  return await snap.request({
     method: 'snap_getCurrencyRate',
     params: {
-      // @ts-expect-error TODO: snaps will fix this type error
-      currency,
+      currency: currency as any,
     },
-  })) as GetCurrencyRateResult;
+  });
 }
