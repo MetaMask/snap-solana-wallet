@@ -1,17 +1,20 @@
-import { type UserInputEvent, UserInputEventType } from '@metamask/snaps-sdk';
+import { UserInputEventType, type UserInputEvent } from '@metamask/snaps-sdk';
 
+import { SolanaCaip19Tokens } from '../../core/constants/solana';
 import {
   getInterfaceState,
   resolveInterface,
   updateInterface,
 } from '../../core/utils/interface';
 import { validateField } from '../../core/validation/form';
+import { renderTransactionConfirmation } from '../transaction-confirmation/render';
 import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
 import { SendCurrency, type SendContext, type SendState } from './types/send';
 import { validateBalance } from './utils/balance';
 import { getSendContext } from './utils/context';
 import { validation } from './utils/validation';
+
 /**
  * Checks if the given event is a send event.
  *
@@ -192,6 +195,21 @@ async function handleButtonEvents({
         <SendForm context={updatedContext} />,
         updatedContext,
       );
+      return null;
+    case SendFormNames.Send:
+      await resolveInterface(id, false);
+      await renderTransactionConfirmation({
+        scope: context.scope,
+
+        fromAccountId: context.selectedAccountId,
+        toAddress: '27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD',
+
+        amount: '0.1',
+        fee: '0.000005',
+        tokenSymbol: 'SOL',
+        tokenContractAddress: SolanaCaip19Tokens.SOL,
+        tokenPrice: 0,
+      });
       return null;
     default:
       return null;

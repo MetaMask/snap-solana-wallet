@@ -110,7 +110,6 @@ export const TransactionConfirmation: SnapComponent<
           </Row>
         </Section>
       </Box>
-
       <Footer>
         <Button name={TransactionConfirmationNames.Cancel}>Cancel</Button>
         <Button name={TransactionConfirmationNames.Confirm}>Send</Button>
