@@ -15,28 +15,30 @@ import { addressToCaip10 } from '../../../../core/utils/address-to-caip10';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
-import { SendFormNames } from '../../types/form';
-import { SendCurrency } from '../../types/send';
+import { SendCurrency } from '../../views/SendForm/types';
 
 type AccountSelectorProps = {
+  name: string;
+  scope: SolanaCaip2Networks;
   accounts: SolanaKeyringAccount[];
   balances: Record<string, Balance>;
-  rates: GetCurrencyRateResult;
-  scope: SolanaCaip2Networks;
+  currencyRate: GetCurrencyRateResult;
   selectedAccountId: string;
   error?: string;
 };
 
 export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
-  accounts,
-  balances,
-  rates,
+  name,
   scope,
+  accounts,
+  selectedAccountId,
+  balances,
+  currencyRate,
   error,
 }) => {
   return (
     <Field label="From" error={error}>
-      <Selector name={SendFormNames.AccountSelector} title="From">
+      <Selector name={name} value={selectedAccountId} title="From">
         {accounts.map((account) => {
           return (
             <SelectorOption value={account.id}>
@@ -48,7 +50,7 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
                 extra={formatCurrency(
                   tokenToFiat(
                     balances[account.id]?.amount ?? '0',
-                    rates?.conversionRate ?? 0,
+                    currencyRate?.conversionRate ?? 0,
                   ),
                 )}
                 title={

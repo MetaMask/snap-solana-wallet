@@ -1,23 +1,9 @@
 import { type SolanaCaip2Networks } from '../../../../core/constants/solana';
 
-export type TransactionConfirmationParams = {
-  scope: SolanaCaip2Networks;
-
-  fromAccountId: string;
-  toAddress: string;
-
-  amount: string;
-  fee: string;
-
-  tokenSymbol: string;
-  tokenContractAddress: string;
-  tokenPrice: number;
-};
-
 export enum TransactionConfirmationNames {
   BackButton = 'transaction-confirmation-back-button',
-  Cancel = 'transaction-confirmation-cancel-button',
-  Confirm = 'transaction-confirmation-submit-button',
+  CancelButton = 'transaction-confirmation-cancel-button',
+  ConfirmButton = 'transaction-confirmation-submit-button',
 }
 
 export type TransactionConfirmationContext = {
@@ -32,5 +18,5 @@ export type TransactionConfirmationContext = {
 
   tokenSymbol: string;
   tokenContractAddress: string;
-  tokenPrice: number;
+  tokenPrice: string;
 };

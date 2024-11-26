@@ -45,7 +45,6 @@ export enum SolanaCaip19Tokens {
 
 export enum SolanaInternalRpcMethods {
   StartSendTransactionFlow = 'startSendTransactionFlow',
-  ShowTransactionConfirmation = 'showTransactionConfirmation',
 }
 
 export const LAMPORTS_PER_SOL = 1_000_000_000;

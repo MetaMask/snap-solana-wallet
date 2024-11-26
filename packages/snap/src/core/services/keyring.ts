@@ -64,7 +64,6 @@ export type SolanaKeyringAccount = {
 
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
-
   readonly #connection: SolanaConnection;
 
   constructor(connection: SolanaConnection) {

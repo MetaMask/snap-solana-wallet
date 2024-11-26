@@ -1,6 +1,6 @@
 import type { FormFieldError } from '../../../core/types/error';
-import type { SendContext } from '../types/send';
-import { SendCurrency } from '../types/send';
+import type { SendContext } from '../views/SendForm/types';
+import { SendCurrency } from '../views/SendForm/types';
 
 /**
  * Validates if the given value exceeds the balance in the context.
@@ -18,7 +18,7 @@ export function validateBalance(
       context.currencySymbol === SendCurrency.FIAT
         ? (parseFloat(value) / (context.rates?.conversionRate ?? 0)).toString()
         : value,
-    ) > parseFloat(context.balances[context.selectedAccountId]?.amount ?? '0');
+    ) > parseFloat(context.balances[context.fromAccountId]?.amount ?? '0');
 
   return amountGreaterThanBalance
     ? { message: 'Insufficient balance', value }
