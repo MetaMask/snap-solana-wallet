@@ -47,10 +47,10 @@ export class SolanaConnection {
   }
 
   public getRpc(network: SolanaCaip2Networks): Rpc<SolanaRpcApi> {
-    const networkRpc = this.#networkToRpc.get(network);
-    if (!networkRpc) {
+    const rpc = this.#networkToRpc.get(network);
+    if (!rpc) {
       throw new Error(`Invalid network: ${network}`);
     }
-    return networkRpc;
+    return rpc;
   }
 }

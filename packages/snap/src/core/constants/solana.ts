@@ -9,12 +9,14 @@ export enum SolanaCaip2Networks {
   Mainnet = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   Devnet = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
   Testnet = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+  Localnet = 'solana:123456789abcdef',
 }
 
 export const SolanaNetworksNames: Record<SolanaCaip2Networks, string> = {
   [SolanaCaip2Networks.Mainnet]: 'Solana Mainnet',
   [SolanaCaip2Networks.Devnet]: 'Solana Devnet',
   [SolanaCaip2Networks.Testnet]: 'Solana Testnet',
+  [SolanaCaip2Networks.Localnet]: 'Solana Localnet',
 };
 
 export enum SolanaCaip19Tokens {
@@ -32,4 +34,5 @@ export const SOLANA_NETWORK_TO_RPC_URLS: Record<SolanaCaip2Networks, string> = {
   [SolanaCaip2Networks.Mainnet]: process.env.RPC_URL_MAINNET ?? '',
   [SolanaCaip2Networks.Devnet]: process.env.RPC_URL_DEVNET ?? '',
   [SolanaCaip2Networks.Testnet]: process.env.RPC_URL_TESTNET ?? '',
+  [SolanaCaip2Networks.Localnet]: process.env.RPC_URL_LOCALNET ?? '',
 };

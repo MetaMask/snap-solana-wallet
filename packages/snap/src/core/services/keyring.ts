@@ -29,8 +29,7 @@ import {
   setTransactionMessageLifetimeUsingBlockhash,
   signTransactionMessageWithSigners,
 } from '@solana/web3.js';
-import type { Struct } from 'superstruct';
-import { assert } from 'superstruct';
+import { assert, type Struct } from 'superstruct';
 
 import {
   LAMPORTS_PER_SOL,
@@ -210,7 +209,11 @@ export class SolanaKeyring implements Keyring {
             const response = await this.#connection
               .getRpc(currentNetwork)
               .getBalance(address(account.address))
-              .send();
+              .send()
+              .catch((error) => {
+                logMaybeSolanaError(error);
+                throw error;
+              });
 
             const balance = String(Number(response.value) / LAMPORTS_PER_SOL);
             balances.set(asset, [SOL_SYMBOL, balance]);
