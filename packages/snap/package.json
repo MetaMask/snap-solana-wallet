@@ -31,6 +31,7 @@
     "test:watch": "jest --watch --passWithNoTests"
   },
   "dependencies": {
+    "@bonfida/spl-name-service": "^3.0.7",
     "@metamask/key-tree": "^9.1.2",
     "@metamask/keyring-api": "^11.0.0",
     "@metamask/snaps-sdk": "^6.11.0",

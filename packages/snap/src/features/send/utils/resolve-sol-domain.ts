@@ -1,4 +1,6 @@
-import type { SolanaCaip2Networks } from '../../../core/constants/solana';
+import { getDomainKeySync, NameRegistryState } from "@bonfida/spl-name-service";
+
+import { SolanaCaip2Networks } from '../../../core/constants/solana';
 import { SolanaConnection } from '../../../core/services/connection';
 import logger from '../../../core/utils/logger';
 
@@ -17,22 +19,25 @@ export async function getPublicKeyFromSolDomain(
   _currentNetwork: SolanaCaip2Networks,
 ): Promise<string> {
   try {
-    // @ts-expect-error remove this after installing the @bonfida/spl-name-service
     const { pubkey } = getDomainKeySync(domain);
 
+    console.log('pubkey', pubkey);
     const rpcConnection = new SolanaConnection();
 
-    // @ts-expect-error remove this after installing the @bonfida/spl-name-service
     const registry = await NameRegistryState.retrieve(
-      rpcConnection.getRpc(_currentNetwork),
+      rpcConnection.getRpc(SolanaCaip2Networks.Mainnet),
       pubkey,
     );
+
+    console.log('registry', registry);
 
     if (!registry?.registry?.owner) {
       throw new Error('Domain not found or has no owner');
     }
 
     const owner = registry.registry.owner.toBase58();
+
+    console.log('owner', owner);
 
     logger.info(`The owner of SNS Domain: ${domain} is: `, owner);
 

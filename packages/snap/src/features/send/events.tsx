@@ -12,6 +12,8 @@ import { SendCurrency, type SendContext, type SendState } from './types/send';
 import { validateBalance } from './utils/balance';
 import { getSendContext } from './utils/context';
 import { validation } from './utils/validation';
+import { SolanaCaip2Networks } from '../../core/constants/solana';
+import { getPublicKeyFromSolDomain } from './utils/resolve-sol-domain';
 /**
  * Checks if the given event is a send event.
  *
@@ -132,6 +134,13 @@ async function handleInputChangeEvents({
       break;
     case SendFormNames.To:
       context.showClearButton = Boolean(toAddress);
+
+      console.log('toAddress', toAddress);
+      const publicKey = await getPublicKeyFromSolDomain(
+        toAddress as string,
+        SolanaCaip2Networks.Mainnet,
+      );
+      console.log('publicKey', publicKey);
 
       await updateInterface(id, <SendForm context={context} />, context);
 
