@@ -3,11 +3,13 @@ import {
   Button,
   Field,
   Icon,
+  Image,
   Input,
   Text,
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
+import solanaIcon from '../../../../../images/coin.svg';
 import { SendFormNames } from '../../types/form';
 
 type AmountInputProps = {
@@ -23,9 +25,9 @@ export const AmountInput: SnapComponent<AmountInputProps> = ({
 }) => {
   return (
     <Field label="" error={error}>
-      {/* <Box direction="horizontal" center>
+      <Box direction="horizontal" center>
         <Image src={solanaIcon} />
-      </Box> */}
+      </Box>
       <Input
         name={SendFormNames.AmountInput}
         type="number"

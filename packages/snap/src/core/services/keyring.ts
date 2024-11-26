@@ -209,11 +209,7 @@ export class SolanaKeyring implements Keyring {
             const response = await this.#connection
               .getRpc(currentNetwork)
               .getBalance(address(account.address))
-              .send()
-              .catch((error) => {
-                logMaybeSolanaError(error);
-                throw error;
-              });
+              .send();
 
             const balance = String(Number(response.value) / LAMPORTS_PER_SOL);
             balances.set(asset, [SOL_SYMBOL, balance]);
@@ -234,7 +230,6 @@ export class SolanaKeyring implements Keyring {
           { amount, unit },
         ]),
       );
-
       assert(response, GetAccounBalancesResponseStruct);
 
       return response;
