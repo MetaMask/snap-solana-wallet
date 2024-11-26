@@ -1,9 +1,5 @@
 import { Button, Link, Table } from '@chakra-ui/react';
-import {
-  type Balance,
-  type KeyringAccount,
-  SolMethod,
-} from '@metamask/keyring-api';
+import { type Balance, type KeyringAccount } from '@metamask/keyring-api';
 import { useState } from 'react';
 
 import { SolanaInternalRpcMethods } from '../../../../snap/src/core/constants/solana';
@@ -35,24 +31,6 @@ export const AccountRow = ({
     })) as Record<string, Balance>;
 
     setBalance(response?.[`${network}/${SOLANA_TOKEN}`]?.amount ?? '0');
-  };
-
-  const onTransfer = async (accountId: string) => {
-    await invokeKeyring({
-      method: 'keyring_submitRequest',
-      params: {
-        id: crypto.randomUUID(),
-        account: accountId,
-        scope: network,
-        request: {
-          method: SolMethod.SendAndConfirmTransaction,
-          params: {
-            to: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
-            amount: 0.1,
-          },
-        },
-      },
-    });
   };
 
   const handleSend = async (id: string) => {
@@ -91,14 +69,6 @@ export const AccountRow = ({
         >
           View
         </Link>
-        <Button
-          variant="outline"
-          colorPalette="purple"
-          marginRight="5"
-          onClick={async () => onTransfer(account.id)}
-        >
-          Transfer 0.1 SOL
-        </Button>
         <Button
           variant="outline"
           colorPalette="purple"

@@ -1,11 +1,11 @@
 import type {
-  DialogResult,
   ComponentOrElement,
-  Json,
-  UpdateInterfaceResult,
-  GetInterfaceStateResult,
-  ResolveInterfaceResult,
+  DialogResult,
   GetCurrencyRateResult,
+  GetInterfaceStateResult,
+  Json,
+  ResolveInterfaceResult,
+  UpdateInterfaceResult,
 } from '@metamask/snaps-sdk';
 
 import type { Locale } from './i18n';
@@ -106,7 +106,7 @@ export async function showDialog(id: string): Promise<DialogResult> {
 }
 
 /**
- * Get proferences from snap.
+ * Get preferences from snap.
  *
  * @returns A promise that resolves to snap preferences.
  */

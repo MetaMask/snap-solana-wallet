@@ -6,17 +6,17 @@ import {
   Form,
   Text,
 } from '@metamask/snaps-sdk/jsx';
+import { isNullOrUndefined } from '@metamask/utils';
 
 import { Header } from '../../../../core/components/Header/Header';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
-import { SendFormNames } from '../../types/form';
-import { SendCurrency, type SendContext } from '../../types/send';
-import { AccountSelector } from '../AccountSelector/AccountSelector';
-import { AmountInput } from '../AmountInput/AmountInput';
-import { ToAddressField } from '../ToAddressField/ToAddressField';
+import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
+import { AmountInput } from '../../components/AmountInput/AmountInput';
+import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
+import { SendCurrency, SendFormNames, type SendContext } from './types';
 
 type SendFormProps = {
   context: SendContext;
@@ -25,28 +25,20 @@ type SendFormProps = {
 export const SendForm = ({
   context: {
     accounts,
-    selectedAccountId,
+    fromAccountId,
+    amount,
+    toAddress,
     validation,
-    clearToField,
-    showClearButton,
     currencySymbol,
     scope,
     balances,
     rates,
-    maxBalance,
-    canReview,
     locale,
   },
 }: SendFormProps) => {
   const translate = i18n(locale);
 
-  const nativeBalance = balances[selectedAccountId]?.amount ?? '0';
-  const currencyToMaxBalance: Record<SendCurrency, string> = {
-    [SendCurrency.FIAT]: String(
-      tokenToFiat(nativeBalance, rates?.conversionRate ?? 0),
-    ),
-    [SendCurrency.SOL]: nativeBalance,
-  };
+  const nativeBalance = balances[fromAccountId]?.amount ?? '0';
 
   const currencyToBalance: Record<SendCurrency, string> = {
     [SendCurrency.FIAT]: formatCurrency(
@@ -57,25 +49,33 @@ export const SendForm = ({
 
   const balance = currencyToBalance[currencySymbol];
 
+  const canReview =
+    fromAccountId.length > 0 &&
+    amount.length > 0 &&
+    toAddress.length > 0 &&
+    Object.values(validation).every(isNullOrUndefined);
+
   return (
     <Container>
       <Box>
         <Header title="Send" backButtonName={SendFormNames.BackButton} />
         <Form name={SendFormNames.Form}>
           <AccountSelector
+            name={SendFormNames.SourceAccountSelector}
             scope={scope}
-            error={validation?.[SendFormNames.AccountSelector]?.message ?? ''}
+            error={
+              validation?.[SendFormNames.SourceAccountSelector]?.message ?? ''
+            }
             accounts={accounts}
-            selectedAccountId={selectedAccountId}
+            selectedAccountId={fromAccountId}
             balances={balances}
-            rates={rates}
+            currencyRate={rates}
           />
           <AmountInput
+            name={SendFormNames.AmountInput}
             error={validation?.[SendFormNames.AmountInput]?.message ?? ''}
             currencySymbol={currencySymbol}
-            maxBalance={
-              maxBalance ? currencyToMaxBalance[currencySymbol] : null
-            }
+            value={amount}
           />
           <Box direction="horizontal" alignment="space-between" center>
             {balance ? (
@@ -85,18 +85,20 @@ export const SendForm = ({
             ) : (
               <Box>{null}</Box>
             )}
-            <Button name={SendFormNames.AmountInputMax}>Max</Button>
+            <Button name={SendFormNames.MaxAmountButton}>Max</Button>
           </Box>
           <ToAddressField
-            validation={validation}
-            clearToField={clearToField}
-            showClearButton={showClearButton}
+            name={SendFormNames.DestinationAccountInput}
+            value={toAddress}
+            error={
+              validation?.[SendFormNames.DestinationAccountInput]?.message ?? ''
+            }
           />
         </Form>
       </Box>
       <Footer>
-        <Button name={SendFormNames.Cancel}>Cancel</Button>
-        <Button name={SendFormNames.Send} disabled={!canReview}>
+        <Button name={SendFormNames.CancelButton}>Cancel</Button>
+        <Button name={SendFormNames.SendButton} disabled={!canReview}>
           Send
         </Button>
       </Footer>
