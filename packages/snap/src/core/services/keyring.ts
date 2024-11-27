@@ -38,9 +38,9 @@ import {
   type SolanaCaip2Networks,
 } from '../constants/solana';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
+import { getClusterFromScope } from '../utils/get-cluster-from-scope';
 import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
-import { getClusterFromScope } from '../utils/getNetworkFromCaip2Network';
 import logger from '../utils/logger';
 import { logMaybeSolanaError } from '../utils/logMaybeSolanaError';
 import type { TransferSolParams } from '../validation/structs';

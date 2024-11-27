@@ -113,3 +113,8 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-artifacts-coverage
+          path: packages/snap/coverage
