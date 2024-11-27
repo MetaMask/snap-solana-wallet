@@ -59,6 +59,10 @@ const mocks = new Map<
   >
 >();
 
+/**
+ * Singleton express app: creates it if it does not exist, otherwise returns
+ * the existing one.
+ */
 const createAppIfNotExists = () => {
   if (!app) {
     app = express();
@@ -112,6 +116,23 @@ const createAppIfNotExists = () => {
   }
 };
 
+/**
+ * Starts a mock Solana RPC server on local port 8899, and returns utility
+ * methods to mock Solana RPC responses and errors.
+ *
+ * @returns An object with utility methods to mock Solana RPC responses and errors.
+ * @example
+ * ```ts
+ * const { mockResolvedResult, mockRejectedError, shutdown } = startMockSolanaRpc();
+ *
+ * // Mock a resolved result once
+ * mockResolvedResultOnce({ method: 'getBalance', result: { balance: 1000 } });
+ * mockResolvedResultOnce({ method: 'getBalance', result: { balance: 2000 } });
+ *
+ * // Mock a rejected error
+ * mockRejectedError({ method: 'sendTransaction', error: { code: -32000, message: 'Insufficient funds' } });
+ * ```
+ */
 export const startMockSolanaRpc = (): MockSolanaRpc => {
   createAppIfNotExists();
 
