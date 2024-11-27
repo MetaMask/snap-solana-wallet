@@ -43,11 +43,11 @@ describe('Send', () => {
   let mockResolvedResult: (response: MockedResolvedResult) => void;
   let shutdown: () => void;
 
-  beforeEach(() => {
+  beforeAll(() => {
     ({ mockResolvedResult, shutdown } = startMockSolanaRpc());
   });
 
-  afterEach(() => {
+  afterAll(() => {
     shutdown();
   });
 
