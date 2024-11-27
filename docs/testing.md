@@ -33,6 +33,7 @@ describe('Some UI component', () => {
   let mockRejectedErrorOnce: (mock: MockedRejectedError) => void;
   let shutdown: () => void;
 
+  // ⚠️ WARNING: it's `beforeAll`, and not `beforeEach`
   beforeAll(() => {
     // This starts a mock Solana RPC server on local port 8899
     ({
@@ -44,6 +45,7 @@ describe('Some UI component', () => {
     } = startMockSolanaRpc());
   });
 
+  // ⚠️ WARNING: it's `afterAll`, and not `afterEach`
   afterAll(() => {
     shutdown();
   });
