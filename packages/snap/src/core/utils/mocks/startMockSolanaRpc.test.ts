@@ -1,29 +1,17 @@
 /* eslint-disable jest/prefer-strict-equal */
-import type {
-  MockedRejectedError,
-  MockedResolvedResult,
-} from './startMockSolanaRpc';
+
+import type { MockSolanaRpc } from './startMockSolanaRpc';
 import { startMockSolanaRpc } from './startMockSolanaRpc';
 
 describe('startMockSolanaRpc', () => {
-  let mockResolvedResult: (mock: MockedResolvedResult) => void;
-  let mockResolvedResultOnce: (mock: MockedResolvedResult) => void;
-  let mockRejectedError: (mock: MockedRejectedError) => void;
-  let mockRejectedErrorOnce: (mock: MockedRejectedError) => void;
-  let shutdown: () => void;
+  let mockSolanaRpc: MockSolanaRpc;
 
   beforeAll(() => {
-    ({
-      mockResolvedResult,
-      mockResolvedResultOnce,
-      mockRejectedError,
-      mockRejectedErrorOnce,
-      shutdown,
-    } = startMockSolanaRpc());
+    mockSolanaRpc = startMockSolanaRpc();
   });
 
   afterAll(() => {
-    shutdown();
+    mockSolanaRpc.shutdown();
   });
 
   const makeRpcRequest = async (method: string, params: any[] = []) =>
@@ -40,12 +28,8 @@ describe('startMockSolanaRpc', () => {
       }),
     });
 
-  it('should return expected methods', () => {
-    expect(mockResolvedResult).toBeDefined();
-    expect(mockResolvedResultOnce).toBeDefined();
-    expect(mockRejectedError).toBeDefined();
-    expect(mockRejectedErrorOnce).toBeDefined();
-    expect(shutdown).toBeDefined();
+  it('should return expected mock', () => {
+    expect(mockSolanaRpc).toBeDefined();
   });
 
   it('should return error for unmocked method', async () => {
@@ -64,6 +48,8 @@ describe('startMockSolanaRpc', () => {
   });
 
   it('should return mocked response for registered method', async () => {
+    const { mockResolvedResult } = mockSolanaRpc;
+
     mockResolvedResult({
       method: 'getBalance',
       result: 100000000,
@@ -79,6 +65,8 @@ describe('startMockSolanaRpc', () => {
   });
 
   it('should handle multiple mock registrations', async () => {
+    const { mockResolvedResult } = mockSolanaRpc;
+
     const mockBalance = 100000000;
 
     const mockBlockHeight = 123456;
@@ -112,6 +100,8 @@ describe('startMockSolanaRpc', () => {
   });
 
   it('should handle mockResolvedResultOnce correctly', async () => {
+    const { mockResolvedResultOnce } = mockSolanaRpc;
+
     const mockResult = { result: 'test1' };
 
     mockResolvedResultOnce({
@@ -152,6 +142,8 @@ describe('startMockSolanaRpc', () => {
   });
 
   it('should consume mockResolvedResultOnce calls in LIFO order', async () => {
+    const { mockResolvedResultOnce } = mockSolanaRpc;
+
     const mockResult1 = { result: 'test1' };
     const mockResult2 = { result: 'test2' };
 
@@ -195,6 +187,8 @@ describe('startMockSolanaRpc', () => {
   });
 
   it('does not consume mockResolvedResult calls', async () => {
+    const { mockResolvedResult, mockResolvedResultOnce } = mockSolanaRpc;
+
     const oneTimeResult = { result: 'oneTime' };
     const persistentResult = { result: 'persistent' };
 
@@ -235,6 +229,8 @@ describe('startMockSolanaRpc', () => {
   });
 
   it('should handle mockRejectedError correctly', async () => {
+    const { mockRejectedError } = mockSolanaRpc;
+
     const mockError = {
       code: -32000,
       message: 'Test error',
@@ -264,6 +260,8 @@ describe('startMockSolanaRpc', () => {
   });
 
   it('should handle mockRejectedErrorOnce correctly', async () => {
+    const { mockRejectedErrorOnce } = mockSolanaRpc;
+
     const mockError = {
       code: -32000,
       message: 'One-time error',
@@ -309,6 +307,7 @@ describe('startMockSolanaRpc', () => {
   });
 
   it('does not consume mockRejectedError calls', async () => {
+    const { mockRejectedError, mockRejectedErrorOnce } = mockSolanaRpc;
     const oneTimeError = {
       code: -32000,
       message: 'One-time error',

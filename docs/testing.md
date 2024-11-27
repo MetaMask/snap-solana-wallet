@@ -27,30 +27,27 @@ When testing UI components that trigger calls to the Solana RPC, use the `startM
 
 ```ts
 describe('Some UI component', () => {
-  let mockResolvedResult: (mock: MockedResolvedResult) => void;
-  let mockResolvedResultOnce: (mock: MockedResolvedResult) => void;
-  let mockRejectedError: (mock: MockedRejectedError) => void;
-  let mockRejectedErrorOnce: (mock: MockedRejectedError) => void;
-  let shutdown: () => void;
+  let mockSolanaRpc: MockSolanaRpc;
 
   // ⚠️ WARNING: it's `beforeAll`, and not `beforeEach`
   beforeAll(() => {
     // This starts a mock Solana RPC server on local port 8899
-    ({
-      mockResolvedResult,
-      mockResolvedResultOnce,
-      mockRejectedError,
-      mockRejectedErrorOnce,
-      shutdown,
-    } = startMockSolanaRpc());
+    mockSolanaRpc = startMockSolanaRpc();
   });
 
   // ⚠️ WARNING: it's `afterAll`, and not `afterEach`
   afterAll(() => {
-    shutdown();
+    mockSolanaRpc.shutdown();
   });
 
   it('renders properly', async () => {
+    const {
+      mockResolvedResult,
+      mockResolvedResultOnce,
+      mockRejectedError,
+      mockRejectedErrorOnce,
+    } = mockSolanaRpc;
+
     // This will make the mock Solana RPC return the specified results for subsequent calls with the `getBalance` method.
     mockResolvedResult({ method: 'getBalance', result: { balance: 500 } });
 

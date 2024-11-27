@@ -7,7 +7,7 @@ import {
 import { MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE } from '../../core/services/mocks/mockSolanaRpcResponses';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../core/test/mocks/solana-keyring-accounts';
 import { TEST_ORIGIN } from '../../core/test/utils';
-import type { MockedResolvedResult } from '../../core/utils/mocks/startMockSolanaRpc';
+import type { MockSolanaRpc } from '../../core/utils/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../core/utils/mocks/startMockSolanaRpc';
 import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
@@ -40,18 +40,18 @@ const mockContext: SendContext = {
 };
 
 describe('Send', () => {
-  let mockResolvedResult: (response: MockedResolvedResult) => void;
-  let shutdown: () => void;
+  let mockSolanaRpc: MockSolanaRpc;
 
   beforeAll(() => {
-    ({ mockResolvedResult, shutdown } = startMockSolanaRpc());
+    mockSolanaRpc = startMockSolanaRpc();
   });
 
   afterAll(() => {
-    shutdown();
+    mockSolanaRpc.shutdown();
   });
 
   it.skip('renders the send form', async () => {
+    const { mockResolvedResult } = mockSolanaRpc;
     const { request, mockJsonRpc } = await installSnap();
 
     mockJsonRpc({
