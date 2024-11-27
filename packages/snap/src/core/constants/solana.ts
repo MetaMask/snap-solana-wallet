@@ -21,6 +21,12 @@ const Networks = {
     name: 'Solana Testnet',
     rpcUrl: process.env.RPC_URL_TESTNET ?? '',
   },
+  Localnet: {
+    id: 'solana:123456789abcdef',
+    cluster: 'Localnet',
+    name: 'Solana Localnet',
+    rpcUrl: process.env.RPC_URL_LOCALNET ?? '',
+  },
 };
 
 /**

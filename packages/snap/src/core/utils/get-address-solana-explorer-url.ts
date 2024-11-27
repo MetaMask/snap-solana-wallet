@@ -2,11 +2,12 @@ import { SolanaCaip2Networks } from '../constants/solana';
 
 const scopeToCluster: Record<
   SolanaCaip2Networks,
-  'mainnet' | 'devnet' | 'testnet'
+  'mainnet' | 'devnet' | 'testnet' | 'localnet'
 > = {
   [SolanaCaip2Networks.Mainnet]: 'mainnet',
   [SolanaCaip2Networks.Devnet]: 'devnet',
   [SolanaCaip2Networks.Testnet]: 'testnet',
+  [SolanaCaip2Networks.Localnet]: 'localnet',
 };
 
 /**
