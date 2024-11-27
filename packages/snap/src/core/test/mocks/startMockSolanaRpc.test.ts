@@ -28,11 +28,11 @@ describe('startMockSolanaRpc', () => {
       }),
     });
 
-  it('should return expected mock', () => {
+  it('returns a defined mock', () => {
     expect(mockSolanaRpc).toBeDefined();
   });
 
-  it('should return error for unmocked method', async () => {
+  it('returns an error for unmocked method', async () => {
     const response = await makeRpcRequest('wrongMethod');
     const body = await response.json();
 
@@ -47,7 +47,7 @@ describe('startMockSolanaRpc', () => {
     });
   });
 
-  it('should return mocked response for registered method', async () => {
+  it('returns a mocked response for registered method', async () => {
     const { mockResolvedResult } = mockSolanaRpc;
 
     mockResolvedResult({
@@ -64,7 +64,7 @@ describe('startMockSolanaRpc', () => {
     });
   });
 
-  it('should handle multiple mock registrations', async () => {
+  it('handles multiple mock registrations', async () => {
     const { mockResolvedResult } = mockSolanaRpc;
 
     const mockBalance = 100000000;
@@ -99,7 +99,7 @@ describe('startMockSolanaRpc', () => {
     });
   });
 
-  it('should handle mockResolvedResultOnce correctly', async () => {
+  it('handles mockResolvedResultOnce correctly', async () => {
     const { mockResolvedResultOnce } = mockSolanaRpc;
 
     const mockResult = { result: 'test1' };
@@ -141,7 +141,7 @@ describe('startMockSolanaRpc', () => {
     });
   });
 
-  it('should consume mockResolvedResultOnce calls in LIFO order', async () => {
+  it('consumes mockResolvedResultOnce calls in LIFO order', async () => {
     const { mockResolvedResultOnce } = mockSolanaRpc;
 
     const mockResult1 = { result: 'test1' };
@@ -228,7 +228,7 @@ describe('startMockSolanaRpc', () => {
     });
   });
 
-  it('should handle mockRejectedError correctly', async () => {
+  it('handles mockRejectedError correctly', async () => {
     const { mockRejectedError } = mockSolanaRpc;
 
     const mockError = {
@@ -259,7 +259,7 @@ describe('startMockSolanaRpc', () => {
     }
   });
 
-  it('should handle mockRejectedErrorOnce correctly', async () => {
+  it('handles mockRejectedErrorOnce correctly', async () => {
     const { mockRejectedErrorOnce } = mockSolanaRpc;
 
     const mockError = {

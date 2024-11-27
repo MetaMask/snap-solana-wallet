@@ -6,9 +6,9 @@ import {
 } from '../../core/constants/solana';
 import { MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE } from '../../core/services/mocks/mockSolanaRpcResponses';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../core/test/mocks/solana-keyring-accounts';
+import type { MockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
+import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../core/test/utils';
-import type { MockSolanaRpc } from '../../core/utils/mocks/startMockSolanaRpc';
-import { startMockSolanaRpc } from '../../core/utils/mocks/startMockSolanaRpc';
 import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
 import { type SendContext, SendCurrency } from './types/send';

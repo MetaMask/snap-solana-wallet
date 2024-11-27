@@ -1,8 +1,8 @@
 /* eslint-disable consistent-return */
 import express from 'express';
 
-import logger from '../logger';
-import { Stack } from '../stack';
+import logger from '../../utils/logger';
+import { Stack } from '../../utils/stack';
 
 type JsonValue =
   | string
