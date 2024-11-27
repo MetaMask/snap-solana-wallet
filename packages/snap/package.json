@@ -27,8 +27,12 @@
     "prepublishOnly": "mm-snap manifest",
     "serve": "mm-snap serve",
     "start": "mm-snap watch",
-    "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch --passWithNoTests"
+    "test": "jest --passWithNoTests --runInBand",
+    "test:core": "jest src/core --passWithNoTests",
+    "test:core:watch": "yarn test:core --watch",
+    "test:features": "jest src/features --passWithNoTests --runInBand",
+    "test:features:watch": "yarn test:features --watch",
+    "test:watch": "yarn test --watch"
   },
   "dependencies": {
     "@metamask/key-tree": "^9.1.2",

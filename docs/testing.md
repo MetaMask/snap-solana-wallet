@@ -6,15 +6,27 @@ Make sure you are familiar with the framework before writting tests.
 ### Running tests
 
 ```bash
+# Run tests located under src/core.
+yarn test:core
+
+# Run UI / component tests, located under src/features.
+# They can't be run in parallel because they share the same mock Solana RPC server, and conflicting mock implementations would lead to flaky tests.
+yarn test:features
+
+# Alternatively, you can run all tests. They also can't be run in parallel because of the reasons mentioned above.
 yarn test
 ```
 
 > [!WARNING]  
-> Before running `yarn test` make sure your build the snap first by running `yarn build`. Tests are looking at the built version of the snap.
+> Before running `yarn test:xxx` make sure your build the snap first by running `yarn build`. Tests are looking at the built version of the snap.
 
 To run test in watch mode using the following script
 
 ```bash
+yarn test:core:watch
+yarn test:features:watch
+
+# Or all tests
 yarn test:watch
 ```
 
