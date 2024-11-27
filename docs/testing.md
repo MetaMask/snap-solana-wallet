@@ -20,20 +20,20 @@ yarn test:watch
 
 ### Mocking Solana RPC
 
-When testing UI components that trigger calls to the Solana RPC, you must use the `startMockSolanaRpc` utility function to mock the RPC responses and errors.
+When testing UI components that trigger calls to the Solana RPC, use the `startMockSolanaRpc` utility function to mock the RPC responses and errors.
 
 > [!WARNING]  
 > Read through the [Gotchas](#gotchas) section below to avoid common pitfalls.
 
 ```ts
 describe('Some UI component', () => {
-  let mockResolvedResult: (response: MockedResolvedResult) => void;
-  let mockResolvedResultOnce: (response: MockedResolvedResult) => void;
-  let mockRejectedError: (error: MockedRejectedError) => void;
-  let mockRejectedErrorOnce: (error: MockedRejectedError) => void;
+  let mockResolvedResult: (mock: MockedResolvedResult) => void;
+  let mockResolvedResultOnce: (mock: MockedResolvedResult) => void;
+  let mockRejectedError: (mock: MockedRejectedError) => void;
+  let mockRejectedErrorOnce: (mock: MockedRejectedError) => void;
   let shutdown: () => void;
 
-  beforeEach(() => {
+  beforeAll(() => {
     // This starts a mock Solana RPC server on local port 8899
     ({
       mockResolvedResult,
@@ -44,7 +44,7 @@ describe('Some UI component', () => {
     } = startMockSolanaRpc());
   });
 
-  afterEach(() => {
+  afterAll(() => {
     shutdown();
   });
 
@@ -72,6 +72,6 @@ describe('Some UI component', () => {
 
 #### Gotchas
 
-- The `startMockSolanaRpc` function runs an Express server on **fixed** port 8899, meaning that you cannot run multiple instances of it at the same time. We cannot use a dynamic port because the snap receives the "scope" as a request parameter, and the mapping scope to port is defined statically.
+- The `startMockSolanaRpc` function runs an Express server on **fixed** port 8899, meaning that you cannot run multiple instances of it at the same time. We cannot allocate a random port because the snap doesn't know about the RPC URL or the port. It only receive the `scope` as a request parameter, and the mapping `scope` to `URL` is defined statically.
 - The `shutdown` function must be called in the `afterEach` hook to cleanly stop the mock server.
 - Parallel tests that mock the **same** RPC method will interfere with each other because the mock server state is shared across tests.
