@@ -1,5 +1,4 @@
 import { installSnap } from '@metamask/snaps-jest';
-import express from 'express';
 
 import {
   SolanaCaip2Networks,
@@ -8,6 +7,8 @@ import {
 import { MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE } from '../../core/services/mocks/mockSolanaRpcResponses';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../core/test/mocks/solana-keyring-accounts';
 import { TEST_ORIGIN } from '../../core/test/utils';
+import type { MockedResolvedResult } from '../../core/utils/mocks/startMockSolanaRpc';
+import { startMockSolanaRpc } from '../../core/utils/mocks/startMockSolanaRpc';
 import { SendForm } from './components/SendForm/SendForm';
 import { SendFormNames } from './types/form';
 import { type SendContext, SendCurrency } from './types/send';
@@ -39,24 +40,15 @@ const mockContext: SendContext = {
 };
 
 describe('Send', () => {
-  let app: express.Application;
-  let server: ReturnType<typeof app.listen>;
+  let mockResolvedResult: (response: MockedResolvedResult) => void;
+  let shutdown: () => void;
 
   beforeEach(() => {
-    app = express();
-    const port = 8899;
-
-    app.post('/', (req, res) => {
-      res.json(MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE);
-    });
-
-    server = app.listen(port, () => {
-      console.log(`Mock Solana RPC listening on port ${port}`);
-    });
+    ({ mockResolvedResult, shutdown } = startMockSolanaRpc());
   });
 
   afterEach(() => {
-    server.close();
+    shutdown();
   });
 
   it.skip('renders the send form', async () => {
@@ -65,6 +57,11 @@ describe('Send', () => {
     mockJsonRpc({
       method: 'snap_manageState',
       result: { keyringAccounts: solanaKeyringAccounts },
+    });
+
+    mockResolvedResult({
+      method: 'getBalance',
+      result: MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE.result,
     });
 
     const response = request({

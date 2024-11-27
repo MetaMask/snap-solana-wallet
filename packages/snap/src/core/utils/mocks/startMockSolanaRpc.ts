@@ -2,22 +2,34 @@
 import express from 'express';
 
 import logger from '../logger';
+import { Stack } from '../stack';
 
-export type MockedResolvedResponse = {
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+export type MockedResolvedResult = {
   method: string;
-  response: object;
+  result: JsonValue;
 };
 
-// type MockedRejectedError = {
-//   method: string;
-//   error?: {
-//     code: number;
-//     message: string;/
-//   };
-// };
+export type MockedRejectedError = {
+  method: string;
+  error: {
+    code: number;
+    message: string;
+  };
+};
 
 export type MockSolanaRpc = {
-  mockResolvedResponse: (response: MockedResolvedResponse) => void;
+  mockResolvedResult: (mock: MockedResolvedResult) => void;
+  mockResolvedResultOnce: (mock: MockedResolvedResult) => void;
+  mockRejectedError: (mock: MockedRejectedError) => void;
+  mockRejectedErrorOnce: (mock: MockedRejectedError) => void;
   shutdown: () => void;
 };
 
@@ -25,7 +37,27 @@ export type MockSolanaRpc = {
 const FIXED_PORT = 8899;
 let app: express.Application | null = null;
 let server: any;
-const mocks = new Map<string, object>();
+
+/**
+ * We store mocks in a Map where the key is the method name and the value is a
+ * Stack of responses.
+ *
+ * The stack is a convenient data structure that allows us to mimick the
+ * "Jest style syntax" with `mockResolvedResponseOnce` and `mockResolvedResponse`.
+ *
+ * Every call to `mockResolvedResponseOnce` adds an item to the stack.
+ * Every call to `mockResolvedResponse` adds a NON DESTACKABLE item to the stack.
+ *
+ * Every time the mock responds, if the item is destackable, it is removed from
+ * the stack. If the item is not destackable, it is returned without removing it
+ * from the stack.
+ */
+const mocks = new Map<
+  string,
+  Stack<
+    Omit<MockedResolvedResult, 'method'> | Omit<MockedRejectedError, 'method'>
+  >
+>();
 
 const createAppIfNotExists = () => {
   if (!app) {
@@ -33,13 +65,14 @@ const createAppIfNotExists = () => {
     app.use(express.json());
 
     app.post('/', (req: any, res: any) => {
-      console.log('💜💜💜💜💜req.body', req.body);
-      const { method } = req.body;
+      const { method, id: requestId } = req.body;
+      const id = requestId ?? '0';
 
-      const mockResponse = mocks.get(method);
-
-      if (!mockResponse) {
+      const mockStack = mocks.get(method);
+      if (!mockStack) {
         return res.status(400).json({
+          jsonrpc: '2.0',
+          id,
           error: {
             code: -32601,
             message: 'No mock registered for this method',
@@ -47,7 +80,31 @@ const createAppIfNotExists = () => {
         });
       }
 
-      res.json(mockResponse);
+      const mock = mockStack.pop();
+      if (!mock) {
+        return res.status(400).json({
+          jsonrpc: '2.0',
+          id,
+          error: {
+            code: -32601,
+            message: 'No mock registered for this method',
+          },
+        });
+      }
+
+      if ('error' in mock) {
+        return res.status(400).json({
+          jsonrpc: '2.0',
+          id,
+          error: mock.error,
+        });
+      }
+
+      return res.json({
+        jsonrpc: '2.0',
+        id,
+        result: mock.result,
+      });
     });
 
     server = app.listen(FIXED_PORT);
@@ -58,29 +115,37 @@ const createAppIfNotExists = () => {
 export const startMockSolanaRpc = (): MockSolanaRpc => {
   createAppIfNotExists();
 
-  const mockResolvedResponse = ({
-    method,
-    response,
-  }: MockedResolvedResponse) => {
-    mocks.set(method, response);
+  const mockResolvedResult = ({ method, result }: MockedResolvedResult) => {
+    const stack = mocks.get(method) ?? new Stack();
+    stack.push({ result }, false); // Non destackable
+    mocks.set(method, stack);
   };
 
-  //   const mockRejectedError = (
-  //     testId: string,
-  //     { method, error }: MockedRejectedError,
-  //   ) => {
-  //     const mocksForTestId = mocks.get(testId) ?? new Map();
-  //     mocksForTestId.set(method, {
-  //       error: error ?? { code: -32603, message: 'Internal error' },
-  //     });
-  //     mocks.set(testId, mocksForTestId);
-  //   };
+  const mockResolvedResultOnce = ({ method, result }: MockedResolvedResult) => {
+    const stack = mocks.get(method) ?? new Stack();
+    stack.push({ result }, true); // Destackable
+    mocks.set(method, stack);
+  };
+
+  const mockRejectedError = ({ method, error }: MockedRejectedError) => {
+    const stack = mocks.get(method) ?? new Stack();
+    stack.push({ error }, false); // Non destackable
+    mocks.set(method, stack);
+  };
+
+  const mockRejectedErrorOnce = ({ method, error }: MockedRejectedError) => {
+    const stack = mocks.get(method) ?? new Stack();
+    stack.push({ error }, true); // Destackable
+    mocks.set(method, stack);
+  };
 
   const shutdown = () => server.close();
 
   return {
-    mockResolvedResponse,
-    // mockRejectedError,
+    mockResolvedResult,
+    mockResolvedResultOnce,
+    mockRejectedError,
+    mockRejectedErrorOnce,
     shutdown,
   };
 };
