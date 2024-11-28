@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1]
+
+### Uncategorized
+
+- chore: fix changelog ([#89](https://github.com/MetaMask/snap-solana-wallet/pull/89))
+- chore: put back the unreleased ([#88](https://github.com/MetaMask/snap-solana-wallet/pull/88))
+- docs: document the .env ([#87](https://github.com/MetaMask/snap-solana-wallet/pull/87))
+- Sol 58 snap mock rpc calls for unit tests ([#85](https://github.com/MetaMask/snap-solana-wallet/pull/85))
+- feat: fix sonar on main ([#82](https://github.com/MetaMask/snap-solana-wallet/pull/82))
+- test: add tests for all utils that didn't have them ([#83](https://github.com/MetaMask/snap-solana-wallet/pull/83))
+- feat: amount input ([#78](https://github.com/MetaMask/snap-solana-wallet/pull/78))
+- feat: implement TransactionConfirmation dialog ([#80](https://github.com/MetaMask/snap-solana-wallet/pull/80))
+- [SOL-43] adds the To input field ([#76](https://github.com/MetaMask/snap-solana-wallet/pull/76))
+- fix: cors erros using Grove for mainnet rpc provider ([#77](https://github.com/MetaMask/snap-solana-wallet/pull/77))
+- [SOL-45] feat: implement Solana transactions ([#70](https://github.com/MetaMask/snap-solana-wallet/pull/70))
+- feat: account selector ([#73](https://github.com/MetaMask/snap-solana-wallet/pull/73))
+- feat: handle send action ([#72](https://github.com/MetaMask/snap-solana-wallet/pull/72))
+- fix: support get account balances on different chains ([#71](https://github.com/MetaMask/snap-solana-wallet/pull/71))
+- fix: changelogs ([#69](https://github.com/MetaMask/snap-solana-wallet/pull/69))
+
 ## [1.0.0]
 
 ### Added
@@ -30,14 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.9...v1.0.0
-[0.1.9]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.8...v0.1.9
-[0.1.8]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.7...v0.1.8
-[0.1.7]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.6...v0.1.7
-[0.1.6]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.5...v0.1.6
-[0.1.5]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.4...v0.1.5
-[0.1.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.3...v0.1.4
-[0.1.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.2...v0.1.3
-[0.1.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.1...v0.1.2
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v0.1.1...v1.0.0
 [0.1.1]: https://github.com/MetaMask/snap-solana-wallet/releases/tag/v0.1.1
