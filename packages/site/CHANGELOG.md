@@ -9,17 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.1]
 
-### Uncategorized
+### Added
 
-- chore: fix changelog ([#90](https://github.com/MetaMask/snap-solana-wallet/pull/90))
-- chore: fix changelog ([#89](https://github.com/MetaMask/snap-solana-wallet/pull/89))
-- chore: put back the unreleased ([#88](https://github.com/MetaMask/snap-solana-wallet/pull/88))
 - feat: amount input ([#78](https://github.com/MetaMask/snap-solana-wallet/pull/78))
 - feat: implement TransactionConfirmation dialog ([#80](https://github.com/MetaMask/snap-solana-wallet/pull/80))
-- fix: cors erros using Grove for mainnet rpc provider ([#77](https://github.com/MetaMask/snap-solana-wallet/pull/77))
 - [SOL-45] feat: implement Solana transactions ([#70](https://github.com/MetaMask/snap-solana-wallet/pull/70))
 - feat: account selector ([#73](https://github.com/MetaMask/snap-solana-wallet/pull/73))
 - feat: handle send action ([#72](https://github.com/MetaMask/snap-solana-wallet/pull/72))
+
+### Fixed
+
+- fix: cors erros using Grove for mainnet rpc provider ([#77](https://github.com/MetaMask/snap-solana-wallet/pull/77))
 - fix: support get account balances on different chains ([#71](https://github.com/MetaMask/snap-solana-wallet/pull/71))
 - fix: changelogs ([#69](https://github.com/MetaMask/snap-solana-wallet/pull/69))
 
