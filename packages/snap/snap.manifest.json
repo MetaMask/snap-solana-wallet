@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "EI89Ohl3a0duytfz9s9bPNnz70jce4khxBfaSews4kc=",
+    "shasum": "ryTbsk6yiTtfVxqEBGywX0qBoDtMTI41diuRft6CpCg=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -15,7 +15,10 @@
         "packageName": "@metamask/solana-wallet-snap",
         "registry": "https://registry.npmjs.org/"
       }
-    }
+    },
+    "locales": [
+      "locales/en.json"
+    ]
   },
   "initialConnections": {
     "http://localhost:3000": {},
@@ -51,7 +54,8 @@
     "endowment:network-access": {},
     "snap_manageAccounts": {},
     "snap_manageState": {},
-    "snap_dialog": {}
+    "snap_dialog": {},
+    "snap_getPreferences": {}
   },
   "manifestVersion": "0.1"
 }

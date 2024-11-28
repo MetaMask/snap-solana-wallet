@@ -8,6 +8,8 @@ import type {
   GetCurrencyRateResult,
 } from '@metamask/snaps-sdk';
 
+import type { Locale } from './translation';
+
 /**
  * Creates an interface using the provided UI component and context.
  *
@@ -101,6 +103,17 @@ export async function showDialog(id: string): Promise<DialogResult> {
       id,
     },
   });
+}
+
+/**
+ * Get proferences from snap.
+ *
+ * @returns A promise that resolves to snap preferences.
+ */
+export async function getPreferences(): Promise<{ locale: Locale }> {
+  return snap.request({
+    method: 'snap_getPreferences',
+  }) as Promise<{ locale: Locale }>;
 }
 
 /**

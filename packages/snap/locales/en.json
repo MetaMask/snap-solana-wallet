@@ -1,0 +1,9 @@
+{
+  "locale": "en",
+  "messages": {
+    "balance": {
+      "message": "Balance",
+      "description": "The balance of the user's account."
+    }
+  }
+}

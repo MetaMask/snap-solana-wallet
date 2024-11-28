@@ -6,6 +6,7 @@ import {
 } from '../../../core/constants/solana';
 import { SolanaConnection } from '../../../core/services/connection';
 import { SolanaKeyring } from '../../../core/services/keyring';
+import { getPreferences } from '../../../core/utils/interface';
 import logger from '../../../core/utils/logger';
 // import { getRatesFromMetamask } from '../../../core/utils/interface';
 import type { SendContext } from '../types/send';
@@ -25,7 +26,10 @@ export async function getSendContext(
     const scope = context?.scope ?? SolanaCaip2Networks.Mainnet;
     const token = `${scope}/${SolanaCaip19Tokens.SOL}`;
 
-    const accounts = await keyring.listAccounts();
+    const [accounts, preferences] = await Promise.all([
+      keyring.listAccounts(),
+      getPreferences(),
+    ]);
 
     if (!accounts.length) {
       throw new Error('No solana accounts found');
@@ -68,6 +72,7 @@ export async function getSendContext(
       canReview: context?.canReview ?? false,
       clearToField: context?.clearToField ?? false,
       showClearButton: context?.showClearButton ?? false,
+      locale: preferences.locale,
       ...(context ?? {}),
     };
   } catch (error: any) {

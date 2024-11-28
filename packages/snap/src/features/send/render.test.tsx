@@ -37,6 +37,7 @@ const mockContext: SendContext = {
   },
   canReview: false,
   maxBalance: false,
+  locale: 'en',
 };
 
 describe('Send', () => {
