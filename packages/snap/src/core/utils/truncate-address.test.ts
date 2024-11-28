@@ -19,9 +19,9 @@ describe('truncateAddress', () => {
     expect(truncated).toBe('');
   });
 
-  it('handles addresses with exactly 10 characters', () => {
-    const address = '1234567890';
+  it('handles addresses with more than 10 characters', () => {
+    const address = '12345678900';
     const truncated = truncateAddress(address);
-    expect(truncated).toBe('123456...7890');
+    expect(truncated).toBe('123456...8900');
   });
 });
