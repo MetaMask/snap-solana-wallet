@@ -1,5 +1,6 @@
 import { SolanaState } from '../../core/services/state';
 import { createInterface, showDialog } from '../../core/utils/interface';
+import { TransactionResultDialog } from '../send/views/TransactionResultDialog/TransactionResultDialog';
 import { TransactionConfirmation } from './components/TransactionConfirmation/TransactionConfirmation';
 import {
   type TransactionConfirmationContext,
@@ -46,7 +47,8 @@ export async function renderTransactionConfirmation(
   };
 
   const id = await createInterface(
-    <TransactionConfirmation context={context} />,
+    <TransactionResultDialog signature={'5Y64J6gUNd67hM63Aeks3qVLGWRM3A52PFFjqKSPTVDdAZFbaPDHHLTFCs3ioeFcAAXFmqcUftZeLJVZCzqovAJ4'} />,
+    // <TransactionConfirmation context={context} />,
     context,
   );
 
