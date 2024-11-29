@@ -53,8 +53,7 @@ export const SendForm = ({
 
   const canReview =
     fromAccountId.length > 0 &&
-    toAddress.length > 0 &&
-    !Object.values(validation).every(Boolean);
+    toAddress.length > 0;
 
   return (
     <Container>

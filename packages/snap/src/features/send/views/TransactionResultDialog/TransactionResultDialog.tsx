@@ -1,19 +1,20 @@
 import {
   Box,
   Container,
-  Image,
   Link,
   type SnapComponent,
   Text,
 } from '@metamask/snaps-sdk/jsx';
+import { SendFormNames } from '../SendForm/types';
 
 type TransactionResultDialogProps = {
-  signature: string;
+  transactionSuccess: boolean;
+  signature: string | null;
 };
 
 export const TransactionResultDialog: SnapComponent<
   TransactionResultDialogProps
-> = ({ signature }) => {
+> = ({ transactionSuccess, signature }) => {
   const explorerUrl = `https://explorer.solana.com/tx/${signature}`;
 
   return (
@@ -22,8 +23,18 @@ export const TransactionResultDialog: SnapComponent<
         <Box direction="horizontal" center>
           <Text>SVG</Text>
         </Box>
-        <Text color="muted">Your transaction was submitted</Text>
-        <Link href={explorerUrl}>View transaction</Link>
+        {transactionSuccess ? (
+          <Box>
+            <Text color="muted">Your transaction was submitted</Text>
+            <Link href={explorerUrl}>View transaction</Link>
+          </Box>
+        ) : (
+          <Box>
+            <Text color="error">
+              Your transaction failed, please try again later
+            </Text>
+          </Box>
+        )}
       </Box>
     </Container>
   );

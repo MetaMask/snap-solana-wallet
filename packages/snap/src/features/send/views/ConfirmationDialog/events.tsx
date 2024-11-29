@@ -2,11 +2,15 @@ import { SolMethod } from '@metamask/keyring-api';
 import { type UserInputEvent } from '@metamask/snaps-sdk';
 
 import { SnapExecutionContext } from 'src';
-import { resolveInterface } from '../../../../core/utils/interface';
+import {
+  resolveInterface,
+  updateInterface,
+} from '../../../../core/utils/interface';
 import {
   type TransactionConfirmationContext,
   TransactionConfirmationNames,
 } from './types';
+import { TransactionResultDialog } from '../TransactionResultDialog/TransactionResultDialog';
 
 async function onBackButtonClick({
   id,
@@ -36,7 +40,7 @@ async function onConfirmButtonClick({
   context: TransactionConfirmationContext;
   snapContext: SnapExecutionContext;
 }) {
-  await snapContext.keyring.submitRequest({
+  const response = await snapContext.keyring.submitRequest({
     // eslint-disable-next-line no-restricted-globals
     id: crypto.randomUUID(),
     account: context.fromAccountId,
@@ -49,7 +53,23 @@ async function onConfirmButtonClick({
       },
     },
   });
-  await resolveInterface(id, false);
+
+  const signature =
+    !response.pending &&
+    response.result !== null &&
+    typeof response.result === 'object' &&
+    'signature' in response.result
+      ? (response.result.signature as string)
+      : null;
+
+  await updateInterface(
+    id,
+    <TransactionResultDialog
+      transactionSuccess={signature !== null}
+      signature={signature}
+    />,
+    context,
+  );
 }
 
 export const eventHandlers = {
