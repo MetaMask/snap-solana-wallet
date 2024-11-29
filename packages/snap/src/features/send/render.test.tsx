@@ -6,9 +6,12 @@ import {
 } from '../../core/constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../core/test/mocks/solana-keyring-accounts';
 import { TEST_ORIGIN } from '../../core/test/utils';
-import { SendForm } from './components/SendForm/SendForm';
-import { SendFormNames } from './types/form';
-import { type SendContext, SendCurrency } from './types/send';
+import { SendForm } from './views/SendForm/SendForm';
+import {
+  type SendContext,
+  SendCurrency,
+  SendFormNames,
+} from './views/SendForm/types';
 
 const solanaKeyringAccounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
 
@@ -60,7 +63,7 @@ describe('Send', () => {
 
     expect(screen).toRender(<SendForm context={mockContext} />);
 
-    await screen.selectFromSelector(SendFormNames.AccountSelector, '0');
+    await screen.selectFromSelector(SendFormNames.SourceAccountSelector, '0');
 
     expect(screen).toRender(<SendForm context={mockContext} />);
   });

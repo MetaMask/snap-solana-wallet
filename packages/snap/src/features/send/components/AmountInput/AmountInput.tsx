@@ -10,37 +10,32 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 
 import solanaIcon from '../../../../../images/coin.svg';
-import { SendFormNames } from '../../types/form';
+import { SendFormNames } from '../../views/SendForm/types';
 
 type AmountInputProps = {
-  error?: string;
+  name: string;
+  value: string;
   currencySymbol: string;
-  maxBalance: string | null;
+  error?: string;
 };
 
 export const AmountInput: SnapComponent<AmountInputProps> = ({
-  error,
+  name,
+  value,
   currencySymbol,
-  maxBalance,
+  error,
 }) => {
   return (
     <Field label="" error={error}>
       <Box direction="horizontal" center>
         <Image src={solanaIcon} />
       </Box>
-      <Input
-        name={SendFormNames.AmountInput}
-        type="number"
-        min={0}
-        step={0.00000001}
-        placeholder="0"
-        value={maxBalance ?? undefined}
-      />
+      <Input name={name} type="number" min={0} placeholder="0" value={value} />
       <Box direction="horizontal" center>
         <Box direction="vertical" alignment="center">
           <Text>{currencySymbol}</Text>
         </Box>
-        <Button name={SendFormNames.SwapCurrency}>
+        <Button name={SendFormNames.SwapCurrencyButton}>
           <Icon name="swap-vertical" color="primary" size="md" />
         </Button>
       </Box>

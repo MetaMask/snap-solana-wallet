@@ -14,10 +14,13 @@ import {
   Value,
 } from '@metamask/snaps-sdk/jsx';
 
+import BigNumber from 'bignumber.js';
 import SolanaLogo from '../../../../../images/icon.svg';
 import { Header } from '../../../../core/components/Header/Header';
 import { SolanaNetworksNames } from '../../../../core/constants/solana';
+import { formatCurrency } from '../../../../core/utils/format-currency';
 import { getAddressSolanaExplorerUrl } from '../../../../core/utils/get-address-solana-explorer-url';
+import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
 import {
   type TransactionConfirmationContext,
   TransactionConfirmationNames,
@@ -47,13 +50,25 @@ export const TransactionConfirmation: SnapComponent<
   const networkName = SolanaNetworksNames[scope];
   const transactionSpeed = '12.8s';
 
-  const amountInUserCurrency = (Number(amount) * tokenPrice).toFixed(2);
-  const feeInUserCurrency = (Number(fee) * tokenPrice).toFixed(2);
-  const total = Number(amount) + Number(fee);
-  const totalInUserCurrency = (
-    Number(amount) * tokenPrice +
-    Number(fee)
-  ).toFixed(2);
+  const amountInUserCurrency = formatCurrency(
+    tokenToFiat(amount, Number(tokenPrice)),
+  );
+  const feeInUserCurrency = formatCurrency(
+    tokenToFiat(fee, Number(tokenPrice)),
+  );
+
+  const total = BigNumber(amount).plus(BigNumber(fee)).toFixed(2);
+  const totalInUserCurrency = formatCurrency(
+    tokenToFiat(total, Number(tokenPrice)),
+  );
+
+  // const amountInUserCurrency = (Number(amount) * Number(tokenPrice)).toFixed(2);
+  // const feeInUserCurrency = (Number(fee) * Number(tokenPrice)).toFixed(2);
+  // const total = Number(amount) + Number(fee);
+  // const totalInUserCurrency = (
+  //   Number(amount) * Number(tokenPrice) +
+  //   Number(fee) * Number(tokenPrice)
+  // ).toFixed(2);
 
   return (
     <Container>
@@ -110,10 +125,9 @@ export const TransactionConfirmation: SnapComponent<
           </Row>
         </Section>
       </Box>
-
       <Footer>
-        <Button name={TransactionConfirmationNames.Cancel}>Cancel</Button>
-        <Button name={TransactionConfirmationNames.Confirm}>Send</Button>
+        <Button name={TransactionConfirmationNames.CancelButton}>Cancel</Button>
+        <Button name={TransactionConfirmationNames.ConfirmButton}>Send</Button>
       </Footer>
     </Container>
   );

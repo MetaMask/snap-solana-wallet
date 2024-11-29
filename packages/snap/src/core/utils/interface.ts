@@ -1,11 +1,11 @@
 import type {
-  DialogResult,
   ComponentOrElement,
-  Json,
-  UpdateInterfaceResult,
-  GetInterfaceStateResult,
-  ResolveInterfaceResult,
+  DialogResult,
   GetCurrencyRateResult,
+  GetInterfaceStateResult,
+  Json,
+  ResolveInterfaceResult,
+  UpdateInterfaceResult,
 } from '@metamask/snaps-sdk';
 
 /**
