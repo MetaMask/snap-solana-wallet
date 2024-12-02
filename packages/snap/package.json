@@ -37,7 +37,7 @@
   "dependencies": {
     "@metamask/key-tree": "^9.1.2",
     "@metamask/keyring-api": "^11.0.0",
-    "@metamask/snaps-sdk": "^6.12.0",
+    "@metamask/snaps-sdk": "^6.11.0",
     "@noble/ed25519": "^2.1.0",
     "@solana-program/system": "^0.6.2",
     "@solana/web3.js": "2",
