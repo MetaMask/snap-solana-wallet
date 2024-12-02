@@ -36,12 +36,11 @@ export type SendContext = {
   amount: string;
   toAddress: string;
   accounts: SolanaKeyringAccount[];
+  fee: string;
   validation: Partial<Record<SendFormNames, FormFieldError>>;
   currencySymbol: SendCurrency;
   balances: Record<CaipAssetType, Balance>;
   rates: GetCurrencyRateResult;
-  maxBalance: boolean;
-  canReview: boolean;
 };
 
 export type SendState = {

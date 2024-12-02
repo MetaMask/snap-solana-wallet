@@ -18,10 +18,11 @@ const solanaKeyringAccounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
 const mockContext: SendContext = {
   accounts: solanaKeyringAccounts,
   scope: SolanaCaip2Networks.Devnet,
-  selectedAccountId: '0',
+  fromAccountId: '0',
+  amount: '2.67566',
+  toAddress: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
+  fee: '0.000005',
   validation: {},
-  showClearButton: false,
-  clearToField: false,
   currencySymbol: SendCurrency.SOL,
   balances: {
     '0': {
@@ -35,8 +36,6 @@ const mockContext: SendContext = {
     currency: SendCurrency.FIAT,
     usdConversionRate: 1,
   },
-  canReview: false,
-  maxBalance: false,
 };
 
 describe('Send', () => {

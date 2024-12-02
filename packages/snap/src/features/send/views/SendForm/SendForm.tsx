@@ -7,6 +7,7 @@ import {
   Text,
 } from '@metamask/snaps-sdk/jsx';
 
+import { isNullOrUndefined } from '@metamask/utils';
 import { Header } from '../../../../core/components/Header/Header';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
@@ -31,7 +32,6 @@ export const SendForm = ({
     scope,
     balances,
     rates,
-    maxBalance,
   },
 }: SendFormProps) => {
   const nativeBalance = balances[fromAccountId]?.amount ?? '0';
@@ -53,7 +53,9 @@ export const SendForm = ({
 
   const canReview =
     fromAccountId.length > 0 &&
-    toAddress.length > 0;
+    amount.length > 0 &&
+    toAddress.length > 0 &&
+    Object.values(validation).every(isNullOrUndefined);
 
   return (
     <Container>
