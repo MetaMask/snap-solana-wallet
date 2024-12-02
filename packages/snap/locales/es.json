@@ -1,6 +1,9 @@
 {
   "locale": "es",
   "messages": {
+    "send.title": {
+      "message": "Send"
+    },
     "send.balance": {
       "message": "Balance"
     }
