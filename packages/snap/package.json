@@ -1,6 +1,6 @@
 {
   "name": "@metamask/solana-wallet-snap",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Solana wallet Snap.",
   "repository": {
     "type": "git",
@@ -27,8 +27,12 @@
     "prepublishOnly": "mm-snap manifest",
     "serve": "mm-snap serve",
     "start": "mm-snap watch",
-    "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch --passWithNoTests"
+    "test": "jest --passWithNoTests --runInBand",
+    "test:core": "jest src/core --passWithNoTests",
+    "test:core:watch": "yarn test:core --watch",
+    "test:features": "jest src/features --passWithNoTests --runInBand",
+    "test:features:watch": "yarn test:features --watch",
+    "test:watch": "yarn test --watch"
   },
   "dependencies": {
     "@metamask/key-tree": "^9.1.2",
@@ -48,8 +52,10 @@
     "@metamask/snaps-cli": "^6.2.1",
     "@metamask/snaps-jest": "8.7.1",
     "@testing-library/jest-dom": "^6.6.2",
+    "@types/express": "^5.0.0",
     "@types/react": "18.2.4",
     "@types/react-dom": "18.2.4",
+    "express": "^4.21.1",
     "jest": "^29.5.0",
     "jest-transform-stub": "^2.0.0",
     "rimraf": "^6.0.1",

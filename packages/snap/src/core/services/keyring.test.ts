@@ -15,6 +15,7 @@ import {
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
 import type { SolanaConnection } from './connection';
 import { SolanaKeyring } from './keyring';
+import { createMockConnection } from './mocks/mockConnection';
 import type { StateValue } from './state';
 
 jest.mock('@metamask/keyring-api', () => ({
@@ -35,51 +36,10 @@ jest.mock('../utils/derive-solana-private-key', () => ({
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
   let mockStateValue: StateValue;
-
-  let mockGetBalanceSend: jest.Mock;
-  let mockGetBalance: jest.Mock;
-
-  let mockGetLatestBlockhashSend: jest.Mock;
-  let mockGetLatestBlockhash: jest.Mock;
-
-  let mockSendTransactionSend: jest.Mock;
-  let mockSendTransaction: jest.Mock;
-
-  let mockGetRpc: jest.Mock;
+  let mockConnection: SolanaConnection;
 
   beforeEach(() => {
-    mockGetBalanceSend = jest.fn();
-    mockGetBalance = jest.fn().mockReturnValue({ send: mockGetBalanceSend });
-
-    mockGetLatestBlockhashSend = jest.fn().mockReturnValue({
-      value: {
-        blockhash: 'F9CSnuc5Z1FDrWTVXM4cB3SmDuFgkFB4QR4ikkrchDe3',
-        lastValidBlockHeight: 1,
-      },
-    });
-    mockGetLatestBlockhash = jest.fn().mockReturnValue({
-      send: mockGetLatestBlockhashSend,
-    });
-
-    mockSendTransactionSend = jest.fn().mockReturnValue({
-      value: {
-        signature:
-          '4TnmpaFDrKLcYc9sn5PKeGdQPyWsShDVJY5Hbaq1iZLBviaD1cVZuXYGQMezi8wqJBiHYupmrCfvyhxFGp92aZ19',
-      },
-    });
-    mockSendTransaction = jest.fn().mockReturnValue({
-      send: mockSendTransactionSend,
-    });
-
-    mockGetRpc = jest.fn().mockReturnValue({
-      getBalance: mockGetBalance,
-      getLatestBlockhash: mockGetLatestBlockhash,
-      sendTransaction: mockSendTransaction,
-    });
-
-    const mockConnection = {
-      getRpc: mockGetRpc,
-    } as unknown as SolanaConnection;
+    mockConnection = createMockConnection();
 
     keyring = new SolanaKeyring(mockConnection);
 
@@ -312,23 +272,25 @@ describe('SolanaKeyring', () => {
 
   describe('getAccountBalances', () => {
     it('gets account balance', async () => {
-      mockGetBalanceSend.mockResolvedValue({ value: '0' });
-
       const accountBalance = await keyring.getAccountBalances('1', [
         `${SolanaCaip2Networks.Mainnet}/${SolanaCaip19Tokens.SOL}`,
       ]);
       expect(accountBalance).toStrictEqual({
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
-          amount: '0',
+          amount: '0.123456789',
           unit: 'SOL',
         },
       });
     });
 
     it('throws an error if balance fails to be retrieved', async () => {
-      mockGetBalanceSend.mockRejectedValueOnce(
-        new Error('Error getting balance'),
-      );
+      const mockSend = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Error getting balance'));
+      const mockGetBalance = jest.fn().mockReturnValue({ send: mockSend });
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getBalance: mockGetBalance,
+      } as any);
 
       await expect(
         keyring.getAccountBalances('get-balance-id', [SolanaCaip19Tokens.SOL]),

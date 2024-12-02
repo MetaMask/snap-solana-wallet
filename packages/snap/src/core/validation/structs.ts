@@ -12,11 +12,15 @@ export const PositiveNumberStringStruct = pattern(
   /^(?!0\d)(\d+(\.\d+)?)$/u,
 );
 
-export const AssetsStruct = enums([
-  `${SolanaCaip2Networks.Mainnet}/${SolanaCaip19Tokens.SOL}`,
-  `${SolanaCaip2Networks.Testnet}/${SolanaCaip19Tokens.SOL}`,
-  `${SolanaCaip2Networks.Devnet}/${SolanaCaip19Tokens.SOL}`,
-]);
+/**
+ * Validates a Solana asset string, for instance
+ * "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
+ */
+export const AssetsStruct = enums(
+  Object.values(SolanaCaip2Networks).map(
+    (network) => `${network}/${SolanaCaip19Tokens.SOL}`,
+  ),
+);
 
 export const GetAccounBalancesResponseStruct = record(
   AssetsStruct,

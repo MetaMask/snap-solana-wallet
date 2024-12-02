@@ -4,7 +4,10 @@ import {
   SolanaCaip2Networks,
   SolanaInternalRpcMethods,
 } from '../../core/constants/solana';
+import { MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE } from '../../core/services/mocks/mockSolanaRpcResponses';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../core/test/mocks/solana-keyring-accounts';
+import type { MockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
+import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../core/test/utils';
 import { SendForm } from './views/SendForm/SendForm';
 import {
@@ -26,7 +29,7 @@ const mockContext: SendContext = {
   currencySymbol: SendCurrency.SOL,
   balances: {
     '0': {
-      amount: '2.67566',
+      amount: '0.123456789',
       unit: SendCurrency.SOL,
     },
   },
@@ -39,9 +42,18 @@ const mockContext: SendContext = {
 };
 
 describe('Send', () => {
-  // TODO: Fix this test on the main branch
-  // Missing to implement a mock for the SolanaKeyring class
+  let mockSolanaRpc: MockSolanaRpc;
+
+  beforeAll(() => {
+    mockSolanaRpc = startMockSolanaRpc();
+  });
+
+  afterAll(() => {
+    mockSolanaRpc.shutdown();
+  });
+
   it.skip('renders the send form', async () => {
+    const { mockResolvedResult } = mockSolanaRpc;
     const { request, mockJsonRpc } = await installSnap();
 
     mockJsonRpc({
@@ -49,11 +61,16 @@ describe('Send', () => {
       result: { keyringAccounts: solanaKeyringAccounts },
     });
 
+    mockResolvedResult({
+      method: 'getBalance',
+      result: MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE.result,
+    });
+
     const response = request({
       origin: TEST_ORIGIN,
       method: SolanaInternalRpcMethods.StartSendTransactionFlow,
       params: {
-        scope: SolanaCaip2Networks.Devnet,
+        scope: SolanaCaip2Networks.Localnet, // Routes the call to the mock RPC server running locally
         account: '0',
       },
     });

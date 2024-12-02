@@ -10,6 +10,7 @@ const EnvConfigStruct = object({
   RPC_URL_MAINNET: defaulted(string(), 'https://api.mainnet-beta.solana.com/'),
   RPC_URL_DEVNET: defaulted(string(), 'https://api.devnet.solana.com/'),
   RPC_URL_TESTNET: defaulted(string(), 'https://api.testnet.solana.com/'),
+  RPC_URL_LOCALNET: defaulted(string(), 'http://localhost:8899'),
 });
 
 // Read and validate environment variables
@@ -17,6 +18,7 @@ const rawEnvironment = {
   RPC_URL_MAINNET: process.env.RPC_URL_MAINNET,
   RPC_URL_DEVNET: process.env.RPC_URL_DEVNET,
   RPC_URL_TESTNET: process.env.RPC_URL_TESTNET,
+  RPC_URL_LOCALNET: process.env.RPC_URL_LOCALNET,
 };
 
 // Validate the environment variables, and retrieve the parsed values
