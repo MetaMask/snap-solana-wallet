@@ -20,7 +20,7 @@ const solanaKeyringAccounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
 
 const mockContext: SendContext = {
   accounts: solanaKeyringAccounts,
-  scope: SolanaCaip2Networks.Devnet,
+  scope: SolanaCaip2Networks.Localnet,
   fromAccountId: '0',
   amount: '2.67566',
   toAddress: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
