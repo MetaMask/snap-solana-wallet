@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: crowdin action
-        uses: crowdin/github-action@v2
+        uses: crowdin/github-action@a3160b9e5a9e00739392c23da5e580c6cabe526d
         with:
           upload_translations: true
           download_translations: true
