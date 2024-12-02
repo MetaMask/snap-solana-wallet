@@ -13,14 +13,12 @@ const FALLBACK_LANGUAGE: Locale = 'en';
  * Falls back to the default language if the preferred locale is not available.
  *
  * @param locale - The user's preferred locale.
- * @param id - The translation key.
- * @returns The translations for the preferred or fallback locale.
+ * @returns A function that gets the translation for a given key.
  */
-export function translation(
-  locale: Locale,
-  id: keyof (typeof locales)[Locale],
-) {
-  return (
-    locales[locale]?.[id]?.message ?? locales[FALLBACK_LANGUAGE]?.[id]?.message
-  );
+export function i18n(locale: Locale) {
+  const messages = locales[locale] ?? locales[FALLBACK_LANGUAGE];
+
+  return (id: keyof (typeof locales)[Locale]) => {
+    return messages?.[id]?.message;
+  };
 }

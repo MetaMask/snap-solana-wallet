@@ -5,7 +5,7 @@ import type { SolanaCaip2Networks } from '../../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../../core/services/keyring';
 import type { FormFieldError } from '../../../core/types/error';
 import type { FormState } from '../../../core/types/form';
-import type { Locale } from '../../../core/utils/translation';
+import type { Locale } from '../../../core/utils/i18n';
 import type { SendFormNames } from './form';
 
 export type StartSendTransactionFlowParams = {

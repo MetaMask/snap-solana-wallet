@@ -8,7 +8,7 @@ import type {
   GetCurrencyRateResult,
 } from '@metamask/snaps-sdk';
 
-import type { Locale } from './translation';
+import type { Locale } from './i18n';
 
 /**
  * Creates an interface using the provided UI component and context.
