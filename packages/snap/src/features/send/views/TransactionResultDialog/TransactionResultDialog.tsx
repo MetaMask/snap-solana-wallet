@@ -5,7 +5,6 @@ import {
   type SnapComponent,
   Text,
 } from '@metamask/snaps-sdk/jsx';
-import { SendFormNames } from '../SendForm/types';
 
 type TransactionResultDialogProps = {
   transactionSuccess: boolean;
@@ -31,7 +30,7 @@ export const TransactionResultDialog: SnapComponent<
         ) : (
           <Box>
             <Text color="error">
-              Your transaction failed, please try again later
+              An error occurred while submitting your transaction, please try again later
             </Text>
           </Box>
         )}
