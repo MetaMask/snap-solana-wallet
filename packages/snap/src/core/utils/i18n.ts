@@ -5,6 +5,7 @@ export const locales = {
 };
 
 export type Locale = keyof typeof locales;
+export type LocalizedMessage = keyof (typeof locales)[Locale];
 
 const FALLBACK_LANGUAGE: Locale = 'en';
 
@@ -18,7 +19,16 @@ const FALLBACK_LANGUAGE: Locale = 'en';
 export function i18n(locale: Locale) {
   const messages = locales[locale] ?? locales[FALLBACK_LANGUAGE];
 
-  return (id: keyof (typeof locales)[Locale]) => {
-    return messages?.[id]?.message;
+  return (id: LocalizedMessage, replaces?: Record<string, string>) => {
+    let message = messages?.[id]?.message ?? id;
+
+    if (replaces && message) {
+      Object.keys(replaces).forEach((key) => {
+        const regex = new RegExp(`\\{${key}\\}`, 'gu');
+        message = message.replace(regex, replaces[key] ?? '');
+      });
+    }
+
+    return message;
   };
 }

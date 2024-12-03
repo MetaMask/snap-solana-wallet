@@ -58,7 +58,10 @@ export const SendForm = ({
   return (
     <Container>
       <Box>
-        <Header title="Send" backButtonName={SendFormNames.BackButton} />
+        <Header
+          title={translate('send.title')}
+          backButtonName={SendFormNames.BackButton}
+        />
         <Form name={SendFormNames.Form}>
           <AccountSelector
             name={SendFormNames.SourceAccountSelector}
@@ -70,6 +73,7 @@ export const SendForm = ({
             selectedAccountId={fromAccountId}
             balances={balances}
             currencyRate={rates}
+            locale={locale}
           />
           <AmountInput
             name={SendFormNames.AmountInput}
@@ -85,9 +89,12 @@ export const SendForm = ({
             ) : (
               <Box>{null}</Box>
             )}
-            <Button name={SendFormNames.MaxAmountButton}>Max</Button>
+            <Button name={SendFormNames.MaxAmountButton}>
+              {translate('send.maxButton')}
+            </Button>
           </Box>
           <ToAddressField
+            locale={locale}
             name={SendFormNames.DestinationAccountInput}
             value={toAddress}
             error={
@@ -97,9 +104,11 @@ export const SendForm = ({
         </Form>
       </Box>
       <Footer>
-        <Button name={SendFormNames.CancelButton}>Cancel</Button>
+        <Button name={SendFormNames.CancelButton}>
+          {translate('send.cancelButton')}
+        </Button>
         <Button name={SendFormNames.SendButton} disabled={!canReview}>
-          Send
+          {translate('send.continueButton')}
         </Button>
       </Footer>
     </Container>

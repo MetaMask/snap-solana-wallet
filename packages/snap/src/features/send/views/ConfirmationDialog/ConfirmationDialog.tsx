@@ -19,7 +19,9 @@ import SolanaLogo from '../../../../../images/coin.svg';
 import { Header } from '../../../../core/components/Header/Header';
 import { SolanaNetworksNames } from '../../../../core/constants/solana';
 import { formatCurrency } from '../../../../core/utils/format-currency';
+import { formatTokens } from '../../../../core/utils/format-tokens';
 import { getAddressSolanaExplorerUrl } from '../../../../core/utils/get-address-solana-explorer-url';
+import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
 import { SendCurrency } from '../SendForm/types';
 import { type ConfirmationDialogContext } from './types';
@@ -46,8 +48,11 @@ export const TransactionConfirmation: SnapComponent<
     fee,
     currencySymbol,
     rates,
+    locale,
   },
 }) => {
+  const transalte = i18n(locale);
+
   const fromAddress = accounts.find((account) => account.id === fromAccountId)
     ?.address as string;
 
@@ -60,11 +65,13 @@ export const TransactionConfirmation: SnapComponent<
 
   const tokenPrice = rates?.conversionRate ?? 0;
 
+  // FIXME: Get this out to a helper function (ie: address to CAIP-10).
   const fromAddressCaip2 =
     `${scope}:${fromAddress}` as `${string}:${string}:${string}`;
   const toAddressCaip2 =
     `${scope}:${toAddress}` as `${string}:${string}:${string}`;
   const networkName = SolanaNetworksNames[scope];
+  // TODO: Get the transaction speed from the network.
   const transactionSpeed = '12.8s';
 
   const amountInUserCurrency = formatCurrency(
@@ -83,7 +90,7 @@ export const TransactionConfirmation: SnapComponent<
     <Container>
       <Box>
         <Header
-          title="Review"
+          title={transalte('confirmation.title')}
           backButtonName={TransactionConfirmationNames.BackButton}
         />
 
@@ -91,25 +98,30 @@ export const TransactionConfirmation: SnapComponent<
           <Box direction="horizontal" center>
             <Image src={SolanaLogo} />
           </Box>
-          <Heading size="lg">{`Sending ${amountInSol} SOL`}</Heading>
-          <Text color="muted">Review the transaction before proceeding</Text>
+          <Heading size="lg">
+            {transalte('confirmation.heading', {
+              amount: amountInSol,
+              tokenSymbol: currencySymbol,
+            })}
+          </Heading>
+          <Text color="muted">{transalte('confirmation.subheading')}</Text>
         </Box>
 
         <Section>
-          <Row label="From">
+          <Row label={transalte('confirmation.from')}>
             <Link href={getAddressSolanaExplorerUrl(scope, fromAddress)}>
               <Address address={fromAddressCaip2} />
             </Link>
           </Row>
 
-          <Row label="Amount">
+          <Row label={transalte('confirmation.amount')}>
             <Value
-              extra={`${amountInUserCurrency}$`}
-              value={`${amountInSol} SOL`}
+              extra={amountInUserCurrency}
+              value={formatTokens(amountInSol, currencySymbol)}
             />
           </Row>
 
-          <Row label="Recipient">
+          <Row label={transalte('confirmation.recipient')}>
             <Link href={getAddressSolanaExplorerUrl(scope, fromAddress)}>
               <Address address={toAddressCaip2} />
             </Link>
@@ -117,26 +129,42 @@ export const TransactionConfirmation: SnapComponent<
         </Section>
 
         <Section>
-          <Row label="Network">
+          <Row label={transalte('confirmation.network')}>
             <Text>{networkName}</Text>
           </Row>
 
-          <Row label="Transaction speed" tooltip="Transaction speed tooltip">
+          <Row
+            label={transalte('confirmation.transactionSpeed')}
+            tooltip={transalte('confirmation.transactionSpeedTooltip')}
+          >
             <Text>{transactionSpeed}</Text>
           </Row>
 
-          <Row label="Network fee" tooltip="Network fee tooltip">
-            <Value extra={`${feeInUserCurrency}$`} value={`${fee} SOL`} />
+          <Row
+            label={transalte('confirmation.fee')}
+            tooltip={transalte('confirmation.feeTooltip')}
+          >
+            <Value
+              extra={feeInUserCurrency}
+              value={formatTokens(fee, currencySymbol)}
+            />
           </Row>
 
-          <Row label="Total">
-            <Value extra={`${totalInUserCurrency}$`} value={`${total} SOL`} />
+          <Row label={transalte('confirmation.total')}>
+            <Value
+              extra={totalInUserCurrency}
+              value={formatTokens(total, currencySymbol)}
+            />
           </Row>
         </Section>
       </Box>
       <Footer>
-        <Button name={TransactionConfirmationNames.CancelButton}>Cancel</Button>
-        <Button name={TransactionConfirmationNames.ConfirmButton}>Send</Button>
+        <Button name={TransactionConfirmationNames.CancelButton}>
+          {transalte('confirmation.cancelButton')}
+        </Button>
+        <Button name={TransactionConfirmationNames.ConfirmButton}>
+          {transalte('confirmation.sendButton')}
+        </Button>
       </Footer>
     </Container>
   );

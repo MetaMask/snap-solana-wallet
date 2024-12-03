@@ -7,20 +7,32 @@ import {
   Input,
 } from '@metamask/snaps-sdk/jsx';
 
+import { i18n, type Locale } from '../../../../core/utils/i18n';
 import { SendFormNames } from '../../views/SendForm/types';
 
 type ToAddressFieldProps = {
   name: string;
   value: string;
   error: string;
+  locale: Locale;
 };
 
-export const ToAddressField = ({ name, value, error }: ToAddressFieldProps) => {
+export const ToAddressField = ({
+  name,
+  value,
+  error,
+  locale,
+}: ToAddressFieldProps) => {
+  const translate = i18n(locale);
   const showClearButton = value.length > 0;
 
   return (
-    <Field label="To" error={error}>
-      <Input name={name} placeholder="Enter public address" value={value} />
+    <Field label={translate('send.toField')} error={error}>
+      <Input
+        name={name}
+        placeholder={translate('send.toPlaceholder')}
+        value={value}
+      />
       {showClearButton && (
         <Box>
           <Button name={SendFormNames.ClearButton}>

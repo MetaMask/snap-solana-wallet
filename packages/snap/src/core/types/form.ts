@@ -1,3 +1,4 @@
+import type { LocalizedMessage } from '../utils/i18n';
 import type { FormFieldError } from './error';
 
 export type FormState<FormNames extends string | number | symbol> = Record<
@@ -7,6 +8,6 @@ export type FormState<FormNames extends string | number | symbol> = Record<
 
 export type FieldValidationFunction = (value: string) => FormFieldError;
 export type ValidationFunction = (
-  message: string,
+  message: LocalizedMessage,
   value?: any,
 ) => FieldValidationFunction;

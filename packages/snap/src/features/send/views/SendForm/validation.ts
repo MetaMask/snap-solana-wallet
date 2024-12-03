@@ -17,13 +17,13 @@ export const StartSendTransactionFlowParamsStruct = object({
 export const validation: Partial<
   Record<SendFormNames, FieldValidationFunction[]>
 > = {
-  [SendFormNames.SourceAccountSelector]: [required('Account is required')],
+  [SendFormNames.SourceAccountSelector]: [required('send.fromRequiredError')],
   [SendFormNames.AmountInput]: [
-    required('Amount is required'),
-    greatherThanZero('Amount must be greater than 0'),
+    required('send.amountRequiredError'),
+    greatherThanZero('send.amountGreatherThanZeroError'),
   ],
   [SendFormNames.DestinationAccountInput]: [
-    required('To address is required'),
-    address('Invalid Solana address'),
+    required('send.toRequiredError'),
+    address('send.toInvalidError'),
   ],
 };
