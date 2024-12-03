@@ -17,10 +17,16 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
+import logger from '../utils/logger';
 import type { SolanaConnection } from './connection/SolanaConnection';
+import {
+  EncryptedSolanaState,
+  type StateValue as EncryptedStateValue,
+} from './encrypted-state';
 import { SolanaKeyring } from './keyring';
 import { createMockConnection } from './mocks/mockConnection';
-import type { StateValue } from './state';
+import { SolanaState, type StateValue } from './state';
+import { TransactionsService } from './transactions';
 
 jest.mock('@metamask/keyring-api', () => ({
   ...jest.requireActual('@metamask/keyring-api'),
@@ -39,13 +45,26 @@ jest.mock('../utils/derive-solana-private-key', () => ({
 
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
-  let mockStateValue: StateValue;
+  let mockStateValue: StateValue & EncryptedStateValue;
   let mockConnection: SolanaConnection;
 
   beforeEach(() => {
     mockConnection = createMockConnection();
 
-    keyring = new SolanaKeyring(mockConnection);
+    const state = new SolanaState();
+    const encryptedState = new EncryptedSolanaState();
+
+    const transactionsService = new TransactionsService({
+      logger,
+      connection: mockConnection,
+    });
+
+    keyring = new SolanaKeyring({
+      state,
+      encryptedState,
+      connection: mockConnection,
+      transactionsService,
+    });
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
     mockStateValue = {
@@ -63,6 +82,8 @@ describe('SolanaKeyring', () => {
           price: 0,
         },
       },
+      isFetchingTransactions: false,
+      transactions: {},
     };
 
     /**
@@ -165,7 +186,10 @@ describe('SolanaKeyring', () => {
             price: 0,
           },
         },
+        isFetchingTransactions: false,
+        transactions: {},
       };
+
       const firstAccount = await keyring.createAccount();
       const secondAccount = await keyring.createAccount();
       const thirdAccount = await keyring.createAccount();
@@ -194,6 +218,8 @@ describe('SolanaKeyring', () => {
             price: 0,
           },
         },
+        isFetchingTransactions: false,
+        transactions: {},
       };
 
       const firstAccount = await keyring.createAccount();

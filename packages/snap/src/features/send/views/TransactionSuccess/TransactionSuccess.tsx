@@ -2,7 +2,7 @@ import { Box, Container, Link } from '@metamask/snaps-sdk/jsx';
 
 import CheckIcon from '../../../../../images/check.svg';
 import { ActionHeader } from '../../../../core/components/ActionHeader/ActionHeader';
-import { getTransactionSolanaExplorerUrl } from '../../../../core/utils/get-tx-explorer-url';
+import { getSolanaExplorerUrl } from '../../../../core/utils/get-solana-explorer-url';
 import { i18n } from '../../../../core/utils/i18n';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
 import { getAmountInSol } from '../../selectors';
@@ -33,10 +33,7 @@ export const TransactionSuccess = ({ context }: TransactionSuccessProps) => {
         {transaction?.signature ? (
           <Box alignment="center" center>
             <Link
-              href={getTransactionSolanaExplorerUrl(
-                scope,
-                transaction?.signature,
-              )}
+              href={getSolanaExplorerUrl(scope, 'tx', transaction?.signature)}
             >
               {translate('confirmation.viewTransaction')}
             </Link>

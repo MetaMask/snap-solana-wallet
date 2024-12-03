@@ -26,11 +26,27 @@ const createMockSendTransaction = () =>
       .mockReturnValue(MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result),
   });
 
+const createMockGetSignaturesForAddress = () =>
+  jest.fn().mockReturnValue({
+    send: jest.fn().mockReturnValue([]),
+  });
+
+const createMockGetTransaction = () =>
+  jest.fn().mockReturnValue({
+    send: jest.fn().mockReturnValue({
+      result: {
+        signature: '123',
+      },
+    }),
+  });
+
 const createMockGetRpc = () =>
   jest.fn().mockReturnValue({
     getBalance: createMockGetBalance(),
     getLatestBlockhash: createMockGetLatestBlockhash(),
     sendTransaction: createMockSendTransaction(),
+    getSignaturesForAddress: createMockGetSignaturesForAddress(),
+    getTransaction: createMockGetTransaction(),
   });
 
 export const createMockConnection = (): SolanaConnection =>

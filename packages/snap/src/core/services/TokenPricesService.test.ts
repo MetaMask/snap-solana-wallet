@@ -46,7 +46,6 @@ describe('TokenPricesService', () => {
     it('refreshes token rates already present in the state', async () => {
       // Mock an initial state with some token rates
       const mockStateValue = {
-        keyringAccounts: {},
         mapInterfaceNameToId: {},
         tokenPrices: {
           [SolanaCaip19Tokens.SOL]: {
@@ -55,6 +54,8 @@ describe('TokenPricesService', () => {
             price: 0,
           },
         },
+        isFetchingTransactions: false,
+        transactions: {},
       };
       jest.spyOn(mockState, 'get').mockResolvedValue(mockStateValue);
 
@@ -83,7 +84,6 @@ describe('TokenPricesService', () => {
     it('fetches token rates from the UI context', async () => {
       // Mock an initial state with no token rates
       const mockStateValue = {
-        keyringAccounts: {},
         mapInterfaceNameToId: {
           'send-form': 'mock-interface-id',
         },
@@ -120,7 +120,6 @@ describe('TokenPricesService', () => {
 
     it('should deduplicate tokens present in both state and UI context', async () => {
       const mockStateValue = {
-        keyringAccounts: {},
         mapInterfaceNameToId: {
           'send-form': 'mock-interface-id',
         },
@@ -130,6 +129,8 @@ describe('TokenPricesService', () => {
             price: 1.0,
           },
         },
+        isFetchingTransactions: false,
+        transactions: {},
       };
       jest.spyOn(mockState, 'get').mockResolvedValue(mockStateValue);
 
@@ -162,7 +163,6 @@ describe('TokenPricesService', () => {
     it('should handle missing send form interface gracefully', async () => {
       // Mock an initial state with some token rates
       const mockStateValue = {
-        keyringAccounts: {},
         mapInterfaceNameToId: {},
         tokenPrices: {
           [SolanaCaip19Tokens.SOL]: {
@@ -170,6 +170,8 @@ describe('TokenPricesService', () => {
             price: 0,
           },
         },
+        isFetchingTransactions: false,
+        transactions: {},
       };
       jest.spyOn(mockState, 'get').mockResolvedValue(mockStateValue);
 
@@ -200,7 +202,6 @@ describe('TokenPricesService', () => {
     it('should handle price API errors gracefully and leave existing rates intact', async () => {
       // Mock an initial state with some token rates
       const mockStateValue = {
-        keyringAccounts: {},
         mapInterfaceNameToId: {},
         tokenPrices: {
           [SolanaCaip19Tokens.SOL]: {
@@ -208,6 +209,8 @@ describe('TokenPricesService', () => {
             price: 919565356,
           },
         },
+        isFetchingTransactions: false,
+        transactions: {},
       };
       jest.spyOn(mockState, 'get').mockResolvedValue(mockStateValue);
 

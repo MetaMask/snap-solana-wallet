@@ -10,13 +10,14 @@ import {
   type KeyringAccount,
   type KeyringRequest,
   type KeyringResponse,
+  type Transaction,
 } from '@metamask/keyring-api';
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
 import { getTransferSolInstruction } from '@solana-program/system';
-import type { Blockhash } from '@solana/web3.js';
+import type { Address, Blockhash, Signature } from '@solana/web3.js';
 import {
-  address,
   appendTransactionMessageInstruction,
+  address as asAddress,
   createKeyPairFromPrivateKeyBytes,
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
@@ -31,11 +32,11 @@ import {
 } from '@solana/web3.js';
 import { assert, type Struct } from 'superstruct';
 
+import type { SolanaCaip2Networks } from '../constants/solana';
 import {
   LAMPORTS_PER_SOL,
   SOL_SYMBOL,
   SolanaCaip19Tokens,
-  type SolanaCaip2Networks,
 } from '../constants/solana';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
 import { getClusterFromScope } from '../utils/get-cluster-from-scope';
@@ -50,8 +51,9 @@ import {
 } from '../validation/structs';
 import { validateRequest } from '../validation/validators';
 import type { SolanaConnection } from './connection/SolanaConnection';
-import { SolanaState } from './state';
-
+import type { EncryptedSolanaState } from './encrypted-state';
+import type { SolanaState } from './state';
+import type { TransactionsService } from './transactions';
 /**
  * We need to store the index of the KeyringAccount in the state because
  * we want to be able to restore any account with a previously used index.
@@ -64,16 +66,32 @@ export type SolanaKeyringAccount = {
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
 
+  readonly #encryptedState: EncryptedSolanaState;
+
   readonly #connection: SolanaConnection;
 
-  constructor(connection: SolanaConnection) {
-    this.#state = new SolanaState();
+  readonly #transactionsService: TransactionsService;
+
+  constructor({
+    state,
+    encryptedState,
+    connection,
+    transactionsService,
+  }: {
+    state: SolanaState;
+    encryptedState: EncryptedSolanaState;
+    connection: SolanaConnection;
+    transactionsService: TransactionsService;
+  }) {
+    this.#state = state;
+    this.#encryptedState = encryptedState;
     this.#connection = connection;
+    this.#transactionsService = transactionsService;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
-      const currentState = await this.#state.get();
+      const currentState = await this.#encryptedState.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
       return Object.values(keyringAccounts).sort((a, b) => a.index - b.index);
@@ -85,12 +103,12 @@ export class SolanaKeyring implements Keyring {
 
   async getAccount(id: string): Promise<SolanaKeyringAccount | undefined> {
     try {
-      const currentState = await this.#state.get();
+      const currentState = await this.#encryptedState.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
       return keyringAccounts?.[id];
     } catch (error: any) {
-      logger.error({ error }, 'Error getting account'); // TODO: This can only fail in one way. Failed to read the state.
+      logger.error({ error }, 'Error getting account');
       throw new Error('Error getting account');
     }
   }
@@ -108,7 +126,6 @@ export class SolanaKeyring implements Keyring {
       const privateKeyBytesAsNum = Array.from(privateKeyBytes);
 
       const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
-
       const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
 
       const keyringAccount: SolanaKeyringAccount = {
@@ -120,7 +137,6 @@ export class SolanaKeyring implements Keyring {
         options: options ?? {},
         methods: [SolMethod.SendAndConfirmTransaction],
       };
-
       logger.log(
         'New keyring account object created, sending it to the extension...',
       );
@@ -144,7 +160,7 @@ export class SolanaKeyring implements Keyring {
         `Account created in the extension, now updating the snap state...`,
       );
 
-      await this.#state.update((state) => {
+      await this.#encryptedState.update((state) => {
         return {
           ...state,
           keyringAccounts: {
@@ -153,6 +169,33 @@ export class SolanaKeyring implements Keyring {
           },
         };
       });
+
+      try {
+        logger.log(`Fetching first batch of transactions for the account...`);
+
+        const transactions = (
+          await this.#transactionsService.fetchInitialAddressTransactions(
+            keyringAccount.address as Address,
+          )
+        ).map((tx) => ({
+          ...tx,
+          account: keyringAccount.id,
+        }));
+
+        logger.log(`Fetched transactions. Now adding them to the state...`);
+
+        await this.#state.update((state) => {
+          return {
+            ...state,
+            transactions: {
+              ...(state?.transactions ?? {}),
+              [keyringAccount.id]: [...transactions],
+            },
+          };
+        });
+      } catch (error: any) {
+        logger.error({ error }, 'Error fetching initial transactions');
+      }
 
       return keyringAccount;
     } catch (error: any) {
@@ -163,10 +206,16 @@ export class SolanaKeyring implements Keyring {
 
   async deleteAccount(id: string): Promise<void> {
     try {
-      await this.#state.update((state) => {
-        delete state?.keyringAccounts?.[id];
-        return state;
-      });
+      await Promise.all([
+        this.#encryptedState.update((state) => {
+          delete state?.keyringAccounts?.[id];
+          return state;
+        }),
+        this.#state.update((state) => {
+          delete state?.transactions?.[id];
+          return state;
+        }),
+      ]);
       await this.#emitEvent(KeyringEvent.AccountDeleted, { id });
     } catch (error: any) {
       logger.error({ error }, 'Error deleting account');
@@ -205,7 +254,7 @@ export class SolanaKeyring implements Keyring {
           if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
             const response = await this.#connection
               .getRpc(currentNetwork)
-              .getBalance(address(account.address))
+              .getBalance(asAddress(account.address))
               .send();
 
             const balance = String(Number(response.value) / LAMPORTS_PER_SOL);
@@ -316,7 +365,7 @@ export class SolanaKeyring implements Keyring {
      * Since the account to which the tokens will be transferred does not need to sign the transaction
      * to receive them, we only need an address.
      */
-    const toAddress = address(to);
+    const toAddress = asAddress(to);
     const latestBlockhash = await this.#getLatestBlockhash(network);
 
     /**
@@ -417,5 +466,46 @@ export class SolanaKeyring implements Keyring {
       logMaybeSolanaError(error);
       throw error;
     }
+  }
+
+  async listAccountTransactions(
+    accountId: string,
+    pagination: { limit: number; next?: Signature | null },
+  ): Promise<{
+    data: Transaction[];
+    next: Signature | null;
+  }> {
+    const keyringAccount = await this.getAccount(accountId);
+
+    if (!keyringAccount) {
+      throw new Error('Account not found');
+    }
+
+    const currentState = await this.#state.get();
+
+    const allTransactions = currentState?.transactions?.[accountId] ?? [];
+
+    // Find the starting index based on the 'next' signature
+    const startIndex = pagination.next
+      ? allTransactions.findIndex((tx) => tx.id === pagination.next)
+      : 0;
+
+    // Get transactions from startIndex to startIndex + limit
+    const accountTransactions = allTransactions.slice(
+      startIndex,
+      startIndex + pagination.limit,
+    );
+
+    // Determine the next signature for pagination
+    const hasMore = startIndex + pagination.limit < allTransactions.length;
+    const nextSignature = hasMore
+      ? (allTransactions[startIndex + pagination.limit]?.id as Signature) ??
+        null
+      : null;
+
+    return {
+      data: accountTransactions,
+      next: nextSignature,
+    };
   }
 }

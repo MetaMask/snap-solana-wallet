@@ -16,7 +16,7 @@ import {
 } from '../../../../core/constants/solana';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
-import { getAddressSolanaExplorerUrl } from '../../../../core/utils/get-address-solana-explorer-url';
+import { getSolanaExplorerUrl } from '../../../../core/utils/get-solana-explorer-url';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
 import type { SendContext } from '../../types';
@@ -79,7 +79,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
     <Box>
       <Section>
         <Row label={translate('confirmation.from')}>
-          <Link href={getAddressSolanaExplorerUrl(scope, fromAddress)}>
+          <Link href={getSolanaExplorerUrl(scope, 'address', fromAddress)}>
             <Address address={fromAddressCaip2} displayName />
           </Link>
         </Row>
@@ -92,7 +92,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
         </Row>
 
         <Row label={translate('confirmation.recipient')}>
-          <Link href={getAddressSolanaExplorerUrl(scope, toAddress)}>
+          <Link href={getSolanaExplorerUrl(scope, 'address', toAddress)}>
             <Address address={toAddressCaip2} displayName />
           </Link>
         </Row>

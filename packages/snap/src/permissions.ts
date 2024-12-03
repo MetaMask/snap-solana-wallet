@@ -11,6 +11,7 @@ const dappPermissions = new Set([
   KeyringRpcMethod.DeleteAccount,
   KeyringRpcMethod.GetAccountBalances,
   KeyringRpcMethod.SubmitRequest,
+  KeyringRpcMethod.ListAccountTransactions,
   // RPC methods
   SolanaInternalRpcMethods.StartSendTransactionFlow,
 ]);
@@ -23,6 +24,7 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.DeleteAccount,
   KeyringRpcMethod.GetAccountBalances,
   KeyringRpcMethod.SubmitRequest,
+  KeyringRpcMethod.ListAccountTransactions,
   // RPC methods
   SolanaInternalRpcMethods.StartSendTransactionFlow,
 ]);
