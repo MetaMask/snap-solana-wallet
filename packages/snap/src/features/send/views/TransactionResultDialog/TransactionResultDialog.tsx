@@ -30,7 +30,8 @@ export const TransactionResultDialog: SnapComponent<
         ) : (
           <Box>
             <Text color="error">
-              An error occurred while submitting your transaction, please try again later
+              An error occurred while submitting your transaction, please try
+              again later
             </Text>
           </Box>
         )}

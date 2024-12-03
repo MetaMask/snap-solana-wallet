@@ -6,12 +6,12 @@ import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
+import logger from '../../../../core/utils/logger';
 import { SendForm } from '../SendForm/SendForm';
 import { SendCurrency } from '../SendForm/types';
+import { TransactionResultDialog } from '../TransactionResultDialog/TransactionResultDialog';
 import { TransactionConfirmationNames } from './ConfirmationDialog';
 import type { ConfirmationDialogContext } from './types';
-import { TransactionResultDialog } from '../TransactionResultDialog/TransactionResultDialog';
-import logger from 'src/core/utils/logger';
 
 /**
  * Handles the click event for the back button.
@@ -62,13 +62,13 @@ async function onConfirmButtonClick({
 }) {
   let signature: string | null = null;
   const amountInSol =
-  context.currencySymbol === SendCurrency.SOL
-    ? context.amount
-    : BigNumber(context.amount)
-        .dividedBy(BigNumber(context.rates?.conversionRate ?? '0'))
-        .toString();
+    context.currencySymbol === SendCurrency.SOL
+      ? context.amount
+      : BigNumber(context.amount)
+          .dividedBy(BigNumber(context.rates?.conversionRate ?? '0'))
+          .toString();
 
-  try {    
+  try {
     const response = await snapContext.keyring.submitRequest({
       // eslint-disable-next-line no-restricted-globals
       id: crypto.randomUUID(),
