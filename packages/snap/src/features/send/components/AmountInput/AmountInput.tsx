@@ -30,7 +30,14 @@ export const AmountInput: SnapComponent<AmountInputProps> = ({
       <Box direction="horizontal" center>
         <Image src={solanaIcon} />
       </Box>
-      <Input name={name} type="number" min={0} placeholder="0" value={value} />
+      <Input
+        name={name}
+        type="number"
+        min={0}
+        placeholder="0"
+        step={0.01}
+        value={value}
+      />
       <Box direction="horizontal" center>
         <Box direction="vertical" alignment="center">
           <Text>{currencySymbol}</Text>

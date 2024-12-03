@@ -1,163 +1,197 @@
-import { InputChangeEvent } from '@metamask/snaps-sdk';
+import type { InputChangeEvent } from '@metamask/snaps-sdk';
+import BigNumber from 'bignumber.js';
+
 import {
-  getInterfaceState,
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
 import { validateField } from '../../../../core/validation/form';
-import { SnapExecutionContext } from '../../../../index';
-import { getSendContext } from '../../utils/context';
-import { validation } from '../../utils/validation';
-import {
-  SendCurrency,
-  SendFormNames,
-  type SendContext,
-  type SendState,
-} from '../../views/SendForm/types';
 import { TransactionConfirmation } from '../ConfirmationDialog/ConfirmationDialog';
-import { TransactionConfirmationContext } from '../ConfirmationDialog/types';
 import { SendForm } from './SendForm';
+import { SendCurrency, SendFormNames, type SendContext } from './types';
+import { validation } from './validation';
 
+/**
+ * Handles the click event for the back button.
+ *
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @returns A promise that resolves when the operation is complete.
+ */
 async function onBackButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
 }
 
+/**
+ * Handles the change event for the source account selector.
+ *
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.event - The change event.
+ * @param params.context - The send context.
+ * @returns A promise that resolves when the operation is complete.
+ */
 async function onSourceAccountSelectorValueChange({
   id,
   event,
   context,
-  snapContext,
 }: {
   id: string;
   event: InputChangeEvent;
   context: SendContext;
-  snapContext: SnapExecutionContext;
 }) {
-  const state = (await getInterfaceState(id)) as SendState;
-  const newValue = event.value as string;
+  context.fromAccountId = event.value as string;
 
-  context.fromAccountId = newValue;
   context.validation[SendFormNames.SourceAccountSelector] =
     validateField<SendFormNames>(
       SendFormNames.SourceAccountSelector,
-      newValue,
+      context.fromAccountId,
       validation,
     );
-  context.canReview =
-    Object.values(state[SendFormNames.Form]).every(Boolean) &&
-    !Object.values(context.validation).every(Boolean);
 
-  const updatedContext = await getSendContext(context, snapContext);
-
-  await updateInterface(
-    id,
-    <SendForm context={updatedContext} />,
-    updatedContext,
-  );
+  await updateInterface(id, <SendForm context={context} />, context);
 }
 
+/**
+ * Handles the change event for the amount input.
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.event - The change event.
+ * @param params.context - The send context.
+ */
 async function onAmountInputChange({
   id,
   event,
   context,
-  snapContext,
 }: {
   id: string;
   event: InputChangeEvent;
   context: SendContext;
-  snapContext: SnapExecutionContext;
 }) {
-  // const state = (await getInterfaceState(id)) as SendState;
-  const newValue = event.value as string;
+  context.amount = event.value as string;
 
-  context.amount = newValue;
-
-  // context.validation[SendFormNames.AmountInput] = validateField<SendFormNames>(
-  //   SendFormNames.AmountInput,
-  //   newValue,
-  //   validation,
-  // );
-  // context.canReview =
-  //   Object.values(state[SendFormNames.Form]).every(Boolean) &&
-  //   !Object.values(context.validation).every(Boolean);
-
-  const updatedContext = await getSendContext(context, snapContext);
-
-  await updateInterface(
-    id,
-    <SendForm context={updatedContext} />,
-    updatedContext,
+  context.validation[SendFormNames.AmountInput] = validateField<SendFormNames>(
+    SendFormNames.AmountInput,
+    context.amount,
+    validation,
   );
+
+  await updateInterface(id, <SendForm context={context} />, context);
 }
 
+/**
+ * Handles the click event for the swap currency button.
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.context - The send context.
+ */
 async function onSwapCurrencyButtonClick({
   id,
   context,
-  snapContext,
 }: {
   id: string;
   context: SendContext;
-  snapContext: SnapExecutionContext;
 }) {
   context.currencySymbol =
     context.currencySymbol === SendCurrency.SOL
       ? SendCurrency.FIAT
       : SendCurrency.SOL;
 
-  const updatedContext = await getSendContext(context, snapContext);
+  const currentAmount = BigNumber(context.amount ?? '0');
+  const conversionRate = BigNumber(context.rates?.conversionRate ?? '0');
 
-  await updateInterface(
-    id,
-    <SendForm context={updatedContext} />,
-    updatedContext,
-  );
-}
+  if (context.currencySymbol === SendCurrency.SOL) {
+    /**
+     * If we switched to SOL, divide by currency rate
+     */
+    context.amount = currentAmount.dividedBy(conversionRate).toString();
+  }
 
-async function onMaxAmountButtonClick({
-  id,
-  context,
-  snapContext,
-}: {
-  id: string;
-  context: SendContext;
-  snapContext: SnapExecutionContext;
-}) {
-  const state = (await getInterfaceState(id)) as SendState;
-  context.amount = context.balances[context.fromAccountId]?.amount ?? '0';
-  const updatedContext = await getSendContext(context, snapContext);
-
-  context.canReview =
-    Object.values(state[SendFormNames.Form]).every(Boolean) &&
-    !Object.values(context.validation).every(Boolean);
-
-  await updateInterface(
-    id,
-    <SendForm context={updatedContext} />,
-    updatedContext,
-  );
-}
-
-async function onDestinationAccountInputValueChange({
-  id,
-  context,
-}: {
-  id: string;
-  context: SendContext;
-}) {
-  const state = (await getInterfaceState(id)) as SendState;
-  const newValue = state[SendFormNames.Form][
-    SendFormNames.DestinationAccountInput
-  ] as string;
-
-  context.toAddress = newValue;
-
-  context.canReview =
-    Object.values(state[SendFormNames.Form]).every(Boolean) &&
-    !Object.values(context.validation).every(Boolean);
+  /**
+   * If the currency is USD, adjust the amount
+   */
+  if (context.currencySymbol === SendCurrency.FIAT) {
+    context.amount = currentAmount.multipliedBy(conversionRate).toString();
+  }
 
   await updateInterface(id, <SendForm context={context} />, context);
 }
 
+/**
+ * Handles the click event for the max amount button.
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.context - The send context.
+ */
+async function onMaxAmountButtonClick({
+  id,
+  context,
+}: {
+  id: string;
+  context: SendContext;
+}) {
+  /**
+   * If the currency we set is SOL, set the amount to the balance
+   */
+  if (context.currencySymbol === SendCurrency.SOL) {
+    context.amount = context.balances[context.fromAccountId]?.amount ?? '0';
+  }
+
+  /**
+   * If the currency is USD, adjust the amount
+   */
+  if (context.currencySymbol === SendCurrency.FIAT) {
+    const amount = BigNumber(
+      context.balances[context.fromAccountId]?.amount ?? '0',
+    );
+    const conversionRate = BigNumber(context.rates?.conversionRate ?? '0');
+
+    context.amount = amount.multipliedBy(conversionRate).toString();
+  }
+
+  context.validation[SendFormNames.AmountInput] = validateField<SendFormNames>(
+    SendFormNames.AmountInput,
+    context.amount,
+    validation,
+  );
+
+  await updateInterface(id, <SendForm context={context} />, context);
+}
+
+/**
+ * Handles the change event for the destination account input.
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.event - The change event.
+ * @param params.context - The send context.
+ */
+async function onDestinationAccountInputValueChange({
+  id,
+  event,
+  context,
+}: {
+  id: string;
+  event: InputChangeEvent;
+  context: SendContext;
+}) {
+  context.toAddress = event.value as string;
+
+  context.validation[SendFormNames.DestinationAccountInput] =
+    validateField<SendFormNames>(
+      SendFormNames.DestinationAccountInput,
+      context.toAddress,
+      validation,
+    );
+
+  await updateInterface(id, <SendForm context={context} />, context);
+}
+
+/**
+ * Handles the click event for the clear button.
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.context - The send context.
+ */
 async function onClearButtonClick({
   id,
   context,
@@ -169,47 +203,34 @@ async function onClearButtonClick({
   await updateInterface(id, <SendForm context={context} />, context);
 }
 
+/**
+ * Handles the click event for the cancel button.
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ */
 async function onCancelButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
 }
 
+/**
+ * Handles the click event for the send button.
+ *
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.context - The send context.
+ * @returns A promise that resolves when the operation is complete.
+ */
 async function onSendButtonClick({
   id,
   context,
-  snapContext,
 }: {
   id: string;
   context: SendContext;
-  snapContext: SnapExecutionContext;
 }) {
-  const state = (await getInterfaceState(id)) as SendState;
-
-  const fromAddress = (
-    await snapContext.keyring.getAccount(context.fromAccountId)
-  )?.address as string;
-  const toAddress = state[SendFormNames.Form][
-    SendFormNames.DestinationAccountInput
-  ] as string;
-  const amount = state[SendFormNames.Form][SendFormNames.AmountInput] as string;
-
-  const newContext: TransactionConfirmationContext = {
-    scope: context.scope,
-
-    fromAccountId: context.fromAccountId,
-    fromAddress,
-    toAddress,
-    amount,
-    fee: '0.000005',
-
-    tokenSymbol: 'SOL',
-    tokenContractAddress: '',
-    tokenPrice: '1',
-  };
-
   await updateInterface(
     id,
-    <TransactionConfirmation context={newContext} />,
-    newContext,
+    <TransactionConfirmation context={context} />,
+    context,
   );
 }
 

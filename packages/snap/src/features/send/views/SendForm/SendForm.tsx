@@ -6,11 +6,12 @@ import {
   Form,
   Text,
 } from '@metamask/snaps-sdk/jsx';
-
 import { isNullOrUndefined } from '@metamask/utils';
+
 import { Header } from '../../../../core/components/Header/Header';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
+import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
 import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
 import { AmountInput } from '../../components/AmountInput/AmountInput';
@@ -32,15 +33,12 @@ export const SendForm = ({
     scope,
     balances,
     rates,
+    locale,
   },
 }: SendFormProps) => {
+  const translate = i18n(locale);
+
   const nativeBalance = balances[fromAccountId]?.amount ?? '0';
-  const currencyToMaxBalance: Record<SendCurrency, string> = {
-    [SendCurrency.FIAT]: String(
-      tokenToFiat(nativeBalance, rates?.conversionRate ?? 0),
-    ),
-    [SendCurrency.SOL]: nativeBalance,
-  };
 
   const currencyToBalance: Record<SendCurrency, string> = {
     [SendCurrency.FIAT]: formatCurrency(
@@ -81,7 +79,9 @@ export const SendForm = ({
           />
           <Box direction="horizontal" alignment="space-between" center>
             {balance ? (
-              <Text color="muted">{`Balance: ${balance}`}</Text>
+              <Text color="muted">{`${translate(
+                'send.balance',
+              )}: ${balance}`}</Text>
             ) : (
               <Box>{null}</Box>
             )}

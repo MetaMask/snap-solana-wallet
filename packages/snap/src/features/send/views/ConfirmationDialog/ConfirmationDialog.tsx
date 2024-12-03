@@ -9,25 +9,29 @@ import {
   Link,
   Row,
   Section,
-  type SnapComponent,
   Text,
   Value,
+  type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
-
 import BigNumber from 'bignumber.js';
-import SolanaLogo from '../../../../../images/icon.svg';
+
+import SolanaLogo from '../../../../../images/coin.svg';
 import { Header } from '../../../../core/components/Header/Header';
 import { SolanaNetworksNames } from '../../../../core/constants/solana';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { getAddressSolanaExplorerUrl } from '../../../../core/utils/get-address-solana-explorer-url';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
-import {
-  type TransactionConfirmationContext,
-  TransactionConfirmationNames,
-} from './types';
+import { SendCurrency } from '../SendForm/types';
+import { type ConfirmationDialogContext } from './types';
+
+export enum TransactionConfirmationNames {
+  BackButton = 'transaction-confirmation-back-button',
+  CancelButton = 'transaction-confirmation-cancel-button',
+  ConfirmButton = 'transaction-confirmation-submit-button',
+}
 
 type TransactionConfirmationProps = {
-  context: TransactionConfirmationContext;
+  context: ConfirmationDialogContext;
 };
 
 export const TransactionConfirmation: SnapComponent<
@@ -35,14 +39,27 @@ export const TransactionConfirmation: SnapComponent<
 > = ({
   context: {
     scope,
-    fromAddress,
-    toAddress,
+    fromAccountId,
     amount,
+    toAddress,
+    accounts,
     fee,
-    tokenSymbol,
-    tokenPrice,
+    currencySymbol,
+    rates,
   },
 }) => {
+  const fromAddress = accounts.find((account) => account.id === fromAccountId)
+    ?.address as string;
+
+  const amountInSol =
+    currencySymbol === SendCurrency.SOL
+      ? amount
+      : BigNumber(amount)
+          .dividedBy(BigNumber(rates?.conversionRate ?? '0'))
+          .toString();
+
+  const tokenPrice = rates?.conversionRate ?? 0;
+
   const fromAddressCaip2 =
     `${scope}:${fromAddress}` as `${string}:${string}:${string}`;
   const toAddressCaip2 =
@@ -51,24 +68,16 @@ export const TransactionConfirmation: SnapComponent<
   const transactionSpeed = '12.8s';
 
   const amountInUserCurrency = formatCurrency(
-    tokenToFiat(amount, Number(tokenPrice)),
+    tokenToFiat(amountInSol.toString(), Number(tokenPrice)),
   );
   const feeInUserCurrency = formatCurrency(
     tokenToFiat(fee, Number(tokenPrice)),
   );
 
-  const total = BigNumber(amount).plus(BigNumber(fee)).toFixed(2);
+  const total = BigNumber(amountInSol).plus(BigNumber(fee)).toString();
   const totalInUserCurrency = formatCurrency(
     tokenToFiat(total, Number(tokenPrice)),
   );
-
-  // const amountInUserCurrency = (Number(amount) * Number(tokenPrice)).toFixed(2);
-  // const feeInUserCurrency = (Number(fee) * Number(tokenPrice)).toFixed(2);
-  // const total = Number(amount) + Number(fee);
-  // const totalInUserCurrency = (
-  //   Number(amount) * Number(tokenPrice) +
-  //   Number(fee) * Number(tokenPrice)
-  // ).toFixed(2);
 
   return (
     <Container>
@@ -82,7 +91,7 @@ export const TransactionConfirmation: SnapComponent<
           <Box direction="horizontal" center>
             <Image src={SolanaLogo} />
           </Box>
-          <Heading size="lg">{`Sending ${amount} ${tokenSymbol}`}</Heading>
+          <Heading size="lg">{`Sending ${amountInSol} SOL`}</Heading>
           <Text color="muted">Review the transaction before proceeding</Text>
         </Box>
 
@@ -96,7 +105,7 @@ export const TransactionConfirmation: SnapComponent<
           <Row label="Amount">
             <Value
               extra={`${amountInUserCurrency}$`}
-              value={`${amount} ${tokenSymbol}`}
+              value={`${amountInSol} SOL`}
             />
           </Row>
 

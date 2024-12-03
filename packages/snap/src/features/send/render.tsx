@@ -1,15 +1,16 @@
 import { assert } from 'superstruct';
 
+import { type SnapExecutionContext } from '../..';
 import { createInterface, showDialog } from '../../core/utils/interface';
-import { SnapExecutionContext } from '../../index';
 import { getSendContext } from './utils/context';
-import { StartSendTransactionFlowParamsStruct } from './utils/validation';
 import { SendForm } from './views/SendForm/SendForm';
 import { type StartSendTransactionFlowParams } from './views/SendForm/types';
+import { StartSendTransactionFlowParamsStruct } from './views/SendForm/validation';
 
 /**
  * Renders the send form interface.
  * @param params - The parameters for starting the send transaction flow.
+ * @param snapContext - The snap execution context.
  * @returns A promise that resolves when the interface is created.
  */
 export async function renderSend(

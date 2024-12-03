@@ -41,6 +41,7 @@ export type SendContext = {
   currencySymbol: SendCurrency;
   balances: Record<CaipAssetType, Balance>;
   rates: GetCurrencyRateResult;
+  locale: 'en';
 };
 
 export type SendState = {

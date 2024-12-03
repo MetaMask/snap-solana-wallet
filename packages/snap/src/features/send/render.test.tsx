@@ -39,6 +39,7 @@ const mockContext: SendContext = {
     currency: SendCurrency.FIAT,
     usdConversionRate: 1,
   },
+  locale: 'en',
 };
 
 describe('Send', () => {

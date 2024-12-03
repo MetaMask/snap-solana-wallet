@@ -1,13 +1,13 @@
 import { enums, nonempty, object, string } from 'superstruct';
 
-import { SolanaCaip2Networks } from '../../../core/constants/solana';
-import type { FieldValidationFunction } from '../../../core/types/form';
+import { SolanaCaip2Networks } from '../../../../core/constants/solana';
+import type { FieldValidationFunction } from '../../../../core/types/form';
 import {
   address,
   greatherThanZero,
   required,
-} from '../../../core/validation/form';
-import { SendFormNames } from '../views/SendForm/types';
+} from '../../../../core/validation/form';
+import { SendFormNames } from './types';
 
 export const StartSendTransactionFlowParamsStruct = object({
   scope: enums([...Object.values(SolanaCaip2Networks)]),

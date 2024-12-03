@@ -1,49 +1,74 @@
 import { SolMethod } from '@metamask/keyring-api';
-import { type UserInputEvent } from '@metamask/snaps-sdk';
+import BigNumber from 'bignumber.js';
+import type { SnapExecutionContext } from 'src';
 
-import { SnapExecutionContext } from 'src';
 import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
-import {
-  type TransactionConfirmationContext,
-  TransactionConfirmationNames,
-} from './types';
+import { SendForm } from '../SendForm/SendForm';
+import { SendCurrency } from '../SendForm/types';
+import { TransactionConfirmationNames } from './ConfirmationDialog';
+import type { ConfirmationDialogContext } from './types';
 import { TransactionResultDialog } from '../TransactionResultDialog/TransactionResultDialog';
-import logger from '../../../../core/utils/logger';
+import logger from 'src/core/utils/logger';
 
+/**
+ * Handles the click event for the back button.
+ *
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.context - The send context.
+ * @returns A promise that resolves when the operation is complete.
+ */
 async function onBackButtonClick({
   id,
-  event,
   context,
-  snapContext,
 }: {
   id: string;
-  event: UserInputEvent;
-  context: TransactionConfirmationContext;
-  snapContext: SnapExecutionContext;
+  context: ConfirmationDialogContext;
 }) {
-  // const newContext = JSON.parse(context.sendFormContext);
-  // await updateInterface(id, <SendForm context={newContext} />, context);
+  await updateInterface(id, <SendForm context={context} />, context);
 }
 
+/**
+ * Handles the click event for the cancel button.
+ *
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @returns A promise that resolves when the operation is complete.
+ */
 async function onCancelButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
 }
 
+/**
+ * Handles the click event for the confirm button.
+ *
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.context - The send context.
+ * @param params.snapContext - The snap execution context.
+ * @returns A promise that resolves when the operation is complete.
+ */
 async function onConfirmButtonClick({
   id,
   context,
   snapContext,
 }: {
   id: string;
-  context: TransactionConfirmationContext;
+  context: ConfirmationDialogContext;
   snapContext: SnapExecutionContext;
 }) {
   let signature: string | null = null;
+  const amountInSol =
+  context.currencySymbol === SendCurrency.SOL
+    ? context.amount
+    : BigNumber(context.amount)
+        .dividedBy(BigNumber(context.rates?.conversionRate ?? '0'))
+        .toString();
 
-  try {
+  try {    
     const response = await snapContext.keyring.submitRequest({
       // eslint-disable-next-line no-restricted-globals
       id: crypto.randomUUID(),
@@ -53,7 +78,7 @@ async function onConfirmButtonClick({
         method: SolMethod.SendAndConfirmTransaction,
         params: {
           to: context.toAddress,
-          amount: Number(context.amount),
+          amount: Number(amountInSol),
         },
       },
     });

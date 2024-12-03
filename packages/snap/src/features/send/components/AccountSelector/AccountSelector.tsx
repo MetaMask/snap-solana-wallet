@@ -15,6 +15,7 @@ import { addressToCaip10 } from '../../../../core/utils/address-to-caip10';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
+import { truncateAddress } from '../../../../core/utils/truncate-address';
 import { SendCurrency } from '../../views/SendForm/types';
 
 type AccountSelectorProps = {
@@ -36,10 +37,11 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
   currencyRate,
   error,
 }) => {
+  const accountsList = Object.values(accounts);
   return (
     <Field label="From" error={error}>
       <Selector name={name} value={selectedAccountId} title="From">
-        {accounts.map((account) => {
+        {accountsList.map((account) => {
           return (
             <SelectorOption value={account.id}>
               <Card
@@ -53,6 +55,7 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
                     currencyRate?.conversionRate ?? 0,
                   ),
                 )}
+                description={truncateAddress(account.address)}
                 title={
                   <Address
                     address={addressToCaip10(scope, account.address)}
