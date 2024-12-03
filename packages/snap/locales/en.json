@@ -81,6 +81,15 @@
     },
     "confirmation.cancelButton": {
       "message": "Cancel"
+    },
+    "transactionResultDialog.submitted": {
+      "message": "Your transaction was submitted"
+    },
+    "transactionResultDialog.viewTransaction": {
+      "message": "View transaction"
+    },
+    "transactionResultDialog.error": {
+      "message": "An error occurred while submitting your transaction, please try again later"
     }
   }
 }
