@@ -10,9 +10,9 @@ import logger from '../../../../core/utils/logger';
 import { SendForm } from '../SendForm/SendForm';
 import { SendCurrency } from '../SendForm/types';
 import { TransactionResultDialog } from '../TransactionResultDialog/TransactionResultDialog';
+import type { TransactionResultDialogContext } from '../TransactionResultDialog/types';
 import { TransactionConfirmationNames } from './ConfirmationDialog';
 import type { ConfirmationDialogContext } from './types';
-import { TransactionResultDialogContext } from '../TransactionResultDialog/types';
 
 /**
  * Handles the click event for the back button.
@@ -84,15 +84,17 @@ async function onConfirmButtonClick({
       },
     });
 
-    if (!(
-      !response.pending &&
-      response.result &&
-      typeof response.result === 'object' &&
-      'signature' in response.result
-    )) {
+    if (
+      !(
+        !response.pending &&
+        response.result &&
+        typeof response.result === 'object' &&
+        'signature' in response.result
+      )
+    ) {
       throw new Error('Invalid transaction response');
     }
-  
+
     signature = response.result.signature as string;
   } catch (error) {
     logger.error({ error }, 'Error submitting request');

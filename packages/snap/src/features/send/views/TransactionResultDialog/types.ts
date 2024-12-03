@@ -1,4 +1,4 @@
-import { SolanaCaip2Networks } from '../../../../core/constants/solana';
+import { type SolanaCaip2Networks } from '../../../../core/constants/solana';
 
 export type TransactionResultDialogContext = {
   scope: SolanaCaip2Networks;

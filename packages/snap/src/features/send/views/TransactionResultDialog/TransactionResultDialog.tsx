@@ -5,6 +5,7 @@ import {
   type SnapComponent,
   Text,
 } from '@metamask/snaps-sdk/jsx';
+
 import { SolanaCaip2Networks } from '../../../../core/constants/solana';
 import { type TransactionResultDialogContext } from './types';
 
@@ -14,12 +15,8 @@ type TransactionResultDialogProps = {
 
 export const TransactionResultDialog: SnapComponent<
   TransactionResultDialogProps
-> = ({ context: { scope, transactionSuccess, signature }  }) => {
-    
-  const getTransactionSolanaExplorerUrl = (
-    scope: SolanaCaip2Networks,
-    signature: string | null,
-  ) => {
+> = ({ context: { scope, transactionSuccess, signature } }) => {
+  const getTransactionSolanaExplorerUrl = () => {
     switch (scope) {
       case SolanaCaip2Networks.Devnet:
         return `https://explorer.solana.com/tx/${signature}?cluster=devnet`;
@@ -36,7 +33,7 @@ export const TransactionResultDialog: SnapComponent<
         {transactionSuccess ? (
           <Box alignment="center" center>
             <Text>Your transaction was submitted</Text>
-            <Link href={getTransactionSolanaExplorerUrl(scope, signature!)}>
+            <Link href={getTransactionSolanaExplorerUrl()}>
               View transaction
             </Link>
           </Box>
