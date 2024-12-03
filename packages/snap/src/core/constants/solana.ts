@@ -47,11 +47,12 @@ export const SolanaNetworksNames: Record<SolanaCaip2Networks, string> = {
   [SolanaCaip2Networks.Localnet]: 'Solana Localnet',
 };
 
-export const NETWORK_BLOCK_EXPLORER_URL_MAP = {
-  [SolanaCaip2Networks.Mainnet]: 'https://explorer.solana.com',
-  [SolanaCaip2Networks.Devnet]: 'https://explorer.solana.com/?cluster=devnet',
-  [SolanaCaip2Networks.Testnet]: 'https://explorer.solana.com/?cluster=testnet',
-  [SolanaCaip2Networks.Localnet]: 'https://explorer.solana.com/?cluster=custom',
+const NETWORK_BLOCK_EXPLORER_URL = 'https://explorer.solana.com'
+const NETWORK_TO_EXPLORER_CLUSTER = {
+  [SolanaCaip2Networks.Mainnet]: undefined,
+  [SolanaCaip2Networks.Devnet]: 'devnet',
+  [SolanaCaip2Networks.Testnet]: 'testnet',
+  [SolanaCaip2Networks.Localnet]: 'local',
 };
 
 export enum SolanaCaip19Tokens {
