@@ -11,14 +11,10 @@ export const getTransactionSolanaExplorerUrl = (
     NETWORK_BLOCK_EXPLORER_URL_MAP[scope] ??
     NETWORK_BLOCK_EXPLORER_URL_MAP[SolanaCaip2Networks.Mainnet];
 
-  const cleanBaseUrl = baseUrl.split('?')[0];
+  const [urlBase, queryParams] = baseUrl.split('?');
 
-  const txUrl = `${cleanBaseUrl}/tx/${signature}`;
-
-  if (scope !== SolanaCaip2Networks.Mainnet) {
-    const cluster = scope === SolanaCaip2Networks.Devnet ? 'devnet' : 'testnet';
-    return `${txUrl}?cluster=${cluster}`;
-  }
-
-  return txUrl;
+  const cleanBase = urlBase?.replace(/\/+$/u, '');
+  return queryParams
+    ? `${cleanBase}/tx/${signature}?${queryParams}`
+    : `${cleanBase}/tx/${signature}`;
 };
