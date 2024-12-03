@@ -19,12 +19,9 @@ export const TransactionResultDialog: SnapComponent<
   return (
     <Container>
       <Box alignment="center" center>
-        <Box direction="horizontal" center>
-          <Text>SVG</Text>
-        </Box>
         {transactionSuccess ? (
-          <Box>
-            <Text color="muted">Your transaction was submitted</Text>
+          <Box alignment="center" center>
+            <Text>Your transaction was submitted</Text>
             <Link href={explorerUrl}>View transaction</Link>
           </Box>
         ) : (
