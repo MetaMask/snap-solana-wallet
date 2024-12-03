@@ -47,6 +47,13 @@ export const SolanaNetworksNames: Record<SolanaCaip2Networks, string> = {
   [SolanaCaip2Networks.Localnet]: 'Solana Localnet',
 };
 
+export const NETWORK_BLOCK_EXPLORER_URL_MAP = {
+  [SolanaCaip2Networks.Mainnet]: 'https://explorer.solana.com',
+  [SolanaCaip2Networks.Devnet]: 'https://explorer.solana.com/?cluster=devnet',
+  [SolanaCaip2Networks.Testnet]: 'https://explorer.solana.com/?cluster=testnet',
+  [SolanaCaip2Networks.Localnet]: 'https://explorer.solana.com/?cluster=custom',
+};
+
 export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',
 }
