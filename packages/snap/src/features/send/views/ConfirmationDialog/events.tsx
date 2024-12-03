@@ -12,6 +12,7 @@ import { SendCurrency } from '../SendForm/types';
 import { TransactionResultDialog } from '../TransactionResultDialog/TransactionResultDialog';
 import { TransactionConfirmationNames } from './ConfirmationDialog';
 import type { ConfirmationDialogContext } from './types';
+import { TransactionResultDialogContext } from '../TransactionResultDialog/types';
 
 /**
  * Handles the click event for the back button.
@@ -83,25 +84,30 @@ async function onConfirmButtonClick({
       },
     });
 
-    if (
+    if (!(
       !response.pending &&
       response.result &&
       typeof response.result === 'object' &&
       'signature' in response.result
-    ) {
-      signature = response.result.signature as string;
+    )) {
+      throw new Error('Invalid transaction response');
     }
+  
+    signature = response.result.signature as string;
   } catch (error) {
     logger.error({ error }, 'Error submitting request');
   }
 
+  const transactionResultContext: TransactionResultDialogContext = {
+    ...context,
+    transactionSuccess: signature !== null,
+    signature,
+  };
+
   await updateInterface(
     id,
-    <TransactionResultDialog
-      transactionSuccess={signature !== null}
-      signature={signature}
-    />,
-    context,
+    <TransactionResultDialog context={transactionResultContext} />,
+    transactionResultContext,
   );
 }
 
