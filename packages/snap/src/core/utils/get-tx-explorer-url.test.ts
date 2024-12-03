@@ -22,4 +22,24 @@ describe('getTransactionSolanaExplorerUrl', () => {
       `https://explorer.solana.com/tx/${mockSignature}?cluster=devnet`,
     );
   });
+
+  it('should return testnet explorer URL with cluster param', () => {
+    const url = getTransactionSolanaExplorerUrl(
+      SolanaCaip2Networks.Testnet,
+      mockSignature,
+    );
+    expect(url).toBe(
+      `https://explorer.solana.com/tx/${mockSignature}?cluster=testnet`,
+    );
+  });
+
+  it('should return localnet explorer URL with cluster param', () => {
+    const url = getTransactionSolanaExplorerUrl(
+      SolanaCaip2Networks.Localnet,
+      mockSignature,
+    );
+    expect(url).toBe(
+      `https://explorer.solana.com/tx/${mockSignature}?cluster=local`,
+    );
+  });
 });

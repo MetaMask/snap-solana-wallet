@@ -47,8 +47,9 @@ export const SolanaNetworksNames: Record<SolanaCaip2Networks, string> = {
   [SolanaCaip2Networks.Localnet]: 'Solana Localnet',
 };
 
-const NETWORK_BLOCK_EXPLORER_URL = 'https://explorer.solana.com'
-const NETWORK_TO_EXPLORER_CLUSTER = {
+export const NETWORK_BLOCK_EXPLORER_URL = 'https://explorer.solana.com';
+
+export const NETWORK_TO_EXPLORER_CLUSTER = {
   [SolanaCaip2Networks.Mainnet]: undefined,
   [SolanaCaip2Networks.Devnet]: 'devnet',
   [SolanaCaip2Networks.Testnet]: 'testnet',
