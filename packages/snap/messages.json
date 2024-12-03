@@ -26,7 +26,7 @@
   "confirmation.total": "Total",
   "confirmation.sendButton": "Send",
   "confirmation.cancelButton": "Cancel",
-  "transactionResultDialog.submitted": "Your transaction was submitted",
-  "transactionResultDialog.viewTransaction": "View transaction",
-  "transactionResultDialog.error": "An error occurred while submitting your transaction, please try again later"
+  "transaction.submitted": "Your transaction was submitted",
+  "transaction.viewTransaction": "View transaction",
+  "transaction.error": "An error occurred while submitting your transaction, please try again later"
 }

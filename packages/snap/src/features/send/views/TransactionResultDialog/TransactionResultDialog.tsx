@@ -24,16 +24,14 @@ export const TransactionResultDialog: SnapComponent<
       <Box alignment="center" center>
         {transactionSuccess && signature ? (
           <Box alignment="center" center>
-            <Text>{translate('transactionResultDialog.submitted')}</Text>
+            <Text>{translate('transaction.submitted')}</Text>
             <Link href={getTransactionSolanaExplorerUrl(scope, signature)}>
-              {translate('transactionResultDialog.viewTransaction')}
+              {translate('transaction.viewTransaction')}
             </Link>
           </Box>
         ) : (
           <Box>
-            <Text color="error">
-              {translate('transactionResultDialog.error')}
-            </Text>
+            <Text color="error">{translate('transaction.error')}</Text>
           </Box>
         )}
       </Box>
