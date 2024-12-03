@@ -11,6 +11,7 @@ import {
   TransactionConfirmationNames,
 } from './types';
 import { TransactionResultDialog } from '../TransactionResultDialog/TransactionResultDialog';
+import logger from '../../../../core/utils/logger';
 
 async function onBackButtonClick({
   id,
@@ -40,27 +41,34 @@ async function onConfirmButtonClick({
   context: TransactionConfirmationContext;
   snapContext: SnapExecutionContext;
 }) {
-  const response = await snapContext.keyring.submitRequest({
-    // eslint-disable-next-line no-restricted-globals
-    id: crypto.randomUUID(),
-    account: context.fromAccountId,
-    scope: context.scope,
-    request: {
-      method: SolMethod.SendAndConfirmTransaction,
-      params: {
-        to: context.toAddress,
-        amount: Number(context.amount),
-      },
-    },
-  });
+  let signature: string | null = null;
 
-  const signature =
-    !response.pending &&
-    response.result !== null &&
-    typeof response.result === 'object' &&
-    'signature' in response.result
-      ? (response.result.signature as string)
-      : null;
+  try {
+    const response = await snapContext.keyring.submitRequest({
+      // eslint-disable-next-line no-restricted-globals
+      id: crypto.randomUUID(),
+      account: context.fromAccountId,
+      scope: context.scope,
+      request: {
+        method: SolMethod.SendAndConfirmTransaction,
+        params: {
+          to: context.toAddress,
+          amount: Number(context.amount),
+        },
+      },
+    });
+
+    if (
+      !response.pending &&
+      response.result &&
+      typeof response.result === 'object' &&
+      'signature' in response.result
+    ) {
+      signature = response.result.signature as string;
+    }
+  } catch (error) {
+    logger.error({ error }, 'Error submitting request');
+  }
 
   await updateInterface(
     id,
