@@ -16,7 +16,7 @@ export function validateBalance(
   const amountGreaterThanBalance =
     parseFloat(
       context.currencySymbol === SendCurrency.FIAT
-        ? (parseFloat(value) / (context.rates?.conversionRate ?? 0)).toString()
+        ? (parseFloat(value) / context.currencyRate.conversionRate).toString()
         : value,
     ) > parseFloat(context.balances[context.selectedAccountId]?.amount ?? '0');
 

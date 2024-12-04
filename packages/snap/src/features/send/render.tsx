@@ -1,6 +1,7 @@
 import { assert } from 'superstruct';
 
-import { showDialog, createInterface } from '../../core/utils/interface';
+import { state } from '../../core/services';
+import { createInterface, showDialog } from '../../core/utils/interface';
 import { SendForm } from './components/SendForm/SendForm';
 import { type StartSendTransactionFlowParams } from './types/send';
 import { getSendContext } from './utils/context';
@@ -23,6 +24,17 @@ export async function renderSend(params: StartSendTransactionFlowParams) {
   });
 
   const id = await createInterface(<SendForm context={context} />, context);
+
+  // Save the interface id to the state
+  await state.update((_state) => {
+    return {
+      ..._state,
+      mapInterfaceNameToId: {
+        ...(_state?.mapInterfaceNameToId ?? {}),
+        [SendForm.name]: id,
+      },
+    };
+  });
 
   return showDialog(id);
 }

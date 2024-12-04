@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Balance } from '@metamask/keyring-api';
 
 import {
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
 } from '../../../core/constants/solana';
+import { state } from '../../../core/services';
 import { SolanaConnection } from '../../../core/services/connection';
 import { SolanaKeyring } from '../../../core/services/keyring';
 import logger from '../../../core/utils/logger';
@@ -24,6 +26,7 @@ export async function getSendContext(
     const keyring = new SolanaKeyring(new SolanaConnection());
     const scope = context?.scope ?? SolanaCaip2Networks.Mainnet;
     const token = `${scope}/${SolanaCaip19Tokens.SOL}`;
+    const stateValue = await state.get();
 
     const accounts = await keyring.listAccounts();
 
@@ -49,12 +52,7 @@ export async function getSendContext(
 
     // getRatesFromMetamask(SendCurrency.SOL),
     // TODO: Remove this mock data when the rates are available to fetch.
-    const rates = {
-      conversionDate: Date.now(),
-      conversionRate: 261,
-      currency: SendCurrency.FIAT,
-      usdConversionRate: 1,
-    };
+    const tokenRate = stateValue.tokenRates[SendCurrency.SOL]!;
 
     return {
       scope,
@@ -63,7 +61,7 @@ export async function getSendContext(
       validation: context.validation ?? {},
       accounts,
       balances,
-      rates,
+      tokenRate,
       maxBalance: context?.maxBalance ?? false,
       canReview: context?.canReview ?? false,
       clearToField: context?.clearToField ?? false,

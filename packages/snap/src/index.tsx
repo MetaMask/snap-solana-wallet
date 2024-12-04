@@ -1,22 +1,23 @@
 import { handleKeyringRequest } from '@metamask/keyring-api';
 import type {
   Json,
+  OnCronjobHandler,
   OnKeyringRequestHandler,
   OnUserInputHandler,
 } from '@metamask/snaps-sdk';
 import {
   MethodNotFoundError,
   SnapError,
-  UnauthorizedError,
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
 import { SolanaInternalRpcMethods } from './core/constants/solana';
+import { handlers, OnCronjobMethods } from './core/handlers/onCronjob';
 import { install as installPolyfills } from './core/polyfills';
-import { SolanaConnection } from './core/services/connection';
-import { SolanaKeyring } from './core/services/keyring';
+import { keyring } from './core/services';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
+import { validateOrigin } from './core/validation/validators';
 import { handleSendEvents, isSendFormEvent } from './features/send/events';
 import { renderSend } from './features/send/render';
 import type {
@@ -32,23 +33,8 @@ import {
   isTransactionConfirmationEvent,
 } from './features/transaction-confirmation/events';
 import { renderTransactionConfirmation } from './features/transaction-confirmation/render';
-import { originPermissions } from './permissions';
 
 installPolyfills();
-
-const connection = new SolanaConnection();
-const keyring = new SolanaKeyring(connection);
-
-export const validateOrigin = (origin: string, method: string): void => {
-  if (!origin) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
-    throw new UnauthorizedError('Origin not found');
-  }
-  if (!originPermissions.get(origin)?.has(method)) {
-    // eslint-disable-next-line @typescript-eslint/no-throw-literal
-    throw new UnauthorizedError(`Permission denied`);
-  }
-};
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -155,4 +141,29 @@ export const onUserInput: OnUserInputHandler = async ({
       context: context as TransactionConfirmationContext,
     });
   }
+};
+
+/**
+ * Handle incoming cronjob requests.
+ *
+ * @param args - The request handler args as object.
+ * @param args.request - A validated cronjob request object.
+ * @returns A promise that resolves to a JSON object.
+ * @throws If the request method is not valid for this snap.
+ * @see https://docs.metamask.io/snaps/reference/entry-points/#oncronjob
+ */
+export const onCronjob: OnCronjobHandler = async ({ request }) => {
+  const { method } = request;
+
+  const handler = handlers[method as OnCronjobMethods];
+
+  if (!handler) {
+    throw new MethodNotFoundError(
+      `Cronjob method ${method} not found. Available methods: ${Object.values(
+        OnCronjobMethods,
+      ).toString()}`,
+    ) as unknown as Error;
+  }
+
+  return handler({ request });
 };

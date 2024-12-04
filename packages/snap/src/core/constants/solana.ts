@@ -46,10 +46,6 @@ export const SolanaNetworksNames: Record<SolanaCaip2Networks, string> = {
   [SolanaCaip2Networks.Localnet]: 'Solana Localnet',
 };
 
-export enum SolanaCaip19Tokens {
-  SOL = 'slip44:501',
-}
-
 export enum SolanaInternalRpcMethods {
   StartSendTransactionFlow = 'startSendTransactionFlow',
   ShowTransactionConfirmation = 'showTransactionConfirmation',
@@ -63,3 +59,30 @@ export const SOLANA_NETWORK_TO_RPC_URLS: Record<SolanaCaip2Networks, string> = {
   [SolanaCaip2Networks.Testnet]: process.env.RPC_URL_TESTNET ?? '',
   [SolanaCaip2Networks.Localnet]: process.env.RPC_URL_LOCALNET ?? '',
 };
+
+export enum SolanaCaip19Tokens {
+  SOL = 'slip44:501',
+}
+
+export type TokenInfo = {
+  symbol: string;
+  caip19Id: SolanaCaip19Tokens;
+  address: string;
+  decimals: number; // Adding decimals is usually important
+  networks: SolanaCaip2Networks[];
+};
+
+export const SolanaTokens = {
+  SOL: {
+    symbol: 'SOL',
+    caip19Id: SolanaCaip19Tokens.SOL,
+    address: 'So11111111111111111111111111111111111111112',
+    decimals: 9,
+    networks: [
+      SolanaCaip2Networks.Mainnet,
+      SolanaCaip2Networks.Devnet,
+      SolanaCaip2Networks.Testnet,
+      SolanaCaip2Networks.Localnet,
+    ],
+  },
+} as const satisfies Record<string, TokenInfo>;

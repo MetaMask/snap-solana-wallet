@@ -31,7 +31,7 @@ export const SendForm = ({
     currencySymbol,
     scope,
     balances,
-    rates,
+    tokenRate,
     maxBalance,
     canReview,
   },
@@ -39,14 +39,14 @@ export const SendForm = ({
   const nativeBalance = balances[selectedAccountId]?.amount ?? '0';
   const currencyToMaxBalance: Record<SendCurrency, string> = {
     [SendCurrency.FIAT]: String(
-      tokenToFiat(nativeBalance, rates?.conversionRate ?? 0),
+      tokenToFiat(nativeBalance, tokenRate.conversionRate),
     ),
     [SendCurrency.SOL]: nativeBalance,
   };
 
   const currencyToBalance: Record<SendCurrency, string> = {
     [SendCurrency.FIAT]: formatCurrency(
-      tokenToFiat(nativeBalance, rates?.conversionRate ?? 0),
+      tokenToFiat(nativeBalance, tokenRate.conversionRate),
     ),
     [SendCurrency.SOL]: formatTokens(nativeBalance, currencySymbol),
   };
@@ -64,7 +64,7 @@ export const SendForm = ({
             accounts={accounts}
             selectedAccountId={selectedAccountId}
             balances={balances}
-            rates={rates}
+            tokenRate={tokenRate}
           />
           <AmountInput
             error={validation?.[SendFormNames.AmountInput]?.message ?? ''}
