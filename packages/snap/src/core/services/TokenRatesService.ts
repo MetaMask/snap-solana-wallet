@@ -42,10 +42,11 @@ export class TokenRatesService {
     const sendFormInterfaceId = stateValue?.mapInterfaceNameToId?.['send-form'];
 
     // If the send form interface exists, we will also refresh the rates from the balances listed in the ui context.
+    // We gracefully handle the case where the send form interface does not exist because it's a normal scenario.
     try {
       if (!sendFormInterfaceId) {
         throw new Error(
-          'Tried to refresh currency rates but could not find interface id of the send form.',
+          'Could not find an interface id for the send form in the state. It usually means that the send form was not opened. Otherwise, it might be that the snap state was overwritten.',
         );
       }
 
@@ -64,11 +65,11 @@ export class TokenRatesService {
     } catch (error) {
       this.#logger.info(
         { error },
-        'Could not fetch token rates from the UI context',
+        'Could not build a list of token symbols present in the UI context',
       );
     }
 
-    // All unique currencies for which we will fetch the spot prices.
+    // All unique token symbols for which we will fetch the spot prices.
     const allTokenSymbols = new Set([
       ...tokenSymbolsFromRatesInState,
       ...tokenSymbolsFromUiContext,
