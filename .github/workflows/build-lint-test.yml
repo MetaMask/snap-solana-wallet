@@ -9,6 +9,8 @@ on:
         required: true
       RPC_URL_TESTNET:
         required: true
+      RPC_URL_LOCALNET:
+        required: true
 
 jobs:
   prepare:
@@ -33,6 +35,7 @@ jobs:
       RPC_URL_MAINNET: ${{ secrets.RPC_URL_MAINNET }}
       RPC_URL_DEVNET: ${{ secrets.RPC_URL_DEVNET }}
       RPC_URL_TESTNET: ${{ secrets.RPC_URL_TESTNET }}
+      RPC_URL_LOCALNET: ${{ secrets.RPC_URL_LOCALNET }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js

@@ -13,6 +13,8 @@ on:
         required: true
       RPC_URL_TESTNET:
         required: true
+      RPC_URL_LOCALNET:
+        required: true
 
 jobs:
   publish-release:
@@ -38,6 +40,7 @@ jobs:
           RPC_URL_MAINNET: ${{ secrets.RPC_URL_MAINNET }}
           RPC_URL_DEVNET: ${{ secrets.RPC_URL_DEVNET }}
           RPC_URL_TESTNET: ${{ secrets.RPC_URL_TESTNET }}
+          RPC_URL_LOCALNET: ${{ secrets.RPC_URL_LOCALNET }}
       - uses: actions/cache@v4
         id: restore-build
         with:
