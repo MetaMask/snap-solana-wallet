@@ -42,7 +42,7 @@ export class SolanaState {
 
     // Merge the default state with the underlying snap state
     // to ensure that we always have default values and avoid null checks everywhere.
-    return safeMerge(DEFAULT_STATE, state as StateValue);
+    return safeMerge(DEFAULT_STATE, state ?? {});
   }
 
   async set(state: StateValue): Promise<void> {

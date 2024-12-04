@@ -1,4 +1,3 @@
-import type { ConfigProvider } from '../../services/config-provider';
 import type { ILogger } from '../../utils/logger';
 import { PriceApiClient } from './price-api-client';
 import type { SpotPrice } from './types';
@@ -9,14 +8,10 @@ describe('PriceApiClient', () => {
     error: jest.fn(),
   } as unknown as ILogger;
 
-  const mockConfigProvider = {
-    safeGet: jest.fn().mockReturnValue('https://api.example.com'),
-  } as unknown as ConfigProvider;
-
   let client: PriceApiClient;
 
   beforeEach(() => {
-    client = new PriceApiClient(mockConfigProvider, mockFetch, mockLogger);
+    client = new PriceApiClient(mockFetch, mockLogger);
   });
 
   it('should fetch spot price successfully', async () => {
@@ -29,7 +24,7 @@ describe('PriceApiClient', () => {
     const result = await client.getSpotPrice('chainId', 'tokenAddress');
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.example.com/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=usd',
+      'https://price-api.metamask-institutional.io/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=usd',
     );
     expect(result).toBe(mockResponse);
   });
@@ -42,8 +37,8 @@ describe('PriceApiClient', () => {
       client.getSpotPrice('chainId', 'tokenAddress'),
     ).rejects.toThrow('Fetch failed');
     expect(mockLogger.error).toHaveBeenCalledWith(
-      'Error fetching spot prices:',
       mockError,
+      'Error fetching spot prices:',
     );
   });
 
@@ -57,8 +52,8 @@ describe('PriceApiClient', () => {
       client.getSpotPrice('chainId', 'tokenAddress'),
     ).rejects.toThrow('HTTP error! status: 404');
     expect(mockLogger.error).toHaveBeenCalledWith(
-      'Error fetching spot prices:',
       expect.any(Error),
+      'Error fetching spot prices:',
     );
   });
 
@@ -72,7 +67,7 @@ describe('PriceApiClient', () => {
     const result = await client.getSpotPrice('chainId', 'tokenAddress', 'eur');
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.example.com/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=eur',
+      'https://price-api.metamask-institutional.io/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=eur',
     );
     expect(result).toBe(mockResponse);
   });
@@ -109,8 +104,8 @@ describe('PriceApiClient', () => {
       client.getSpotPrice('chainId', 'tokenAddress'),
     ).rejects.toThrow('Invalid JSON');
     expect(mockLogger.error).toHaveBeenCalledWith(
-      'Error fetching spot prices:',
       expect.any(Error),
+      'Error fetching spot prices:',
     );
   });
 
@@ -121,8 +116,8 @@ describe('PriceApiClient', () => {
       client.getSpotPrice('chainId', 'tokenAddress'),
     ).rejects.toThrow('Network timeout');
     expect(mockLogger.error).toHaveBeenCalledWith(
-      'Error fetching spot prices:',
       expect.any(Error),
+      'Error fetching spot prices:',
     );
   });
 });

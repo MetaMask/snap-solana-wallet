@@ -52,6 +52,8 @@ describe('SolanaKeyring', () => {
         }),
         {},
       ),
+      mapInterfaceNameToId: {},
+      tokenRates: {},
     };
 
     /**
@@ -74,10 +76,10 @@ describe('SolanaKeyring', () => {
                   case 'get':
                     return mockStateValue;
                   case 'update':
-                    mockStateValue = params.newState;
+                    mockStateValue = params.newState as StateValue;
                     return null;
                   case 'clear':
-                    mockStateValue = {};
+                    mockStateValue = {} as StateValue;
                     return null;
                   default:
                     throw new Error(`Unknown operation: ${params.operation}`);
@@ -145,7 +147,11 @@ describe('SolanaKeyring', () => {
 
   describe('createAccount', () => {
     it('creates new accounts with increasing indices', async () => {
-      mockStateValue = { keyringAccounts: {} };
+      mockStateValue = {
+        keyringAccounts: {},
+        mapInterfaceNameToId: {},
+        tokenRates: {},
+      };
       const firstAccount = await keyring.createAccount();
       const secondAccount = await keyring.createAccount();
       const thirdAccount = await keyring.createAccount();
@@ -165,7 +171,11 @@ describe('SolanaKeyring', () => {
     });
 
     it('recreates accounts with missing indices, in order', async () => {
-      mockStateValue = { keyringAccounts: {} };
+      mockStateValue = {
+        keyringAccounts: {},
+        mapInterfaceNameToId: {},
+        tokenRates: {},
+      };
 
       const firstAccount = await keyring.createAccount();
       const secondAccount = await keyring.createAccount();
