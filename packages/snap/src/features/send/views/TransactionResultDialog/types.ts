@@ -4,4 +4,5 @@ export type TransactionResultDialogContext = {
   scope: SolanaCaip2Networks;
   transactionSuccess: boolean;
   signature: string | null;
+  locale: 'en';
 };

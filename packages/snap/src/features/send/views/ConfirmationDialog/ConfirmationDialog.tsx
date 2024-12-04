@@ -51,7 +51,7 @@ export const TransactionConfirmation: SnapComponent<
     locale,
   },
 }) => {
-  const transalte = i18n(locale);
+  const translate = i18n(locale);
 
   const fromAddress = accounts.find((account) => account.id === fromAccountId)
     ?.address as string;
@@ -88,7 +88,7 @@ export const TransactionConfirmation: SnapComponent<
     <Container>
       <Box>
         <Header
-          title={transalte('confirmation.title')}
+          title={translate('confirmation.title')}
           backButtonName={TransactionConfirmationNames.BackButton}
         />
 
@@ -97,29 +97,29 @@ export const TransactionConfirmation: SnapComponent<
             <Image src={SolanaLogo} />
           </Box>
           <Heading size="lg">
-            {transalte('confirmation.heading', {
+            {translate('confirmation.heading', {
               amount: amountInSol,
               tokenSymbol: currencySymbol,
             })}
           </Heading>
-          <Text color="muted">{transalte('confirmation.subheading')}</Text>
+          <Text color="muted">{translate('confirmation.subheading')}</Text>
         </Box>
 
         <Section>
-          <Row label={transalte('confirmation.from')}>
+          <Row label={translate('confirmation.from')}>
             <Link href={getAddressSolanaExplorerUrl(scope, fromAddress)}>
               <Address address={fromAddressCaip2} />
             </Link>
           </Row>
 
-          <Row label={transalte('confirmation.amount')}>
+          <Row label={translate('confirmation.amount')}>
             <Value
               extra={amountInUserCurrency}
               value={formatTokens(amountInSol, currencySymbol)}
             />
           </Row>
 
-          <Row label={transalte('confirmation.recipient')}>
+          <Row label={translate('confirmation.recipient')}>
             <Link href={getAddressSolanaExplorerUrl(scope, fromAddress)}>
               <Address address={toAddressCaip2} />
             </Link>
@@ -127,20 +127,20 @@ export const TransactionConfirmation: SnapComponent<
         </Section>
 
         <Section>
-          <Row label={transalte('confirmation.network')}>
+          <Row label={translate('confirmation.network')}>
             <Text>{networkName}</Text>
           </Row>
 
           <Row
-            label={transalte('confirmation.transactionSpeed')}
-            tooltip={transalte('confirmation.transactionSpeedTooltip')}
+            label={translate('confirmation.transactionSpeed')}
+            tooltip={translate('confirmation.transactionSpeedTooltip')}
           >
             <Text>{transactionSpeed}</Text>
           </Row>
 
           <Row
-            label={transalte('confirmation.fee')}
-            tooltip={transalte('confirmation.feeTooltip')}
+            label={translate('confirmation.fee')}
+            tooltip={translate('confirmation.feeTooltip')}
           >
             <Value
               extra={feeInUserCurrency}
@@ -148,7 +148,7 @@ export const TransactionConfirmation: SnapComponent<
             />
           </Row>
 
-          <Row label={transalte('confirmation.total')}>
+          <Row label={translate('confirmation.total')}>
             <Value
               extra={totalInUserCurrency}
               value={formatTokens(total, currencySymbol)}
@@ -158,10 +158,10 @@ export const TransactionConfirmation: SnapComponent<
       </Box>
       <Footer>
         <Button name={TransactionConfirmationNames.CancelButton}>
-          {transalte('confirmation.cancelButton')}
+          {translate('confirmation.cancelButton')}
         </Button>
         <Button name={TransactionConfirmationNames.ConfirmButton}>
-          {transalte('confirmation.sendButton')}
+          {translate('confirmation.sendButton')}
         </Button>
       </Footer>
     </Container>

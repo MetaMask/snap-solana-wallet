@@ -25,5 +25,8 @@
   "confirmation.feeTooltip": "Network fee tooltip",
   "confirmation.total": "Total",
   "confirmation.sendButton": "Send",
-  "confirmation.cancelButton": "Cancel"
+  "confirmation.cancelButton": "Cancel",
+  "transaction.submitted": "Your transaction was submitted",
+  "transaction.viewTransaction": "View transaction",
+  "transaction.error": "An error occurred while submitting your transaction, please try again later"
 }
