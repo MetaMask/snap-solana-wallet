@@ -1,0 +1,86 @@
+{
+  "locale": "en",
+  "messages": {
+    "send.title": {
+      "message": "Send"
+    },
+    "send.balance": {
+      "message": "Balance"
+    },
+    "send.maxButton": {
+      "message": "Max"
+    },
+    "send.cancelButton": {
+      "message": "Cancel"
+    },
+    "send.continueButton": {
+      "message": "Continue"
+    },
+    "send.fromField": {
+      "message": "From"
+    },
+    "send.toField": {
+      "message": "To"
+    },
+    "send.toPlaceholder": {
+      "message": "Enter public address"
+    },
+    "send.fromRequiredError": {
+      "message": "Account is required"
+    },
+    "send.amountRequiredError": {
+      "message": "Amount is required"
+    },
+    "send.amountGreatherThanZeroError": {
+      "message": "Amount must be greater than 0"
+    },
+    "send.toRequiredError": {
+      "message": "To address is required"
+    },
+    "send.toInvalidError": {
+      "message": "Invalid Solana address"
+    },
+    "confirmation.title": {
+      "message": "Review"
+    },
+    "confirmation.heading": {
+      "message": "Sending {amount} {tokenSymbol}"
+    },
+    "confirmation.subheading": {
+      "message": "Review the transaction before proceeding"
+    },
+    "confirmation.from": {
+      "message": "From"
+    },
+    "confirmation.amount": {
+      "message": "From"
+    },
+    "confirmation.recipient": {
+      "message": "Recipient"
+    },
+    "confirmation.network": {
+      "message": "Network"
+    },
+    "confirmation.transactionSpeed": {
+      "message": "Transaction speed"
+    },
+    "confirmation.transactionSpeedTooltip": {
+      "message": "Transaction speed tooltip"
+    },
+    "confirmation.fee": {
+      "message": "Network fee"
+    },
+    "confirmation.feeTooltip": {
+      "message": "Network fee tooltip"
+    },
+    "confirmation.total": {
+      "message": "Total"
+    },
+    "confirmation.sendButton": {
+      "message": "Send"
+    },
+    "confirmation.cancelButton": {
+      "message": "Cancel"
+    }
+  }
+}

@@ -5,6 +5,7 @@ import type {
   FieldValidationFunction,
   ValidationFunction,
 } from '../types/form';
+import { i18n, type LocalizedMessage, type Locale } from '../utils/i18n';
 
 /**
  * Validates a field value based on the provided validation functions.
@@ -36,11 +37,17 @@ export function validateField<FieldNames extends string | number | symbol>(
  * Validates that the given value is a string.
  *
  * @param message - The error message to return if validation fails.
+ * @param locale - The locale of the message.
  * @returns True if the value is valid, otherwise false.
  */
-export const required: ValidationFunction = (message: string) => {
+export const required: ValidationFunction = (
+  message: LocalizedMessage,
+  locale: Locale,
+) => {
+  const translate = i18n(locale);
+
   return (value: string) => {
-    const error = value === '' ? { message, value } : null;
+    const error = value === '' ? { message: translate(message), value } : null;
     return error ? { message: error.message, value } : null;
   };
 };
@@ -49,16 +56,22 @@ export const required: ValidationFunction = (message: string) => {
  * Validates that the given value is a valid Solana address.
  *
  * @param message - The error message to return if validation fails.
+ * @param locale - The locale of the message.
  * @returns True if the value is valid, otherwise an object with the error message.
  */
-export const address: ValidationFunction = (message: string) => {
+export const address: ValidationFunction = (
+  message: LocalizedMessage,
+  locale: Locale,
+) => {
+  const translate = i18n(locale);
+
   return (value: string) => {
     try {
       // eslint-disable-next-line no-new
       addressValidator(value);
       return null;
     } catch {
-      return { message, value };
+      return { message: translate(message), value };
     }
   };
 };
@@ -67,15 +80,21 @@ export const address: ValidationFunction = (message: string) => {
  * Validates that the given value is a number and meets the minimum value requirement using superstruct.
  *
  * @param message - The error message to return if validation fails.
+ * @param locale - The locale of the message.
  * @returns True if the value is valid, otherwise an object with the error message.
  */
-export const greatherThanZero: ValidationFunction = (message: string) => {
+export const greatherThanZero: ValidationFunction = (
+  message: LocalizedMessage,
+  locale: Locale,
+) => {
+  const translate = i18n(locale);
+
   return (value: string) => {
     const [error] = validate(
       parseFloat(value),
       min(number(), 0, { exclusive: false }),
       {
-        message,
+        message: translate(message),
       },
     );
     return error ? { message: error.message, value } : null;

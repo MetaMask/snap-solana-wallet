@@ -49,3 +49,13 @@ If you want to fix your formatting issues automatically use
 ```bash
 yarn prettier:fix
 ```
+
+## Updating translations messages (i18n)
+
+Any time you need to add/edit a message to be translated you will need to:
+
+- Edit `packages/snap/messages.json`
+- Run `yarn locale:build`
+
+> [!NOTE]  
+> This will update the `packages/snap/locales/en.json` file which will be used by Crowdin. This will also run in the normal build process.

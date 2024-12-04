@@ -14,16 +14,20 @@ import type { TokenRate } from '../../../../core/services/state';
 import { addressToCaip10 } from '../../../../core/utils/address-to-caip10';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
+import type { Locale } from '../../../../core/utils/i18n';
+import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
-import { SendFormNames } from '../../types/form';
-import { SendCurrency } from '../../types/send';
+import { truncateAddress } from '../../../../core/utils/truncate-address';
+import { SendCurrency } from '../../views/SendForm/types';
 
 type AccountSelectorProps = {
+  name: string;
+  scope: SolanaCaip2Networks;
   accounts: SolanaKeyringAccount[];
   balances: Record<string, Balance>;
   tokenRate: TokenRate;
-  scope: SolanaCaip2Networks;
   selectedAccountId: string;
+  locale: Locale;
   error?: string;
 };
 
@@ -31,13 +35,19 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
   accounts,
   balances,
   tokenRate,
+  name,
   scope,
+  selectedAccountId,
   error,
+  locale,
 }) => {
+  const translate = i18n(locale);
+  const accountsList = Object.values(accounts);
+
   return (
-    <Field label="From" error={error}>
-      <Selector name={SendFormNames.AccountSelector} title="From">
-        {accounts.map((account) => {
+    <Field label={translate('send.fromField')} error={error}>
+      <Selector name={name} value={selectedAccountId} title="From">
+        {accountsList.map((account) => {
           return (
             <SelectorOption value={account.id}>
               <Card
@@ -51,6 +61,7 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
                     tokenRate.conversionRate,
                   ),
                 )}
+                description={truncateAddress(account.address)}
                 title={
                   <Address
                     address={addressToCaip10(scope, account.address)}

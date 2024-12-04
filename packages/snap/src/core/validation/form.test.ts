@@ -3,7 +3,7 @@ import { validateField, required } from './form';
 
 describe('validateField', () => {
   const validation: Partial<Record<'test', FieldValidationFunction[]>> = {
-    test: [required('Account is required')],
+    test: [required('send.fromRequiredError')],
   };
 
   it('returns no error for a valid account', () => {

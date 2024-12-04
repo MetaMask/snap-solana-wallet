@@ -10,19 +10,23 @@ import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../core/test/mocks/solana-keyr
 import type { MockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../core/test/utils';
-import { SendForm } from './components/SendForm/SendForm';
-import { SendFormNames } from './types/form';
-import { type SendContext, SendCurrency } from './types/send';
+import { SendForm } from './views/SendForm/SendForm';
+import {
+  type SendContext,
+  SendCurrency,
+  SendFormNames,
+} from './views/SendForm/types';
 
 const solanaKeyringAccounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
 
 const mockContext: SendContext = {
   accounts: solanaKeyringAccounts,
   scope: SolanaCaip2Networks.Localnet,
-  selectedAccountId: '0',
+  fromAccountId: '0',
+  amount: '2.67566',
+  toAddress: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
+  fee: '0.000005',
   validation: {},
-  showClearButton: false,
-  clearToField: false,
   currencySymbol: SendCurrency.SOL,
   balances: {
     '0': {
@@ -41,8 +45,7 @@ const mockContext: SendContext = {
     currency: SendCurrency.FIAT,
     usdConversionRate: 1,
   },
-  canReview: false,
-  maxBalance: false,
+  locale: 'en',
 };
 
 describe('Send', () => {
@@ -83,7 +86,7 @@ describe('Send', () => {
 
     expect(screen).toRender(<SendForm context={mockContext} />);
 
-    await screen.selectFromSelector(SendFormNames.AccountSelector, '0');
+    await screen.selectFromSelector(SendFormNames.SourceAccountSelector, '0');
 
     expect(screen).toRender(<SendForm context={mockContext} />);
   });

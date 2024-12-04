@@ -11,30 +11,41 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
+import { PriceApiClient } from './core/clients/price-api/price-api-client';
 import { SolanaInternalRpcMethods } from './core/constants/solana';
 import { handlers, OnCronjobMethods } from './core/handlers/onCronjob';
 import { install as installPolyfills } from './core/polyfills';
-import { keyring } from './core/services';
+import { SolanaConnection } from './core/services/connection';
+import { SolanaKeyring } from './core/services/keyring';
+import { SolanaState } from './core/services/state';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
-import { handleSendEvents, isSendFormEvent } from './features/send/events';
 import { renderSend } from './features/send/render';
-import type {
-  SendContext,
-  StartSendTransactionFlowParams,
-} from './features/send/types/send';
-import {
-  type TransactionConfirmationContext,
-  type TransactionConfirmationParams,
-} from './features/transaction-confirmation/components/TransactionConfirmation/types';
-import {
-  handleTransactionConfirmationEvents,
-  isTransactionConfirmationEvent,
-} from './features/transaction-confirmation/events';
-import { renderTransactionConfirmation } from './features/transaction-confirmation/render';
+import type { StartSendTransactionFlowParams } from './features/send/types/send';
+import { eventHandlers as transactionConfirmationEvents } from './features/send/views/ConfirmationDialog/events';
+import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 
 installPolyfills();
+
+export type SnapExecutionContext = {
+  connection: SolanaConnection;
+  keyring: SolanaKeyring;
+  priceApiClient: PriceApiClient;
+  state: SolanaState;
+};
+
+const state = new SolanaState();
+const connection = new SolanaConnection();
+const keyring = new SolanaKeyring(connection);
+const priceApiClient = new PriceApiClient();
+
+const snapContext: SnapExecutionContext = {
+  connection,
+  keyring,
+  priceApiClient,
+  state,
+};
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -59,10 +70,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       case SolanaInternalRpcMethods.StartSendTransactionFlow:
         return await renderSend(
           request.params as StartSendTransactionFlowParams,
-        );
-      case SolanaInternalRpcMethods.ShowTransactionConfirmation:
-        return await renderTransactionConfirmation(
-          request.params as TransactionConfirmationParams,
+          snapContext,
         );
       default:
         throw new MethodNotFoundError() as unknown as Error;
@@ -131,16 +139,25 @@ export const onUserInput: OnUserInputHandler = async ({
   event,
   context,
 }) => {
-  if (isSendFormEvent(event)) {
-    await handleSendEvents({ id, event, context: context as SendContext });
+  /**
+   * Using the name of the component, route it to the correct handler
+   */
+  if (!event.name) {
+    return;
   }
-  if (isTransactionConfirmationEvent(event)) {
-    await handleTransactionConfirmationEvents({
-      id,
-      event,
-      context: context as TransactionConfirmationContext,
-    });
+
+  const uiEventHandlers: Record<string, (...args: any) => Promise<void>> = {
+    ...sendFormEvents,
+    ...transactionConfirmationEvents,
+  };
+
+  const handler = uiEventHandlers[event.name];
+
+  if (!handler) {
+    return;
   }
+
+  await handler({ id, event, context, snapContext });
 };
 
 /**

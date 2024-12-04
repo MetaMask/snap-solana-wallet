@@ -46,9 +46,17 @@ export const SolanaNetworksNames: Record<SolanaCaip2Networks, string> = {
   [SolanaCaip2Networks.Localnet]: 'Solana Localnet',
 };
 
+export const NETWORK_BLOCK_EXPLORER_URL = 'https://explorer.solana.com';
+
+export const NETWORK_TO_EXPLORER_CLUSTER = {
+  [SolanaCaip2Networks.Mainnet]: undefined,
+  [SolanaCaip2Networks.Devnet]: 'devnet',
+  [SolanaCaip2Networks.Testnet]: 'testnet',
+  [SolanaCaip2Networks.Localnet]: 'local',
+};
+
 export enum SolanaInternalRpcMethods {
   StartSendTransactionFlow = 'startSendTransactionFlow',
-  ShowTransactionConfirmation = 'showTransactionConfirmation',
 }
 
 export const LAMPORTS_PER_SOL = 1_000_000_000;
