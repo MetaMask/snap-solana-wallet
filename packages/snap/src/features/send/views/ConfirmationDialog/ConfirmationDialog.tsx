@@ -47,7 +47,7 @@ export const TransactionConfirmation: SnapComponent<
     accounts,
     fee,
     currencySymbol,
-    rates,
+    tokenRate,
     locale,
   },
 }) => {
@@ -56,14 +56,12 @@ export const TransactionConfirmation: SnapComponent<
   const fromAddress = accounts.find((account) => account.id === fromAccountId)
     ?.address as string;
 
+  const { conversionRate } = tokenRate;
+
   const amountInSol =
     currencySymbol === SendCurrency.SOL
       ? amount
-      : BigNumber(amount)
-          .dividedBy(BigNumber(rates?.conversionRate ?? '0'))
-          .toString();
-
-  const tokenPrice = rates?.conversionRate ?? 0;
+      : BigNumber(amount).dividedBy(BigNumber(conversionRate)).toString();
 
   // FIXME: Get this out to a helper function (ie: address to CAIP-10).
   const fromAddressCaip2 =
@@ -75,15 +73,15 @@ export const TransactionConfirmation: SnapComponent<
   const transactionSpeed = '12.8s';
 
   const amountInUserCurrency = formatCurrency(
-    tokenToFiat(amountInSol.toString(), Number(tokenPrice)),
+    tokenToFiat(amountInSol.toString(), Number(conversionRate)),
   );
   const feeInUserCurrency = formatCurrency(
-    tokenToFiat(fee, Number(tokenPrice)),
+    tokenToFiat(fee, Number(conversionRate)),
   );
 
   const total = BigNumber(amountInSol).plus(BigNumber(fee)).toString();
   const totalInUserCurrency = formatCurrency(
-    tokenToFiat(total, Number(tokenPrice)),
+    tokenToFiat(total, Number(conversionRate)),
   );
 
   return (

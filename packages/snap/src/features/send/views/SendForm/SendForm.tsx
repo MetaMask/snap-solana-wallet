@@ -32,7 +32,7 @@ export const SendForm = ({
     currencySymbol,
     scope,
     balances,
-    rates,
+    tokenRate,
     locale,
   },
 }: SendFormProps) => {
@@ -42,7 +42,7 @@ export const SendForm = ({
 
   const currencyToBalance: Record<SendCurrency, string> = {
     [SendCurrency.FIAT]: formatCurrency(
-      tokenToFiat(nativeBalance, rates?.conversionRate ?? 0),
+      tokenToFiat(nativeBalance, tokenRate.conversionRate),
     ),
     [SendCurrency.SOL]: formatTokens(nativeBalance, currencySymbol),
   };
@@ -72,7 +72,7 @@ export const SendForm = ({
             accounts={accounts}
             selectedAccountId={fromAccountId}
             balances={balances}
-            currencyRate={rates}
+            tokenRate={tokenRate}
             locale={locale}
           />
           <AmountInput

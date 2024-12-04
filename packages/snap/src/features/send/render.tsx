@@ -1,10 +1,10 @@
 import { assert } from 'superstruct';
 
-import { type SnapExecutionContext } from '../..';
 import { createInterface, showDialog } from '../../core/utils/interface';
+import type { SnapExecutionContext } from '../../snap-context';
 import { SendForm } from './components/SendForm/SendForm';
-import { type StartSendTransactionFlowParams } from './types/send';
 import { getSendContext } from './utils/context';
+import type { StartSendTransactionFlowParams } from './views/SendForm/types';
 import { StartSendTransactionFlowParamsStruct } from './views/SendForm/validation';
 
 /**

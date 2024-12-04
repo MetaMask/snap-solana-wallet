@@ -2,10 +2,10 @@ import type { Balance } from '@metamask/keyring-api';
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
 import { SendForm } from '../../../features/send/components/SendForm/SendForm';
-import type { SendContext } from '../../../features/send/types/send';
+import type { SendContext } from '../../../features/send/views/SendForm/types';
+import { priceApiClient, state } from '../../../snap-context';
 import type { SpotPrice } from '../../clients/price-api/types';
 import { Networks, SolanaTokens } from '../../constants/solana';
-import { priceApiClient, state } from '../../services';
 import type { TokenRate } from '../../services/state';
 import logger from '../../utils/logger';
 

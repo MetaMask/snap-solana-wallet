@@ -98,7 +98,7 @@ async function onSwapCurrencyButtonClick({
       : SendCurrency.SOL;
 
   const currentAmount = BigNumber(context.amount ?? '0');
-  const conversionRate = BigNumber(context.rates?.conversionRate ?? '0');
+  const conversionRate = BigNumber(context.tokenRate.conversionRate);
 
   if (context.currencySymbol === SendCurrency.SOL) {
     /**
@@ -144,7 +144,7 @@ async function onMaxAmountButtonClick({
     const amount = BigNumber(
       context.balances[context.fromAccountId]?.amount ?? '0',
     );
-    const conversionRate = BigNumber(context.rates?.conversionRate ?? '0');
+    const conversionRate = BigNumber(context.tokenRate.conversionRate);
 
     context.amount = amount.multipliedBy(conversionRate).toString();
   }

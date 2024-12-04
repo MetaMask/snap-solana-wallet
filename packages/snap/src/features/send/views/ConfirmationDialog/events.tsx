@@ -1,12 +1,12 @@
 import { SolMethod } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
-import type { SnapExecutionContext } from 'src';
 
 import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
+import type { SnapExecutionContext } from '../../../../snap-context';
 import { SendForm } from '../SendForm/SendForm';
 import { SendCurrency } from '../SendForm/types';
 import { TransactionResultDialog } from '../TransactionResultDialog/TransactionResultDialog';
@@ -66,7 +66,7 @@ async function onConfirmButtonClick({
     context.currencySymbol === SendCurrency.SOL
       ? context.amount
       : BigNumber(context.amount)
-          .dividedBy(BigNumber(context.rates?.conversionRate ?? '0'))
+          .dividedBy(BigNumber(context.tokenRate.conversionRate))
           .toString();
 
   try {

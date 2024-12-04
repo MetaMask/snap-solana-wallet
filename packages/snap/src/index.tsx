@@ -11,41 +11,19 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
-import { PriceApiClient } from './core/clients/price-api/price-api-client';
 import { SolanaInternalRpcMethods } from './core/constants/solana';
 import { handlers, OnCronjobMethods } from './core/handlers/onCronjob';
 import { install as installPolyfills } from './core/polyfills';
-import { SolanaConnection } from './core/services/connection';
-import { SolanaKeyring } from './core/services/keyring';
-import { SolanaState } from './core/services/state';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { renderSend } from './features/send/render';
-import type { StartSendTransactionFlowParams } from './features/send/types/send';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/ConfirmationDialog/events';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
+import type { StartSendTransactionFlowParams } from './features/send/views/SendForm/types';
+import snapContext, { keyring } from './snap-context';
 
 installPolyfills();
-
-export type SnapExecutionContext = {
-  connection: SolanaConnection;
-  keyring: SolanaKeyring;
-  priceApiClient: PriceApiClient;
-  state: SolanaState;
-};
-
-const state = new SolanaState();
-const connection = new SolanaConnection();
-const keyring = new SolanaKeyring(connection);
-const priceApiClient = new PriceApiClient();
-
-const snapContext: SnapExecutionContext = {
-  connection,
-  keyring,
-  priceApiClient,
-  state,
-};
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.

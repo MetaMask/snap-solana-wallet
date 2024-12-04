@@ -1,14 +1,12 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Balance } from '@metamask/keyring-api';
 
-import { type SnapExecutionContext } from '../../..';
 import {
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
 } from '../../../core/constants/solana';
-import { state } from '../../../core/services';
 import { getPreferences } from '../../../core/utils/interface';
 import logger from '../../../core/utils/logger';
+import { state, type SnapExecutionContext } from '../../../snap-context';
 // import { getRatesFromMetamask } from '../../../core/utils/interface';
 import type { SendContext } from '../views/SendForm/types';
 import { SendCurrency } from '../views/SendForm/types';
@@ -58,7 +56,7 @@ export async function getSendContext(
     );
 
     // getRatesFromMetamask(SendCurrency.SOL),
-    // TODO: Remove this mock data when the rates are available to fetch.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const tokenRate = stateValue.tokenRates[SendCurrency.SOL]!;
 
     return {
@@ -72,10 +70,6 @@ export async function getSendContext(
       validation: context.validation ?? {},
       balances,
       tokenRate,
-      maxBalance: context?.maxBalance ?? false,
-      canReview: context?.canReview ?? false,
-      clearToField: context?.clearToField ?? false,
-      showClearButton: context?.showClearButton ?? false,
       locale: preferences.locale,
       ...(context ?? {}),
     };

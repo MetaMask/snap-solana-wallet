@@ -1,8 +1,8 @@
 import type { Balance, CaipAssetType } from '@metamask/keyring-api';
-import type { GetCurrencyRateResult } from '@metamask/snaps-sdk';
 
 import type { SolanaCaip2Networks } from '../../../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../../../core/services/keyring';
+import type { TokenRate } from '../../../../core/services/state';
 import type { FormFieldError } from '../../../../core/types/error';
 import type { FormState } from '../../../../core/types/form';
 
@@ -40,7 +40,7 @@ export type SendContext = {
   validation: Partial<Record<SendFormNames, FormFieldError>>;
   currencySymbol: SendCurrency;
   balances: Record<CaipAssetType, Balance>;
-  rates: GetCurrencyRateResult;
+  tokenRate: TokenRate;
   locale: 'en';
 };
 
