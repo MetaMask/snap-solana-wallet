@@ -47,7 +47,7 @@ yarn start
 ```
 
 > [!NOTE]  
-> This will start both the snap and the dapp
+> This will start both the snap and the dapp:
 >
 > - Snap server and debug page: http://localhost:8080/
 > - Example UI dapp: http://localhost:3000/
