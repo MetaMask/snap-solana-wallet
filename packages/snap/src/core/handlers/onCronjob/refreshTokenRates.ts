@@ -1,7 +1,7 @@
 import type { Balance } from '@metamask/keyring-api';
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import { SendForm } from '../../../features/send/components/SendForm/SendForm';
+import { SendForm } from '../../../features/send/views/SendForm/SendForm';
 import type { SendContext } from '../../../features/send/views/SendForm/types';
 import { priceApiClient, state } from '../../../snap-context';
 import type { SpotPrice } from '../../clients/price-api/types';
@@ -16,7 +16,6 @@ export const refreshTokenRates: OnCronjobHandler = async () => {
     const tokenRates: Record<string, TokenRate> = {};
 
     const stateValue = await state.get();
-    console.log('📍', 'stateValue', stateValue);
 
     const tokenSymbolsFromRatesInState = Object.keys(
       stateValue?.tokenRates ?? {},
@@ -29,8 +28,6 @@ export const refreshTokenRates: OnCronjobHandler = async () => {
 
     // If the send form interface exists, we will also refresh the rates from the balances listed in the ui context.
     try {
-      console.log('🍗', 'sendFormInterfaceId', sendFormInterfaceId);
-
       if (!sendFormInterfaceId) {
         throw new Error(
           'Tried to refresh currency rates but could not find interface id of the send form.',
@@ -53,28 +50,16 @@ export const refreshTokenRates: OnCronjobHandler = async () => {
       logger.info({ error }, '[refreshTokenRates] Cronjob failed');
     }
 
-    console.log(
-      '💹',
-      'tokenSymbolsFromRatesInState',
-      tokenSymbolsFromRatesInState,
-    );
-    console.log('💹', 'tokenSymbolsFromUiContext', tokenSymbolsFromUiContext);
-
     // All unique currencies for which we will fetch the spot prices.
     const allTokenSymbols = new Set([
       ...tokenSymbolsFromRatesInState,
       ...tokenSymbolsFromUiContext,
     ]);
 
-    console.log('💹', 'allTokenSymbols', allTokenSymbols);
-
     // Now we will fetch the spot prices for all the rates we have.
     const promises = Array.from(allTokenSymbols).map(async (tokenSymbol) => {
-      console.log('💹', 'tokenSymbol', tokenSymbol);
-
       // TODO: For now, we read token info from the constants. Later, we will need to read it from the token metadata.
       const tokenInfo = SolanaTokens[tokenSymbol as keyof typeof SolanaTokens];
-      console.log('💹', 'tokenInfo', tokenInfo);
 
       const spotPrice = await priceApiClient
         .getSpotPrice(Networks.Mainnet.id, tokenInfo.address)
@@ -113,8 +98,6 @@ export const refreshTokenRates: OnCronjobHandler = async () => {
           usdConversionRate: 9999, // TODO: Implement this
         };
       });
-
-    console.log('🔑', 'tokenRates', tokenRates);
 
     await state.set({
       ...stateValue,

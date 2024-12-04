@@ -77,7 +77,7 @@ export type TokenInfo = {
   symbol: string;
   caip19Id: SolanaCaip19Tokens;
   address: string;
-  decimals: number; // Adding decimals is usually important
+  decimals: number;
   networks: SolanaCaip2Networks[];
 };
 
