@@ -73,12 +73,12 @@ export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',
 }
 
+// TODO: What do we track here?
 export type TokenInfo = {
   symbol: string;
   caip19Id: SolanaCaip19Tokens;
   address: string;
   decimals: number;
-  networks: SolanaCaip2Networks[];
 };
 
 export const SolanaTokens = {
@@ -87,11 +87,5 @@ export const SolanaTokens = {
     caip19Id: SolanaCaip19Tokens.SOL,
     address: 'So11111111111111111111111111111111111111112',
     decimals: 9,
-    networks: [
-      SolanaCaip2Networks.Mainnet,
-      SolanaCaip2Networks.Devnet,
-      SolanaCaip2Networks.Testnet,
-      SolanaCaip2Networks.Localnet,
-    ],
   },
 } as const satisfies Record<string, TokenInfo>;

@@ -19,7 +19,10 @@ export async function renderSend(
 ) {
   assert(params, StartSendTransactionFlowParamsStruct);
 
-  const { state } = snapContext;
+  const { state, tokenRatesController } = snapContext;
+
+  // TODO: Do we do this? 🤔
+  await tokenRatesController.refreshTokenRates();
 
   const context = await getSendContext(
     {
@@ -38,7 +41,7 @@ export async function renderSend(
       ..._state,
       mapInterfaceNameToId: {
         ...(_state?.mapInterfaceNameToId ?? {}),
-        [SendForm.name]: id,
+        'send-form': id, // TODO: Static key? Enum?
       },
     };
   });
