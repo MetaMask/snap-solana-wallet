@@ -4442,16 +4442,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-sdk@npm:^6.10.0, @metamask/snaps-sdk@npm:^6.11.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.7.0, @metamask/snaps-sdk@npm:^6.9.0":
-  version: 6.11.0
-  resolution: "@metamask/snaps-sdk@npm:6.11.0"
+"@metamask/snaps-sdk@npm:^6.10.0, @metamask/snaps-sdk@npm:^6.11.0, @metamask/snaps-sdk@npm:^6.12.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.7.0, @metamask/snaps-sdk@npm:^6.9.0":
+  version: 6.12.0
+  resolution: "@metamask/snaps-sdk@npm:6.12.0"
   dependencies:
     "@metamask/key-tree": ^9.1.2
     "@metamask/providers": ^18.1.1
     "@metamask/rpc-errors": ^7.0.1
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^10.0.0
-  checksum: 3e7d04459ae06d822a389c168a740bacb9f59632e45160907831c9a9c9cf2bf733d7a56d39310b6749959dd90289d95d145efb6616ceb3394c2ddd5f53f60136
+  checksum: 878dde330e161ee1eaa01a87899e9e1ea8c88561bfd20bc827c337271baf2748d9bdbad53e1eddf210325e9c8187f4585798118995fa725b1b8d8c4f4c53d821
   languageName: node
   linkType: hard
 
@@ -4596,7 +4596,7 @@ __metadata:
     "@metamask/keyring-api": ^11.0.0
     "@metamask/snaps-cli": ^6.2.1
     "@metamask/snaps-jest": 8.7.1
-    "@metamask/snaps-sdk": ^6.11.0
+    "@metamask/snaps-sdk": ^6.12.0
     "@metamask/utils": ^11.0.0
     "@noble/ed25519": ^2.1.0
     "@solana-program/system": ^0.6.2
