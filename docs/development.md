@@ -4,12 +4,12 @@
 
 To start local development using the extension, you can follow these steps:
 
-1. Run `yarn start` from the root of this project. It will start the snap at `http://localhost:8080` and the site dapp at `http://localhost:3000`.
-2. Open the [MetaMask extension](https://github.com/MetaMask/metamask-extension) codebase and point the `SOLANA_WALLET_SNAP_ID` in `shared/lib/accounts/solana-wallet-snap.ts` to `http://localhost:8080`. This ensures that all requests will go to your local snap.
-3. Run MetaMask Flask locally from the extension codebase with `yarn start:flask`, you can check the [README](https://github.com/MetaMask/metamask-extension?tab=readme-ov-file#building-on-your-local-machine) for more details.
-
-> [!NOTE]  
-> For both repositories, always run `nvm use` and `yarn install` before starting.
+1. `nvm use`
+2. `yarn install`
+3. (Can solve React issues) Run `yarn dedupe @metamask/snaps-sdk`
+4. `yarn start` from the root of this project. It will start the snap at `http://localhost:8080` and the site dapp at `http://localhost:3000`.
+5. Open the [MetaMask extension](https://github.com/MetaMask/metamask-extension) codebase and point the `SOLANA_WALLET_SNAP_ID` in `shared/lib/accounts/solana-wallet-snap.ts` to `http://localhost:8080`. This ensures that all requests will go to your local snap.
+6. Run MetaMask Flask locally from the extension codebase with `yarn start:flask`, you can check the [README](https://github.com/MetaMask/metamask-extension?tab=readme-ov-file#building-on-your-local-machine) for more details.
 
 ## Build
 
