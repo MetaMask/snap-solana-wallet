@@ -1,6 +1,22 @@
-import { InvalidParamsError, SnapError } from '@metamask/snaps-sdk';
+/* eslint-disable @typescript-eslint/no-throw-literal */
+import {
+  InvalidParamsError,
+  SnapError,
+  UnauthorizedError,
+} from '@metamask/snaps-sdk';
 import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
+
+import { originPermissions } from '../../permissions';
+
+export const validateOrigin = (origin: string, method: string): void => {
+  if (!origin) {
+    throw new UnauthorizedError('Origin not found');
+  }
+  if (!originPermissions.get(origin)?.has(method)) {
+    throw new UnauthorizedError('Permission denied');
+  }
+};
 
 /**
  * Validates that the request parameters conform to the expected structure defined by the provided struct.

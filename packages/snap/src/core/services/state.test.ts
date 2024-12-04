@@ -5,7 +5,8 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
 } from '../test/mocks/solana-keyring-accounts';
-import { SolanaState } from './state';
+import type { StateValue } from './state';
+import { DEFAULT_STATE, SolanaState } from './state';
 
 const snap = {
   request: jest.fn(),
@@ -26,7 +27,7 @@ describe('SolanaState', () => {
   });
 
   it('gets the state', async () => {
-    const mockState = { wallets: [] };
+    const mockState = DEFAULT_STATE;
     snap.request.mockResolvedValue(mockState);
 
     const state = await solanaState.get();
@@ -38,12 +39,21 @@ describe('SolanaState', () => {
     expect(state).toStrictEqual(mockState);
   });
 
+  it('gets the default state if the snap state is empty', async () => {
+    const mockState = {};
+    snap.request.mockResolvedValue(mockState);
+
+    const state = await solanaState.get();
+
+    expect(state).toStrictEqual(DEFAULT_STATE);
+  });
+
   it('sets the state', async () => {
     const newState = {
       keyringAccounts: {
         '0': MOCK_SOLANA_KEYRING_ACCOUNT_0,
       },
-    };
+    } as unknown as StateValue;
 
     await solanaState.set(newState);
 
@@ -70,12 +80,15 @@ describe('SolanaState', () => {
     };
     snap.request.mockResolvedValueOnce(initialState);
 
-    await solanaState.update((state) => ({
-      keyringAccounts: {
-        ...(state?.keyringAccounts ?? {}),
-        '2': MOCK_SOLANA_KEYRING_ACCOUNT_2,
-      },
-    }));
+    await solanaState.update(
+      (state) =>
+        ({
+          keyringAccounts: {
+            ...(state?.keyringAccounts ?? {}),
+            '2': MOCK_SOLANA_KEYRING_ACCOUNT_2,
+          },
+        } as unknown as StateValue),
+    );
 
     expect(snap.request).toHaveBeenCalledWith({
       method: 'snap_manageState',

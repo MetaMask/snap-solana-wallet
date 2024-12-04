@@ -1,8 +1,7 @@
 /* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Networks = {
+export const Networks = {
   Mainnet: {
     id: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     cluster: 'Mainnet',
