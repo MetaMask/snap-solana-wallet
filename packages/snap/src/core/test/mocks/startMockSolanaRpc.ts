@@ -1,20 +1,13 @@
 /* eslint-disable consistent-return */
+import type { Json } from '@metamask/utils';
 import express from 'express';
 
 import logger from '../../utils/logger';
 import { Stack } from '../../utils/stack';
 
-type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
-
 export type MockedResolvedResult = {
   method: string;
-  result: JsonValue;
+  result: Json;
 };
 
 export type MockedRejectedError = {

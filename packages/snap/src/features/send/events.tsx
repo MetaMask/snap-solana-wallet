@@ -1,4 +1,4 @@
-import { type UserInputEvent, UserInputEventType } from '@metamask/snaps-sdk';
+import { UserInputEventType, type UserInputEvent } from '@metamask/snaps-sdk';
 
 import {
   getInterfaceState,
@@ -12,6 +12,7 @@ import { SendCurrency, type SendContext, type SendState } from './types/send';
 import { validateBalance } from './utils/balance';
 import { getSendContext } from './utils/context';
 import { validation } from './utils/validation';
+
 /**
  * Checks if the given event is a send event.
  *

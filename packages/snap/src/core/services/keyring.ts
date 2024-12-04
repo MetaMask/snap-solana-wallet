@@ -122,8 +122,7 @@ export class SolanaKeyring implements Keyring {
       };
 
       logger.log(
-        { keyringAccount },
-        `New keyring account object created, sending it to the extension...`,
+        'New keyring account object created, sending it to the extension...',
       );
 
       await this.#emitEvent(KeyringEvent.AccountCreated, {
@@ -154,8 +153,6 @@ export class SolanaKeyring implements Keyring {
           },
         };
       });
-
-      logger.log({ keyringAccount }, `State updated with new keyring account`);
 
       return keyringAccount;
     } catch (error: any) {

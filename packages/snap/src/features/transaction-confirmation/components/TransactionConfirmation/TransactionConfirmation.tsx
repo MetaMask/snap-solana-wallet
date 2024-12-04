@@ -1,3 +1,4 @@
+import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 import {
   Address,
   Box,
@@ -9,8 +10,6 @@ import {
   Link,
   Row,
   Section,
-  type SnapComponent,
-  Text,
   Value,
 } from '@metamask/snaps-sdk/jsx';
 
