@@ -132,3 +132,5 @@ export async function getRateFromMetamask(
     },
   });
 }
+
+export const SEND_FORM_INTERFACE_NAME = 'send-form';

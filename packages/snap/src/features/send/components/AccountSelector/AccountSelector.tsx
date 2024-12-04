@@ -10,7 +10,6 @@ import {
 
 import type { SolanaCaip2Networks } from '../../../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../../../core/services/keyring';
-import type { TokenRate } from '../../../../core/services/state';
 import { addressToCaip10 } from '../../../../core/utils/address-to-caip10';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
@@ -25,7 +24,7 @@ type AccountSelectorProps = {
   scope: SolanaCaip2Networks;
   accounts: SolanaKeyringAccount[];
   balances: Record<string, Balance>;
-  tokenRate: TokenRate;
+  price: number;
   selectedAccountId: string;
   locale: Locale;
   error?: string;
@@ -34,7 +33,7 @@ type AccountSelectorProps = {
 export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
   accounts,
   balances,
-  tokenRate,
+  price,
   name,
   scope,
   selectedAccountId,
@@ -56,10 +55,7 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
                   balances[account.id]?.unit ?? SendCurrency.SOL,
                 )}
                 extra={formatCurrency(
-                  tokenToFiat(
-                    balances[account.id]?.amount ?? '0',
-                    tokenRate.conversionRate,
-                  ),
+                  tokenToFiat(balances[account.id]?.amount ?? '0', price),
                 )}
                 description={truncateAddress(account.address)}
                 title={

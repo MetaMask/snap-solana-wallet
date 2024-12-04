@@ -1,6 +1,10 @@
 import { assert } from 'superstruct';
 
-import { createInterface, showDialog } from '../../core/utils/interface';
+import {
+  createInterface,
+  SEND_FORM_INTERFACE_NAME,
+  showDialog,
+} from '../../core/utils/interface';
 import type { SnapExecutionContext } from '../../snap-context';
 import { getSendContext } from './utils/context';
 import { SendForm } from './views/SendForm/SendForm';
@@ -19,10 +23,9 @@ export async function renderSend(
 ) {
   assert(params, StartSendTransactionFlowParamsStruct);
 
-  const { state, tokenRatesController } = snapContext;
+  const { state, tokenPricesService } = snapContext;
 
-  // TODO: Do we do this? 🤔
-  await tokenRatesController.refreshTokenRates();
+  await tokenPricesService.refreshPrices();
 
   const context = await getSendContext(
     {
@@ -41,7 +44,7 @@ export async function renderSend(
       ..._state,
       mapInterfaceNameToId: {
         ...(_state?.mapInterfaceNameToId ?? {}),
-        'send-form': id, // TODO: Static key? Enum?
+        [SEND_FORM_INTERFACE_NAME]: id,
       },
     };
   });

@@ -1,14 +1,15 @@
-import type { Balance } from '@metamask/keyring-api';
 import type { SnapsProvider } from '@metamask/snaps-sdk';
 
 import type { SendContext } from '../../features/send/views/SendForm/types';
 import type { PriceApiClient } from '../clients/price-api/price-api-client';
 import type { SpotPrice } from '../clients/price-api/types';
+import type { SolanaCaip19Tokens } from '../constants/solana';
 import { Networks, SolanaTokens } from '../constants/solana';
+import { SEND_FORM_INTERFACE_NAME } from '../utils/interface';
 import type { ILogger } from '../utils/logger';
-import type { SolanaState } from './state';
+import type { SolanaState, TokenPrice } from './state';
 
-export class TokenRatesService {
+export class TokenPricesService {
   readonly #priceApiClient: PriceApiClient;
 
   readonly #snap: SnapsProvider;
@@ -29,17 +30,26 @@ export class TokenRatesService {
     this.#logger = _logger;
   }
 
-  async refreshTokenRates() {
-    this.#logger.info('💹 Refreshing token rates');
+  /**
+   * Refreshes the prices of the tokens present in the state and the UI context,
+   * then stores them in the state.
+   *
+   * @returns An object containing the updated token prices and the interface id of the send form, if it exists.
+   */
+  async refreshPrices(): Promise<{
+    tokenPrices: Record<SolanaCaip19Tokens, TokenPrice>;
+    sendFormInterfaceId: string | undefined;
+  }> {
+    this.#logger.info('💹 Refreshing token prices');
 
     const stateValue = await this.#state.get();
-    const { tokenRates } = stateValue;
+    const { tokenPrices } = stateValue;
 
-    const tokenSymbolsFromRatesInState = Object.keys(tokenRates);
+    const caip19IdsFromPricesInState = Object.keys(tokenPrices);
+    const caip19IdsFromUiContext = [];
 
-    const tokenSymbolsFromUiContext = [];
-
-    const sendFormInterfaceId = stateValue?.mapInterfaceNameToId?.['send-form'];
+    const sendFormInterfaceId =
+      stateValue?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
 
     // If the send form interface exists, we will also refresh the rates from the balances listed in the ui context.
     // We gracefully handle the case where the send form interface does not exist because it's a normal scenario.
@@ -59,9 +69,7 @@ export class TokenRatesService {
 
       const { balances } = context as SendContext;
 
-      tokenSymbolsFromUiContext.push(
-        ...Object.values(balances).map((balance: Balance) => balance.unit),
-      );
+      caip19IdsFromUiContext.push(...Object.keys(balances));
     } catch (error) {
       this.#logger.info(
         { error },
@@ -70,15 +78,22 @@ export class TokenRatesService {
     }
 
     // All unique token symbols for which we will fetch the spot prices.
-    const allTokenSymbols = new Set([
-      ...tokenSymbolsFromRatesInState,
-      ...tokenSymbolsFromUiContext,
+    const allUniqueCaip19Ids = new Set([
+      ...caip19IdsFromPricesInState,
+      ...caip19IdsFromUiContext,
     ]);
 
     // Now we will fetch the spot prices for all the rates we have.
-    const promises = Array.from(allTokenSymbols).map(async (tokenSymbol) => {
+    const promises = Array.from(allUniqueCaip19Ids).map(async (caip19Id) => {
       // TODO: For now, we read token info from the constants. Later, we will need to read it from the token metadata.
-      const tokenInfo = SolanaTokens[tokenSymbol as keyof typeof SolanaTokens];
+      const tokenInfo = SolanaTokens[caip19Id as SolanaCaip19Tokens];
+
+      if (!tokenInfo) {
+        return {
+          caip19Id,
+          spotPrice: undefined,
+        };
+      }
 
       const spotPrice = await this.#priceApiClient
         .getSpotPrice(Networks.Mainnet.id, tokenInfo.address)
@@ -86,12 +101,13 @@ export class TokenRatesService {
         .catch((error) => {
           this.#logger.info(
             { error },
-            `Could not fetch spot price for token ${tokenSymbol}`,
+            `Could not fetch spot price for token ${caip19Id}`,
           );
           return undefined;
         });
+
       return {
-        tokenSymbol,
+        caip19Id,
         spotPrice,
       };
     });
@@ -104,23 +120,28 @@ export class TokenRatesService {
        * We filter out currencies for which we could not fetch the spot price.
        * This is to ensure that we do not mess up the state for currencies that possibly had a correct spot price before.
        */
-      .filter((item): item is { tokenSymbol: string; spotPrice: SpotPrice } =>
-        Boolean(item.spotPrice),
+      .filter(
+        (
+          item,
+        ): item is { caip19Id: SolanaCaip19Tokens; spotPrice: SpotPrice } =>
+          Boolean(item.spotPrice),
       )
-      .forEach(({ tokenSymbol, spotPrice }) => {
-        tokenRates[tokenSymbol] = {
+      .forEach(({ caip19Id, spotPrice }) => {
+        tokenPrices[caip19Id] = {
           // TODO: For now, we read token info from the constants. Later, we will need to read it from the token metadata.
-          ...SolanaTokens[tokenSymbol as keyof typeof SolanaTokens],
-          currency: tokenSymbol,
-          conversionRate: spotPrice.price,
-          conversionDate: Date.now(),
-          usdConversionRate: 9999, // TODO: What to do here?
+          ...SolanaTokens[caip19Id],
+          price: spotPrice.price,
         };
       });
 
     await this.#state.set({
       ...stateValue,
-      tokenRates,
+      tokenPrices,
     });
+
+    return {
+      tokenPrices,
+      sendFormInterfaceId,
+    };
   }
 }

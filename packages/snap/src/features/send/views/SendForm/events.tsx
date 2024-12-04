@@ -98,20 +98,20 @@ async function onSwapCurrencyButtonClick({
       : SendCurrency.SOL;
 
   const currentAmount = BigNumber(context.amount ?? '0');
-  const conversionRate = BigNumber(context.tokenRate.conversionRate);
+  const price = BigNumber(context.tokenRate.price);
 
   if (context.currencySymbol === SendCurrency.SOL) {
     /**
      * If we switched to SOL, divide by currency rate
      */
-    context.amount = currentAmount.dividedBy(conversionRate).toString();
+    context.amount = currentAmount.dividedBy(price).toString();
   }
 
   /**
    * If the currency is USD, adjust the amount
    */
   if (context.currencySymbol === SendCurrency.FIAT) {
-    context.amount = currentAmount.multipliedBy(conversionRate).toString();
+    context.amount = currentAmount.multipliedBy(price).toString();
   }
 
   await updateInterface(id, <SendForm context={context} />, context);
@@ -144,9 +144,9 @@ async function onMaxAmountButtonClick({
     const amount = BigNumber(
       context.balances[context.fromAccountId]?.amount ?? '0',
     );
-    const conversionRate = BigNumber(context.tokenRate.conversionRate);
+    const price = BigNumber(context.tokenRate.price);
 
-    context.amount = amount.multipliedBy(conversionRate).toString();
+    context.amount = amount.multipliedBy(price).toString();
   }
 
   context.validation[SendFormNames.AmountInput] = validateField<SendFormNames>(

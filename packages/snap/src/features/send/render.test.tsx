@@ -34,15 +34,14 @@ const mockContext: SendContext = {
       unit: SendCurrency.SOL,
     },
   },
-  tokenRate: {
-    symbol: 'SOL',
-    caip19Id: SolanaCaip19Tokens.SOL,
-    address: 'So11111111111111111111111111111111111111112',
-    decimals: 9,
-    conversionDate: Date.now(),
-    conversionRate: 261,
-    currency: SendCurrency.FIAT,
-    usdConversionRate: 1,
+  tokenPrices: {
+    [SolanaCaip19Tokens.SOL]: {
+      symbol: 'SOL',
+      caip19Id: SolanaCaip19Tokens.SOL,
+      address: 'So11111111111111111111111111111111111111112',
+      decimals: 9,
+      price: 261,
+    },
   },
   locale: 'en',
 };

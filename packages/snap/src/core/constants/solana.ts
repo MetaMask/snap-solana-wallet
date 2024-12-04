@@ -73,19 +73,18 @@ export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',
 }
 
-// TODO: What do we track here?
 export type TokenInfo = {
   symbol: string;
   caip19Id: SolanaCaip19Tokens;
   address: string;
-  decimals: number;
+  decimals: number; // TODO: Decide if we keep this
 };
 
 export const SolanaTokens = {
-  SOL: {
+  [SolanaCaip19Tokens.SOL]: {
     symbol: 'SOL',
     caip19Id: SolanaCaip19Tokens.SOL,
     address: 'So11111111111111111111111111111111111111112',
     decimals: 9,
   },
-} as const satisfies Record<string, TokenInfo>;
+} as const satisfies Record<SolanaCaip19Tokens, TokenInfo>;

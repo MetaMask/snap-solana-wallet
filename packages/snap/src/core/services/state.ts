@@ -1,34 +1,34 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { CurrencyRate, Json } from '@metamask/snaps-sdk';
+import type { Json } from '@metamask/snaps-sdk';
 
 import type { TokenInfo } from '../constants/solana';
-import { SOL_SYMBOL, SolanaTokens } from '../constants/solana';
+import { SolanaCaip19Tokens, SolanaTokens } from '../constants/solana';
 import { safeMerge } from '../utils/safe-merge';
 import type { SolanaKeyringAccount } from './keyring';
 
-export type TokenRate = TokenInfo & CurrencyRate;
+export type TokenPrice = TokenInfo & {
+  price: number;
+};
 
 export type StateValue = {
   keyringAccounts?: Record<string, SolanaKeyringAccount>;
   mapInterfaceNameToId: Record<string, string>;
-  tokenRates: Record<string, TokenRate>; // Maps currency symbols to their currency rate
+  tokenPrices: Record<SolanaCaip19Tokens, TokenPrice>; // Maps currency caip19 id to their currency rate
 };
 
-const NULL_SOL_RATE: TokenRate = {
-  ...SolanaTokens.SOL,
-  currency: SolanaTokens.SOL.symbol,
-  conversionRate: 0,
-  conversionDate: 0,
+const NULL_SOL_PRICE: TokenPrice = {
+  ...SolanaTokens[SolanaCaip19Tokens.SOL],
+  price: 0,
 };
 
-const DEFAULT_TOKEN_RATES: Record<string, TokenRate> = {
-  [SOL_SYMBOL]: NULL_SOL_RATE,
+const DEFAULT_TOKEN_PRICES: Record<SolanaCaip19Tokens, TokenPrice> = {
+  [SolanaCaip19Tokens.SOL]: NULL_SOL_PRICE,
 };
 
 export const DEFAULT_STATE: StateValue = {
   keyringAccounts: {},
   mapInterfaceNameToId: {},
-  tokenRates: DEFAULT_TOKEN_RATES,
+  tokenPrices: DEFAULT_TOKEN_PRICES,
 };
 
 export class SolanaState {
@@ -41,7 +41,7 @@ export class SolanaState {
     });
 
     // Merge the default state with the underlying snap state
-    // to ensure that we always have default values and avoid null checks everywhere.
+    // to ensure that we always have default values. It lets us avoid a ton of null checks everywhere.
     return safeMerge(DEFAULT_STATE, state ?? {});
   }
 

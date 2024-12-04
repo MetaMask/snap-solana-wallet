@@ -2,7 +2,11 @@
 import { SolMethod } from '@metamask/keyring-api';
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
 
-import { SolanaCaip19Tokens, SolanaCaip2Networks } from '../constants/solana';
+import {
+  SolanaCaip19Tokens,
+  SolanaCaip2Networks,
+  SolanaTokens,
+} from '../constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -53,7 +57,12 @@ describe('SolanaKeyring', () => {
         {},
       ),
       mapInterfaceNameToId: {},
-      tokenRates: {},
+      tokenPrices: {
+        [SolanaCaip19Tokens.SOL]: {
+          ...SolanaTokens[SolanaCaip19Tokens.SOL],
+          price: 0,
+        },
+      },
     };
 
     /**
@@ -150,7 +159,12 @@ describe('SolanaKeyring', () => {
       mockStateValue = {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
-        tokenRates: {},
+        tokenPrices: {
+          [SolanaCaip19Tokens.SOL]: {
+            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+            price: 0,
+          },
+        },
       };
       const firstAccount = await keyring.createAccount();
       const secondAccount = await keyring.createAccount();
@@ -174,7 +188,12 @@ describe('SolanaKeyring', () => {
       mockStateValue = {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
-        tokenRates: {},
+        tokenPrices: {
+          [SolanaCaip19Tokens.SOL]: {
+            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+            price: 0,
+          },
+        },
       };
 
       const firstAccount = await keyring.createAccount();

@@ -7,7 +7,6 @@ import {
 import { getPreferences } from '../../../core/utils/interface';
 import logger from '../../../core/utils/logger';
 import { state, type SnapExecutionContext } from '../../../snap-context';
-// import { getRatesFromMetamask } from '../../../core/utils/interface';
 import type { SendContext } from '../views/SendForm/types';
 import { SendCurrency } from '../views/SendForm/types';
 
@@ -55,10 +54,6 @@ export async function getSendContext(
       {},
     );
 
-    // getRatesFromMetamask(SendCurrency.SOL),
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const tokenRate = stateValue.tokenRates[SendCurrency.SOL]!;
-
     return {
       scope,
       fromAccountId: context?.fromAccountId ?? accounts[0]?.id ?? '',
@@ -69,7 +64,7 @@ export async function getSendContext(
       currencySymbol: context?.currencySymbol ?? SendCurrency.SOL,
       validation: context.validation ?? {},
       balances,
-      tokenRate,
+      tokenPrices: stateValue.tokenPrices,
       locale: preferences.locale,
       ...(context ?? {}),
     };

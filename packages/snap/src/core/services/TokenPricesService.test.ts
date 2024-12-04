@@ -4,12 +4,12 @@ import type { SnapsProvider } from '@metamask/snaps-sdk';
 import type { PriceApiClient } from '../clients/price-api/price-api-client';
 import { SolanaCaip19Tokens, SolanaTokens } from '../constants/solana';
 import type { ILogger } from '../utils/logger';
-import type { SolanaState } from './state';
-import { TokenRatesService } from './TokenRatesService';
+import type { SolanaState, StateValue } from './state';
+import { TokenPricesService } from './TokenPricesService';
 
-describe('TokenRatesController', () => {
-  describe('refreshTokenRates', () => {
-    let tokenRatesController: TokenRatesService;
+describe('TokenPricesService', () => {
+  describe('refreshPrices', () => {
+    let tokenPricesService: TokenPricesService;
     let mockPriceApiClient: PriceApiClient;
     let mockSnap: SnapsProvider;
     let mockState: SolanaState;
@@ -34,7 +34,7 @@ describe('TokenRatesController', () => {
         error: jest.fn(),
       } as unknown as ILogger;
 
-      tokenRatesController = new TokenRatesService(
+      tokenPricesService = new TokenPricesService(
         mockPriceApiClient,
         mockSnap,
         mockState,
@@ -47,12 +47,11 @@ describe('TokenRatesController', () => {
       const mockStateValue = {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
-        tokenRates: {
-          SOL: {
-            ...SolanaTokens.SOL,
+        tokenPrices: {
+          [SolanaCaip19Tokens.SOL]: {
+            ...SolanaTokens[SolanaCaip19Tokens.SOL],
             currency: 'SOL',
-            conversionRate: 0,
-            conversionDate: 0,
+            price: 0,
           },
         },
       };
@@ -67,16 +66,14 @@ describe('TokenRatesController', () => {
         .spyOn(mockPriceApiClient, 'getSpotPrice')
         .mockResolvedValue(mockSpotPrice);
 
-      await tokenRatesController.refreshTokenRates();
+      await tokenPricesService.refreshPrices();
 
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
-        tokenRates: {
-          SOL: {
-            ...mockStateValue.tokenRates.SOL,
-            conversionRate: 1.23,
-            conversionDate: expect.any(Number),
-            usdConversionRate: 9999,
+        tokenPrices: {
+          [SolanaCaip19Tokens.SOL]: {
+            ...mockStateValue.tokenPrices[SolanaCaip19Tokens.SOL],
+            price: 1.23,
           },
         },
       });
@@ -89,15 +86,14 @@ describe('TokenRatesController', () => {
         mapInterfaceNameToId: {
           'send-form': 'mock-interface-id',
         },
-        tokenRates: {},
-      };
+        tokenPrices: {},
+      } as unknown as StateValue;
       jest.spyOn(mockState, 'get').mockResolvedValue(mockStateValue);
 
       // Mock no interface to get balances from
       jest.spyOn(mockSnap, 'request').mockResolvedValueOnce({
         balances: {
-          'account-id-0': { amount: '1', unit: 'SOL' },
-          'account-id-1': { amount: '2', unit: 'SOL' },
+          [SolanaCaip19Tokens.SOL]: { amount: '1', unit: 'SOL' },
         },
       });
 
@@ -107,72 +103,14 @@ describe('TokenRatesController', () => {
         .spyOn(mockPriceApiClient, 'getSpotPrice')
         .mockResolvedValue(mockSpotPrice);
 
-      await tokenRatesController.refreshTokenRates();
+      await tokenPricesService.refreshPrices();
 
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
-        tokenRates: {
-          SOL: {
-            ...SolanaTokens.SOL,
-            currency: 'SOL',
-            conversionRate: 1.23,
-            conversionDate: expect.any(Number),
-            usdConversionRate: 9999,
-          },
-        },
-      });
-    });
-
-    it.skip('should fetch rates for both state tokens and UI context tokens', async () => {
-      // Mock state with existing token rate
-      const mockStateValue = {
-        keyringAccounts: {},
-        mapInterfaceNameToId: {
-          'send-form': 'mock-interface-id',
-        },
-        tokenRates: {
-          SOL: {
-            ...SolanaTokens.SOL,
-            currency: 'SOL',
-            conversionRate: 1.0,
-            conversionDate: 0,
-          },
-        },
-      };
-      jest.spyOn(mockState, 'get').mockResolvedValue(mockStateValue);
-
-      // Mock UI context with different token
-      jest.spyOn(mockSnap, 'request').mockResolvedValueOnce({
-        balances: {
-          'account-id-0': { amount: '1', unit: 'USDC' },
-        },
-      });
-
-      // Mock price API responses
-      jest
-        .spyOn(mockPriceApiClient, 'getSpotPrice')
-        .mockResolvedValueOnce({ price: 1.23 }) // SOL
-        .mockResolvedValueOnce({ price: 1.0 }); // USDC
-
-      await tokenRatesController.refreshTokenRates();
-
-      // Should update both tokens
-      expect(mockState.set).toHaveBeenCalledWith({
-        ...mockStateValue,
-        tokenRates: {
-          SOL: {
-            ...SolanaTokens.SOL,
-            currency: 'SOL',
-            conversionRate: 1.23,
-            conversionDate: expect.any(Number),
-            usdConversionRate: 9999,
-          },
-          USDC: {
-            ...SolanaTokens.SOL,
-            currency: 'USDC',
-            conversionRate: 1.0,
-            conversionDate: expect.any(Number),
-            usdConversionRate: 9999,
+        tokenPrices: {
+          [SolanaCaip19Tokens.SOL]: {
+            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+            price: 1.23,
           },
         },
       });
@@ -184,12 +122,10 @@ describe('TokenRatesController', () => {
         mapInterfaceNameToId: {
           'send-form': 'mock-interface-id',
         },
-        tokenRates: {
-          SOL: {
-            ...SolanaTokens.SOL,
-            currency: 'SOL',
-            conversionRate: 1.0,
-            conversionDate: 0,
+        tokenPrices: {
+          [SolanaCaip19Tokens.SOL]: {
+            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+            price: 1.0,
           },
         },
       };
@@ -207,14 +143,16 @@ describe('TokenRatesController', () => {
         .spyOn(mockPriceApiClient, 'getSpotPrice')
         .mockResolvedValue(mockSpotPrice);
 
-      await tokenRatesController.refreshTokenRates();
+      await tokenPricesService.refreshPrices();
 
       // Should only call getSpotPrice once for SOL
       expect(getSpotPriceSpy).toHaveBeenCalledTimes(1);
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
-        tokenRates: expect.objectContaining({
-          SOL: expect.objectContaining({ conversionRate: 1.23 }),
+        tokenPrices: expect.objectContaining({
+          [SolanaCaip19Tokens.SOL]: expect.objectContaining({
+            price: 1.23,
+          }),
         }),
       });
     });
@@ -224,15 +162,10 @@ describe('TokenRatesController', () => {
       const mockStateValue = {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
-        tokenRates: {
-          SOL: {
-            symbol: 'SOL',
-            address: 'So11111111111111111111111111111111111111112',
-            caip19Id: SolanaCaip19Tokens.SOL,
-            decimals: 9,
-            currency: 'SOL',
-            conversionRate: 0,
-            conversionDate: 0,
+        tokenPrices: {
+          [SolanaCaip19Tokens.SOL]: {
+            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+            price: 0,
           },
         },
       };
@@ -249,15 +182,14 @@ describe('TokenRatesController', () => {
         .spyOn(mockPriceApiClient, 'getSpotPrice')
         .mockResolvedValue(mockSpotPrice);
 
-      await tokenRatesController.refreshTokenRates();
+      await tokenPricesService.refreshPrices();
 
       // Verify state was still updated with tokens already present in the state
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
-        tokenRates: expect.objectContaining({
-          SOL: expect.objectContaining({
-            conversionRate: 1.23,
-            conversionDate: expect.any(Number),
+        tokenPrices: expect.objectContaining({
+          [SolanaCaip19Tokens.SOL]: expect.objectContaining({
+            price: 1.23,
           }),
         }),
       });
@@ -268,15 +200,10 @@ describe('TokenRatesController', () => {
       const mockStateValue = {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
-        tokenRates: {
-          SOL: {
-            symbol: 'SOL',
-            address: 'So11111111111111111111111111111111111111112',
-            caip19Id: SolanaCaip19Tokens.SOL,
-            decimals: 9,
-            currency: 'SOL',
-            conversionRate: 919565356,
-            conversionDate: 0,
+        tokenPrices: {
+          [SolanaCaip19Tokens.SOL]: {
+            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+            price: 919565356,
           },
         },
       };
@@ -287,7 +214,7 @@ describe('TokenRatesController', () => {
         .spyOn(mockPriceApiClient, 'getSpotPrice')
         .mockRejectedValue(new Error('API Error'));
 
-      await tokenRatesController.refreshTokenRates();
+      await tokenPricesService.refreshPrices();
 
       // Verify state wasn't updated with failed rates
       expect(mockState.set).toHaveBeenCalledWith(mockStateValue);

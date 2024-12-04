@@ -9,6 +9,7 @@ import {
 import { isNullOrUndefined } from '@metamask/utils';
 
 import { Header } from '../../../../core/components/Header/Header';
+import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
 import { i18n } from '../../../../core/utils/i18n';
@@ -32,7 +33,7 @@ export const SendForm = ({
     currencySymbol,
     scope,
     balances,
-    tokenRate,
+    tokenPrices,
     locale,
   },
 }: SendFormProps) => {
@@ -40,10 +41,10 @@ export const SendForm = ({
 
   const nativeBalance = balances[fromAccountId]?.amount ?? '0';
 
+  const { price } = tokenPrices[SolanaCaip19Tokens.SOL];
+
   const currencyToBalance: Record<SendCurrency, string> = {
-    [SendCurrency.FIAT]: formatCurrency(
-      tokenToFiat(nativeBalance, tokenRate.conversionRate),
-    ),
+    [SendCurrency.FIAT]: formatCurrency(tokenToFiat(nativeBalance, price)),
     [SendCurrency.SOL]: formatTokens(nativeBalance, currencySymbol),
   };
 
@@ -72,7 +73,7 @@ export const SendForm = ({
             accounts={accounts}
             selectedAccountId={fromAccountId}
             balances={balances}
-            tokenRate={tokenRate}
+            price={price}
             locale={locale}
           />
           <AmountInput
