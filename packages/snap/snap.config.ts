@@ -2,15 +2,15 @@
 import type { SnapConfig } from '@metamask/snaps-cli';
 import * as dotenv from 'dotenv';
 import { resolve } from 'path';
-import { create, defaulted, object, string } from 'superstruct';
+import { create, object, string } from 'superstruct';
 
 dotenv.config();
 
 const EnvConfigStruct = object({
-  RPC_URL_MAINNET: defaulted(string(), 'https://api.mainnet-beta.solana.com/'),
-  RPC_URL_DEVNET: defaulted(string(), 'https://api.devnet.solana.com/'),
-  RPC_URL_TESTNET: defaulted(string(), 'https://api.testnet.solana.com/'),
-  RPC_URL_LOCALNET: defaulted(string(), 'http://localhost:8899'),
+  RPC_URL_MAINNET: string(),
+  RPC_URL_DEVNET: string(),
+  RPC_URL_TESTNET: string(),
+  RPC_URL_LOCALNET: string(),
 });
 
 // Read and validate environment variables

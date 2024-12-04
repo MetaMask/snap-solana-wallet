@@ -4,7 +4,15 @@
  * @namespace logger
  */
 
-const logger = {
+export type ILogger = {
+  log: (...args: any[]) => void;
+  info: (...args: any[]) => void;
+  warn: (...args: any[]) => void;
+  error: (...args: any[]) => void;
+  debug: (...args: any[]) => void;
+};
+
+const logger: ILogger = {
   log: (...args: any[]) =>
     console.log(
       '[Solana snap]',
