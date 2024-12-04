@@ -18,9 +18,9 @@ import { SolanaKeyring } from './core/services/keyring';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
 import { renderSend } from './features/send/render';
-import { eventHandlers as transactionConfirmationEvents } from './features/send/views/ConfirmationDialog/events';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import type { StartSendTransactionFlowParams } from './features/send/views/SendForm/types';
+import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
 import { originPermissions } from './permissions';
 
 export type SnapExecutionContext = {

@@ -6,7 +6,7 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import { validateField } from '../../../../core/validation/form';
-import { TransactionConfirmation } from '../ConfirmationDialog/ConfirmationDialog';
+import { TransactionConfirmation } from '../TransactionConfirmation/TransactionConfirmation';
 import { SendForm } from './SendForm';
 import { SendCurrency, SendFormNames, type SendContext } from './types';
 import { validation } from './validation';

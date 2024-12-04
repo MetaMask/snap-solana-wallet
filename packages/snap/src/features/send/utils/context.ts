@@ -75,6 +75,7 @@ export async function getSendContext(
       balances,
       rates,
       locale: preferences.locale,
+      transaction: context.transaction ?? null,
       ...(context ?? {}),
     };
   } catch (error: any) {

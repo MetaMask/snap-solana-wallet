@@ -5,6 +5,7 @@ import type { SolanaCaip2Networks } from '../../../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../../../core/services/keyring';
 import type { FormFieldError } from '../../../../core/types/error';
 import type { FormState } from '../../../../core/types/form';
+import type { Locale } from '../../../../core/utils/i18n';
 
 export enum SendFormNames {
   Form = 'send-form',
@@ -30,6 +31,11 @@ export enum SendCurrency {
   FIAT = 'USD',
 }
 
+export type SendTransation = {
+  result: 'success' | 'failure';
+  signature: string | null;
+};
+
 export type SendContext = {
   scope: SolanaCaip2Networks;
   fromAccountId: string;
@@ -41,7 +47,8 @@ export type SendContext = {
   currencySymbol: SendCurrency;
   balances: Record<CaipAssetType, Balance>;
   rates: GetCurrencyRateResult;
-  locale: 'en';
+  locale: Locale;
+  transaction: SendTransation | null;
 };
 
 export type SendState = {

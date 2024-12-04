@@ -40,6 +40,7 @@ const mockContext: SendContext = {
     usdConversionRate: 1,
   },
   locale: 'en',
+  transaction: null,
 };
 
 describe('Send', () => {
