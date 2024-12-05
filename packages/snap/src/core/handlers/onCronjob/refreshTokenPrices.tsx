@@ -4,6 +4,7 @@ import { SendForm } from '../../../features/send/views/SendForm/SendForm';
 import type { SendContext } from '../../../features/send/views/SendForm/types';
 import { state, tokenPricesService } from '../../../snap-context';
 import {
+  getInterfaceContext,
   SEND_FORM_INTERFACE_NAME,
   updateInterface,
 } from '../../utils/interface';
@@ -25,12 +26,7 @@ export const refreshTokenPrices: OnCronjobHandler = async () => {
     try {
       if (sendFormInterfaceId) {
         // Get the current context
-        const interfaceContext = await snap.request({
-          method: 'snap_getInterfaceContext',
-          params: {
-            id: sendFormInterfaceId,
-          },
-        });
+        const interfaceContext = await getInterfaceContext(sendFormInterfaceId);
 
         // Update the current context with the new rates
         const updatedInterfaceContext = {
