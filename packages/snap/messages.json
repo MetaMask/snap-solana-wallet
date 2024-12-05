@@ -16,7 +16,7 @@
   "confirmation.heading": "Sending {amount} {tokenSymbol}",
   "confirmation.subheading": "Review the transaction before proceeding",
   "confirmation.from": "From",
-  "confirmation.amount": "From",
+  "confirmation.amount": "Amount",
   "confirmation.recipient": "Recipient",
   "confirmation.network": "Network",
   "confirmation.transactionSpeed": "Transaction speed",
