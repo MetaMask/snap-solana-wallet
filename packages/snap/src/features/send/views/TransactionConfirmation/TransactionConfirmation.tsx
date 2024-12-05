@@ -80,12 +80,12 @@ const TransactionDetails: SnapComponent<TransactionConfirmationProps> = ({
   const transactionSpeed = '12.8s';
 
   const amountInUserCurrency = formatCurrency(
-    tokenToFiat(amountInSol.toString(), Number(price)),
+    tokenToFiat(amountInSol.toString(), price),
   );
-  const feeInUserCurrency = formatCurrency(tokenToFiat(fee, Number(price)));
+  const feeInUserCurrency = formatCurrency(tokenToFiat(fee, price));
 
   const total = BigNumber(amountInSol).plus(BigNumber(fee)).toString();
-  const totalInUserCurrency = formatCurrency(tokenToFiat(total, Number(price)));
+  const totalInUserCurrency = formatCurrency(tokenToFiat(total, price));
 
   const transactionResultToIcon: Record<SendTransation['result'], string> = {
     success: CheckIcon,
