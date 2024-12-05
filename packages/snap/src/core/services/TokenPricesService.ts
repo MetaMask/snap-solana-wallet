@@ -5,7 +5,6 @@ import type { PriceApiClient } from '../clients/price-api/price-api-client';
 import type { SpotPrice } from '../clients/price-api/types';
 import type { SolanaCaip19Tokens } from '../constants/solana';
 import { Networks, SolanaTokens } from '../constants/solana';
-import { SEND_FORM_INTERFACE_NAME } from '../utils/interface';
 import type { ILogger } from '../utils/logger';
 import type { SolanaState, TokenPrice } from './state';
 
@@ -34,12 +33,12 @@ export class TokenPricesService {
    * Refreshes the prices of the tokens present in the state and the UI context,
    * then stores them in the state.
    *
-   * @returns An object containing the updated token prices and the interface id of the send form, if it exists.
+   * @param sendFormInterfaceId - The interface id of the send form, if it exists.
+   * @returns The updated token prices.
    */
-  async refreshPrices(): Promise<{
-    tokenPrices: Record<SolanaCaip19Tokens, TokenPrice>;
-    sendFormInterfaceId: string | undefined;
-  }> {
+  async refreshPrices(
+    sendFormInterfaceId?: string,
+  ): Promise<Record<SolanaCaip19Tokens, TokenPrice>> {
     this.#logger.info('💹 Refreshing token prices');
 
     const stateValue = await this.#state.get();
@@ -47,9 +46,6 @@ export class TokenPricesService {
 
     const caip19IdsFromPricesInState = Object.keys(tokenPrices);
     const caip19IdsFromUiContext = [];
-
-    const sendFormInterfaceId =
-      stateValue?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
 
     // If the send form interface exists, we will also refresh the rates from the balances listed in the ui context.
     // We gracefully handle the case where the send form interface does not exist because it's a normal scenario.
@@ -139,9 +135,6 @@ export class TokenPricesService {
       tokenPrices,
     });
 
-    return {
-      tokenPrices,
-      sendFormInterfaceId,
-    };
+    return tokenPrices;
   }
 }

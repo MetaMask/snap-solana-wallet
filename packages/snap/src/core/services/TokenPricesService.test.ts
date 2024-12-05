@@ -103,7 +103,7 @@ describe('TokenPricesService', () => {
         .spyOn(mockPriceApiClient, 'getSpotPrice')
         .mockResolvedValue(mockSpotPrice);
 
-      await tokenPricesService.refreshPrices();
+      await tokenPricesService.refreshPrices('mock-interface-id');
 
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
@@ -143,7 +143,7 @@ describe('TokenPricesService', () => {
         .spyOn(mockPriceApiClient, 'getSpotPrice')
         .mockResolvedValue(mockSpotPrice);
 
-      await tokenPricesService.refreshPrices();
+      await tokenPricesService.refreshPrices('mock-interface-id');
 
       // Should only call getSpotPrice once for SOL
       expect(getSpotPriceSpy).toHaveBeenCalledTimes(1);

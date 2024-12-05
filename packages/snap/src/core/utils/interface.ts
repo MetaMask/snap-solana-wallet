@@ -1,7 +1,7 @@
 import type {
   ComponentOrElement,
   DialogResult,
-  GetCurrencyRateResult,
+  GetInterfaceContextResult,
   GetInterfaceStateResult,
   Json,
   ResolveInterfaceResult,
@@ -9,6 +9,8 @@ import type {
 } from '@metamask/snaps-sdk';
 
 import type { Locale } from './i18n';
+
+export const SEND_FORM_INTERFACE_NAME = 'send-form';
 
 /**
  * Creates an interface using the provided UI component and context.
@@ -117,20 +119,18 @@ export async function getPreferences(): Promise<{ locale: Locale }> {
 }
 
 /**
- * Retrieves the currency rates from MetaMask for the specified asset.
+ * Retrieves the context of an interactive interface by its ID.
  *
- * @param currency - The currency for which to retrieve the currency rates.
- * @returns A Promise that resolves to the currency rates.
+ * @param interfaceId - The ID for the interface to retrieve the context.
+ * @returns An object containing the context of the interface.
  */
-export async function getRateFromMetamask(
-  currency: string,
-): Promise<GetCurrencyRateResult> {
+export async function getInterfaceContext(
+  interfaceId: string,
+): Promise<GetInterfaceContextResult> {
   return await snap.request({
-    method: 'snap_getCurrencyRate',
+    method: 'snap_getInterfaceContext',
     params: {
-      currency: currency as any,
+      id: interfaceId,
     },
   });
 }
-
-export const SEND_FORM_INTERFACE_NAME = 'send-form';

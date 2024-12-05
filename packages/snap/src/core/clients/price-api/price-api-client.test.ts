@@ -14,7 +14,7 @@ describe('PriceApiClient', () => {
     client = new PriceApiClient(mockFetch, mockLogger);
   });
 
-  it('should fetch spot price successfully', async () => {
+  it('fetches spot price successfully', async () => {
     const mockResponse: SpotPrice = { price: 100 };
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -29,7 +29,7 @@ describe('PriceApiClient', () => {
     expect(result).toBe(mockResponse);
   });
 
-  it('should log and throw an error if fetch fails', async () => {
+  it('logs and throws an error if fetch fails', async () => {
     const mockError = new Error('Fetch failed');
     mockFetch.mockRejectedValueOnce(mockError);
 
@@ -42,7 +42,7 @@ describe('PriceApiClient', () => {
     );
   });
 
-  it('should throw an error if response is not ok', async () => {
+  it('throws an error if response is not ok', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 404,
@@ -57,7 +57,7 @@ describe('PriceApiClient', () => {
     );
   });
 
-  it('should fetch spot price with custom vsCurrency', async () => {
+  it('fetches spot price with custom vsCurrency', async () => {
     const mockResponse: SpotPrice = { price: 1.5 };
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -72,7 +72,7 @@ describe('PriceApiClient', () => {
     expect(result).toBe(mockResponse);
   });
 
-  it('should handle full SpotPrice response', async () => {
+  it('handles full SpotPrice response', async () => {
     const mockResponse: SpotPrice = {
       price: 100,
       priceChange1d: 5,
@@ -94,7 +94,7 @@ describe('PriceApiClient', () => {
     expect(result.marketCap).toBe(1000000);
   });
 
-  it('should handle malformed JSON response', async () => {
+  it('handles malformed JSON response', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: jest.fn().mockRejectedValueOnce(new Error('Invalid JSON')),
@@ -109,7 +109,7 @@ describe('PriceApiClient', () => {
     );
   });
 
-  it('should handle network timeout', async () => {
+  it('handles network timeout', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network timeout'));
 
     await expect(
