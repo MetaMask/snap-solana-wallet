@@ -66,6 +66,7 @@ export async function getSendContext(
       balances,
       tokenPrices: stateValue.tokenPrices,
       locale: preferences.locale,
+      transaction: context.transaction ?? null,
       ...(context ?? {}),
     };
   } catch (error: any) {

@@ -44,6 +44,7 @@ const mockContext: SendContext = {
     },
   },
   locale: 'en',
+  transaction: null,
 };
 
 describe('Send', () => {

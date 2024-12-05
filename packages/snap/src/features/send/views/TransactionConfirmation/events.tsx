@@ -9,10 +9,11 @@ import logger from '../../../../core/utils/logger';
 import type { SnapExecutionContext } from '../../../../snap-context';
 import { SendForm } from '../SendForm/SendForm';
 import { SendCurrency } from '../SendForm/types';
-import { TransactionResultDialog } from '../TransactionResultDialog/TransactionResultDialog';
-import type { TransactionResultDialogContext } from '../TransactionResultDialog/types';
-import { TransactionConfirmationNames } from './ConfirmationDialog';
-import type { ConfirmationDialogContext } from './types';
+import {
+  TransactionConfirmation,
+  TransactionConfirmationNames,
+} from './TransactionConfirmation';
+import type { TransactionConfirmationContext } from './types';
 
 /**
  * Handles the click event for the back button.
@@ -27,7 +28,7 @@ async function onBackButtonClick({
   context,
 }: {
   id: string;
-  context: ConfirmationDialogContext;
+  context: TransactionConfirmationContext;
 }) {
   await updateInterface(id, <SendForm context={context} />, context);
 }
@@ -58,7 +59,7 @@ async function onConfirmButtonClick({
   snapContext,
 }: {
   id: string;
-  context: ConfirmationDialogContext;
+  context: TransactionConfirmationContext;
   snapContext: SnapExecutionContext;
 }) {
   let signature: string | null = null;
@@ -100,16 +101,18 @@ async function onConfirmButtonClick({
     logger.error({ error }, 'Error submitting request');
   }
 
-  const transactionResultContext: TransactionResultDialogContext = {
+  const updatedContext: TransactionConfirmationContext = {
     ...context,
-    transactionSuccess: signature !== null,
-    signature,
+    transaction: {
+      result: signature ? 'success' : 'failure',
+      signature,
+    },
   };
 
   await updateInterface(
     id,
-    <TransactionResultDialog context={transactionResultContext} />,
-    transactionResultContext,
+    <TransactionConfirmation context={updatedContext} />,
+    updatedContext,
   );
 }
 

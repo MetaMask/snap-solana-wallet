@@ -18,9 +18,9 @@ import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { renderSend } from './features/send/render';
-import { eventHandlers as transactionConfirmationEvents } from './features/send/views/ConfirmationDialog/events';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import type { StartSendTransactionFlowParams } from './features/send/views/SendForm/types';
+import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
 import snapContext, { keyring } from './snap-context';
 
 installPolyfills();
