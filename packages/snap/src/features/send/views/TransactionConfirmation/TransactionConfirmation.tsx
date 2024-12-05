@@ -19,7 +19,10 @@ import CheckIcon from '../../../../../images/check.svg';
 import SolanaLogo from '../../../../../images/coin.svg';
 import ErrorIcon from '../../../../../images/error.svg';
 import { Header } from '../../../../core/components/Header/Header';
-import { SolanaNetworksNames } from '../../../../core/constants/solana';
+import {
+  SolanaCaip19Tokens,
+  SolanaNetworksNames,
+} from '../../../../core/constants/solana';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
 import { getAddressSolanaExplorerUrl } from '../../../../core/utils/get-address-solana-explorer-url';
@@ -50,7 +53,7 @@ const TransactionDetails: SnapComponent<TransactionConfirmationProps> = ({
     accounts,
     fee,
     currencySymbol,
-    rates,
+    tokenPrices,
     locale,
     transaction,
   },
@@ -60,14 +63,12 @@ const TransactionDetails: SnapComponent<TransactionConfirmationProps> = ({
   const fromAddress = accounts.find((account) => account.id === fromAccountId)
     ?.address as string;
 
+  const { price } = tokenPrices[SolanaCaip19Tokens.SOL];
+
   const amountInSol =
     currencySymbol === SendCurrency.SOL
       ? amount
-      : BigNumber(amount)
-          .dividedBy(BigNumber(rates?.conversionRate ?? '0'))
-          .toString();
-
-  const tokenPrice = rates?.conversionRate ?? 0;
+      : BigNumber(amount).dividedBy(BigNumber(price)).toString();
 
   // FIXME: Get this out to a helper function (ie: address to CAIP-10).
   const fromAddressCaip2 =
@@ -79,16 +80,12 @@ const TransactionDetails: SnapComponent<TransactionConfirmationProps> = ({
   const transactionSpeed = '12.8s';
 
   const amountInUserCurrency = formatCurrency(
-    tokenToFiat(amountInSol.toString(), Number(tokenPrice)),
+    tokenToFiat(amountInSol.toString(), Number(price)),
   );
-  const feeInUserCurrency = formatCurrency(
-    tokenToFiat(fee, Number(tokenPrice)),
-  );
+  const feeInUserCurrency = formatCurrency(tokenToFiat(fee, Number(price)));
 
   const total = BigNumber(amountInSol).plus(BigNumber(fee)).toString();
-  const totalInUserCurrency = formatCurrency(
-    tokenToFiat(total, Number(tokenPrice)),
-  );
+  const totalInUserCurrency = formatCurrency(tokenToFiat(total, Number(price)));
 
   const transactionResultToIcon: Record<SendTransation['result'], string> = {
     success: CheckIcon,
