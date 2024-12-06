@@ -1,6 +1,6 @@
 import type { FormFieldError } from '../../../core/types/error';
-import type { SendContext } from '../views/SendForm/types';
-import { SendCurrency } from '../views/SendForm/types';
+import type { SendContext } from '../views/Send/types';
+import { SendCurrency } from '../views/Send/types';
 
 /**
  * Validates if the given value exceeds the balance in the context.

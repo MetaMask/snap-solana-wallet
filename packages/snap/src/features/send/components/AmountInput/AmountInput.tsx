@@ -10,7 +10,7 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 
 import solanaIcon from '../../../../../images/coin.svg';
-import { SendFormNames } from '../../views/SendForm/types';
+import { SendFormNames } from '../../views/Send/types';
 
 type AmountInputProps = {
   name: string;

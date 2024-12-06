@@ -1,6 +1,6 @@
 import type { SnapsProvider } from '@metamask/snaps-sdk';
 
-import type { SendContext } from '../../features/send/views/SendForm/types';
+import type { SendContext } from '../../features/send/views/Send/types';
 import type { PriceApiClient } from '../clients/price-api/price-api-client';
 import type { SpotPrice } from '../clients/price-api/types';
 import type { SolanaCaip19Tokens } from '../constants/solana';

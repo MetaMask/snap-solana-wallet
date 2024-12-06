@@ -1,19 +1,17 @@
 import { SolMethod } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
 
+import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
 import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
 import type { SnapExecutionContext } from '../../../../snap-context';
-import { SendForm } from '../SendForm/SendForm';
-import { SendCurrency } from '../SendForm/types';
-import {
-  TransactionConfirmation,
-  TransactionConfirmationNames,
-} from './TransactionConfirmation';
-import type { TransactionConfirmationContext } from './types';
+import { Send } from '../Send/Send';
+import type { SendContext } from '../Send/types';
+import { SendCurrency } from '../Send/types';
+import { TransactionConfirmationNames } from './TransactionConfirmation';
 
 /**
  * Handles the click event for the back button.
@@ -28,9 +26,14 @@ async function onBackButtonClick({
   context,
 }: {
   id: string;
-  context: TransactionConfirmationContext;
+  context: SendContext;
 }) {
-  await updateInterface(id, <SendForm context={context} />, context);
+  const updatedContext: SendContext = {
+    ...context,
+    stage: 'send-form',
+  };
+
+  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 }
 
 /**
@@ -59,16 +62,16 @@ async function onConfirmButtonClick({
   snapContext,
 }: {
   id: string;
-  context: TransactionConfirmationContext;
+  context: SendContext;
   snapContext: SnapExecutionContext;
 }) {
   let signature: string | null = null;
+  const { price } = context.tokenPrices[SolanaCaip19Tokens.SOL];
+
   const amountInSol =
     context.currencySymbol === SendCurrency.SOL
       ? context.amount
-      : BigNumber(context.amount)
-          .dividedBy(BigNumber(context.tokenRate.conversionRate))
-          .toString();
+      : BigNumber(context.amount).dividedBy(BigNumber(price)).toString();
 
   try {
     const response = await snapContext.keyring.submitRequest({
@@ -101,7 +104,7 @@ async function onConfirmButtonClick({
     logger.error({ error }, 'Error submitting request');
   }
 
-  const updatedContext: TransactionConfirmationContext = {
+  const updatedContext: SendContext = {
     ...context,
     transaction: {
       result: signature ? 'success' : 'failure',
@@ -109,11 +112,7 @@ async function onConfirmButtonClick({
     },
   };
 
-  await updateInterface(
-    id,
-    <TransactionConfirmation context={updatedContext} />,
-    updatedContext,
-  );
+  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 }
 
 export const eventHandlers = {

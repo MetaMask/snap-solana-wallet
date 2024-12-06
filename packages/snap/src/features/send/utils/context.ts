@@ -7,8 +7,8 @@ import {
 import { getPreferences } from '../../../core/utils/interface';
 import logger from '../../../core/utils/logger';
 import { state, type SnapExecutionContext } from '../../../snap-context';
-import type { SendContext } from '../views/SendForm/types';
-import { SendCurrency } from '../views/SendForm/types';
+import type { SendContext } from '../views/Send/types';
+import { SendCurrency } from '../views/Send/types';
 
 /**
  * Retrieves the send context for a given account and network scope.
@@ -67,6 +67,7 @@ export async function getSendContext(
       tokenPrices: stateValue.tokenPrices,
       locale: preferences.locale,
       transaction: context.transaction ?? null,
+      stage: context.stage ?? 'send-form',
       ...(context ?? {}),
     };
   } catch (error: any) {

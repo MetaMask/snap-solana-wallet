@@ -30,9 +30,8 @@ import { getTransactionSolanaExplorerUrl } from '../../../../core/utils/get-tx-e
 import type { LocalizedMessage } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
-import type { SendTransation } from '../SendForm/types';
-import { SendCurrency } from '../SendForm/types';
-import { type TransactionConfirmationContext } from './types';
+import type { SendContext, SendTransation } from '../Send/types';
+import { SendCurrency } from '../Send/types';
 
 export enum TransactionConfirmationNames {
   BackButton = 'transaction-confirmation-back-button',
@@ -41,7 +40,7 @@ export enum TransactionConfirmationNames {
 }
 
 type TransactionConfirmationProps = {
-  context: TransactionConfirmationContext;
+  context: SendContext;
 };
 
 const TransactionDetails: SnapComponent<TransactionConfirmationProps> = ({

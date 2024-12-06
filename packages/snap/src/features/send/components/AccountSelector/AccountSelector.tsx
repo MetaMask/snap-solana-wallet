@@ -17,7 +17,7 @@ import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
 import { truncateAddress } from '../../../../core/utils/truncate-address';
-import { SendCurrency } from '../../views/SendForm/types';
+import { SendCurrency } from '../../views/Send/types';
 
 type AccountSelectorProps = {
   name: string;

@@ -11,15 +11,19 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
-import { SolanaInternalRpcMethods } from './core/constants/solana';
-import { handlers, OnCronjobMethods } from './core/handlers/onCronjob';
+import {
+  handlers as onCronjobHandlers,
+  OnCronjobMethods,
+} from './core/handlers/onCronjob';
+import {
+  handlers as onRpcRequestHandlers,
+  OnRpcRequestMethods,
+} from './core/handlers/onRpcRequest';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
-import { renderSend } from './features/send/render';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
-import type { StartSendTransactionFlowParams } from './features/send/views/SendForm/types';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
 import snapContext, { keyring } from './snap-context';
 
@@ -44,15 +48,17 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
     validateOrigin(origin, method);
 
-    switch (method) {
-      case SolanaInternalRpcMethods.StartSendTransactionFlow:
-        return await renderSend(
-          request.params as StartSendTransactionFlowParams,
-          snapContext,
-        );
-      default:
-        throw new MethodNotFoundError() as unknown as Error;
+    const handler = onRpcRequestHandlers[method as OnRpcRequestMethods];
+
+    if (!handler) {
+      throw new MethodNotFoundError(
+        `RpcRequest method ${method} not found. Available methods: ${Object.values(
+          OnRpcRequestMethods,
+        ).toString()}`,
+      ) as unknown as Error;
     }
+
+    return handler({ origin, request });
   } catch (error: any) {
     let snapError = error;
 
@@ -150,7 +156,7 @@ export const onUserInput: OnUserInputHandler = async ({
 export const onCronjob: OnCronjobHandler = async ({ request }) => {
   const { method } = request;
 
-  const handler = handlers[method as OnCronjobMethods];
+  const handler = onCronjobHandlers[method as OnCronjobMethods];
 
   if (!handler) {
     throw new MethodNotFoundError(

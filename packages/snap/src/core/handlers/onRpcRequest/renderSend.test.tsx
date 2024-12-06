@@ -1,25 +1,26 @@
 import { installSnap } from '@metamask/snaps-jest';
 
 import {
-  SolanaCaip19Tokens,
-  SolanaCaip2Networks,
-  SolanaInternalRpcMethods,
-} from '../../core/constants/solana';
-import { MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE } from '../../core/services/mocks/mockSolanaRpcResponses';
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../core/test/mocks/solana-keyring-accounts';
-import type { MockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
-import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
-import { TEST_ORIGIN } from '../../core/test/utils';
-import { SendForm } from './views/SendForm/SendForm';
-import {
   type SendContext,
   SendCurrency,
   SendFormNames,
-} from './views/SendForm/types';
+} from '../../../features/send/views/Send/types';
+import { SendForm } from '../../../features/send/views/SendForm/SendForm';
+import {
+  SolanaCaip19Tokens,
+  SolanaCaip2Networks,
+  SolanaInternalRpcMethods,
+} from '../../constants/solana';
+import { MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE } from '../../services/mocks/mockSolanaRpcResponses';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import type { MockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
+import { startMockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
+import { TEST_ORIGIN } from '../../test/utils';
 
 const solanaKeyringAccounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
 
 const mockContext: SendContext = {
+  stage: 'send-form',
   accounts: solanaKeyringAccounts,
   scope: SolanaCaip2Networks.Localnet,
   fromAccountId: '0',

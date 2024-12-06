@@ -1,7 +1,7 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import { SendForm } from '../../../features/send/views/SendForm/SendForm';
-import type { SendContext } from '../../../features/send/views/SendForm/types';
+import { Send } from '../../../features/send/views/Send/Send';
+import type { SendContext } from '../../../features/send/views/Send/types';
 import { state, tokenPricesService } from '../../../snap-context';
 import {
   getInterfaceContext,
@@ -36,7 +36,7 @@ export const refreshTokenPrices: OnCronjobHandler = async () => {
 
         await updateInterface(
           sendFormInterfaceId,
-          <SendForm context={updatedInterfaceContext} />,
+          <Send context={updatedInterfaceContext} />,
           updatedInterfaceContext,
         );
       }

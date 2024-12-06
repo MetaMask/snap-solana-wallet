@@ -7,8 +7,9 @@ import type {
 import type { SolanaKeyringAccount } from '../../../../core/services/keyring';
 import type { TokenPrice } from '../../../../core/services/state';
 import type { FormFieldError } from '../../../../core/types/error';
-import type { FormState } from '../../../../core/types/form';
 import type { Locale } from '../../../../core/utils/i18n';
+
+export type SendFlowStage = 'send-form' | 'transaction-confirmation';
 
 export enum SendFormNames {
   Form = 'send-form',
@@ -23,11 +24,6 @@ export enum SendFormNames {
   ClearButton = 'send-clear-button',
   CloseButton = 'send-close-button',
 }
-
-export type StartSendTransactionFlowParams = {
-  scope: SolanaCaip2Networks;
-  account: string; // INFO: This is an account ID
-};
 
 export enum SendCurrency {
   SOL = 'SOL',
@@ -52,8 +48,5 @@ export type SendContext = {
   tokenPrices: Record<SolanaCaip19Tokens, TokenPrice>;
   locale: Locale;
   transaction: SendTransation | null;
-};
-
-export type SendState = {
-  [SendFormNames.Form]: FormState<SendFormNames>;
+  stage: SendFlowStage;
 };

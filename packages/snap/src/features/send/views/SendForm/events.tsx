@@ -1,14 +1,15 @@
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 
+import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
 import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
 import { validateField } from '../../../../core/validation/form';
-import { TransactionConfirmation } from '../TransactionConfirmation/TransactionConfirmation';
+import { Send } from '../Send/Send';
+import { SendCurrency, SendFormNames, type SendContext } from '../Send/types';
 import { SendForm } from './SendForm';
-import { SendCurrency, SendFormNames, type SendContext } from './types';
 import { validation } from './validation';
 
 /**
@@ -98,7 +99,7 @@ async function onSwapCurrencyButtonClick({
       : SendCurrency.SOL;
 
   const currentAmount = BigNumber(context.amount ?? '0');
-  const price = BigNumber(context.tokenRate.price);
+  const price = BigNumber(context.tokenPrices[SolanaCaip19Tokens.SOL].price);
 
   if (context.currencySymbol === SendCurrency.SOL) {
     /**
@@ -144,7 +145,7 @@ async function onMaxAmountButtonClick({
     const amount = BigNumber(
       context.balances[context.fromAccountId]?.amount ?? '0',
     );
-    const price = BigNumber(context.tokenRate.price);
+    const price = BigNumber(context.tokenPrices[SolanaCaip19Tokens.SOL].price);
 
     context.amount = amount.multipliedBy(price).toString();
   }
@@ -227,11 +228,12 @@ async function onSendButtonClick({
   id: string;
   context: SendContext;
 }) {
-  await updateInterface(
-    id,
-    <TransactionConfirmation context={context} />,
-    context,
-  );
+  const updatedContext: SendContext = {
+    ...context,
+    stage: 'transaction-confirmation',
+  };
+
+  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 }
 
 export const eventHandlers = {
