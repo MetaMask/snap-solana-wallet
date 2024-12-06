@@ -8,9 +8,9 @@ import {
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
 import type { SnapExecutionContext } from '../../../../snap-context';
-import { Send } from '../Send/Send';
-import type { SendContext } from '../Send/types';
-import { SendCurrency } from '../Send/types';
+import { Send } from '../../Send';
+import type { SendContext } from '../../types';
+import { SendCurrency } from '../../types';
 import { TransactionConfirmationNames } from './TransactionConfirmation';
 
 /**

@@ -4,7 +4,7 @@ import {
   type SendContext,
   SendCurrency,
   SendFormNames,
-} from '../../../features/send/views/Send/types';
+} from '../../../features/send/types';
 import { SendForm } from '../../../features/send/views/SendForm/SendForm';
 import {
   SolanaCaip19Tokens,

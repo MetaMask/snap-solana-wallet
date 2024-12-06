@@ -7,8 +7,8 @@ import {
 import { getPreferences } from '../../../core/utils/interface';
 import logger from '../../../core/utils/logger';
 import { state, type SnapExecutionContext } from '../../../snap-context';
-import type { SendContext } from '../views/Send/types';
-import { SendCurrency } from '../views/Send/types';
+import type { SendContext } from '../types';
+import { SendCurrency } from '../types';
 
 /**
  * Retrieves the send context for a given account and network scope.

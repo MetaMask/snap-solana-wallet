@@ -7,7 +7,7 @@ import {
   greatherThanZero,
   required,
 } from '../../../../core/validation/form';
-import { SendFormNames } from '../Send/types';
+import { SendFormNames } from '../../types';
 
 export const StartSendTransactionFlowParamsStruct = object({
   scope: enums([...Object.values(SolanaCaip2Networks)]),

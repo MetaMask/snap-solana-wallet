@@ -3,11 +3,11 @@ import type { Balance, CaipAssetType } from '@metamask/keyring-api';
 import type {
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
-} from '../../../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../../../core/services/keyring';
-import type { TokenPrice } from '../../../../core/services/state';
-import type { FormFieldError } from '../../../../core/types/error';
-import type { Locale } from '../../../../core/utils/i18n';
+} from '../../core/constants/solana';
+import type { SolanaKeyringAccount } from '../../core/services/keyring';
+import type { TokenPrice } from '../../core/services/state';
+import type { FormFieldError } from '../../core/types/error';
+import type { Locale } from '../../core/utils/i18n';
 
 export type SendFlowStage = 'send-form' | 'transaction-confirmation';
 

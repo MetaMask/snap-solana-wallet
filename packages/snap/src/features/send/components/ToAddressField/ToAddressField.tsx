@@ -8,7 +8,7 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 
 import { i18n, type Locale } from '../../../../core/utils/i18n';
-import { SendFormNames } from '../../views/Send/types';
+import { SendFormNames } from '../../types';
 
 type ToAddressFieldProps = {
   name: string;

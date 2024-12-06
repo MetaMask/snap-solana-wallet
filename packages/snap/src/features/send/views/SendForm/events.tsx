@@ -7,8 +7,8 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import { validateField } from '../../../../core/validation/form';
-import { Send } from '../Send/Send';
-import { SendCurrency, SendFormNames, type SendContext } from '../Send/types';
+import { Send } from '../../Send';
+import { SendCurrency, SendFormNames, type SendContext } from '../../types';
 import { SendForm } from './SendForm';
 import { validation } from './validation';
 

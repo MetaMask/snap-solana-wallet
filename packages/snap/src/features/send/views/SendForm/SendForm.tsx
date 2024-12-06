@@ -17,7 +17,7 @@ import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
 import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
 import { AmountInput } from '../../components/AmountInput/AmountInput';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
-import { SendCurrency, SendFormNames, type SendContext } from '../Send/types';
+import { SendCurrency, SendFormNames, type SendContext } from '../../types';
 
 type SendFormProps = {
   context: SendContext;

@@ -1,8 +1,8 @@
 import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 
+import { Send } from '../../../features/send/Send';
 import { getSendContext } from '../../../features/send/utils/context';
-import { Send } from '../../../features/send/views/Send/Send';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
 import snapContext, { state, tokenPricesService } from '../../../snap-context';
 import {

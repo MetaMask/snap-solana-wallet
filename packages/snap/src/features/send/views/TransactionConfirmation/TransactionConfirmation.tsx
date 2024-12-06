@@ -30,8 +30,8 @@ import { getTransactionSolanaExplorerUrl } from '../../../../core/utils/get-tx-e
 import type { LocalizedMessage } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
-import type { SendContext, SendTransation } from '../Send/types';
-import { SendCurrency } from '../Send/types';
+import type { SendContext, SendTransation } from '../../types';
+import { SendCurrency } from '../../types';
 
 export enum TransactionConfirmationNames {
   BackButton = 'transaction-confirmation-back-button',

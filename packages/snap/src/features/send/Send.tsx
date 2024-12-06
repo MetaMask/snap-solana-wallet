@@ -1,8 +1,8 @@
 import type { SnapComponent } from '@metamask/snaps-sdk/dist/jsx/component.cjs';
 
-import { SendForm } from '../SendForm/SendForm';
-import { TransactionConfirmation } from '../TransactionConfirmation/TransactionConfirmation';
 import type { SendContext, SendFlowStage } from './types';
+import { SendForm } from './views/SendForm/SendForm';
+import { TransactionConfirmation } from './views/TransactionConfirmation/TransactionConfirmation';
 
 type SendProps = {
   context: SendContext;

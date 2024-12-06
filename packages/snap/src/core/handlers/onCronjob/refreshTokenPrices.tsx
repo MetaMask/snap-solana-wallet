@@ -1,7 +1,7 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import { Send } from '../../../features/send/views/Send/Send';
-import type { SendContext } from '../../../features/send/views/Send/types';
+import { Send } from '../../../features/send/Send';
+import type { SendContext } from '../../../features/send/types';
 import { state, tokenPricesService } from '../../../snap-context';
 import {
   getInterfaceContext,
