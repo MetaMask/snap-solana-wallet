@@ -9,18 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.3]
 
-### Uncategorized
+### Added
+
+- feat: add a component that wraps the send flow ([#106](https://github.com/MetaMask/snap-solana-wallet/pull/106))
+- feat: snap get live token rates ([#102](https://github.com/MetaMask/snap-solana-wallet/pull/102))
+- feat: localize ui ([#99](https://github.com/MetaMask/snap-solana-wallet/pull/99))
+- feat: Adds the Tx result view after confirming it ([#92](https://github.com/MetaMask/snap-solana-wallet/pull/92))
+
+### Changed
 
 - fix: the tx confirmation result view now uses price from the tx time ([#107](https://github.com/MetaMask/snap-solana-wallet/pull/107))
-- feat: add a component that wraps the send flow ([#106](https://github.com/MetaMask/snap-solana-wallet/pull/106))
 - fix: compile error ([#104](https://github.com/MetaMask/snap-solana-wallet/pull/104))
 - fix: show address name in confirmation ([#105](https://github.com/MetaMask/snap-solana-wallet/pull/105))
-- Sol 65 snap get token rates ([#102](https://github.com/MetaMask/snap-solana-wallet/pull/102))
 - fix: confirmation result ([#103](https://github.com/MetaMask/snap-solana-wallet/pull/103))
 - chore: clean up dependencies object ([#98](https://github.com/MetaMask/snap-solana-wallet/pull/98))
 - chore: updates translations ([#100](https://github.com/MetaMask/snap-solana-wallet/pull/100))
-- feat: localize ui ([#99](https://github.com/MetaMask/snap-solana-wallet/pull/99))
-- chore: Adds the Tx result view after confirming it ([#92](https://github.com/MetaMask/snap-solana-wallet/pull/92))
 
 ## [1.0.2]
 
