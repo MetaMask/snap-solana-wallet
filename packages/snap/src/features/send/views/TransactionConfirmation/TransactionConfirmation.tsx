@@ -62,6 +62,7 @@ const TransactionDetails: SnapComponent<TransactionConfirmationProps> = ({
   const fromAddress = accounts.find((account) => account.id === fromAccountId)
     ?.address as string;
 
+  // TODO: Adapt for more types of token prices to support SPL tokens.
   const { price } =
     transaction?.tokenPrice ?? tokenPrices[SolanaCaip19Tokens.SOL];
 
