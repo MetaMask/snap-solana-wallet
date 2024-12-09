@@ -66,7 +66,8 @@ async function onConfirmButtonClick({
   snapContext: SnapExecutionContext;
 }) {
   let signature: string | null = null;
-  const { price } = context.tokenPrices[SolanaCaip19Tokens.SOL];
+  const tokenPrice = context.tokenPrices[SolanaCaip19Tokens.SOL];
+  const { price } = tokenPrice;
 
   const amountInSol =
     context.currencySymbol === SendCurrency.SOL
@@ -109,6 +110,7 @@ async function onConfirmButtonClick({
     transaction: {
       result: signature ? 'success' : 'failure',
       signature,
+      tokenPrice,
     },
   };
 

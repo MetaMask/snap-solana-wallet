@@ -33,6 +33,7 @@ export enum SendCurrency {
 export type SendTransation = {
   result: 'success' | 'failure';
   signature: string | null;
+  tokenPrice: TokenPrice | null;
 };
 
 export type SendContext = {

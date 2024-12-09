@@ -62,7 +62,8 @@ const TransactionDetails: SnapComponent<TransactionConfirmationProps> = ({
   const fromAddress = accounts.find((account) => account.id === fromAccountId)
     ?.address as string;
 
-  const { price } = tokenPrices[SolanaCaip19Tokens.SOL];
+  const { price } =
+    transaction?.tokenPrice ?? tokenPrices[SolanaCaip19Tokens.SOL];
 
   const amountInSol =
     currencySymbol === SendCurrency.SOL
