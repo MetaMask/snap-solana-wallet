@@ -21,7 +21,7 @@ const NULL_SOL_PRICE: TokenPrice = {
   price: 0,
 };
 
-const DEFAULT_TOKEN_PRICES: Record<SolanaCaip19Tokens, TokenPrice> = {
+export const DEFAULT_TOKEN_PRICES: Record<SolanaCaip19Tokens, TokenPrice> = {
   [SolanaCaip19Tokens.SOL]: NULL_SOL_PRICE,
 };
 

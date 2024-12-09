@@ -2,9 +2,9 @@ import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 
 import { Send } from '../../../features/send/Send';
-import { getSendContext } from '../../../features/send/utils/context';
+import { buildSendContext } from '../../../features/send/utils/buildSendContext';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
-import snapContext, { state, tokenPricesService } from '../../../snap-context';
+import { state, tokenPricesService } from '../../../snap-context';
 import {
   createInterface,
   SEND_FORM_INTERFACE_NAME,
@@ -22,16 +22,11 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   const { params } = request;
   assert(params, StartSendTransactionFlowParamsStruct);
 
+  const { scope, account } = params;
+
   await tokenPricesService.refreshPrices();
 
-  const context = await getSendContext(
-    {
-      fromAccountId: params.account,
-      validation: {},
-      scope: params.scope,
-    },
-    snapContext,
-  );
+  const context = await buildSendContext(scope, account);
 
   const id = await createInterface(<Send context={context} />, context);
 
