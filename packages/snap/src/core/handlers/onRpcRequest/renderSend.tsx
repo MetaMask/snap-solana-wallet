@@ -11,6 +11,7 @@ import {
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
 } from '../../constants/solana';
+import { DEFAULT_TOKEN_PRICES } from '../../services/state';
 import {
   createInterface,
   getPreferences,
@@ -29,15 +30,7 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   currencySymbol: SendCurrency.SOL,
   validation: {},
   balances: {},
-  tokenPrices: {
-    [SolanaCaip19Tokens.SOL]: {
-      price: 0,
-      symbol: SolanaCaip19Tokens.SOL,
-      caip19Id: SolanaCaip19Tokens.SOL,
-      address: '',
-      decimals: 0,
-    },
-  },
+  tokenPrices: DEFAULT_TOKEN_PRICES,
   locale: 'en',
   transaction: null,
   stage: 'send-form',
