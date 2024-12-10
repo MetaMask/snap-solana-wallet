@@ -1,3 +1,4 @@
+import { SolanaCaip19Tokens } from '../../../core/constants/solana';
 import type { FormFieldError } from '../../../core/types/error';
 import type { SendContext } from '../types';
 import { SendCurrency } from '../types';
@@ -16,7 +17,10 @@ export function validateBalance(
   const amountGreaterThanBalance =
     parseFloat(
       context.currencySymbol === SendCurrency.FIAT
-        ? (parseFloat(value) / context.currencyRate.conversionRate).toString()
+        ? (
+            parseFloat(value) /
+            context.tokenPrices[SolanaCaip19Tokens.SOL].price
+          ).toString()
         : value,
     ) > parseFloat(context.balances[context.fromAccountId]?.amount ?? '0');
 
