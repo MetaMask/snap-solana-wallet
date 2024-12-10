@@ -1,4 +1,4 @@
-import type { SolanaConnection } from '../connection';
+import type { SolanaConnection } from '../connection/SolanaConnection';
 import {
   MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE,
   MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE,

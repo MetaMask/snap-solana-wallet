@@ -49,7 +49,7 @@ import {
   TransferSolParamsStruct,
 } from '../validation/structs';
 import { validateRequest } from '../validation/validators';
-import type { SolanaConnection } from './connection';
+import type { SolanaConnection } from './connection/SolanaConnection';
 import { SolanaState } from './state';
 
 /**

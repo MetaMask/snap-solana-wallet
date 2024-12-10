@@ -72,13 +72,13 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
         .then((response) => {
           balances[_account.id] = response[token] ?? {
             amount: '0',
-            unit: token,
+            unit: 'SOL',
           };
         })
         .catch(() => {
           balances[_account.id] = balances[_account.id] ?? {
             amount: '0',
-            unit: token,
+            unit: 'SOL',
           };
         }),
     );

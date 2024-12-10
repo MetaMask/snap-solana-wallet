@@ -1,12 +1,31 @@
-import {
-  SOLANA_NETWORK_TO_RPC_URLS,
-  SolanaCaip2Networks,
-} from '../constants/solana';
-import { SolanaConnection } from './connection';
+/* eslint-disable no-restricted-globals */
+import { SolanaCaip2Networks } from '../../constants/solana';
+import { SolanaConnection } from './SolanaConnection';
 
-// Mock the createSolanaRpc function
 jest.mock('@solana/web3.js', () => ({
-  createSolanaRpc: jest.fn().mockImplementation((url) => ({ url })),
+  createDefaultRpcTransport: jest.fn().mockImplementation(({ url }) => ({
+    url,
+  })),
+  createSolanaRpcFromTransport: jest.fn().mockImplementation(({ url }) => ({
+    url,
+  })),
+}));
+
+jest.mock('./retryingTransport', () => ({
+  createRetryingTransport: jest.fn().mockImplementation(({ url }) => ({
+    url,
+  })),
+}));
+
+jest.mock('../../constants/solana', () => ({
+  SOLANA_NETWORK_TO_RPC_URLS: {
+    'solana:mainnet': 'https://mainnet.com',
+    'solana:devnet': 'https://devnet.com',
+  },
+  SolanaCaip2Networks: {
+    Mainnet: 'solana:mainnet',
+    Devnet: 'solana:devnet',
+  },
 }));
 
 describe('SolanaConnection', () => {
@@ -25,7 +44,7 @@ describe('SolanaConnection', () => {
       const rpc = connection.getRpc(SolanaCaip2Networks.Mainnet);
       expect(rpc).toBeDefined();
       expect(rpc).toStrictEqual({
-        url: SOLANA_NETWORK_TO_RPC_URLS[SolanaCaip2Networks.Mainnet],
+        url: 'https://mainnet.com',
       });
     });
 

@@ -17,7 +17,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
-import type { SolanaConnection } from './connection';
+import type { SolanaConnection } from './connection/SolanaConnection';
 import { SolanaKeyring } from './keyring';
 import { createMockConnection } from './mocks/mockConnection';
 import type { StateValue } from './state';

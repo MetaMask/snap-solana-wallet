@@ -1,5 +1,5 @@
 import { PriceApiClient } from './core/clients/price-api/price-api-client';
-import { SolanaConnection } from './core/services/connection';
+import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { SolanaKeyring } from './core/services/keyring';
 import { SolanaState } from './core/services/state';
 import { TokenPricesService } from './core/services/TokenPricesService';
