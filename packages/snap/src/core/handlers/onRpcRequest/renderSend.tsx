@@ -51,7 +51,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const token = `${scope}/${SolanaCaip19Tokens.SOL}`;
 
-  const context = { ...DEFAULT_SEND_CONTEXT, fromAccountId: account };
+  const context = { ...DEFAULT_SEND_CONTEXT, scope, fromAccountId: account };
 
   const accounts = await keyring.listAccounts();
   context.accounts = accounts;
