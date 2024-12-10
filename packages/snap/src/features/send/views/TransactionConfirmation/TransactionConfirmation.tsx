@@ -160,7 +160,7 @@ const TransactionDetails: SnapComponent<TransactionConfirmationProps> = ({
         </Row>
 
         <Row label={translate('confirmation.recipient')}>
-          <Link href={getAddressSolanaExplorerUrl(scope, fromAddress)}>
+          <Link href={getAddressSolanaExplorerUrl(scope, toAddress)}>
             <Address address={toAddressCaip2} displayName />
           </Link>
         </Row>
