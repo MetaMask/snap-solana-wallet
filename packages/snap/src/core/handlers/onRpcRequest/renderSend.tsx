@@ -2,13 +2,17 @@ import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 
 import { Send } from '../../../features/send/Send';
-import { buildSendContext } from '../../../features/send/utils/buildSendContext';
+import {
+  buildSendContext,
+  DEFAULT_SEND_CONTEXT,
+} from '../../../features/send/utils/buildSendContext';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
 import { state, tokenPricesService } from '../../../snap-context';
 import {
   createInterface,
   SEND_FORM_INTERFACE_NAME,
   showDialog,
+  updateInterface,
 } from '../../utils/interface';
 
 /**
@@ -24,11 +28,17 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const { scope, account } = params;
 
-  await tokenPricesService.refreshPrices();
+  const id = await createInterface(
+    <Send context={DEFAULT_SEND_CONTEXT} />,
+    DEFAULT_SEND_CONTEXT,
+  );
 
-  const context = await buildSendContext(scope, account);
+  const [context] = await Promise.all([
+    buildSendContext(scope, account),
+    tokenPricesService.refreshPrices(),
+  ]);
 
-  const id = await createInterface(<Send context={context} />, context);
+  await updateInterface(id, <Send context={context} />, context);
 
   // Save the interface id to the state
   await state.update((_state) => {

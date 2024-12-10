@@ -10,7 +10,7 @@ import { keyring, state } from '../../../snap-context';
 import type { SendContext } from '../types';
 import { SendCurrency } from '../types';
 
-const DEFAULT_SEND_CONTEXT: SendContext = {
+export const DEFAULT_SEND_CONTEXT: SendContext = {
   scope: SolanaCaip2Networks.Mainnet,
   fromAccountId: '',
   amount: '',
