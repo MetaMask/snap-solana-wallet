@@ -33,6 +33,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     DEFAULT_SEND_CONTEXT,
   );
 
+  const dialogPromise = showDialog(id);
+
   const [context] = await Promise.all([
     buildSendContext(scope, account),
     tokenPricesService.refreshPrices(),
@@ -40,7 +42,6 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   await updateInterface(id, <Send context={context} />, context);
 
-  // Save the interface id to the state
   await state.update((_state) => {
     return {
       ..._state,
@@ -51,5 +52,5 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     };
   });
 
-  return showDialog(id);
+  return dialogPromise;
 };
