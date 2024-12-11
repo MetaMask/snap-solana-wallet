@@ -1,19 +1,22 @@
 /* eslint-disable no-restricted-globals */
+import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import type { SpotPrice } from './types';
 
 export class PriceApiClient {
-  readonly #baseUrl = 'https://price-api.metamask-institutional.io';
+  readonly #configProvider: ConfigProvider;
 
   readonly #fetch: typeof globalThis.fetch;
 
   readonly #logger: ILogger;
 
   constructor(
+    configProvider: ConfigProvider,
     _fetch: typeof globalThis.fetch = globalThis.fetch,
     _logger: ILogger = logger,
   ) {
+    this.#configProvider = configProvider;
     this.#fetch = _fetch;
     this.#logger = _logger;
   }
@@ -32,10 +35,10 @@ export class PriceApiClient {
     vsCurrency = 'usd',
   ): Promise<SpotPrice> {
     try {
+      const { baseUrl } = this.#configProvider.get().priceApi;
+
       const response = await this.#fetch(
-        `${
-          this.#baseUrl
-        }/v2/chains/${chainIdInCaip2}/spot-prices/${tokenAddress}?vsCurrency=${vsCurrency}`,
+        `${baseUrl}/v2/chains/${chainIdInCaip2}/spot-prices/${tokenAddress}?vsCurrency=${vsCurrency}`,
       );
 
       if (!response.ok) {

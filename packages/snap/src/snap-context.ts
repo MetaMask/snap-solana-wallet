@@ -1,4 +1,5 @@
 import { PriceApiClient } from './core/clients/price-api/price-api-client';
+import { ConfigProvider } from './core/services/config';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { SolanaKeyring } from './core/services/keyring';
 import { SolanaState } from './core/services/state';
@@ -13,10 +14,11 @@ export type SnapExecutionContext = {
   tokenPricesService: TokenPricesService;
 };
 
+const configProvider = new ConfigProvider();
 const state = new SolanaState();
-const connection = new SolanaConnection();
+const connection = new SolanaConnection(configProvider);
 const keyring = new SolanaKeyring(connection);
-const priceApiClient = new PriceApiClient();
+const priceApiClient = new PriceApiClient(configProvider);
 const tokenPricesService = new TokenPricesService(
   priceApiClient,
   snap,

@@ -4,7 +4,7 @@ import type { SendContext } from '../../features/send/types';
 import type { PriceApiClient } from '../clients/price-api/price-api-client';
 import type { SpotPrice } from '../clients/price-api/types';
 import type { SolanaCaip19Tokens } from '../constants/solana';
-import { Networks, SolanaTokens } from '../constants/solana';
+import { SolanaCaip2Networks, SolanaTokens } from '../constants/solana';
 import type { ILogger } from '../utils/logger';
 import type { SolanaState, TokenPrice } from './state';
 
@@ -92,7 +92,7 @@ export class TokenPricesService {
       }
 
       const spotPrice = await this.#priceApiClient
-        .getSpotPrice(Networks.Mainnet.id, tokenInfo.address)
+        .getSpotPrice(SolanaCaip2Networks.Mainnet, tokenInfo.address)
         // Catch errors on individual calls, so that one that fails does not break for others.
         .catch((error) => {
           this.#logger.info(

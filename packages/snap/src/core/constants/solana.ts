@@ -1,33 +1,6 @@
 /* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';
 
-export const Networks = {
-  Mainnet: {
-    id: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-    cluster: 'Mainnet',
-    name: 'Solana Mainnet',
-    rpcUrl: process.env.RPC_URL_MAINNET ?? '',
-  },
-  Devnet: {
-    id: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
-    cluster: 'Devnet',
-    name: 'Solana Devnet',
-    rpcUrl: process.env.RPC_URL_DEVNET ?? '',
-  },
-  Testnet: {
-    id: 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
-    cluster: 'Testnet',
-    name: 'Solana Testnet',
-    rpcUrl: process.env.RPC_URL_TESTNET ?? '',
-  },
-  Localnet: {
-    id: 'solana:123456789abcdef',
-    cluster: 'Localnet',
-    name: 'Solana Localnet',
-    rpcUrl: process.env.RPC_URL_LOCALNET ?? '',
-  },
-};
-
 /**
  * Solana CAIP-2 Networks
  * @see https://namespaces.chainagnostic.org/solana/caip2
@@ -61,13 +34,6 @@ export enum SolanaInternalRpcMethods {
 }
 
 export const LAMPORTS_PER_SOL = 1_000_000_000;
-
-export const SOLANA_NETWORK_TO_RPC_URLS: Record<SolanaCaip2Networks, string> = {
-  [SolanaCaip2Networks.Mainnet]: process.env.RPC_URL_MAINNET ?? '',
-  [SolanaCaip2Networks.Devnet]: process.env.RPC_URL_DEVNET ?? '',
-  [SolanaCaip2Networks.Testnet]: process.env.RPC_URL_TESTNET ?? '',
-  [SolanaCaip2Networks.Localnet]: process.env.RPC_URL_LOCALNET ?? '',
-};
 
 export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',

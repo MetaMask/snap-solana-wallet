@@ -1,49 +1,30 @@
-/* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
 import {
   createSolanaRpcFromTransport,
   type Rpc,
   type SolanaRpcApi,
 } from '@solana/web3.js';
 
-import {
-  SOLANA_NETWORK_TO_RPC_URLS,
-  SolanaCaip2Networks,
-} from '../../constants/solana';
+import { SolanaCaip2Networks } from '../../constants/solana';
+import type { ConfigProvider } from '../config/ConfigProvider';
 import { createMainTransport } from './transport';
 
 /**
- * The SolanaConnection class is responsible for managing the connection to the Solana network.
- *
- * It's a helper class that holds one Solana's SDK "rpc" object per network.
- * And same for "rpcSubscriptions".
+ * The SolanaConnection class is responsible for managing the connections to the Solana networks.
  */
 export class SolanaConnection {
+  readonly #configProvider: ConfigProvider;
+
   /**
-   * A mapping of Solana networks to their respective RPC clients.
+   * A mapping of Solana network CAIP-2 IDs to their respective RPC clients.
+   *
    * Each network has its own RPC connection for making JSON-RPC requests
    * to the Solana blockchain.
    */
-  readonly #networkToRpc: Map<SolanaCaip2Networks, Rpc<SolanaRpcApi>>;
+  readonly #networkCaip2IdToRpc: Map<SolanaCaip2Networks, Rpc<SolanaRpcApi>> =
+    new Map();
 
-  constructor() {
-    // For each network, create a dedicated RPC client and a dedicated RPC subscription client
-    this.#networkToRpc = new Map();
-
-    Object.entries(SOLANA_NETWORK_TO_RPC_URLS).forEach(([network, url]) => {
-      this.#validateNetworkOrThrow(network as SolanaCaip2Networks);
-
-      const urls = [
-        'https://url.1.com',
-        'https://url.2.com',
-        'https://url.3.com',
-        'https://url.4.com',
-      ];
-
-      const transport = createMainTransport(urls);
-      const rpc = createSolanaRpcFromTransport(transport);
-
-      this.#networkToRpc.set(network as SolanaCaip2Networks, rpc);
-    });
+  constructor(configProvider: ConfigProvider) {
+    this.#configProvider = configProvider;
   }
 
   #isValidNetwork(network: string): network is SolanaCaip2Networks {
@@ -58,11 +39,24 @@ export class SolanaConnection {
     }
   }
 
-  public getRpc(network: SolanaCaip2Networks): Rpc<SolanaRpcApi> {
-    const rpc = this.#networkToRpc.get(network);
-    if (!rpc) {
-      throw new Error(`Invalid network: ${network}`);
-    }
+  #createRpc(caip2Id: SolanaCaip2Networks): Rpc<SolanaRpcApi> {
+    const network = this.#configProvider.getNetworkBy('caip2Id', caip2Id);
+    const transport = createMainTransport(network.rpcUrls);
+    const rpc = createSolanaRpcFromTransport(transport);
+    this.#networkCaip2IdToRpc.set(caip2Id, rpc);
     return rpc;
+  }
+
+  /**
+   * Returns the RPC client for the given network CAIP-2 ID.
+   * If the RPC client does not exist, it creates a new one
+   * and stores it in the map.
+   *
+   * @param caip2Id - The CAIP-2 ID of the network.
+   * @returns The RPC client for the given network CAIP-2 ID.
+   */
+  public getRpc(caip2Id: SolanaCaip2Networks): Rpc<SolanaRpcApi> {
+    this.#validateNetworkOrThrow(caip2Id);
+    return this.#networkCaip2IdToRpc.get(caip2Id) ?? this.#createRpc(caip2Id);
   }
 }
