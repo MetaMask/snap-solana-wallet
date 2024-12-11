@@ -1,6 +1,9 @@
 import { jest } from '@jest/globals';
+import dotenv from 'dotenv';
 
 import logger from './src/core/utils/logger';
+
+dotenv.config();
 
 // Mock the console methods
 jest.spyOn(logger, 'log').mockImplementation(() => {
