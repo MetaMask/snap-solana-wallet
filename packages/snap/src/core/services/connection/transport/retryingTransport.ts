@@ -4,7 +4,7 @@ import logger from '../../../utils/logger';
 
 // Set the maximum number of attempts to retry a request.
 const MAX_ATTEMPTS = 4;
-const BASE_RETRY_DELAY_MS = 100;
+const BASE_RETRY_DELAY_MS = 400;
 const MAX_RETRY_DELAY_MS = 1500;
 
 /**
@@ -55,12 +55,8 @@ export const createRetryingTransport = (baseTransport: RpcTransport) => {
         requestError = error;
         // Only sleep if we have more attempts remaining.
         if (attempts < MAX_ATTEMPTS - 1) {
-          logger.info(
-            `[🚌 RetryingTransport] Sleeping for ${calculateRetryDelay(
-              attempts,
-            )}ms`,
-          );
           const retryDelay = calculateRetryDelay(attempts);
+          logger.info(`[🚌 RetryingTransport] Sleeping for ${retryDelay}ms`);
           await sleep(retryDelay);
         }
       }
