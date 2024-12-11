@@ -9,7 +9,7 @@ import {
   SOLANA_NETWORK_TO_RPC_URLS,
   SolanaCaip2Networks,
 } from '../../constants/solana';
-import { createMainTransport } from './transport/transport';
+import { createMainTransport } from './transport';
 
 /**
  * The SolanaConnection class is responsible for managing the connection to the Solana network.
