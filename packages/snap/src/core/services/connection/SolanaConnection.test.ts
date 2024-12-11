@@ -1,50 +1,66 @@
-/* eslint-disable no-restricted-globals */
 import { SolanaCaip2Networks } from '../../constants/solana';
+import type { ConfigProvider } from '../config';
 import { SolanaConnection } from './SolanaConnection';
 
 jest.mock('@solana/web3.js', () => ({
-  createDefaultRpcTransport: jest.fn().mockImplementation(({ url }) => ({
-    url,
-  })),
-  createSolanaRpcFromTransport: jest.fn().mockImplementation(({ url }) => ({
-    url,
+  createSolanaRpcFromTransport: jest.fn().mockImplementation((transport) => ({
+    urls: transport.urls,
   })),
 }));
 
-jest.mock('./retryingTransport', () => ({
-  createRetryingTransport: jest.fn().mockImplementation(({ url }) => ({
-    url,
+jest.mock('./transport', () => ({
+  createMainTransport: jest.fn().mockImplementation((urls) => ({
+    urls,
   })),
 }));
 
-jest.mock('../../constants/solana', () => ({
-  SOLANA_NETWORK_TO_RPC_URLS: {
-    'solana:mainnet': 'https://mainnet.com',
-    'solana:devnet': 'https://devnet.com',
+const MOCK_NETWORKS = [
+  {
+    caip2Id: SolanaCaip2Networks.Mainnet,
+    rpcUrls: ['https://mainnet.com'],
   },
-  SolanaCaip2Networks: {
-    Mainnet: 'solana:mainnet',
-    Devnet: 'solana:devnet',
+  {
+    caip2Id: SolanaCaip2Networks.Devnet,
+    rpcUrls: ['https://devnet.com'],
   },
-}));
+];
 
 describe('SolanaConnection', () => {
+  let connection: SolanaConnection;
+  let mockConfigProvider: ConfigProvider;
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockConfigProvider = {
+      get: jest.fn().mockReturnValue({
+        networks: MOCK_NETWORKS,
+      }),
+      getNetworkBy: jest.fn().mockImplementation((key, value) => {
+        switch (key) {
+          case 'caip2Id':
+            return MOCK_NETWORKS.find((network) => network.caip2Id === value);
+          default:
+            throw new Error('Implement the case.');
+        }
+      }),
+    } as unknown as ConfigProvider;
+
+    connection = new SolanaConnection(mockConfigProvider);
   });
 
   describe('getRpc', () => {
-    let connection: SolanaConnection;
-
-    beforeEach(() => {
-      connection = new SolanaConnection();
-    });
-
     it('returns the correct RPC client for a valid network', () => {
       const rpc = connection.getRpc(SolanaCaip2Networks.Mainnet);
       expect(rpc).toBeDefined();
       expect(rpc).toStrictEqual({
-        url: 'https://mainnet.com',
+        urls: ['https://mainnet.com'],
+      });
+
+      const rpcDevnet = connection.getRpc(SolanaCaip2Networks.Devnet);
+      expect(rpcDevnet).toBeDefined();
+      expect(rpcDevnet).toStrictEqual({
+        urls: ['https://devnet.com'],
       });
     });
 

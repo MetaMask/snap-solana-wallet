@@ -1,3 +1,4 @@
+import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import { PriceApiClient } from './price-api-client';
 import type { SpotPrice } from './types';
@@ -9,9 +10,18 @@ describe('PriceApiClient', () => {
   } as unknown as ILogger;
 
   let client: PriceApiClient;
+  let mockConfigProvider: ConfigProvider;
 
   beforeEach(() => {
-    client = new PriceApiClient(mockFetch, mockLogger);
+    mockConfigProvider = {
+      get: jest.fn().mockReturnValue({
+        priceApi: {
+          baseUrl: 'https://some-mock-url.com',
+        },
+      }),
+    } as unknown as ConfigProvider;
+
+    client = new PriceApiClient(mockConfigProvider, mockFetch, mockLogger);
   });
 
   it('fetches spot price successfully', async () => {
@@ -24,7 +34,7 @@ describe('PriceApiClient', () => {
     const result = await client.getSpotPrice('chainId', 'tokenAddress');
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://price-api.metamask-institutional.io/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=usd',
+      'https://some-mock-url.com/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=usd',
     );
     expect(result).toBe(mockResponse);
   });
@@ -67,7 +77,7 @@ describe('PriceApiClient', () => {
     const result = await client.getSpotPrice('chainId', 'tokenAddress', 'eur');
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://price-api.metamask-institutional.io/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=eur',
+      'https://some-mock-url.com/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=eur',
     );
     expect(result).toBe(mockResponse);
   });

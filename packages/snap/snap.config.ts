@@ -2,27 +2,16 @@
 import type { SnapConfig } from '@metamask/snaps-cli';
 import * as dotenv from 'dotenv';
 import { resolve } from 'path';
-import { create, object, string } from 'superstruct';
 
 dotenv.config();
 
-const EnvConfigStruct = object({
-  RPC_URL_MAINNET: string(),
-  RPC_URL_DEVNET: string(),
-  RPC_URL_TESTNET: string(),
-  RPC_URL_LOCALNET: string(),
-});
-
-// Read and validate environment variables
-const rawEnvironment = {
-  RPC_URL_MAINNET: process.env.RPC_URL_MAINNET,
-  RPC_URL_DEVNET: process.env.RPC_URL_DEVNET,
-  RPC_URL_TESTNET: process.env.RPC_URL_TESTNET,
-  RPC_URL_LOCALNET: process.env.RPC_URL_LOCALNET,
+const environment = {
+  RPC_URL_MAINNET_LIST: process.env.RPC_URL_MAINNET_LIST ?? '',
+  RPC_URL_DEVNET_LIST: process.env.RPC_URL_DEVNET_LIST ?? '',
+  RPC_URL_TESTNET_LIST: process.env.RPC_URL_TESTNET_LIST ?? '',
+  RPC_URL_LOCALNET_LIST: process.env.RPC_URL_LOCALNET_LIST ?? '',
+  PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL ?? '',
 };
-
-// Validate the environment variables, and retrieve the parsed values
-const environment = create(rawEnvironment, EnvConfigStruct);
 
 const config: SnapConfig = {
   bundler: 'webpack',
