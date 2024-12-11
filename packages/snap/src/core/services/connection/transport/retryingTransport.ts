@@ -1,6 +1,6 @@
 import { type RpcTransport } from '@solana/web3.js';
 
-import logger from '../../utils/logger';
+import logger from '../../../utils/logger';
 
 // Set the maximum number of attempts to retry a request.
 const MAX_ATTEMPTS = 4;

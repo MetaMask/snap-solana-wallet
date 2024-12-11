@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
 import {
-  createDefaultRpcTransport,
   createSolanaRpcFromTransport,
   type Rpc,
   type SolanaRpcApi,
@@ -10,7 +9,7 @@ import {
   SOLANA_NETWORK_TO_RPC_URLS,
   SolanaCaip2Networks,
 } from '../../constants/solana';
-import { createRetryingTransport } from './retryingTransport';
+import { createMainTransport } from './transport/transport';
 
 /**
  * The SolanaConnection class is responsible for managing the connection to the Solana network.
@@ -33,8 +32,14 @@ export class SolanaConnection {
     Object.entries(SOLANA_NETWORK_TO_RPC_URLS).forEach(([network, url]) => {
       this.#validateNetworkOrThrow(network as SolanaCaip2Networks);
 
-      const rootTransport = createDefaultRpcTransport({ url });
-      const transport = createRetryingTransport(rootTransport);
+      const urls = [
+        'https://url.1.com',
+        'https://url.2.com',
+        'https://url.3.com',
+        'https://url.4.com',
+      ];
+
+      const transport = createMainTransport(urls);
       const rpc = createSolanaRpcFromTransport(transport);
 
       this.#networkToRpc.set(network as SolanaCaip2Networks, rpc);
