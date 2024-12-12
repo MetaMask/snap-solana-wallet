@@ -2,6 +2,7 @@ import type { SnapComponent } from '@metamask/snaps-sdk/dist/jsx/component.cjs';
 
 import type { SendContext, SendFlowStage } from './types';
 import { SendForm } from './views/SendForm/SendForm';
+import { SendPending } from './views/SendPending/SendPending';
 import { TransactionConfirmation } from './views/TransactionConfirmation/TransactionConfirmation';
 
 type SendProps = {
@@ -17,6 +18,9 @@ const MapStageToComponent: Record<
 > = {
   'send-form': SendForm,
   'transaction-confirmation': TransactionConfirmation,
+  'send-pending': SendPending,
+  'transaction-complete': TransactionConfirmation,
+  'transaction-failed': TransactionConfirmation,
 };
 
 /**

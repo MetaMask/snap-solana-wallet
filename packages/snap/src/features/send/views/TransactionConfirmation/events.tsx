@@ -65,6 +65,15 @@ async function onConfirmButtonClick({
   context: SendContext;
   snapContext: SnapExecutionContext;
 }) {
+  // First, show the pending stage
+  const contextPending: SendContext = {
+    ...context,
+    stage: 'send-pending',
+  };
+
+  await updateInterface(id, <Send context={contextPending} />, contextPending);
+
+  // Then submit the transaction
   let signature: string | null = null;
   const tokenPrice = context.tokenPrices[SolanaCaip19Tokens.SOL];
   const { price } = tokenPrice;
@@ -107,6 +116,7 @@ async function onConfirmButtonClick({
 
   const updatedContext: SendContext = {
     ...context,
+    stage: signature ? 'transaction-complete' : 'transaction-failed',
     transaction: {
       result: signature ? 'success' : 'failure',
       signature,
@@ -114,6 +124,7 @@ async function onConfirmButtonClick({
     },
   };
 
+  // Finally, show the transaction-complete or transaction-failed stage
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 }
 

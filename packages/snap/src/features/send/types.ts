@@ -9,7 +9,12 @@ import type { TokenPrice } from '../../core/services/state';
 import type { FormFieldError } from '../../core/types/error';
 import type { Locale } from '../../core/utils/i18n';
 
-export type SendFlowStage = 'send-form' | 'transaction-confirmation';
+export type SendFlowStage =
+  | 'send-form'
+  | 'transaction-confirmation'
+  | 'send-pending'
+  | 'transaction-complete'
+  | 'transaction-failed';
 
 export enum SendFormNames {
   Form = 'send-form',
