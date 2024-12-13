@@ -1,5 +1,3 @@
-import type { SnapsProvider } from '@metamask/snaps-sdk';
-
 import type { SendContext } from '../../features/send/types';
 import type { PriceApiClient } from '../clients/price-api/price-api-client';
 import type { SpotPrice } from '../clients/price-api/types';
@@ -11,20 +9,16 @@ import type { SolanaState, TokenPrice } from './state';
 export class TokenPricesService {
   readonly #priceApiClient: PriceApiClient;
 
-  readonly #snap: SnapsProvider;
-
   readonly #state: SolanaState;
 
   readonly #logger: ILogger;
 
   constructor(
     priceApiClient: PriceApiClient,
-    _snap: SnapsProvider,
     _state: SolanaState,
     _logger: ILogger,
   ) {
     this.#priceApiClient = priceApiClient;
-    this.#snap = _snap;
     this.#state = _state;
     this.#logger = _logger;
   }
@@ -56,7 +50,7 @@ export class TokenPricesService {
         );
       }
 
-      const context = await this.#snap.request({
+      const context = await snap.request({
         method: 'snap_getInterfaceContext',
         params: {
           id: sendFormInterfaceId,

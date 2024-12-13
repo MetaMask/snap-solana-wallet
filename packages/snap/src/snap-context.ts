@@ -21,7 +21,6 @@ const keyring = new SolanaKeyring(connection);
 const priceApiClient = new PriceApiClient(configProvider);
 const tokenPricesService = new TokenPricesService(
   priceApiClient,
-  snap,
   state,
   logger,
 );

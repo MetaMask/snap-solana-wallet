@@ -368,7 +368,7 @@ describe('SolanaKeyring', () => {
           pending: false,
           result: {
             signature:
-              '4TnmpaFDrKLcYc9sn5PKeGdQPyWsShDVJY5Hbaq1iZLBviaD1cVZuXYGQMezi8wqJBiHYupmrCfvyhxFGp92aZ19',
+              '2ZXksbyHvhDqZJwEKbyJNPAUkqhNSoJnH9L3ceLxgBb6dh9WSjhCQy7UdDfEQ8ym7acKJAyKT3NniDx5HzTWeXHT',
           },
         });
       });

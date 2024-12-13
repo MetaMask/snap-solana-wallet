@@ -1,51 +1,51 @@
 import { installSnap } from '@metamask/snaps-jest';
 
+import { Send } from '../../../features/send/Send';
 import {
   type SendContext,
   SendCurrency,
   SendFormNames,
 } from '../../../features/send/types';
-import { SendForm } from '../../../features/send/views/SendForm/SendForm';
+import { TransactionConfirmationNames } from '../../../features/send/views/TransactionConfirmation/TransactionConfirmation';
 import {
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
   SolanaInternalRpcMethods,
 } from '../../constants/solana';
-import { MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE } from '../../services/mocks/mockSolanaRpcResponses';
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import {
+  MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE,
+  MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE,
+  MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE,
+} from '../../services/mocks/mockSolanaRpcResponses';
+import {
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1,
+} from '../../test/mocks/solana-keyring-accounts';
 import type { MockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../test/utils';
+import { DEFAULT_SEND_CONTEXT } from './renderSend';
 
-const solanaKeyringAccounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
+const solanaKeyringAccounts = [
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1,
+];
 
 const mockContext: SendContext = {
-  stage: 'send-form',
+  ...DEFAULT_SEND_CONTEXT,
   accounts: solanaKeyringAccounts,
-  scope: SolanaCaip2Networks.Localnet,
   fromAccountId: '0',
-  amount: '2.67566',
-  toAddress: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
-  fee: '0.000005',
-  validation: {},
-  currencySymbol: SendCurrency.SOL,
+  scope: SolanaCaip2Networks.Localnet,
   balances: {
     '0': {
       amount: '0.123456789',
       unit: SendCurrency.SOL,
     },
-  },
-  tokenPrices: {
-    [SolanaCaip19Tokens.SOL]: {
-      symbol: 'SOL',
-      caip19Id: SolanaCaip19Tokens.SOL,
-      address: 'So11111111111111111111111111111111111111112',
-      decimals: 9,
-      price: 261,
+    '1': {
+      amount: '0.123456789',
+      unit: SendCurrency.SOL,
     },
   },
-  locale: 'en',
-  transaction: null,
 };
 
 describe('Send', () => {
@@ -59,13 +59,28 @@ describe('Send', () => {
     mockSolanaRpc.shutdown();
   });
 
-  it.skip('renders the send form', async () => {
+  it('renders the send form', async () => {
     const { mockResolvedResult } = mockSolanaRpc;
     const { request, mockJsonRpc } = await installSnap();
 
     mockJsonRpc({
       method: 'snap_manageState',
       result: { keyringAccounts: solanaKeyringAccounts },
+    });
+
+    mockJsonRpc({
+      method: 'snap_getPreferences',
+      result: { locale: 'en' },
+    });
+
+    mockResolvedResult({
+      method: 'getLatestBlockhash',
+      result: MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result,
+    });
+
+    mockResolvedResult({
+      method: 'sendTransaction',
+      result: MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result,
     });
 
     mockResolvedResult({
@@ -82,13 +97,73 @@ describe('Send', () => {
       },
     });
 
-    const screen = await response.getInterface();
+    // tmp mocking the delay: jest is going too fast (balances are ot reached)
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    expect(screen).toRender(<SendForm context={mockContext} />);
+    const screen1 = await response.getInterface();
 
-    await screen.selectFromSelector(SendFormNames.SourceAccountSelector, '0');
+    const updatedContext1: SendContext = mockContext;
 
-    expect(screen).toRender(<SendForm context={mockContext} />);
+    expect(screen1).toRender(<Send context={updatedContext1} />);
+
+    await screen1.typeInField(
+      SendFormNames.DestinationAccountInput,
+      MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    );
+
+    // two rerenders are happening here
+    await response.getInterface();
+    const screen2 = await response.getInterface();
+
+    const updatedContext2: SendContext = {
+      ...updatedContext1,
+      toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    };
+
+    expect(screen2).toRender(<Send context={updatedContext2} />);
+
+    await screen2.typeInField(SendFormNames.AmountInput, '0.001');
+
+    const screen3 = await response.getInterface();
+
+    const updatedContext3: SendContext = {
+      ...updatedContext2,
+      amount: '0.001',
+    };
+
+    expect(screen3).toRender(<Send context={updatedContext3} />);
+
+    await screen3.clickElement(SendFormNames.SendButton);
+
+    const screen4 = await response.getInterface();
+
+    const updatedContext4: SendContext = {
+      ...updatedContext3,
+      stage: 'transaction-confirmation',
+    };
+
+    expect(screen4).toRender(<Send context={updatedContext4} />);
+
+    await screen4.clickElement(TransactionConfirmationNames.ConfirmButton);
+
+    const screen5 = await response.getInterface();
+
+    const updatedContext5: SendContext = {
+      ...updatedContext4,
+      transaction: {
+        result: 'success',
+        signature: MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result.signature,
+        tokenPrice: {
+          price: 0,
+          address: '0',
+          decimals: 9,
+          symbol: SendCurrency.SOL,
+          caip19Id: SolanaCaip19Tokens.SOL,
+        },
+      },
+    };
+
+    expect(screen5).toRender(<Send context={updatedContext5} />);
   });
 
   it('fails when wrong params are given', async () => {
