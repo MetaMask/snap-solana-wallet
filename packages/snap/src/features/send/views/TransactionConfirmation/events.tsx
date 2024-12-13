@@ -116,7 +116,7 @@ async function onConfirmButtonClick({
 
   const updatedContext: SendContext = {
     ...context,
-    stage: signature ? 'transaction-complete' : 'transaction-failed',
+    stage: signature ? 'transaction-success' : 'transaction-failure',
     transaction: {
       result: signature ? 'success' : 'failure',
       signature,

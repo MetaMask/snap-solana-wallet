@@ -13,8 +13,8 @@ export type SendFlowStage =
   | 'send-form'
   | 'transaction-confirmation'
   | 'send-pending'
-  | 'transaction-complete'
-  | 'transaction-failed';
+  | 'transaction-success'
+  | 'transaction-failure';
 
 export enum SendFormNames {
   Form = 'send-form',

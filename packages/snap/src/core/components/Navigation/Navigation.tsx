@@ -6,20 +6,22 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
-type HeaderProps = {
+type NavigationProps = {
   title: string;
-  backButtonName: string;
+  backButtonName?: string;
 };
 
-export const Header: SnapComponent<HeaderProps> = ({
+export const Navigation: SnapComponent<NavigationProps> = ({
   title,
   backButtonName,
 }) => {
   return (
     <Box direction="horizontal" alignment="space-between" center>
-      <Button name={backButtonName}>
-        <Icon name="arrow-left" color="primary" size="md" />
-      </Button>
+      {backButtonName ? (
+        <Button name={backButtonName}>
+          <Icon name="arrow-left" color="primary" size="md" />
+        </Button>
+      ) : null}
       <Heading size="sm">{title}</Heading>
       <Box>{null}</Box>
     </Box>

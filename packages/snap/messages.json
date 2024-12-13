@@ -26,9 +26,11 @@
   "confirmation.total": "Total",
   "confirmation.sendButton": "Send",
   "confirmation.cancelButton": "Cancel",
-  "confirmation.sent": "Sent",
-  "confirmation.sentSubheading": "{amount} {tokenSymbol} was successfully sent",
-  "confirmation.failed": "Transaction failed",
-  "confirmation.failedSubheading": "Unable to send {amount} {tokenSymbol}",
-  "confirmation.viewTransaction": "View transaction"
+  "confirmation.viewTransaction": "View transaction",
+  "send-pending.title": "Sending...",
+  "send-pending.subtitle": "Your transaction was submitted.",
+  "transaction-success.title": "Sent",
+  "transaction-success.subtitle": "{amount} {tokenSymbol} was successfully sent",
+  "transaction-failure.title": "Transaction failed",
+  "transaction-failure.subtitle": "Unable to send {amount} {tokenSymbol}"
 }

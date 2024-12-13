@@ -8,7 +8,7 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 import { isNullOrUndefined } from '@metamask/utils';
 
-import { Header } from '../../../../core/components/Header/Header';
+import { Navigation } from '../../../../core/components/Navigation/Navigation';
 import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
@@ -60,12 +60,13 @@ export const SendForm = ({
     amount.length > 0 &&
     toAddress.length > 0 &&
     Object.values(validation).every(isNullOrUndefined) &&
-    isNativeBalanceDefined;
+    isNativeBalanceDefined &&
+    Boolean(price);
 
   return (
     <Container>
       <Box>
-        <Header
+        <Navigation
           title={translate('send.title')}
           backButtonName={SendFormNames.BackButton}
         />

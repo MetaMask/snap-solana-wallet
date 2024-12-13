@@ -82,20 +82,26 @@
     "confirmation.cancelButton": {
       "message": "Cancel"
     },
-    "confirmation.sent": {
-      "message": "Sent"
-    },
-    "confirmation.sentSubheading": {
-      "message": "{amount} {tokenSymbol} was successfully sent"
-    },
-    "confirmation.failed": {
-      "message": "Transaction failed"
-    },
-    "confirmation.failedSubheading": {
-      "message": "Unable to send {amount} {tokenSymbol}"
-    },
     "confirmation.viewTransaction": {
       "message": "View transaction"
+    },
+    "send-pending.title": {
+      "message": "Sending..."
+    },
+    "send-pending.subtitle": {
+      "message": "Your transaction was submitted."
+    },
+    "transaction-success.title": {
+      "message": "Sent"
+    },
+    "transaction-success.subtitle": {
+      "message": "{amount} {tokenSymbol} was successfully sent"
+    },
+    "transaction-failure.title": {
+      "message": "Transaction failed"
+    },
+    "transaction-failure.subtitle": {
+      "message": "Unable to send {amount} {tokenSymbol}"
     }
   }
 }

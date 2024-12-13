@@ -6,7 +6,7 @@ import { Send } from '../../../features/send/Send';
 import type { SendContext } from '../../../features/send/types';
 import { SendCurrency } from '../../../features/send/types';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
-import { keyring, state } from '../../../snap-context';
+import { keyring, state, tokenPricesService } from '../../../snap-context';
 import {
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
@@ -62,6 +62,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const dialogPromise = showDialog(id);
 
+  const refreshPricesPromise = tokenPricesService.refreshPrices(id);
+
   const preferencesPromise = getPreferences()
     .then((preferences) => preferences.locale)
     .catch(() => DEFAULT_SEND_CONTEXT.locale);
@@ -87,9 +89,10 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     return balances;
   };
 
-  const [locale, balances] = await Promise.all([
+  const [locale, balances, tokenPrices] = await Promise.all([
     preferencesPromise,
     getBalancesPromise(),
+    refreshPricesPromise,
   ]);
 
   // Re-fetch the context to ensure it's up to date. Some values might have changed while waiting for the balances.
@@ -99,6 +102,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     ...latestContext,
     locale,
     balances,
+    tokenPrices,
   };
 
   await updateInterface(
