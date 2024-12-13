@@ -38,15 +38,20 @@ export const SendForm = ({
   },
 }: SendFormProps) => {
   const translate = i18n(locale);
-
-  const nativeBalance = balances[fromAccountId]?.amount ?? '0';
+  const nativeBalance = balances[fromAccountId]?.amount;
+  const isNativeBalanceDefined = nativeBalance !== undefined;
 
   const { price } = tokenPrices[SolanaCaip19Tokens.SOL];
 
-  const currencyToBalance: Record<SendCurrency, string> = {
-    [SendCurrency.FIAT]: formatCurrency(tokenToFiat(nativeBalance, price)),
-    [SendCurrency.SOL]: formatTokens(nativeBalance, currencySymbol),
-  };
+  const currencyToBalance: Record<SendCurrency, string> = isNativeBalanceDefined
+    ? {
+        [SendCurrency.FIAT]: formatCurrency(tokenToFiat(nativeBalance, price)),
+        [SendCurrency.SOL]: formatTokens(nativeBalance, currencySymbol),
+      }
+    : {
+        [SendCurrency.FIAT]: '',
+        [SendCurrency.SOL]: '',
+      };
 
   const balance = currencyToBalance[currencySymbol];
 
@@ -54,7 +59,8 @@ export const SendForm = ({
     fromAccountId.length > 0 &&
     amount.length > 0 &&
     toAddress.length > 0 &&
-    Object.values(validation).every(isNullOrUndefined);
+    Object.values(validation).every(isNullOrUndefined) &&
+    isNativeBalanceDefined;
 
   return (
     <Container>

@@ -14,11 +14,13 @@ import {
 import { DEFAULT_TOKEN_PRICES } from '../../services/state';
 import {
   createInterface,
+  getInterfaceContext,
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   showDialog,
   updateInterface,
 } from '../../utils/interface';
+import logger from '../../utils/logger';
 
 export const DEFAULT_SEND_CONTEXT: SendContext = {
   scope: SolanaCaip2Networks.Mainnet,
@@ -70,16 +72,15 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
       keyring
         .getAccountBalances(_account.id, [token])
         .then((response) => {
-          balances[_account.id] = response[token] ?? {
-            amount: '0',
-            unit: 'SOL',
-          };
+          if (response[token]) {
+            balances[_account.id] = response[token];
+          }
         })
-        .catch(() => {
-          balances[_account.id] = balances[_account.id] ?? {
-            amount: '0',
-            unit: 'SOL',
-          };
+        .catch((error) => {
+          logger.error(
+            { error },
+            `Could not fetch balances for account ${_account.id}`,
+          );
         }),
     );
     await Promise.all(promises);
@@ -91,10 +92,20 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     getBalancesPromise(),
   ]);
 
-  context.locale = locale;
-  context.balances = balances;
+  // Re-fetch the context to ensure it's up to date. Some values might have changed while waiting for the balances.
+  const latestContext = (await getInterfaceContext(id)) as SendContext;
 
-  await updateInterface(id, <Send context={context} />, context);
+  const contextToUpdate: SendContext = {
+    ...latestContext,
+    locale,
+    balances,
+  };
+
+  await updateInterface(
+    id,
+    <Send context={contextToUpdate} />,
+    contextToUpdate,
+  );
 
   await state.update((_state) => {
     return {

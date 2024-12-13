@@ -17,7 +17,6 @@ import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
 import { truncateAddress } from '../../../../core/utils/truncate-address';
-import { SendCurrency } from '../../types';
 
 type AccountSelectorProps = {
   name: string;
@@ -47,16 +46,18 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
     <Field label={translate('send.fromField')} error={error}>
       <Selector name={name} value={selectedAccountId} title="From">
         {accountsList.map((account) => {
+          const balance = balances[account.id];
+          const { amount, unit } = balance ?? {};
+
+          const value = amount && unit ? formatTokens(amount, unit) : '';
+          const extra =
+            amount && unit ? formatCurrency(tokenToFiat(amount, price)) : '';
+
           return (
             <SelectorOption value={account.id}>
               <Card
-                value={formatTokens(
-                  balances[account.id]?.amount ?? '0',
-                  balances[account.id]?.unit ?? SendCurrency.SOL,
-                )}
-                extra={formatCurrency(
-                  tokenToFiat(balances[account.id]?.amount ?? '0', price),
-                )}
+                value={value}
+                extra={extra}
                 description={truncateAddress(account.address)}
                 title={
                   <Address
