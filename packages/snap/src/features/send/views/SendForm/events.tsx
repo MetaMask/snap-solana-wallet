@@ -83,10 +83,9 @@ async function onAmountInputChange({
     validation,
   );
 
-  context.validation[SendFormNames.AmountInput] = validateBalance(
-    context.amount,
-    context,
-  );
+  context.validation[SendFormNames.AmountInput] =
+    context.validation[SendFormNames.AmountInput] ??
+    validateBalance(context.amount, context);
 
   await updateInterface(id, <SendForm context={context} />, context);
 }
@@ -161,11 +160,13 @@ async function onMaxAmountButtonClick({
     context.amount = amount.multipliedBy(price).toString();
   }
 
-  context.validation[SendFormNames.AmountInput] = validateField<SendFormNames>(
-    SendFormNames.AmountInput,
-    context.amount,
-    validation,
-  );
+  context.validation[SendFormNames.AmountInput] =
+    context.validation[SendFormNames.AmountInput] ??
+    validateField<SendFormNames>(
+      SendFormNames.AmountInput,
+      context.amount,
+      validation,
+    );
 
   await updateInterface(id, <SendForm context={context} />, context);
 }
