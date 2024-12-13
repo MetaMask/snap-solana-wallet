@@ -9,6 +9,7 @@ import {
 import { validateField } from '../../../../core/validation/form';
 import { Send } from '../../Send';
 import { SendCurrency, SendFormNames, type SendContext } from '../../types';
+import { validateBalance } from '../../utils/balance';
 import { SendForm } from './SendForm';
 import { validation } from './validation';
 
@@ -50,6 +51,11 @@ async function onSourceAccountSelectorValueChange({
       validation,
     );
 
+  context.validation[SendFormNames.AmountInput] = validateBalance(
+    context.amount,
+    context,
+  );
+
   await updateInterface(id, <SendForm context={context} />, context);
 }
 
@@ -76,6 +82,10 @@ async function onAmountInputChange({
     context.amount,
     validation,
   );
+
+  context.validation[SendFormNames.AmountInput] =
+    context.validation[SendFormNames.AmountInput] ??
+    validateBalance(context.amount, context);
 
   await updateInterface(id, <SendForm context={context} />, context);
 }
@@ -150,11 +160,13 @@ async function onMaxAmountButtonClick({
     context.amount = amount.multipliedBy(price).toString();
   }
 
-  context.validation[SendFormNames.AmountInput] = validateField<SendFormNames>(
-    SendFormNames.AmountInput,
-    context.amount,
-    validation,
-  );
+  context.validation[SendFormNames.AmountInput] =
+    context.validation[SendFormNames.AmountInput] ??
+    validateField<SendFormNames>(
+      SendFormNames.AmountInput,
+      context.amount,
+      validation,
+    );
 
   await updateInterface(id, <SendForm context={context} />, context);
 }

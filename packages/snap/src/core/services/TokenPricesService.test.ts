@@ -1,17 +1,19 @@
-import { jest } from '@jest/globals';
-import type { SnapsProvider } from '@metamask/snaps-sdk';
-
 import type { PriceApiClient } from '../clients/price-api/price-api-client';
 import { SolanaCaip19Tokens, SolanaTokens } from '../constants/solana';
 import type { ILogger } from '../utils/logger';
 import type { SolanaState, StateValue } from './state';
 import { TokenPricesService } from './TokenPricesService';
 
+const snap = {
+  request: jest.fn(),
+};
+
+(globalThis as any).snap = snap;
+
 describe('TokenPricesService', () => {
   describe('refreshPrices', () => {
     let tokenPricesService: TokenPricesService;
     let mockPriceApiClient: PriceApiClient;
-    let mockSnap: SnapsProvider;
     let mockState: SolanaState;
     let mockLogger: ILogger;
 
@@ -19,10 +21,6 @@ describe('TokenPricesService', () => {
       mockPriceApiClient = {
         getSpotPrice: jest.fn(),
       } as unknown as PriceApiClient;
-
-      mockSnap = {
-        request: jest.fn(),
-      } as unknown as SnapsProvider;
 
       mockState = {
         get: jest.fn(),
@@ -36,10 +34,13 @@ describe('TokenPricesService', () => {
 
       tokenPricesService = new TokenPricesService(
         mockPriceApiClient,
-        mockSnap,
         mockState,
         mockLogger,
       );
+    });
+
+    afterEach(() => {
+      snap.request.mockReset();
     });
 
     it('refreshes token rates already present in the state', async () => {
@@ -58,7 +59,7 @@ describe('TokenPricesService', () => {
       jest.spyOn(mockState, 'get').mockResolvedValue(mockStateValue);
 
       // Mock no interface to get balances from
-      jest.spyOn(mockSnap, 'request').mockResolvedValue({ balances: {} });
+      jest.spyOn(snap, 'request').mockResolvedValue({ balances: {} });
 
       // Mock price API response
       const mockSpotPrice = { price: 1.23 };
@@ -91,7 +92,7 @@ describe('TokenPricesService', () => {
       jest.spyOn(mockState, 'get').mockResolvedValue(mockStateValue);
 
       // Mock no interface to get balances from
-      jest.spyOn(mockSnap, 'request').mockResolvedValueOnce({
+      jest.spyOn(snap, 'request').mockResolvedValueOnce({
         balances: {
           [SolanaCaip19Tokens.SOL]: { amount: '1', unit: 'SOL' },
         },
@@ -132,7 +133,7 @@ describe('TokenPricesService', () => {
       jest.spyOn(mockState, 'get').mockResolvedValue(mockStateValue);
 
       // Mock UI context with same token as state
-      jest.spyOn(mockSnap, 'request').mockResolvedValueOnce({
+      jest.spyOn(snap, 'request').mockResolvedValueOnce({
         balances: {
           'account-id-0': { amount: '1', unit: 'SOL' },
         },
@@ -173,7 +174,7 @@ describe('TokenPricesService', () => {
 
       // Mock no interface
       jest
-        .spyOn(mockSnap, 'request')
+        .spyOn(snap, 'request')
         .mockRejectedValue(new Error('No interface with passed id'));
 
       // Mock price API response

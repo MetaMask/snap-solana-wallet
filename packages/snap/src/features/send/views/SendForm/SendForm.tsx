@@ -55,6 +55,11 @@ export const SendForm = ({
 
   const balance = currencyToBalance[currencySymbol];
 
+  const canPickAmout =
+    fromAccountId.length > 0 &&
+    toAddress.length > 0 &&
+    isNullOrUndefined(validation?.[SendFormNames.DestinationAccountInput]);
+
   const canReview =
     fromAccountId.length > 0 &&
     amount.length > 0 &&
@@ -71,6 +76,9 @@ export const SendForm = ({
           backButtonName={SendFormNames.BackButton}
         />
         <Form name={SendFormNames.Form}>
+          <Box>{null}</Box>
+          <Box>{null}</Box>
+          <Box>{null}</Box>
           <AccountSelector
             name={SendFormNames.SourceAccountSelector}
             scope={scope}
@@ -83,24 +91,34 @@ export const SendForm = ({
             price={price}
             locale={locale}
           />
-          <AmountInput
-            name={SendFormNames.AmountInput}
-            error={validation?.[SendFormNames.AmountInput]?.message ?? ''}
-            currencySymbol={currencySymbol}
-            value={amount}
-          />
-          <Box direction="horizontal" alignment="space-between" center>
-            {balance ? (
-              <Text color="muted">{`${translate(
-                'send.balance',
-              )}: ${balance}`}</Text>
-            ) : (
+          {canPickAmout && (
+            <Box>
               <Box>{null}</Box>
-            )}
-            <Button name={SendFormNames.MaxAmountButton}>
-              {translate('send.maxButton')}
-            </Button>
-          </Box>
+              <Box>{null}</Box>
+              <Box>{null}</Box>
+              <AmountInput
+                name={SendFormNames.AmountInput}
+                error={validation?.[SendFormNames.AmountInput]?.message ?? ''}
+                currencySymbol={currencySymbol}
+                value={amount}
+              />
+              <Box direction="horizontal" alignment="space-between" center>
+                {balance ? (
+                  <Text color="muted">{`${translate(
+                    'send.balance',
+                  )}: ${balance}`}</Text>
+                ) : (
+                  <Box>{null}</Box>
+                )}
+                <Button name={SendFormNames.MaxAmountButton}>
+                  {translate('send.maxButton')}
+                </Button>
+              </Box>
+            </Box>
+          )}
+          <Box>{null}</Box>
+          <Box>{null}</Box>
+          <Box>{null}</Box>
           <ToAddressField
             locale={locale}
             name={SendFormNames.DestinationAccountInput}

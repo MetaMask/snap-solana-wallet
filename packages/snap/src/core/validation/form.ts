@@ -90,13 +90,10 @@ export const greatherThanZero: ValidationFunction = (
   const translate = i18n(locale);
 
   return (value: string) => {
-    const [error] = validate(
-      parseFloat(value),
-      min(number(), 0, { exclusive: false }),
-      {
-        message: translate(message),
-      },
-    );
-    return error ? { message: error.message, value } : null;
+    const valueGreatherThanZero = parseFloat(value) > 0;
+
+    return valueGreatherThanZero
+      ? null
+      : { message: translate(message), value };
   };
 };
