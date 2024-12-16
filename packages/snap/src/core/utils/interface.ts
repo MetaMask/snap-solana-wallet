@@ -8,6 +8,7 @@ import type {
   UpdateInterfaceResult,
 } from '@metamask/snaps-sdk';
 
+import type { Preferences } from '../types/snap';
 import type { Locale } from './i18n';
 
 export const SEND_FORM_INTERFACE_NAME = 'send-form';
@@ -118,7 +119,7 @@ export async function getPreferences(): Promise<{
 }> {
   return snap.request({
     method: 'snap_getPreferences',
-  }) as Promise<{ locale: Locale; currency: string }>;
+  }) as Promise<Preferences>;
 }
 
 /**

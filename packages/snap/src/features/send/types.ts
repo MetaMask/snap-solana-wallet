@@ -7,7 +7,7 @@ import type {
 import type { SolanaKeyringAccount } from '../../core/services/keyring';
 import type { TokenPrice } from '../../core/services/state';
 import type { FormFieldError } from '../../core/types/error';
-import type { Locale } from '../../core/utils/i18n';
+import type { Preferences } from '../../core/types/snap';
 
 export type SendFlowStage =
   | 'send-form'
@@ -54,8 +54,5 @@ export type SendContext = {
   tokenPrices: Record<SolanaCaip19Tokens, TokenPrice>;
   transaction: SendTransation | null;
   stage: SendFlowStage;
-  preferences: {
-    locale: Locale;
-    currency: string;
-  };
+  preferences: Preferences;
 };

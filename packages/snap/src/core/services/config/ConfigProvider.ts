@@ -17,7 +17,7 @@ const EnvStruct = object({
   RPC_URL_LOCALNET_LIST: CommaSeparatedString,
   PRICE_API_BASE_URL: string(),
   PRICE_API_BASE_URL_LOCAL: string(),
-  CI: string(),
+  TEST: string(),
 });
 
 export type Env = Infer<typeof EnvStruct>;
@@ -63,7 +63,7 @@ export class ConfigProvider {
       PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL,
       // TODO: Remove this once we have a better way to handle local environment
       PRICE_API_BASE_URL_LOCAL: process.env.PRICE_API_BASE_URL_LOCAL,
-      CI: process.env.CI,
+      TEST: process.env.TEST,
     };
 
     // Validate and parse them before returning
@@ -99,7 +99,7 @@ export class ConfigProvider {
         },
       ],
       priceApi: {
-        baseUrl: environment.CI
+        baseUrl: environment.TEST
           ? environment.PRICE_API_BASE_URL_LOCAL
           : environment.PRICE_API_BASE_URL,
       },

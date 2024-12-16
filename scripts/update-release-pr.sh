@@ -34,5 +34,5 @@ then
     exit 1
 fi
 
-git push --set-upstream origin "${RELEASE_BRANCH_NAME}"
+git push --set-upstream origin "${RELEASE_BRANCH_NAME}" --no-verify
 
