@@ -64,9 +64,9 @@ export const SendForm = ({
     fromAccountId.length > 0 &&
     amount.length > 0 &&
     toAddress.length > 0 &&
-    Object.values(validation).every(isNullOrUndefined) &&
-    isNativeBalanceDefined &&
-    Boolean(price);
+    Object.values(validation).every(isNullOrUndefined);
+  // isNativeBalanceDefined && // @TODO: Bring this back in
+  // Boolean(price); // @TODO: Bring this back in
 
   return (
     <Container>
