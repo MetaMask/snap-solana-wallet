@@ -40,6 +40,7 @@ export class TokenPricesService {
 
     const caip19IdsFromPricesInState = Object.keys(tokenPrices);
     const caip19IdsFromUiContext = [];
+    let currency = 'usd';
 
     // If the send form interface exists, we will also refresh the rates from the balances listed in the ui context.
     // We gracefully handle the case where the send form interface does not exist because it's a normal scenario.
@@ -57,7 +58,9 @@ export class TokenPricesService {
         },
       });
 
-      const { balances } = context as SendContext;
+      const { balances, preferences } = context as SendContext;
+
+      currency = preferences.currency;
 
       caip19IdsFromUiContext.push(...Object.keys(balances));
     } catch (error) {
@@ -86,7 +89,7 @@ export class TokenPricesService {
       }
 
       const spotPrice = await this.#priceApiClient
-        .getSpotPrice(SolanaCaip2Networks.Mainnet, tokenInfo.address)
+        .getSpotPrice(SolanaCaip2Networks.Mainnet, tokenInfo.address, currency)
         // Catch errors on individual calls, so that one that fails does not break for others.
         .catch((error) => {
           this.#logger.info(

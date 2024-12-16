@@ -38,6 +38,7 @@
     "locale:build:watch": "npx nodemon --watch packages/snap/messages.json --exec \"node ./scripts/populate-locale.js\""
   },
   "devDependencies": {
+    "@formatjs/intl-numberformat": "^8.15.1",
     "@jest/globals": "^29.5.0",
     "@metamask/auto-changelog": "^4.0.0",
     "@metamask/key-tree": "^9.1.2",

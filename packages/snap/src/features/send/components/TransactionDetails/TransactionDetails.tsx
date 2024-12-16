@@ -36,7 +36,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
     fee,
     currencySymbol,
     tokenPrices,
-    locale,
+    preferences: { locale, currency },
     transaction,
   },
 }) => {
@@ -60,16 +60,20 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   const toAddressCaip2 =
     `${scope}:${toAddress}` as `${string}:${string}:${string}`;
   const networkName = SolanaNetworksNames[scope];
-  // TODO: Get the transaction speed from the network.
-  const transactionSpeed = '12.8s';
+
+  const transactionSpeed = '<1s';
 
   const amountInUserCurrency = formatCurrency(
     tokenToFiat(amountInSol.toString(), price),
+    currency,
   );
-  const feeInUserCurrency = formatCurrency(tokenToFiat(fee, price));
+  const feeInUserCurrency = formatCurrency(tokenToFiat(fee, price), currency);
 
   const total = BigNumber(amountInSol).plus(BigNumber(fee)).toString();
-  const totalInUserCurrency = formatCurrency(tokenToFiat(total, price));
+  const totalInUserCurrency = formatCurrency(
+    tokenToFiat(total, price),
+    currency,
+  );
 
   return (
     <Box>
@@ -99,17 +103,11 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
           <Text>{networkName}</Text>
         </Row>
 
-        <Row
-          label={translate('confirmation.transactionSpeed')}
-          tooltip={translate('confirmation.transactionSpeedTooltip')}
-        >
+        <Row label={translate('confirmation.transactionSpeed')}>
           <Text>{transactionSpeed}</Text>
         </Row>
 
-        <Row
-          label={translate('confirmation.fee')}
-          tooltip={translate('confirmation.feeTooltip')}
-        >
+        <Row label={translate('confirmation.fee')}>
           <Value
             extra={feeInUserCurrency}
             value={formatTokens(fee, currencySymbol)}

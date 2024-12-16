@@ -14,6 +14,7 @@ jobs:
       RPC_URL_TESTNET_LIST: ${{ secrets.RPC_URL_TESTNET_LIST }}
       RPC_URL_LOCALNET_LIST: ${{ secrets.RPC_URL_LOCALNET_LIST }}
       PRICE_API_BASE_URL: ${{ secrets.PRICE_API_BASE_URL }}
+      PRICE_API_BASE_URL_LOCAL: ${{ secrets.PRICE_API_BASE_URL_LOCAL }}
 
   sonarcloud:
     permissions:
@@ -107,3 +108,4 @@ jobs:
       RPC_URL_TESTNET_LIST: ${{ secrets.RPC_URL_TESTNET_LIST }}
       RPC_URL_LOCALNET_LIST: ${{ secrets.RPC_URL_LOCALNET_LIST }}
       PRICE_API_BASE_URL: ${{ secrets.PRICE_API_BASE_URL }}
+      PRICE_API_BASE_URL_LOCAL: ${{ secrets.PRICE_API_BASE_URL_LOCAL }}

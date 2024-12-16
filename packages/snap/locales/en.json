@@ -64,14 +64,8 @@
     "confirmation.transactionSpeed": {
       "message": "Transaction speed"
     },
-    "confirmation.transactionSpeedTooltip": {
-      "message": "Transaction speed tooltip"
-    },
     "confirmation.fee": {
       "message": "Network fee"
-    },
-    "confirmation.feeTooltip": {
-      "message": "Network fee tooltip"
     },
     "confirmation.total": {
       "message": "Total"

@@ -24,6 +24,7 @@ export type MockSolanaRpc = {
   mockRejectedError: (mock: MockedRejectedError) => void;
   mockRejectedErrorOnce: (mock: MockedRejectedError) => void;
   shutdown: () => void;
+  server: express.Application | null;
 };
 
 // Singleton server instance
@@ -161,5 +162,6 @@ export const startMockSolanaRpc = (): MockSolanaRpc => {
     mockRejectedError,
     mockRejectedErrorOnce,
     shutdown,
+    server: app,
   };
 };

@@ -34,7 +34,7 @@ export const SendForm = ({
     scope,
     balances,
     tokenPrices,
-    locale,
+    preferences: { locale, currency },
   },
 }: SendFormProps) => {
   const translate = i18n(locale);
@@ -45,7 +45,10 @@ export const SendForm = ({
 
   const currencyToBalance: Record<SendCurrency, string> = isNativeBalanceDefined
     ? {
-        [SendCurrency.FIAT]: formatCurrency(tokenToFiat(nativeBalance, price)),
+        [SendCurrency.FIAT]: formatCurrency(
+          tokenToFiat(nativeBalance, price),
+          currency,
+        ),
         [SendCurrency.SOL]: formatTokens(nativeBalance, currencySymbol),
       }
     : {
@@ -64,9 +67,9 @@ export const SendForm = ({
     fromAccountId.length > 0 &&
     amount.length > 0 &&
     toAddress.length > 0 &&
-    Object.values(validation).every(isNullOrUndefined);
-  // isNativeBalanceDefined && // @TODO: Bring this back in
-  // Boolean(price); // @TODO: Bring this back in
+    Object.values(validation).every(isNullOrUndefined) &&
+    isNativeBalanceDefined &&
+    Boolean(price);
 
   return (
     <Container>
@@ -90,6 +93,7 @@ export const SendForm = ({
             balances={balances}
             price={price}
             locale={locale}
+            currency={currency}
           />
           {canPickAmout && (
             <Box>

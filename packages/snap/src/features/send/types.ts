@@ -52,7 +52,10 @@ export type SendContext = {
   currencySymbol: SendCurrency;
   balances: Record<CaipAssetType, Balance>;
   tokenPrices: Record<SolanaCaip19Tokens, TokenPrice>;
-  locale: Locale;
   transaction: SendTransation | null;
   stage: SendFlowStage;
+  preferences: {
+    locale: Locale;
+    currency: string;
+  };
 };

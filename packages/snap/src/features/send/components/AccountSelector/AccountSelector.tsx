@@ -26,6 +26,7 @@ type AccountSelectorProps = {
   price: number;
   selectedAccountId: string;
   locale: Locale;
+  currency: string;
   error?: string;
 };
 
@@ -38,6 +39,7 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
   selectedAccountId,
   error,
   locale,
+  currency,
 }) => {
   const translate = i18n(locale);
   const accountsList = Object.values(accounts);
@@ -51,7 +53,9 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
 
           const value = amount && unit ? formatTokens(amount, unit) : '';
           const extra =
-            amount && unit ? formatCurrency(tokenToFiat(amount, price)) : '';
+            amount && unit
+              ? formatCurrency(tokenToFiat(amount, price), currency)
+              : '';
 
           return (
             <SelectorOption value={account.id}>

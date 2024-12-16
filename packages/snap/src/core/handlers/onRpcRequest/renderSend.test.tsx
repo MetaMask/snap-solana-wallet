@@ -46,6 +46,15 @@ const mockContext: SendContext = {
       unit: SendCurrency.SOL,
     },
   },
+  tokenPrices: {
+    [SolanaCaip19Tokens.SOL]: {
+      price: 200,
+      address: '0',
+      decimals: 9,
+      symbol: SendCurrency.SOL,
+      caip19Id: SolanaCaip19Tokens.SOL,
+    },
+  },
 };
 
 describe('Send', () => {
@@ -60,7 +69,17 @@ describe('Send', () => {
   });
 
   it('renders the send form', async () => {
-    const { mockResolvedResult } = mockSolanaRpc;
+    const { mockResolvedResult, server } = mockSolanaRpc;
+
+    // temporary mock for the token prices
+    // FIXME: when we have a better way to handle external requests
+    server?.get(
+      `/v2/chains/:chainIdInCaip2/spot-prices/:tokenAddress`,
+      (_: any, res: any) => {
+        return res.json({ price: 200 });
+      },
+    );
+
     const { request, mockJsonRpc } = await installSnap();
 
     mockJsonRpc({
@@ -70,7 +89,7 @@ describe('Send', () => {
 
     mockJsonRpc({
       method: 'snap_getPreferences',
-      result: { locale: 'en' },
+      result: { locale: 'en', currency: 'usd' },
     });
 
     mockResolvedResult({
@@ -97,7 +116,7 @@ describe('Send', () => {
       },
     });
 
-    // tmp mocking the delay: jest is going too fast (balances are ot reached)
+    // tmp mocking the delay: jest is going too fast (balances are not reached)
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const screen1 = await response.getInterface();
@@ -155,7 +174,7 @@ describe('Send', () => {
         result: 'success',
         signature: MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result.signature,
         tokenPrice: {
-          price: 0,
+          price: 200,
           address: '0',
           decimals: 9,
           symbol: SendCurrency.SOL,

@@ -6,7 +6,7 @@ import { Send } from '../../../features/send/Send';
 import type { SendContext } from '../../../features/send/types';
 import { SendCurrency } from '../../../features/send/types';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
-import { keyring, state } from '../../../snap-context';
+import { keyring, state, tokenPricesService } from '../../../snap-context';
 import {
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
@@ -14,6 +14,7 @@ import {
 import { DEFAULT_TOKEN_PRICES } from '../../services/state';
 import {
   createInterface,
+  getInterfaceContext,
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   showDialog,
@@ -32,7 +33,10 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   validation: {},
   balances: {},
   tokenPrices: DEFAULT_TOKEN_PRICES,
-  locale: 'en',
+  preferences: {
+    locale: 'en',
+    currency: 'usd',
+  },
   transaction: null,
   stage: 'send-form',
 };
@@ -54,16 +58,31 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const context = { ...DEFAULT_SEND_CONTEXT, scope, fromAccountId: account };
 
-  const accounts = await keyring.listAccounts();
+  const preferencesPromise = getPreferences().catch(
+    () => DEFAULT_SEND_CONTEXT.preferences,
+  );
+
+  const [accounts, preferences] = await Promise.all([
+    keyring.listAccounts(),
+    preferencesPromise,
+  ]);
+
   context.accounts = accounts;
+  context.preferences = preferences;
 
   const id = await createInterface(<Send context={context} />, context);
 
   const dialogPromise = showDialog(id);
 
-  const preferencesPromise = getPreferences()
-    .then((preferences) => preferences.locale)
-    .catch(() => DEFAULT_SEND_CONTEXT.locale);
+  await state.update((_state) => {
+    return {
+      ..._state,
+      mapInterfaceNameToId: {
+        ...(_state?.mapInterfaceNameToId ?? {}),
+        [SEND_FORM_INTERFACE_NAME]: id,
+      },
+    };
+  });
 
   const getBalancesPromise = async () => {
     const balances: Record<string, Balance> = {};
@@ -86,25 +105,23 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     return balances;
   };
 
-  const [locale, balances] = await Promise.all([
-    preferencesPromise,
-    getBalancesPromise(),
-  ]);
+  const pricesPromise = tokenPricesService
+    .refreshPrices(id)
+    .catch(() => DEFAULT_TOKEN_PRICES);
 
-  context.locale = locale;
-  context.balances = balances;
+  const [balances, tokenPrices, updatedContextFromInterface] =
+    await Promise.all([
+      getBalancesPromise(),
+      pricesPromise,
+      getInterfaceContext(id),
+    ]);
 
-  await updateInterface(id, <Send context={context} />, context);
+  const updatedContext = { ...context, ...updatedContextFromInterface };
 
-  await state.update((_state) => {
-    return {
-      ..._state,
-      mapInterfaceNameToId: {
-        ...(_state?.mapInterfaceNameToId ?? {}),
-        [SEND_FORM_INTERFACE_NAME]: id,
-      },
-    };
-  });
+  updatedContext.balances = balances;
+  updatedContext.tokenPrices = tokenPrices;
+
+  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
   return dialogPromise;
 };

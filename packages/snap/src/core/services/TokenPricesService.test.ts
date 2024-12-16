@@ -93,6 +93,7 @@ describe('TokenPricesService', () => {
 
       // Mock no interface to get balances from
       jest.spyOn(snap, 'request').mockResolvedValueOnce({
+        preferences: { currency: 'usd' },
         balances: {
           [SolanaCaip19Tokens.SOL]: { amount: '1', unit: 'SOL' },
         },

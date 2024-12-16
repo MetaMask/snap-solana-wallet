@@ -1,3 +1,5 @@
+import { NumberFormat } from '@formatjs/intl-numberformat/index';
+
 /**
  * Adds support for the Intl object's Collator#toLocaleString method.
  */
@@ -11,6 +13,7 @@ export function install() {
   Object.defineProperty(globalThis, 'Intl', {
     value: {
       Collator,
+      NumberFormat,
     },
     writable: true,
     configurable: true,
