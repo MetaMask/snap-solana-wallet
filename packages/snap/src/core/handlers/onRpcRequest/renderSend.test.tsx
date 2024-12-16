@@ -150,6 +150,7 @@ describe('Send', () => {
 
     const updatedContext5: SendContext = {
       ...updatedContext4,
+      stage: 'transaction-success',
       transaction: {
         result: 'success',
         signature: MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result.signature,

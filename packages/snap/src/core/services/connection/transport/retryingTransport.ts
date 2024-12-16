@@ -1,20 +1,12 @@
 import { type RpcTransport } from '@solana/web3.js';
 
 import logger from '../../../utils/logger';
+import { sleep } from '../../../utils/sleep';
 
 // Set the maximum number of attempts to retry a request.
 const MAX_ATTEMPTS = 4;
 const BASE_RETRY_DELAY_MS = 400;
 const MAX_RETRY_DELAY_MS = 1500;
-
-/**
- * Sleep function to wait for a given number of milliseconds.
- * @param ms - The number of milliseconds to sleep.
- * @returns A promise that resolves when the sleep is complete.
- */
-async function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 /**
  * Calculate the delay for a given attempt.
