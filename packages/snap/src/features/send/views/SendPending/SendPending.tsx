@@ -10,7 +10,7 @@ export type SendPendingProps = {
 };
 
 export const SendPending = ({ context }: SendPendingProps) => {
-  const translate = i18n(context.locale);
+  const translate = i18n(context.preferences.locale);
 
   return (
     <Container>
