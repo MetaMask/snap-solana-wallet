@@ -13,8 +13,8 @@ export type TransactionSuccessProps = {
 };
 
 export const TransactionSuccess = ({ context }: TransactionSuccessProps) => {
-  const { currencySymbol, locale, scope, transaction } = context;
-  const translate = i18n(locale);
+  const { currencySymbol, preferences, scope, transaction } = context;
+  const translate = i18n(preferences.locale);
   const amountInSol = getAmountInSol(context);
 
   return (

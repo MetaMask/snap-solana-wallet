@@ -12,8 +12,8 @@ export type TransactionFailureProps = {
 };
 
 export const TransactionFailure = ({ context }: TransactionFailureProps) => {
-  const { currencySymbol, locale } = context;
-  const translate = i18n(locale);
+  const { currencySymbol, preferences } = context;
+  const translate = i18n(preferences.locale);
   const amountInSol = getAmountInSol(context);
 
   return (
