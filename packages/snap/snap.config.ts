@@ -12,7 +12,7 @@ const environment = {
   RPC_URL_LOCALNET_LIST: process.env.RPC_URL_LOCALNET_LIST ?? '',
   PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL ?? '',
   PRICE_API_BASE_URL_LOCAL: process.env.PRICE_API_BASE_URL_LOCAL ?? '',
-  TEST: process.env.TEST ?? '',
+  TEST: process.env.TEST,
 };
 
 const config: SnapConfig = {

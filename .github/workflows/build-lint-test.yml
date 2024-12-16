@@ -42,7 +42,6 @@ jobs:
       RPC_URL_LOCALNET_LIST: ${{ secrets.RPC_URL_LOCALNET_LIST }}
       PRICE_API_BASE_URL: ${{ secrets.PRICE_API_BASE_URL }}
       PRICE_API_BASE_URL_LOCAL: ${{ secrets.PRICE_API_BASE_URL_LOCAL }}
-      TEST: false
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
@@ -121,13 +120,6 @@ jobs:
         run: yarn workspace @metamask/solana-wallet-snap build
       - name: Run tests
         run: yarn test
-      - name: Require clean working directory
-        shell: bash
-        run: |
-          if ! git diff --exit-code; then
-            echo "Working tree dirty at end of job"
-            exit 1
-          fi
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
         with:

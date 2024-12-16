@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 import type { Infer } from 'superstruct';
-import { array, coerce, create, object, string } from 'superstruct';
+import { array, coerce, create, object, optional, string } from 'superstruct';
 
 import { SolanaCaip2Networks } from '../../constants/solana';
 
@@ -17,7 +17,7 @@ const EnvStruct = object({
   RPC_URL_LOCALNET_LIST: CommaSeparatedString,
   PRICE_API_BASE_URL: string(),
   PRICE_API_BASE_URL_LOCAL: string(),
-  TEST: string(),
+  TEST: optional(string()),
 });
 
 export type Env = Infer<typeof EnvStruct>;
