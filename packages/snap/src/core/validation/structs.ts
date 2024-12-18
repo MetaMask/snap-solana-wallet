@@ -1,11 +1,26 @@
 import type { Infer } from 'superstruct';
-import { enums, number, object, pattern, record, string } from 'superstruct';
+import {
+  enums,
+  number,
+  object,
+  pattern,
+  record,
+  refine,
+  string,
+} from 'superstruct';
 
 import {
   SOL_SYMBOL,
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
 } from '../constants/solana';
+
+export const PositiveNumber = refine(number(), 'positive', (value) => {
+  if (value < 0) {
+    return `Expected a positive number but received a negative number ${value}`;
+  }
+  return true;
+});
 
 export const PositiveNumberStringStruct = pattern(
   string(),
@@ -32,7 +47,7 @@ export const GetAccounBalancesResponseStruct = record(
 
 export const TransferSolParamsStruct = object({
   to: string(),
-  amount: number(),
+  amount: PositiveNumber,
 });
 
 export type TransferSolParams = Infer<typeof TransferSolParamsStruct>;

@@ -7,6 +7,7 @@ import {
   SolanaCaip2Networks,
   SolanaTokens,
 } from '../constants/solana';
+import { mockLogger } from '../test/mocks/logger';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -21,6 +22,7 @@ import type { SolanaConnection } from './connection/SolanaConnection';
 import { SolanaKeyring } from './keyring';
 import { createMockConnection } from './mocks/mockConnection';
 import type { StateValue } from './state';
+import type { TransferSolHelper } from './TransferSolHelper/TransferSolHelper';
 
 jest.mock('@metamask/keyring-api', () => ({
   ...jest.requireActual('@metamask/keyring-api'),
@@ -41,11 +43,24 @@ describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
   let mockStateValue: StateValue;
   let mockConnection: SolanaConnection;
+  let mockTransferSolHelper: TransferSolHelper;
 
   beforeEach(() => {
     mockConnection = createMockConnection();
 
-    keyring = new SolanaKeyring(mockConnection);
+    mockTransferSolHelper = {
+      transferSol: jest
+        .fn()
+        .mockResolvedValue(
+          '2ZXksbyHvhDqZJwEKbyJNPAUkqhNSoJnH9L3ceLxgBb6dh9WSjhCQy7UdDfEQ8ym7acKJAyKT3NniDx5HzTWeXHT',
+        ),
+    } as unknown as TransferSolHelper;
+
+    keyring = new SolanaKeyring(
+      mockConnection,
+      mockLogger,
+      mockTransferSolHelper,
+    );
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
     mockStateValue = {
@@ -256,15 +271,17 @@ describe('SolanaKeyring', () => {
       });
 
       await expect(keyring.createAccount()).rejects.toThrow(
-        'Error creating account',
+        'Error deriving address',
       );
     });
 
     it('throws an error if state fails to be retrieved', async () => {
-      (snap.request as jest.Mock).mockReturnValueOnce(null);
+      (snap.request as jest.Mock).mockRejectedValueOnce(
+        new Error('State error'),
+      );
 
       await expect(keyring.createAccount()).rejects.toThrow(
-        'Error creating account',
+        'Error listing accounts',
       );
     });
   });
@@ -344,7 +361,7 @@ describe('SolanaKeyring', () => {
         };
 
         await expect(keyring.submitRequest(request)).rejects.toThrow(
-          'Lamports value must be in the range [0, 2e64-1]',
+          'At path: amount -- Expected a positive number but received a negative number -1',
         );
       });
 

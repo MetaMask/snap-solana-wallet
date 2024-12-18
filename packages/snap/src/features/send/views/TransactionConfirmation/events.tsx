@@ -1,4 +1,3 @@
-import { SolMethod } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
 
 import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
@@ -65,6 +64,15 @@ async function onConfirmButtonClick({
   context: SendContext;
   snapContext: SnapExecutionContext;
 }) {
+  const {
+    fromAccountId,
+    toAddress,
+    scope,
+    currencySymbol,
+    tokenPrices,
+    amount,
+  } = context;
+
   // First, show the pending stage
   const contextPending: SendContext = {
     ...context,
@@ -75,41 +83,25 @@ async function onConfirmButtonClick({
 
   // Then submit the transaction
   let signature: string | null = null;
-  const tokenPrice = context.tokenPrices[SolanaCaip19Tokens.SOL];
+  const tokenPrice = tokenPrices[SolanaCaip19Tokens.SOL];
   const { price } = tokenPrice;
 
-  const amountInSol =
-    context.currencySymbol === SendCurrency.SOL
-      ? context.amount
-      : BigNumber(context.amount).dividedBy(BigNumber(price)).toString();
+  const amountInSol = Number(
+    currencySymbol === SendCurrency.SOL
+      ? amount
+      : BigNumber(amount).dividedBy(BigNumber(price)).toString(),
+  );
 
   try {
-    const response = await snapContext.keyring.submitRequest({
-      // eslint-disable-next-line no-restricted-globals
-      id: crypto.randomUUID(),
-      account: context.fromAccountId,
-      scope: context.scope,
-      request: {
-        method: SolMethod.SendAndConfirmTransaction,
-        params: {
-          to: context.toAddress,
-          amount: Number(amountInSol),
-        },
-      },
-    });
+    const account = await snapContext.keyring.getAccountOrThrow(fromAccountId);
+    const response = await snapContext.transferSolHelper.transferSol(
+      account,
+      toAddress,
+      amountInSol,
+      scope,
+    );
 
-    if (
-      !(
-        !response.pending &&
-        response.result &&
-        typeof response.result === 'object' &&
-        'signature' in response.result
-      )
-    ) {
-      throw new Error('Invalid transaction response');
-    }
-
-    signature = response.result.signature as string;
+    signature = response;
   } catch (error) {
     logger.error({ error }, 'Error submitting request');
   }
