@@ -137,9 +137,6 @@ export class SolanaKeyring implements Keyring {
         options: options ?? {},
         methods: [SolMethod.SendAndConfirmTransaction],
       };
-      logger.log(
-        'New keyring account object created, sending it to the extension...',
-      );
 
       await this.#emitEvent(KeyringEvent.AccountCreated, {
         /**
@@ -156,10 +153,6 @@ export class SolanaKeyring implements Keyring {
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
 
-      logger.log(
-        `Account created in the extension, now updating the snap state...`,
-      );
-
       await this.#encryptedState.update((state) => {
         return {
           ...state,
@@ -171,8 +164,6 @@ export class SolanaKeyring implements Keyring {
       });
 
       try {
-        logger.log(`Fetching first batch of transactions for the account...`);
-
         const transactions = (
           await this.#transactionsService.fetchInitialAddressTransactions(
             keyringAccount.address as Address,
@@ -181,8 +172,6 @@ export class SolanaKeyring implements Keyring {
           ...tx,
           account: keyringAccount.id,
         }));
-
-        logger.log(`Fetched transactions. Now adding them to the state...`);
 
         await this.#state.update((state) => {
           return {
@@ -259,10 +248,6 @@ export class SolanaKeyring implements Keyring {
 
             const balance = String(Number(response.value) / LAMPORTS_PER_SOL);
             balances.set(asset, [SOL_SYMBOL, balance]);
-            logger.log(
-              { asset, balance, network: currentNetwork },
-              'Native SOL balance',
-            );
           } else {
             // Tokens: unsuported
             logger.log({ asset, network: currentNetwork }, 'Unsupported asset');

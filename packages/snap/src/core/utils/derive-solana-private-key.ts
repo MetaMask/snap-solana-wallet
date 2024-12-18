@@ -51,21 +51,13 @@ export async function deriveSolanaPrivateKey(
   try {
     const rootNode = await getBip32Entropy(DERIVATION_PATH, CURVE);
 
-    logger.log({ rootNode });
-
     const node = await SLIP10Node.fromJSON(rootNode);
-
-    logger.log({ node });
 
     const slip10Path: SLIP10PathNode[] = hdPath.map(
       (segment: string) => `slip10:${segment}` as SLIP10PathNode,
     );
 
-    logger.log({ slip10Path });
-
     const slipNode = await node.derive(slip10Path);
-
-    logger.log({ slipNode });
 
     const { privateKeyBytes } = slipNode;
 
