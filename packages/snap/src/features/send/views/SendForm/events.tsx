@@ -1,12 +1,17 @@
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 
-import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
+import {
+  LAMPORTS_PER_SOL,
+  SolanaCaip19Tokens,
+} from '../../../../core/constants/solana';
 import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
+import logger from '../../../../core/utils/logger';
 import { validateField } from '../../../../core/validation/form';
+import { keyring, transferSolHelper } from '../../../../snap-context';
 import { Send } from '../../Send';
 import { SendCurrency, SendFormNames, type SendContext } from '../../types';
 import { validateBalance } from '../../utils/balance';
@@ -141,34 +146,72 @@ async function onMaxAmountButtonClick({
   id: string;
   context: SendContext;
 }) {
+  const {
+    fromAccountId,
+    currencySymbol,
+    toAddress,
+    balances,
+    scope,
+    tokenPrices,
+  } = context;
+  const contextToUpdate = { ...context };
+  const account = await keyring.getAccountOrThrow(fromAccountId);
+  const balanceInSol = balances[fromAccountId]?.amount ?? '0';
+
+  // NOTE: This calculates the cost of sending SOL specifically.
+  // We should adapt if this event ends up being used for SPL tokens as well.
+  const costInLamports = await transferSolHelper
+    .calculateCostInLamports(account, toAddress, scope)
+    .catch((error) => {
+      logger.error({ error }, 'Error calculating cost');
+      return '0';
+    });
+
+  const balanceInLamportsAfterCost = BigNumber(balanceInSol)
+    .multipliedBy(LAMPORTS_PER_SOL)
+    .minus(costInLamports);
+
+  const balanceInSolAfterCost =
+    balanceInLamportsAfterCost.dividedBy(LAMPORTS_PER_SOL);
+
+  if (balanceInSolAfterCost.lt(0)) {
+    throw new Error('Insufficient funds');
+  }
+
+  contextToUpdate.feeInSol = BigNumber(costInLamports)
+    .dividedBy(LAMPORTS_PER_SOL)
+    .toString();
+
   /**
    * If the currency we set is SOL, set the amount to the balance
    */
-  if (context.currencySymbol === SendCurrency.SOL) {
-    context.amount = context.balances[context.fromAccountId]?.amount ?? '0';
+  if (currencySymbol === SendCurrency.SOL) {
+    contextToUpdate.amount = balanceInSolAfterCost.toString();
   }
 
   /**
    * If the currency is USD, adjust the amount
    */
-  if (context.currencySymbol === SendCurrency.FIAT) {
-    const amount = BigNumber(
-      context.balances[context.fromAccountId]?.amount ?? '0',
-    );
-    const price = BigNumber(context.tokenPrices[SolanaCaip19Tokens.SOL].price);
-
-    context.amount = amount.multipliedBy(price).toString();
+  if (currencySymbol === SendCurrency.FIAT) {
+    const price = BigNumber(tokenPrices[SolanaCaip19Tokens.SOL].price);
+    contextToUpdate.amount = balanceInSolAfterCost
+      .multipliedBy(price)
+      .toString();
   }
 
-  context.validation[SendFormNames.AmountInput] =
-    context.validation[SendFormNames.AmountInput] ??
+  contextToUpdate.validation[SendFormNames.AmountInput] =
+    contextToUpdate.validation[SendFormNames.AmountInput] ??
     validateField<SendFormNames>(
       SendFormNames.AmountInput,
-      context.amount,
+      contextToUpdate.amount,
       validation,
     );
 
-  await updateInterface(id, <SendForm context={context} />, context);
+  await updateInterface(
+    id,
+    <SendForm context={contextToUpdate} />,
+    contextToUpdate,
+  );
 }
 
 /**

@@ -70,14 +70,14 @@ describe('TransactionHelper', () => {
     });
   });
 
-  describe('calculateCost', () => {
+  describe('calculateCostInLamports', () => {
     const mockTransactionMessage = {};
 
     it('should calculate transaction cost successfully', async () => {
       const expectedCost = '5000';
       mockRpcResponse.send.mockResolvedValueOnce({ value: expectedCost });
 
-      const result = await transactionHelper.calculateCost(
+      const result = await transactionHelper.calculateCostInLamports(
         mockTransactionMessage as any,
         SolanaCaip2Networks.Mainnet,
       );
@@ -94,7 +94,7 @@ describe('TransactionHelper', () => {
       mockRpcResponse.send.mockRejectedValueOnce(error);
 
       await expect(
-        transactionHelper.calculateCost(
+        transactionHelper.calculateCostInLamports(
           mockTransactionMessage as any,
           SolanaCaip2Networks.Mainnet,
         ),

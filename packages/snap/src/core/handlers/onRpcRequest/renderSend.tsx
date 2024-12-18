@@ -27,7 +27,7 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   fromAccountId: '',
   amount: '',
   toAddress: '',
-  fee: '0.000005',
+  feeInSol: '0.000005',
   accounts: [],
   currencySymbol: SendCurrency.SOL,
   validation: {},

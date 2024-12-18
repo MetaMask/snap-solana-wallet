@@ -1,6 +1,6 @@
 import type { SolanaCaip2Networks } from '../../../core/constants/solana';
-import { SolanaConnection } from '../../../core/services/connection';
 import logger from '../../../core/utils/logger';
+import { connection } from '../../../snap-context';
 
 /**
  * Resolves a Solana public key from a given .sol domain name.
@@ -20,11 +20,9 @@ export async function getPublicKeyFromSolDomain(
     // @ts-expect-error remove this after installing the @bonfida/spl-name-service
     const { pubkey } = getDomainKeySync(domain);
 
-    const rpcConnection = new SolanaConnection();
-
     // @ts-expect-error remove this after installing the @bonfida/spl-name-service
     const registry = await NameRegistryState.retrieve(
-      rpcConnection.getRpc(_currentNetwork),
+      connection.getRpc(_currentNetwork),
       pubkey,
     );
 

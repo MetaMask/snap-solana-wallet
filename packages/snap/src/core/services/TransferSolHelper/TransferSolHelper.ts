@@ -78,10 +78,11 @@ export class TransferSolHelper {
       network,
     );
 
-    const transactionCost = await this.#transactionHelper.calculateCost(
-      transactionMessage,
-      network,
-    );
+    const transactionCost =
+      await this.#transactionHelper.calculateCostInLamports(
+        transactionMessage,
+        network,
+      );
     console.log(`Transaction cost: ${transactionCost} lamports`);
 
     const signedTransaction = await signTransactionMessageWithSigners(
@@ -120,87 +121,96 @@ export class TransferSolHelper {
    *
    * @param from - The account from which the SOL will be transferred.
    * @param to - The address to which the SOL will be transferred.
-   * @param amount - The amount of SOL to transfer.
+   * @param amountLamports - The amount of SOL to transfer in lamports.
    * @param network - The network on which to transfer the SOL.
    * @returns The transaction message.
    */
   async buildTransactionMessage(
     from: SolanaKeyringAccount,
     to: string,
-    amount: number | bigint,
+    amountLamports: number | bigint,
     network: SolanaCaip2Networks,
   ) {
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      Uint8Array.from(from.privateKeyBytesAsNum),
-    );
-    const toAddress = address(to);
-    const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
-      network,
-    );
-
-    const transactionMessage = pipe(
-      createTransactionMessage({ version: 0 }),
-      // Every transaction must state from which account the transaction fee should be debited from,
-      // and that account must sign the transaction. Here, we'll make the source account pay the fee.
-      (tx) => setTransactionMessageFeePayer(signer.address, tx),
-      // A transaction is valid for execution as long as it includes a valid lifetime constraint. Here
-      // we supply the hash of a recent block. The network will accept this transaction until it
-      // considers that hash to be 'expired' for the purpose of transaction execution.
-      (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
-      // Every transaction needs at least one instruction. This instruction describes the transfer.
-      (tx) =>
-        appendTransactionMessageInstruction(
-          /**
-           * The system program has the exclusive right to transfer Lamports from one account to
-           * another. Here we use an instruction creator from the `@solana-program/system` package
-           * to create a transfer instruction for the system program.
-           */
-          getTransferSolInstruction({
-            amount,
-            destination: toAddress,
+    try {
+      const signer = await createKeyPairSignerFromPrivateKeyBytes(
+        Uint8Array.from(from.privateKeyBytesAsNum),
+      );
+      const toAddress = address(to);
+      const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
+        network,
+      );
+      const transactionMessage = pipe(
+        createTransactionMessage({ version: 0 }),
+        // Every transaction must state from which account the transaction fee should be debited from,
+        // and that account must sign the transaction. Here, we'll make the source account pay the fee.
+        (tx) => setTransactionMessageFeePayer(signer.address, tx),
+        // A transaction is valid for execution as long as it includes a valid lifetime constraint. Here
+        // we supply the hash of a recent block. The network will accept this transaction until it
+        // considers that hash to be 'expired' for the purpose of transaction execution.
+        (tx) =>
+          setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
+        // Every transaction needs at least one instruction. This instruction describes the transfer.
+        (tx) =>
+          appendTransactionMessageInstruction(
             /**
-             * By supplying a `TransactionSigner` here instead of just an address, we give this
-             * transaction message superpowers. Later the
-             * `signTransactionMessageWithSigners` method, in consideration of the fact that the
-             * source account must sign System program transfer instructions, will use this
-             * `TransactionSigner` to produce a transaction signed on behalf of
-             * `from.address`, without any further configuration.
+             * The system program has the exclusive right to transfer Lamports from one account to
+             * another. Here we use an instruction creator from the `@solana-program/system` package
+             * to create a transfer instruction for the system program.
              */
-            source: signer,
-          }),
-          tx,
-        ),
-    );
-
-    return transactionMessage;
+            getTransferSolInstruction({
+              amount: amountLamports,
+              destination: toAddress,
+              /**
+               * By supplying a `TransactionSigner` here instead of just an address, we give this
+               * transaction message superpowers. Later the
+               * `signTransactionMessageWithSigners` method, in consideration of the fact that the
+               * source account must sign System program transfer instructions, will use this
+               * `TransactionSigner` to produce a transaction signed on behalf of
+               * `from.address`, without any further configuration.
+               */
+              source: signer,
+            }),
+            tx,
+          ),
+      );
+      return transactionMessage;
+    } catch (error) {
+      logMaybeSolanaError(error);
+      this.#logger.error({ error }, 'Error building transaction message');
+      throw error;
+    }
   }
 
   /**
-   * Calculate the cost of a transfer of SOL.
+   * Calculate the cost of a transfer of SOL, in lamports.
    *
    * @param from - The account from which the SOL will be transferred.
    * @param to - The address to which the SOL will be transferred.
-   * @param amount - The amount of SOL to transfer.
    * @param network - The network on which to transfer the SOL.
    * @returns The cost of the transfer in lamports.
    */
-  async calculateCost(
+  async calculateCostInLamports(
     from: SolanaKeyringAccount,
     to: string,
-    amount: number,
     network: SolanaCaip2Networks,
   ): Promise<string> {
+    /**
+     * Build a transaction message with a zero amount.
+     * This is because the cost doesn't depend on the amount of SOL being transferred.
+     * If we used a given amount of SOL, we would take the risk that the simulated transaction fails in the case where the amount is equal or exceeds the balance of the source account.
+     */
     const transactionMessage = await this.buildTransactionMessage(
       from,
       to,
-      amount,
+      0,
       network,
     );
 
-    const transactionCost = await this.#transactionHelper.calculateCost(
-      transactionMessage,
-      network,
-    );
+    const transactionCost =
+      await this.#transactionHelper.calculateCostInLamports(
+        transactionMessage,
+        network,
+      );
 
     return transactionCost;
   }

@@ -69,14 +69,14 @@ export class TransactionHelper {
   }
 
   /**
-   * Calculate the cost of the passed transaction message.
+   * Calculate the cost of the passed transaction message in lamports.
    *
    * @param transactionMessage - The transaction message to calculate the cost for.
    * @param network - The network on which the transaction is being sent.
    * @see https://solana.com/developers/cookbook/transactions/calculate-cost
-   * @returns The cost of the transaction in SOL.
+   * @returns The cost of the transaction in lamports.
    */
-  async calculateCost(
+  async calculateCostInLamports(
     transactionMessage: Parameters<
       ReturnType<typeof getComputeUnitEstimateForTransactionMessageFactory>
     >[0],

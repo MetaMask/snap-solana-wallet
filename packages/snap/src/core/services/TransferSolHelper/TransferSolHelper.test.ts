@@ -30,7 +30,7 @@ jest.mock('@solana-program/system');
 describe('TransferSolHelper', () => {
   const mockTransactionHelper = {
     getLatestBlockhash: jest.fn(),
-    calculateCost: jest.fn(),
+    calculateCostInLamports: jest.fn(),
   } as unknown as TransactionHelper;
 
   const mockConnection = {
@@ -77,7 +77,7 @@ describe('TransferSolHelper', () => {
         });
 
       jest
-        .spyOn(mockTransactionHelper, 'calculateCost')
+        .spyOn(mockTransactionHelper, 'calculateCostInLamports')
         .mockResolvedValue('5000');
 
       jest
@@ -130,26 +130,25 @@ describe('TransferSolHelper', () => {
     });
   });
 
-  describe('calculateCost', () => {
+  describe('calculateCostInLamports', () => {
     it('should return transaction cost', async () => {
       const expectedCost = '5000';
       jest
-        .spyOn(mockTransactionHelper, 'calculateCost')
+        .spyOn(mockTransactionHelper, 'calculateCostInLamports')
         .mockResolvedValue(expectedCost);
 
       (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
         address: mockFrom.address,
       });
 
-      const result = await transferSolHelper.calculateCost(
+      const result = await transferSolHelper.calculateCostInLamports(
         mockFrom,
         mockTo,
-        mockAmount,
         mockNetwork,
       );
 
       expect(result).toBe(expectedCost);
-      expect(mockTransactionHelper.calculateCost).toHaveBeenCalled();
+      expect(mockTransactionHelper.calculateCostInLamports).toHaveBeenCalled();
     });
   });
 });
