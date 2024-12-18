@@ -156,6 +156,12 @@ export const onUserInput: OnUserInputHandler = async ({
 export const onCronjob: OnCronjobHandler = async ({ request }) => {
   const { method } = request;
 
+  // Don't run cronjobs if there are no Solana accounts
+  const accounts = await keyring.listAccounts();
+  if (accounts.length === 0) {
+    return Promise.resolve();
+  }
+
   const handler = onCronjobHandlers[method as OnCronjobMethods];
 
   if (!handler) {
