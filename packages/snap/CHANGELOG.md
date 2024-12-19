@@ -9,18 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.4]
 
-### Uncategorized
+### Added
 
-- fix: remove all logging from prod ([#120](https://github.com/MetaMask/snap-solana-wallet/pull/120))
-- fix: remove logging ([#119](https://github.com/MetaMask/snap-solana-wallet/pull/119))
 - feat: add `keyring_listAccountTransactions` support to the snap ([#101](https://github.com/MetaMask/snap-solana-wallet/pull/101))
 - New Crowdin translations by Github Action ([#96](https://github.com/MetaMask/snap-solana-wallet/pull/96))
 - feat: localised currency ([#118](https://github.com/MetaMask/snap-solana-wallet/pull/118))
-- Sol 76 snap show loader for pending txs ([#117](https://github.com/MetaMask/snap-solana-wallet/pull/117))
-- fix: balance validation not triggering + send tests ([#116](https://github.com/MetaMask/snap-solana-wallet/pull/116))
-- Feat/failover rpc ([#115](https://github.com/MetaMask/snap-solana-wallet/pull/115))
-- fix: to address links to from in explorer ([#114](https://github.com/MetaMask/snap-solana-wallet/pull/114))
 - feat: add retry logic globally to all RPC calls ([#113](https://github.com/MetaMask/snap-solana-wallet/pull/113))
+- feat: failover rpc ([#115](https://github.com/MetaMask/snap-solana-wallet/pull/115))
+- feat: snap show loader for pending txs ([#117](https://github.com/MetaMask/snap-solana-wallet/pull/117))
+
+### Changed
+
+- fix: remove all logging from prod ([#120](https://github.com/MetaMask/snap-solana-wallet/pull/120))
+- fix: remove logging ([#119](https://github.com/MetaMask/snap-solana-wallet/pull/119))
+- fix: balance validation not triggering + send tests ([#116](https://github.com/MetaMask/snap-solana-wallet/pull/116))
+- fix: to address links to from in explorer ([#114](https://github.com/MetaMask/snap-solana-wallet/pull/114))
 - fix: scope passed to send form ([#112](https://github.com/MetaMask/snap-solana-wallet/pull/112))
 - fix: make building the send context robust to errors ([#111](https://github.com/MetaMask/snap-solana-wallet/pull/111))
 
