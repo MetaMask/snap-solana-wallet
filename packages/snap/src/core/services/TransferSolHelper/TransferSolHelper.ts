@@ -13,12 +13,9 @@ import {
 } from '@solana/web3.js';
 import type BigNumber from 'bignumber.js';
 
-import {
-  SOL_TRANSFER_FEE_LAMPORTS,
-  type SolanaCaip2Networks,
-} from '../../constants/solana';
+import type { Network } from '../../constants/solana';
+import { Networks, SOL_TRANSFER_FEE_LAMPORTS } from '../../constants/solana';
 import { solToLamports } from '../../utils/conversion';
-import { getClusterFromScope } from '../../utils/get-cluster-from-scope';
 import type { ILogger } from '../../utils/logger';
 import { logMaybeSolanaError } from '../../utils/logMaybeSolanaError';
 import type { SolanaConnection } from '../connection';
@@ -59,7 +56,7 @@ export class TransferSolHelper {
     from: SolanaKeyringAccount,
     to: string,
     amountInSol: string | number | bigint | BigNumber,
-    network: SolanaCaip2Networks,
+    network: Network,
   ): Promise<string> {
     const amountInLamports = solToLamports(amountInSol);
 
@@ -101,7 +98,7 @@ export class TransferSolHelper {
      * (eg. the network has progressed past the `lastValidBlockHeight` of the transaction's blockhash
      * lifetime constraint).
      */
-    const cluster = getClusterFromScope(network)?.toLowerCase() ?? 'mainnet';
+    const { cluster } = Networks[network];
     this.#logger.info(
       `Sending transaction: https://explorer.solana.com/tx/${signature}?cluster=${cluster}`,
     );
@@ -129,7 +126,7 @@ export class TransferSolHelper {
     from: SolanaKeyringAccount,
     to: string,
     amountInLamports: number | bigint,
-    network: SolanaCaip2Networks,
+    network: Network,
   ) {
     try {
       const signer = await createKeyPairSignerFromPrivateKeyBytes(

@@ -9,7 +9,7 @@ import {
 import { isNullOrUndefined } from '@metamask/utils';
 
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
-import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
+import { Caip19Id } from '../../../../core/constants/solana';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
 import { i18n } from '../../../../core/utils/i18n';
@@ -41,7 +41,8 @@ export const SendForm = ({
   const nativeBalance = balances[fromAccountId]?.amount;
   const isNativeBalanceDefined = nativeBalance !== undefined;
 
-  const { price } = tokenPrices[SolanaCaip19Tokens.SOL];
+  // FIXME: for now, always use mainnet for prices
+  const { price } = tokenPrices[Caip19Id.SolMainnet] ?? { price: 0 };
 
   const currencyToBalance: Record<SendCurrency, string> = isNativeBalanceDefined
     ? {

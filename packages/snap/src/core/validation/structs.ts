@@ -1,5 +1,15 @@
 import type { Infer } from 'superstruct';
-import { number, object, pattern, record, refine, string } from 'superstruct';
+import {
+  enums,
+  number,
+  object,
+  pattern,
+  record,
+  refine,
+  string,
+} from 'superstruct';
+
+import { Caip19Id, Networks } from '../constants/solana';
 
 export const PositiveNumber = refine(number(), 'positive', (value) => {
   if (value < 0) {
@@ -21,12 +31,15 @@ export const Caip19Struct = pattern(
   string(),
   /^[-a-z0-9]{3,8}:[-a-zA-Z0-9]{1,64}\/[-a-zA-Z0-9]{1,64}(:[-a-zA-Z0-9]{1,64})?$/u,
 );
+export const AssetsStruct = enums(Object.values(Caip19Id));
 
 export const GetAccounBalancesResponseStruct = record(
   Caip19Struct,
   object({
     amount: PositiveNumberStringStruct,
-    unit: string(),
+    unit: enums(
+      Object.values(Networks).map((network) => network.nativeToken.symbol),
+    ),
   }),
 );
 

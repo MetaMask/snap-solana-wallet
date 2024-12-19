@@ -1,11 +1,10 @@
 import { address as addressValidator } from '@solana/web3.js';
-import { min, number, validate } from 'superstruct';
 
 import type {
   FieldValidationFunction,
   ValidationFunction,
 } from '../types/form';
-import { i18n, type LocalizedMessage, type Locale } from '../utils/i18n';
+import { i18n, type Locale, type LocalizedMessage } from '../utils/i18n';
 
 /**
  * Validates a field value based on the provided validation functions.

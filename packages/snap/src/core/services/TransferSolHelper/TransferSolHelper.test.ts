@@ -8,7 +8,7 @@ import {
   signTransactionMessageWithSigners,
 } from '@solana/web3.js';
 
-import { SolanaCaip2Networks } from '../../constants/solana';
+import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
@@ -40,7 +40,7 @@ describe('TransferSolHelper', () => {
   const mockFrom = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
   const mockTo = MOCK_SOLANA_KEYRING_ACCOUNTS[1].address;
   const mockAmount = 1; // 1 SOL
-  const mockNetwork = SolanaCaip2Networks.Testnet;
+  const mockNetwork = Network.Testnet;
 
   let transferSolHelper: TransferSolHelper;
 

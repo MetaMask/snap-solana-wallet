@@ -1,4 +1,4 @@
-import { SolanaCaip2Networks } from '../../constants/solana';
+import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../config';
 import { SolanaConnection } from './SolanaConnection';
 
@@ -17,11 +17,11 @@ jest.mock('./transport', () => ({
 
 const MOCK_NETWORKS = [
   {
-    caip2Id: SolanaCaip2Networks.Mainnet,
+    caip2Id: Network.Mainnet,
     rpcUrls: ['https://mainnet.com'],
   },
   {
-    caip2Id: SolanaCaip2Networks.Devnet,
+    caip2Id: Network.Devnet,
     rpcUrls: ['https://devnet.com'],
   },
 ];
@@ -52,13 +52,13 @@ describe('SolanaConnection', () => {
 
   describe('getRpc', () => {
     it('returns the correct RPC client for a valid network', () => {
-      const rpc = connection.getRpc(SolanaCaip2Networks.Mainnet);
+      const rpc = connection.getRpc(Network.Mainnet);
       expect(rpc).toBeDefined();
       expect(rpc).toStrictEqual({
         urls: ['https://mainnet.com'],
       });
 
-      const rpcDevnet = connection.getRpc(SolanaCaip2Networks.Devnet);
+      const rpcDevnet = connection.getRpc(Network.Devnet);
       expect(rpcDevnet).toBeDefined();
       expect(rpcDevnet).toStrictEqual({
         urls: ['https://devnet.com'],
@@ -66,20 +66,20 @@ describe('SolanaConnection', () => {
     });
 
     it('returns the same RPC client for the same network', () => {
-      const rpc1 = connection.getRpc(SolanaCaip2Networks.Mainnet);
-      const rpc2 = connection.getRpc(SolanaCaip2Networks.Mainnet);
+      const rpc1 = connection.getRpc(Network.Mainnet);
+      const rpc2 = connection.getRpc(Network.Mainnet);
       expect(rpc1).toBe(rpc2);
     });
 
     it('returns different RPC clients for different networks', () => {
-      const rpc1 = connection.getRpc(SolanaCaip2Networks.Mainnet);
-      const rpc2 = connection.getRpc(SolanaCaip2Networks.Devnet);
+      const rpc1 = connection.getRpc(Network.Mainnet);
+      const rpc2 = connection.getRpc(Network.Devnet);
       expect(rpc1).not.toBe(rpc2);
     });
 
     it('throws an error for an invalid network', () => {
       expect(() => {
-        connection.getRpc('invalid-network' as SolanaCaip2Networks);
+        connection.getRpc('invalid-network' as Network);
       }).toThrow('Invalid network: invalid-network');
     });
   });

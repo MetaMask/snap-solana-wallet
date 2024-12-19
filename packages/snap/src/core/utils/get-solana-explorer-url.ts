@@ -1,8 +1,5 @@
-import type { SolanaCaip2Networks } from '../constants/solana';
-import {
-  NETWORK_BLOCK_EXPLORER_URL,
-  NETWORK_TO_EXPLORER_CLUSTER,
-} from '../constants/solana';
+import type { Network } from '../constants/solana';
+import { NETWORK_BLOCK_EXPLORER_URL, Networks } from '../constants/solana';
 
 /**
  * Get the Solana Explorer URL for a given scope, type, and value.
@@ -13,11 +10,11 @@ import {
  * @returns The Solana Explorer URL.
  */
 export function getSolanaExplorerUrl(
-  scope: SolanaCaip2Networks,
+  scope: Network,
   type: 'address' | 'tx',
   value: string,
 ) {
-  const cluster = NETWORK_TO_EXPLORER_CLUSTER[scope];
+  const { cluster } = Networks[scope];
   return `${NETWORK_BLOCK_EXPLORER_URL}/${type}/${value}${
     cluster ? `?cluster=${cluster}` : ''
   }`;

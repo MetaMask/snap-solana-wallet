@@ -1,4 +1,4 @@
-import { SolanaCaip2Networks } from '../../constants/solana';
+import { Network } from '../../constants/solana';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { TransactionHelper } from './TransactionHelper';
@@ -51,13 +51,11 @@ describe('TransactionHelper', () => {
       mockRpcResponse.send.mockResolvedValueOnce({ value: expectedResponse });
 
       const result = await transactionHelper.getLatestBlockhash(
-        SolanaCaip2Networks.Mainnet,
+        Network.Mainnet,
       );
 
       expect(result).toStrictEqual(expectedResponse);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(
-        SolanaCaip2Networks.Mainnet,
-      );
+      expect(mockConnection.getRpc).toHaveBeenCalledWith(Network.Mainnet);
       expect(mockRpcResponse.send).toHaveBeenCalled();
     });
 
@@ -66,7 +64,7 @@ describe('TransactionHelper', () => {
       mockRpcResponse.send.mockRejectedValueOnce(error);
 
       await expect(
-        transactionHelper.getLatestBlockhash(SolanaCaip2Networks.Mainnet),
+        transactionHelper.getLatestBlockhash(Network.Mainnet),
       ).rejects.toThrow('Network error');
     });
   });
@@ -80,14 +78,12 @@ describe('TransactionHelper', () => {
 
       const result = await transactionHelper.calculateCostInLamports(
         mockTransactionMessage as any,
-        SolanaCaip2Networks.Mainnet,
+        Network.Mainnet,
       );
 
       expect(result).toStrictEqual(expectedCost);
       expect(logger.log).toHaveBeenCalledTimes(3);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(
-        SolanaCaip2Networks.Mainnet,
-      );
+      expect(mockConnection.getRpc).toHaveBeenCalledWith(Network.Mainnet);
     });
 
     it('throws and logs error when calculation fails', async () => {
@@ -97,7 +93,7 @@ describe('TransactionHelper', () => {
       await expect(
         transactionHelper.calculateCostInLamports(
           mockTransactionMessage as any,
-          SolanaCaip2Networks.Mainnet,
+          Network.Mainnet,
         ),
       ).rejects.toThrow('Calculation error');
 

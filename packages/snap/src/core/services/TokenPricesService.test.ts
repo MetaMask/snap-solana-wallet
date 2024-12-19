@@ -1,7 +1,11 @@
 import type { PriceApiClient } from '../clients/price-api/price-api-client';
-import { SolanaCaip19Tokens, SolanaTokens } from '../constants/solana';
+import { Caip19Id, TokenMetadata } from '../constants/solana';
 import type { ILogger } from '../utils/logger';
-import type { SolanaState, StateValue } from './state';
+import {
+  DEFAULT_TOKEN_PRICES,
+  type SolanaState,
+  type StateValue,
+} from './state';
 import { TokenPricesService } from './TokenPricesService';
 
 const snap = {
@@ -48,8 +52,9 @@ describe('TokenPricesService', () => {
       const mockStateValue = {
         mapInterfaceNameToId: {},
         tokenPrices: {
-          [SolanaCaip19Tokens.SOL]: {
-            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+          ...DEFAULT_TOKEN_PRICES,
+          [Caip19Id.SolMainnet]: {
+            ...TokenMetadata[Caip19Id.SolMainnet],
             currency: 'SOL',
             price: 0,
           },
@@ -73,8 +78,36 @@ describe('TokenPricesService', () => {
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
         tokenPrices: {
-          [SolanaCaip19Tokens.SOL]: {
-            ...mockStateValue.tokenPrices[SolanaCaip19Tokens.SOL],
+          [Caip19Id.SolMainnet]: {
+            ...mockStateValue.tokenPrices[Caip19Id.SolMainnet],
+            price: 1.23,
+          },
+          [Caip19Id.SolDevnet]: {
+            ...mockStateValue.tokenPrices[Caip19Id.SolDevnet],
+            price: 1.23,
+          },
+          [Caip19Id.SolTestnet]: {
+            ...mockStateValue.tokenPrices[Caip19Id.SolTestnet],
+            price: 1.23,
+          },
+          [Caip19Id.SolLocalnet]: {
+            ...mockStateValue.tokenPrices[Caip19Id.SolLocalnet],
+            price: 1.23,
+          },
+          [Caip19Id.EurcDevnet]: {
+            ...mockStateValue.tokenPrices[Caip19Id.EurcDevnet],
+            price: 1.23,
+          },
+          [Caip19Id.EurcMainnet]: {
+            ...mockStateValue.tokenPrices[Caip19Id.EurcMainnet],
+            price: 1.23,
+          },
+          [Caip19Id.UsdcDevnet]: {
+            ...mockStateValue.tokenPrices[Caip19Id.UsdcDevnet],
+            price: 1.23,
+          },
+          [Caip19Id.UsdcMainnet]: {
+            ...mockStateValue.tokenPrices[Caip19Id.UsdcMainnet],
             price: 1.23,
           },
         },
@@ -95,7 +128,7 @@ describe('TokenPricesService', () => {
       jest.spyOn(snap, 'request').mockResolvedValueOnce({
         preferences: { currency: 'usd' },
         balances: {
-          [SolanaCaip19Tokens.SOL]: { amount: '1', unit: 'SOL' },
+          [Caip19Id.SolMainnet]: { amount: '1', unit: 'SOL' },
         },
       });
 
@@ -110,8 +143,8 @@ describe('TokenPricesService', () => {
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
         tokenPrices: {
-          [SolanaCaip19Tokens.SOL]: {
-            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+          [Caip19Id.SolMainnet]: {
+            ...TokenMetadata[Caip19Id.SolMainnet],
             price: 1.23,
           },
         },
@@ -124,8 +157,9 @@ describe('TokenPricesService', () => {
           'send-form': 'mock-interface-id',
         },
         tokenPrices: {
-          [SolanaCaip19Tokens.SOL]: {
-            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+          ...DEFAULT_TOKEN_PRICES,
+          [Caip19Id.SolMainnet]: {
+            ...TokenMetadata[Caip19Id.SolMainnet],
             price: 1.0,
           },
         },
@@ -148,12 +182,12 @@ describe('TokenPricesService', () => {
 
       await tokenPricesService.refreshPrices('mock-interface-id');
 
-      // Should only call getSpotPrice once for SOL
-      expect(getSpotPriceSpy).toHaveBeenCalledTimes(1);
+      // Should call getSpotPrice once for each token
+      expect(getSpotPriceSpy).toHaveBeenCalledTimes(8);
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
         tokenPrices: expect.objectContaining({
-          [SolanaCaip19Tokens.SOL]: expect.objectContaining({
+          [Caip19Id.SolMainnet]: expect.objectContaining({
             price: 1.23,
           }),
         }),
@@ -165,8 +199,9 @@ describe('TokenPricesService', () => {
       const mockStateValue = {
         mapInterfaceNameToId: {},
         tokenPrices: {
-          [SolanaCaip19Tokens.SOL]: {
-            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+          ...DEFAULT_TOKEN_PRICES,
+          [Caip19Id.SolMainnet]: {
+            ...TokenMetadata[Caip19Id.SolMainnet],
             price: 0,
           },
         },
@@ -192,7 +227,7 @@ describe('TokenPricesService', () => {
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
         tokenPrices: expect.objectContaining({
-          [SolanaCaip19Tokens.SOL]: expect.objectContaining({
+          [Caip19Id.SolMainnet]: expect.objectContaining({
             price: 1.23,
           }),
         }),
@@ -204,8 +239,9 @@ describe('TokenPricesService', () => {
       const mockStateValue = {
         mapInterfaceNameToId: {},
         tokenPrices: {
-          [SolanaCaip19Tokens.SOL]: {
-            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+          ...DEFAULT_TOKEN_PRICES,
+          [Caip19Id.SolMainnet]: {
+            ...TokenMetadata[Caip19Id.SolMainnet],
             price: 919565356,
           },
         },

@@ -11,12 +11,12 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
-import { SolanaInternalRpcMethods } from './core/constants/solana';
 import {
+  CronjobMethod,
   handlers as onCronjobHandlers,
-  OnCronjobMethods,
 } from './core/handlers/onCronjob';
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
+import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
 import { getClientStatus } from './core/utils/interface';
@@ -47,12 +47,12 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
     validateOrigin(origin, method);
 
-    const handler = onRpcRequestHandlers[method as SolanaInternalRpcMethods];
+    const handler = onRpcRequestHandlers[method as RpcRequestMethod];
 
     if (!handler) {
       throw new MethodNotFoundError(
         `RpcRequest method ${method} not found. Available methods: ${Object.values(
-          SolanaInternalRpcMethods,
+          RpcRequestMethod,
         ).toString()}`,
       ) as unknown as Error;
     }
@@ -168,12 +168,12 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
     return Promise.resolve();
   }
 
-  const handler = onCronjobHandlers[method as OnCronjobMethods];
+  const handler = onCronjobHandlers[method as CronjobMethod];
 
   if (!handler) {
     throw new MethodNotFoundError(
       `Cronjob method ${method} not found. Available methods: ${Object.values(
-        OnCronjobMethods,
+        CronjobMethod,
       ).toString()}`,
     ) as unknown as Error;
   }

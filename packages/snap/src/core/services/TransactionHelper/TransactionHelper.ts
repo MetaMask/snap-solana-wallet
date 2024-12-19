@@ -9,7 +9,7 @@ import {
   prependTransactionMessageInstructions,
 } from '@solana/web3.js';
 
-import type { SolanaCaip2Networks } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import { logMaybeSolanaError } from '../../utils/logMaybeSolanaError';
 import type { SolanaConnection } from '../connection';
@@ -48,7 +48,7 @@ export class TransactionHelper {
    * @param network - The network on which to get the latest blockhash.
    * @returns The latest blockhash and the last valid block height.
    */
-  async getLatestBlockhash(network: SolanaCaip2Networks): Promise<
+  async getLatestBlockhash(network: Network): Promise<
     Readonly<{
       blockhash: Blockhash;
       lastValidBlockHeight: bigint;
@@ -80,7 +80,7 @@ export class TransactionHelper {
     transactionMessage: Parameters<
       ReturnType<typeof getComputeUnitEstimateForTransactionMessageFactory>
     >[0],
-    network: SolanaCaip2Networks,
+    network: Network,
   ): Promise<string> {
     try {
       const rpc = this.#connection.getRpc(network);

@@ -23,8 +23,7 @@ import {
 import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
 
-import type { SolanaCaip2Networks } from '../constants/solana';
-import { SOL_SYMBOL, SolanaCaip19Tokens } from '../constants/solana';
+import { SOL_SYMBOL, type Network } from '../constants/solana';
 import { lamportsToSol } from '../utils/conversion';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
 import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
@@ -294,21 +293,22 @@ export class SolanaKeyring implements Keyring {
         throw new Error('Account not found');
       }
 
-      const assetsByNetwork = assets.reduce<
-        Record<SolanaCaip2Networks, string[]>
-      >((groups, asset) => {
-        const network = getNetworkFromToken(asset);
+      const assetsByNetwork = assets.reduce<Record<Network, string[]>>(
+        (groups, asset) => {
+          const network = getNetworkFromToken(asset);
 
-        if (!groups[network]) {
-          groups[network] = [];
-        }
+          if (!groups[network]) {
+            groups[network] = [];
+          }
 
-        groups[network].push(asset);
-        return groups;
-      }, {} as Record<SolanaCaip2Networks, string[]>);
+          groups[network].push(asset);
+          return groups;
+        },
+        {} as Record<Network, string[]>,
+      );
 
       for (const network of Object.keys(assetsByNetwork)) {
-        const currentNetwork = network as SolanaCaip2Networks;
+        const currentNetwork = network as Network;
         const networkAssets = assetsByNetwork[currentNetwork];
 
         const [nativeAsset, tokenAssets] = await Promise.all([
@@ -323,7 +323,7 @@ export class SolanaKeyring implements Keyring {
           );
 
         for (const asset of networkAssets) {
-          if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
+          if (asset.endsWith('slip44:501')) {
             balances.set(asset, {
               amount: lamportsToSol(nativeAsset.balance).toString(),
               unit: SOL_SYMBOL,
@@ -391,7 +391,7 @@ export class SolanaKeyring implements Keyring {
           account,
           to,
           amount,
-          scope as SolanaCaip2Networks,
+          scope as Network,
         );
         return { signature };
       }
