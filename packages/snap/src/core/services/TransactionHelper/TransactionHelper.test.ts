@@ -1,5 +1,5 @@
 import { SolanaCaip2Networks } from '../../constants/solana';
-import { mockLogger } from '../../test/mocks/logger';
+import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { TransactionHelper } from './TransactionHelper';
 
@@ -37,7 +37,7 @@ describe('TransactionHelper', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    transactionHelper = new TransactionHelper(mockConnection, mockLogger);
+    transactionHelper = new TransactionHelper(mockConnection, logger);
   });
 
   describe('getLatestBlockhash', () => {
@@ -83,7 +83,7 @@ describe('TransactionHelper', () => {
       );
 
       expect(result).toStrictEqual(expectedCost);
-      expect(mockLogger.log).toHaveBeenCalledTimes(3);
+      expect(logger.log).toHaveBeenCalledTimes(3);
       expect(mockConnection.getRpc).toHaveBeenCalledWith(
         SolanaCaip2Networks.Mainnet,
       );
@@ -100,7 +100,7 @@ describe('TransactionHelper', () => {
         ),
       ).rejects.toThrow('Calculation error');
 
-      expect(mockLogger.error).toHaveBeenCalledWith(error);
+      expect(logger.error).toHaveBeenCalledWith(error);
     });
   });
 });

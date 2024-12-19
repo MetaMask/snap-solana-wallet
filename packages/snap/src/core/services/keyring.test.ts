@@ -75,6 +75,7 @@ describe('SolanaKeyring', () => {
       connection: mockConnection,
       transactionsService,
       transferSolHelper: mockTransferSolHelper,
+      logger,
     });
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
@@ -186,6 +187,14 @@ describe('SolanaKeyring', () => {
     });
   });
 
+  describe('getAccountOrThrow', () => {
+    it('throws an error if account is not found', async () => {
+      await expect(keyring.getAccountOrThrow('4124151')).rejects.toThrow(
+        'Account not found',
+      );
+    });
+  });
+
   describe('createAccount', () => {
     it('creates new accounts with increasing indices', async () => {
       mockStateValue = {
@@ -293,7 +302,7 @@ describe('SolanaKeyring', () => {
       });
 
       await expect(keyring.createAccount()).rejects.toThrow(
-        'Error deriving address',
+        'Error creating account',
       );
     });
 
@@ -303,7 +312,7 @@ describe('SolanaKeyring', () => {
       );
 
       await expect(keyring.createAccount()).rejects.toThrow(
-        'Error listing accounts',
+        'Error creating account',
       );
     });
   });

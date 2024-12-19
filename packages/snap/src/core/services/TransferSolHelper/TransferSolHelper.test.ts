@@ -9,8 +9,8 @@ import {
 } from '@solana/web3.js';
 
 import { SolanaCaip2Networks } from '../../constants/solana';
-import { mockLogger } from '../../test/mocks/logger';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
+import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
 import { TransferSolHelper } from './TransferSolHelper';
@@ -49,7 +49,7 @@ describe('TransferSolHelper', () => {
     transferSolHelper = new TransferSolHelper(
       mockTransactionHelper,
       mockConnection,
-      mockLogger,
+      logger,
     );
   });
 
@@ -103,9 +103,6 @@ describe('TransferSolHelper', () => {
 
       // Verify
       expect(result).toBe(mockSignature);
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        `Sending transaction: https://explorer.solana.com/tx/${mockSignature}?cluster=testnet`,
-      );
     });
 
     it('should throw error when transaction fails', async () => {

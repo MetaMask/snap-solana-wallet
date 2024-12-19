@@ -20,6 +20,7 @@ import {
   createKeyPairFromPrivateKeyBytes,
   getAddressFromPublicKey,
 } from '@solana/web3.js';
+import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
 
 import type { SolanaCaip2Networks } from '../constants/solana';
@@ -34,7 +35,11 @@ import { getNetworkFromToken } from '../utils/get-network-from-token';
 import type { ILogger } from '../utils/logger';
 import { logMaybeSolanaError } from '../utils/logMaybeSolanaError';
 import type { TransferSolParams } from '../validation/structs';
-import { GetAccounBalancesResponseStruct } from '../validation/structs';
+import {
+  GetAccounBalancesResponseStruct,
+  TransferSolParamsStruct,
+} from '../validation/structs';
+import { validateRequest } from '../validation/validators';
 import type { SolanaConnection } from './connection/SolanaConnection';
 import type { EncryptedSolanaState } from './encrypted-state';
 import type { SolanaState } from './state';
@@ -107,6 +112,14 @@ export class SolanaKeyring implements Keyring {
       this.#logger.error({ error }, 'Error getting account');
       throw new Error('Error getting account');
     }
+  }
+
+  async getAccountOrThrow(id: string): Promise<SolanaKeyringAccount> {
+    const account = await this.getAccount(id);
+    if (!account) {
+      throw new Error('Account not found');
+    }
+    return account;
   }
 
   async createAccount(
@@ -301,6 +314,7 @@ export class SolanaKeyring implements Keyring {
 
     switch (method) {
       case SolMethod.SendAndConfirmTransaction: {
+        validateRequest(params, TransferSolParamsStruct as Struct<any>);
         const signature = await this.#transferSolHelper.transferSol(
           account,
           to,
