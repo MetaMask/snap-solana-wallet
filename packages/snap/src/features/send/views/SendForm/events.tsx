@@ -168,7 +168,7 @@ async function onMaxAmountButtonClick({
     throw new Error('Insufficient funds');
   }
 
-  contextToUpdate.feeInSol = lamportsToSol(costInLamports).toString();
+  contextToUpdate.feeEstimatedInSol = lamportsToSol(costInLamports).toString();
 
   /**
    * If the currency we set is SOL, set the amount to the balance

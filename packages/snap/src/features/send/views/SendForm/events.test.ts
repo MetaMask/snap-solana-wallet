@@ -44,7 +44,7 @@ describe('onMaxAmountButtonClick', () => {
     validation: {},
     amount: '',
     accounts: [],
-    feeInSol: '',
+    feeEstimatedInSol: '',
     currencySymbol: SendCurrency.SOL,
     transaction: null,
     stage: 'transaction-confirmation',
@@ -52,6 +52,7 @@ describe('onMaxAmountButtonClick', () => {
       locale: 'en',
       currency: 'USD',
     },
+    feePaidInSol: '0',
   };
 
   beforeEach(() => {
@@ -84,7 +85,7 @@ describe('onMaxAmountButtonClick', () => {
       expect.anything(),
       expect.objectContaining({
         amount: expectedAmount,
-        feeInSol: expectedFeeInSol,
+        feeEstimatedInSol: expectedFeeInSol,
       }),
     );
   });
@@ -110,7 +111,7 @@ describe('onMaxAmountButtonClick', () => {
       expect.anything(),
       expect.objectContaining({
         amount: expectedAmount,
-        feeInSol: expectedFeeInSol,
+        feeEstimatedInSol: expectedFeeInSol,
       }),
     );
   });

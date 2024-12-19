@@ -71,6 +71,7 @@ async function onConfirmButtonClick({
     currencySymbol,
     tokenPrices,
     amount,
+    feeEstimatedInSol,
   } = context;
 
   // First, show the pending stage
@@ -109,6 +110,7 @@ async function onConfirmButtonClick({
   const updatedContext: SendContext = {
     ...context,
     stage: signature ? 'transaction-success' : 'transaction-failure',
+    feePaidInSol: feeEstimatedInSol,
     transaction: {
       result: signature ? 'success' : 'failure',
       signature,
