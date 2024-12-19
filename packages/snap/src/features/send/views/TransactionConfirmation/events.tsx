@@ -101,7 +101,6 @@ async function onConfirmButtonClick({
       amountInSol,
       scope,
     );
-
     signature = response;
   } catch (error) {
     logger.error({ error }, 'Error submitting request');

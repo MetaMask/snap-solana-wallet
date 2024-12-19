@@ -13,7 +13,10 @@ import {
 } from '@solana/web3.js';
 import type BigNumber from 'bignumber.js';
 
-import { type SolanaCaip2Networks } from '../../constants/solana';
+import {
+  SOL_TRANSFER_FEE_LAMPORTS,
+  type SolanaCaip2Networks,
+} from '../../constants/solana';
 import { solToLamports } from '../../utils/conversion';
 import { getClusterFromScope } from '../../utils/get-cluster-from-scope';
 import type { ILogger } from '../../utils/logger';
@@ -78,12 +81,10 @@ export class TransferSolHelper {
       network,
     );
 
-    const transactionCost =
-      await this.#transactionHelper.calculateCostInLamports(
-        transactionMessage,
-        network,
-      );
-    console.log(`Transaction cost: ${transactionCost} lamports`);
+    const transactionCostInLamports = SOL_TRANSFER_FEE_LAMPORTS;
+    this.#logger.info(
+      `Transaction cost: ${transactionCostInLamports} lamports`,
+    );
 
     const signedTransaction = await signTransactionMessageWithSigners(
       transactionMessage,
@@ -104,7 +105,6 @@ export class TransferSolHelper {
     this.#logger.info(
       `Sending transaction: https://explorer.solana.com/tx/${signature}?cluster=${cluster}`,
     );
-
     try {
       await sendTransactionWithoutConfirming(signedTransaction, {
         commitment: 'confirmed',
