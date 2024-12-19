@@ -1,45 +1,23 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { Transaction } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 
-import type { TokenInfo } from '../constants/solana';
-import { SolanaCaip19Tokens, SolanaTokens } from '../constants/solana';
 import { safeMerge } from '../utils/safe-merge';
-
-export type TokenPrice = TokenInfo & {
-  price: number;
-};
+import type { SolanaKeyringAccount } from './keyring';
 
 export type StateValue = {
-  mapInterfaceNameToId: Record<string, string>;
-  tokenPrices: Record<SolanaCaip19Tokens, TokenPrice>; // Maps currency caip19 id to their currency rate
-  isFetchingTransactions: boolean;
-  transactions: Record<string, Transaction[]>;
-};
-
-const NULL_SOL_PRICE: TokenPrice = {
-  ...SolanaTokens[SolanaCaip19Tokens.SOL],
-  price: 0,
-};
-
-export const DEFAULT_TOKEN_PRICES: Record<SolanaCaip19Tokens, TokenPrice> = {
-  [SolanaCaip19Tokens.SOL]: NULL_SOL_PRICE,
+  keyringAccounts?: Record<string, SolanaKeyringAccount>;
 };
 
 export const DEFAULT_STATE: StateValue = {
-  mapInterfaceNameToId: {},
-  tokenPrices: DEFAULT_TOKEN_PRICES,
-  isFetchingTransactions: false,
-  transactions: {},
+  keyringAccounts: {},
 };
 
-export class SolanaState {
+export class EncryptedSolanaState {
   async get(): Promise<StateValue> {
     const state = await snap.request({
       method: 'snap_manageState',
       params: {
         operation: 'get',
-        encrypted: false,
       },
     });
 
@@ -54,7 +32,6 @@ export class SolanaState {
       params: {
         operation: 'update',
         newState: state as unknown as Record<string, Json>,
-        encrypted: false,
       },
     });
   }

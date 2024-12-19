@@ -1,8 +1,11 @@
 import { Button, Link, Table } from '@chakra-ui/react';
 import { type Balance, type KeyringAccount } from '@metamask/keyring-api';
-import { useState } from 'react';
+import { Link as RouterLink } from 'gatsby';
+import { useEffect, useState } from 'react';
 
 import { SolanaInternalRpcMethods } from '../../../../snap/src/core/constants/solana';
+import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/get-solana-explorer-url';
+import type { SolanaCaip2Networks } from '../../context/network';
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
 
@@ -43,9 +46,15 @@ export const AccountRow = ({
     });
   };
 
+  useEffect(() => {
+    fetchBalance();
+  }, [account.id]);
+
   return (
     <Table.Row key={account.id}>
-      <Table.Cell fontFamily="monospace">{account.address}</Table.Cell>
+      <Table.Cell fontFamily="monospace">
+        <RouterLink to={`/${account.id}`}>{account.address}</RouterLink>
+      </Table.Cell>
       <Table.Cell>
         {balance} SOL{' '}
         <Button marginLeft="3" onClick={fetchBalance}>
@@ -62,7 +71,11 @@ export const AccountRow = ({
       <Table.Cell textAlign="end">
         <Link
           colorPalette="purple"
-          href={`https://explorer.solana.com/address/${account.address}`}
+          href={getSolanaExplorerUrl(
+            network as SolanaCaip2Networks,
+            'address',
+            account.address,
+          )}
           target="_blank"
           rel="noreferrer"
           marginRight="5"

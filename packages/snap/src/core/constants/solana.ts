@@ -43,7 +43,7 @@ export type TokenInfo = {
   symbol: string;
   caip19Id: SolanaCaip19Tokens;
   address: string;
-  decimals: number; // TODO: Decide if we keep this
+  decimals: number;
 };
 
 export const SolanaTokens = {

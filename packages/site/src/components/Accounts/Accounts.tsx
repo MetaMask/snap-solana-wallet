@@ -1,4 +1,4 @@
-import { Flex, Table, Text as ChakraText, Button } from '@chakra-ui/react';
+import { Button, Text as ChakraText, Flex, Table } from '@chakra-ui/react';
 import type { KeyringAccount } from '@metamask/keyring-api';
 import { useEffect, useState } from 'react';
 

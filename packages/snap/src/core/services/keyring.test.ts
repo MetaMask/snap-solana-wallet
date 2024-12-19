@@ -7,7 +7,6 @@ import {
   SolanaCaip2Networks,
   SolanaTokens,
 } from '../constants/solana';
-import { mockLogger } from '../test/mocks/logger';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -18,10 +17,16 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
+import logger from '../utils/logger';
 import type { SolanaConnection } from './connection/SolanaConnection';
+import {
+  EncryptedSolanaState,
+  type StateValue as EncryptedStateValue,
+} from './encrypted-state';
 import { SolanaKeyring } from './keyring';
 import { createMockConnection } from './mocks/mockConnection';
-import type { StateValue } from './state';
+import { SolanaState, type StateValue } from './state';
+import { TransactionsService } from './transactions';
 import type { TransferSolHelper } from './TransferSolHelper/TransferSolHelper';
 
 jest.mock('@metamask/keyring-api', () => ({
@@ -41,12 +46,20 @@ jest.mock('../utils/derive-solana-private-key', () => ({
 
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
-  let mockStateValue: StateValue;
+  let mockStateValue: StateValue & EncryptedStateValue;
   let mockConnection: SolanaConnection;
   let mockTransferSolHelper: TransferSolHelper;
 
   beforeEach(() => {
     mockConnection = createMockConnection();
+
+    const state = new SolanaState();
+    const encryptedState = new EncryptedSolanaState();
+
+    const transactionsService = new TransactionsService({
+      logger,
+      connection: mockConnection,
+    });
 
     mockTransferSolHelper = {
       transferSol: jest
@@ -56,11 +69,13 @@ describe('SolanaKeyring', () => {
         ),
     } as unknown as TransferSolHelper;
 
-    keyring = new SolanaKeyring(
-      mockConnection,
-      mockLogger,
-      mockTransferSolHelper,
-    );
+    keyring = new SolanaKeyring({
+      state,
+      encryptedState,
+      connection: mockConnection,
+      transactionsService,
+      transferSolHelper: mockTransferSolHelper,
+    });
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
     mockStateValue = {
@@ -78,6 +93,8 @@ describe('SolanaKeyring', () => {
           price: 0,
         },
       },
+      isFetchingTransactions: false,
+      transactions: {},
     };
 
     /**
@@ -180,7 +197,10 @@ describe('SolanaKeyring', () => {
             price: 0,
           },
         },
+        isFetchingTransactions: false,
+        transactions: {},
       };
+
       const firstAccount = await keyring.createAccount();
       const secondAccount = await keyring.createAccount();
       const thirdAccount = await keyring.createAccount();
@@ -209,6 +229,8 @@ describe('SolanaKeyring', () => {
             price: 0,
           },
         },
+        isFetchingTransactions: false,
+        transactions: {},
       };
 
       const firstAccount = await keyring.createAccount();

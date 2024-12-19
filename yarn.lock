@@ -4134,20 +4134,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "@metamask/keyring-api@npm:11.0.0"
+"@metamask/keyring-api@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "@metamask/keyring-api@npm:11.1.0"
   dependencies:
     "@metamask/snaps-sdk": ^6.7.0
     "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^9.2.1
+    "@metamask/utils": ^9.3.0
     "@types/uuid": ^9.0.8
     bech32: ^2.0.0
     uuid: ^9.0.1
     webextension-polyfill: ^0.12.0
   peerDependencies:
     "@metamask/providers": ^18.1.0
-  checksum: 5a49380fbdd044570198348d11c59a7d319ca3238e4462f60224fd0d75e6ccd1a659a19e6881029f5ab984eee2d98636331f629eb877a499df882cb6598d772e
+  checksum: 5912e678613ed3fcf3b9dfa597d787280d2eb8cf070931c580fc667986ef833b37d0884ba5ae238826f82d98704c48d6b7fb1519bfbc9a52b6159ab4259422ab
   languageName: node
   linkType: hard
 
@@ -4663,7 +4663,7 @@ __metadata:
     "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": ^4.0.0
     "@metamask/key-tree": ^9.1.2
-    "@metamask/keyring-api": ^11.0.0
+    "@metamask/keyring-api": ^11.1.0
     "@metamask/snaps-cli": ^6.2.1
     "@metamask/snaps-jest": 8.8.1
     "@metamask/snaps-sdk": ^6.13.0
@@ -4697,7 +4697,7 @@ __metadata:
     "@chakra-ui/react": ^3.0.2
     "@emotion/react": ^11.13.3
     "@metamask/eslint-config-browser": ^12.1.0
-    "@metamask/keyring-api": ^11.0.0
+    "@metamask/keyring-api": ^11.1.0
     "@metamask/providers": ^18.1.0
     "@svgr/webpack": ^8.1.0
     "@testing-library/dom": ^10.4.0
@@ -4792,7 +4792,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^9.2.1":
+"@metamask/utils@npm:^9.2.1, @metamask/utils@npm:^9.3.0":
   version: 9.3.0
   resolution: "@metamask/utils@npm:9.3.0"
   dependencies:
@@ -11127,17 +11127,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001578, caniuse-lite@npm:^1.0.30001587":
-  version: 1.0.30001591
-  resolution: "caniuse-lite@npm:1.0.30001591"
-  checksum: e48f924cdefff86d29d38ee1bffe2cdb1ef55e179d08ae2f1f5546d9d563e030f13755a0096ea87a09498daffd18666d1fe0b2759aea8421bbf4c214b47d410d
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001669":
-  version: 1.0.30001673
-  resolution: "caniuse-lite@npm:1.0.30001673"
-  checksum: c4e1dce7375d228fa896bb8d94921b817ef0a09df562e78609830216d5f254f247e8ca0f5f42c4078f360f4f5bd4c48d6303e2d5bb7f74561ba30bc14d08fe0a
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001578, caniuse-lite@npm:^1.0.30001587, caniuse-lite@npm:^1.0.30001669":
+  version: 1.0.30001689
+  resolution: "caniuse-lite@npm:1.0.30001689"
+  checksum: 8d4152076517ac1dfd6d6733ecc8055f3cd3a8b679af8f5858e731312f03967f6a2184553636696e44cee39abdd9ccccc914716235791b0c25f68ef8dea4e24a
   languageName: node
   linkType: hard
 

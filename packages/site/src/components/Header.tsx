@@ -1,3 +1,4 @@
+import { navigate } from 'gatsby';
 import styled, { useTheme } from 'styled-components';
 
 import { getThemePreference } from '../utils';
@@ -28,6 +29,7 @@ const LogoWrapper = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  cursor: pointer;
 `;
 
 const RightContainer = styled.div`
@@ -45,7 +47,7 @@ export const Header = ({
 
   return (
     <HeaderWrapper>
-      <LogoWrapper>
+      <LogoWrapper onClick={async () => navigate('/')}>
         <SnapLogo color={theme.colors.icon?.default} size={36} />
         <Title>solana-snap-wallet</Title>
       </LogoWrapper>

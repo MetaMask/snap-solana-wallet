@@ -14,7 +14,7 @@ const snap = {
 
 (globalThis as any).snap = snap;
 
-describe('SolanaState', () => {
+describe('EncryptedSolanaState', () => {
   let solanaState: EncryptedSolanaState;
 
   beforeEach(() => {
