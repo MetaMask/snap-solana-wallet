@@ -22,7 +22,6 @@ const logger: ILogger = {
     }
 
     console.log(
-      '[Solana snap]',
       ...args.map((arg) =>
         typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg,
       ),
@@ -34,7 +33,6 @@ const logger: ILogger = {
     }
 
     console.info(
-      '[Solana snap]',
       ...args.map((arg) =>
         typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg,
       ),
@@ -46,7 +44,6 @@ const logger: ILogger = {
     }
 
     console.warn(
-      '[Solana snap]',
       ...args.map((arg) =>
         typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg,
       ),
@@ -54,7 +51,6 @@ const logger: ILogger = {
   },
   error: (...args: any[]) =>
     console.error(
-      '[Solana snap]',
       ...args.map((arg) =>
         typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg,
       ),
@@ -65,7 +61,6 @@ const logger: ILogger = {
     }
 
     console.debug(
-      '[Solana snap]',
       ...args.map((arg) =>
         typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg,
       ),
