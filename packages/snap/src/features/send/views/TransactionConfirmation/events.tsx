@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 
-import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
+import { Caip19Id } from '../../../../core/constants/solana';
 import {
   resolveInterface,
   updateInterface,
@@ -84,7 +84,7 @@ async function onConfirmButtonClick({
 
   // Then submit the transaction
   let signature: string | null = null;
-  const tokenPrice = tokenPrices[SolanaCaip19Tokens.SOL];
+  const tokenPrice = tokenPrices[Caip19Id.SolMainnet];
   const { price } = tokenPrice;
 
   const amountInSol = Number(

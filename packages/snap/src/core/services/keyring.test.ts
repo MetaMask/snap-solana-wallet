@@ -3,9 +3,10 @@ import { SolMethod } from '@metamask/keyring-api';
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
 
 import {
+  Caip19Id,
+  Network,
   SolanaCaip19Tokens,
-  SolanaCaip2Networks,
-  SolanaTokens,
+  TokenMetadata,
 } from '../constants/solana';
 import {
   SOLANA_MOCK_SPL_TOKENS,
@@ -33,7 +34,7 @@ import {
 } from './encrypted-state';
 import { SolanaKeyring } from './keyring';
 import { createMockConnection } from './mocks/mockConnection';
-import { SolanaState, type StateValue } from './state';
+import { DEFAULT_TOKEN_PRICES, SolanaState, type StateValue } from './state';
 import type { TokenMetadataService } from './token-metadata';
 import { TransactionsService } from './transactions';
 import type { TransferSolHelper } from './TransferSolHelper/TransferSolHelper';
@@ -69,7 +70,7 @@ describe('SolanaKeyring', () => {
 
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
-        activeNetworks: [SolanaCaip2Networks.Localnet],
+        activeNetworks: [Network.Localnet],
       }),
     } as unknown as ConfigProvider;
 
@@ -120,8 +121,9 @@ describe('SolanaKeyring', () => {
       ),
       mapInterfaceNameToId: {},
       tokenPrices: {
-        [SolanaCaip19Tokens.SOL]: {
-          ...SolanaTokens[SolanaCaip19Tokens.SOL],
+        ...DEFAULT_TOKEN_PRICES,
+        [Caip19Id.SolMainnet]: {
+          ...TokenMetadata[Caip19Id.SolMainnet],
           price: 0,
         },
       },
@@ -257,8 +259,9 @@ describe('SolanaKeyring', () => {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
         tokenPrices: {
-          [SolanaCaip19Tokens.SOL]: {
-            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+          ...DEFAULT_TOKEN_PRICES,
+          [Caip19Id.SolMainnet]: {
+            ...TokenMetadata[Caip19Id.SolMainnet],
             price: 0,
           },
         },
@@ -289,8 +292,9 @@ describe('SolanaKeyring', () => {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
         tokenPrices: {
-          [SolanaCaip19Tokens.SOL]: {
-            ...SolanaTokens[SolanaCaip19Tokens.SOL],
+          ...DEFAULT_TOKEN_PRICES,
+          [Caip19Id.SolMainnet]: {
+            ...TokenMetadata[Caip19Id.SolMainnet],
             price: 0,
           },
         },
@@ -406,10 +410,10 @@ describe('SolanaKeyring', () => {
   describe('getAccountBalances', () => {
     it('gets account balance', async () => {
       const accountBalance = await keyring.getAccountBalances('1', [
-        `${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`,
+        Caip19Id.SolLocalnet,
       ]);
       expect(accountBalance).toStrictEqual({
-        [`${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`]: {
+        [Caip19Id.SolLocalnet]: {
           amount: '0.123456789',
           unit: 'SOL',
         },
@@ -418,20 +422,20 @@ describe('SolanaKeyring', () => {
 
     it('gets account and token balances', async () => {
       const accountBalance = await keyring.getAccountBalances('1', [
-        `${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`,
-        `${SolanaCaip2Networks.Localnet}/token:address1`,
-        `${SolanaCaip2Networks.Localnet}/token:address2`,
+        `${Network.Localnet}/${SolanaCaip19Tokens.SOL}`,
+        `${Network.Localnet}/token:address1`,
+        `${Network.Localnet}/token:address2`,
       ]);
       expect(accountBalance).toStrictEqual({
-        [`${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`]: {
+        [`${Network.Localnet}/${SolanaCaip19Tokens.SOL}`]: {
           amount: '0.123456789',
           unit: 'SOL',
         },
-        [`${SolanaCaip2Networks.Localnet}/token:address1`]: {
+        [`${Network.Localnet}/token:address1`]: {
           amount: '0.123456789',
           unit: 'MOCK1',
         },
-        [`${SolanaCaip2Networks.Localnet}/token:address2`]: {
+        [`${Network.Localnet}/token:address2`]: {
           amount: '0.987654321',
           unit: 'MOCK2',
         },
@@ -449,10 +453,8 @@ describe('SolanaKeyring', () => {
       } as any);
 
       await expect(
-        keyring.getAccountBalances('1', [
-          `${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`,
-        ]),
-      ).rejects.toThrow('Error getting assets');
+        keyring.getAccountBalances('get-balance-id', [Caip19Id.SolMainnet]),
+      ).rejects.toThrow('Error getting account balance');
     });
   });
 
@@ -461,7 +463,7 @@ describe('SolanaKeyring', () => {
       it('throws error when params are invalid', async () => {
         const request = {
           id: 'some-id',
-          scope: 'solana:devnet',
+          scope: Network.Devnet,
           account: MOCK_SOLANA_KEYRING_ACCOUNT_4.id,
           request: {
             method: SolMethod.SendAndConfirmTransaction,
@@ -480,7 +482,7 @@ describe('SolanaKeyring', () => {
       it('transfers SOL', async () => {
         const request = {
           id: 'some-id',
-          scope: 'solana:devnet',
+          scope: Network.Devnet,
           account: MOCK_SOLANA_KEYRING_ACCOUNT_4.id,
           request: {
             method: SolMethod.SendAndConfirmTransaction,
@@ -508,7 +510,7 @@ describe('SolanaKeyring', () => {
 
       const request = {
         id: 'some-id',
-        scope: 'solana:devnet',
+        scope: Network.Devnet,
         account: 'non-existent-account',
         request: {
           method: SolMethod.SendAndConfirmTransaction,
@@ -524,7 +526,7 @@ describe('SolanaKeyring', () => {
     it('throws MethodNotFoundError for unsupported methods', async () => {
       const request = {
         id: 'some-id',
-        scope: 'solana:devnet',
+        scope: Network.Devnet,
         account: MOCK_SOLANA_KEYRING_ACCOUNT_3.id,
         request: {
           method: 'unsupportedMethod' as SolMethod,

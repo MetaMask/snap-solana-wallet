@@ -24,7 +24,7 @@ export const validateOrigin = (origin: string, method: string): void => {
  * @template Params - The expected structure of the request parameters.
  * @param requestParams - The request parameters to validate.
  * @param struct - The expected structure of the request parameters.
- * @throws {InvalidParamsError} If the request parameters do not conform to the expected structure.
+ * @throws {typeof InvalidParamsError} If the request parameters do not conform to the expected structure.
  */
 export function validateRequest<Params>(requestParams: Params, struct: Struct) {
   try {

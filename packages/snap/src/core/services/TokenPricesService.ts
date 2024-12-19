@@ -1,8 +1,8 @@
 import type { SendContext } from '../../features/send/types';
 import type { PriceApiClient } from '../clients/price-api/price-api-client';
 import type { SpotPrice } from '../clients/price-api/types';
-import type { SolanaCaip19Tokens } from '../constants/solana';
-import { SolanaCaip2Networks, SolanaTokens } from '../constants/solana';
+import type { Caip19Id } from '../constants/solana';
+import { Network, TokenMetadata } from '../constants/solana';
 import type { ILogger } from '../utils/logger';
 import type { SolanaState, TokenPrice } from './state';
 
@@ -32,7 +32,7 @@ export class TokenPricesService {
    */
   async refreshPrices(
     sendFormInterfaceId?: string,
-  ): Promise<Record<SolanaCaip19Tokens, TokenPrice>> {
+  ): Promise<Record<Caip19Id, TokenPrice>> {
     this.#logger.info('💹 Refreshing token prices');
 
     const stateValue = await this.#state.get();
@@ -79,7 +79,7 @@ export class TokenPricesService {
     // Now we will fetch the spot prices for all the rates we have.
     const promises = Array.from(allUniqueCaip19Ids).map(async (caip19Id) => {
       // TODO: For now, we read token info from the constants. Later, we will need to read it from the token metadata.
-      const tokenInfo = SolanaTokens[caip19Id as SolanaCaip19Tokens];
+      const tokenInfo = TokenMetadata[caip19Id as keyof typeof TokenMetadata];
 
       if (!tokenInfo) {
         return {
@@ -89,7 +89,7 @@ export class TokenPricesService {
       }
 
       const spotPrice = await this.#priceApiClient
-        .getSpotPrice(SolanaCaip2Networks.Mainnet, tokenInfo.address, currency)
+        .getSpotPrice(Network.Mainnet, tokenInfo.address, currency)
         // Catch errors on individual calls, so that one that fails does not break for others.
         .catch((error) => {
           this.#logger.info(
@@ -113,16 +113,13 @@ export class TokenPricesService {
        * We filter out currencies for which we could not fetch the spot price.
        * This is to ensure that we do not mess up the state for currencies that possibly had a correct spot price before.
        */
-      .filter(
-        (
-          item,
-        ): item is { caip19Id: SolanaCaip19Tokens; spotPrice: SpotPrice } =>
-          Boolean(item.spotPrice),
+      .filter((item): item is { caip19Id: Caip19Id; spotPrice: SpotPrice } =>
+        Boolean(item.spotPrice),
       )
       .forEach(({ caip19Id, spotPrice }) => {
         tokenPrices[caip19Id] = {
           // TODO: For now, we read token info from the constants. Later, we will need to read it from the token metadata.
-          ...SolanaTokens[caip19Id],
+          ...TokenMetadata[caip19Id],
           price: spotPrice.price,
         };
       });

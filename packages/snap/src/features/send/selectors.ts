@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 
-import { SolanaCaip19Tokens } from '../../core/constants/solana';
+import { Caip19Id } from '../../core/constants/solana';
 import { SendCurrency, type SendContext } from './types';
 
 /**
@@ -9,7 +9,7 @@ import { SendCurrency, type SendContext } from './types';
 
 export const getAmountInSol = (context: SendContext) => {
   const { amount, tokenPrices, currencySymbol } = context;
-  const { price } = tokenPrices[SolanaCaip19Tokens.SOL];
+  const { price } = tokenPrices[Caip19Id.SolMainnet] ?? { price: 0 };
   return currencySymbol === SendCurrency.SOL
     ? amount
     : BigNumber(amount).dividedBy(BigNumber(price)).toString();

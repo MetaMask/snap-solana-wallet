@@ -2,8 +2,8 @@ import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 
 import {
+  Caip19Id,
   SOL_TRANSFER_FEE_LAMPORTS,
-  SolanaCaip19Tokens,
 } from '../../../../core/constants/solana';
 import {
   lamportsToSol,
@@ -116,7 +116,9 @@ async function onSwapCurrencyButtonClick({
       : SendCurrency.SOL;
 
   const currentAmount = BigNumber(context.amount ?? '0');
-  const price = BigNumber(context.tokenPrices[SolanaCaip19Tokens.SOL].price);
+
+  // FIXME: for now, always use mainnet for prices
+  const { price } = context.tokenPrices[Caip19Id.SolMainnet] ?? { price: 0 };
 
   if (context.currencySymbol === SendCurrency.SOL) {
     /**
@@ -177,7 +179,7 @@ async function onMaxAmountButtonClick({
    * If the currency is USD, adjust the amount
    */
   if (currencySymbol === SendCurrency.FIAT) {
-    const price = BigNumber(tokenPrices[SolanaCaip19Tokens.SOL].price);
+    const price = BigNumber(tokenPrices[Caip19Id.SolMainnet]?.price ?? 0);
     contextToUpdate.amount = balanceInSolAfterCost
       .multipliedBy(price)
       .toString();

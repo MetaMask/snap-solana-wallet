@@ -4,9 +4,9 @@ import BigNumber from 'bignumber.js';
 
 import {
   LAMPORTS_PER_SOL,
-  SOL_SYMBOL,
-  SolanaCaip19Tokens,
-  SolanaCaip2Networks,
+  Network,
+  Networks,
+  TokenMetadata,
 } from '../constants/solana';
 import type { SolanaTransaction } from '../types/solana';
 import type { ILogger } from '../utils/logger';
@@ -31,7 +31,7 @@ export class TransactionsService {
   }
 
   async fetchInitialAddressTransactions(address: Address) {
-    const scopes = [SolanaCaip2Networks.Mainnet, SolanaCaip2Networks.Devnet];
+    const scopes = [Network.Mainnet, Network.Devnet];
 
     const transactions = (
       await Promise.all(
@@ -47,7 +47,7 @@ export class TransactionsService {
   }
 
   async fetchAddressTransactions(
-    scope: SolanaCaip2Networks,
+    scope: Network,
     address: Address,
     pagination: { limit: number; next?: Signature | null },
   ): Promise<{
@@ -115,7 +115,7 @@ export class TransactionsService {
   }
 
   async fetchLatestSignatures(
-    scope: SolanaCaip2Networks,
+    scope: Network,
     address: Address,
     limit: number,
   ): Promise<Signature[]> {
@@ -138,7 +138,7 @@ export class TransactionsService {
     scope,
     signatures,
   }: {
-    scope: SolanaCaip2Networks;
+    scope: Network;
     signatures: Signature[];
   }) {
     const transactionsData = await Promise.all(
@@ -160,7 +160,7 @@ export class TransactionsService {
     address,
     transactionData,
   }: {
-    scope: SolanaCaip2Networks;
+    scope: Network;
     address: Address;
     transactionData: SolanaTransaction | null;
   }): MappedTransaction | null {
@@ -177,19 +177,22 @@ export class TransactionsService {
     const id = firstSignature as string;
     const timestamp = Number(transactionData.blockTime);
 
-    const fees = this.parseTransactionFees({
+    const {
+      fees,
+      from: nativeFrom,
+      to: nativeTo,
+    } = this.parseTransactionNativeTransfers({
       scope,
       transactionData,
     });
 
-    const { from: nativeFrom, to: nativeTo } =
-      this.parseTransactionNativeTransfers({
-        scope,
-        transactionData,
-      });
+    const { from: splFrom, to: splTo } = this.parseTransactionSplTransfers({
+      scope,
+      transactionData,
+    });
 
-    const from = nativeFrom;
-    const to = nativeTo;
+    const from = [...nativeFrom, ...splFrom];
+    const to = [...nativeTo, ...splTo];
 
     /**
      * If any of the Sol transfers sources include our account's address, we'll consider this a send,
@@ -224,7 +227,7 @@ export class TransactionsService {
     scope,
     transactionData,
   }: {
-    scope: SolanaCaip2Networks;
+    scope: Network;
     transactionData: SolanaTransaction;
   }): Transaction['fees'] {
     const feeLamports = new BigNumber(
@@ -237,8 +240,8 @@ export class TransactionsService {
         type: 'base',
         asset: {
           fungible: true,
-          type: `${scope}/${SolanaCaip19Tokens.SOL}`,
-          unit: SOL_SYMBOL,
+          type: Networks[scope].nativeToken.caip19Id,
+          unit: Networks[scope].nativeToken.symbol,
           amount: feeAmount.toString(),
         },
       },
@@ -253,11 +256,24 @@ export class TransactionsService {
     scope,
     transactionData,
   }: {
-    scope: SolanaCaip2Networks;
+    scope: Network;
     transactionData: SolanaTransaction;
-  }): { from: Transaction['from']; to: Transaction['to'] } {
+  }): {
+    fees: Transaction['fees'];
+    from: Transaction['from'];
+    to: Transaction['to'];
+  } {
+    const fees = this.parseTransactionFees({
+      scope,
+      transactionData,
+    });
+
     const from: any[] = [];
     const to: any[] = [];
+
+    // Get the fee payer (first account in accountKeys)
+    const feePayer = transactionData.transaction.message.accountKeys[0];
+    const feeAmount = BigInt(transactionData.meta?.fee ?? 0);
 
     const preBalances = new Map(
       transactionData.meta?.preBalances.map((balance, index) => [
@@ -284,43 +300,144 @@ export class TransactionsService {
     for (const accountIndex of allAccountIndexes) {
       const preBalance = preBalances.get(accountIndex) ?? BigInt(0);
       const postBalance = postBalances.get(accountIndex) ?? BigInt(0);
-      const balanceDiff = postBalance - preBalance;
-
-      /**
-       * Skip if no change in balance
-       */
-      if (balanceDiff === BigInt(0)) {
-        continue;
-      }
+      let balanceDiff = postBalance - preBalance;
 
       const accountAddress =
         transactionData.transaction.message.accountKeys[accountIndex];
 
+      // Adjust balance difference for fee payer to exclude the transaction fee
+      if (accountAddress === feePayer) {
+        balanceDiff += feeAmount;
+      }
+
+      if (balanceDiff === BigInt(0)) {
+        continue;
+      }
+
       const amount = Number(Math.abs(Number(balanceDiff))) / LAMPORTS_PER_SOL;
 
       if (balanceDiff < BigInt(0)) {
-        /**
-         * Balance decreased = SOL sent from this account
-         */
         from.push({
           address: (accountAddress as string).toString(),
           asset: {
             fungible: true,
-            type: `${scope}/${SolanaCaip19Tokens.SOL}`,
-            unit: SOL_SYMBOL,
+            type: Networks[scope].nativeToken.caip19Id,
+            unit: Networks[scope].nativeToken.symbol,
             amount: amount.toString(),
           },
         });
-      } else {
-        /**
-         * Balance increased = SOL received by this account
-         */
+      }
+
+      if (balanceDiff > BigInt(0)) {
         to.push({
           address: (accountAddress as string).toString(),
           asset: {
             fungible: true,
-            type: `${scope}/${SolanaCaip19Tokens.SOL}`,
-            unit: SOL_SYMBOL,
+            type: Networks[scope].nativeToken.caip19Id,
+            unit: Networks[scope].nativeToken.symbol,
+            amount: amount.toString(),
+          },
+        });
+      }
+    }
+
+    return { fees, from, to };
+  }
+
+  parseTransactionSplTransfers({
+    scope,
+    transactionData,
+  }: {
+    scope: Network;
+    transactionData: SolanaTransaction;
+  }): {
+    from: Transaction['from'];
+    to: Transaction['to'];
+  } {
+    const from: any[] = [];
+    const to: any[] = [];
+
+    const preBalances = new Map(
+      transactionData.meta?.preTokenBalances?.map((balance) => [
+        balance.accountIndex,
+        BigInt(balance.uiTokenAmount.amount),
+      ]) ?? [],
+    );
+
+    const postBalances = new Map(
+      transactionData.meta?.postTokenBalances?.map((balance) => [
+        balance.accountIndex,
+        BigInt(balance.uiTokenAmount.amount),
+      ]) ?? [],
+    );
+
+    // Track all accounts that had token balance changes
+    const allAccountIndexes = new Set([
+      ...(transactionData.meta?.preTokenBalances?.map((b) => b.accountIndex) ??
+        []),
+      ...(transactionData.meta?.postTokenBalances?.map((b) => b.accountIndex) ??
+        []),
+    ]);
+
+    for (const accountIndex of allAccountIndexes) {
+      const preBalance = preBalances.get(accountIndex) ?? BigInt(0);
+      const postBalance = postBalances.get(accountIndex) ?? BigInt(0);
+      const balanceDiff = postBalance - preBalance;
+
+      if (balanceDiff === BigInt(0)) {
+        continue;
+      }
+
+      const tokenDetails =
+        transactionData.meta?.preTokenBalances?.find(
+          (b) => b.accountIndex === accountIndex,
+        ) ??
+        transactionData.meta?.postTokenBalances?.find(
+          (b) => b.accountIndex === accountIndex,
+        );
+
+      if (!tokenDetails) {
+        continue;
+      }
+
+      const {
+        mint,
+        uiTokenAmount: { decimals },
+        owner,
+      } = tokenDetails;
+
+      const caip19Id = `${scope}/token:${mint}`;
+      const tokenInformation =
+        TokenMetadata[caip19Id as keyof typeof TokenMetadata];
+
+      if (!owner || !tokenInformation) {
+        continue;
+      }
+
+      const unit = tokenInformation.symbol;
+
+      const amount =
+        Number(Math.abs(Number(balanceDiff))) / Math.pow(10, decimals);
+
+      if (balanceDiff < BigInt(0)) {
+        from.push({
+          address: owner,
+          asset: {
+            fungible: true,
+            type: caip19Id,
+            unit,
+            amount: amount.toString(),
+          },
+        });
+      }
+
+      if (balanceDiff > BigInt(0)) {
+        to.push({
+          address: owner,
+          asset: {
+            fungible: true,
+            type: caip19Id,
+            unit,
             amount: amount.toString(),
           },
         });

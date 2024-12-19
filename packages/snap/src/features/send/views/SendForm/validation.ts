@@ -1,6 +1,6 @@
 import { enums, nonempty, object, string } from 'superstruct';
 
-import { SolanaCaip2Networks } from '../../../../core/constants/solana';
+import { Network } from '../../../../core/constants/solana';
 import type { FieldValidationFunction } from '../../../../core/types/form';
 import {
   address,
@@ -10,7 +10,7 @@ import {
 import { SendFormNames } from '../../types';
 
 export const StartSendTransactionFlowParamsStruct = object({
-  scope: enums([...Object.values(SolanaCaip2Networks)]),
+  scope: enums([...Object.values(Network)]),
   account: nonempty(string()),
 });
 

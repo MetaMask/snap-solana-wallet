@@ -10,10 +10,7 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 import BigNumber from 'bignumber.js';
 
-import {
-  SolanaCaip19Tokens,
-  SolanaNetworksNames,
-} from '../../../../core/constants/solana';
+import { Networks } from '../../../../core/constants/solana';
 import { formatCurrency } from '../../../../core/utils/format-currency';
 import { formatTokens } from '../../../../core/utils/format-tokens';
 import { getSolanaExplorerUrl } from '../../../../core/utils/get-solana-explorer-url';
@@ -43,12 +40,13 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 }) => {
   const translate = i18n(locale);
 
+  const network = Networks[scope];
   const fromAddress = accounts.find((account) => account.id === fromAccountId)
     ?.address as string;
 
   // TODO: Adapt for more types of token prices to support SPL tokens.
-  const { price } =
-    transaction?.tokenPrice ?? tokenPrices[SolanaCaip19Tokens.SOL];
+  const { price } = transaction?.tokenPrice ??
+    tokenPrices[network.nativeToken.caip19Id] ?? { price: 0 };
 
   const amountInSol =
     currencySymbol === SendCurrency.SOL
@@ -60,7 +58,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
     `${scope}:${fromAddress}` as `${string}:${string}:${string}`;
   const toAddressCaip2 =
     `${scope}:${toAddress}` as `${string}:${string}:${string}`;
-  const networkName = SolanaNetworksNames[scope];
+  const networkName = network.name;
 
   const transactionSpeed = '<1s';
 

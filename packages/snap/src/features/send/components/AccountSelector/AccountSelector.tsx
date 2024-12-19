@@ -8,7 +8,7 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
-import type { SolanaCaip2Networks } from '../../../../core/constants/solana';
+import type { Network } from '../../../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../../../core/services/keyring';
 import { addressToCaip10 } from '../../../../core/utils/address-to-caip10';
 import { formatCurrency } from '../../../../core/utils/format-currency';
@@ -20,7 +20,7 @@ import { truncateAddress } from '../../../../core/utils/truncate-address';
 
 type AccountSelectorProps = {
   name: string;
-  scope: SolanaCaip2Networks;
+  scope: Network;
   accounts: SolanaKeyringAccount[];
   balances: Record<string, Balance>;
   price: number;
