@@ -5,16 +5,16 @@ import {
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
   getSignatureFromTransaction,
-  lamports,
   pipe,
   sendTransactionWithoutConfirmingFactory,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
   signTransactionMessageWithSigners,
 } from '@solana/web3.js';
+import type BigNumber from 'bignumber.js';
 
 import type { SolanaCaip2Networks } from '../../constants/solana';
-import { LAMPORTS_PER_SOL } from '../../constants/solana';
+import { solToLamports } from '../../utils/conversion';
 import { getClusterFromScope } from '../../utils/get-cluster-from-scope';
 import type { ILogger } from '../../utils/logger';
 import { logMaybeSolanaError } from '../../utils/logMaybeSolanaError';
@@ -47,7 +47,7 @@ export class TransferSolHelper {
    *
    * @param from - The account from which the SOL will be transferred.
    * @param to - The address to which the SOL will be transferred.
-   * @param amount - The amount of SOL to transfer.
+   * @param amountInSol - The amount of SOL to transfer.
    * @param network - The network on which to transfer the SOL.
    * @returns The signature of the transaction.
    * @see https://github.com/solana-labs/solana-web3.js/blob/master/examples/transfer-lamports/src/example.ts
@@ -55,10 +55,10 @@ export class TransferSolHelper {
   async transferSol(
     from: SolanaKeyringAccount,
     to: string,
-    amount: number,
+    amountInSol: string | number | bigint | BigNumber,
     network: SolanaCaip2Networks,
   ): Promise<string> {
-    const amountInLamports = lamports(BigInt(amount * LAMPORTS_PER_SOL));
+    const amountInLamports = solToLamports(amountInSol);
 
     const sendTransactionWithoutConfirming =
       sendTransactionWithoutConfirmingFactory({
@@ -74,7 +74,7 @@ export class TransferSolHelper {
     const transactionMessage = await this.buildTransactionMessage(
       from,
       toAddress,
-      amountInLamports,
+      BigInt(amountInLamports.toString()),
       network,
     );
 
@@ -121,14 +121,14 @@ export class TransferSolHelper {
    *
    * @param from - The account from which the SOL will be transferred.
    * @param to - The address to which the SOL will be transferred.
-   * @param amountLamports - The amount of SOL to transfer in lamports.
+   * @param amountInLamports - The amount of SOL to transfer in lamports.
    * @param network - The network on which to transfer the SOL.
    * @returns The transaction message.
    */
   async buildTransactionMessage(
     from: SolanaKeyringAccount,
     to: string,
-    amountLamports: number | bigint,
+    amountInLamports: number | bigint,
     network: SolanaCaip2Networks,
   ) {
     try {
@@ -158,7 +158,7 @@ export class TransferSolHelper {
              * to create a transfer instruction for the system program.
              */
             getTransferSolInstruction({
-              amount: amountLamports,
+              amount: amountInLamports,
               destination: toAddress,
               /**
                * By supplying a `TransactionSigner` here instead of just an address, we give this

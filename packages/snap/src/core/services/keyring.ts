@@ -21,11 +21,11 @@ import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
 
 import {
-  LAMPORTS_PER_SOL,
   SOL_SYMBOL,
   SolanaCaip19Tokens,
   type SolanaCaip2Networks,
 } from '../constants/solana';
+import { lamportsToSol } from '../utils/conversion';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
 import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
@@ -206,7 +206,7 @@ export class SolanaKeyring implements Keyring {
               .getBalance(address(account.address))
               .send();
 
-            const balance = String(Number(response.value) / LAMPORTS_PER_SOL);
+            const balance = lamportsToSol(response.value).toFixed();
             balances.set(asset, [SOL_SYMBOL, balance]);
             this.#logger.log(
               { asset, balance, network: currentNetwork },

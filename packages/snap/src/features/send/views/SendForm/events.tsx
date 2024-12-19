@@ -1,10 +1,11 @@
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 
+import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
 import {
-  LAMPORTS_PER_SOL,
-  SolanaCaip19Tokens,
-} from '../../../../core/constants/solana';
+  lamportsToSol,
+  solToLamports,
+} from '../../../../core/utils/conversion';
 import {
   resolveInterface,
   updateInterface,
@@ -167,20 +168,16 @@ async function onMaxAmountButtonClick({
       return '0';
     });
 
-  const balanceInLamportsAfterCost = BigNumber(balanceInSol)
-    .multipliedBy(LAMPORTS_PER_SOL)
-    .minus(costInLamports);
+  const balanceInLamportsAfterCost =
+    solToLamports(balanceInSol).minus(costInLamports);
 
-  const balanceInSolAfterCost =
-    balanceInLamportsAfterCost.dividedBy(LAMPORTS_PER_SOL);
+  const balanceInSolAfterCost = lamportsToSol(balanceInLamportsAfterCost);
 
   if (balanceInSolAfterCost.lt(0)) {
     throw new Error('Insufficient funds');
   }
 
-  contextToUpdate.feeInSol = BigNumber(costInLamports)
-    .dividedBy(LAMPORTS_PER_SOL)
-    .toString();
+  contextToUpdate.feeInSol = lamportsToSol(costInLamports).toString();
 
   /**
    * If the currency we set is SOL, set the amount to the balance
