@@ -119,7 +119,7 @@ export class TransactionsService {
     address: Address,
     limit: number,
   ): Promise<Signature[]> {
-    console.log(
+    this.#logger.log(
       `[TransactionsService.fetchAllSignatures] Fetching all signatures for ${address} on ${scope}`,
     );
 
