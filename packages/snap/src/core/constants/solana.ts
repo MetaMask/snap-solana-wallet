@@ -54,3 +54,5 @@ export const SolanaTokens = {
     decimals: 9,
   },
 } as const satisfies Record<SolanaCaip19Tokens, TokenInfo>;
+
+export const SOL_TRANSFER_FEE_LAMPORTS = 5000;

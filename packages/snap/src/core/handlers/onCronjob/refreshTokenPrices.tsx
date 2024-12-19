@@ -9,6 +9,7 @@ import {
   updateInterface,
 } from '../../utils/interface';
 import logger from '../../utils/logger';
+import { DEFAULT_SEND_CONTEXT } from '../onRpcRequest/renderSend';
 
 export const refreshTokenPrices: OnCronjobHandler = async () => {
   try {
@@ -26,11 +27,13 @@ export const refreshTokenPrices: OnCronjobHandler = async () => {
     try {
       if (sendFormInterfaceId) {
         // Get the current context
-        const interfaceContext = await getInterfaceContext(sendFormInterfaceId);
+        const interfaceContext =
+          ((await getInterfaceContext(sendFormInterfaceId)) as SendContext) ??
+          DEFAULT_SEND_CONTEXT;
 
         // Update the current context with the new rates
         const updatedInterfaceContext = {
-          ...(interfaceContext as SendContext),
+          ...interfaceContext,
           tokenPrices,
         };
 

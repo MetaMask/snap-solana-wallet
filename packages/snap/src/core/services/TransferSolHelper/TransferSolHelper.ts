@@ -13,7 +13,7 @@ import {
 } from '@solana/web3.js';
 import type BigNumber from 'bignumber.js';
 
-import type { SolanaCaip2Networks } from '../../constants/solana';
+import { type SolanaCaip2Networks } from '../../constants/solana';
 import { solToLamports } from '../../utils/conversion';
 import { getClusterFromScope } from '../../utils/get-cluster-from-scope';
 import type { ILogger } from '../../utils/logger';
@@ -179,39 +179,5 @@ export class TransferSolHelper {
       this.#logger.error({ error }, 'Error building transaction message');
       throw error;
     }
-  }
-
-  /**
-   * Calculate the cost of a transfer of SOL, in lamports.
-   *
-   * @param from - The account from which the SOL will be transferred.
-   * @param to - The address to which the SOL will be transferred.
-   * @param network - The network on which to transfer the SOL.
-   * @returns The cost of the transfer in lamports.
-   */
-  async calculateCostInLamports(
-    from: SolanaKeyringAccount,
-    to: string,
-    network: SolanaCaip2Networks,
-  ): Promise<string> {
-    /**
-     * Build a transaction message with a zero amount.
-     * This is because the cost doesn't depend on the amount of SOL being transferred.
-     * If we used a given amount of SOL, we would take the risk that the simulated transaction fails in the case where the amount is equal or exceeds the balance of the source account.
-     */
-    const transactionMessage = await this.buildTransactionMessage(
-      from,
-      to,
-      0,
-      network,
-    );
-
-    const transactionCost =
-      await this.#transactionHelper.calculateCostInLamports(
-        transactionMessage,
-        network,
-      );
-
-    return transactionCost;
   }
 }

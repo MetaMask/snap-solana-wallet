@@ -57,7 +57,6 @@ describe('TransferSolHelper', () => {
     it('should successfully transfer SOL', async () => {
       // Mock return values
       const mockSignature = 'mockSignature123';
-      //   const mockTransactionMessage = { version: 0 };
       const mockSignedTransaction = { signature: mockSignature };
 
       // Setup mocks
@@ -127,28 +126,6 @@ describe('TransferSolHelper', () => {
           mockNetwork,
         ),
       ).rejects.toThrow(mockError);
-    });
-  });
-
-  describe('calculateCostInLamports', () => {
-    it('should return transaction cost', async () => {
-      const expectedCost = '5000';
-      jest
-        .spyOn(mockTransactionHelper, 'calculateCostInLamports')
-        .mockResolvedValue(expectedCost);
-
-      (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
-        address: mockFrom.address,
-      });
-
-      const result = await transferSolHelper.calculateCostInLamports(
-        mockFrom,
-        mockTo,
-        mockNetwork,
-      );
-
-      expect(result).toBe(expectedCost);
-      expect(mockTransactionHelper.calculateCostInLamports).toHaveBeenCalled();
     });
   });
 });

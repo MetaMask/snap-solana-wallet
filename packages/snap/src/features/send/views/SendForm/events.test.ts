@@ -2,13 +2,14 @@ import BigNumber from 'bignumber.js';
 
 import {
   LAMPORTS_PER_SOL,
+  SOL_TRANSFER_FEE_LAMPORTS,
   SolanaCaip19Tokens,
   SolanaCaip2Networks,
 } from '../../../../core/constants/solana';
 import { DEFAULT_TOKEN_PRICES } from '../../../../core/services/state';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import { updateInterface } from '../../../../core/utils/interface';
-import { keyring, transferSolHelper } from '../../../../snap-context';
+import { keyring } from '../../../../snap-context';
 import type { SendContext } from '../../types';
 import { SendCurrency, SendFormNames } from '../../types';
 import { eventHandlers } from './events';
@@ -20,7 +21,7 @@ describe('onMaxAmountButtonClick', () => {
   const mockToAddress = 'destination-address';
   const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
   const mockBalanceInSol = '1.5'; // 1.5 SOL
-  const mockCostInLamports = '5000'; // 0.000005 SOL
+  const mockCostInLamports = SOL_TRANSFER_FEE_LAMPORTS; // 0.000005 SOL
   const mockSolPrice = '20'; // $20 per SOL
 
   const expectedFeeInSol = BigNumber(mockCostInLamports)
@@ -55,9 +56,6 @@ describe('onMaxAmountButtonClick', () => {
 
   beforeEach(() => {
     jest.spyOn(keyring, 'getAccountOrThrow').mockResolvedValue(mockAccount);
-    jest
-      .spyOn(transferSolHelper, 'calculateCostInLamports')
-      .mockResolvedValue(mockCostInLamports);
 
     (updateInterface as jest.Mock).mockResolvedValue(undefined);
   });
@@ -117,47 +115,15 @@ describe('onMaxAmountButtonClick', () => {
     );
   });
 
-  it('handles error in calculating transfer cost', async () => {
-    jest
-      .spyOn(transferSolHelper, 'calculateCostInLamports')
-      .mockRejectedValue(new Error('Test error'));
-
-    const context = {
-      ...baseContext,
-      currencySymbol: SendCurrency.SOL,
-    };
-
-    await eventHandlers[SendFormNames.MaxAmountButton]({ id: mockId, context });
-
-    // Should use 0 as cost when calculation fails
-    const expectedAmount = BigNumber(mockBalanceInSol)
-      .multipliedBy(LAMPORTS_PER_SOL)
-      .minus(0)
-      .dividedBy(LAMPORTS_PER_SOL)
-      .toString();
-
-    expect(updateInterface).toHaveBeenCalledWith(
-      mockId,
-      expect.anything(),
-      expect.objectContaining({
-        amount: expectedAmount,
-      }),
-    );
-  });
-
   it('throws error when balance after cost is negative', async () => {
+    // A simple SOL send will always have a cost of 5000 lamports. Let's test with a very small balance.
     const lowBalanceContext = {
       ...baseContext,
       balances: {
-        [mockAccount.id]: { amount: '0.000001', unit: 'SOL' }, // Very small balance
+        [mockAccount.id]: { amount: '0.000001', unit: 'SOL' },
       },
       currencySymbol: SendCurrency.SOL,
     };
-
-    // Set a high cost that exceeds the balance
-    jest
-      .spyOn(transferSolHelper, 'calculateCostInLamports')
-      .mockResolvedValue('2000000'); // 0.002 SOL
 
     await expect(
       eventHandlers[SendFormNames.MaxAmountButton]({

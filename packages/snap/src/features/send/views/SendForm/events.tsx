@@ -1,7 +1,10 @@
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 
-import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
+import {
+  SOL_TRANSFER_FEE_LAMPORTS,
+  SolanaCaip19Tokens,
+} from '../../../../core/constants/solana';
 import {
   lamportsToSol,
   solToLamports,
@@ -10,9 +13,7 @@ import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
-import logger from '../../../../core/utils/logger';
 import { validateField } from '../../../../core/validation/form';
-import { keyring, transferSolHelper } from '../../../../snap-context';
 import { Send } from '../../Send';
 import { SendCurrency, SendFormNames, type SendContext } from '../../types';
 import { validateBalance } from '../../utils/balance';
@@ -147,26 +148,16 @@ async function onMaxAmountButtonClick({
   id: string;
   context: SendContext;
 }) {
-  const {
-    fromAccountId,
-    currencySymbol,
-    toAddress,
-    balances,
-    scope,
-    tokenPrices,
-  } = context;
+  const { fromAccountId, currencySymbol, balances, tokenPrices } = context;
   const contextToUpdate = { ...context };
-  const account = await keyring.getAccountOrThrow(fromAccountId);
   const balanceInSol = balances[fromAccountId]?.amount ?? '0';
 
-  // NOTE: This calculates the cost of sending SOL specifically.
-  // We should adapt if this event ends up being used for SPL tokens as well.
-  const costInLamports = await transferSolHelper
-    .calculateCostInLamports(account, toAddress, scope)
-    .catch((error) => {
-      logger.error({ error }, 'Error calculating cost');
-      return '0';
-    });
+  /**
+   * This is only valid for sending SOL specifically.
+   * We should adapt if this event ends up being used for other kinds of transactions, like sending SPL tokens.
+   * @see {@link TransactionHelper#calculateCostInLamports}
+   */
+  const costInLamports = SOL_TRANSFER_FEE_LAMPORTS;
 
   const balanceInLamportsAfterCost =
     solToLamports(balanceInSol).minus(costInLamports);
