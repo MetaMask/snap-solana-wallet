@@ -4670,7 +4670,6 @@ __metadata:
     "@metamask/utils": ^11.0.0
     "@noble/ed25519": ^2.1.0
     "@solana-program/compute-budget": ^0.6.1
-    "@solana-program/memo": ^0.6.1
     "@solana-program/system": ^0.6.2
     "@solana/web3.js": 2
     "@testing-library/jest-dom": ^6.6.2
@@ -5856,15 +5855,6 @@ __metadata:
   peerDependencies:
     "@solana/web3.js": ^2.0.0
   checksum: adfe34137765d257b3f4e35422d27e58d58ac43ac77cda6b256d529ab2457f49cc2cb7cb7f3a6b94f6fee080cadbffb677422518fcb2a128ee510d92f0cb063d
-  languageName: node
-  linkType: hard
-
-"@solana-program/memo@npm:^0.6.1":
-  version: 0.6.1
-  resolution: "@solana-program/memo@npm:0.6.1"
-  peerDependencies:
-    "@solana/web3.js": ^2.0.0
-  checksum: 6a0aa32399f7efc642d9c5803fb91d7e18f9a693b253ae11bbd92993867c69bcf92343e467318f1c23de80d0256b1cf8615f2c0b545211637fb5f05dc789c89a
   languageName: node
   linkType: hard
 
