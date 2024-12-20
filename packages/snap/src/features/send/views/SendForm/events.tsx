@@ -164,10 +164,6 @@ async function onMaxAmountButtonClick({
 
   const balanceInSolAfterCost = lamportsToSol(balanceInLamportsAfterCost);
 
-  if (balanceInSolAfterCost.lt(0)) {
-    throw new Error('Insufficient funds');
-  }
-
   contextToUpdate.feeEstimatedInSol = lamportsToSol(costInLamports).toString();
 
   /**

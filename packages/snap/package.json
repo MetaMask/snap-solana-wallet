@@ -25,6 +25,8 @@
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
     "lint:misc": "prettier '**/*.json' '**/*.md' --check",
     "lint:types": "tsc --noEmit",
+    "locale:build": "node ./scripts/populate-locale.js",
+    "locale:build:watch": "npx nodemon --watch packages/snap/messages.json --exec \"node ./scripts/populate-locale.js\"",
     "prepublishOnly": "mm-snap manifest",
     "serve": "mm-snap serve",
     "start": "concurrently \"mm-snap watch\" \"yarn locale:build:watch\"",
@@ -33,9 +35,7 @@
     "test:core:watch": "yarn test:core --watch",
     "test:features": "jest src/features --passWithNoTests --runInBand",
     "test:features:watch": "yarn test:features --watch",
-    "test:watch": "yarn test --watch",
-    "locale:build": "node ./scripts/populate-locale.js",
-    "locale:build:watch": "npx nodemon --watch packages/snap/messages.json --exec \"node ./scripts/populate-locale.js\""
+    "test:watch": "yarn test --watch"
   },
   "devDependencies": {
     "@formatjs/intl-numberformat": "^8.15.1",
@@ -49,7 +49,6 @@
     "@metamask/utils": "^11.0.0",
     "@noble/ed25519": "^2.1.0",
     "@solana-program/compute-budget": "^0.6.1",
-    "@solana-program/memo": "^0.6.1",
     "@solana-program/system": "^0.6.2",
     "@solana/web3.js": "2",
     "@testing-library/jest-dom": "^6.6.2",
