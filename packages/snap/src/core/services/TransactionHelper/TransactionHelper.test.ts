@@ -41,7 +41,7 @@ describe('TransactionHelper', () => {
   });
 
   describe('getLatestBlockhash', () => {
-    it('should fetch and return the latest blockhash', async () => {
+    it('fetches and returns the latest blockhash', async () => {
       const expectedResponse = {
         blockhash: 'mockBlockhash',
         lastValidBlockHeight: BigInt(100),
@@ -60,7 +60,7 @@ describe('TransactionHelper', () => {
       expect(mockRpcResponse.send).toHaveBeenCalled();
     });
 
-    it('should throw and log error when fetching blockhash fails', async () => {
+    it('throws and logs error when fetching blockhash fails', async () => {
       const error = new Error('Network error');
       mockRpcResponse.send.mockRejectedValueOnce(error);
 
@@ -73,7 +73,7 @@ describe('TransactionHelper', () => {
   describe('calculateCostInLamports', () => {
     const mockTransactionMessage = {};
 
-    it('should calculate transaction cost successfully', async () => {
+    it('calculates transaction cost successfully', async () => {
       const expectedCost = '5000';
       mockRpcResponse.send.mockResolvedValueOnce({ value: expectedCost });
 
@@ -89,7 +89,7 @@ describe('TransactionHelper', () => {
       );
     });
 
-    it('should throw and log error when calculation fails', async () => {
+    it('throws and logs error when calculation fails', async () => {
       const error = new Error('Calculation error');
       mockRpcResponse.send.mockRejectedValueOnce(error);
 

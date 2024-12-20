@@ -54,7 +54,7 @@ describe('TransferSolHelper', () => {
   });
 
   describe('transferSol', () => {
-    it('should successfully transfer SOL', async () => {
+    it('successfully transfers SOL', async () => {
       // Mock return values
       const mockSignature = 'mockSignature123';
       const mockSignedTransaction = { signature: mockSignature };
@@ -105,7 +105,7 @@ describe('TransferSolHelper', () => {
       expect(result).toBe(mockSignature);
     });
 
-    it('should throw error when transaction fails', async () => {
+    it('throws error when transaction fails', async () => {
       (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
         address: mockFrom.address,
       });

@@ -118,7 +118,7 @@ describe('TokenPricesService', () => {
       });
     });
 
-    it('should deduplicate tokens present in both state and UI context', async () => {
+    it('deduplicates tokens present in both state and UI context', async () => {
       const mockStateValue = {
         mapInterfaceNameToId: {
           'send-form': 'mock-interface-id',
@@ -160,7 +160,7 @@ describe('TokenPricesService', () => {
       });
     });
 
-    it('should handle missing send form interface gracefully', async () => {
+    it('handles missing send form interface gracefully', async () => {
       // Mock an initial state with some token rates
       const mockStateValue = {
         mapInterfaceNameToId: {},
@@ -199,7 +199,7 @@ describe('TokenPricesService', () => {
       });
     });
 
-    it('should handle price API errors gracefully and leave existing rates intact', async () => {
+    it('handles price API errors gracefully and leaves existing rates intact', async () => {
       // Mock an initial state with some token rates
       const mockStateValue = {
         mapInterfaceNameToId: {},

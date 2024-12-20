@@ -8,12 +8,12 @@ describe('Stack', () => {
   });
 
   describe('push', () => {
-    it('should add items to the stack', () => {
+    it('adds items to the stack', () => {
       stack.push(1);
       expect(stack.size()).toBe(1);
     });
 
-    it('should throw error when exceeding capacity', () => {
+    it('throws error when exceeding capacity', () => {
       const limitedStack = new Stack<number>(1);
       limitedStack.push(1);
       expect(() => limitedStack.push(2)).toThrow(
@@ -23,11 +23,11 @@ describe('Stack', () => {
   });
 
   describe('pop', () => {
-    it('should return undefined for empty stack', () => {
+    it('returns undefined for empty stack', () => {
       expect(stack.pop()).toBeUndefined();
     });
 
-    it('should remove and return destackable items', () => {
+    it('removes and returns destackable items', () => {
       stack.push(1);
       stack.push(2);
 
@@ -37,7 +37,7 @@ describe('Stack', () => {
       expect(stack.size()).toBe(0);
     });
 
-    it('should return but not remove non-destackable items', () => {
+    it('returns but does not remove non-destackable items', () => {
       stack.push(1);
       stack.push(2, false); // non-destackable item
 
@@ -49,7 +49,7 @@ describe('Stack', () => {
   });
 
   describe('size', () => {
-    it('should return correct stack size', () => {
+    it('returns correct stack size', () => {
       expect(stack.size()).toBe(0);
 
       stack.push(1);
@@ -64,7 +64,7 @@ describe('Stack', () => {
   });
 
   describe('peek', () => {
-    it('should return the last item without removing it', () => {
+    it('returns the last item without removing it', () => {
       stack.push(1);
       expect(stack.peek()).toBe(1);
     });
