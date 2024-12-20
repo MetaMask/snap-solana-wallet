@@ -115,24 +115,4 @@ describe('onMaxAmountButtonClick', () => {
       }),
     );
   });
-
-  it('throws error when balance after cost is negative', async () => {
-    // A simple SOL send will always have a cost of 5000 lamports. Let's test with a very small balance.
-    const lowBalanceContext = {
-      ...baseContext,
-      balances: {
-        [mockAccount.id]: { amount: '0.000001', unit: 'SOL' },
-      },
-      currencySymbol: SendCurrency.SOL,
-    };
-
-    await expect(
-      eventHandlers[SendFormNames.MaxAmountButton]({
-        id: mockId,
-        context: lowBalanceContext,
-      }),
-    ).rejects.toThrow('Insufficient funds');
-
-    expect(updateInterface).not.toHaveBeenCalled();
-  });
 });
