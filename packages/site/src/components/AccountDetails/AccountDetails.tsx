@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import {
   Button,
   Text as ChakraText,
@@ -7,11 +8,20 @@ import {
   Link,
   Table,
 } from '@chakra-ui/react';
-import type { KeyringAccount, Transaction } from '@metamask/keyring-api';
-import { useEffect, useRef, useState } from 'react';
+import type {
+  Balance,
+  KeyringAccount,
+  Transaction,
+} from '@metamask/keyring-api';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
+import {
+  SolanaNetworksNames,
+  SolanaInternalRpcMethods,
+} from '../../../../snap/src/core/constants/solana';
 import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/get-solana-explorer-url';
 import { useNetwork, type SolanaCaip2Networks } from '../../context/network';
+import { useInvokeSnap } from '../../hooks';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 import { formatLongString } from '../../utils/format-long-string';
 
@@ -28,6 +38,9 @@ type PaginationState = {
 export const AccountDetails = ({ accountId }: { accountId: string }) => {
   const { network } = useNetwork();
   const [selectedAccount, setSelectedAccount] = useState<KeyringAccount>();
+  const [selectedAccountBalances, setSelectedAccountBalances] = useState<
+    Record<string, Balance>
+  >({});
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     limit: 10,
@@ -37,6 +50,7 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
   const initialFetchRef = useRef(false);
 
   const invokeKeyring = useInvokeKeyring();
+  const invokeSnap = useInvokeSnap();
 
   const fetchAccount = async (id: string) => {
     const account = (await invokeKeyring({
@@ -45,6 +59,22 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
     })) as KeyringAccount;
 
     setSelectedAccount(account);
+  };
+
+  const fetchAccountBalances = async (id: string) => {
+    const assets = await invokeSnap({
+      method: SolanaInternalRpcMethods.ListAccountAssets,
+      params: {
+        id,
+      },
+    });
+
+    const balances = (await invokeKeyring({
+      method: 'keyring_getAccountBalances',
+      params: { id, assets },
+    })) as Record<string, Balance>;
+
+    setSelectedAccountBalances(balances);
   };
 
   const fetchAccountTransactions = async (id: string) => {
@@ -83,7 +113,24 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
   useEffect(() => {
     fetchAccount(accountId);
     fetchAccountTransactions(accountId);
+    fetchAccountBalances(accountId);
   }, []);
+
+  const accountBalances: Record<string, Balance> = useMemo(() => {
+    return Object.keys(selectedAccountBalances).reduce((list, assetId) => {
+      const assetNetwork = assetId.split('/')[0] as SolanaCaip2Networks;
+      const asset = selectedAccountBalances[assetId];
+
+      if (assetNetwork !== network) {
+        return list;
+      }
+
+      return {
+        ...list,
+        [assetId]: asset,
+      };
+    }, {});
+  }, [network, selectedAccountBalances]);
 
   if (!selectedAccount) {
     return (
@@ -116,6 +163,40 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
       >
         {selectedAccount.address}
       </Link>
+      <Heading size="2xl" marginBottom="5">
+        Balances
+      </Heading>
+      <Table.Root marginBottom="5">
+        <Table.Header>
+          <Table.Row>
+            <Table.ColumnHeader>Network</Table.ColumnHeader>
+            <Table.ColumnHeader>Symbol</Table.ColumnHeader>
+            <Table.ColumnHeader>Amount</Table.ColumnHeader>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {Object.keys(accountBalances).map((balanceId) => (
+            <Table.Row key={balanceId}>
+              <Table.Cell>
+                {
+                  SolanaNetworksNames[
+                    balanceId.split('/')[0] as SolanaCaip2Networks
+                  ]
+                }
+              </Table.Cell>
+              <Table.Cell>
+                {accountBalances[balanceId]?.unit || 'Unknown'}
+              </Table.Cell>
+              <Table.Cell>
+                {accountBalances[balanceId]?.amount ?? '-'}
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table.Root>
+      <Heading size="2xl" marginBottom="5">
+        Transactions
+      </Heading>
       <Table.Root>
         <Table.Header>
           <Table.Row>

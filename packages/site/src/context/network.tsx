@@ -29,7 +29,7 @@ export const NetworkProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [network, setNetwork] = useState<Network>(SolanaCaip2Networks.Devnet);
+  const [network, setNetwork] = useState<Network>(SolanaCaip2Networks.Mainnet);
 
   return (
     <NetworkContext.Provider value={{ network, setNetwork }}>

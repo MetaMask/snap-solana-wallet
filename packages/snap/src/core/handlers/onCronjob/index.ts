@@ -11,4 +11,5 @@ export enum OnCronjobMethods {
 export const handlers: Record<OnCronjobMethods, OnCronjobHandler> = {
   [OnCronjobMethods.RefreshTokenPrices]: refreshTokenPrices,
   [OnCronjobMethods.RefreshTransactions]: refreshTransactions,
+  // Register new handlers here
 };

@@ -19,6 +19,7 @@ jest.mock('@solana/web3.js', () => ({
   pipe: (...fns: any[]) => fns[fns.length - 1],
   prependTransactionMessageInstructions: jest.fn().mockReturnValue({}),
   isSolanaError: jest.fn().mockReturnValue(false),
+  address: jest.fn().mockImplementation((address) => address),
 }));
 
 describe('TransactionHelper', () => {

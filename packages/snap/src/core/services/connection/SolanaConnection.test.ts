@@ -6,6 +6,7 @@ jest.mock('@solana/web3.js', () => ({
   createSolanaRpcFromTransport: jest.fn().mockImplementation((transport) => ({
     urls: transport.urls,
   })),
+  address: jest.fn().mockImplementation((address) => address),
 }));
 
 jest.mock('./transport', () => ({

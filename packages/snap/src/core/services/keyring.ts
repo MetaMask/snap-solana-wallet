@@ -16,7 +16,6 @@ import {
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
 import type { Address, Signature } from '@solana/web3.js';
 import {
-  address as asAddress,
   createKeyPairFromPrivateKeyBytes,
   getAddressFromPublicKey,
 } from '@solana/web3.js';
@@ -24,25 +23,26 @@ import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
 
 import type { SolanaCaip2Networks } from '../constants/solana';
-import {
-  LAMPORTS_PER_SOL,
-  SOL_SYMBOL,
-  SolanaCaip19Tokens,
-} from '../constants/solana';
+import { SOL_SYMBOL, SolanaCaip19Tokens } from '../constants/solana';
+import { lamportsToSol } from '../utils/conversion';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
 import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
 import type { ILogger } from '../utils/logger';
 import { logMaybeSolanaError } from '../utils/logMaybeSolanaError';
+import { parseUnits } from '../utils/parse-units';
 import type { TransferSolParams } from '../validation/structs';
 import {
   GetAccounBalancesResponseStruct,
   TransferSolParamsStruct,
 } from '../validation/structs';
 import { validateRequest } from '../validation/validators';
+import type { AssetsService } from './assets';
+import type { ConfigProvider } from './config';
 import type { SolanaConnection } from './connection/SolanaConnection';
 import type { EncryptedSolanaState } from './encrypted-state';
 import type { SolanaState } from './state';
+import type { TokenMetadataService } from './token-metadata';
 import type { TransactionsService } from './transactions';
 import type { TransferSolHelper } from './TransferSolHelper/TransferSolHelper';
 /**
@@ -57,37 +57,48 @@ export type SolanaKeyringAccount = {
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
 
+  readonly #configProvider: ConfigProvider;
+
   readonly #encryptedState: EncryptedSolanaState;
 
-  readonly #connection: SolanaConnection;
+  readonly #logger: ILogger;
 
   readonly #transactionsService: TransactionsService;
 
   readonly #transferSolHelper: TransferSolHelper;
 
-  readonly #logger: ILogger;
+  readonly #assetsService: AssetsService;
+
+  readonly #tokenMetadataService: TokenMetadataService;
 
   constructor({
     state,
+    configProvider,
     encryptedState,
-    connection,
     transactionsService,
     transferSolHelper,
     logger,
+    assetsService,
+    tokenMetadataService,
   }: {
     state: SolanaState;
+    configProvider: ConfigProvider;
     encryptedState: EncryptedSolanaState;
     connection: SolanaConnection;
     transactionsService: TransactionsService;
     transferSolHelper: TransferSolHelper;
     logger: ILogger;
+    assetsService: AssetsService;
+    tokenMetadataService: TokenMetadataService;
   }) {
     this.#state = state;
+    this.#configProvider = configProvider;
     this.#encryptedState = encryptedState;
-    this.#connection = connection;
     this.#transactionsService = transactionsService;
     this.#transferSolHelper = transferSolHelper;
     this.#logger = logger;
+    this.#assetsService = assetsService;
+    this.#tokenMetadataService = tokenMetadataService;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -221,13 +232,60 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
+  /**
+   * Returns the list of assets for the given account in all Solana networks.
+   * @param id - The id of the account.
+   * @returns CAIP-19 assets ids.
+   */
+  async listAccountAssets(id: string): Promise<CaipAssetType[]> {
+    try {
+      const account = await this.getAccount(id);
+      if (!account) {
+        throw new Error('Account not found');
+      }
+
+      const { activeNetworks } = this.#configProvider.get();
+
+      const nativeResponses = await Promise.all(
+        activeNetworks.map(async (network) =>
+          this.#assetsService.getNativeAsset(account.address, network),
+        ),
+      );
+
+      const tokensResponses = await Promise.all(
+        activeNetworks.map(async (network) =>
+          this.#assetsService.discoverTokens(account.address, network),
+        ),
+      );
+
+      const nativeAssets = this.#assetsService
+        .filterZeroBalanceTokens(nativeResponses)
+        .map((response) => response.address);
+
+      const tokenAssets = tokensResponses.flatMap((response) =>
+        response.map((token) => token.address),
+      );
+
+      return [...nativeAssets, ...tokenAssets];
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error listing account assets');
+      throw error;
+    }
+  }
+
+  /**
+   * Returns the balances of the given account for the given assets.
+   * @param id - The id of the account.
+   * @param assets - The assets to get the balances for (CAIP-19 ids).
+   * @returns The balances of the account for the given assets.
+   */
   async getAccountBalances(
     id: string,
     assets: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
     try {
       const account = await this.getAccount(id);
-      const balances = new Map<string, [string, string]>();
+      const balances = new Map<string, Balance>();
 
       if (!account) {
         throw new Error('Account not found');
@@ -236,10 +294,12 @@ export class SolanaKeyring implements Keyring {
       const assetsByNetwork = assets.reduce<
         Record<SolanaCaip2Networks, string[]>
       >((groups, asset) => {
-        const network = getNetworkFromToken(asset) as SolanaCaip2Networks;
+        const network = getNetworkFromToken(asset);
+
         if (!groups[network]) {
           groups[network] = [];
         }
+
         groups[network].push(asset);
         return groups;
       }, {} as Record<SolanaCaip2Networks, string[]>);
@@ -248,38 +308,47 @@ export class SolanaKeyring implements Keyring {
         const currentNetwork = network as SolanaCaip2Networks;
         const networkAssets = assetsByNetwork[currentNetwork];
 
+        const [nativeAsset, tokenAssets] = await Promise.all([
+          this.#assetsService.getNativeAsset(account.address, currentNetwork),
+          this.#assetsService.discoverTokens(account.address, currentNetwork),
+        ]);
+
+        const tokenMetadata =
+          await this.#tokenMetadataService.getMultipleTokenMetadata(
+            tokenAssets,
+            currentNetwork,
+          );
+
         for (const asset of networkAssets) {
           if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
-            const response = await this.#connection
-              .getRpc(currentNetwork)
-              .getBalance(asAddress(account.address))
-              .send();
-
-            const balance = String(Number(response.value) / LAMPORTS_PER_SOL);
-            balances.set(asset, [SOL_SYMBOL, balance]);
+            balances.set(asset, {
+              amount: lamportsToSol(nativeAsset.balance).toString(),
+              unit: SOL_SYMBOL,
+            });
           } else {
-            // Tokens: unsuported
-            this.#logger.log(
-              { asset, network: currentNetwork },
-              'Unsupported asset',
+            const splToken = tokenAssets.find(
+              (token) => token.address === asset,
             );
+
+            if (splToken) {
+              balances.set(asset, {
+                amount: parseUnits(splToken.balance, splToken.decimals),
+                unit: tokenMetadata[splToken.address]?.symbol ?? '',
+              });
+            }
           }
         }
       }
 
-      const response = Object.fromEntries(
-        [...balances.entries()].map(([key, [unit, amount]]) => [
-          key,
-          { amount, unit },
-        ]),
-      );
-      assert(response, GetAccounBalancesResponseStruct);
+      const result = Object.fromEntries(balances.entries());
 
-      return response;
+      assert(result, GetAccounBalancesResponseStruct);
+
+      return result;
     } catch (error: any) {
       logMaybeSolanaError(error);
       this.#logger.error({ error }, 'Error getting account balances');
-      throw new Error('Error getting account balances');
+      throw error;
     }
   }
 

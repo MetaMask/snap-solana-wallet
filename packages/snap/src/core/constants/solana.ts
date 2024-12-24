@@ -1,5 +1,9 @@
+import { address } from '@solana/web3.js';
+
 /* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';
+export const SOL_IMAGE_URL =
+  'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png';
 
 /**
  * Solana CAIP-2 Networks
@@ -30,7 +34,7 @@ export const NETWORK_TO_EXPLORER_CLUSTER = {
 
 export enum SolanaInternalRpcMethods {
   StartSendTransactionFlow = 'startSendTransactionFlow',
-  ShowTransactionConfirmation = 'showTransactionConfirmation',
+  ListAccountAssets = 'listAccountAssets',
 }
 
 export const LAMPORTS_PER_SOL = 1_000_000_000;
@@ -56,3 +60,7 @@ export const SolanaTokens = {
 } as const satisfies Record<SolanaCaip19Tokens, TokenInfo>;
 
 export const SOL_TRANSFER_FEE_LAMPORTS = 5000;
+
+export const TOKEN_PROGRAM_ID = address(
+  'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+);

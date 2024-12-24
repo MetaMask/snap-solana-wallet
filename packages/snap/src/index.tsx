@@ -11,14 +11,12 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
+import { SolanaInternalRpcMethods } from './core/constants/solana';
 import {
   handlers as onCronjobHandlers,
   OnCronjobMethods,
 } from './core/handlers/onCronjob';
-import {
-  handlers as onRpcRequestHandlers,
-  OnRpcRequestMethods,
-} from './core/handlers/onRpcRequest';
+import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
 import logger from './core/utils/logger';
@@ -48,12 +46,12 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
     validateOrigin(origin, method);
 
-    const handler = onRpcRequestHandlers[method as OnRpcRequestMethods];
+    const handler = onRpcRequestHandlers[method as SolanaInternalRpcMethods];
 
     if (!handler) {
       throw new MethodNotFoundError(
         `RpcRequest method ${method} not found. Available methods: ${Object.values(
-          OnRpcRequestMethods,
+          SolanaInternalRpcMethods,
         ).toString()}`,
       ) as unknown as Error;
     }
