@@ -19,6 +19,7 @@ import {
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
+import { getClientStatus } from './core/utils/interface';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
@@ -153,6 +154,13 @@ export const onUserInput: OnUserInputHandler = async ({
  */
 export const onCronjob: OnCronjobHandler = async ({ request }) => {
   const { method } = request;
+
+  // Don't run cronjobs if client is locked
+  // This assumes we don't want to run cronjobs while the client is locked
+  const { locked } = await getClientStatus();
+  if (locked) {
+    return Promise.resolve();
+  }
 
   // Don't run cronjobs if there are no Solana accounts
   const accounts = await keyring.listAccounts();

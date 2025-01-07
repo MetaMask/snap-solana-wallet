@@ -1,6 +1,7 @@
 import type {
   ComponentOrElement,
   DialogResult,
+  GetClientStatusResult,
   GetInterfaceContextResult,
   GetInterfaceStateResult,
   Json,
@@ -136,5 +137,16 @@ export async function getInterfaceContext(
     params: {
       id: interfaceId,
     },
+  });
+}
+
+/**
+ * Retrieves the client status (locked/unlocked) in this case from MM.
+ *
+ * @returns An object containing the status.
+ */
+export async function getClientStatus(): Promise<GetClientStatusResult> {
+  return await snap.request({
+    method: 'snap_getClientStatus',
   });
 }
