@@ -4710,6 +4710,7 @@ __metadata:
     gatsby-plugin-svgr: ^3.0.0-beta.0
     react: ^18.3.1
     react-dom: ^18.3.1
+    react-icons: ^5.4.0
     react-is: ^18.3.1
     rimraf: ^6.0.1
     styled-components: 6.1.13
@@ -21538,6 +21539,15 @@ __metadata:
   version: 6.0.11
   resolution: "react-error-overlay@npm:6.0.11"
   checksum: ce7b44c38fadba9cedd7c095cf39192e632daeccf1d0747292ed524f17dcb056d16bc197ddee5723f9dd888f0b9b19c3b486c430319e30504289b9296f2d2c42
+  languageName: node
+  linkType: hard
+
+"react-icons@npm:^5.4.0":
+  version: 5.4.0
+  resolution: "react-icons@npm:5.4.0"
+  peerDependencies:
+    react: "*"
+  checksum: 6ee5fcda49d9628e33d97e955ed6ec9f30b26226a13b14d0f3f9a698d0d5dd2e3878af7de295e0241bdd8f46af96f16bfea1fd0647beddc447c1de98bdb2178e
   languageName: node
   linkType: hard
 

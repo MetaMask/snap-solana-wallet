@@ -1,18 +1,37 @@
 import { getSetComputeUnitLimitInstruction } from '@solana-program/compute-budget';
-import type { Blockhash } from '@solana/web3.js';
+import type {
+  Blockhash,
+  IInstruction,
+  ITransactionMessageWithFeePayer,
+  TransactionMessageWithBlockhashLifetime,
+} from '@solana/web3.js';
 import {
   compileTransactionMessage,
   getBase64Decoder,
   getCompiledTransactionMessageEncoder,
   getComputeUnitEstimateForTransactionMessageFactory,
+  getSignatureFromTransaction,
   pipe,
   prependTransactionMessageInstructions,
+  sendTransactionWithoutConfirmingFactory,
+  signTransactionMessageWithSigners,
 } from '@solana/web3.js';
 
 import type { SolanaCaip2Networks } from '../../constants/solana';
+import { getClusterFromScope } from '../../utils/get-cluster-from-scope';
 import type { ILogger } from '../../utils/logger';
 import { logMaybeSolanaError } from '../../utils/logMaybeSolanaError';
 import type { SolanaConnection } from '../connection';
+
+type TransactionMessage = TransactionMessageWithBlockhashLifetime &
+  ITransactionMessageWithFeePayer &
+  Omit<
+    Readonly<{
+      instructions: readonly IInstruction[];
+      version: 0;
+    }>,
+    'feePayer'
+  >;
 
 /**
  * Helper class for transaction related operations.
@@ -133,6 +152,44 @@ export class TransactionHelper {
     } catch (error: any) {
       logMaybeSolanaError(error);
       this.#logger.error(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send a transaction message to the network.
+   *
+   * @param transactionMessage - The transaction message to send.
+   * @param network - The network on which to send the transaction.
+   * @returns The signature of the transaction.
+   */
+  async sendTransaction(
+    transactionMessage: TransactionMessage,
+    network: SolanaCaip2Networks,
+  ): Promise<string> {
+    const sendTransactionWithoutConfirming =
+      sendTransactionWithoutConfirmingFactory({
+        rpc: this.#connection.getRpc(network),
+      });
+
+    const signedTransaction = await signTransactionMessageWithSigners(
+      transactionMessage,
+    );
+
+    const signature = getSignatureFromTransaction(signedTransaction);
+
+    const cluster = getClusterFromScope(network)?.toLowerCase() ?? 'mainnet';
+    this.#logger.info(
+      `Sending transaction: https://explorer.solana.com/tx/${signature}?cluster=${cluster}`,
+    );
+
+    try {
+      await sendTransactionWithoutConfirming(signedTransaction, {
+        commitment: 'confirmed',
+      });
+      return signature;
+    } catch (error: any) {
+      logMaybeSolanaError(error, transactionMessage);
       throw error;
     }
   }

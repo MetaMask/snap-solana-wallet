@@ -2,16 +2,12 @@ import { getTransferSolInstruction } from '@solana-program/system';
 import type { Blockhash } from '@solana/web3.js';
 import {
   createKeyPairSignerFromPrivateKeyBytes,
-  getSignatureFromTransaction,
   lamports,
-  sendTransactionWithoutConfirmingFactory,
-  signTransactionMessageWithSigners,
 } from '@solana/web3.js';
 
 import { SolanaCaip2Networks } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
-import type { SolanaConnection } from '../connection';
 import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
 import { TransferSolHelper } from './TransferSolHelper';
 
@@ -20,9 +16,6 @@ jest.mock('@solana/web3.js', () => ({
   ...jest.requireActual('@solana/web3.js'),
   lamports: jest.fn(),
   createKeyPairSignerFromPrivateKeyBytes: jest.fn(),
-  getSignatureFromTransaction: jest.fn(),
-  sendTransactionWithoutConfirmingFactory: jest.fn(),
-  signTransactionMessageWithSigners: jest.fn(),
 }));
 
 jest.mock('@solana-program/system');
@@ -31,11 +24,8 @@ describe('TransferSolHelper', () => {
   const mockTransactionHelper = {
     getLatestBlockhash: jest.fn(),
     calculateCostInLamports: jest.fn(),
+    sendTransaction: jest.fn(),
   } as unknown as TransactionHelper;
-
-  const mockConnection = {
-    getRpc: jest.fn(),
-  } as unknown as SolanaConnection;
 
   const mockFrom = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
   const mockTo = MOCK_SOLANA_KEYRING_ACCOUNTS[1].address;
@@ -46,52 +36,27 @@ describe('TransferSolHelper', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    transferSolHelper = new TransferSolHelper(
-      mockTransactionHelper,
-      mockConnection,
-      logger,
-    );
+    transferSolHelper = new TransferSolHelper(mockTransactionHelper, logger);
   });
 
   describe('transferSol', () => {
     it('successfully transfers SOL', async () => {
       // Mock return values
       const mockSignature = 'mockSignature123';
-      const mockSignedTransaction = { signature: mockSignature };
+      const mockTransactionMessage = {
+        /* mock message */
+      } as any;
 
       // Setup mocks
       (lamports as jest.Mock).mockImplementation((value: bigint) => value);
 
-      (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
-        address: mockFrom.address,
-      });
-
-      (getTransferSolInstruction as jest.Mock).mockReturnValue({});
+      jest
+        .spyOn(transferSolHelper, 'buildTransactionMessage')
+        .mockResolvedValue(mockTransactionMessage);
 
       jest
-        .spyOn(mockTransactionHelper, 'getLatestBlockhash')
-        .mockResolvedValue({
-          blockhash: 'blockhash123' as Blockhash,
-          lastValidBlockHeight: BigInt(1),
-        });
-
-      jest
-        .spyOn(mockTransactionHelper, 'calculateCostInLamports')
-        .mockResolvedValue('5000');
-
-      jest
-        .spyOn(mockConnection, 'getRpc')
-        .mockReturnValue({ url: 'https://mock-rpc.com' } as any);
-
-      (signTransactionMessageWithSigners as jest.Mock).mockResolvedValue(
-        mockSignedTransaction,
-      );
-
-      (getSignatureFromTransaction as jest.Mock).mockReturnValue(mockSignature);
-
-      (sendTransactionWithoutConfirmingFactory as jest.Mock).mockReturnValue(
-        jest.fn().mockResolvedValue(undefined),
-      );
+        .spyOn(mockTransactionHelper, 'sendTransaction')
+        .mockResolvedValue(mockSignature);
 
       // Execute
       const result = await transferSolHelper.transferSol(
@@ -103,23 +68,90 @@ describe('TransferSolHelper', () => {
 
       // Verify
       expect(result).toBe(mockSignature);
+      expect(transferSolHelper.buildTransactionMessage).toHaveBeenCalledWith(
+        mockFrom,
+        mockTo,
+        expect.any(BigInt),
+        mockNetwork,
+      );
+      expect(mockTransactionHelper.sendTransaction).toHaveBeenCalledWith(
+        mockTransactionMessage,
+        mockNetwork,
+      );
     });
 
     it('throws error when transaction fails', async () => {
-      (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
-        address: mockFrom.address,
-      });
-
       const mockError = new Error('Transaction failed');
-      (sendTransactionWithoutConfirmingFactory as jest.Mock).mockReturnValue(
-        jest.fn().mockRejectedValue(mockError),
-      );
+      const mockTransactionMessage = {
+        /* mock message */
+      } as any;
+
+      jest
+        .spyOn(transferSolHelper, 'buildTransactionMessage')
+        .mockResolvedValue(mockTransactionMessage);
+
+      jest
+        .spyOn(mockTransactionHelper, 'sendTransaction')
+        .mockRejectedValue(mockError);
 
       await expect(
         transferSolHelper.transferSol(
           mockFrom,
           mockTo,
           mockAmount,
+          mockNetwork,
+        ),
+      ).rejects.toThrow(mockError);
+    });
+  });
+
+  describe('buildTransactionMessage', () => {
+    it('successfully builds transaction message', async () => {
+      // Mock return values
+      const mockBlockhash = {
+        blockhash: 'blockhash123' as Blockhash,
+        lastValidBlockHeight: BigInt(1),
+      };
+
+      // Setup mocks
+      (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
+        address: mockFrom.address,
+      });
+
+      (getTransferSolInstruction as jest.Mock).mockReturnValue({});
+
+      jest
+        .spyOn(mockTransactionHelper, 'getLatestBlockhash')
+        .mockResolvedValue(mockBlockhash);
+
+      // Execute
+      const result = await transferSolHelper.buildTransactionMessage(
+        mockFrom,
+        mockTo,
+        BigInt(mockAmount),
+        mockNetwork,
+      );
+
+      // Verify
+      expect(result).toBeDefined();
+      expect(createKeyPairSignerFromPrivateKeyBytes).toHaveBeenCalled();
+      expect(getTransferSolInstruction).toHaveBeenCalled();
+      expect(mockTransactionHelper.getLatestBlockhash).toHaveBeenCalledWith(
+        mockNetwork,
+      );
+    });
+
+    it('throws error when building message fails', async () => {
+      const mockError = new Error('Failed to build message');
+      (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockRejectedValue(
+        mockError,
+      );
+
+      await expect(
+        transferSolHelper.buildTransactionMessage(
+          mockFrom,
+          mockTo,
+          BigInt(mockAmount),
           mockNetwork,
         ),
       ).rejects.toThrow(mockError);

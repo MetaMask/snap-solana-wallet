@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
+import type { Transaction } from '@metamask/keyring-api';
 import {
   emitSnapKeyringEvent,
   KeyringEvent,
@@ -11,16 +12,14 @@ import {
   type KeyringAccount,
   type KeyringRequest,
   type KeyringResponse,
-  type Transaction,
 } from '@metamask/keyring-api';
-import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
+import { type Json } from '@metamask/snaps-sdk';
 import type { Address, Signature } from '@solana/web3.js';
 import {
   address as asAddress,
   createKeyPairFromPrivateKeyBytes,
   getAddressFromPublicKey,
 } from '@solana/web3.js';
-import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
 
 import type { SolanaCaip2Networks } from '../constants/solana';
@@ -34,12 +33,8 @@ import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
 import type { ILogger } from '../utils/logger';
 import { logMaybeSolanaError } from '../utils/logMaybeSolanaError';
-import type { TransferSolParams } from '../validation/structs';
-import {
-  GetAccounBalancesResponseStruct,
-  TransferSolParamsStruct,
-} from '../validation/structs';
-import { validateRequest } from '../validation/validators';
+import type { SendAndConfirmTransactionParams } from '../validation/structs';
+import { GetAccounBalancesResponseStruct } from '../validation/structs';
 import type { SolanaConnection } from './connection/SolanaConnection';
 import type { EncryptedSolanaState } from './encrypted-state';
 import type { SolanaState } from './state';
@@ -303,30 +298,45 @@ export class SolanaKeyring implements Keyring {
   }
 
   async #handleSubmitRequest(request: KeyringRequest): Promise<Json> {
+    const { method } = request.request;
+
+    const methodToHandler: Record<
+      SolMethod,
+      (request: KeyringRequest) => Promise<Json>
+    > = {
+      [SolMethod.SendAndConfirmTransaction]:
+        this.handleSendAndConfirmTransaction,
+      // Register other handlers here
+    };
+
+    return methodToHandler[method as SolMethod](request);
+  }
+
+  async handleSendAndConfirmTransaction(
+    request: KeyringRequest,
+  ): Promise<{ signature: string }> {
     const { scope, account: accountId } = request;
-    const { method, params } = request.request;
-    const { to, amount } = params as TransferSolParams;
+    const { params } = request.request;
+    const { to, assetCaip19Id, amount } =
+      params as SendAndConfirmTransactionParams;
 
     const account = await this.getAccount(accountId);
     if (!account) {
       throw new Error('Account not found');
     }
 
-    switch (method) {
-      case SolMethod.SendAndConfirmTransaction: {
-        validateRequest(params, TransferSolParamsStruct as Struct<any>);
-        const signature = await this.#transferSolHelper.transferSol(
-          account,
-          to,
-          amount,
-          scope as SolanaCaip2Networks,
-        );
-        return { signature };
-      }
-
-      default:
-        throw new MethodNotFoundError() as Error;
+    if (assetCaip19Id.endsWith(SolanaCaip19Tokens.SOL)) {
+      const signature = await this.#transferSolHelper.transferSol(
+        account,
+        to,
+        amount,
+        scope as SolanaCaip2Networks,
+      );
+      return { signature };
     }
+
+    // TODO: Implement SPL token transfer
+    throw new Error('Unsupported asset');
   }
 
   async listAccountTransactions(

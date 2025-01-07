@@ -1,3 +1,9 @@
+import {
+  getSignatureFromTransaction,
+  sendTransactionWithoutConfirmingFactory,
+  signTransactionMessageWithSigners,
+} from '@solana/web3.js';
+
 import { SolanaCaip2Networks } from '../../constants/solana';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
@@ -19,6 +25,9 @@ jest.mock('@solana/web3.js', () => ({
   pipe: (...fns: any[]) => fns[fns.length - 1],
   prependTransactionMessageInstructions: jest.fn().mockReturnValue({}),
   isSolanaError: jest.fn().mockReturnValue(false),
+  signTransactionMessageWithSigners: jest.fn(),
+  getSignatureFromTransaction: jest.fn(),
+  sendTransactionWithoutConfirmingFactory: jest.fn(),
 }));
 
 describe('TransactionHelper', () => {
@@ -101,6 +110,87 @@ describe('TransactionHelper', () => {
       ).rejects.toThrow('Calculation error');
 
       expect(logger.error).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('sendTransaction', () => {
+    const mockTransactionMessage = {
+      instructions: [],
+      version: 0,
+    } as any;
+
+    it('successfully sends a transaction and returns signature', async () => {
+      const expectedSignature = 'mockSignature123';
+
+      // Mock the web3.js functions
+      const mockSignedTransaction = new Uint8Array();
+      (signTransactionMessageWithSigners as jest.Mock).mockResolvedValueOnce(
+        mockSignedTransaction,
+      );
+      (getSignatureFromTransaction as jest.Mock).mockReturnValueOnce(
+        expectedSignature,
+      );
+      (sendTransactionWithoutConfirmingFactory as jest.Mock).mockReturnValue(
+        jest.fn().mockResolvedValueOnce(undefined),
+      );
+
+      const result = await transactionHelper.sendTransaction(
+        mockTransactionMessage,
+        SolanaCaip2Networks.Mainnet,
+      );
+
+      expect(result).toBe(expectedSignature);
+      expect(signTransactionMessageWithSigners).toHaveBeenCalledWith(
+        mockTransactionMessage,
+      );
+      expect(getSignatureFromTransaction).toHaveBeenCalledWith(
+        mockSignedTransaction,
+      );
+      expect(logger.info).toHaveBeenCalledWith(
+        `Sending transaction: https://explorer.solana.com/tx/${expectedSignature}?cluster=mainnet`,
+      );
+    });
+
+    it('throws and logs error when transaction fails', async () => {
+      const error = new Error('Transaction failed');
+      (signTransactionMessageWithSigners as jest.Mock).mockResolvedValueOnce(
+        new Uint8Array(),
+      );
+      (getSignatureFromTransaction as jest.Mock).mockReturnValueOnce(
+        'mockSignature',
+      );
+      (sendTransactionWithoutConfirmingFactory as jest.Mock).mockReturnValue(
+        jest.fn().mockRejectedValueOnce(error),
+      );
+
+      await expect(
+        transactionHelper.sendTransaction(
+          mockTransactionMessage,
+          SolanaCaip2Networks.Mainnet,
+        ),
+      ).rejects.toThrow('Transaction failed');
+    });
+
+    it('uses correct cluster in explorer URL for different networks', async () => {
+      const expectedSignature = 'mockSignature123';
+      (signTransactionMessageWithSigners as jest.Mock).mockResolvedValueOnce(
+        new Uint8Array(),
+      );
+      (getSignatureFromTransaction as jest.Mock).mockReturnValueOnce(
+        expectedSignature,
+      );
+      (sendTransactionWithoutConfirmingFactory as jest.Mock).mockReturnValue(
+        jest.fn().mockResolvedValueOnce(undefined),
+      );
+
+      await transactionHelper.sendTransaction(
+        mockTransactionMessage,
+        SolanaCaip2Networks.Devnet,
+      );
+
+      expect(logger.info).toHaveBeenCalledWith(
+        `Sending transaction: https://explorer.solana.com/tx/${expectedSignature}?cluster=devnet`,
+      );
     });
   });
 });

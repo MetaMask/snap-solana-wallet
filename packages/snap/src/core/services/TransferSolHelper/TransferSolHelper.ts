@@ -4,12 +4,9 @@ import {
   appendTransactionMessageInstruction,
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
-  getSignatureFromTransaction,
   pipe,
-  sendTransactionWithoutConfirmingFactory,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
-  signTransactionMessageWithSigners,
 } from '@solana/web3.js';
 import type BigNumber from 'bignumber.js';
 
@@ -18,10 +15,8 @@ import {
   type SolanaCaip2Networks,
 } from '../../constants/solana';
 import { solToLamports } from '../../utils/conversion';
-import { getClusterFromScope } from '../../utils/get-cluster-from-scope';
 import type { ILogger } from '../../utils/logger';
 import { logMaybeSolanaError } from '../../utils/logMaybeSolanaError';
-import type { SolanaConnection } from '../connection';
 import type { SolanaKeyringAccount } from '../keyring';
 import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
 
@@ -31,22 +26,15 @@ import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
 export class TransferSolHelper {
   readonly #transactionHelper: TransactionHelper;
 
-  readonly #connection: SolanaConnection;
-
   readonly #logger: ILogger;
 
-  constructor(
-    transactionHelper: TransactionHelper,
-    connection: SolanaConnection,
-    logger: ILogger,
-  ) {
+  constructor(transactionHelper: TransactionHelper, logger: ILogger) {
     this.#transactionHelper = transactionHelper;
-    this.#connection = connection;
     this.#logger = logger;
   }
 
   /**
-   * Helper class for transferring SOL from one account to another.
+   * Execute a transaction to transfer SOL from one account to another.
    *
    * @param from - The account from which the SOL will be transferred.
    * @param to - The address to which the SOL will be transferred.
@@ -63,57 +51,18 @@ export class TransferSolHelper {
   ): Promise<string> {
     const amountInLamports = solToLamports(amountInSol);
 
-    const sendTransactionWithoutConfirming =
-      sendTransactionWithoutConfirmingFactory({
-        rpc: this.#connection.getRpc(network),
-      });
-
-    /**
-     * Since the account to which the tokens will be transferred does not need to sign the transaction
-     * to receive them, we only need an address.
-     */
-    const toAddress = address(to);
-
     const transactionMessage = await this.buildTransactionMessage(
       from,
-      toAddress,
+      to,
       BigInt(amountInLamports.toString()),
       network,
     );
 
-    const transactionCostInLamports = SOL_TRANSFER_FEE_LAMPORTS;
     this.#logger.info(
-      `Transaction cost: ${transactionCostInLamports} lamports`,
+      `Transaction cost: ${SOL_TRANSFER_FEE_LAMPORTS} lamports`,
     );
 
-    const signedTransaction = await signTransactionMessageWithSigners(
-      transactionMessage,
-    );
-
-    const signature = getSignatureFromTransaction(signedTransaction);
-
-    /**
-     * Send and confirm the transaction.
-     * Now that the transaction is signed, we send it to an RPC. The RPC will relay it to the Solana
-     * network for execution. The `sendAndConfirmTransaction` method will resolve when the transaction
-     * is reported to have been confirmed. It will reject in the event of an error (eg. a failure to
-     * simulate the transaction), or may timeout if the transaction lifetime is thought to have expired
-     * (eg. the network has progressed past the `lastValidBlockHeight` of the transaction's blockhash
-     * lifetime constraint).
-     */
-    const cluster = getClusterFromScope(network)?.toLowerCase() ?? 'mainnet';
-    this.#logger.info(
-      `Sending transaction: https://explorer.solana.com/tx/${signature}?cluster=${cluster}`,
-    );
-    try {
-      await sendTransactionWithoutConfirming(signedTransaction, {
-        commitment: 'confirmed',
-      });
-      return signature;
-    } catch (error: any) {
-      logMaybeSolanaError(error, transactionMessage);
-      throw error;
-    }
+    return this.#transactionHelper.sendTransaction(transactionMessage, network);
   }
 
   /**
