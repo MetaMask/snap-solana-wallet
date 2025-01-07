@@ -1,11 +1,10 @@
-import type { Balance } from '@metamask/keyring-api';
 import {
   address as asAddress,
   type JsonParsedTokenAccount,
 } from '@solana/web3.js';
 import { BigNumber } from 'bignumber.js';
 
-import type { SolanaCaip2Networks } from '../constants/solana';
+import type { Network } from '../constants/solana';
 import {
   SOL_IMAGE_URL,
   SOL_SYMBOL,
@@ -35,7 +34,7 @@ export class AssetsService {
 
   async discoverTokens(
     address: string,
-    scope: SolanaCaip2Networks,
+    scope: Network,
   ): Promise<SolanaAsset[]> {
     const tokens = await this.#getAddressTokenAccounts(address, scope);
 
@@ -44,10 +43,7 @@ export class AssetsService {
     return nonZeroBalanceTokens;
   }
 
-  async getNativeAsset(
-    address: string,
-    scope: SolanaCaip2Networks,
-  ): Promise<SolanaAsset> {
+  async getNativeAsset(address: string, scope: Network): Promise<SolanaAsset> {
     const response = await this.#connection
       .getRpc(scope)
       .getBalance(asAddress(address))
@@ -73,7 +69,7 @@ export class AssetsService {
     );
   }
 
-  async #getAddressTokenAccounts(address: string, scope: SolanaCaip2Networks) {
+  async #getAddressTokenAccounts(address: string, scope: Network) {
     try {
       const response = await this.#connection
         .getRpc(scope)
@@ -99,7 +95,7 @@ export class AssetsService {
 
   #mapRpcSolanaToken(
     token: JsonParsedTokenAccount,
-    scope: SolanaCaip2Networks,
+    scope: Network,
   ): SolanaAsset {
     return {
       scope,

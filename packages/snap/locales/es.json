@@ -2,100 +2,100 @@
   "locale": "es",
   "messages": {
     "send.title": {
-      "message": "Send"
+      "message": "Enviar"
     },
     "send.balance": {
-      "message": "Balance"
+      "message": "Saldo"
     },
     "send.maxButton": {
-      "message": "Max"
+      "message": "Máx."
     },
     "send.cancelButton": {
-      "message": "Cancel"
+      "message": "Cancelar"
     },
     "send.continueButton": {
-      "message": "Continue"
+      "message": "Continuar"
     },
     "send.fromField": {
-      "message": "From"
+      "message": "De"
     },
     "send.toField": {
-      "message": "To"
+      "message": "Para"
     },
     "send.toPlaceholder": {
-      "message": "Enter public address"
+      "message": "Introduzca la dirección pública"
     },
     "send.fromRequiredError": {
-      "message": "Account is required"
+      "message": "La cuenta es obligatoria"
     },
     "send.amountRequiredError": {
-      "message": "Amount is required"
+      "message": "El monto es obligatorio"
     },
     "send.amountGreatherThanZeroError": {
-      "message": "Amount must be greater than 0"
+      "message": "El monto debe ser mayor a 0"
     },
     "send.toRequiredError": {
-      "message": "To address is required"
+      "message": "La dirección del destinatario es obligatoria"
     },
     "send.toInvalidError": {
-      "message": "Invalid Solana address"
+      "message": "Dirección de Solana no válida"
     },
     "confirmation.title": {
-      "message": "Review"
+      "message": "Revisar"
     },
     "confirmation.heading": {
-      "message": "Sending {amount} {tokenSymbol}"
+      "message": "Enviando {amount} {tokenSymbol}"
     },
     "confirmation.subheading": {
-      "message": "Review the transaction before proceeding"
+      "message": "Revise la transacción antes de continuar"
     },
     "confirmation.from": {
-      "message": "From"
+      "message": "De"
     },
     "confirmation.amount": {
-      "message": "Amount"
+      "message": "Monto"
     },
     "confirmation.recipient": {
-      "message": "Recipient"
+      "message": "Destinatario"
     },
     "confirmation.network": {
-      "message": "Network"
+      "message": "Red"
     },
     "confirmation.transactionSpeed": {
-      "message": "Transaction speed"
+      "message": "Velocidad de la transacción"
     },
     "confirmation.fee": {
-      "message": "Network fee"
+      "message": "Tarifa de red"
     },
     "confirmation.total": {
       "message": "Total"
     },
     "confirmation.sendButton": {
-      "message": "Send"
+      "message": "Enviar"
     },
     "confirmation.cancelButton": {
-      "message": "Cancel"
+      "message": "Cancelar"
     },
     "confirmation.viewTransaction": {
-      "message": "View transaction"
+      "message": "Ver transacción"
     },
     "send-pending.title": {
-      "message": "Sending..."
+      "message": "Enviando..."
     },
     "send-pending.subtitle": {
-      "message": "Your transaction was submitted."
+      "message": "Se envió su transacción."
     },
     "transaction-success.title": {
-      "message": "Sent"
+      "message": "Enviado"
     },
     "transaction-success.subtitle": {
-      "message": "{amount} {tokenSymbol} was successfully sent"
+      "message": "El envío de {amount} {tokenSymbol} se realizó correctamente"
     },
     "transaction-failure.title": {
-      "message": "Transaction failed"
+      "message": "Transacción fallida"
     },
     "transaction-failure.subtitle": {
-      "message": "Unable to send {amount} {tokenSymbol}"
+      "message": "Error al enviar {amount} {tokenSymbol}"
     }
   }
 }

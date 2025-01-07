@@ -1,6 +1,6 @@
 import type { Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/web3.js';
-import { signature as asSignature } from '@solana/web3.js';
+import { address as asAddress } from '@solana/web3.js';
 
 import { keyring, state, transactionsService } from '../../../snap-context';
 import { Network } from '../../constants/solana';
@@ -38,8 +38,7 @@ export async function refreshTransactions() {
       isFetchingTransactions: true,
     });
 
-    // const scopes = [SolanaCaip2Networks.Mainnet, SolanaCaip2Networks.Devnet];
-    const scopes = [Network.Devnet];
+    const scopes = [Network.Mainnet, Network.Devnet];
 
     // Create a set to store existing signatures for quick lookup
     const existingSignatures = new Set<string>();
@@ -60,33 +59,22 @@ export async function refreshTransactions() {
           `[refreshTransactions] Fetching all signatures for ${account.address} on ${scope}...`,
         );
 
-        // const signatures = await transactionsService.fetchLatestSignatures(
-        //   scope,
-        //   asAddress(account.address),
-        //   2,
-        // );
+        const signatures = await transactionsService.fetchLatestSignatures(
+          scope,
+          asAddress(account.address),
+          2,
+        );
 
         // Filter out signatures we already have
-        // const filteredSignatures = signatures.filter(
-        //   (signature) => !existingSignatures.has(signature),
-        // );
-
-        // filteredSignatures.push([asSignature('')]);
-
-        const filteredSignatures = [
-          asSignature(
-            '5bi7ZFFZSxpktVKXSVRQJtkMwxGE7Y9wZkrLXh8k64CdpagWymCty7c1jYB4MKHELMTKMVgBpqbJhQpabvLf3mqg',
-          ),
-          asSignature(
-            '2UBJn8uxLFJnaj2sFuHSUdTBCiTmSzvydCNxRG4uhytkoN1fsRX93EWNHEkzMWDYrU3FmvuTcuSj1NRzt3qkAmMw',
-          ),
-        ];
+        const filteredSignatures = signatures.filter(
+          (signature) => !existingSignatures.has(signature),
+        );
 
         newSignaturesByScope.get(scope)?.push(...filteredSignatures);
 
-        // logger.log(
-        //   `[refreshTransactions] Found ${filteredSignatures.length} new signatures out of ${signatures.length} total for address ${account.address} on network ${scope}`,
-        // );
+        logger.log(
+          `[refreshTransactions] Found ${filteredSignatures.length} new signatures out of ${signatures.length} total for address ${account.address} on network ${scope}`,
+        );
       }
     }
 

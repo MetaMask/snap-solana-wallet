@@ -31,7 +31,7 @@ export type NetworkWithRpcUrls = (typeof Networks)[Network] & {
 export type Config = {
   networks: NetworkWithRpcUrls[];
   isLocal: boolean;
-  activeNetworks: SolanaCaip2Networks[];
+  activeNetworks: Network[];
   priceApi: {
     baseUrl: string;
   };
@@ -100,7 +100,7 @@ export class ConfigProvider {
         },
       ],
       isLocal: Boolean(environment.LOCAL),
-      activeNetworks: [SolanaCaip2Networks.Mainnet, SolanaCaip2Networks.Devnet],
+      activeNetworks: [Network.Mainnet, Network.Devnet],
       priceApi: {
         baseUrl: environment.LOCAL
           ? environment.PRICE_API_BASE_URL_LOCAL

@@ -51,14 +51,7 @@ describe('TokenPricesService', () => {
       // Mock an initial state with some token rates
       const mockStateValue = {
         mapInterfaceNameToId: {},
-        tokenPrices: {
-          ...DEFAULT_TOKEN_PRICES,
-          [Caip19Id.SolMainnet]: {
-            ...TokenMetadata[Caip19Id.SolMainnet],
-            currency: 'SOL',
-            price: 0,
-          },
-        },
+        tokenPrices: DEFAULT_TOKEN_PRICES,
         isFetchingTransactions: false,
         transactions: {},
       };
@@ -68,10 +61,9 @@ describe('TokenPricesService', () => {
       jest.spyOn(snap, 'request').mockResolvedValue({ balances: {} });
 
       // Mock price API response
-      const mockSpotPrice = { price: 1.23 };
       jest
         .spyOn(mockPriceApiClient, 'getSpotPrice')
-        .mockResolvedValue(mockSpotPrice);
+        .mockResolvedValue({ price: 200 });
 
       await tokenPricesService.refreshPrices();
 
@@ -80,35 +72,7 @@ describe('TokenPricesService', () => {
         tokenPrices: {
           [Caip19Id.SolMainnet]: {
             ...mockStateValue.tokenPrices[Caip19Id.SolMainnet],
-            price: 1.23,
-          },
-          [Caip19Id.SolDevnet]: {
-            ...mockStateValue.tokenPrices[Caip19Id.SolDevnet],
-            price: 1.23,
-          },
-          [Caip19Id.SolTestnet]: {
-            ...mockStateValue.tokenPrices[Caip19Id.SolTestnet],
-            price: 1.23,
-          },
-          [Caip19Id.SolLocalnet]: {
-            ...mockStateValue.tokenPrices[Caip19Id.SolLocalnet],
-            price: 1.23,
-          },
-          [Caip19Id.EurcDevnet]: {
-            ...mockStateValue.tokenPrices[Caip19Id.EurcDevnet],
-            price: 1.23,
-          },
-          [Caip19Id.EurcMainnet]: {
-            ...mockStateValue.tokenPrices[Caip19Id.EurcMainnet],
-            price: 1.23,
-          },
-          [Caip19Id.UsdcDevnet]: {
-            ...mockStateValue.tokenPrices[Caip19Id.UsdcDevnet],
-            price: 1.23,
-          },
-          [Caip19Id.UsdcMainnet]: {
-            ...mockStateValue.tokenPrices[Caip19Id.UsdcMainnet],
-            price: 1.23,
+            price: 200,
           },
         },
       });
@@ -182,8 +146,8 @@ describe('TokenPricesService', () => {
 
       await tokenPricesService.refreshPrices('mock-interface-id');
 
-      // Should call getSpotPrice once for each token
-      expect(getSpotPriceSpy).toHaveBeenCalledTimes(8);
+      // Should call getSpotPrice only for SOL
+      expect(getSpotPriceSpy).toHaveBeenCalledTimes(1);
       expect(mockState.set).toHaveBeenCalledWith({
         ...mockStateValue,
         tokenPrices: expect.objectContaining({

@@ -453,8 +453,8 @@ describe('SolanaKeyring', () => {
       } as any);
 
       await expect(
-        keyring.getAccountBalances('get-balance-id', [Caip19Id.SolMainnet]),
-      ).rejects.toThrow('Error getting account balance');
+        keyring.getAccountBalances('1', [Caip19Id.SolMainnet]),
+      ).rejects.toThrow('Error getting assets');
     });
   });
 

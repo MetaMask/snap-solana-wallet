@@ -12,11 +12,7 @@ import {
   state,
   tokenPricesService,
 } from '../../../snap-context';
-import {
-  Network,
-  Networks,
-  SOL_TRANSFER_FEE_LAMPORTS,
-} from '../../constants/solana';
+import { Network, SOL_TRANSFER_FEE_LAMPORTS } from '../../constants/solana';
 import { DEFAULT_TOKEN_PRICES } from '../../services/state';
 import { lamportsToSol } from '../../utils/conversion';
 import {
@@ -30,7 +26,7 @@ import {
 import logger from '../../utils/logger';
 
 export const DEFAULT_SEND_CONTEXT: SendContext = {
-  scope: Network.Localnet,
+  scope: Network.Mainnet,
   fromAccountId: '',
   amount: '',
   toAddress: '',
@@ -61,8 +57,6 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   assert(params, StartSendTransactionFlowParamsStruct);
 
   const { scope, account } = params;
-
-  const token = Networks[scope].nativeToken.caip19Id;
 
   const context = { ...DEFAULT_SEND_CONTEXT, scope, fromAccountId: account };
 

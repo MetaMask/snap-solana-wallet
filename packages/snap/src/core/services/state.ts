@@ -12,42 +12,14 @@ export type TokenPrice = TokenInfo & {
 
 export type StateValue = {
   mapInterfaceNameToId: Record<string, string>;
-  tokenPrices: Record<Caip19Id, TokenPrice>; // Maps currency caip19 id to their currency rate
+  tokenPrices: Partial<Record<Caip19Id, TokenPrice>>; // Maps currency caip19 id to their currency rate
   isFetchingTransactions: boolean;
-  transactions: Record<string, Transaction[]>;
+  transactions: Record<string, Transaction[]>; // Account ID -> Transactions
 };
 
-export const DEFAULT_TOKEN_PRICES: Record<Caip19Id, TokenPrice> = {
+export const DEFAULT_TOKEN_PRICES: Partial<Record<Caip19Id, TokenPrice>> = {
   [Caip19Id.SolMainnet]: {
     ...TokenMetadata[Caip19Id.SolMainnet],
-    price: 0,
-  },
-  [Caip19Id.SolDevnet]: {
-    ...TokenMetadata[Caip19Id.SolDevnet],
-    price: 0,
-  },
-  [Caip19Id.SolTestnet]: {
-    ...TokenMetadata[Caip19Id.SolTestnet],
-    price: 0,
-  },
-  [Caip19Id.SolLocalnet]: {
-    ...TokenMetadata[Caip19Id.SolLocalnet],
-    price: 0,
-  },
-  [Caip19Id.UsdcMainnet]: {
-    ...TokenMetadata[Caip19Id.UsdcMainnet],
-    price: 0,
-  },
-  [Caip19Id.UsdcDevnet]: {
-    ...TokenMetadata[Caip19Id.UsdcDevnet],
-    price: 0,
-  },
-  [Caip19Id.EurcMainnet]: {
-    ...TokenMetadata[Caip19Id.EurcMainnet],
-    price: 0,
-  },
-  [Caip19Id.EurcDevnet]: {
-    ...TokenMetadata[Caip19Id.EurcDevnet],
     price: 0,
   },
 };

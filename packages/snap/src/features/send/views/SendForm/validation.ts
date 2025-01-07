@@ -2,6 +2,7 @@ import { enums, nonempty, object, string } from 'superstruct';
 
 import { Network } from '../../../../core/constants/solana';
 import type { FieldValidationFunction } from '../../../../core/types/form';
+import type { Locale } from '../../../../core/utils/i18n';
 import {
   address,
   greatherThanZero,
@@ -14,16 +15,18 @@ export const StartSendTransactionFlowParamsStruct = object({
   account: nonempty(string()),
 });
 
-export const validation: Partial<
-  Record<SendFormNames, FieldValidationFunction[]>
-> = {
-  [SendFormNames.SourceAccountSelector]: [required('send.fromRequiredError')],
+export const validation: (
+  locale: Locale,
+) => Partial<Record<SendFormNames, FieldValidationFunction[]>> = (locale) => ({
+  [SendFormNames.SourceAccountSelector]: [
+    required('send.fromRequiredError', locale),
+  ],
   [SendFormNames.AmountInput]: [
-    required('send.amountRequiredError'),
-    greatherThanZero('send.amountGreatherThanZeroError'),
+    required('send.amountRequiredError', locale),
+    greatherThanZero('send.amountGreatherThanZeroError', locale),
   ],
   [SendFormNames.DestinationAccountInput]: [
-    required('send.toRequiredError'),
-    address('send.toInvalidError'),
+    required('send.toRequiredError', locale),
+    address('send.toInvalidError', locale),
   ],
-};
+});

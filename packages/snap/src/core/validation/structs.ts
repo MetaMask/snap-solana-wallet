@@ -9,7 +9,7 @@ import {
   string,
 } from 'superstruct';
 
-import { Caip19Id, Networks } from '../constants/solana';
+import { Caip19Id } from '../constants/solana';
 
 export const PositiveNumber = refine(number(), 'positive', (value) => {
   if (value < 0) {
@@ -37,9 +37,7 @@ export const GetAccounBalancesResponseStruct = record(
   Caip19Struct,
   object({
     amount: PositiveNumberStringStruct,
-    unit: enums(
-      Object.values(Networks).map((network) => network.nativeToken.symbol),
-    ),
+    unit: string(),
   }),
 );
 

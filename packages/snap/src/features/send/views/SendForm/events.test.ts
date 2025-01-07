@@ -7,7 +7,6 @@ import {
   SOL_TRANSFER_FEE_LAMPORTS,
   TokenMetadata,
 } from '../../../../core/constants/solana';
-import { DEFAULT_TOKEN_PRICES } from '../../../../core/services/state';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import { updateInterface } from '../../../../core/utils/interface';
 import { keyring } from '../../../../snap-context';
@@ -38,29 +37,9 @@ describe('onMaxAmountButtonClick', () => {
     scope: Network.Testnet,
     tokenPrices: {
       [Caip19Id.SolMainnet]: {
-        ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.SolMainnet].caip19Id],
+        ...TokenMetadata[Caip19Id.SolMainnet],
         price: Number(mockSolPrice),
       },
-      // [Caip19Id.UsdcMainnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.UsdcMainnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
-      // [Caip19Id.EurcMainnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.EurcMainnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
-      // [Caip19Id.SolDevnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.SolDevnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
-      // [Caip19Id.UsdcDevnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.UsdcDevnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
-      // [Caip19Id.EurcDevnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.EurcDevnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
     },
     validation: {},
     amount: '',

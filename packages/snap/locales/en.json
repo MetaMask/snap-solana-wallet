@@ -40,6 +40,9 @@
     "send.toInvalidError": {
       "message": "Invalid Solana address"
     },
+    "send.insufficientBalance": {
+      "message": "Insufficient balance"
+    },
     "confirmation.title": {
       "message": "Review"
     },

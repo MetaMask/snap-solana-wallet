@@ -32,12 +32,13 @@ export class TokenPricesService {
    */
   async refreshPrices(
     sendFormInterfaceId?: string,
-  ): Promise<Record<Caip19Id, TokenPrice>> {
+  ): Promise<Partial<Record<Caip19Id, TokenPrice>>> {
     this.#logger.info('💹 Refreshing token prices');
 
     const stateValue = await this.#state.get();
     const { tokenPrices } = stateValue;
 
+    let scopeFromUiContext = Network.Mainnet;
     const caip19IdsFromPricesInState = Object.keys(tokenPrices);
     const caip19IdsFromUiContext = [];
     let currency = 'usd';
@@ -58,8 +59,9 @@ export class TokenPricesService {
         },
       });
 
-      const { balances, preferences } = context as SendContext;
+      const { scope, balances, preferences } = context as SendContext;
 
+      scopeFromUiContext = scope;
       currency = preferences.currency;
 
       caip19IdsFromUiContext.push(...Object.keys(balances));
@@ -89,7 +91,8 @@ export class TokenPricesService {
       }
 
       const spotPrice = await this.#priceApiClient
-        .getSpotPrice(Network.Mainnet, tokenInfo.address, currency)
+        // TODO: We should not pass scope here, tokens should be passed in with their CAIP19 ID, which is already scoped.
+        .getSpotPrice(scopeFromUiContext, tokenInfo.address, currency)
         // Catch errors on individual calls, so that one that fails does not break for others.
         .catch((error) => {
           this.#logger.info(

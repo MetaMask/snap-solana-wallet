@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { SolanaCaip2Networks } from '../../constants/solana';
+import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import { TokenMetadataClient } from './token-metadata-client';
-import type { TokenMetadata, TokenMetadataResponse } from './types';
+import type { TokenMetadata } from './types';
 
 describe('TokenMetadataClient', () => {
   const mockFetch = jest.fn();
@@ -38,7 +38,7 @@ describe('TokenMetadataClient', () => {
       ok: true,
       json: jest.fn().mockResolvedValueOnce(mockFetchResponse),
     });
-    const scope = SolanaCaip2Networks.Localnet;
+    const scope = Network.Localnet;
     const metadata = await client.getTokenMetadataFromAddresses(
       tokenAddresses,
       scope,
@@ -69,7 +69,7 @@ describe('TokenMetadataClient', () => {
       ok: true,
       json: jest.fn().mockResolvedValueOnce(mockFetchResponse),
     });
-    const scope = SolanaCaip2Networks.Localnet;
+    const scope = Network.Localnet;
     const metadata = await client.getTokenMetadataFromAddresses(
       tokenAddresses,
       scope,
@@ -89,7 +89,7 @@ describe('TokenMetadataClient', () => {
     const tokenAddresses = ['address1', 'address2'];
     const errorMessage = 'Error fetching token metadata';
     mockFetch.mockRejectedValueOnce(new Error(errorMessage));
-    const scope = SolanaCaip2Networks.Localnet;
+    const scope = Network.Localnet;
 
     await expect(
       client.getTokenMetadataFromAddresses(tokenAddresses, scope),
