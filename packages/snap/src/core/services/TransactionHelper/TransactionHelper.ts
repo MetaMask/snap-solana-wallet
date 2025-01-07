@@ -1,12 +1,9 @@
 import { getSetComputeUnitLimitInstruction } from '@solana-program/compute-budget';
-import type {
-  Blockhash,
-  IInstruction,
-  ITransactionMessageWithFeePayer,
-  TransactionMessageWithBlockhashLifetime,
-} from '@solana/web3.js';
+import type { MaybeAccount, MaybeEncodedAccount } from '@solana/web3.js';
 import {
+  address,
   compileTransactionMessage,
+  fetchJsonParsedAccount,
   getBase64Decoder,
   getCompiledTransactionMessageEncoder,
   getComputeUnitEstimateForTransactionMessageFactory,
@@ -15,12 +12,16 @@ import {
   prependTransactionMessageInstructions,
   sendTransactionWithoutConfirmingFactory,
   signTransactionMessageWithSigners,
+  type Address,
+  type Blockhash,
+  type IInstruction,
+  type ITransactionMessageWithFeePayer,
+  type TransactionMessageWithBlockhashLifetime,
 } from '@solana/web3.js';
 
 import type { SolanaCaip2Networks } from '../../constants/solana';
 import { getClusterFromScope } from '../../utils/get-cluster-from-scope';
 import type { ILogger } from '../../utils/logger';
-import { logMaybeSolanaError } from '../../utils/logMaybeSolanaError';
 import type { SolanaConnection } from '../connection';
 
 type TransactionMessage = TransactionMessageWithBlockhashLifetime &
@@ -42,7 +43,7 @@ type TransactionMessage = TransactionMessageWithBlockhashLifetime &
  *
  * @example
  * const transactionHelper = new TransactionHelper(connection, logger);
- * const transferSolHelper = new TransferSolHelper(transactionHelper, connection, logger);
+ * const transferSolHelper = new TransferSolHelper(transactionHelper, logger);
  */
 export class TransactionHelper {
   readonly #connection: SolanaConnection;
@@ -81,7 +82,6 @@ export class TransactionHelper {
 
       return latestBlockhashResponse.value;
     } catch (error: any) {
-      logMaybeSolanaError(error);
       this.#logger.error(error);
       throw error;
     }
@@ -150,7 +150,6 @@ export class TransactionHelper {
 
       return transactionCost.value as any;
     } catch (error: any) {
-      logMaybeSolanaError(error);
       this.#logger.error(error);
       throw error;
     }
@@ -167,30 +166,41 @@ export class TransactionHelper {
     transactionMessage: TransactionMessage,
     network: SolanaCaip2Networks,
   ): Promise<string> {
-    const sendTransactionWithoutConfirming =
-      sendTransactionWithoutConfirmingFactory({
-        rpc: this.#connection.getRpc(network),
-      });
-
-    const signedTransaction = await signTransactionMessageWithSigners(
-      transactionMessage,
-    );
-
-    const signature = getSignatureFromTransaction(signedTransaction);
-
-    const cluster = getClusterFromScope(network)?.toLowerCase() ?? 'mainnet';
-    this.#logger.info(
-      `Sending transaction: https://explorer.solana.com/tx/${signature}?cluster=${cluster}`,
-    );
-
     try {
+      const rpc = this.#connection.getRpc(network);
+
+      const sendTransactionWithoutConfirming =
+        sendTransactionWithoutConfirmingFactory({
+          rpc,
+        });
+
+      const signedTransaction = await signTransactionMessageWithSigners(
+        transactionMessage,
+      );
+
+      const signature = getSignatureFromTransaction(signedTransaction);
+
+      const cluster = getClusterFromScope(network)?.toLowerCase() ?? 'mainnet';
+      this.#logger.info(
+        `Sending transaction: https://explorer.solana.com/tx/${signature}?cluster=${cluster}`,
+      );
+
       await sendTransactionWithoutConfirming(signedTransaction, {
         commitment: 'confirmed',
       });
       return signature;
     } catch (error: any) {
-      logMaybeSolanaError(error, transactionMessage);
+      this.#logger.error(error);
       throw error;
     }
+  }
+
+  async getTokenMintInfo(mintAddress: string, network: SolanaCaip2Networks) {
+    type TokenData = { mint: Address; owner: Address };
+    const myAccount = await fetchJsonParsedAccount<TokenData>(
+      this.#connection.getRpc(network),
+      address(mintAddress),
+    );
+    myAccount satisfies MaybeAccount<TokenData> | MaybeEncodedAccount;
   }
 }

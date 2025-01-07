@@ -132,6 +132,7 @@ export const SendForm = ({
             }
           />
         </Form>
+        <Button name={SendFormNames.TransferUsdcButton}>Transfer USDC</Button>
       </Box>
       <Footer>
         <Button name={SendFormNames.CancelButton}>

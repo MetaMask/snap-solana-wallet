@@ -3,6 +3,7 @@ import {
   enums,
   number,
   object,
+  optional,
   pattern,
   record,
   refine,
@@ -47,7 +48,7 @@ export const GetAccounBalancesResponseStruct = record(
 
 export const SendAndConfirmTransactionParamsStruct = object({
   to: string(),
-  assetCaip19Id: string(),
+  mintAddress: optional(string()),
   amount: PositiveNumber,
 });
 

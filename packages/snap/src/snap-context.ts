@@ -3,12 +3,12 @@ import { ConfigProvider } from './core/services/config';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { EncryptedSolanaState } from './core/services/encrypted-state';
 import { SolanaKeyring } from './core/services/keyring';
+import { SplTokenHelper } from './core/services/SplTokenHelper/SplTokenHelper';
 import { SolanaState } from './core/services/state';
 import { TokenPricesService } from './core/services/TokenPricesService';
 import { TransactionHelper } from './core/services/TransactionHelper/TransactionHelper';
 import { TransactionsService } from './core/services/transactions';
 import { TransferSolHelper } from './core/services/TransferSolHelper/TransferSolHelper';
-import { TransferSPLTokenHelper } from './core/services/TransferSPLTokenHelper/TransferSPLTokenHelper';
 import logger from './core/utils/logger';
 
 /**
@@ -26,7 +26,7 @@ export type SnapExecutionContext = {
   transactionHelper: TransactionHelper;
   transactionsService: TransactionsService;
   transferSolHelper: TransferSolHelper;
-  transferSPLTokenHelper: TransferSPLTokenHelper;
+  splTokenHelper: SplTokenHelper;
 };
 
 const configProvider = new ConfigProvider();
@@ -35,7 +35,8 @@ const encryptedState = new EncryptedSolanaState();
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);
 const transferSolHelper = new TransferSolHelper(transactionHelper, logger);
-const transferSPLTokenHelper = new TransferSPLTokenHelper(
+const splTokenHelper = new SplTokenHelper(
+  connection,
   transactionHelper,
   logger,
 );
@@ -51,7 +52,7 @@ const keyring = new SolanaKeyring({
   connection,
   transactionsService,
   transferSolHelper,
-  transferSPLTokenHelper,
+  splTokenHelper,
   logger,
 });
 
@@ -73,7 +74,7 @@ const snapContext: SnapExecutionContext = {
   transactionHelper,
   transactionsService,
   transferSolHelper,
-  transferSPLTokenHelper,
+  splTokenHelper,
 };
 
 export {
@@ -81,12 +82,12 @@ export {
   connection,
   keyring,
   priceApiClient,
+  splTokenHelper,
   state,
   tokenPricesService,
   transactionHelper,
   transactionsService,
   transferSolHelper,
-  transferSPLTokenHelper,
 };
 
 export default snapContext;

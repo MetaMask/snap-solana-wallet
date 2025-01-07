@@ -16,7 +16,6 @@ import {
 } from '../../constants/solana';
 import { solToLamports } from '../../utils/conversion';
 import type { ILogger } from '../../utils/logger';
-import { logMaybeSolanaError } from '../../utils/logMaybeSolanaError';
 import type { SolanaKeyringAccount } from '../keyring';
 import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
 
@@ -49,12 +48,12 @@ export class TransferSolHelper {
     amountInSol: string | number | bigint | BigNumber,
     network: SolanaCaip2Networks,
   ): Promise<string> {
-    const amountInLamports = solToLamports(amountInSol);
+    const amountInLamports = BigInt(solToLamports(amountInSol).toString());
 
     const transactionMessage = await this.buildTransactionMessage(
       from,
       to,
-      BigInt(amountInLamports.toString()),
+      amountInLamports,
       network,
     );
 
@@ -124,7 +123,6 @@ export class TransferSolHelper {
       );
       return transactionMessage;
     } catch (error) {
-      logMaybeSolanaError(error);
       this.#logger.error({ error }, 'Error building transaction message');
       throw error;
     }

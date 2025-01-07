@@ -32,15 +32,15 @@ import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
 import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
 import type { ILogger } from '../utils/logger';
-import { logMaybeSolanaError } from '../utils/logMaybeSolanaError';
 import type { SendAndConfirmTransactionParams } from '../validation/structs';
 import { GetAccounBalancesResponseStruct } from '../validation/structs';
 import type { SolanaConnection } from './connection/SolanaConnection';
 import type { EncryptedSolanaState } from './encrypted-state';
+import type { SplTokenHelper } from './SplTokenHelper/SplTokenHelper';
 import type { SolanaState } from './state';
 import type { TransactionsService } from './transactions';
 import type { TransferSolHelper } from './TransferSolHelper/TransferSolHelper';
-import type { TransferSPLTokenHelper } from './TransferSPLTokenHelper/TransferSPLTokenHelper';
+
 /**
  * We need to store the index of the KeyringAccount in the state because
  * we want to be able to restore any account with a previously used index.
@@ -61,7 +61,7 @@ export class SolanaKeyring implements Keyring {
 
   readonly #transferSolHelper: TransferSolHelper;
 
-  readonly #transferSPLTokenHelper: TransferSPLTokenHelper;
+  readonly #splTokenHelper: SplTokenHelper;
 
   readonly #logger: ILogger;
 
@@ -71,7 +71,7 @@ export class SolanaKeyring implements Keyring {
     connection,
     transactionsService,
     transferSolHelper,
-    transferSPLTokenHelper,
+    splTokenHelper,
     logger,
   }: {
     state: SolanaState;
@@ -79,7 +79,7 @@ export class SolanaKeyring implements Keyring {
     connection: SolanaConnection;
     transactionsService: TransactionsService;
     transferSolHelper: TransferSolHelper;
-    transferSPLTokenHelper: TransferSPLTokenHelper;
+    splTokenHelper: SplTokenHelper;
     logger: ILogger;
   }) {
     this.#state = state;
@@ -87,7 +87,7 @@ export class SolanaKeyring implements Keyring {
     this.#connection = connection;
     this.#transactionsService = transactionsService;
     this.#transferSolHelper = transferSolHelper;
-    this.#transferSPLTokenHelper = transferSPLTokenHelper;
+    this.#splTokenHelper = splTokenHelper;
     this.#logger = logger;
   }
 
@@ -278,7 +278,6 @@ export class SolanaKeyring implements Keyring {
 
       return response;
     } catch (error: any) {
-      logMaybeSolanaError(error);
       this.#logger.error({ error }, 'Error getting account balances');
       throw new Error('Error getting account balances');
     }
@@ -323,7 +322,7 @@ export class SolanaKeyring implements Keyring {
   ): Promise<{ signature: string }> {
     const { scope, account: accountId } = request;
     const { params } = request.request;
-    const { to, assetCaip19Id, amount } =
+    const { to, mintAddress, amount } =
       params as SendAndConfirmTransactionParams;
 
     const account = await this.getAccount(accountId);
@@ -331,7 +330,7 @@ export class SolanaKeyring implements Keyring {
       throw new Error('Account not found');
     }
 
-    if (assetCaip19Id.endsWith(SolanaCaip19Tokens.SOL)) {
+    if (!mintAddress) {
       const signature = await this.#transferSolHelper.transferSol(
         account,
         to,
@@ -341,10 +340,10 @@ export class SolanaKeyring implements Keyring {
       return { signature };
     }
 
-    const signature = await this.#transferSPLTokenHelper.transferSPLToken(
+    const signature = await this.#splTokenHelper.transferSPLToken(
       account,
       to,
-      assetCaip19Id,
+      mintAddress,
       amount,
       scope as SolanaCaip2Networks,
     );
