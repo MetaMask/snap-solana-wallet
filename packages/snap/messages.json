@@ -12,6 +12,7 @@
   "send.amountGreatherThanZeroError": "Amount must be greater than 0",
   "send.toRequiredError": "To address is required",
   "send.toInvalidError": "Invalid Solana address",
+  "send.insufficientBalance": "Insufficient balance",
   "confirmation.title": "Review",
   "confirmation.heading": "Sending {amount} {tokenSymbol}",
   "confirmation.subheading": "Review the transaction before proceeding",

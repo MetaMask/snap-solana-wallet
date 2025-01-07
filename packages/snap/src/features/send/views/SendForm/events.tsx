@@ -55,7 +55,7 @@ async function onSourceAccountSelectorValueChange({
     validateField<SendFormNames>(
       SendFormNames.SourceAccountSelector,
       context.fromAccountId,
-      validation,
+      validation(context.preferences.locale),
     );
 
   context.validation[SendFormNames.AmountInput] = validateBalance(
@@ -87,7 +87,7 @@ async function onAmountInputChange({
   context.validation[SendFormNames.AmountInput] = validateField<SendFormNames>(
     SendFormNames.AmountInput,
     context.amount,
-    validation,
+    validation(context.preferences.locale),
   );
 
   context.validation[SendFormNames.AmountInput] =
@@ -188,7 +188,7 @@ async function onMaxAmountButtonClick({
     validateField<SendFormNames>(
       SendFormNames.AmountInput,
       contextToUpdate.amount,
-      validation,
+      validation(context.preferences.locale),
     );
 
   await updateInterface(
@@ -220,7 +220,7 @@ async function onDestinationAccountInputValueChange({
     validateField<SendFormNames>(
       SendFormNames.DestinationAccountInput,
       context.toAddress,
-      validation,
+      validation(context.preferences.locale),
     );
 
   await updateInterface(id, <SendForm context={context} />, context);
