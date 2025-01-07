@@ -8,6 +8,7 @@ import { TokenPricesService } from './core/services/TokenPricesService';
 import { TransactionHelper } from './core/services/TransactionHelper/TransactionHelper';
 import { TransactionsService } from './core/services/transactions';
 import { TransferSolHelper } from './core/services/TransferSolHelper/TransferSolHelper';
+import { TransferSPLTokenHelper } from './core/services/TransferSPLTokenHelper/TransferSPLTokenHelper';
 import logger from './core/utils/logger';
 
 /**
@@ -25,6 +26,7 @@ export type SnapExecutionContext = {
   transactionHelper: TransactionHelper;
   transactionsService: TransactionsService;
   transferSolHelper: TransferSolHelper;
+  transferSPLTokenHelper: TransferSPLTokenHelper;
 };
 
 const configProvider = new ConfigProvider();
@@ -32,9 +34,9 @@ const state = new SolanaState();
 const encryptedState = new EncryptedSolanaState();
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);
-const transferSolHelper = new TransferSolHelper(
+const transferSolHelper = new TransferSolHelper(transactionHelper, logger);
+const transferSPLTokenHelper = new TransferSPLTokenHelper(
   transactionHelper,
-  connection,
   logger,
 );
 const transactionsService = new TransactionsService({
@@ -49,6 +51,7 @@ const keyring = new SolanaKeyring({
   connection,
   transactionsService,
   transferSolHelper,
+  transferSPLTokenHelper,
   logger,
 });
 
@@ -70,6 +73,7 @@ const snapContext: SnapExecutionContext = {
   transactionHelper,
   transactionsService,
   transferSolHelper,
+  transferSPLTokenHelper,
 };
 
 export {
@@ -82,6 +86,7 @@ export {
   transactionHelper,
   transactionsService,
   transferSolHelper,
+  transferSPLTokenHelper,
 };
 
 export default snapContext;

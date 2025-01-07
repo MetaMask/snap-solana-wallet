@@ -2,24 +2,16 @@ import type BigNumber from 'bignumber.js';
 
 import type { SolanaCaip2Networks } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
-import type { SolanaConnection } from '../connection';
 import type { SolanaKeyringAccount } from '../keyring';
 import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
 
 export class TransferSPLTokenHelper {
   readonly #transactionHelper: TransactionHelper;
 
-  readonly #connection: SolanaConnection;
-
   readonly #logger: ILogger;
 
-  constructor(
-    transactionHelper: TransactionHelper,
-    connection: SolanaConnection,
-    logger: ILogger,
-  ) {
+  constructor(transactionHelper: TransactionHelper, logger: ILogger) {
     this.#transactionHelper = transactionHelper;
-    this.#connection = connection;
     this.#logger = logger;
   }
 

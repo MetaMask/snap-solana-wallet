@@ -40,6 +40,7 @@ import type { EncryptedSolanaState } from './encrypted-state';
 import type { SolanaState } from './state';
 import type { TransactionsService } from './transactions';
 import type { TransferSolHelper } from './TransferSolHelper/TransferSolHelper';
+import type { TransferSPLTokenHelper } from './TransferSPLTokenHelper/TransferSPLTokenHelper';
 /**
  * We need to store the index of the KeyringAccount in the state because
  * we want to be able to restore any account with a previously used index.
@@ -60,6 +61,8 @@ export class SolanaKeyring implements Keyring {
 
   readonly #transferSolHelper: TransferSolHelper;
 
+  readonly #transferSPLTokenHelper: TransferSPLTokenHelper;
+
   readonly #logger: ILogger;
 
   constructor({
@@ -68,6 +71,7 @@ export class SolanaKeyring implements Keyring {
     connection,
     transactionsService,
     transferSolHelper,
+    transferSPLTokenHelper,
     logger,
   }: {
     state: SolanaState;
@@ -75,6 +79,7 @@ export class SolanaKeyring implements Keyring {
     connection: SolanaConnection;
     transactionsService: TransactionsService;
     transferSolHelper: TransferSolHelper;
+    transferSPLTokenHelper: TransferSPLTokenHelper;
     logger: ILogger;
   }) {
     this.#state = state;
@@ -82,6 +87,7 @@ export class SolanaKeyring implements Keyring {
     this.#connection = connection;
     this.#transactionsService = transactionsService;
     this.#transferSolHelper = transferSolHelper;
+    this.#transferSPLTokenHelper = transferSPLTokenHelper;
     this.#logger = logger;
   }
 
@@ -335,8 +341,14 @@ export class SolanaKeyring implements Keyring {
       return { signature };
     }
 
-    // TODO: Implement SPL token transfer
-    throw new Error('Unsupported asset');
+    const signature = await this.#transferSPLTokenHelper.transferSPLToken(
+      account,
+      to,
+      assetCaip19Id,
+      amount,
+      scope as SolanaCaip2Networks,
+    );
+    return { signature };
   }
 
   async listAccountTransactions(
