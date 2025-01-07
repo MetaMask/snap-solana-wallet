@@ -6,7 +6,7 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
-import type { SnapExecutionContext } from '../../../../snap-context';
+import type { SnapExecutionContext } from '../../../../snapContext';
 import { Send } from '../../Send';
 import type { SendContext } from '../../types';
 import { SendCurrency } from '../../types';

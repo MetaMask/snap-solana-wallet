@@ -2,7 +2,7 @@ import { Box, Container, Link } from '@metamask/snaps-sdk/jsx';
 
 import CheckIcon from '../../../../../images/check.svg';
 import { ActionHeader } from '../../../../core/components/ActionHeader/ActionHeader';
-import { getSolanaExplorerUrl } from '../../../../core/utils/get-solana-explorer-url';
+import { getSolanaExplorerUrl } from '../../../../core/utils/getSolanaExplorerUrl';
 import { i18n } from '../../../../core/utils/i18n';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
 import { getAmountInSol } from '../../selectors';

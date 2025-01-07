@@ -24,7 +24,7 @@ import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
-import snapContext, { keyring } from './snap-context';
+import snapContext, { keyring } from './snapContext';
 
 installPolyfills();
 

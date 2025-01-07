@@ -1,8 +1,8 @@
 import type { Balance, CaipAssetType } from '@metamask/keyring-api';
 
 import type { Caip19Id, Network } from '../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../core/services/keyring';
-import type { TokenPrice } from '../../core/services/state';
+import type { SolanaKeyringAccount } from '../../core/services/keyring/Keyring';
+import type { TokenPrice } from '../../core/services/state/State';
 import type { FormFieldError } from '../../core/types/error';
 import type { Preferences } from '../../core/types/snap';
 

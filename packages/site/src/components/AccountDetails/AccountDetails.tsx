@@ -20,7 +20,7 @@ import {
   Networks,
   SolanaInternalRpcMethods,
 } from '../../../../snap/src/core/constants/solana';
-import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/get-solana-explorer-url';
+import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
 import { useInvokeSnap } from '../../hooks';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';

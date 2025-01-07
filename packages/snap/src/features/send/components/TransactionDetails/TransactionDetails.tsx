@@ -11,11 +11,11 @@ import {
 import BigNumber from 'bignumber.js';
 
 import { Networks } from '../../../../core/constants/solana';
-import { formatCurrency } from '../../../../core/utils/format-currency';
-import { formatTokens } from '../../../../core/utils/format-tokens';
-import { getSolanaExplorerUrl } from '../../../../core/utils/get-solana-explorer-url';
+import { formatCurrency } from '../../../../core/utils/formatCurrency';
+import { formatTokens } from '../../../../core/utils/formatTokens';
+import { getSolanaExplorerUrl } from '../../../../core/utils/getSolanaExplorerUrl';
 import { i18n } from '../../../../core/utils/i18n';
-import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
+import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import type { SendContext } from '../../types';
 import { SendCurrency } from '../../types';
 

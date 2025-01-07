@@ -11,13 +11,13 @@ import {
   keyring,
   state,
   tokenPricesService,
-} from '../../../snap-context';
+} from '../../../snapContext';
 import {
   Network,
   Networks,
   SOL_TRANSFER_FEE_LAMPORTS,
 } from '../../constants/solana';
-import { DEFAULT_TOKEN_PRICES } from '../../services/state';
+import { DEFAULT_TOKEN_PRICES } from '../../services/state/State';
 import { lamportsToSol } from '../../utils/conversion';
 import {
   createInterface,

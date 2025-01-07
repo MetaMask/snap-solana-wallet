@@ -1,6 +1,6 @@
 import { SolMethod, SolScopes } from '@metamask/keyring-api';
 
-import type { SolanaKeyringAccount } from '../../services/keyring';
+import type { SolanaKeyringAccount } from '../../services/keyring/Keyring';
 
 /**
  * Solana account scopes.

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 import type { Network } from '../../../../snap/src/core/constants/solana';
 import { RpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
-import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/get-solana-explorer-url';
+import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
 

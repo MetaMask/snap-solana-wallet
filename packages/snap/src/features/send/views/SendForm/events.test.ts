@@ -7,10 +7,10 @@ import {
   SOL_TRANSFER_FEE_LAMPORTS,
   TokenMetadata,
 } from '../../../../core/constants/solana';
-import { DEFAULT_TOKEN_PRICES } from '../../../../core/services/state';
+import { DEFAULT_TOKEN_PRICES } from '../../../../core/services/state/State';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import { updateInterface } from '../../../../core/utils/interface';
-import { keyring } from '../../../../snap-context';
+import { keyring } from '../../../../snapContext';
 import type { SendContext } from '../../types';
 import { SendCurrency, SendFormNames } from '../../types';
 import { eventHandlers } from './events';

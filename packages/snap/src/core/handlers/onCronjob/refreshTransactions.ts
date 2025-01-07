@@ -2,7 +2,7 @@ import type { Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/web3.js';
 import { address as asAddress } from '@solana/web3.js';
 
-import { keyring, state, transactionsService } from '../../../snap-context';
+import { keyring, state, transactionsService } from '../../../snapContext';
 import { Network } from '../../constants/solana';
 import logger from '../../utils/logger';
 

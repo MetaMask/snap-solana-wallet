@@ -10,10 +10,10 @@ import { isNullOrUndefined } from '@metamask/utils';
 
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
 import { Caip19Id } from '../../../../core/constants/solana';
-import { formatCurrency } from '../../../../core/utils/format-currency';
-import { formatTokens } from '../../../../core/utils/format-tokens';
+import { formatCurrency } from '../../../../core/utils/formatCurrency';
+import { formatTokens } from '../../../../core/utils/formatTokens';
 import { i18n } from '../../../../core/utils/i18n';
-import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
+import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
 import { AmountInput } from '../../components/AmountInput/AmountInput';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
