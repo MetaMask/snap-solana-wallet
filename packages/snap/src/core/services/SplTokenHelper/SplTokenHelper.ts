@@ -170,7 +170,7 @@ export class SplTokenHelper {
     try {
       // Return it, if it exists
       // We intentionally use the "orThrow" method wrapped in a try/catch to benefit from its type narrowing syntax
-      this.isAccountExistsOrThrow<TData>(associatedTokenAccount);
+      SplTokenHelper.isAccountExistsOrThrow<TData>(associatedTokenAccount);
       return associatedTokenAccount;
     } catch (error) {
       // The associated token account does not exist, let's create it
@@ -240,8 +240,8 @@ export class SplTokenHelper {
   getDecimals<TData extends Uint8Array | MaybeHasDecimals>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
   ): number {
-    this.isAccountExistsOrThrow(tokenAccount);
-    this.isAccountDecodedOrThrow(tokenAccount);
+    SplTokenHelper.isAccountExistsOrThrow(tokenAccount);
+    SplTokenHelper.isAccountDecodedOrThrow(tokenAccount);
 
     const { decimals } = tokenAccount.data;
 
@@ -257,7 +257,7 @@ export class SplTokenHelper {
    * @param tokenAccount - The token account.
    * @returns Whether the token account exists.
    */
-  isAccountExists<TData extends Uint8Array | object>(
+  static isAccountExists<TData extends Uint8Array | object>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
   ) {
     return tokenAccount.exists;
@@ -267,11 +267,11 @@ export class SplTokenHelper {
    * Assert that a token account exists.
    * @param tokenAccount - The token account.
    */
-  isAccountExistsOrThrow<TData extends Uint8Array | object>(
+  static isAccountExistsOrThrow<TData extends Uint8Array | object>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
   ): asserts tokenAccount is (MaybeAccount<TData> | MaybeEncodedAccount) &
     Exists {
-    if (!this.isAccountExists(tokenAccount)) {
+    if (!SplTokenHelper.isAccountExists(tokenAccount)) {
       throw new Error('Token account does not exist');
     }
   }
@@ -281,10 +281,10 @@ export class SplTokenHelper {
    * @param tokenAccount - The token account.
    * @returns Whether the token account is decoded.
    */
-  isAccountDecoded<TData extends Uint8Array | object>(
+  static isAccountDecoded<TData extends Uint8Array | object>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
   ) {
-    this.isAccountExistsOrThrow(tokenAccount);
+    SplTokenHelper.isAccountExistsOrThrow(tokenAccount);
     return !(tokenAccount.data instanceof Uint8Array);
   }
 
@@ -292,11 +292,11 @@ export class SplTokenHelper {
    * Assert that a token account is decoded.
    * @param tokenAccount - The token account.
    */
-  isAccountDecodedOrThrow<TData extends Uint8Array | object>(
+  static isAccountDecodedOrThrow<TData extends Uint8Array | object>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
   ): asserts tokenAccount is Account<Exclude<TData, Uint8Array>> & Exists {
-    this.isAccountExistsOrThrow(tokenAccount);
-    if (!this.isAccountDecoded(tokenAccount)) {
+    SplTokenHelper.isAccountExistsOrThrow(tokenAccount);
+    if (!SplTokenHelper.isAccountDecoded(tokenAccount)) {
       throw new Error('Token account is encoded. Implement a decoder.');
     }
   }
