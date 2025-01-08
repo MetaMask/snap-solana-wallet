@@ -340,10 +340,10 @@ export class SolanaKeyring implements Keyring {
       return { signature };
     }
 
-    const signature = await this.#splTokenHelper.transferSPLToken(
+    const signature = await this.#splTokenHelper.transferSplToken(
       account,
-      to,
-      mintAddress,
+      asAddress(to),
+      asAddress(mintAddress),
       amount,
       scope as SolanaCaip2Networks,
     );

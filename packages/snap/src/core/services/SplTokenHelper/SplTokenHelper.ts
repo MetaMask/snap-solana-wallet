@@ -3,16 +3,20 @@ import {
   getTransferInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
-import type { Address } from '@solana/web3.js';
 import {
   appendTransactionMessageInstruction,
-  address as asAddress,
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
   fetchJsonParsedAccount,
   pipe,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
+  type Account,
+  type Address,
+  type EncodedAccount,
+  type KeyPairSigner,
+  type MaybeAccount,
+  type MaybeEncodedAccount,
 } from '@solana/web3.js';
 import type BigNumber from 'bignumber.js';
 
@@ -45,15 +49,15 @@ export class SplTokenHelper {
    *
    * @param from - The account from which the token will be transferred.
    * @param to - The address to which the token will be transferred.
-   * @param mintAddress - The mint address of the asset to transfer.
+   * @param mint - The mint address of the asset to transfer.
    * @param amountInToken - The amount of the asset to transfer. For instance, 1 to transfer 1 USDC.
    * @param network - The network on which to transfer the asset.
    * @returns The signature of the transaction.
    */
-  async transferSPLToken(
+  async transferSplToken(
     from: SolanaKeyringAccount,
-    to: string,
-    mintAddress: string,
+    to: Address,
+    mint: Address,
     amountInToken: string | number | bigint | BigNumber,
     network: SolanaCaip2Networks,
   ): Promise<string> {
@@ -61,7 +65,7 @@ export class SplTokenHelper {
       console.log('🍗transferSPLToken', {
         from,
         to,
-        mintAddress,
+        mint,
         amountInToken,
       });
 
@@ -71,27 +75,31 @@ export class SplTokenHelper {
         Uint8Array.from(from.privateKeyBytesAsNum),
       );
 
-      // Get the token accounts for both parties
-      //   const fromTokenAccount = (
-      //     await findAssociatedTokenPda({
-      //       mint: asAddress(tokenMintAddress),
-      //       owner: signer.address,
-      //       tokenProgram: TOKEN_PROGRAM_ADDRESS,
-      //     })
-      //   )[0];
-      const fromTokenAccount = 'G23tQHsbQuh3yqUBoyXDn3TwqEbbbUHAHEeUSvJaVRtA';
+      // SPL tokens are not held in the wallet's account, they are held in the associated token account.
+      // For both the sender and the receiver, we need to get or create the associated token account for the wallet and token mint.
+      const fromTokenAccount = await this.getOrCreateAssociatedTokenAccount(
+        mint,
+        signer.address,
+        network,
+        signer,
+      );
+      console.log('🍗fromTokenAccount.address', fromTokenAccount.address);
 
-      //   const toTokenAccount = (
-      //     await findAssociatedTokenPda({
-      //       mint: asAddress(tokenMintAddress),
-      //       owner: asAddress(to),
-      //       tokenProgram: TOKEN_PROGRAM_ADDRESS,
-      //     })
-      //   )[0];
-      const toTokenAccount = 'CSq2wNLSpfKHCdL3E3k1iksbRXWjfnD87b9iy35nL8VP';
+      const toTokenAccount = await this.getOrCreateAssociatedTokenAccount(
+        mint,
+        to,
+        network,
+        signer,
+      );
+      console.log('🍗toTokenAccount.address', toTokenAccount.address);
 
       // Convert amount based on token decimals
-      const decimals = await this.#getDecimals(mintAddress, network);
+      const tokenAccount = await this.getTokenAccount<MaybeHasDecimals>(
+        mint,
+        network,
+      );
+
+      const decimals = this.getDecimals(tokenAccount);
       console.log('🍗decimals', decimals);
 
       const amountInTokenUnits = toTokenUnits(amountInToken, decimals);
@@ -109,8 +117,8 @@ export class SplTokenHelper {
         (tx) =>
           appendTransactionMessageInstruction(
             getTransferInstruction({
-              source: asAddress(fromTokenAccount),
-              destination: asAddress(toTokenAccount),
+              source: fromTokenAccount.address,
+              destination: toTokenAccount.address,
               authority: signer,
               amount: amountInTokenUnits,
             }),
@@ -132,106 +140,172 @@ export class SplTokenHelper {
 
   /**
    * Creates or fetches the associated token account for a given wallet and token mint.
-   * @param payer - The payer's address.
-   * @param walletAddress - The wallet's address.
-   * @param mintAddress - The token mint's address.
-   * @param network - The network on which to create the associated token account.
+   * @param mint - The mint address.
+   * @param owner - The owner's address.
+   * @param network - The network.
+   * @param payer - If the associated token account does not exist, the signer will pay for the transaction creating the associated token account.
    * @returns The associated token account's address.
    */
-  async #getOrCreateAssociatedTokenAccount(
-    payer: Address,
-    walletAddress: Address,
-    mintAddress: Address,
+  async getOrCreateAssociatedTokenAccount<TData extends Uint8Array | object>(
+    mint: Address,
+    owner: Address,
     network: SolanaCaip2Networks,
-  ): Promise<Address> {
-    // Find the associated token account address
-    const associatedTokenAccount = (
+    payer?: KeyPairSigner,
+  ): Promise<Account<TData> | EncodedAccount> {
+    // Derive the address of the associated token account
+    const associatedTokenAccountAddress = (
       await findAssociatedTokenPda({
-        mint: asAddress(mintAddress),
-        owner: asAddress(walletAddress),
+        mint,
+        owner,
         tokenProgram: TOKEN_PROGRAM_ADDRESS,
       })
     )[0];
 
-    // Check if the associated token account exists
-    const accountInfo = await this.#transactionHelper.getAccountInfo(
-      associatedTokenAccount,
+    // Fetch the full account
+    const associatedTokenAccount = await this.getTokenAccount<TData>(
+      associatedTokenAccountAddress,
       network,
     );
 
-    if (accountInfo) {
+    try {
+      // Return it, if it exists
+      // We intentionally use the "orThrow" method wrapped in a try/catch to benefit from its type narrowing syntax
+      this.isAccountExistsOrThrow<TData>(associatedTokenAccount);
+      return associatedTokenAccount;
+    } catch (error) {
+      // The associated token account does not exist, let's create it
       this.#logger.debug(
-        'Associated token account already exists:',
-        associatedTokenAccount,
+        'Associated token account does not exist, creating it',
       );
-      return asAddress(associatedTokenAccount);
+
+      if (!payer) {
+        throw new Error('Payer is required to create associated token account');
+      }
+
+      const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
+        network,
+      );
+
+      throw new Error('Implement me!');
+      //   const transactionMessage = pipe(
+      //     createTransactionMessage({ version: 0 }),
+      //     (tx) => setTransactionMessageFeePayer(payer.address, tx),
+      //     (tx) =>
+      //       setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
+      //     (tx) =>
+      //       appendTransactionMessageInstructions(
+      //         getCreateAssociatedTokenInstruction({
+      //           payer,
+      //           mint,
+      //           owner,
+      //         }),
+      //         tx,
+      //       ),
+      //   );
+
+      //   await this.#transactionHelper.sendTransaction(
+      //     transactionMessage,
+      //     network,
+      //   );
+
+      //   return associatedTokenAccount;
     }
-
-    throw new Error('Associated token account not found');
-
-    // this.#logger.debug(
-    //   'Creating associated token account:',
-    //   associatedTokenAccount,
-    // );
-
-    // const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
-    //   network,
-    // );
-
-    // const transactionMessage = pipe(
-    //   createTransactionMessage({ version: 0 }),
-    //   (tx) => setTransactionMessageFeePayer(payer, tx),
-    //   (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
-    //   (tx) =>
-    //     appendTransactionMessageInstructions(
-    //       getCreateAssociatedTokenInstruction({
-    //         payer,
-    //         mint: asAddress(mintAddress),
-    //         owner: asAddress(walletAddress),
-    //       }),
-    //       tx,
-    //     ),
-    // );
-
-    // await this.#transactionHelper.sendTransaction(transactionMessage, network);
-
-    // return associatedTokenAccount;
   }
 
   /**
-   * Get the decimals of a given mint address.
-   * @param mintAddress - The mint address.
+   * Get the token account for a given mint and network.
+   * @param mint - The mint address.
    * @param network - The network.
-   * @returns The decimals.
+   * @returns The token account.
    */
-  async #getDecimals(
-    mintAddress: string,
+  async getTokenAccount<TData extends Uint8Array | object>(
+    mint: Address,
     network: SolanaCaip2Networks,
-  ): Promise<number> {
+  ): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
     const rpc = this.#connection.getRpc(network);
+    const tokenAccount = await fetchJsonParsedAccount<TData>(rpc, mint);
 
-    type TokenData = { decimals: number };
-    const tokenAccountInfo = await fetchJsonParsedAccount<TokenData>(
-      rpc,
-      asAddress(mintAddress),
-    );
-    console.log('🍗tokenAccountInfo', tokenAccountInfo);
-
-    if (!tokenAccountInfo.exists) {
+    if (!tokenAccount.exists) {
       throw new Error('Token account not found');
     }
 
-    if (!('decimals' in tokenAccountInfo.data)) {
-      throw new Error(
-        'No decimals found in token data. The token data might be encoded; in this case, implement a decoder for the token data.',
-      );
-    }
-    const { decimals } = tokenAccountInfo.data;
+    return tokenAccount;
+  }
+
+  /**
+   * Get the decimals of a given token account.
+   * @param tokenAccount - The token account.
+   * @returns The decimals.
+   */
+  getDecimals<TData extends Uint8Array | MaybeHasDecimals>(
+    tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
+  ): number {
+    this.isAccountExistsOrThrow(tokenAccount);
+    this.isAccountDecodedOrThrow(tokenAccount);
+
+    const { decimals } = tokenAccount.data;
 
     if (!decimals) {
-      throw new Error(`Decimals not found for ${mintAddress}`);
+      throw new Error(`Decimals not found for ${tokenAccount}`);
     }
 
     return decimals;
   }
+
+  /**
+   * Check if a token account exists.
+   * @param tokenAccount - The token account.
+   * @returns Whether the token account exists.
+   */
+  isAccountExists<TData extends Uint8Array | object>(
+    tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
+  ) {
+    return tokenAccount.exists;
+  }
+
+  /**
+   * Assert that a token account exists.
+   * @param tokenAccount - The token account.
+   */
+  isAccountExistsOrThrow<TData extends Uint8Array | object>(
+    tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
+  ): asserts tokenAccount is (MaybeAccount<TData> | MaybeEncodedAccount) &
+    Exists {
+    if (!this.isAccountExists(tokenAccount)) {
+      throw new Error('Token account does not exist');
+    }
+  }
+
+  /**
+   * Check if a token account is decoded.
+   * @param tokenAccount - The token account.
+   * @returns Whether the token account is decoded.
+   */
+  isAccountDecoded<TData extends Uint8Array | object>(
+    tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
+  ) {
+    this.isAccountExistsOrThrow(tokenAccount);
+    return !(tokenAccount.data instanceof Uint8Array);
+  }
+
+  /**
+   * Assert that a token account is decoded.
+   * @param tokenAccount - The token account.
+   */
+  isAccountDecodedOrThrow<TData extends Uint8Array | object>(
+    tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
+  ): asserts tokenAccount is Account<Exclude<TData, Uint8Array>> & Exists {
+    this.isAccountExistsOrThrow(tokenAccount);
+    if (!this.isAccountDecoded(tokenAccount)) {
+      throw new Error('Token account is encoded. Implement a decoder.');
+    }
+  }
 }
+
+type Exists = {
+  readonly exists: true;
+};
+
+type MaybeHasDecimals = {
+  decimals?: number | undefined | null;
+};

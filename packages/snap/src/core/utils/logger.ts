@@ -26,11 +26,8 @@ const withSolanaErrorLogging =
  * A basic logger that wraps the console, extending its functionality to properly log Solana errors.
  */
 const logger: ILogger = {
-  log: withSolanaErrorLogging(console.log),
-  info: withSolanaErrorLogging(console.info),
-  warn: withSolanaErrorLogging(console.warn),
+  ...console,
   error: withSolanaErrorLogging(console.error),
-  debug: withSolanaErrorLogging(console.debug),
 };
 
 export default logger;
