@@ -1,3 +1,13 @@
+type FormatTokensOptions = {
+  minimumFractionDigits: number;
+  maximumFractionDigits: number;
+};
+
+const FORMAT_TOKENS_DEFAULT_OPTIONS: FormatTokensOptions = {
+  minimumFractionDigits: 4,
+  maximumFractionDigits: 4,
+};
+
 /**
  * Formats a token amount with commas and a specified symbol.
  *
@@ -11,9 +21,10 @@ export function formatTokens(amount: string, symbol: string) {
     throw new Error('Invalid token amount');
   }
 
-  const formattedAmount = numericAmount
-    .toFixed(4)
-    .replace(/\d(?=(\d{3})+\.)/gu, '$&,');
+  const formattedAmount = numericAmount.toLocaleString('en-US', {
+    minimumFractionDigits: FORMAT_TOKENS_DEFAULT_OPTIONS.minimumFractionDigits,
+    maximumFractionDigits: FORMAT_TOKENS_DEFAULT_OPTIONS.maximumFractionDigits,
+  });
 
   return `${formattedAmount} ${symbol}`;
 }

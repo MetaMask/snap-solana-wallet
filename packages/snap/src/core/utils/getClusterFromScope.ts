@@ -1,4 +1,4 @@
-import { SolanaCaip2Networks } from '../constants/solana';
+import { Network } from '../constants/solana';
 
 /**
  * Returns the cluster name from the given CAIP-2 scope.
@@ -6,10 +6,10 @@ import { SolanaCaip2Networks } from '../constants/solana';
  * @param lookedUpScope - The CAIP-2 scope to look up.
  * @returns The cluster name or undefined if the scope is not found.
  */
-export function getClusterFromScope(lookedUpScope: SolanaCaip2Networks) {
-  for (const [scope, value] of Object.entries(SolanaCaip2Networks)) {
+export function getClusterFromScope(lookedUpScope: Network) {
+  for (const [scope, value] of Object.entries(Network)) {
     if (value === lookedUpScope) {
-      return scope as keyof typeof SolanaCaip2Networks;
+      return scope as keyof typeof Network;
     }
   }
 
