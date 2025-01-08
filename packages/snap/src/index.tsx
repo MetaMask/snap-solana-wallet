@@ -17,8 +17,11 @@ import {
   handlers as onCronjobHandlers,
   OnCronjobMethods,
 } from './core/handlers/onCronjob';
-import { handlers as onUpdateHandlers, OnUpdateMethods } from './core/handlers/onUpdate';
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
+import {
+  handlers as onUpdateHandlers,
+  OnUpdateMethods,
+} from './core/handlers/onUpdate';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
 import { getClientStatus } from './core/utils/interface';
@@ -187,10 +190,9 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
  * Handles updates to the snap. This handler is called when the snap is updated.
  *
  * @param args - The request handler args as object.
- * @param args.origin - The origin of the request, e.g., the website that
- * invoked the snap.
- * @returns returns The JSON-RPC response.
- * @throws If the request method is not valid for this snap.
+ * @param args.origin - The origin of the request.
+ * @returns The JSON-RPC response.
+ * @throws If the request method is not valid.
  * @see https://docs.metamask.io/snaps/features/lifecycle-hooks/#3-run-an-action-on-update
  */
 export const onUpdate: OnUpdateHandler = async ({ origin }) => {
