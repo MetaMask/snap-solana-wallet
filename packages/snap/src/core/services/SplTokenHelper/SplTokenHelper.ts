@@ -93,7 +93,7 @@ export class SplTokenHelper {
       );
       console.log('🍗toTokenAccount.address', toTokenAccount.address);
 
-      // Convert amount based on token decimals
+      // Fetch the token account
       const tokenAccount = await this.getTokenAccount<MaybeHasDecimals>(
         mint,
         network,
@@ -102,6 +102,7 @@ export class SplTokenHelper {
       const decimals = this.getDecimals(tokenAccount);
       console.log('🍗decimals', decimals);
 
+      // Convert amount based on token decimals
       const amountInTokenUnits = toTokenUnits(amountInToken, decimals);
       console.log('🍗amountInTokenUnits', amountInTokenUnits);
 
@@ -161,16 +162,12 @@ export class SplTokenHelper {
       })
     )[0];
 
-    // Fetch the full account
-    const associatedTokenAccount = await this.getTokenAccount<TData>(
-      associatedTokenAccountAddress,
-      network,
-    );
-
     try {
-      // Return it, if it exists
-      // We intentionally use the "orThrow" method wrapped in a try/catch to benefit from its type narrowing syntax
-      SplTokenHelper.isAccountExistsOrThrow<TData>(associatedTokenAccount);
+      // Fetch the full account and return it if it exists
+      const associatedTokenAccount = await this.getTokenAccount<TData>(
+        associatedTokenAccountAddress,
+        network,
+      );
       return associatedTokenAccount;
     } catch (error) {
       // The associated token account does not exist, let's create it
@@ -217,17 +214,16 @@ export class SplTokenHelper {
    * @param mint - The mint address.
    * @param network - The network.
    * @returns The token account.
+   * @throws If the token account does not exist.
    */
   async getTokenAccount<TData extends Uint8Array | object>(
     mint: Address,
     network: SolanaCaip2Networks,
-  ): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
+  ): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
     const rpc = this.#connection.getRpc(network);
     const tokenAccount = await fetchJsonParsedAccount<TData>(rpc, mint);
 
-    if (!tokenAccount.exists) {
-      throw new Error('Token account not found');
-    }
+    SplTokenHelper.isAccountExistsOrThrow(tokenAccount);
 
     return tokenAccount;
   }
