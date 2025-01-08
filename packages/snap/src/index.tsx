@@ -3,6 +3,7 @@ import type {
   Json,
   OnCronjobHandler,
   OnKeyringRequestHandler,
+  OnUpdateHandler,
   OnUserInputHandler,
 } from '@metamask/snaps-sdk';
 import {
@@ -16,6 +17,7 @@ import {
   handlers as onCronjobHandlers,
   OnCronjobMethods,
 } from './core/handlers/onCronjob';
+import { handlers as onUpdateHandlers, OnUpdateMethods } from './core/handlers/onUpdate';
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
@@ -179,4 +181,23 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
   }
 
   return handler({ request });
+};
+
+/**
+ * Handles updates to the snap. This handler is called when the snap is updated.
+ *
+ * @param args - The request handler args as object.
+ * @param args.origin - The origin of the request, e.g., the website that
+ * invoked the snap.
+ * @returns returns The JSON-RPC response.
+ * @throws If the request method is not valid for this snap.
+ * @see https://docs.metamask.io/snaps/features/lifecycle-hooks/#3-run-an-action-on-update
+ */
+export const onUpdate: OnUpdateHandler = async ({ origin }) => {
+  const accounts = await keyring.listAccounts();
+
+  if (accounts.length === 0) {
+    const handler = onUpdateHandlers[OnUpdateMethods.CreateAccount];
+    await handler({ origin });
+  }
 };
