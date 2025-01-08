@@ -6,10 +6,14 @@ import { Send } from '../../../features/send/Send';
 import type { SendContext } from '../../../features/send/types';
 import { SendCurrency } from '../../../features/send/types';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
-import { keyring, state, tokenPricesService } from '../../../snap-context';
+import {
+  keyring,
+  state,
+  tokenPricesService,
+  assetsService,
+} from '../../../snap-context';
 import {
   SOL_TRANSFER_FEE_LAMPORTS,
-  SolanaCaip19Tokens,
   SolanaCaip2Networks,
 } from '../../constants/solana';
 import { DEFAULT_TOKEN_PRICES } from '../../services/state';
@@ -57,8 +61,6 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const { scope, account } = params;
 
-  const token = `${scope}/${SolanaCaip19Tokens.SOL}`;
-
   const context = { ...DEFAULT_SEND_CONTEXT, scope, fromAccountId: account };
 
   const preferencesPromise = getPreferences().catch(
@@ -90,11 +92,14 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   const getBalancesPromise = async () => {
     const balances: Record<string, Balance> = {};
     const promises = accounts.map(async (_account) =>
-      keyring
-        .getAccountBalances(_account.id, [token])
+      assetsService
+        .getNativeAsset(_account.address, scope)
         .then((response) => {
-          if (response[token]) {
-            balances[_account.id] = response[token];
+          if (response) {
+            balances[_account.id] = {
+              amount: lamportsToSol(response.balance).toString(),
+              unit: response?.metadata?.symbol ?? '',
+            };
           }
         })
         .catch((error) => {

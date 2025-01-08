@@ -12,6 +12,18 @@ import type {
   UnixTimestamp,
 } from '@solana/web3.js';
 
+import type { SolanaTokenMetadata } from '../clients/token-metadata-client/types';
+import type { SolanaCaip2Networks } from '../constants/solana';
+
+export type SolanaAsset = {
+  scope: SolanaCaip2Networks;
+  address: string;
+  balance: string;
+  decimals: number;
+  native: boolean;
+  metadata?: SolanaTokenMetadata;
+};
+
 export type SolanaInstruction = {
   accounts: readonly number[];
   data: Base58EncodedBytes;

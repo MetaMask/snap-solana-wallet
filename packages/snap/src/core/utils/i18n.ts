@@ -1,13 +1,15 @@
 import en from '../../../locales/en.json';
+import es from '../../../locales/es.json';
 
 export const locales = {
   en: en.messages,
+  es: es.messages,
 };
 
-export type Locale = keyof typeof locales;
-export type LocalizedMessage = keyof (typeof locales)[Locale];
-
 const FALLBACK_LANGUAGE: Locale = 'en';
+
+export type Locale = keyof typeof locales;
+export type LocalizedMessage = keyof (typeof locales)[typeof FALLBACK_LANGUAGE];
 
 /**
  * Fetches the translations based on the user's locale preference.
@@ -17,7 +19,11 @@ const FALLBACK_LANGUAGE: Locale = 'en';
  * @returns A function that gets the translation for a given key.
  */
 export function i18n(locale: Locale) {
-  const messages = locales[locale] ?? locales[FALLBACK_LANGUAGE];
+  // Needs to be castes as EN is the main language and we can have the case where
+  // messages are not yed completed for the other languages
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const messages = (locales[locale] ??
+    locales[FALLBACK_LANGUAGE]) as typeof en.messages;
 
   return (id: LocalizedMessage, replaces?: Record<string, string>) => {
     let message = messages?.[id]?.message ?? id;

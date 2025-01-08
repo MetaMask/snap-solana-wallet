@@ -1,10 +1,13 @@
 import { PriceApiClient } from './core/clients/price-api/price-api-client';
+import { TokenMetadataClient } from './core/clients/token-metadata-client/token-metadata-client';
+import { AssetsService } from './core/services/assets';
 import { ConfigProvider } from './core/services/config';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { EncryptedSolanaState } from './core/services/encrypted-state';
 import { SolanaKeyring } from './core/services/keyring';
 import { SplTokenHelper } from './core/services/SplTokenHelper/SplTokenHelper';
 import { SolanaState } from './core/services/state';
+import { TokenMetadataService } from './core/services/token-metadata';
 import { TokenPricesService } from './core/services/TokenPricesService';
 import { TransactionHelper } from './core/services/TransactionHelper/TransactionHelper';
 import { TransactionsService } from './core/services/transactions';
@@ -22,6 +25,7 @@ export type SnapExecutionContext = {
   priceApiClient: PriceApiClient;
   encryptedState: EncryptedSolanaState;
   state: SolanaState;
+  assetsService: AssetsService;
   tokenPricesService: TokenPricesService;
   transactionHelper: TransactionHelper;
   transactionsService: TransactionsService;
@@ -40,20 +44,34 @@ const splTokenHelper = new SplTokenHelper(
   transactionHelper,
   logger,
 );
+const tokenMetadataClient = new TokenMetadataClient(configProvider);
+const priceApiClient = new PriceApiClient(configProvider);
+
 const transactionsService = new TransactionsService({
   logger,
   connection,
 });
-const priceApiClient = new PriceApiClient(configProvider);
+
+const assetsService = new AssetsService({
+  connection,
+  logger,
+});
+
+const tokenMetadataService = new TokenMetadataService({
+  tokenMetadataClient,
+});
 
 const keyring = new SolanaKeyring({
   state,
   encryptedState,
+  configProvider,
   connection,
   transactionsService,
   transferSolHelper,
   splTokenHelper,
   logger,
+  assetsService,
+  tokenMetadataService,
 });
 
 const tokenPricesService = new TokenPricesService(
@@ -70,6 +88,7 @@ const snapContext: SnapExecutionContext = {
   encryptedState,
   state,
   /* Services */
+  assetsService,
   tokenPricesService,
   transactionHelper,
   transactionsService,
@@ -87,7 +106,7 @@ export {
   tokenPricesService,
   transactionHelper,
   transactionsService,
-  transferSolHelper,
+  assetsService,
 };
 
 export default snapContext;

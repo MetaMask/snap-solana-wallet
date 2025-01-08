@@ -2,6 +2,7 @@ import type { SolanaConnection } from '../connection/SolanaConnection';
 import {
   MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE,
   MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE,
+  MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE,
   MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE,
 } from './mockSolanaRpcResponses';
 
@@ -40,9 +41,19 @@ const createMockGetTransaction = () =>
     }),
   });
 
+const createMockGetTokenAccountsByOwner = () =>
+  jest.fn().mockReturnValue({
+    send: jest
+      .fn()
+      .mockReturnValue(
+        MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result,
+      ),
+  });
+
 const createMockGetRpc = () =>
   jest.fn().mockReturnValue({
     getBalance: createMockGetBalance(),
+    getTokenAccountsByOwner: createMockGetTokenAccountsByOwner(),
     getLatestBlockhash: createMockGetLatestBlockhash(),
     sendTransaction: createMockSendTransaction(),
     getSignaturesForAddress: createMockGetSignaturesForAddress(),

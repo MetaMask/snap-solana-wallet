@@ -28,6 +28,7 @@ jest.mock('@solana/web3.js', () => ({
   signTransactionMessageWithSigners: jest.fn(),
   getSignatureFromTransaction: jest.fn(),
   sendTransactionWithoutConfirmingFactory: jest.fn(),
+  address: jest.fn().mockImplementation((address) => address),
 }));
 
 describe('TransactionHelper', () => {

@@ -14,6 +14,7 @@ const dappPermissions = new Set([
   KeyringRpcMethod.ListAccountTransactions,
   // RPC methods
   SolanaInternalRpcMethods.StartSendTransactionFlow,
+  SolanaInternalRpcMethods.ListAccountAssets,
 ]);
 
 const metamaskPermissions = new Set([
@@ -27,6 +28,7 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.ListAccountTransactions,
   // RPC methods
   SolanaInternalRpcMethods.StartSendTransactionFlow,
+  SolanaInternalRpcMethods.ListAccountAssets,
 ]);
 
 const allowedOrigins = [

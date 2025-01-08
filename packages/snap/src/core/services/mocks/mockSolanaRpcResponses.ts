@@ -42,3 +42,52 @@ export const MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE = {
   },
   id: '0',
 };
+
+/**
+ * Sample response from the Solana RPC `getTokenAccountsByOwner` method
+ */
+export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
+  jsonrpc: '2.0',
+  result: {
+    context: {
+      slot: 302900219,
+    },
+    value: [
+      {
+        account: {
+          data: {
+            parsed: {
+              info: {
+                mint: 'address1',
+                owner: 'owner1',
+                isNative: false,
+                tokenAmount: {
+                  amount: '123456789',
+                  decimals: 9,
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        account: {
+          data: {
+            parsed: {
+              info: {
+                mint: 'address2',
+                owner: 'owner2',
+                isNative: false,
+                tokenAmount: {
+                  amount: '987654321',
+                  decimals: 9,
+                },
+              },
+            },
+          },
+        },
+      },
+    ],
+  },
+  id: '0',
+};

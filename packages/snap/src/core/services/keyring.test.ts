@@ -8,6 +8,11 @@ import {
   SolanaTokens,
 } from '../constants/solana';
 import {
+  SOLANA_MOCK_SPL_TOKENS,
+  SOLANA_MOCK_TOKEN,
+  SOLANA_MOCK_TOKEN_METADATA,
+} from '../test/mocks/solana-assets';
+import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
@@ -18,6 +23,9 @@ import {
 } from '../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
 import logger from '../utils/logger';
+import { AssetsService } from './assets';
+import type { ConfigProvider } from './config';
+import type { Config } from './config/ConfigProvider';
 import type { SolanaConnection } from './connection/SolanaConnection';
 import {
   EncryptedSolanaState,
@@ -27,6 +35,7 @@ import { SolanaKeyring } from './keyring';
 import { createMockConnection } from './mocks/mockConnection';
 import type { SplTokenHelper } from './SplTokenHelper/SplTokenHelper';
 import { SolanaState, type StateValue } from './state';
+import type { TokenMetadataService } from './token-metadata';
 import { TransactionsService } from './transactions';
 import type { TransferSolHelper } from './TransferSolHelper/TransferSolHelper';
 
@@ -48,8 +57,10 @@ jest.mock('../utils/derive-solana-private-key', () => ({
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
   let mockStateValue: StateValue & EncryptedStateValue;
+  let mockConfigProvider: ConfigProvider;
   let mockConnection: SolanaConnection;
   let mockTransferSolHelper: TransferSolHelper;
+  let mockTokenMetadataService: TokenMetadataService;
   let mockSplTokenHelper: SplTokenHelper;
 
   beforeEach(() => {
@@ -58,9 +69,20 @@ describe('SolanaKeyring', () => {
     const state = new SolanaState();
     const encryptedState = new EncryptedSolanaState();
 
+    mockConfigProvider = {
+      get: jest.fn().mockReturnValue({
+        activeNetworks: [SolanaCaip2Networks.Localnet],
+      }),
+    } as unknown as ConfigProvider;
+
     const transactionsService = new TransactionsService({
       logger,
       connection: mockConnection,
+    });
+
+    const assetsService = new AssetsService({
+      connection: mockConnection,
+      logger,
     });
 
     mockTransferSolHelper = {
@@ -71,6 +93,12 @@ describe('SolanaKeyring', () => {
         ),
     } as unknown as TransferSolHelper;
 
+    mockTokenMetadataService = {
+      getMultipleTokenMetadata: jest
+        .fn()
+        .mockResolvedValue(SOLANA_MOCK_TOKEN_METADATA),
+    } as unknown as TokenMetadataService;
+
     mockSplTokenHelper = {
       transferSplToken: jest.fn(),
     } as unknown as SplTokenHelper;
@@ -78,8 +106,10 @@ describe('SolanaKeyring', () => {
     keyring = new SolanaKeyring({
       state,
       encryptedState,
-      connection: mockConnection,
+      configProvider: mockConfigProvider,
       transactionsService,
+      assetsService,
+      tokenMetadataService: mockTokenMetadataService,
       transferSolHelper: mockTransferSolHelper,
       splTokenHelper: mockSplTokenHelper,
       logger,
@@ -169,6 +199,31 @@ describe('SolanaKeyring', () => {
       await expect(keyring.listAccounts()).rejects.toThrow(
         'Error listing accounts',
       );
+    });
+  });
+
+  describe('listAccountAssets', () => {
+    it('lists account assets', async () => {
+      const assets = await keyring.listAccountAssets('1');
+      expect(assets).toStrictEqual([
+        SOLANA_MOCK_TOKEN.address,
+        ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.address),
+      ]);
+    });
+
+    it('throws an error if account is not found', async () => {
+      await expect(
+        keyring.listAccountAssets('non-existent-id'),
+      ).rejects.toThrow('Account not found');
+    });
+
+    it('returns empty if no active networks', async () => {
+      jest
+        .spyOn(mockConfigProvider, 'get')
+        .mockReturnValue({ activeNetworks: [] } as unknown as Config);
+
+      const assets = await keyring.listAccountAssets('1');
+      expect(assets).toStrictEqual([]);
     });
   });
 
@@ -357,12 +412,34 @@ describe('SolanaKeyring', () => {
   describe('getAccountBalances', () => {
     it('gets account balance', async () => {
       const accountBalance = await keyring.getAccountBalances('1', [
-        `${SolanaCaip2Networks.Mainnet}/${SolanaCaip19Tokens.SOL}`,
+        `${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`,
       ]);
       expect(accountBalance).toStrictEqual({
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+        [`${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`]: {
           amount: '0.123456789',
           unit: 'SOL',
+        },
+      });
+    });
+
+    it('gets account and token balances', async () => {
+      const accountBalance = await keyring.getAccountBalances('1', [
+        `${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`,
+        `${SolanaCaip2Networks.Localnet}/token:address1`,
+        `${SolanaCaip2Networks.Localnet}/token:address2`,
+      ]);
+      expect(accountBalance).toStrictEqual({
+        [`${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`]: {
+          amount: '0.123456789',
+          unit: 'SOL',
+        },
+        [`${SolanaCaip2Networks.Localnet}/token:address1`]: {
+          amount: '0.123456789',
+          unit: 'MOCK1',
+        },
+        [`${SolanaCaip2Networks.Localnet}/token:address2`]: {
+          amount: '0.987654321',
+          unit: 'MOCK2',
         },
       });
     });
@@ -370,15 +447,18 @@ describe('SolanaKeyring', () => {
     it('throws an error if balance fails to be retrieved', async () => {
       const mockSend = jest
         .fn()
-        .mockRejectedValueOnce(new Error('Error getting balance'));
+        .mockRejectedValueOnce(new Error('Error getting assets'));
       const mockGetBalance = jest.fn().mockReturnValue({ send: mockSend });
       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
         getBalance: mockGetBalance,
+        getTokenAccountsByOwner: mockGetBalance,
       } as any);
 
       await expect(
-        keyring.getAccountBalances('get-balance-id', [SolanaCaip19Tokens.SOL]),
-      ).rejects.toThrow('Error getting account balance');
+        keyring.getAccountBalances('1', [
+          `${SolanaCaip2Networks.Localnet}/${SolanaCaip19Tokens.SOL}`,
+        ]),
+      ).rejects.toThrow('Error getting assets');
     });
   });
 

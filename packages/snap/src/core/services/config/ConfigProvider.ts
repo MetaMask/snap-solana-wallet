@@ -17,6 +17,8 @@ const EnvStruct = object({
   RPC_URL_LOCALNET_LIST: CommaSeparatedString,
   PRICE_API_BASE_URL: string(),
   PRICE_API_BASE_URL_LOCAL: string(),
+  TOKEN_API_BASE_URL: string(),
+  TOKEN_API_KEY: string(),
   LOCAL: optional(string()),
 });
 
@@ -32,8 +34,13 @@ export type Network = {
 export type Config = {
   networks: Network[];
   isLocal: boolean;
+  activeNetworks: SolanaCaip2Networks[];
   priceApi: {
     baseUrl: string;
+  };
+  tokenApi: {
+    baseUrl: string;
+    apiKey: string;
   };
 };
 
@@ -61,8 +68,13 @@ export class ConfigProvider {
       RPC_URL_DEVNET_LIST: process.env.RPC_URL_DEVNET_LIST,
       RPC_URL_TESTNET_LIST: process.env.RPC_URL_TESTNET_LIST,
       RPC_URL_LOCALNET_LIST: process.env.RPC_URL_LOCALNET_LIST,
+      // Price API
       PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL,
       PRICE_API_BASE_URL_LOCAL: process.env.PRICE_API_BASE_URL_LOCAL,
+      // Token API
+      TOKEN_API_BASE_URL: process.env.TOKEN_API_BASE_URL,
+      TOKEN_API_KEY: process.env.TOKEN_API_KEY,
+      // TODO: Remove this once we have a better way to handle local environment
       LOCAL: process.env.LOCAL,
     };
 
@@ -99,10 +111,15 @@ export class ConfigProvider {
         },
       ],
       isLocal: Boolean(environment.LOCAL),
+      activeNetworks: [SolanaCaip2Networks.Mainnet, SolanaCaip2Networks.Devnet],
       priceApi: {
         baseUrl: environment.LOCAL
           ? environment.PRICE_API_BASE_URL_LOCAL
           : environment.PRICE_API_BASE_URL,
+      },
+      tokenApi: {
+        baseUrl: environment.TOKEN_API_BASE_URL,
+        apiKey: environment.TOKEN_API_KEY,
       },
     };
   }
