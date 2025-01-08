@@ -297,7 +297,7 @@ async function onTransferUsdcButtonClick({
     request: {
       method: SolMethod.SendAndConfirmTransaction,
       params: {
-        to: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
+        to: 'BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe',
         mintAddress: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU', // USDC mint address on Solana Devnet,
         amount: 0.01,
       },

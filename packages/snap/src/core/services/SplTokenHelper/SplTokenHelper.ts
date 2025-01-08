@@ -1,10 +1,12 @@
 import {
   findAssociatedTokenPda,
+  getCreateAssociatedTokenInstruction,
   getTransferInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
 import {
   appendTransactionMessageInstruction,
+  appendTransactionMessageInstructions,
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
   fetchJsonParsedAccount,
@@ -13,7 +15,6 @@ import {
   setTransactionMessageLifetimeUsingBlockhash,
   type Account,
   type Address,
-  type EncodedAccount,
   type KeyPairSigner,
   type MaybeAccount,
   type MaybeEncodedAccount,
@@ -23,6 +24,7 @@ import type BigNumber from 'bignumber.js';
 import type { SolanaCaip2Networks } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import { toTokenUnits } from '../../utils/toTokenUnit';
+import { waitUntilNotThrow } from '../../utils/waitUntilNotThrow';
 import type { SolanaConnection } from '../connection';
 import type { SolanaKeyringAccount } from '../keyring';
 import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
@@ -152,78 +154,166 @@ export class SplTokenHelper {
     owner: Address,
     network: SolanaCaip2Networks,
     payer?: KeyPairSigner,
-  ): Promise<Account<TData> | EncodedAccount> {
-    // Derive the address of the associated token account
-    const associatedTokenAccountAddress = (
+  ): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
+    const associatedTokenAccount = await this.getAssociatedTokenAccount(
+      mint,
+      owner,
+      network,
+    );
+
+    try {
+      SplTokenHelper.assertAccountExists(associatedTokenAccount);
+      return associatedTokenAccount as (
+        | MaybeAccount<TData>
+        | MaybeEncodedAccount
+      ) &
+        Exists;
+    } catch (error) {
+      console.log('🍗proutoutoutou');
+      this.#logger.log('Associated token account does not exist. Create it...');
+      if (!payer) {
+        throw new Error('Payer is required to create associated token account');
+      }
+      return await this.createAssociatedTokenAccount(
+        mint,
+        owner,
+        network,
+        payer,
+      );
+    }
+  }
+
+  /**
+   * Derive the associated token account address for a given mint and owner.
+   * @param mint - The mint address.
+   * @param owner - The owner's address.
+   * @returns The associated token account address.
+   */
+  static async deriveAssociatedTokenAccountAddress(
+    mint: Address,
+    owner: Address,
+  ): Promise<Address> {
+    return (
       await findAssociatedTokenPda({
         mint,
         owner,
         tokenProgram: TOKEN_PROGRAM_ADDRESS,
       })
     )[0];
+  }
 
-    try {
-      // Fetch the full account and return it if it exists
-      const associatedTokenAccount = await this.getTokenAccount<TData>(
+  /**
+   * Get the associated token account for a given mint and owner.
+   * @param mint - The mint address.
+   * @param owner - The owner's address.
+   * @param network - The network.
+   * @returns The associated token account. Handle with care, it might:
+   * - not exist (exists: false).
+   * - be encoded (data instanceof Uint8Array).
+   */
+  async getAssociatedTokenAccount<TData extends Uint8Array | object>(
+    mint: Address,
+    owner: Address,
+    network: SolanaCaip2Networks,
+  ): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
+    console.log('🍗getAssociatedTokenAccount', { mint, owner, network });
+    const associatedTokenAccountAddress =
+      await SplTokenHelper.deriveAssociatedTokenAccountAddress(mint, owner);
+
+    // Fetch the full account and return it if it exists
+    const associatedTokenAccount = await this.getTokenAccount<TData>(
+      associatedTokenAccountAddress,
+      network,
+    );
+
+    return associatedTokenAccount;
+  }
+
+  /**
+   * Create an associated token account for a given mint and owner.
+   * @param mint - The mint address.
+   * @param owner - The owner's address.
+   * @param network - The network.
+   * @param payer - The payer's address.
+   * @returns The associated token account.
+   */
+  async createAssociatedTokenAccount<TData extends Uint8Array | object>(
+    mint: Address,
+    owner: Address,
+    network: SolanaCaip2Networks,
+    payer: KeyPairSigner,
+  ): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
+    console.log('🍗createAssociatedTokenAccount', {
+      mint,
+      owner,
+      network,
+      payer,
+    });
+    const associatedTokenAccountAddress =
+      await SplTokenHelper.deriveAssociatedTokenAccountAddress(mint, owner);
+
+    // Try to get the associated token account. It should not exist.
+    const nonExistingAssociatedTokenAccount =
+      await this.getAssociatedTokenAccount(mint, owner, network);
+
+    // Throw an error if the associated token account already exists.
+    SplTokenHelper.assertAccountNotExists(nonExistingAssociatedTokenAccount);
+
+    const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
+      network,
+    );
+
+    const transactionMessage = pipe(
+      createTransactionMessage({ version: 0 }),
+      (tx) => setTransactionMessageFeePayer(payer.address, tx),
+      (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
+      (tx) =>
+        appendTransactionMessageInstructions(
+          [
+            getCreateAssociatedTokenInstruction({
+              payer,
+              ata: associatedTokenAccountAddress,
+              owner,
+              mint,
+            }),
+          ],
+          tx,
+        ),
+    );
+
+    console.log('🍗transactionMessage', transactionMessage);
+
+    // Send the transaction to create the associated token account.
+    await this.#transactionHelper.sendTransaction(transactionMessage, network);
+
+    /**
+     * When the previous line resolves, the associated token account is in fact not yet created.
+     * We need to wait for it to be created.
+     */
+    return await waitUntilNotThrow(async () => {
+      const account = await this.getTokenAccount<TData>(
         associatedTokenAccountAddress,
         network,
       );
-      return associatedTokenAccount;
-    } catch (error) {
-      // The associated token account does not exist, let's create it
-      this.#logger.debug(
-        'Associated token account does not exist, creating it',
-      );
-
-      if (!payer) {
-        throw new Error('Payer is required to create associated token account');
-      }
-
-      const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
-        network,
-      );
-
-      throw new Error('Implement me!');
-      //   const transactionMessage = pipe(
-      //     createTransactionMessage({ version: 0 }),
-      //     (tx) => setTransactionMessageFeePayer(payer.address, tx),
-      //     (tx) =>
-      //       setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
-      //     (tx) =>
-      //       appendTransactionMessageInstructions(
-      //         getCreateAssociatedTokenInstruction({
-      //           payer,
-      //           mint,
-      //           owner,
-      //         }),
-      //         tx,
-      //       ),
-      //   );
-
-      //   await this.#transactionHelper.sendTransaction(
-      //     transactionMessage,
-      //     network,
-      //   );
-
-      //   return associatedTokenAccount;
-    }
+      SplTokenHelper.assertAccountExists(account);
+      return account;
+    });
   }
 
   /**
    * Get the token account for a given mint and network.
    * @param mint - The mint address.
    * @param network - The network.
-   * @returns The token account.
-   * @throws If the token account does not exist.
+   * @returns The token account. Handle with care, it might:
+   * - not exist (exists: false).
+   * - be encoded (data instanceof Uint8Array).
    */
   async getTokenAccount<TData extends Uint8Array | object>(
     mint: Address,
     network: SolanaCaip2Networks,
-  ): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
+  ): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
     const rpc = this.#connection.getRpc(network);
     const tokenAccount = await fetchJsonParsedAccount<TData>(rpc, mint);
-
-    SplTokenHelper.isAccountExistsOrThrow(tokenAccount);
 
     return tokenAccount;
   }
@@ -236,8 +326,8 @@ export class SplTokenHelper {
   getDecimals<TData extends Uint8Array | MaybeHasDecimals>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
   ): number {
-    SplTokenHelper.isAccountExistsOrThrow(tokenAccount);
-    SplTokenHelper.isAccountDecodedOrThrow(tokenAccount);
+    SplTokenHelper.assertAccountExists(tokenAccount);
+    SplTokenHelper.assertAccountDecoded(tokenAccount);
 
     const { decimals } = tokenAccount.data;
 
@@ -255,7 +345,7 @@ export class SplTokenHelper {
    */
   static isAccountExists<TData extends Uint8Array | object>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
-  ) {
+  ): boolean {
     return tokenAccount.exists;
   }
 
@@ -263,12 +353,25 @@ export class SplTokenHelper {
    * Assert that a token account exists.
    * @param tokenAccount - The token account.
    */
-  static isAccountExistsOrThrow<TData extends Uint8Array | object>(
+  static assertAccountExists<TData extends Uint8Array | object>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
   ): asserts tokenAccount is (MaybeAccount<TData> | MaybeEncodedAccount) &
     Exists {
     if (!SplTokenHelper.isAccountExists(tokenAccount)) {
       throw new Error('Token account does not exist');
+    }
+  }
+
+  /**
+   * Assert that a token account does not exists.
+   * @param tokenAccount - The token account.
+   */
+  static assertAccountNotExists<TData extends Uint8Array | object>(
+    tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
+  ): asserts tokenAccount is (MaybeAccount<TData> | MaybeEncodedAccount) &
+    Exists {
+    if (SplTokenHelper.isAccountExists(tokenAccount)) {
+      throw new Error('Token account exists');
     }
   }
 
@@ -279,8 +382,8 @@ export class SplTokenHelper {
    */
   static isAccountDecoded<TData extends Uint8Array | object>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
-  ) {
-    SplTokenHelper.isAccountExistsOrThrow(tokenAccount);
+  ): boolean {
+    SplTokenHelper.assertAccountExists(tokenAccount);
     return !(tokenAccount.data instanceof Uint8Array);
   }
 
@@ -288,20 +391,20 @@ export class SplTokenHelper {
    * Assert that a token account is decoded.
    * @param tokenAccount - The token account.
    */
-  static isAccountDecodedOrThrow<TData extends Uint8Array | object>(
+  static assertAccountDecoded<TData extends Uint8Array | object>(
     tokenAccount: MaybeAccount<TData> | MaybeEncodedAccount,
   ): asserts tokenAccount is Account<Exclude<TData, Uint8Array>> & Exists {
-    SplTokenHelper.isAccountExistsOrThrow(tokenAccount);
+    SplTokenHelper.assertAccountExists(tokenAccount);
     if (!SplTokenHelper.isAccountDecoded(tokenAccount)) {
       throw new Error('Token account is encoded. Implement a decoder.');
     }
   }
 }
 
-type Exists = {
+export type Exists = {
   readonly exists: true;
 };
 
-type MaybeHasDecimals = {
+export type MaybeHasDecimals = {
   decimals?: number | undefined | null;
 };

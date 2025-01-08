@@ -25,6 +25,7 @@ import {
 } from './encrypted-state';
 import { SolanaKeyring } from './keyring';
 import { createMockConnection } from './mocks/mockConnection';
+import type { SplTokenHelper } from './SplTokenHelper/SplTokenHelper';
 import { SolanaState, type StateValue } from './state';
 import { TransactionsService } from './transactions';
 import type { TransferSolHelper } from './TransferSolHelper/TransferSolHelper';
@@ -49,6 +50,7 @@ describe('SolanaKeyring', () => {
   let mockStateValue: StateValue & EncryptedStateValue;
   let mockConnection: SolanaConnection;
   let mockTransferSolHelper: TransferSolHelper;
+  let mockSplTokenHelper: SplTokenHelper;
 
   beforeEach(() => {
     mockConnection = createMockConnection();
@@ -69,12 +71,17 @@ describe('SolanaKeyring', () => {
         ),
     } as unknown as TransferSolHelper;
 
+    mockSplTokenHelper = {
+      transferSplToken: jest.fn(),
+    } as unknown as SplTokenHelper;
+
     keyring = new SolanaKeyring({
       state,
       encryptedState,
       connection: mockConnection,
       transactionsService,
       transferSolHelper: mockTransferSolHelper,
+      splTokenHelper: mockSplTokenHelper,
       logger,
     });
 
@@ -397,6 +404,10 @@ describe('SolanaKeyring', () => {
       });
 
       it('transfers SOL', async () => {
+        jest
+          .spyOn(keyring, 'getAccount')
+          .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_4);
+
         const request = {
           id: 'some-id',
           scope: 'solana:devnet',
@@ -431,7 +442,11 @@ describe('SolanaKeyring', () => {
         account: 'non-existent-account',
         request: {
           method: SolMethod.SendAndConfirmTransaction,
-          params: {},
+          params: {
+            to: 'BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe',
+            mintAddress: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+            amount: 0.01,
+          },
         },
       };
 

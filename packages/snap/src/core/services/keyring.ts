@@ -13,13 +13,14 @@ import {
   type KeyringRequest,
   type KeyringResponse,
 } from '@metamask/keyring-api';
-import { type Json } from '@metamask/snaps-sdk';
+import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
 import type { Address, Signature } from '@solana/web3.js';
 import {
   address as asAddress,
   createKeyPairFromPrivateKeyBytes,
   getAddressFromPublicKey,
 } from '@solana/web3.js';
+import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
 
 import type { SolanaCaip2Networks } from '../constants/solana';
@@ -33,7 +34,11 @@ import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
 import type { ILogger } from '../utils/logger';
 import type { SendAndConfirmTransactionParams } from '../validation/structs';
-import { GetAccounBalancesResponseStruct } from '../validation/structs';
+import {
+  GetAccounBalancesResponseStruct,
+  SendAndConfirmTransactionParamsStruct,
+} from '../validation/structs';
+import { validateRequest } from '../validation/validators';
 import type { SolanaConnection } from './connection/SolanaConnection';
 import type { EncryptedSolanaState } from './encrypted-state';
 import type { SplTokenHelper } from './SplTokenHelper/SplTokenHelper';
@@ -310,9 +315,15 @@ export class SolanaKeyring implements Keyring {
       (request: KeyringRequest) => Promise<Json>
     > = {
       [SolMethod.SendAndConfirmTransaction]:
-        this.handleSendAndConfirmTransaction,
+        this.handleSendAndConfirmTransaction.bind(this),
       // Register other handlers here
     };
+
+    if (!(method in methodToHandler)) {
+      throw new MethodNotFoundError(
+        `Unsupported method: ${method}`,
+      ) as unknown as Error;
+    }
 
     return methodToHandler[method as SolMethod](request);
   }
@@ -322,6 +333,7 @@ export class SolanaKeyring implements Keyring {
   ): Promise<{ signature: string }> {
     const { scope, account: accountId } = request;
     const { params } = request.request;
+    validateRequest(params, SendAndConfirmTransactionParamsStruct as Struct);
     const { to, mintAddress, amount } =
       params as SendAndConfirmTransactionParams;
 
