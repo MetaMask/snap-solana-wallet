@@ -13,8 +13,8 @@ import {
   type KeyringRequest,
   type KeyringResponse,
 } from '@metamask/keyring-api';
-import type { Address, Signature } from '@metamask/snaps-sdk';
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
+import type { Signature } from '@solana/web3.js';
 import {
   address as asAddress,
   createKeyPairFromPrivateKeyBytes,
@@ -191,7 +191,7 @@ export class SolanaKeyring implements Keyring {
       try {
         const transactions = (
           await this.#transactionsService.fetchInitialAddressTransactions(
-            keyringAccount.address as Address,
+            asAddress(keyringAccount.address),
           )
         ).map((tx) => ({
           ...tx,

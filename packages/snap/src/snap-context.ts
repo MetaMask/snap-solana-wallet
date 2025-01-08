@@ -65,7 +65,6 @@ const keyring = new SolanaKeyring({
   state,
   encryptedState,
   configProvider,
-  connection,
   transactionsService,
   transferSolHelper,
   splTokenHelper,
@@ -97,6 +96,7 @@ const snapContext: SnapExecutionContext = {
 };
 
 export {
+  assetsService,
   configProvider,
   connection,
   keyring,
@@ -106,7 +106,6 @@ export {
   tokenPricesService,
   transactionHelper,
   transactionsService,
-  assetsService,
 };
 
 export default snapContext;
