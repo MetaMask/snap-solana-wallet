@@ -1,4 +1,4 @@
-import { SolMethod } from '@metamask/keyring-api';
+import { SolMethod, SolScopes } from '@metamask/keyring-api';
 
 import type { SolanaKeyringAccount } from '../../services/keyring';
 
@@ -19,6 +19,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
     201, 78, 195, 68, 173, 217, 17, 236, 239, 65, 202, 20, 18, 250, 160, 56,
     151, 150, 31, 187, 150, 2, 50, 207, 153, 155, 163, 236, 59, 134, 83, 102,
   ],
+  scopes: [SolScopes.Mainnet, SolScopes.Devnet, SolScopes.Testnet],
 };
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
@@ -32,6 +33,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
     58, 174, 98, 154, 253, 237, 125, 206, 109, 159, 134, 239, 189, 179, 106,
     243, 179, 3, 131, 173, 86, 94, 23, 72, 63, 239, 110, 125, 30, 210, 84, 194,
   ],
+  scopes: [SolScopes.Mainnet, SolScopes.Devnet, SolScopes.Testnet],
 };
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
@@ -45,6 +47,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
     217, 83, 246, 6, 62, 72, 189, 87, 62, 43, 66, 168, 205, 49, 195, 7, 119,
     128, 101, 85, 226, 215, 67, 23, 223, 247, 240, 157, 111, 214, 41, 42,
   ],
+  scopes: [SolScopes.Mainnet, SolScopes.Devnet, SolScopes.Testnet],
 };
 export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   address: '3SYHDFbhoxuTCYCGRw7KSL8GbwUoByjtvyy7pUZeAhh8',
@@ -57,6 +60,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
     197, 249, 13, 144, 108, 95, 220, 46, 159, 169, 72, 221, 192, 106, 72, 127,
     10, 3, 95, 186, 173, 83, 212, 239, 180, 41, 7, 213, 92, 250, 122, 122,
   ],
+  scopes: [SolScopes.Mainnet, SolScopes.Devnet, SolScopes.Testnet],
 };
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
@@ -70,6 +74,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
     182, 222, 182, 183, 103, 56, 65, 161, 67, 188, 55, 244, 249, 208, 7, 60,
     253, 87, 234, 231, 209, 140, 109, 175, 247, 42, 249, 9, 224, 62, 60, 54,
   ],
+  scopes: [SolScopes.Mainnet, SolScopes.Devnet, SolScopes.Testnet],
 };
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
@@ -83,6 +88,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
     130, 137, 152, 17, 6, 45, 56, 235, 140, 148, 107, 75, 184, 175, 54, 227,
     184, 27, 142, 254, 188, 4, 157, 96, 132, 101, 35, 165, 225, 205, 245, 102,
   ],
+  scopes: [SolScopes.Mainnet, SolScopes.Devnet, SolScopes.Testnet],
 };
 
 export const MOCK_SOLANA_KEYRING_ACCOUNTS = [

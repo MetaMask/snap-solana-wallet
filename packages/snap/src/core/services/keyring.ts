@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
 import {
-  emitSnapKeyringEvent,
   KeyringEvent,
   SolAccountType,
   SolMethod,
+  SolScopes,
   type Balance,
   type CaipAssetType,
   type Keyring,
@@ -13,6 +13,7 @@ import {
   type KeyringResponse,
   type Transaction,
 } from '@metamask/keyring-api';
+import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
 import type { Address, Signature } from '@solana/web3.js';
 import {
@@ -22,8 +23,8 @@ import {
 import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
 
-import type { SolanaCaip2Networks } from '../constants/solana';
 import { SOL_SYMBOL, SolanaCaip19Tokens } from '../constants/solana';
+import type { SolanaCaip2Networks } from '../constants/solana';
 import { lamportsToSol } from '../utils/conversion';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
 import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
@@ -156,6 +157,7 @@ export class SolanaKeyring implements Keyring {
         address: accountAddress,
         options: options ?? {},
         methods: [SolMethod.SendAndConfirmTransaction],
+        scopes: [SolScopes.Mainnet, SolScopes.Devnet, SolScopes.Testnet],
       };
 
       await this.#emitEvent(KeyringEvent.AccountCreated, {
@@ -169,6 +171,7 @@ export class SolanaKeyring implements Keyring {
           address: keyringAccount.address,
           options: keyringAccount.options,
           methods: keyringAccount.methods,
+          scopes: keyringAccount.scopes,
         },
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
@@ -208,6 +211,8 @@ export class SolanaKeyring implements Keyring {
 
       return keyringAccount;
     } catch (error: any) {
+      // TODO: remove, only for debugging
+      console.log({ error });
       this.#logger.error({ error }, 'Error creating account');
       throw new Error('Error creating account');
     }
