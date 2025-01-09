@@ -37,6 +37,7 @@ export class TransactionsService {
       await Promise.all(
         scopes.map(async (scope) =>
           this.fetchAddressTransactions(scope, address, {
+            // TODO: This should be configurable
             limit: 5,
           }),
         ),
@@ -346,26 +347,25 @@ export class TransactionsService {
 
   parseTransactionSplTransfers({
     scope,
-    transactionData,
-  }: {
-    scope: Network;
-    transactionData: SolanaTransaction;
-  }): {
+    meta,
+  }: { scope: Network } & SolanaTransaction): {
     from: Transaction['from'];
     to: Transaction['to'];
   } {
     const from: any[] = [];
     const to: any[] = [];
 
+    const { preTokenBalances, postTokenBalances } = meta;
+
     const preBalances = new Map(
-      transactionData.meta?.preTokenBalances?.map((balance) => [
+      preTokenBalances?.map((balance) => [
         balance.accountIndex,
         BigInt(balance.uiTokenAmount.amount),
       ]) ?? [],
     );
 
     const postBalances = new Map(
-      transactionData.meta?.postTokenBalances?.map((balance) => [
+      postTokenBalances?.map((balance) => [
         balance.accountIndex,
         BigInt(balance.uiTokenAmount.amount),
       ]) ?? [],
@@ -373,10 +373,8 @@ export class TransactionsService {
 
     // Track all accounts that had token balance changes
     const allAccountIndexes = new Set([
-      ...(transactionData.meta?.preTokenBalances?.map((b) => b.accountIndex) ??
-        []),
-      ...(transactionData.meta?.postTokenBalances?.map((b) => b.accountIndex) ??
-        []),
+      ...(preTokenBalances?.map((b) => b.accountIndex) ?? []),
+      ...(postTokenBalances?.map((b) => b.accountIndex) ?? []),
     ]);
 
     for (const accountIndex of allAccountIndexes) {
