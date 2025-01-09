@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.5]
 
-### Uncategorized
+### Added
 
 - feat!: add `scopes` field to `KeyringAccount` ([#134](https://github.com/MetaMask/snap-solana-wallet/pull/134))
 - feat: list account assets ([#125](https://github.com/MetaMask/snap-solana-wallet/pull/125))
