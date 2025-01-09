@@ -9,7 +9,7 @@ import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/get-solana
 import type { SolanaCaip2Networks } from '../../context/network';
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
-import { toaster } from '../ui/Toaster';
+import { toaster } from '../Toaster/Toaster';
 
 const SOLANA_TOKEN = 'slip44:501';
 

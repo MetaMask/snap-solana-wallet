@@ -3,7 +3,7 @@ import { useContext } from 'react';
 import styled from 'styled-components';
 
 import { Footer, Header } from './components';
-import { Toaster } from './components/ui/Toaster';
+import { Toaster } from './components/Toaster/Toaster';
 import { GlobalStyle } from './config/theme';
 import { ToggleThemeContext } from './Root';
 
