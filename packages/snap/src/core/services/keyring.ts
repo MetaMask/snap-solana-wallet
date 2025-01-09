@@ -27,10 +27,10 @@ import type { SolanaCaip2Networks } from '../constants/solana';
 import { SOL_SYMBOL, SolanaCaip19Tokens } from '../constants/solana';
 import { lamportsToSol } from '../utils/conversion';
 import { deriveSolanaPrivateKey } from '../utils/derive-solana-private-key';
+import { fromTokenUnits } from '../utils/fromTokenUnit';
 import { getLowestUnusedIndex } from '../utils/get-lowest-unused-index';
 import { getNetworkFromToken } from '../utils/get-network-from-token';
 import type { ILogger } from '../utils/logger';
-import { parseUnits } from '../utils/parse-units';
 import type { SendAndConfirmTransactionParams } from '../validation/structs';
 import {
   GetAccounBalancesResponseStruct,
@@ -337,7 +337,7 @@ export class SolanaKeyring implements Keyring {
 
             if (splToken) {
               balances.set(asset, {
-                amount: parseUnits(splToken.balance, splToken.decimals),
+                amount: fromTokenUnits(splToken.balance, splToken.decimals),
                 unit: tokenMetadata[splToken.address]?.symbol ?? '',
               });
             }

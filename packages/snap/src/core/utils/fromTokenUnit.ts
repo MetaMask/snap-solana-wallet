@@ -11,5 +11,5 @@ export function fromTokenUnits(
   decimals: number,
 ): string {
   const bn = new BigNumber(amount.toString());
-  return bn.div(10 ** decimals).toFixed();
+  return bn.div(10 ** decimals).toFixed(); // Use toFixed to avoid automatic scientific notation like 1e-18
 }
