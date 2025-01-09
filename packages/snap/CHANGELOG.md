@@ -9,14 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.5]
 
-### Uncategorized
+### Added
 
-- feat!: add `scopes` field to `KeyringAccount` ([#134](https://github.com/MetaMask/snap-solana-wallet/pull/134))
-- fix: check client status for running cronjobs ([#128](https://github.com/MetaMask/snap-solana-wallet/pull/128))
-- feat: add support for spanish translations ([#127](https://github.com/MetaMask/snap-solana-wallet/pull/127))
+- Add `scopes` field to `KeyringAccount` ([#134](https://github.com/MetaMask/snap-solana-wallet/pull/134))
+- Add support for spanish translations ([#127](https://github.com/MetaMask/snap-solana-wallet/pull/127))
 - New Crowdin translations by Github Action ([#121](https://github.com/MetaMask/snap-solana-wallet/pull/121))
-- feat: list account assets ([#125](https://github.com/MetaMask/snap-solana-wallet/pull/125))
-- Sol 74 snap get transaction fee ([#123](https://github.com/MetaMask/snap-solana-wallet/pull/123))
+- List account assets ([#125](https://github.com/MetaMask/snap-solana-wallet/pull/125))
+- Get transaction fee ([#123](https://github.com/MetaMask/snap-solana-wallet/pull/123))
+
+### Changed
+
+- Check client status for running cronjobs ([#128](https://github.com/MetaMask/snap-solana-wallet/pull/128))
 
 ## [1.0.4]
 
