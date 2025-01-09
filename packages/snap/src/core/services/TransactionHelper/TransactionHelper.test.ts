@@ -148,7 +148,7 @@ describe('TransactionHelper', () => {
         mockSignedTransaction,
       );
       expect(logger.info).toHaveBeenCalledWith(
-        `Sending transaction: https://explorer.solana.com/tx/${expectedSignature}?cluster=mainnet`,
+        `Sending transaction: https://explorer.solana.com/tx/${expectedSignature}`,
       );
     });
 

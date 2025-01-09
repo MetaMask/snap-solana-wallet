@@ -1,9 +1,6 @@
 import { getSetComputeUnitLimitInstruction } from '@solana-program/compute-budget';
-import type { MaybeAccount, MaybeEncodedAccount } from '@solana/web3.js';
 import {
-  address,
   compileTransactionMessage,
-  fetchJsonParsedAccount,
   getBase64Decoder,
   getCompiledTransactionMessageEncoder,
   getComputeUnitEstimateForTransactionMessageFactory,
@@ -12,7 +9,6 @@ import {
   prependTransactionMessageInstructions,
   sendTransactionWithoutConfirmingFactory,
   signTransactionMessageWithSigners,
-  type Address,
   type Blockhash,
   type IInstruction,
   type ITransactionMessageWithFeePayer,
@@ -21,6 +17,7 @@ import {
 
 import type { SolanaCaip2Networks } from '../../constants/solana';
 import { getClusterFromScope } from '../../utils/get-cluster-from-scope';
+import { getSolanaExplorerUrl } from '../../utils/get-solana-explorer-url';
 import type { ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 
@@ -181,9 +178,8 @@ export class TransactionHelper {
       const signature = getSignatureFromTransaction(signedTransaction);
 
       const cluster = getClusterFromScope(network)?.toLowerCase() ?? 'mainnet';
-      this.#logger.info(
-        `Sending transaction: https://explorer.solana.com/tx/${signature}?cluster=${cluster}`,
-      );
+      const explorerUrl = getSolanaExplorerUrl(network, 'tx', signature);
+      this.#logger.info(`Sending transaction: ${explorerUrl}`);
 
       await sendTransactionWithoutConfirming(signedTransaction, {
         commitment: 'confirmed',
@@ -193,14 +189,5 @@ export class TransactionHelper {
       this.#logger.error(error);
       throw error;
     }
-  }
-
-  async getTokenMintInfo(mintAddress: string, network: SolanaCaip2Networks) {
-    type TokenData = { mint: Address; owner: Address };
-    const myAccount = await fetchJsonParsedAccount<TokenData>(
-      this.#connection.getRpc(network),
-      address(mintAddress),
-    );
-    myAccount satisfies MaybeAccount<TokenData> | MaybeEncodedAccount;
   }
 }

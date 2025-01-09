@@ -64,14 +64,15 @@ export class SplTokenHelper {
     network: SolanaCaip2Networks,
   ): Promise<string> {
     try {
-      console.log('🍗transferSPLToken', {
-        from,
-        to,
-        mint,
-        amountInToken,
-      });
-
-      console.log('🍗amountInToken', amountInToken);
+      this.#logger.log(
+        {
+          from,
+          to,
+          mint,
+          amountInToken,
+        },
+        'Transfer SPL token',
+      );
 
       const signer = await createKeyPairSignerFromPrivateKeyBytes(
         Uint8Array.from(from.privateKeyBytesAsNum),
@@ -85,7 +86,6 @@ export class SplTokenHelper {
         network,
         signer,
       );
-      console.log('🍗fromTokenAccount.address', fromTokenAccount.address);
 
       const toTokenAccount = await this.getOrCreateAssociatedTokenAccount(
         mint,
@@ -93,7 +93,6 @@ export class SplTokenHelper {
         network,
         signer,
       );
-      console.log('🍗toTokenAccount.address', toTokenAccount.address);
 
       // Fetch the token account
       const tokenAccount = await this.getTokenAccount<MaybeHasDecimals>(
@@ -102,11 +101,9 @@ export class SplTokenHelper {
       );
 
       const decimals = this.getDecimals(tokenAccount);
-      console.log('🍗decimals', decimals);
 
       // Convert amount based on token decimals
       const amountInTokenUnits = toTokenUnits(amountInToken, decimals);
-      console.log('🍗amountInTokenUnits', amountInTokenUnits);
 
       const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
         network,
@@ -128,8 +125,6 @@ export class SplTokenHelper {
             tx,
           ),
       );
-
-      console.log('🍗transactionMessage', transactionMessage);
 
       return this.#transactionHelper.sendTransaction(
         transactionMessage,
@@ -169,7 +164,6 @@ export class SplTokenHelper {
       ) &
         Exists;
     } catch (error) {
-      console.log('🍗proutoutoutou');
       this.#logger.log('Associated token account does not exist. Create it...');
       if (!payer) {
         throw new Error('Payer is required to create associated token account');
@@ -216,7 +210,6 @@ export class SplTokenHelper {
     owner: Address,
     network: SolanaCaip2Networks,
   ): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
-    console.log('🍗getAssociatedTokenAccount', { mint, owner, network });
     const associatedTokenAccountAddress =
       await SplTokenHelper.deriveAssociatedTokenAccountAddress(mint, owner);
 
@@ -243,12 +236,6 @@ export class SplTokenHelper {
     network: SolanaCaip2Networks,
     payer: KeyPairSigner,
   ): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
-    console.log('🍗createAssociatedTokenAccount', {
-      mint,
-      owner,
-      network,
-      payer,
-    });
     const associatedTokenAccountAddress =
       await SplTokenHelper.deriveAssociatedTokenAccountAddress(mint, owner);
 
@@ -280,8 +267,6 @@ export class SplTokenHelper {
           tx,
         ),
     );
-
-    console.log('🍗transactionMessage', transactionMessage);
 
     // Send the transaction to create the associated token account.
     await this.#transactionHelper.sendTransaction(transactionMessage, network);
