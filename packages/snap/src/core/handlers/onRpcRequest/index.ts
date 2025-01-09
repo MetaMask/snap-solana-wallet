@@ -9,5 +9,4 @@ export const handlers: Partial<
 > = {
   [SolanaInternalRpcMethods.StartSendTransactionFlow]: renderSend,
   [SolanaInternalRpcMethods.ListAccountAssets]: listAccountAssets,
-  // Register new handlers here
 };
