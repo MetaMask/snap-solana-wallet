@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
 import {
-  emitSnapKeyringEvent,
   KeyringEvent,
   SolAccountType,
   SolMethod,
+  SolScopes,
   type Balance,
   type CaipAssetType,
   type Keyring,
@@ -13,6 +13,7 @@ import {
   type KeyringResponse,
   type Transaction,
 } from '@metamask/keyring-api';
+import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
 import type { Address, Signature } from '@solana/web3.js';
 import {
@@ -155,6 +156,7 @@ export class SolanaKeyring implements Keyring {
         type: SolAccountType.DataAccount,
         address: accountAddress,
         options: options ?? {},
+        scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
         methods: [SolMethod.SendAndConfirmTransaction],
       };
 
@@ -169,6 +171,7 @@ export class SolanaKeyring implements Keyring {
           address: keyringAccount.address,
           options: keyringAccount.options,
           methods: keyringAccount.methods,
+          scopes: keyringAccount.scopes,
         },
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
