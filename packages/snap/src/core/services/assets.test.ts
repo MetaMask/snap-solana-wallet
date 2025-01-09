@@ -1,8 +1,8 @@
 import {
-  SolanaCaip19Tokens,
-  SOL_SYMBOL,
-  SolanaCaip2Networks,
+  Network,
   SOL_IMAGE_URL,
+  SOL_SYMBOL,
+  SolanaCaip19Tokens,
 } from '../constants/solana';
 import { SOLANA_MOCK_SPL_TOKENS } from '../test/mocks/solana-assets';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_1 } from '../test/mocks/solana-keyring-accounts';
@@ -31,7 +31,7 @@ describe('AssetsService', () => {
   describe('discoverTokens', () => {
     it('discovers tokens with non-zero balance', async () => {
       const { address } = MOCK_SOLANA_KEYRING_ACCOUNT_1;
-      const scope = SolanaCaip2Networks.Localnet;
+      const scope = Network.Localnet;
 
       const mockSend = jest.fn().mockReturnValue({
         value: [
@@ -72,7 +72,7 @@ describe('AssetsService', () => {
 
     it('throws an error if the RPC call fails', async () => {
       const { address } = MOCK_SOLANA_KEYRING_ACCOUNT_1;
-      const scope = SolanaCaip2Networks.Localnet;
+      const scope = Network.Localnet;
 
       const mockSend = jest.fn().mockRejectedValue(new Error('Network error'));
       const mockGetTokenAccountsByOwner = jest
@@ -91,7 +91,7 @@ describe('AssetsService', () => {
   describe('getNativeAsset', () => {
     it('gets native asset', async () => {
       const { address } = MOCK_SOLANA_KEYRING_ACCOUNT_1;
-      const scope = SolanaCaip2Networks.Localnet;
+      const scope = Network.Localnet;
 
       const nativeAsset = await assetsService.getNativeAsset(address, scope);
 
@@ -111,7 +111,7 @@ describe('AssetsService', () => {
 
     it('throws an error if the RPC call fails', async () => {
       const { address } = MOCK_SOLANA_KEYRING_ACCOUNT_1;
-      const scope = SolanaCaip2Networks.Localnet;
+      const scope = Network.Localnet;
 
       const mockSend = jest.fn().mockRejectedValue(new Error('Network error'));
       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
