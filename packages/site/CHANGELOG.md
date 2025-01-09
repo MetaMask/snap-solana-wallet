@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5]
+
+### Uncategorized
+
+- feat!: add `scopes` field to `KeyringAccount` ([#134](https://github.com/MetaMask/snap-solana-wallet/pull/134))
+- feat: list account assets ([#125](https://github.com/MetaMask/snap-solana-wallet/pull/125))
+
 ## [1.0.4]
 
 ### Added
@@ -50,7 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.2...v1.0.4
 [1.0.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.0...v1.0.1
