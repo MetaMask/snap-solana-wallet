@@ -85,7 +85,7 @@ async function onConfirmButtonClick({
   // Then submit the transaction
   let signature: string | null = null;
   const tokenPrice = tokenPrices[Caip19Id.SolMainnet];
-  const { price } = tokenPrice;
+  const { price } = tokenPrice ?? { price: 0 };
 
   const amountInSol = Number(
     currencySymbol === SendCurrency.SOL
@@ -113,7 +113,7 @@ async function onConfirmButtonClick({
     transaction: {
       result: signature ? 'success' : 'failure',
       signature,
-      tokenPrice,
+      tokenPrice: tokenPrice ?? null,
     },
   };
 

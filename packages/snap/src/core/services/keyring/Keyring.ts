@@ -5,7 +5,6 @@ import {
   KeyringEvent,
   SolAccountType,
   SolMethod,
-  SolScopes,
   type Balance,
   type CaipAssetType,
   type Keyring,
@@ -160,9 +159,9 @@ export class SolanaKeyring implements Keyring {
         type: SolAccountType.DataAccount,
         address: accountAddress,
         options: options ?? {},
-        scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
+        // scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
         methods: [SolMethod.SendAndConfirmTransaction],
-      };
+      } as unknown as SolanaKeyringAccount; // TODO: Remvove once we uncomment the scopes
 
       await this.#emitEvent(KeyringEvent.AccountCreated, {
         /**
