@@ -23,8 +23,8 @@ import type BigNumber from 'bignumber.js';
 
 import type { SolanaCaip2Networks } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
+import { retry } from '../../utils/retry';
 import { toTokenUnits } from '../../utils/toTokenUnit';
-import { waitUntilNotThrow } from '../../utils/waitUntilNotThrow';
 import type { SolanaConnection } from '../connection';
 import type { SolanaKeyringAccount } from '../keyring';
 import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
@@ -273,9 +273,9 @@ export class SplTokenHelper {
 
     /**
      * When the previous line resolves, the associated token account is in fact not yet created.
-     * We need to wait for it to be created.
+     * We need to poll the account until it exists.
      */
-    return await waitUntilNotThrow(async () => {
+    return await retry(async () => {
       const account = await this.getTokenAccount<TData>(
         associatedTokenAccountAddress,
         network,

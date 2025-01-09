@@ -16,7 +16,6 @@ import {
 } from '@solana/web3.js';
 
 import type { SolanaCaip2Networks } from '../../constants/solana';
-import { getClusterFromScope } from '../../utils/get-cluster-from-scope';
 import { getSolanaExplorerUrl } from '../../utils/get-solana-explorer-url';
 import type { ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
@@ -177,7 +176,6 @@ export class TransactionHelper {
 
       const signature = getSignatureFromTransaction(signedTransaction);
 
-      const cluster = getClusterFromScope(network)?.toLowerCase() ?? 'mainnet';
       const explorerUrl = getSolanaExplorerUrl(network, 'tx', signature);
       this.#logger.info(`Sending transaction: ${explorerUrl}`);
 

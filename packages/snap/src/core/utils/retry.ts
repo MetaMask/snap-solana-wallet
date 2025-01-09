@@ -1,13 +1,13 @@
 /**
- * Wait until the passed function does not throw an error, retrying with a delay
+ * Retry the passed promise until it resolves, retrying with a delay
  * between attempts until the maximum number of attempts is reached.
- * @param fn - The function to wait for.
- * @param options - The options for the function.
+ * @param fn - The promise to retry.
+ * @param options - The options for the promise.
  * @param options.maxAttempts - The maximum number of attempts.
  * @param options.delayMs - The delay between attempts in milliseconds.
- * @returns The result of the function.
+ * @returns The result of the promise.
  */
-export async function waitUntilNotThrow<TResult>(
+export async function retry<TResult>(
   fn: () => Promise<TResult> | TResult,
   options?: {
     maxAttempts?: number;
