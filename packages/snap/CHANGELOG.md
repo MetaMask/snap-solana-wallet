@@ -9,12 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0]
 
-### Uncategorized
-
-- fix: remove comment ([#136](https://github.com/MetaMask/snap-solana-wallet/pull/136))
-
-## [1.0.5]
-
 ### Added
 
 - Add `scopes` field to `KeyringAccount` ([#134](https://github.com/MetaMask/snap-solana-wallet/pull/134))
