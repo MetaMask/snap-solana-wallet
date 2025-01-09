@@ -5,8 +5,11 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
 } from '../../test/mocks/solana-keyring-accounts';
-import type { StateValue } from './EncryptedState';
-import { DEFAULT_STATE, EncryptedSolanaState } from './EncryptedState';
+import type { EncryptedStateValue } from './EncryptedState';
+import {
+  DEFAULT_ENCRYPTED_STATE,
+  EncryptedSolanaState,
+} from './EncryptedState';
 
 const snap = {
   request: jest.fn(),
@@ -27,7 +30,7 @@ describe('EncryptedSolanaState', () => {
   });
 
   it('gets the state', async () => {
-    const mockState = DEFAULT_STATE;
+    const mockState = DEFAULT_ENCRYPTED_STATE;
     snap.request.mockResolvedValue(mockState);
 
     const state = await solanaState.get();
@@ -45,7 +48,7 @@ describe('EncryptedSolanaState', () => {
 
     const state = await solanaState.get();
 
-    expect(state).toStrictEqual(DEFAULT_STATE);
+    expect(state).toStrictEqual(DEFAULT_ENCRYPTED_STATE);
   });
 
   it('sets the state', async () => {
@@ -53,7 +56,7 @@ describe('EncryptedSolanaState', () => {
       keyringAccounts: {
         '0': MOCK_SOLANA_KEYRING_ACCOUNT_0,
       },
-    } as unknown as StateValue;
+    } as unknown as EncryptedStateValue;
 
     await solanaState.set(newState);
 
@@ -87,7 +90,7 @@ describe('EncryptedSolanaState', () => {
             ...(state?.keyringAccounts ?? {}),
             '2': MOCK_SOLANA_KEYRING_ACCOUNT_2,
           },
-        } as unknown as StateValue),
+        } as unknown as EncryptedStateValue),
     );
 
     expect(snap.request).toHaveBeenCalledWith({

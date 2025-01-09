@@ -4,16 +4,16 @@ import type { Json } from '@metamask/snaps-sdk';
 import { safeMerge } from '../../utils/safeMerge';
 import type { SolanaKeyringAccount } from '../keyring/Keyring';
 
-export type StateValue = {
+export type EncryptedStateValue = {
   keyringAccounts?: Record<string, SolanaKeyringAccount>;
 };
 
-export const DEFAULT_STATE: StateValue = {
+export const DEFAULT_ENCRYPTED_STATE: EncryptedStateValue = {
   keyringAccounts: {},
 };
 
 export class EncryptedSolanaState {
-  async get(): Promise<StateValue> {
+  async get(): Promise<EncryptedStateValue> {
     const state = await snap.request({
       method: 'snap_manageState',
       params: {
@@ -23,10 +23,10 @@ export class EncryptedSolanaState {
 
     // Merge the default state with the underlying snap state
     // to ensure that we always have default values. It lets us avoid a ton of null checks everywhere.
-    return safeMerge(DEFAULT_STATE, state ?? {});
+    return safeMerge(DEFAULT_ENCRYPTED_STATE, state ?? {});
   }
 
-  async set(state: StateValue): Promise<void> {
+  async set(state: EncryptedStateValue): Promise<void> {
     await snap.request({
       method: 'snap_manageState',
       params: {
@@ -36,7 +36,9 @@ export class EncryptedSolanaState {
     });
   }
 
-  async update(callback: (state: StateValue) => StateValue): Promise<void> {
+  async update(
+    callback: (state: EncryptedStateValue) => EncryptedStateValue,
+  ): Promise<void> {
     return this.get().then(async (state) => {
       const newState = callback(state);
       return this.set(newState);

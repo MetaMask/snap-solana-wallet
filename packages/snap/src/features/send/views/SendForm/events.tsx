@@ -15,7 +15,7 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import { validateField } from '../../../../core/validation/form';
-import { keyring } from '../../../../snap-context';
+import { keyring } from '../../../../snapContext';
 import { Send } from '../../Send';
 import { SendCurrency, SendFormNames, type SendContext } from '../../types';
 import { validateBalance } from '../../utils/balance';

@@ -1,15 +1,6 @@
 import type { Json } from '@metamask/snaps-sdk';
 
-import {
-  MOCK_SOLANA_KEYRING_ACCOUNT_0,
-  MOCK_SOLANA_KEYRING_ACCOUNT_1,
-  MOCK_SOLANA_KEYRING_ACCOUNT_2,
-} from '../../test/mocks/solana-keyring-accounts';
-import {
-  type StateValue,
-  DEFAULT_STATE,
-  EncryptedSolanaState,
-} from '../encrypted-state/EncryptedState';
+import { type StateValue, DEFAULT_STATE, SolanaState } from './State';
 
 const snap = {
   request: jest.fn(),
@@ -18,10 +9,10 @@ const snap = {
 (globalThis as any).snap = snap;
 
 describe('SolanaState', () => {
-  let solanaState: EncryptedSolanaState;
+  let solanaState: SolanaState;
 
   beforeEach(() => {
-    solanaState = new EncryptedSolanaState();
+    solanaState = new SolanaState();
     jest.clearAllMocks();
   });
 
@@ -37,7 +28,7 @@ describe('SolanaState', () => {
 
     expect(snap.request).toHaveBeenCalledWith({
       method: 'snap_manageState',
-      params: { operation: 'get' },
+      params: { operation: 'get', encrypted: false },
     });
     expect(state).toStrictEqual(mockState);
   });
@@ -53,9 +44,7 @@ describe('SolanaState', () => {
 
   it('sets the state', async () => {
     const newState = {
-      keyringAccounts: {
-        '0': MOCK_SOLANA_KEYRING_ACCOUNT_0,
-      },
+      isFetchingTransactions: true,
     } as unknown as StateValue;
 
     await solanaState.set(newState);
@@ -65,44 +54,37 @@ describe('SolanaState', () => {
       params: {
         operation: 'update',
         newState: newState as unknown as Record<string, Json>,
+        encrypted: false,
       },
     });
   });
 
   it('updates the state', async () => {
     const initialState = {
-      keyringAccounts: {
-        '1': MOCK_SOLANA_KEYRING_ACCOUNT_1,
-      },
+      isFetchingTransactions: false,
     };
     const updatedState = {
-      keyringAccounts: {
-        '1': MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        '2': MOCK_SOLANA_KEYRING_ACCOUNT_2,
-      },
+      ...DEFAULT_STATE,
+      isFetchingTransactions: true,
     };
     snap.request.mockResolvedValueOnce(initialState);
 
-    await solanaState.update(
-      (state) =>
-        ({
-          keyringAccounts: {
-            ...(state?.keyringAccounts ?? {}),
-            '2': MOCK_SOLANA_KEYRING_ACCOUNT_2,
-          },
-        } as unknown as StateValue),
-    );
+    await solanaState.update((state) => ({
+      ...state,
+      isFetchingTransactions: true,
+    }));
 
-    expect(snap.request).toHaveBeenCalledWith({
+    expect(snap.request).toHaveBeenNthCalledWith(1, {
       method: 'snap_manageState',
-      params: { operation: 'get' },
+      params: { operation: 'get', encrypted: false },
     });
 
-    expect(snap.request).toHaveBeenCalledWith({
+    expect(snap.request).toHaveBeenNthCalledWith(2, {
       method: 'snap_manageState',
       params: {
         operation: 'update',
         newState: updatedState as unknown as Record<string, Json>,
+        encrypted: false,
       },
     });
   });

@@ -14,10 +14,10 @@ import {
   type MaybeAccount,
 } from '@solana/web3.js';
 
-import { SolanaCaip2Networks } from '../../constants/solana';
+import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
 import { createMockConnection } from '../mocks/mockConnection';
-import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
+import type { TransactionHelper } from '../transaction-helper/TransactionHelper';
 import type { Exists, MaybeHasDecimals } from './SplTokenHelper';
 import { SplTokenHelper } from './SplTokenHelper';
 
@@ -59,7 +59,7 @@ describe('SplTokenHelper', () => {
     const mockFrom = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
     const mockTo = MOCK_SOLANA_KEYRING_ACCOUNTS[1];
     const mockMint = 'mockMintAddress' as Address;
-    const mockNetwork = SolanaCaip2Networks.Localnet;
+    const mockNetwork = Network.Localnet;
     const mockSigner = {
       address: 'mockSignerAddress' as Address,
       signTransaction: jest.fn(),
@@ -145,7 +145,7 @@ describe('SplTokenHelper', () => {
   describe('getOrCreateAssociatedTokenAccount', () => {
     const mockMint = 'mockMintAddress' as Address;
     const mockOwner = 'mockOwnerAddress' as Address;
-    const mockNetwork = SolanaCaip2Networks.Localnet;
+    const mockNetwork = Network.Localnet;
     const mockPayer = {} as unknown as KeyPairSigner;
 
     it('should return existing associated token account', async () => {
@@ -217,7 +217,7 @@ describe('SplTokenHelper', () => {
   describe('getAssociatedTokenAccount', () => {
     const mockMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU' as Address;
     const mockOwner = address(MOCK_SOLANA_KEYRING_ACCOUNTS[0].address);
-    const mockNetwork = SolanaCaip2Networks.Localnet;
+    const mockNetwork = Network.Localnet;
 
     it('should return associated token account', async () => {
       const mockAccount = {
@@ -260,7 +260,7 @@ describe('SplTokenHelper', () => {
   describe('createAssociatedTokenAccount', () => {
     const mockMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU' as Address;
     const mockOwner = address(MOCK_SOLANA_KEYRING_ACCOUNTS[0].address);
-    const mockNetwork = SolanaCaip2Networks.Localnet;
+    const mockNetwork = Network.Localnet;
     const mockPayer = {
       address: 'mockPayerAddress' as Address,
     } as unknown as KeyPairSigner;
@@ -331,7 +331,7 @@ describe('SplTokenHelper', () => {
 
   describe('getTokenAccount', () => {
     const mockMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU' as Address;
-    const mockNetwork = SolanaCaip2Networks.Localnet;
+    const mockNetwork = Network.Localnet;
 
     it('should return token account when it exists', async () => {
       const mockTokenAccount = {

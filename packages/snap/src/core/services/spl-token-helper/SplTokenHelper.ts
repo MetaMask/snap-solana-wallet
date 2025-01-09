@@ -21,13 +21,13 @@ import {
 } from '@solana/web3.js';
 import type BigNumber from 'bignumber.js';
 
-import type { SolanaCaip2Networks } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import { retry } from '../../utils/retry';
 import { toTokenUnits } from '../../utils/toTokenUnit';
 import type { SolanaConnection } from '../connection';
-import type { SolanaKeyringAccount } from '../keyring';
-import type { TransactionHelper } from '../TransactionHelper/TransactionHelper';
+import type { SolanaKeyringAccount } from '../keyring/Keyring';
+import type { TransactionHelper } from '../transaction-helper/TransactionHelper';
 
 export class SplTokenHelper {
   readonly #connection: SolanaConnection;
@@ -61,7 +61,7 @@ export class SplTokenHelper {
     to: Address,
     mint: Address,
     amountInToken: string | number | bigint | BigNumber,
-    network: SolanaCaip2Networks,
+    network: Network,
   ): Promise<string> {
     try {
       this.#logger.log(
@@ -147,7 +147,7 @@ export class SplTokenHelper {
   async getOrCreateAssociatedTokenAccount<TData extends Uint8Array | object>(
     mint: Address,
     owner: Address,
-    network: SolanaCaip2Networks,
+    network: Network,
     payer?: KeyPairSigner,
   ): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
     const associatedTokenAccount = await this.getAssociatedTokenAccount(
@@ -208,7 +208,7 @@ export class SplTokenHelper {
   async getAssociatedTokenAccount<TData extends Uint8Array | object>(
     mint: Address,
     owner: Address,
-    network: SolanaCaip2Networks,
+    network: Network,
   ): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
     const associatedTokenAccountAddress =
       await SplTokenHelper.deriveAssociatedTokenAccountAddress(mint, owner);
@@ -233,7 +233,7 @@ export class SplTokenHelper {
   async createAssociatedTokenAccount<TData extends Uint8Array | object>(
     mint: Address,
     owner: Address,
-    network: SolanaCaip2Networks,
+    network: Network,
     payer: KeyPairSigner,
   ): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
     const associatedTokenAccountAddress =
@@ -295,7 +295,7 @@ export class SplTokenHelper {
    */
   async getTokenAccount<TData extends Uint8Array | object>(
     mint: Address,
-    network: SolanaCaip2Networks,
+    network: Network,
   ): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
     const rpc = this.#connection.getRpc(network);
     const tokenAccount = await fetchJsonParsedAccount<TData>(rpc, mint);
