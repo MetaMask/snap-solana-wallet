@@ -1,4 +1,4 @@
-import { SolanaCaip2Networks } from '../../constants/solana';
+import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
@@ -9,11 +9,11 @@ import type {
   TokenMetadataResponse,
 } from './types';
 
-const SCOPE_TO_NETWORK: Record<SolanaCaip2Networks, string> = {
-  [SolanaCaip2Networks.Mainnet]: 'solana',
-  [SolanaCaip2Networks.Devnet]: 'solana-devnet',
-  [SolanaCaip2Networks.Testnet]: 'solana-testnet',
-  [SolanaCaip2Networks.Localnet]: 'solana-localnet',
+const SCOPE_TO_NETWORK: Record<Network, string> = {
+  [Network.Mainnet]: 'solana',
+  [Network.Devnet]: 'solana-devnet',
+  [Network.Testnet]: 'solana-testnet',
+  [Network.Localnet]: 'solana-localnet',
 };
 
 export class TokenMetadataClient {
@@ -35,7 +35,7 @@ export class TokenMetadataClient {
 
   async getTokenMetadataFromAddresses(
     addresses: string[],
-    scope: SolanaCaip2Networks,
+    scope: Network,
   ): Promise<Record<string, SolanaTokenMetadata>> {
     try {
       const { baseUrl, apiKey } = this.#configProvider.get().tokenApi;

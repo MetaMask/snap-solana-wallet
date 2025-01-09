@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5]
+
+### Added
+
+- Add `scopes` field to `KeyringAccount` ([#134](https://github.com/MetaMask/snap-solana-wallet/pull/134))
+- Add support for spanish translations ([#127](https://github.com/MetaMask/snap-solana-wallet/pull/127))
+- New Crowdin translations by Github Action ([#121](https://github.com/MetaMask/snap-solana-wallet/pull/121))
+- List account assets ([#125](https://github.com/MetaMask/snap-solana-wallet/pull/125))
+- Get transaction fee ([#123](https://github.com/MetaMask/snap-solana-wallet/pull/123))
+
+### Changed
+
+- Check client status for running cronjobs ([#128](https://github.com/MetaMask/snap-solana-wallet/pull/128))
+
 ## [1.0.4]
 
 ### Added
@@ -95,7 +109,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.1...v1.0.2

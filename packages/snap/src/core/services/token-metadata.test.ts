@@ -1,5 +1,5 @@
 import type { TokenMetadataClient } from '../clients/token-metadata-client/token-metadata-client';
-import { SolanaCaip2Networks } from '../constants/solana';
+import { Network } from '../constants/solana';
 import {
   SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN_METADATA,
@@ -23,14 +23,14 @@ describe('TokenMetadataService', () => {
     it('returns an empty object if no tokens are provided', async () => {
       const result = await tokenMetadataService.getMultipleTokenMetadata(
         [],
-        SolanaCaip2Networks.Localnet,
+        Network.Localnet,
       );
       expect(result).toStrictEqual({});
     });
 
     it('returns token metadata from client', async () => {
       const tokens: SolanaAsset[] = SOLANA_MOCK_SPL_TOKENS;
-      const scope: SolanaCaip2Networks = SolanaCaip2Networks.Localnet;
+      const scope: Network = Network.Localnet;
       const mockMetadata = SOLANA_MOCK_TOKEN_METADATA;
 
       jest
@@ -47,7 +47,7 @@ describe('TokenMetadataService', () => {
 
     it('throws an error if the client fails to fetch token metadata', async () => {
       const tokens: SolanaAsset[] = SOLANA_MOCK_SPL_TOKENS;
-      const scope: SolanaCaip2Networks = SolanaCaip2Networks.Localnet;
+      const scope: Network = Network.Localnet;
       const error = new Error('Error fetching token metadata');
 
       jest

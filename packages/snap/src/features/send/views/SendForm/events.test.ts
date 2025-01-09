@@ -41,26 +41,6 @@ describe('onMaxAmountButtonClick', () => {
         ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.SolMainnet].caip19Id],
         price: Number(mockSolPrice),
       },
-      // [Caip19Id.UsdcMainnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.UsdcMainnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
-      // [Caip19Id.EurcMainnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.EurcMainnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
-      // [Caip19Id.SolDevnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.SolDevnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
-      // [Caip19Id.UsdcDevnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.UsdcDevnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
-      // [Caip19Id.EurcDevnet]: {
-      //   ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.EurcDevnet].caip19Id],
-      //   price: Number(mockSolPrice),
-      // },
     },
     validation: {},
     amount: '',
