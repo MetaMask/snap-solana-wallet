@@ -1,3 +1,4 @@
+/* eslint-disable jest/prefer-strict-equal */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SolMethod } from '@metamask/keyring-api';
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
@@ -278,16 +279,19 @@ describe('SolanaKeyring', () => {
       const secondAccount = await keyring.createAccount();
       const thirdAccount = await keyring.createAccount();
 
-      expect(firstAccount).toStrictEqual({
+      expect(firstAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
-      expect(secondAccount).toStrictEqual({
+      expect(secondAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
-      expect(thirdAccount).toStrictEqual({
+      expect(thirdAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
     });
@@ -323,40 +327,48 @@ describe('SolanaKeyring', () => {
       /**
        * Accounts are created in order
        */
-      expect(firstAccount).toStrictEqual({
+      expect(firstAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
-      expect(secondAccount).toStrictEqual({
+      expect(secondAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
-      expect(thirdAccount).toStrictEqual({
+      expect(thirdAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
-      expect(fourthAccount).toStrictEqual({
+      expect(fourthAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_3,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
-      expect(fifthAccount).toStrictEqual({
+      expect(fifthAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_4,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
-      expect(sixthAccount).toStrictEqual({
+      expect(sixthAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_5,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
 
       /**
        * Regenerated accounts should pick up the missing indices
        */
-      expect(regeneratedSecondAccount).toStrictEqual({
+      expect(regeneratedSecondAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
-      expect(regeneratedFourthAccount).toStrictEqual({
+      expect(regeneratedFourthAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_3,
+        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
     });
