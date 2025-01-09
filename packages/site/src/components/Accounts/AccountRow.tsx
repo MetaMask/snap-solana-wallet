@@ -4,9 +4,9 @@ import { Link as RouterLink } from 'gatsby';
 import { useEffect, useState } from 'react';
 import { LuCopy } from 'react-icons/lu';
 
-import { SolanaInternalRpcMethods } from '../../../../snap/src/core/constants/solana';
-import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/get-solana-explorer-url';
-import type { SolanaCaip2Networks } from '../../context/network';
+import type { Network } from '../../../../snap/src/core/constants/solana';
+import { RpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
+import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
 import { toaster } from '../Toaster/Toaster';
@@ -40,7 +40,7 @@ export const AccountRow = ({
 
   const handleSend = async (id: string) => {
     await invokeSnap({
-      method: SolanaInternalRpcMethods.StartSendTransactionFlow,
+      method: RpcRequestMethod.StartSendTransactionFlow,
       params: {
         scope: network,
         account: id,
@@ -92,7 +92,7 @@ export const AccountRow = ({
         <Link
           colorPalette="purple"
           href={getSolanaExplorerUrl(
-            network as SolanaCaip2Networks,
+            network as Network,
             'address',
             account.address,
           )}

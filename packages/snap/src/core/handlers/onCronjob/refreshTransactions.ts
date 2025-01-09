@@ -2,8 +2,8 @@ import type { Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/web3.js';
 import { address as asAddress } from '@solana/web3.js';
 
-import { keyring, state, transactionsService } from '../../../snap-context';
-import { SolanaCaip2Networks } from '../../constants/solana';
+import { keyring, state, transactionsService } from '../../../snapContext';
+import { Network } from '../../constants/solana';
 import logger from '../../utils/logger';
 
 /**
@@ -38,7 +38,7 @@ export async function refreshTransactions() {
       isFetchingTransactions: true,
     });
 
-    const scopes = [SolanaCaip2Networks.Mainnet, SolanaCaip2Networks.Devnet];
+    const scopes = [Network.Mainnet, Network.Devnet];
 
     // Create a set to store existing signatures for quick lookup
     const existingSignatures = new Set<string>();
@@ -62,7 +62,7 @@ export async function refreshTransactions() {
         const signatures = await transactionsService.fetchLatestSignatures(
           scope,
           asAddress(account.address),
-          40,
+          2,
         );
 
         // Filter out signatures we already have

@@ -7,16 +7,17 @@ import type { SendContext } from '../../../features/send/types';
 import { SendCurrency } from '../../../features/send/types';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
 import {
+  assetsService,
   keyring,
   state,
   tokenPricesService,
-  assetsService,
-} from '../../../snap-context';
+} from '../../../snapContext';
 import {
+  Network,
+  Networks,
   SOL_TRANSFER_FEE_LAMPORTS,
-  SolanaCaip2Networks,
 } from '../../constants/solana';
-import { DEFAULT_TOKEN_PRICES } from '../../services/state';
+import { DEFAULT_TOKEN_PRICES } from '../../services/state/State';
 import { lamportsToSol } from '../../utils/conversion';
 import {
   createInterface,
@@ -29,7 +30,7 @@ import {
 import logger from '../../utils/logger';
 
 export const DEFAULT_SEND_CONTEXT: SendContext = {
-  scope: SolanaCaip2Networks.Mainnet,
+  scope: Network.Localnet,
   fromAccountId: '',
   amount: '',
   toAddress: '',
@@ -60,6 +61,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   assert(params, StartSendTransactionFlowParamsStruct);
 
   const { scope, account } = params;
+
+  const token = Networks[scope].nativeToken.caip19Id;
 
   const context = { ...DEFAULT_SEND_CONTEXT, scope, fromAccountId: account };
 

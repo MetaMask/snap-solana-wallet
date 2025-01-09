@@ -1,4 +1,4 @@
-import { SolanaCaip19Tokens } from '../../../core/constants/solana';
+import { Caip19Id } from '../../../core/constants/solana';
 import type { FormFieldError } from '../../../core/types/error';
 import { i18n } from '../../../core/utils/i18n';
 import type { SendContext } from '../types';
@@ -15,19 +15,18 @@ export function validateBalance(
   value: string,
   context: SendContext,
 ): FormFieldError | null {
-  const transalte = i18n(context.preferences.locale);
+  const translate = i18n(context.preferences.locale);
+  // FIXME: for now, always use mainnet for prices
+  const { price } = context.tokenPrices[Caip19Id.SolMainnet] ?? { price: 0 };
 
   const amountGreaterThanBalance =
     parseFloat(
       context.currencySymbol === SendCurrency.FIAT
-        ? (
-            parseFloat(value) /
-            context.tokenPrices[SolanaCaip19Tokens.SOL].price
-          ).toString()
+        ? (parseFloat(value) / price).toString()
         : value,
     ) > parseFloat(context.balances[context.fromAccountId]?.amount ?? '0');
 
   return amountGreaterThanBalance
-    ? { message: transalte('send.insufficientBalance'), value }
+    ? { message: translate('send.insufficientBalance'), value }
     : null;
 }

@@ -2,35 +2,32 @@
 import { Flex, Text } from '@chakra-ui/react';
 import React from 'react';
 
-import {
-  type Network,
-  SolanaCaip2Networks,
-  useNetwork,
-} from '../../context/network';
+import { Network } from '../../../../snap/src/core/constants/solana';
+import { useNetwork } from '../../context/network';
 
 const networks = {
-  [SolanaCaip2Networks.Mainnet]: 'Mainnet',
-  [SolanaCaip2Networks.Devnet]: 'Devnet',
-  [SolanaCaip2Networks.Testnet]: 'Testnet',
+  [Network.Mainnet]: 'Mainnet',
+  [Network.Devnet]: 'Devnet',
+  [Network.Testnet]: 'Testnet',
 };
 
 export const NetworkSelector: React.FC = () => {
-  const { network, setNetwork } = useNetwork();
+  const { network: selectedNetwork, setNetwork } = useNetwork();
 
   return (
     <Flex direction="column" gap="2" marginBottom="5" width="full">
       <Text fontWeight="bold">Network</Text>
       <Flex gap="2">
-        {Object.keys(networks).map((net) => (
-          <Flex gap="2" as="label" key={net}>
+        {Object.keys(networks).map((network) => (
+          <Flex gap="2" as="label" key={network}>
             <input
               type="radio"
               name="network"
-              value={net}
-              checked={network === net}
-              onChange={() => setNetwork(net as Network)}
+              value={network}
+              checked={selectedNetwork === network}
+              onChange={() => setNetwork(network as keyof typeof networks)}
             />
-            {networks[net as SolanaCaip2Networks]}
+            {networks[network as keyof typeof networks]}
           </Flex>
         ))}
       </Flex>

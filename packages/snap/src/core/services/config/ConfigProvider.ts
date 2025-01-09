@@ -2,7 +2,7 @@
 import type { Infer } from 'superstruct';
 import { array, coerce, create, object, optional, string } from 'superstruct';
 
-import { SolanaCaip2Networks } from '../../constants/solana';
+import { Network, Networks } from '../../constants/solana';
 
 const CommaSeparatedString = coerce(
   array(string()),
@@ -24,17 +24,14 @@ const EnvStruct = object({
 
 export type Env = Infer<typeof EnvStruct>;
 
-export type Network = {
-  caip2Id: SolanaCaip2Networks;
-  cluster: string;
-  name: string;
+export type NetworkWithRpcUrls = (typeof Networks)[Network] & {
   rpcUrls: string[];
 };
 
 export type Config = {
-  networks: Network[];
+  networks: NetworkWithRpcUrls[];
   isLocal: boolean;
-  activeNetworks: SolanaCaip2Networks[];
+  activeNetworks: Network[];
   priceApi: {
     baseUrl: string;
   };
@@ -86,32 +83,24 @@ export class ConfigProvider {
     return {
       networks: [
         {
-          caip2Id: SolanaCaip2Networks.Mainnet,
-          cluster: 'Mainnet',
-          name: 'Solana Mainnet',
+          ...Networks[Network.Mainnet],
           rpcUrls: environment.RPC_URL_MAINNET_LIST,
         },
         {
-          caip2Id: SolanaCaip2Networks.Devnet,
-          cluster: 'Devnet',
-          name: 'Solana Devnet',
+          ...Networks[Network.Devnet],
           rpcUrls: environment.RPC_URL_DEVNET_LIST,
         },
         {
-          caip2Id: SolanaCaip2Networks.Testnet,
-          cluster: 'Testnet',
-          name: 'Solana Testnet',
+          ...Networks[Network.Testnet],
           rpcUrls: environment.RPC_URL_TESTNET_LIST,
         },
         {
-          caip2Id: SolanaCaip2Networks.Localnet,
-          cluster: 'Localnet',
-          name: 'Solana Localnet',
+          ...Networks[Network.Localnet],
           rpcUrls: environment.RPC_URL_LOCALNET_LIST,
         },
       ],
       isLocal: Boolean(environment.LOCAL),
-      activeNetworks: [SolanaCaip2Networks.Mainnet, SolanaCaip2Networks.Devnet],
+      activeNetworks: [Network.Mainnet, Network.Devnet],
       priceApi: {
         baseUrl: environment.LOCAL
           ? environment.PRICE_API_BASE_URL_LOCAL
@@ -128,7 +117,10 @@ export class ConfigProvider {
     return this.#config;
   }
 
-  public getNetworkBy(key: keyof Network, value: string): Network {
+  public getNetworkBy(
+    key: keyof NetworkWithRpcUrls,
+    value: string,
+  ): NetworkWithRpcUrls {
     const network = this.get().networks.find((item) => item[key] === value);
     if (!network) {
       throw new Error(`Network ${key} not found`);

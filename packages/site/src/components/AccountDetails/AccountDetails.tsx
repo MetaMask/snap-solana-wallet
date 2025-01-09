@@ -15,12 +15,13 @@ import type {
 } from '@metamask/keyring-api';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import type { Network } from '../../../../snap/src/core/constants/solana';
 import {
-  SolanaNetworksNames,
+  Networks,
   SolanaInternalRpcMethods,
 } from '../../../../snap/src/core/constants/solana';
-import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/get-solana-explorer-url';
-import { useNetwork, type SolanaCaip2Networks } from '../../context/network';
+import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
+import { useNetwork } from '../../context/network';
 import { useInvokeSnap } from '../../hooks';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 import { formatLongString } from '../../utils/format-long-string';
@@ -118,7 +119,7 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
 
   const accountBalances: Record<string, Balance> = useMemo(() => {
     return Object.keys(selectedAccountBalances).reduce((list, assetId) => {
-      const assetNetwork = assetId.split('/')[0] as SolanaCaip2Networks;
+      const assetNetwork = assetId.split('/')[0] as Network;
       const asset = selectedAccountBalances[assetId];
 
       if (assetNetwork !== network) {
@@ -152,7 +153,7 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
       <Link
         colorPalette="purple"
         href={getSolanaExplorerUrl(
-          network as SolanaCaip2Networks,
+          network as Network,
           'address',
           selectedAccount.address,
         )}
@@ -178,11 +179,7 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
           {Object.keys(accountBalances).map((balanceId) => (
             <Table.Row key={balanceId}>
               <Table.Cell>
-                {
-                  SolanaNetworksNames[
-                    balanceId.split('/')[0] as SolanaCaip2Networks
-                  ]
-                }
+                {Networks[balanceId.split('/')[0] as Network].name}
               </Table.Cell>
               <Table.Cell>
                 {accountBalances[balanceId]?.unit || 'Unknown'}
@@ -214,11 +211,7 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
               <Table.Cell>
                 <Link
                   colorPalette="purple"
-                  href={getSolanaExplorerUrl(
-                    tx.chain as SolanaCaip2Networks,
-                    'tx',
-                    tx.id,
-                  )}
+                  href={getSolanaExplorerUrl(tx.chain as Network, 'tx', tx.id)}
                   target="_blank"
                   rel="noreferrer"
                 >

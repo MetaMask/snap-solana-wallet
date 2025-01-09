@@ -10,15 +10,12 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 import BigNumber from 'bignumber.js';
 
-import {
-  SolanaCaip19Tokens,
-  SolanaNetworksNames,
-} from '../../../../core/constants/solana';
-import { formatCurrency } from '../../../../core/utils/format-currency';
-import { formatTokens } from '../../../../core/utils/format-tokens';
-import { getSolanaExplorerUrl } from '../../../../core/utils/get-solana-explorer-url';
+import { Networks } from '../../../../core/constants/solana';
+import { formatCurrency } from '../../../../core/utils/formatCurrency';
+import { formatTokens } from '../../../../core/utils/formatTokens';
+import { getSolanaExplorerUrl } from '../../../../core/utils/getSolanaExplorerUrl';
 import { i18n } from '../../../../core/utils/i18n';
-import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
+import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import type { SendContext } from '../../types';
 import { SendCurrency } from '../../types';
 
@@ -43,12 +40,13 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 }) => {
   const translate = i18n(locale);
 
+  const network = Networks[scope];
   const fromAddress = accounts.find((account) => account.id === fromAccountId)
     ?.address as string;
 
   // TODO: Adapt for more types of token prices to support SPL tokens.
-  const { price } =
-    transaction?.tokenPrice ?? tokenPrices[SolanaCaip19Tokens.SOL];
+  const { price } = transaction?.tokenPrice ??
+    tokenPrices[network.nativeToken.caip19Id] ?? { price: 0 };
 
   const amountInSol =
     currencySymbol === SendCurrency.SOL
@@ -60,7 +58,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
     `${scope}:${fromAddress}` as `${string}:${string}:${string}`;
   const toAddressCaip2 =
     `${scope}:${toAddress}` as `${string}:${string}:${string}`;
-  const networkName = SolanaNetworksNames[scope];
+  const networkName = network.name;
 
   const transactionSpeed = '<1s';
 
