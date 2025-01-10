@@ -39,6 +39,11 @@ export type Config = {
     baseUrl: string;
     apiKey: string;
   };
+  transactions: {
+    bootstrapLimit: number;
+    storageLimit: number;
+    fetchLimit: number;
+  };
 };
 
 /**
@@ -109,6 +114,11 @@ export class ConfigProvider {
       tokenApi: {
         baseUrl: environment.TOKEN_API_BASE_URL,
         apiKey: environment.TOKEN_API_KEY,
+      },
+      transactions: {
+        bootstrapLimit: 10,
+        storageLimit: 40,
+        fetchLimit: 10,
       },
     };
   }

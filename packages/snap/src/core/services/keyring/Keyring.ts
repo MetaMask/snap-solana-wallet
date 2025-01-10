@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
-import type { Transaction } from '@metamask/keyring-api';
+import type { KeyringAccountData, Transaction } from '@metamask/keyring-api';
 import {
   KeyringEvent,
   SolAccountType,
@@ -18,7 +18,6 @@ import type { Signature } from '@solana/web3.js';
 import {
   address as asAddress,
   createKeyPairFromPrivateKeyBytes,
-  getAddressFromPublicKey,
 } from '@solana/web3.js';
 import type { Struct } from 'superstruct';
 import { assert } from 'superstruct';
@@ -26,7 +25,6 @@ import { assert } from 'superstruct';
 import { SOL_SYMBOL, type Network } from '../../constants/solana';
 import { lamportsToSol } from '../../utils/conversion';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
-import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
@@ -39,6 +37,7 @@ import { validateRequest } from '../../validation/validators';
 import type { AssetsService } from '../assets/Assets';
 import type { ConfigProvider } from '../config';
 import type { EncryptedSolanaState } from '../encrypted-state/EncryptedState';
+import { SOLANA_MOCK_ADDRESSES } from '../mocks/address';
 import type { SplTokenHelper } from '../spl-token-helper/SplTokenHelper';
 import type { SolanaState } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
@@ -105,6 +104,22 @@ export class SolanaKeyring implements Keyring {
     this.#tokenMetadataService = tokenMetadataService;
   }
 
+  exportAccount?(id: string): Promise<KeyringAccountData> {
+    throw new Error('Method not implemented.');
+  }
+
+  listRequests?(): Promise<KeyringRequest[]> {
+    throw new Error('Method not implemented.');
+  }
+
+  getRequest?(id: string): Promise<KeyringRequest | undefined> {
+    throw new Error('Method not implemented.');
+  }
+
+  rejectRequest?(id: string): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
       const currentState = await this.#encryptedState.get();
@@ -150,7 +165,8 @@ export class SolanaKeyring implements Keyring {
       const privateKeyBytesAsNum = Array.from(privateKeyBytes);
 
       const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
-      const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
+      // const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
+      const accountAddress = SOLANA_MOCK_ADDRESSES[index];
 
       const keyringAccount: SolanaKeyringAccount = {
         id,
@@ -171,7 +187,8 @@ export class SolanaKeyring implements Keyring {
         account: {
           type: keyringAccount.type,
           id: keyringAccount.id,
-          address: keyringAccount.address,
+          // address: keyringAccount.address,
+          address: '2UH239bH45Nvphja9F9abQpvDYY1VYbn2WYZ9kPy79KT',
           options: keyringAccount.options,
           methods: keyringAccount.methods,
           scopes: keyringAccount.scopes,
@@ -258,21 +275,24 @@ export class SolanaKeyring implements Keyring {
         ),
       );
 
-      const tokensResponses = await Promise.all(
-        activeNetworks.map(async (network) =>
-          this.#assetsService.discoverTokens(account.address, network),
-        ),
-      );
+      // const tokensResponses = await Promise.all(
+      //   activeNetworks.map(async (network) =>
+      //     this.#assetsService.discoverTokens(account.address, network),
+      //   ),
+      // );
 
       const nativeAssets = this.#assetsService
         .filterZeroBalanceTokens(nativeResponses)
         .map((response) => response.address);
 
-      const tokenAssets = tokensResponses.flatMap((response) =>
-        response.map((token) => token.address),
-      );
+      // const tokenAssets = tokensResponses.flatMap((response) =>
+      //   response.map((token) => token.address),
+      // );
 
-      return [...nativeAssets, ...tokenAssets];
+      return [
+        ...nativeAssets,
+        // ...tokenAssets
+      ];
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account assets');
       throw error;
@@ -315,16 +335,20 @@ export class SolanaKeyring implements Keyring {
         const currentNetwork = network as Network;
         const networkAssets = assetsByNetwork[currentNetwork];
 
-        const [nativeAsset, tokenAssets] = await Promise.all([
+        const [
+          nativeAsset,
+          // tokenAssets
+        ] = await Promise.all([
           this.#assetsService.getNativeAsset(account.address, currentNetwork),
-          this.#assetsService.discoverTokens(account.address, currentNetwork),
+          // this.#assetsService.discoverTokens(account.address, currentNetwork),
         ]);
 
-        const tokenMetadata =
-          await this.#tokenMetadataService.getMultipleTokenMetadata(
-            tokenAssets,
-            currentNetwork,
-          );
+        // const tokenMetadata =
+        //   await this.#tokenMetadataService.getMultipleTokenMetadata(
+        //     tokenAssets,
+        //     currentNetwork,
+        //   );
+        const tokenMetadata = {};
 
         for (const asset of networkAssets) {
           if (asset.endsWith('slip44:501')) {
@@ -332,18 +356,19 @@ export class SolanaKeyring implements Keyring {
               amount: lamportsToSol(nativeAsset.balance).toString(),
               unit: SOL_SYMBOL,
             });
-          } else {
-            const splToken = tokenAssets.find(
-              (token) => token.address === asset,
-            );
-
-            if (splToken) {
-              balances.set(asset, {
-                amount: fromTokenUnits(splToken.balance, splToken.decimals),
-                unit: tokenMetadata[splToken.address]?.symbol ?? '',
-              });
-            }
           }
+          // else {
+          //   const splToken = tokenAssets.find(
+          //     (token) => token.address === asset,
+          //   );
+
+          //   if (splToken) {
+          //     balances.set(asset, {
+          //       amount: fromTokenUnits(splToken.balance, splToken.decimals),
+          //       unit: tokenMetadata[splToken.address]?.symbol ?? '',
+          //     });
+          //   }
+          // }
         }
       }
 

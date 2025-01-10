@@ -2,6 +2,7 @@ import type { Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 
+import { configProvider } from '../../../snapContext';
 import {
   LAMPORTS_PER_SOL,
   Network,
@@ -31,13 +32,14 @@ export class TransactionsService {
   }
 
   async fetchInitialAddressTransactions(address: Address) {
-    const scopes = [Network.Mainnet, Network.Devnet];
+    // const scopes = [Networ k.Mainnet, Network.Devnet];
+    const scopes = [Network.Mainnet];
 
     const transactions = (
       await Promise.all(
         scopes.map(async (scope) =>
           this.fetchAddressTransactions(scope, address, {
-            limit: 5,
+            limit: configProvider.get().transactions.bootstrapLimit,
           }),
         ),
       )

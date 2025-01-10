@@ -1,0 +1,17 @@
+export const SOLANA_MOCK_ADDRESSES = [
+  'MJKqp326RZCHnAAbew9MDdui3iCKWco7fsK9sVuZTX2',
+  '52C9T2T7JRojtxumYnYZhyUmrN7kqzvCLc4Ksvjk7TxD',
+  '8BseXT9EtoEhBTKFFYkwTnjKSUZwhtmdKY2Jrj8j45Rt',
+  'GitYucwpNcg6Dx1Y15UQ9TQn8LZMX1uuqQNn8rXxEWNC',
+  '9QgXqrgdbVU8KcpfskqJpAXKzbaYQJecgMAruSWoXDkM',
+  '9uRJ5aGgeu2i3J98hsC5FDxd2PmRjVy9fQwNAy7fzLG3',
+  'EJRJswH9LyjhAfBWwPBvat1LQtrJYK4sVUzsea889cQt',
+  '53nHsQXkzZUp5MF1BK6Qoa48ud3aXfDFJBbe1oECPucC',
+  '8PjJTv657aeN9p5R2WoM6pPSz385chvTTytUWaEjSjkq',
+  'AHB94zKUASftTdqgdfiDSdnPJHkEFp7zX3yMrcSxABsv',
+  '3D91zLQPRLamwJfGR5ZYMKQb4C18gsJNaSdmB6b2wLhw',
+  'AogcwQ1ubM76EPMhSD5cw1ES4W5econvQCFmBL6nTW1',
+  '3bHbMa5VW3np5AJazuacidrN4xPZgwhcXigmjwHmBg5e',
+  'AYgECURrvuX6GtFe4tX7aAj87Xc5r5Znx96ntNk1nCv',
+  'Hc36Wh1ZqYGzGAnsJWNT9r2gY3h9n89uDpxZPsmEsiE3',
+];

@@ -87,7 +87,7 @@ describe('Send', () => {
     mockSolanaRpc.shutdown();
   });
 
-  it.skip('renders the send form', async () => {
+  it('renders the send form', async () => {
     const { mockResolvedResult, server } = mockSolanaRpc;
 
     // temporary mock for the token prices
@@ -105,7 +105,8 @@ describe('Send', () => {
       },
     );
 
-    const { request, mockJsonRpc } = await installSnap();
+    const installedSnap = await installSnap();
+    const { request, mockJsonRpc } = installedSnap;
 
     mockJsonRpc({
       method: 'snap_manageState',
@@ -141,10 +142,8 @@ describe('Send', () => {
       },
     });
 
-    // tmp mocking the delay: jest is going too fast (balances are not reached)
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const screen1 = await response.getInterface();
+    const screen0 = await response.getInterface();
+    const screen1 = await screen0.waitForUpdate();
 
     const updatedContext1: SendContext = mockContext;
 
