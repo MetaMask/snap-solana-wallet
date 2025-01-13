@@ -31,13 +31,12 @@ import type { Config } from '../config/ConfigProvider';
 import type { SolanaConnection } from '../connection/SolanaConnection';
 import type { EncryptedStateValue } from '../encrypted-state/EncryptedState';
 import { EncryptedSolanaState } from '../encrypted-state/EncryptedState';
+import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
-import type { SplTokenHelper } from '../spl-token-helper/SplTokenHelper';
 import type { StateValue } from '../state/State';
 import { DEFAULT_TOKEN_PRICES, SolanaState } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from '../transactions/Transactions';
-import type { TransferSolHelper } from '../transfer-sol-helper/TransferSolHelper';
 import { SolanaKeyring } from './Keyring';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
@@ -60,9 +59,8 @@ describe('SolanaKeyring', () => {
   let mockStateValue: StateValue & EncryptedStateValue;
   let mockConfigProvider: ConfigProvider;
   let mockConnection: SolanaConnection;
-  let mockTransferSolHelper: TransferSolHelper;
+  let mockTransactionHelper: TransactionHelper;
   let mockTokenMetadataService: TokenMetadataService;
-  let mockSplTokenHelper: SplTokenHelper;
 
   beforeEach(() => {
     mockConnection = createMockConnection();
@@ -86,24 +84,18 @@ describe('SolanaKeyring', () => {
       logger,
     });
 
-    mockTransferSolHelper = {
-      transferSol: jest
-        .fn()
-        .mockResolvedValue(
-          '2ZXksbyHvhDqZJwEKbyJNPAUkqhNSoJnH9L3ceLxgBb6dh9WSjhCQy7UdDfEQ8ym7acKJAyKT3NniDx5HzTWeXHT',
-        ),
-    } as unknown as TransferSolHelper;
+    mockTransactionHelper = {
+      getLatestBlockhash: jest.fn(),
+      getComputeUnitEstimate: jest.fn(),
+      sendTransaction: jest.fn(),
+      base64DecodeTransactionMessage: jest.fn(),
+    } as unknown as TransactionHelper;
 
     mockTokenMetadataService = {
       getMultipleTokenMetadata: jest
         .fn()
         .mockResolvedValue(SOLANA_MOCK_TOKEN_METADATA),
     } as unknown as TokenMetadataService;
-
-    mockSplTokenHelper = {
-      transferSplToken: jest.fn(),
-    } as unknown as SplTokenHelper;
-
     keyring = new SolanaKeyring({
       state,
       encryptedState,
@@ -111,8 +103,7 @@ describe('SolanaKeyring', () => {
       transactionsService,
       assetsService,
       tokenMetadataService: mockTokenMetadataService,
-      transferSolHelper: mockTransferSolHelper,
-      splTokenHelper: mockSplTokenHelper,
+      transactionHelper: mockTransactionHelper,
       logger,
     });
 
@@ -485,21 +476,24 @@ describe('SolanaKeyring', () => {
           request: {
             method: SolMethod.SendAndConfirmTransaction,
             params: {
-              to: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
-              amount: -1, // Invalid negative amount
+              base64EncodedTransactionMessage: undefined as unknown as string,
             },
           },
         };
 
         await expect(keyring.submitRequest(request)).rejects.toThrow(
-          'At path: amount -- Expected a positive number but received a negative number -1',
+          'At path: base64EncodedTransactionMessage -- Expected a string, but received: undefined',
         );
       });
 
-      it('transfers SOL', async () => {
+      it('calls the transaction helper to send and confirm a transaction', async () => {
         jest
           .spyOn(keyring, 'getAccount')
           .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_4);
+
+        jest
+          .spyOn(mockTransactionHelper, 'sendTransaction')
+          .mockResolvedValue('someSignature');
 
         const request = {
           id: 'some-id',
@@ -508,8 +502,8 @@ describe('SolanaKeyring', () => {
           request: {
             method: SolMethod.SendAndConfirmTransaction,
             params: {
-              to: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
-              amount: 1.0,
+              base64EncodedTransactionMessage:
+                'someBase64EncodedTransactionMessage',
             },
           },
         };
@@ -519,8 +513,7 @@ describe('SolanaKeyring', () => {
         expect(response).toStrictEqual({
           pending: false,
           result: {
-            signature:
-              '2ZXksbyHvhDqZJwEKbyJNPAUkqhNSoJnH9L3ceLxgBb6dh9WSjhCQy7UdDfEQ8ym7acKJAyKT3NniDx5HzTWeXHT',
+            signature: 'someSignature',
           },
         });
       });
@@ -536,9 +529,8 @@ describe('SolanaKeyring', () => {
         request: {
           method: SolMethod.SendAndConfirmTransaction,
           params: {
-            to: 'BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe',
-            mintAddress: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
-            amount: 0.01,
+            base64EncodedTransactionMessage:
+              'someBase64EncodedTransactionMessage',
           },
         },
       };

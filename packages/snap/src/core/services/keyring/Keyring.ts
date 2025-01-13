@@ -18,6 +18,7 @@ import type { Signature } from '@solana/web3.js';
 import {
   address as asAddress,
   createKeyPairFromPrivateKeyBytes,
+  createKeyPairSignerFromPrivateKeyBytes,
   getAddressFromPublicKey,
 } from '@solana/web3.js';
 import type { Struct } from 'superstruct';
@@ -39,11 +40,10 @@ import { validateRequest } from '../../validation/validators';
 import type { AssetsService } from '../assets/Assets';
 import type { ConfigProvider } from '../config';
 import type { EncryptedSolanaState } from '../encrypted-state/EncryptedState';
-import type { SplTokenHelper } from '../spl-token-helper/SplTokenHelper';
+import type { TransactionHelper } from '../execution/TransactionHelper';
 import type { SolanaState } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TransactionsService } from '../transactions/Transactions';
-import type { TransferSolHelper } from '../transfer-sol-helper/TransferSolHelper';
 
 /**
  * We need to store the index of the KeyringAccount in the state because
@@ -65,13 +65,11 @@ export class SolanaKeyring implements Keyring {
 
   readonly #transactionsService: TransactionsService;
 
-  readonly #transferSolHelper: TransferSolHelper;
-
   readonly #assetsService: AssetsService;
 
   readonly #tokenMetadataService: TokenMetadataService;
 
-  readonly #splTokenHelper: SplTokenHelper;
+  readonly #transactionHelper: TransactionHelper;
 
   constructor({
     state,
@@ -79,28 +77,25 @@ export class SolanaKeyring implements Keyring {
     encryptedState,
     logger,
     transactionsService,
-    transferSolHelper,
+    transactionHelper,
     assetsService,
     tokenMetadataService,
-    splTokenHelper,
   }: {
     state: SolanaState;
     configProvider: ConfigProvider;
     encryptedState: EncryptedSolanaState;
     logger: ILogger;
     transactionsService: TransactionsService;
-    transferSolHelper: TransferSolHelper;
+    transactionHelper: TransactionHelper;
     assetsService: AssetsService;
     tokenMetadataService: TokenMetadataService;
-    splTokenHelper: SplTokenHelper;
   }) {
     this.#state = state;
     this.#configProvider = configProvider;
     this.#encryptedState = encryptedState;
     this.#logger = logger;
     this.#transactionsService = transactionsService;
-    this.#transferSolHelper = transferSolHelper;
-    this.#splTokenHelper = splTokenHelper;
+    this.#transactionHelper = transactionHelper;
     this.#assetsService = assetsService;
     this.#tokenMetadataService = tokenMetadataService;
   }
@@ -404,31 +399,25 @@ export class SolanaKeyring implements Keyring {
     const { scope, account: accountId } = request;
     const { params } = request.request;
     validateRequest(params, SendAndConfirmTransactionParamsStruct as Struct);
-    const { to, mintAddress, amount } =
+    const { base64EncodedTransactionMessage } =
       params as SendAndConfirmTransactionParams;
 
-    const account = await this.getAccount(accountId);
-    if (!account) {
-      throw new Error('Account not found');
-    }
+    const account = await this.getAccountOrThrow(accountId);
+    const signer = await createKeyPairSignerFromPrivateKeyBytes(
+      Uint8Array.from(account.privateKeyBytesAsNum),
+    );
 
-    if (!mintAddress) {
-      const signature = await this.#transferSolHelper.transferSol(
-        account,
-        to,
-        amount,
-        scope as Network,
+    const decodedTransactionMessage =
+      await this.#transactionHelper.base64DecodeTransactionMessage(
+        base64EncodedTransactionMessage,
       );
-      return { signature };
-    }
 
-    const signature = await this.#splTokenHelper.transferSplToken(
-      account,
-      asAddress(to),
-      asAddress(mintAddress),
-      amount,
+    const signature = await this.#transactionHelper.sendTransaction(
+      decodedTransactionMessage,
+      [signer],
       scope as Network,
     );
+
     return { signature };
   }
 

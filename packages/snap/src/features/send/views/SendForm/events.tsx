@@ -1,5 +1,6 @@
 import { SolMethod } from '@metamask/keyring-api';
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
+import { address } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 
 import {
@@ -14,8 +15,13 @@ import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
+import logger from '../../../../core/utils/logger';
 import { validateField } from '../../../../core/validation/form';
-import { keyring } from '../../../../snapContext';
+import {
+  keyring,
+  splTokenHelper,
+  transactionHelper,
+} from '../../../../snapContext';
 import { Send } from '../../Send';
 import { SendCurrency, SendFormNames, type SendContext } from '../../types';
 import { validateBalance } from '../../utils/balance';
@@ -292,19 +298,37 @@ async function onTransferUsdcButtonClick({
   id: string;
   context: SendContext;
 }) {
-  await keyring.handleSendAndConfirmTransaction({
-    id,
-    scope: context.scope,
-    account: context.fromAccountId,
-    request: {
-      method: SolMethod.SendAndConfirmTransaction,
-      params: {
-        to: 'BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe',
-        mintAddress: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU', // USDC mint address on Solana Devnet,
-        amount: 0.01,
+  try {
+    const fromAccount = await keyring.getAccountOrThrow(context.fromAccountId);
+
+    const transactionMessage = await splTokenHelper.buildTransactionMessage(
+      fromAccount,
+      address('BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe'),
+      address('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'), // USDC mint address on Solana Devnet,
+      0.01,
+      context.scope,
+    );
+
+    // Encode the transaction message to a JSON serializable format
+    const base64EncodedTransactionMessage =
+      await transactionHelper.base64EncodeTransactionMessage(
+        transactionMessage,
+      );
+
+    await keyring.handleSendAndConfirmTransaction({
+      id,
+      scope: context.scope,
+      account: context.fromAccountId, // Will be used to sign the transaction
+      request: {
+        method: SolMethod.SendAndConfirmTransaction,
+        params: {
+          base64EncodedTransactionMessage,
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    logger.error({ error }, 'Error submitting request');
+  }
 }
 
 export const eventHandlers = {

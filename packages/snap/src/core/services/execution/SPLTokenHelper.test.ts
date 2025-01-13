@@ -17,9 +17,9 @@ import {
 import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
 import { createMockConnection } from '../mocks/mockConnection';
-import type { TransactionHelper } from '../transaction-helper/TransactionHelper';
 import type { Exists, MaybeHasDecimals } from './SplTokenHelper';
 import { SplTokenHelper } from './SplTokenHelper';
+import type { TransactionHelper } from './TransactionHelper';
 
 jest.mock('@solana/web3.js', () => ({
   ...jest.requireActual('@solana/web3.js'),
@@ -34,6 +34,7 @@ describe('SplTokenHelper', () => {
     getLatestBlockhash: jest.fn(),
     calculateCostInLamports: jest.fn(),
     getTokenMintInfo: jest.fn(),
+    getComputeUnitEstimate: jest.fn(),
   } as unknown as TransactionHelper;
 
   const mockLogger = {
@@ -109,6 +110,10 @@ describe('SplTokenHelper', () => {
       jest
         .spyOn(mockTransactionHelper, 'sendTransaction')
         .mockResolvedValue('mockSignature');
+
+      jest
+        .spyOn(mockTransactionHelper, 'getComputeUnitEstimate')
+        .mockResolvedValue(5000);
 
       const result = await splTokenHelper.transferSplToken(
         mockFrom,

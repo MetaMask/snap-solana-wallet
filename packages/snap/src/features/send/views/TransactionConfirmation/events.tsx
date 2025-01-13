@@ -1,3 +1,5 @@
+import { SolMethod } from '@metamask/keyring-api';
+import { address } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 
 import { Caip19Id } from '../../../../core/constants/solana';
@@ -6,7 +8,12 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
-import type { SnapExecutionContext } from '../../../../snapContext';
+import {
+  keyring,
+  transactionHelper,
+  transferSolHelper,
+  type SnapExecutionContext,
+} from '../../../../snapContext';
 import { Send } from '../../Send';
 import type { SendContext } from '../../types';
 import { SendCurrency } from '../../types';
@@ -94,14 +101,44 @@ async function onConfirmButtonClick({
   );
 
   try {
-    const account = await snapContext.keyring.getAccountOrThrow(fromAccountId);
-    const response = await snapContext.transferSolHelper.transferSol(
-      account,
-      toAddress,
+    const account = await keyring.getAccountOrThrow(fromAccountId);
+
+    const transactionMessage = await transferSolHelper.buildTransactionMessage(
+      address(account.address),
+      address(toAddress),
       amountInSol,
       scope,
     );
-    signature = response;
+
+    // We can get the fee from the transaction message this way:
+    const feeInLamports = await transactionHelper.getFeeForMessageInLamports(
+      transactionMessage,
+      scope,
+    );
+    logger.log('Transaction fee in lamports', feeInLamports);
+
+    // Encode the transaction message to a JSON serializable format in order to send it over RPC.
+    const base64EncodedTransactionMessage =
+      await transactionHelper.base64EncodeTransactionMessage(
+        transactionMessage,
+      );
+
+    // Send the transaction message to the keyring over RPC.
+    // It will be decoded on the other side, then signed and sent to the network.
+    // It MUST be signed on the other side, because the transaction message is stripped of its private keys during encoding, for security reasons.
+    // Fees can also be calculated on the other side from the decoded transaction message.
+    const response = await keyring.handleSendAndConfirmTransaction({
+      id,
+      scope: context.scope,
+      account: context.fromAccountId, // Will be used to sign the transaction
+      request: {
+        method: SolMethod.SendAndConfirmTransaction,
+        params: {
+          base64EncodedTransactionMessage,
+        },
+      },
+    });
+    signature = response.signature;
   } catch (error) {
     logger.error({ error }, 'Error submitting request');
   }

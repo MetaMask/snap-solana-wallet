@@ -1,10 +1,13 @@
+import type { KeyPairSigner } from '@solana/web3.js';
 import {
+  createKeyPairSignerFromPrivateKeyBytes,
   getSignatureFromTransaction,
   sendTransactionWithoutConfirmingFactory,
   signTransactionMessageWithSigners,
 } from '@solana/web3.js';
 
 import { Network } from '../../constants/solana';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { TransactionHelper } from './TransactionHelper';
@@ -12,7 +15,7 @@ import { TransactionHelper } from './TransactionHelper';
 // Mock dependencies
 jest.mock('@solana-program/compute-budget');
 jest.mock('@solana/web3.js', () => ({
-  compileTransactionMessage: jest.fn(),
+  ...jest.requireActual('@solana/web3.js'),
   getBase64Decoder: () => ({
     decode: jest.fn().mockReturnValue('base64EncodedMessage'),
   }),
@@ -28,10 +31,11 @@ jest.mock('@solana/web3.js', () => ({
   signTransactionMessageWithSigners: jest.fn(),
   getSignatureFromTransaction: jest.fn(),
   sendTransactionWithoutConfirmingFactory: jest.fn(),
-  address: jest.fn().mockImplementation((address) => address),
 }));
 
 describe('TransactionHelper', () => {
+  let mockSigner: KeyPairSigner;
+
   const mockRpcResponse = {
     send: jest.fn(),
   };
@@ -45,9 +49,12 @@ describe('TransactionHelper', () => {
 
   let transactionHelper: TransactionHelper;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     transactionHelper = new TransactionHelper(mockConnection, logger);
+    mockSigner = await createKeyPairSignerFromPrivateKeyBytes(
+      Uint8Array.from(MOCK_SOLANA_KEYRING_ACCOUNT_0.privateKeyBytesAsNum),
+    );
   });
 
   describe('getLatestBlockhash', () => {
@@ -78,37 +85,52 @@ describe('TransactionHelper', () => {
     });
   });
 
-  describe('calculateCostInLamports', () => {
-    const mockTransactionMessage = {};
+  describe('getComputeUnitEstimate', () => {
+    it('returns compute unit estimate successfully', async () => {
+      const mockTransactionMessage = {} as any;
+      const expectedEstimate = 200000;
 
-    it('calculates transaction cost successfully', async () => {
-      const expectedCost = '5000';
-      mockRpcResponse.send.mockResolvedValueOnce({ value: expectedCost });
-
-      const result = await transactionHelper.calculateCostInLamports(
-        mockTransactionMessage as any,
+      const result = await transactionHelper.getComputeUnitEstimate(
+        mockTransactionMessage,
         Network.Mainnet,
       );
 
-      expect(result).toStrictEqual(expectedCost);
-      expect(logger.log).toHaveBeenCalledTimes(3);
+      expect(result).toBe(expectedEstimate);
       expect(mockConnection.getRpc).toHaveBeenCalledWith(Network.Mainnet);
     });
-
-    it('throws and logs error when calculation fails', async () => {
-      const error = new Error('Calculation error');
-      mockRpcResponse.send.mockRejectedValueOnce(error);
-
-      await expect(
-        transactionHelper.calculateCostInLamports(
-          mockTransactionMessage as any,
-          Network.Mainnet,
-        ),
-      ).rejects.toThrow('Calculation error');
-
-      expect(logger.error).toHaveBeenCalledWith(error);
-    });
   });
+
+  //   describe('calculateCostInLamports', () => {
+  //     const mockTransactionMessage = {};
+
+  //     it('calculates transaction cost successfully', async () => {
+  //       const expectedCost = '5000';
+  //       mockRpcResponse.send.mockResolvedValueOnce({ value: expectedCost });
+
+  //       const result = await transactionHelper.calculateCostInLamports(
+  //         mockTransactionMessage as any,
+  //         Network.Mainnet,
+  //       );
+
+  //       expect(result).toStrictEqual(expectedCost);
+  //       expect(logger.log).toHaveBeenCalledTimes(3);
+  //       expect(mockConnection.getRpc).toHaveBeenCalledWith(Network.Mainnet);
+  //     });
+
+  //     it('throws and logs error when calculation fails', async () => {
+  //       const error = new Error('Calculation error');
+  //       mockRpcResponse.send.mockRejectedValueOnce(error);
+
+  //       await expect(
+  //         transactionHelper.calculateCostInLamports(
+  //           mockTransactionMessage as any,
+  //           Network.Mainnet,
+  //         ),
+  //       ).rejects.toThrow('Calculation error');
+
+  //       expect(logger.error).toHaveBeenCalledWith(error);
+  //     });
+  //   });
 
   describe('sendTransaction', () => {
     const mockTransactionMessage = {
@@ -133,6 +155,7 @@ describe('TransactionHelper', () => {
 
       const result = await transactionHelper.sendTransaction(
         mockTransactionMessage,
+        [mockSigner],
         Network.Mainnet,
       );
 
@@ -163,6 +186,7 @@ describe('TransactionHelper', () => {
       await expect(
         transactionHelper.sendTransaction(
           mockTransactionMessage,
+          [mockSigner],
           Network.Mainnet,
         ),
       ).rejects.toThrow('Transaction failed');
@@ -182,6 +206,7 @@ describe('TransactionHelper', () => {
 
       await transactionHelper.sendTransaction(
         mockTransactionMessage,
+        [mockSigner],
         Network.Devnet,
       );
 

@@ -4,14 +4,14 @@ import { AssetsService } from './core/services/assets/Assets';
 import { ConfigProvider } from './core/services/config';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { EncryptedSolanaState } from './core/services/encrypted-state/EncryptedState';
+import { SplTokenHelper } from './core/services/execution/SplTokenHelper';
+import { TransactionHelper } from './core/services/execution/TransactionHelper';
+import { TransferSolHelper } from './core/services/execution/TransferSolHelper';
 import { SolanaKeyring } from './core/services/keyring/Keyring';
-import { SplTokenHelper } from './core/services/spl-token-helper/SplTokenHelper';
 import { SolanaState } from './core/services/state/State';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPricesService';
-import { TransactionHelper } from './core/services/transaction-helper/TransactionHelper';
 import { TransactionsService } from './core/services/transactions/Transactions';
-import { TransferSolHelper } from './core/services/transfer-sol-helper/TransferSolHelper';
 import logger from './core/utils/logger';
 
 /**
@@ -66,8 +66,7 @@ const keyring = new SolanaKeyring({
   encryptedState,
   configProvider,
   transactionsService,
-  transferSolHelper,
-  splTokenHelper,
+  transactionHelper,
   logger,
   assetsService,
   tokenMetadataService,
@@ -99,6 +98,7 @@ export {
   assetsService,
   configProvider,
   connection,
+  encryptedState,
   keyring,
   priceApiClient,
   splTokenHelper,
@@ -106,6 +106,7 @@ export {
   tokenPricesService,
   transactionHelper,
   transactionsService,
+  transferSolHelper,
 };
 
 export default snapContext;

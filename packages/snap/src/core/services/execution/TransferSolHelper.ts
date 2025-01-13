@@ -1,26 +1,27 @@
+import { getSetComputeUnitLimitInstruction } from '@solana-program/compute-budget';
 import { getTransferSolInstruction } from '@solana-program/system';
+import type { Address, CompilableTransactionMessage } from '@solana/web3.js';
 import {
-  address,
   appendTransactionMessageInstruction,
-  createKeyPairSignerFromPrivateKeyBytes,
+  createNoopSigner,
   createTransactionMessage,
   pipe,
+  prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
 } from '@solana/web3.js';
 import type BigNumber from 'bignumber.js';
 
 import type { Network } from '../../constants/solana';
-import { SOL_TRANSFER_FEE_LAMPORTS } from '../../constants/solana';
 import { solToLamports } from '../../utils/conversion';
 import type { ILogger } from '../../utils/logger';
-import type { SolanaKeyringAccount } from '../keyring/Keyring';
-import type { TransactionHelper } from '../transaction-helper/TransactionHelper';
+import type { TransactionHelper } from './TransactionHelper';
+import type { ITransactionMessageBuilder } from './types';
 
 /**
  * Helper class for transferring SOL.
  */
-export class TransferSolHelper {
+export class TransferSolHelper implements ITransactionMessageBuilder {
   readonly #transactionHelper: TransactionHelper;
 
   readonly #logger: ILogger;
@@ -31,57 +32,23 @@ export class TransferSolHelper {
   }
 
   /**
-   * Execute a transaction to transfer SOL from one account to another.
+   * Build the transaction message for transferring SOL.
    *
    * @param from - The account from which the SOL will be transferred.
    * @param to - The address to which the SOL will be transferred.
    * @param amountInSol - The amount of SOL to transfer.
    * @param network - The network on which to transfer the SOL.
-   * @returns The signature of the transaction.
-   * @see https://github.com/solana-labs/solana-web3.js/blob/master/examples/transfer-lamports/src/example.ts
-   */
-  async transferSol(
-    from: SolanaKeyringAccount,
-    to: string,
-    amountInSol: string | number | bigint | BigNumber,
-    network: Network,
-  ): Promise<string> {
-    const amountInLamports = BigInt(solToLamports(amountInSol).toString());
-
-    const transactionMessage = await this.buildTransactionMessage(
-      from,
-      to,
-      amountInLamports,
-      network,
-    );
-
-    this.#logger.info(
-      `Transaction cost: ${SOL_TRANSFER_FEE_LAMPORTS} lamports`,
-    );
-
-    return this.#transactionHelper.sendTransaction(transactionMessage, network);
-  }
-
-  /**
-   * Build the transaction message for transferring SOL.
-   *
-   * @param from - The account from which the SOL will be transferred.
-   * @param to - The address to which the SOL will be transferred.
-   * @param amountInLamports - The amount of SOL to transfer in lamports.
-   * @param network - The network on which to transfer the SOL.
    * @returns The transaction message.
    */
   async buildTransactionMessage(
-    from: SolanaKeyringAccount,
-    to: string,
-    amountInLamports: number | bigint,
+    from: Address,
+    to: Address,
+    amountInSol: string | number | bigint | BigNumber,
     network: Network,
-  ) {
+  ): Promise<CompilableTransactionMessage> {
     try {
-      const signer = await createKeyPairSignerFromPrivateKeyBytes(
-        Uint8Array.from(from.privateKeyBytesAsNum),
-      );
-      const toAddress = address(to);
+      const amountInLamports = BigInt(solToLamports(amountInSol).toString());
+
       const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
         network,
       );
@@ -89,7 +56,7 @@ export class TransferSolHelper {
         createTransactionMessage({ version: 0 }),
         // Every transaction must state from which account the transaction fee should be debited from,
         // and that account must sign the transaction. Here, we'll make the source account pay the fee.
-        (tx) => setTransactionMessageFeePayer(signer.address, tx),
+        (tx) => setTransactionMessageFeePayer(from, tx),
         // A transaction is valid for execution as long as it includes a valid lifetime constraint. Here
         // we supply the hash of a recent block. The network will accept this transaction until it
         // considers that hash to be 'expired' for the purpose of transaction execution.
@@ -105,21 +72,25 @@ export class TransferSolHelper {
              */
             getTransferSolInstruction({
               amount: amountInLamports,
-              destination: toAddress,
-              /**
-               * By supplying a `TransactionSigner` here instead of just an address, we give this
-               * transaction message superpowers. Later the
-               * `signTransactionMessageWithSigners` method, in consideration of the fact that the
-               * source account must sign System program transfer instructions, will use this
-               * `TransactionSigner` to produce a transaction signed on behalf of
-               * `from.address`, without any further configuration.
-               */
-              source: signer,
+              destination: to,
+              source: createNoopSigner(from),
             }),
             tx,
           ),
       );
-      return transactionMessage;
+
+      const estimatedComputeUnits =
+        await this.#transactionHelper.getComputeUnitEstimate(
+          transactionMessage,
+          network,
+        );
+
+      const budgetedTransactionMessage = prependTransactionMessageInstructions(
+        [getSetComputeUnitLimitInstruction({ units: estimatedComputeUnits })],
+        transactionMessage,
+      );
+
+      return budgetedTransactionMessage;
     } catch (error) {
       this.#logger.error({ error }, 'Error building transaction message');
       throw error;

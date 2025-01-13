@@ -1,9 +1,11 @@
+import { getSetComputeUnitLimitInstruction } from '@solana-program/compute-budget';
 import {
   findAssociatedTokenPda,
   getCreateAssociatedTokenInstruction,
   getTransferInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
+import type { CompilableTransactionMessage } from '@solana/web3.js';
 import {
   appendTransactionMessageInstruction,
   appendTransactionMessageInstructions,
@@ -11,6 +13,7 @@ import {
   createTransactionMessage,
   fetchJsonParsedAccount,
   pipe,
+  prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
   type Account,
@@ -27,9 +30,10 @@ import { retry } from '../../utils/retry';
 import { toTokenUnits } from '../../utils/toTokenUnit';
 import type { SolanaConnection } from '../connection';
 import type { SolanaKeyringAccount } from '../keyring/Keyring';
-import type { TransactionHelper } from '../transaction-helper/TransactionHelper';
+import type { TransactionHelper } from './TransactionHelper';
+import type { ITransactionMessageBuilder } from './types';
 
-export class SplTokenHelper {
+export class SplTokenHelper implements ITransactionMessageBuilder {
   readonly #connection: SolanaConnection;
 
   readonly #transactionHelper: TransactionHelper;
@@ -64,76 +68,103 @@ export class SplTokenHelper {
     network: Network,
   ): Promise<string> {
     try {
-      this.#logger.log(
-        {
-          from,
-          to,
-          mint,
-          amountInToken,
-        },
-        'Transfer SPL token',
-      );
+      this.#logger.log('Transfer SPL token');
 
       const signer = await createKeyPairSignerFromPrivateKeyBytes(
         Uint8Array.from(from.privateKeyBytesAsNum),
       );
 
-      // SPL tokens are not held in the wallet's account, they are held in the associated token account.
-      // For both the sender and the receiver, we need to get or create the associated token account for the wallet and token mint.
-      const fromTokenAccount = await this.getOrCreateAssociatedTokenAccount(
-        mint,
-        signer.address,
-        network,
-        signer,
-      );
-
-      const toTokenAccount = await this.getOrCreateAssociatedTokenAccount(
-        mint,
+      const transactionMessage = await this.buildTransactionMessage(
+        from,
         to,
-        network,
-        signer,
-      );
-
-      // Fetch the token account
-      const tokenAccount = await this.getTokenAccount<MaybeHasDecimals>(
         mint,
+        amountInToken,
         network,
-      );
-
-      const decimals = this.getDecimals(tokenAccount);
-
-      // Convert amount based on token decimals
-      const amountInTokenUnits = toTokenUnits(amountInToken, decimals);
-
-      const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
-        network,
-      );
-
-      const transactionMessage = pipe(
-        createTransactionMessage({ version: 0 }),
-        (tx) => setTransactionMessageFeePayer(signer.address, tx),
-        (tx) =>
-          setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
-        (tx) =>
-          appendTransactionMessageInstruction(
-            getTransferInstruction({
-              source: fromTokenAccount.address,
-              destination: toTokenAccount.address,
-              authority: signer,
-              amount: amountInTokenUnits,
-            }),
-            tx,
-          ),
       );
 
       return this.#transactionHelper.sendTransaction(
         transactionMessage,
+        [signer],
         network,
       );
     } catch (error) {
       this.#logger.error({ error }, 'Error transferring SPL token');
       throw error;
     }
+  }
+
+  async buildTransactionMessage(
+    from: SolanaKeyringAccount,
+    to: Address,
+    mint: Address,
+    amountInToken: string | number | bigint | BigNumber,
+    network: Network,
+  ): Promise<CompilableTransactionMessage> {
+    this.#logger.log('Build transfer SPL token transaction message');
+
+    const signer = await createKeyPairSignerFromPrivateKeyBytes(
+      Uint8Array.from(from.privateKeyBytesAsNum),
+    );
+
+    // SPL tokens are not held in the wallet's account, they are held in the associated token account.
+    // For both the sender and the receiver, we need to get or create the associated token account for the wallet and token mint.
+    const fromTokenAccount = await this.getOrCreateAssociatedTokenAccount(
+      mint,
+      signer.address,
+      network,
+      signer,
+    );
+
+    const toTokenAccount = await this.getOrCreateAssociatedTokenAccount(
+      mint,
+      to,
+      network,
+      signer,
+    );
+
+    // Fetch the token account
+    const tokenAccount = await this.getTokenAccount<MaybeHasDecimals>(
+      mint,
+      network,
+    );
+
+    const decimals = this.getDecimals(tokenAccount);
+
+    // Convert amount based on token decimals
+    const amountInTokenUnits = toTokenUnits(amountInToken, decimals);
+
+    const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
+      network,
+    );
+
+    const transactionMessage = pipe(
+      createTransactionMessage({ version: 0 }),
+      (tx) => setTransactionMessageFeePayer(signer.address, tx),
+      (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
+      (tx) =>
+        appendTransactionMessageInstruction(
+          getTransferInstruction({
+            source: fromTokenAccount.address,
+            destination: toTokenAccount.address,
+            authority: signer,
+            amount: amountInTokenUnits,
+          }),
+          tx,
+        ),
+    );
+
+    const estimatedComputeUnits =
+      await this.#transactionHelper.getComputeUnitEstimate(
+        transactionMessage,
+        network,
+      );
+
+    const budgetedTransactionMessage = prependTransactionMessageInstructions(
+      [getSetComputeUnitLimitInstruction({ units: estimatedComputeUnits })],
+      transactionMessage,
+    );
+
+    return budgetedTransactionMessage;
   }
 
   /**
@@ -269,7 +300,11 @@ export class SplTokenHelper {
     );
 
     // Send the transaction to create the associated token account.
-    await this.#transactionHelper.sendTransaction(transactionMessage, network);
+    await this.#transactionHelper.sendTransaction(
+      transactionMessage,
+      [payer],
+      network,
+    );
 
     /**
      * When the previous line resolves, the associated token account is in fact not yet created.
