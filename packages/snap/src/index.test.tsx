@@ -1,5 +1,21 @@
 import { expect } from '@jest/globals';
 import { installSnap } from '@metamask/snaps-jest';
+import { keyring } from './snap-context';
+import { handlers as onUpdateHandlers, OnUpdateMethods } from './core/handlers/onUpdate';
+import { onUpdate } from './index';
+
+jest.mock('@noble/ed25519', () => ({
+  getPublicKey: jest.fn(),
+  sign: jest.fn(),
+  verify: jest.fn(),
+}));
+
+jest.mock('./snap-context', () => ({
+  keyring: {
+    listAccounts: jest.fn(),
+    createAccount: jest.fn(),
+  },
+}));
 
 describe('onRpcRequest', () => {
   it('throws an error if the requested method does not exist', async () => {
@@ -36,5 +52,21 @@ describe('onKeyringRequest', () => {
       message: 'Permission denied',
       stack: expect.any(String),
     });
+  });
+});
+
+describe('onUpdate', () => {
+  it('creates an account when there are no existing accounts', async () => {
+    (keyring.listAccounts as jest.Mock).mockResolvedValue([]);
+    (keyring.createAccount as jest.Mock).mockResolvedValue({ id: '1', address: 'mocked-address' });
+    
+    const createAccountSpy = jest.spyOn(onUpdateHandlers, OnUpdateMethods.CreateAccount);
+
+    await onUpdate({ origin: 'MetaMask' });
+
+    expect(keyring.listAccounts).toHaveBeenCalled();
+    expect(createAccountSpy).toHaveBeenCalledWith(
+      { origin: 'MetaMask' }
+    );
   });
 });
