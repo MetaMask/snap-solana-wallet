@@ -1,7 +1,10 @@
 import { expect } from '@jest/globals';
 import { installSnap } from '@metamask/snaps-jest';
 import { keyring } from './snapContext';
-import { handlers as onUpdateHandlers, OnUpdateMethods } from './core/handlers/onUpdate';
+import {
+  handlers as onUpdateHandlers,
+  OnUpdateMethods,
+} from './core/handlers/onUpdate';
 import { onUpdate } from './index';
 
 jest.mock('@noble/ed25519', () => ({
@@ -58,15 +61,19 @@ describe('onKeyringRequest', () => {
 describe('onUpdate', () => {
   it('creates an account when there are no existing accounts', async () => {
     (keyring.listAccounts as jest.Mock).mockResolvedValue([]);
-    (keyring.createAccount as jest.Mock).mockResolvedValue({ id: '1', address: 'mocked-address' });
-    
-    const createAccountSpy = jest.spyOn(onUpdateHandlers, OnUpdateMethods.CreateAccount);
+    (keyring.createAccount as jest.Mock).mockResolvedValue({
+      id: '1',
+      address: 'mocked-address',
+    });
+
+    const createAccountSpy = jest.spyOn(
+      onUpdateHandlers,
+      OnUpdateMethods.CreateAccount,
+    );
 
     await onUpdate({ origin: 'MetaMask' });
 
     expect(keyring.listAccounts).toHaveBeenCalled();
-    expect(createAccountSpy).toHaveBeenCalledWith(
-      { origin: 'MetaMask' }
-    );
+    expect(createAccountSpy).toHaveBeenCalledWith({ origin: 'MetaMask' });
   });
 });
