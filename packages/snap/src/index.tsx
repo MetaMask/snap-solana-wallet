@@ -17,11 +17,11 @@ import {
   handlers as onCronjobHandlers,
 } from './core/handlers/onCronjob';
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
+import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import {
   handlers as onUpdateHandlers,
   OnUpdateMethods,
 } from './core/handlers/onUpdate';
-import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
 import { getClientStatus } from './core/utils/interface';

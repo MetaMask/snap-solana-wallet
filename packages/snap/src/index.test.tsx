@@ -1,11 +1,12 @@
 import { expect } from '@jest/globals';
 import { installSnap } from '@metamask/snaps-jest';
-import { keyring } from './snapContext';
+
+import { onUpdate } from '.';
 import {
   handlers as onUpdateHandlers,
   OnUpdateMethods,
 } from './core/handlers/onUpdate';
-import { onUpdate } from './index';
+import { keyring } from './snapContext';
 
 jest.mock('@noble/ed25519', () => ({
   getPublicKey: jest.fn(),
