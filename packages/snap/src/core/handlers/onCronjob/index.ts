@@ -3,13 +3,12 @@ import { type OnCronjobHandler } from '@metamask/snaps-sdk';
 import { refreshTokenPrices } from './refreshTokenPrices';
 import { refreshTransactions } from './refreshTransactions';
 
-export enum OnCronjobMethods {
+export enum CronjobMethod {
   RefreshTokenPrices = 'refreshTokenPrices',
   RefreshTransactions = 'refreshTransactions',
 }
 
-export const handlers: Record<OnCronjobMethods, OnCronjobHandler> = {
-  [OnCronjobMethods.RefreshTokenPrices]: refreshTokenPrices,
-  [OnCronjobMethods.RefreshTransactions]: refreshTransactions,
-  // Register new handlers here
+export const handlers: Record<CronjobMethod, OnCronjobHandler> = {
+  [CronjobMethod.RefreshTokenPrices]: refreshTokenPrices,
+  [CronjobMethod.RefreshTransactions]: refreshTransactions,
 };

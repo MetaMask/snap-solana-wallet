@@ -1,12 +1,12 @@
 import BigNumber from 'bignumber.js';
 
-import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
+import { Caip19Id } from '../../../../core/constants/solana';
 import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
-import type { SnapExecutionContext } from '../../../../snap-context';
+import type { SnapExecutionContext } from '../../../../snapContext';
 import { Send } from '../../Send';
 import type { SendContext } from '../../types';
 import { SendCurrency } from '../../types';
@@ -84,8 +84,8 @@ async function onConfirmButtonClick({
 
   // Then submit the transaction
   let signature: string | null = null;
-  const tokenPrice = tokenPrices[SolanaCaip19Tokens.SOL];
-  const { price } = tokenPrice;
+  const tokenPrice = tokenPrices[Caip19Id.SolMainnet];
+  const { price } = tokenPrice ?? { price: 0 };
 
   const amountInSol = Number(
     currencySymbol === SendCurrency.SOL
@@ -113,7 +113,7 @@ async function onConfirmButtonClick({
     transaction: {
       result: signature ? 'success' : 'failure',
       signature,
-      tokenPrice,
+      tokenPrice: tokenPrice ?? null,
     },
   };
 

@@ -1,5 +1,16 @@
 import type { Infer } from 'superstruct';
-import { number, object, pattern, record, refine, string } from 'superstruct';
+import {
+  enums,
+  number,
+  object,
+  optional,
+  pattern,
+  record,
+  refine,
+  string,
+} from 'superstruct';
+
+import { Caip19Id } from '../constants/solana';
 
 export const PositiveNumber = refine(number(), 'positive', (value) => {
   if (value < 0) {
@@ -21,6 +32,7 @@ export const Caip19Struct = pattern(
   string(),
   /^[-a-z0-9]{3,8}:[-a-zA-Z0-9]{1,64}\/[-a-zA-Z0-9]{1,64}(:[-a-zA-Z0-9]{1,64})?$/u,
 );
+export const AssetsStruct = enums(Object.values(Caip19Id));
 
 export const GetAccounBalancesResponseStruct = record(
   Caip19Struct,
@@ -30,9 +42,12 @@ export const GetAccounBalancesResponseStruct = record(
   }),
 );
 
-export const TransferSolParamsStruct = object({
+export const SendAndConfirmTransactionParamsStruct = object({
   to: string(),
+  mintAddress: optional(string()),
   amount: PositiveNumber,
 });
 
-export type TransferSolParams = Infer<typeof TransferSolParamsStruct>;
+export type SendAndConfirmTransactionParams = Infer<
+  typeof SendAndConfirmTransactionParamsStruct
+>;

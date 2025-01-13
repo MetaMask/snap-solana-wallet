@@ -6,16 +6,7 @@ import {
   useState,
 } from 'react';
 
-export enum SolanaCaip2Networks {
-  Mainnet = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  Devnet = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
-  Testnet = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
-}
-
-export type Network =
-  | SolanaCaip2Networks.Mainnet
-  | SolanaCaip2Networks.Devnet
-  | SolanaCaip2Networks.Testnet;
+import { Network } from '../../../snap/src/core/constants/solana';
 
 export type NetworkContextType = {
   network: string;
@@ -29,7 +20,7 @@ export const NetworkProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [network, setNetwork] = useState<Network>(SolanaCaip2Networks.Mainnet);
+  const [network, setNetwork] = useState<Network>(Network.Devnet);
 
   return (
     <NetworkContext.Provider value={{ network, setNetwork }}>

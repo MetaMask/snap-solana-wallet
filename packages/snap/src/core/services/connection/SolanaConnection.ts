@@ -4,7 +4,7 @@ import {
   type SolanaRpcApi,
 } from '@solana/web3.js';
 
-import { SolanaCaip2Networks } from '../../constants/solana';
+import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../config/ConfigProvider';
 import { createMainTransport } from './transport';
 
@@ -20,26 +20,23 @@ export class SolanaConnection {
    * Each network has its own RPC connection for making JSON-RPC requests
    * to the Solana blockchain.
    */
-  readonly #networkCaip2IdToRpc: Map<SolanaCaip2Networks, Rpc<SolanaRpcApi>> =
-    new Map();
+  readonly #networkCaip2IdToRpc: Map<Network, Rpc<SolanaRpcApi>> = new Map();
 
   constructor(configProvider: ConfigProvider) {
     this.#configProvider = configProvider;
   }
 
-  #isValidNetwork(network: string): network is SolanaCaip2Networks {
-    return Object.values(SolanaCaip2Networks).includes(
-      network as SolanaCaip2Networks,
-    );
+  #isValidNetwork(network: string): network is Network {
+    return Object.values(Network).includes(network as Network);
   }
 
-  #validateNetworkOrThrow(network: SolanaCaip2Networks): void {
+  #validateNetworkOrThrow(network: Network): void {
     if (!this.#isValidNetwork(network)) {
       throw new Error(`Invalid network: ${String(network)}`);
     }
   }
 
-  #createRpc(caip2Id: SolanaCaip2Networks): Rpc<SolanaRpcApi> {
+  #createRpc(caip2Id: Network): Rpc<SolanaRpcApi> {
     const network = this.#configProvider.getNetworkBy('caip2Id', caip2Id);
     const transport = createMainTransport(network.rpcUrls);
     const rpc = createSolanaRpcFromTransport(transport);
@@ -55,7 +52,7 @@ export class SolanaConnection {
    * @param caip2Id - The CAIP-2 ID of the network.
    * @returns The RPC client for the given network CAIP-2 ID.
    */
-  public getRpc(caip2Id: SolanaCaip2Networks): Rpc<SolanaRpcApi> {
+  public getRpc(caip2Id: Network): Rpc<SolanaRpcApi> {
     this.#validateNetworkOrThrow(caip2Id);
     return this.#networkCaip2IdToRpc.get(caip2Id) ?? this.#createRpc(caip2Id);
   }

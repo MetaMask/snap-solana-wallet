@@ -13,10 +13,10 @@ import type {
 } from '@solana/web3.js';
 
 import type { SolanaTokenMetadata } from '../clients/token-metadata-client/types';
-import type { SolanaCaip2Networks } from '../constants/solana';
+import type { Network } from '../constants/solana';
 
 export type SolanaAsset = {
-  scope: SolanaCaip2Networks;
+  scope: Network;
   address: string;
   balance: string;
   decimals: number;

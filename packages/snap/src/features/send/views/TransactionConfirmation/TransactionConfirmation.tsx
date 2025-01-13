@@ -3,7 +3,7 @@ import { Box, Button, Container, Footer } from '@metamask/snaps-sdk/jsx';
 import SolanaLogo from '../../../../../images/coin.svg';
 import { ActionHeader } from '../../../../core/components/ActionHeader/ActionHeader';
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
-import { formatTokens } from '../../../../core/utils/format-tokens';
+import { formatTokens } from '../../../../core/utils/formatTokens';
 import { i18n } from '../../../../core/utils/i18n';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
 import { getAmountInSol } from '../../selectors';

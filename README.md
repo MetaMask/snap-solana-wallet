@@ -12,7 +12,7 @@ The Solana Wallet Snap allows MetaMask and dapps to manage accounts and manage s
 ## Prerequisites
 
 - [MetaMask Flask](https://consensyssoftware.atlassian.net/wiki/x/IQCOB10)
-- Nodejs `20`
+- Nodejs `21.7.3` (specified in `.nvmrc`)
 - yarn 3.8.6 (Due to MetaMask packages incompatibilities)
 
 > [!IMPORTANT]

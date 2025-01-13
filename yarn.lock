@@ -4134,20 +4134,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^11.1.0":
-  version: 11.1.0
-  resolution: "@metamask/keyring-api@npm:11.1.0"
+"@metamask/keyring-api@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "@metamask/keyring-api@npm:13.0.0"
   dependencies:
+    "@metamask/keyring-utils": ^1.0.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.0.1
+    bech32: ^2.0.0
+  checksum: 07ba621e7db7e1b4ec8705baa3fb5a5a354c01642bd0d7621e2cbcc889182c92ef826f3d1a95cc71c0e685d24df0178e752a860a515e2f3151a75445a90c6228
+  languageName: node
+  linkType: hard
+
+"@metamask/keyring-snap-sdk@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@metamask/keyring-snap-sdk@npm:1.1.0"
+  dependencies:
+    "@metamask/keyring-utils": ^1.0.0
     "@metamask/snaps-sdk": ^6.7.0
     "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^9.3.0
-    "@types/uuid": ^9.0.8
-    bech32: ^2.0.0
-    uuid: ^9.0.1
+    "@metamask/utils": ^11.0.1
     webextension-polyfill: ^0.12.0
   peerDependencies:
-    "@metamask/providers": ^18.1.0
-  checksum: 5912e678613ed3fcf3b9dfa597d787280d2eb8cf070931c580fc667986ef833b37d0884ba5ae238826f82d98704c48d6b7fb1519bfbc9a52b6159ab4259422ab
+    "@metamask/providers": ^18.3.1
+  checksum: 277c020e4064746eb0eec865de2377c20a5aa581430118eeeac28a9efdc9c862fe205ed2d3c2d401eed9de40052fb39e86a69901e6f1baeab8a62ce3933e2209
+  languageName: node
+  linkType: hard
+
+"@metamask/keyring-utils@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/keyring-utils@npm:1.0.0"
+  dependencies:
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^9.3.0
+  checksum: 9b1c9a0805ac1f62c0ec1a6381cf1a892ac367b86de77a83f56617a9391ca5fca4803d84a95d15266b31f2c22e7711da166dfb05f10ef528146c256ce4eb8c92
   languageName: node
   linkType: hard
 
@@ -4498,7 +4518,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-sdk@npm:^6.11.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.7.0, @metamask/snaps-sdk@npm:^6.9.0":
+"@metamask/snaps-sdk@npm:^6.11.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.9.0":
   version: 6.12.0
   resolution: "@metamask/snaps-sdk@npm:6.12.0"
   dependencies:
@@ -4663,7 +4683,8 @@ __metadata:
     "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": ^4.0.0
     "@metamask/key-tree": ^9.1.2
-    "@metamask/keyring-api": ^11.1.0
+    "@metamask/keyring-api": ^13.0.0
+    "@metamask/keyring-snap-sdk": ^1.1.0
     "@metamask/snaps-cli": ^6.2.1
     "@metamask/snaps-jest": 8.8.1
     "@metamask/snaps-sdk": ^6.13.0
@@ -4671,6 +4692,7 @@ __metadata:
     "@noble/ed25519": ^2.1.0
     "@solana-program/compute-budget": ^0.6.1
     "@solana-program/system": ^0.6.2
+    "@solana-program/token": ^0.4.1
     "@solana/web3.js": 2
     "@testing-library/jest-dom": ^6.6.2
     "@types/express": ^5.0.0
@@ -4696,7 +4718,7 @@ __metadata:
     "@chakra-ui/react": ^3.0.2
     "@emotion/react": ^11.13.3
     "@metamask/eslint-config-browser": ^12.1.0
-    "@metamask/keyring-api": ^11.1.0
+    "@metamask/keyring-api": ^13.0.0
     "@metamask/providers": ^18.1.0
     "@svgr/webpack": ^8.1.0
     "@testing-library/dom": ^10.4.0
@@ -4710,6 +4732,7 @@ __metadata:
     gatsby-plugin-svgr: ^3.0.0-beta.0
     react: ^18.3.1
     react-dom: ^18.3.1
+    react-icons: ^5.4.0
     react-is: ^18.3.1
     rimraf: ^6.0.1
     styled-components: 6.1.13
@@ -4771,6 +4794,23 @@ __metadata:
     semver: ^7.5.4
     uuid: ^9.0.1
   checksum: 3e29213263efc9332c70ee8185cfa9390c494f770eea72fc8b8697d87a9850a9202f0d567232f7cb44e282494f26426384cce49f3f0a28bf21798454e8e04db8
+  languageName: node
+  linkType: hard
+
+"@metamask/utils@npm:^11.0.1":
+  version: 11.0.1
+  resolution: "@metamask/utils@npm:11.0.1"
+  dependencies:
+    "@ethereumjs/tx": ^4.2.0
+    "@metamask/superstruct": ^3.1.0
+    "@noble/hashes": ^1.3.1
+    "@scure/base": ^1.1.3
+    "@types/debug": ^4.1.7
+    debug: ^4.3.4
+    pony-cause: ^2.1.10
+    semver: ^7.5.4
+    uuid: ^9.0.1
+  checksum: a5072f87157f6763328767bf1ddc01deb94e13f32af58d0993e0450e7e211fb29882280a1013cbdc7752b152a662be3d9beef8129a9097dba7d465389c398b3c
   languageName: node
   linkType: hard
 
@@ -5864,6 +5904,15 @@ __metadata:
   peerDependencies:
     "@solana/web3.js": ^2.0.0
   checksum: 54bc2fcd06c0c8eab51b1a938689ba5ea7a1b294ac3b74818b38a9b5016015184db9a0c56a9d2f91eabce283c7ce4c87a627733e080da860c4b3f72183aa780c
+  languageName: node
+  linkType: hard
+
+"@solana-program/token@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "@solana-program/token@npm:0.4.1"
+  peerDependencies:
+    "@solana/web3.js": ^2.0.0
+  checksum: 2d406c0f898a266e4a88fb141745789391694906caeceec624d31e6fef5252ba45fb80af878444fa7bd137aee7f6a5cee24bf005bb52d476cadd0ea31314ed56
   languageName: node
   linkType: hard
 
@@ -7416,13 +7465,6 @@ __metadata:
   version: 0.0.33
   resolution: "@types/tmp@npm:0.0.33"
   checksum: b6963af74092bd56a1a9a7936a1a6de45ddbd5e774f9fc904f16b7e2ada79da8a769e0c5b9df083064b8080bb260c4973ba4307640b7b7a75ed1c47bda8c4110
-  languageName: node
-  linkType: hard
-
-"@types/uuid@npm:^9.0.8":
-  version: 9.0.8
-  resolution: "@types/uuid@npm:9.0.8"
-  checksum: b8c60b7ba8250356b5088302583d1704a4e1a13558d143c549c408bf8920535602ffc12394ede77f8a8083511b023704bc66d1345792714002bfa261b17c5275
   languageName: node
   linkType: hard
 
@@ -21538,6 +21580,15 @@ __metadata:
   version: 6.0.11
   resolution: "react-error-overlay@npm:6.0.11"
   checksum: ce7b44c38fadba9cedd7c095cf39192e632daeccf1d0747292ed524f17dcb056d16bc197ddee5723f9dd888f0b9b19c3b486c430319e30504289b9296f2d2c42
+  languageName: node
+  linkType: hard
+
+"react-icons@npm:^5.4.0":
+  version: 5.4.0
+  resolution: "react-icons@npm:5.4.0"
+  peerDependencies:
+    react: "*"
+  checksum: 6ee5fcda49d9628e33d97e955ed6ec9f30b26226a13b14d0f3f9a698d0d5dd2e3878af7de295e0241bdd8f46af96f16bfea1fd0647beddc447c1de98bdb2178e
   languageName: node
   linkType: hard
 

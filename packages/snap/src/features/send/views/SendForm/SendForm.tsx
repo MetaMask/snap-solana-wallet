@@ -9,11 +9,11 @@ import {
 import { isNullOrUndefined } from '@metamask/utils';
 
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
-import { SolanaCaip19Tokens } from '../../../../core/constants/solana';
-import { formatCurrency } from '../../../../core/utils/format-currency';
-import { formatTokens } from '../../../../core/utils/format-tokens';
+import { Caip19Id } from '../../../../core/constants/solana';
+import { formatCurrency } from '../../../../core/utils/formatCurrency';
+import { formatTokens } from '../../../../core/utils/formatTokens';
 import { i18n } from '../../../../core/utils/i18n';
-import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
+import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
 import { AmountInput } from '../../components/AmountInput/AmountInput';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
@@ -41,7 +41,8 @@ export const SendForm = ({
   const nativeBalance = balances[fromAccountId]?.amount;
   const isNativeBalanceDefined = nativeBalance !== undefined;
 
-  const { price } = tokenPrices[SolanaCaip19Tokens.SOL];
+  // FIXME: for now, always use mainnet for prices
+  const { price } = tokenPrices[Caip19Id.SolMainnet] ?? { price: 0 };
 
   const currencyToBalance: Record<SendCurrency, string> = isNativeBalanceDefined
     ? {
@@ -132,6 +133,7 @@ export const SendForm = ({
             }
           />
         </Form>
+        <Button name={SendFormNames.TransferUsdcButton}>Transfer USDC</Button>
       </Box>
       <Footer>
         <Button name={SendFormNames.CancelButton}>

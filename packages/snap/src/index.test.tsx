@@ -1,6 +1,6 @@
 import { expect } from '@jest/globals';
 import { installSnap } from '@metamask/snaps-jest';
-import { keyring } from './snap-context';
+import { keyring } from './snapContext';
 import { handlers as onUpdateHandlers, OnUpdateMethods } from './core/handlers/onUpdate';
 import { onUpdate } from './index';
 
@@ -10,7 +10,7 @@ jest.mock('@noble/ed25519', () => ({
   verify: jest.fn(),
 }));
 
-jest.mock('./snap-context', () => ({
+jest.mock('./snapContext', () => ({
   keyring: {
     listAccounts: jest.fn(),
     createAccount: jest.fn(),

@@ -2,7 +2,7 @@ import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
 import { Send } from '../../../features/send/Send';
 import type { SendContext } from '../../../features/send/types';
-import { state, tokenPricesService } from '../../../snap-context';
+import { state, tokenPricesService } from '../../../snapContext';
 import {
   getInterfaceContext,
   SEND_FORM_INTERFACE_NAME,

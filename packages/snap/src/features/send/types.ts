@@ -1,11 +1,8 @@
 import type { Balance, CaipAssetType } from '@metamask/keyring-api';
 
-import type {
-  SolanaCaip19Tokens,
-  SolanaCaip2Networks,
-} from '../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../core/services/keyring';
-import type { TokenPrice } from '../../core/services/state';
+import type { Caip19Id, Network } from '../../core/constants/solana';
+import type { SolanaKeyringAccount } from '../../core/services/keyring/Keyring';
+import type { TokenPrice } from '../../core/services/state/State';
 import type { FormFieldError } from '../../core/types/error';
 import type { Preferences } from '../../core/types/snap';
 
@@ -28,6 +25,7 @@ export enum SendFormNames {
   SendButton = 'send-submit-button',
   ClearButton = 'send-clear-button',
   CloseButton = 'send-close-button',
+  TransferUsdcButton = 'send-transfer-usdc-button',
 }
 
 export enum SendCurrency {
@@ -42,7 +40,7 @@ export type SendTransation = {
 };
 
 export type SendContext = {
-  scope: SolanaCaip2Networks;
+  scope: Network;
   fromAccountId: string;
   amount: string;
   toAddress: string;
@@ -52,7 +50,7 @@ export type SendContext = {
   validation: Partial<Record<SendFormNames, FormFieldError>>;
   currencySymbol: SendCurrency;
   balances: Record<CaipAssetType, Balance>;
-  tokenPrices: Record<SolanaCaip19Tokens, TokenPrice>;
+  tokenPrices: Partial<Record<Caip19Id, TokenPrice>>;
   transaction: SendTransation | null;
   stage: SendFlowStage;
   preferences: Preferences;

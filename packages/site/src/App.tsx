@@ -3,6 +3,7 @@ import { useContext } from 'react';
 import styled from 'styled-components';
 
 import { Footer, Header } from './components';
+import { Toaster } from './components/Toaster/Toaster';
 import { GlobalStyle } from './config/theme';
 import { ToggleThemeContext } from './Root';
 
@@ -28,6 +29,7 @@ export const App: FunctionComponent<AppProps> = ({ children }) => {
         <Header handleToggleClick={toggleTheme} />
         {children}
         <Footer />
+        <Toaster />
       </Wrapper>
     </>
   );

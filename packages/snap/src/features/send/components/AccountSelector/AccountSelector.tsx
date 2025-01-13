@@ -8,19 +8,19 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
-import type { SolanaCaip2Networks } from '../../../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../../../core/services/keyring';
-import { addressToCaip10 } from '../../../../core/utils/address-to-caip10';
-import { formatCurrency } from '../../../../core/utils/format-currency';
-import { formatTokens } from '../../../../core/utils/format-tokens';
+import type { Network } from '../../../../core/constants/solana';
+import type { SolanaKeyringAccount } from '../../../../core/services/keyring/Keyring';
+import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
+import { formatCurrency } from '../../../../core/utils/formatCurrency';
+import { formatTokens } from '../../../../core/utils/formatTokens';
 import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
-import { tokenToFiat } from '../../../../core/utils/token-to-fiat';
-import { truncateAddress } from '../../../../core/utils/truncate-address';
+import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
+import { truncateAddress } from '../../../../core/utils/truncateAddress';
 
 type AccountSelectorProps = {
   name: string;
-  scope: SolanaCaip2Networks;
+  scope: Network;
   accounts: SolanaKeyringAccount[];
   balances: Record<string, Balance>;
   price: number;
