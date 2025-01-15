@@ -16,6 +16,7 @@ import {
 
 import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
+import { mockLogger } from '../mocks/logger';
 import { createMockConnection } from '../mocks/mockConnection';
 import type { Exists, MaybeHasDecimals } from './SplTokenHelper';
 import { SplTokenHelper } from './SplTokenHelper';
@@ -36,14 +37,6 @@ describe('SplTokenHelper', () => {
     getTokenMintInfo: jest.fn(),
     getComputeUnitEstimate: jest.fn(),
   } as unknown as TransactionHelper;
-
-  const mockLogger = {
-    error: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-    log: jest.fn(),
-  };
 
   let splTokenHelper: SplTokenHelper;
 

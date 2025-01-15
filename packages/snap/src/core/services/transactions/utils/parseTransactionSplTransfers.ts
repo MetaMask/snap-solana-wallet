@@ -1,0 +1,115 @@
+import type { Transaction } from '@metamask/keyring-api';
+
+import type { Network } from '../../../constants/solana';
+import { TokenMetadata } from '../../../constants/solana';
+import type { SolanaTransaction } from '../../../types/solana';
+
+/**
+ * Parses SPL token transfers from a transaction data object.
+ * @param options0 - The options object.
+ * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
+ * @param options0.transactionData - The raw transaction data containing token balance changes.
+ * @returns Transaction transfer details.
+ */
+export function parseTransactionSplTransfers({
+  scope,
+  transactionData,
+}: {
+  scope: Network;
+  transactionData: SolanaTransaction;
+}): {
+  from: Transaction['from'];
+  to: Transaction['to'];
+} {
+  const from: any[] = [];
+  const to: any[] = [];
+
+  const preBalances = new Map(
+    transactionData.meta?.preTokenBalances?.map((balance) => [
+      balance.accountIndex,
+      BigInt(balance.uiTokenAmount.amount),
+    ]) ?? [],
+  );
+
+  const postBalances = new Map(
+    transactionData.meta?.postTokenBalances?.map((balance) => [
+      balance.accountIndex,
+      BigInt(balance.uiTokenAmount.amount),
+    ]) ?? [],
+  );
+
+  // Track all accounts that had token balance changes
+  const allAccountIndexes = new Set([
+    ...(transactionData.meta?.preTokenBalances?.map((b) => b.accountIndex) ??
+      []),
+    ...(transactionData.meta?.postTokenBalances?.map((b) => b.accountIndex) ??
+      []),
+  ]);
+
+  for (const accountIndex of allAccountIndexes) {
+    const preBalance = preBalances.get(accountIndex) ?? BigInt(0);
+    const postBalance = postBalances.get(accountIndex) ?? BigInt(0);
+    const balanceDiff = postBalance - preBalance;
+
+    if (balanceDiff === BigInt(0)) {
+      continue;
+    }
+
+    const tokenDetails =
+      transactionData.meta?.preTokenBalances?.find(
+        (b) => b.accountIndex === accountIndex,
+      ) ??
+      transactionData.meta?.postTokenBalances?.find(
+        (b) => b.accountIndex === accountIndex,
+      );
+
+    if (!tokenDetails) {
+      continue;
+    }
+
+    const {
+      mint,
+      uiTokenAmount: { decimals },
+      owner,
+    } = tokenDetails;
+
+    const caip19Id = `${scope}/token:${mint}`;
+    const tokenInformation =
+      TokenMetadata[caip19Id as keyof typeof TokenMetadata];
+
+    if (!owner || !tokenInformation) {
+      continue;
+    }
+
+    const unit = tokenInformation.symbol;
+
+    const amount =
+      Number(Math.abs(Number(balanceDiff))) / Math.pow(10, decimals);
+
+    if (balanceDiff < BigInt(0)) {
+      from.push({
+        address: owner,
+        asset: {
+          fungible: true,
+          type: caip19Id,
+          unit,
+          amount: amount.toString(),
+        },
+      });
+    }
+
+    if (balanceDiff > BigInt(0)) {
+      to.push({
+        address: owner,
+        asset: {
+          fungible: true,
+          type: caip19Id,
+          unit,
+          amount: amount.toString(),
+        },
+      });
+    }
+  }
+
+  return { from, to };
+}

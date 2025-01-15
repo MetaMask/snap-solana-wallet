@@ -50,6 +50,7 @@ const priceApiClient = new PriceApiClient(configProvider);
 const transactionsService = new TransactionsService({
   logger,
   connection,
+  configProvider,
 });
 
 const assetsService = new AssetsService({

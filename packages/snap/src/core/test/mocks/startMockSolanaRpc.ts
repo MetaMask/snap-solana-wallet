@@ -18,11 +18,22 @@ export type MockedRejectedError = {
   };
 };
 
+// Add new types for implementation functions
+export type MockImplementationFn = (params: any) => Json | Promise<Json>;
+
 export type MockSolanaRpc = {
   mockResolvedResult: (mock: MockedResolvedResult) => void;
   mockResolvedResultOnce: (mock: MockedResolvedResult) => void;
   mockRejectedError: (mock: MockedRejectedError) => void;
   mockRejectedErrorOnce: (mock: MockedRejectedError) => void;
+  mockImplementation: (
+    method: string,
+    implementation: MockImplementationFn,
+  ) => void;
+  mockImplementationOnce: (
+    method: string,
+    implementation: MockImplementationFn,
+  ) => void;
   shutdown: () => void;
   server: express.Application | null;
 };
@@ -49,7 +60,9 @@ let server: any;
 const mocks = new Map<
   string,
   Stack<
-    Omit<MockedResolvedResult, 'method'> | Omit<MockedRejectedError, 'method'>
+    | Omit<MockedResolvedResult, 'method'>
+    | Omit<MockedRejectedError, 'method'>
+    | { implementation: MockImplementationFn }
   >
 >();
 
@@ -62,8 +75,8 @@ const createAppIfNotExists = () => {
     app = express();
     app.use(express.json());
 
-    app.post('/', (req: any, res: any) => {
-      const { method, id: requestId } = req.body;
+    app.post('/', async (req: any, res: any) => {
+      const { method, params, id: requestId } = req.body;
       const id = requestId ?? '0';
 
       const mockStack = mocks.get(method);
@@ -96,6 +109,31 @@ const createAppIfNotExists = () => {
           id,
           error: mock.error,
         });
+      }
+
+      if ('implementation' in mock) {
+        try {
+          console.log(
+            'Calling implementation with params:',
+            JSON.stringify(params, null, 2),
+          );
+          const result = await mock.implementation(params);
+          return res.json({
+            jsonrpc: '2.0',
+            id,
+            result,
+          });
+        } catch (error) {
+          return res.status(400).json({
+            jsonrpc: '2.0',
+            id,
+            error: {
+              code: -32603,
+              message:
+                error instanceof Error ? error.message : 'Implementation error',
+            },
+          });
+        }
       }
 
       return res.json({
@@ -154,6 +192,24 @@ export const startMockSolanaRpc = (): MockSolanaRpc => {
     mocks.set(method, stack);
   };
 
+  const mockImplementation = (
+    method: string,
+    implementation: MockImplementationFn,
+  ) => {
+    const stack = mocks.get(method) ?? new Stack();
+    stack.push({ implementation }, false); // Non destackable
+    mocks.set(method, stack);
+  };
+
+  const mockImplementationOnce = (
+    method: string,
+    implementation: MockImplementationFn,
+  ) => {
+    const stack = mocks.get(method) ?? new Stack();
+    stack.push({ implementation }, true); // Destackable
+    mocks.set(method, stack);
+  };
+
   const shutdown = () => server.close();
 
   return {
@@ -161,6 +217,8 @@ export const startMockSolanaRpc = (): MockSolanaRpc => {
     mockResolvedResultOnce,
     mockRejectedError,
     mockRejectedErrorOnce,
+    mockImplementation,
+    mockImplementationOnce,
     shutdown,
     server: app,
   };

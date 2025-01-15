@@ -72,6 +72,7 @@ describe('SolanaKeyring', () => {
     const transactionsService = new TransactionsService({
       logger,
       connection: mockConnection,
+      configProvider: mockConfigProvider,
     });
 
     const assetsService = new AssetsService({

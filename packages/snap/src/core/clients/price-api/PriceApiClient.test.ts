@@ -1,13 +1,10 @@
 import type { ConfigProvider } from '../../services/config';
-import type { ILogger } from '../../utils/logger';
+import { mockLogger } from '../../services/mocks/logger';
 import { PriceApiClient } from './PriceApiClient';
 import type { SpotPrice } from './types';
 
 describe('PriceApiClient', () => {
   const mockFetch = jest.fn();
-  const mockLogger = {
-    error: jest.fn(),
-  } as unknown as ILogger;
 
   let client: PriceApiClient;
   let mockConfigProvider: ConfigProvider;

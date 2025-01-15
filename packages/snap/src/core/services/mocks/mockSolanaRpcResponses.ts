@@ -131,3 +131,11 @@ export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
   },
   id: '0',
 };
+
+export const MOCK_SOLANA_RPC_GET_TRANSACTION_RESPONSE = {
+  jsonrpc: '2.0',
+  result: {
+    signature: '123',
+  },
+  id: '0',
+};

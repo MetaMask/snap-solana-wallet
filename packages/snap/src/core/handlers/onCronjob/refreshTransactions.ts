@@ -2,8 +2,14 @@ import type { Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/web3.js';
 import { address as asAddress } from '@solana/web3.js';
 
-import { keyring, state, transactionsService } from '../../../snapContext';
+import {
+  configProvider,
+  keyring,
+  state,
+  transactionsService,
+} from '../../../snapContext';
 import { Network } from '../../constants/solana';
+import { mapRpcTransaction } from '../../services/transactions/utils/mapRpcTransaction';
 import logger from '../../utils/logger';
 
 /**
@@ -62,7 +68,7 @@ export async function refreshTransactions() {
         const signatures = await transactionsService.fetchLatestSignatures(
           scope,
           asAddress(account.address),
-          2,
+          configProvider.get().transactions.storageLimit,
         );
 
         // Filter out signatures we already have
@@ -100,7 +106,7 @@ export async function refreshTransactions() {
 
         const newTransactions = transactionsData
           .map((txData) => {
-            const mappedTx = transactionsService.mapRpcTransaction({
+            const mappedTx = mapRpcTransaction({
               scope,
               address: account.address as Address,
               transactionData: txData,
