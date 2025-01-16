@@ -22,7 +22,9 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
   index: 0,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174000',
-  options: {},
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -36,7 +38,9 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   index: 1,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174001',
-  options: {},
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -50,7 +54,9 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
   index: 2,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174002',
-  options: {},
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -63,7 +69,9 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   index: 3,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174003',
-  options: {},
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -77,7 +85,9 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
   index: 4,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174004',
-  options: {},
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -91,7 +101,9 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
   index: 5,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174005',
-  options: {},
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [

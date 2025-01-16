@@ -2,6 +2,7 @@ import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
 import type {
   Json,
   OnCronjobHandler,
+  OnInstallHandler,
   OnKeyringRequestHandler,
   OnUpdateHandler,
   OnUserInputHandler,
@@ -199,5 +200,45 @@ export const onUpdate: OnUpdateHandler = async ({ origin }) => {
   if (accounts.length === 0) {
     const handler = onUpdateHandlers[OnUpdateMethods.CreateAccount];
     await handler({ origin });
+  }
+};
+
+/**
+ * Handles the install of the snap. This handler is called when the snap is installed.
+ *
+ * @param args - The request handler args as object.
+ * @param args.origin - The origin of the request.
+ * @returns The JSON-RPC response.
+ * @throws If the request method is not valid.
+ * @see https://docs.metamask.io/snaps/features/lifecycle-hooks/#2-run-an-action-on-installation
+ */
+export const onInstall: OnInstallHandler = async ({ origin }) => {
+
+  try {
+    const accounts = await keyring.listAccounts();
+    if (accounts.length > 0) {
+      return;
+    }
+
+    // If no accounts exist we need to check for existing accounts in the SRP
+    const existingAccounts = await keyring.findExistingAccounts();
+    
+    if (existingAccounts.length > 0) {
+      // Import accounts with balance
+      for (const accountData of existingAccounts) {
+        await keyring.createAccount({
+          importedAccount: true,
+          index: accountData.index,
+        });
+      }
+    } else {
+      // Create a new account if no existing accounts were found
+      const handler = onUpdateHandlers[OnUpdateMethods.CreateAccount];
+      await handler({ origin });
+    }
+
+  } catch (error: any) {
+    logger.error(`onInstall error: ${JSON.stringify(error, null, 2)}`);
+    throw error;
   }
 };

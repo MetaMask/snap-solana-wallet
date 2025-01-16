@@ -23,7 +23,7 @@ import {
   getAddressFromPublicKey,
 } from '@solana/web3.js';
 
-import { SOL_SYMBOL, type Network } from '../../constants/solana';
+import { Network, SOL_SYMBOL } from '../../constants/solana';
 import { lamportsToSol } from '../../utils/conversion';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
@@ -59,6 +59,12 @@ export type SolanaKeyringAccount = {
   index: number;
   privateKeyBytesAsNum: number[];
 } & KeyringAccount;
+
+export type ExistingAccountData = {
+  index: number;
+  address: string;
+  balance: bigint;
+};
 
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
@@ -147,14 +153,25 @@ export class SolanaKeyring implements Keyring {
     return account;
   }
 
-  async createAccount(
-    options?: Record<string, Json>,
-  ): Promise<SolanaKeyringAccount> {
+  async createAccount(options?: {
+    index?: number;
+    importedAccount?: boolean;
+    [key: string]: Json | undefined;
+  }): Promise<SolanaKeyringAccount> {
     try {
       // eslint-disable-next-line no-restricted-globals
       const id = crypto.randomUUID();
-      const keyringAccounts = await this.listAccounts();
-      const index = getLowestUnusedIndex(keyringAccounts);
+
+      // Determine the account index
+      let index: number;
+      if (options?.importedAccount && typeof options.index === 'number') {
+        // Use the provided index for imported accounts
+        index = options.index;
+      } else {
+        // Get the lowest unused index for new accounts
+        const keyringAccounts = await this.listAccounts();
+        index = getLowestUnusedIndex(keyringAccounts);
+      }
 
       const privateKeyBytes = await deriveSolanaPrivateKey(index);
       const privateKeyBytesAsNum = Array.from(privateKeyBytes);
@@ -162,14 +179,21 @@ export class SolanaKeyring implements Keyring {
       const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
       const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
 
+      // Filter out our special properties from options
+      const { importedAccount, index: _, ...remainingOptions } = options ?? {};
+
       const keyringAccount: SolanaKeyringAccount = {
         id,
         index,
         privateKeyBytesAsNum,
         type: SolAccountType.DataAccount,
         address: accountAddress,
-        options: options ?? {},
         scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
+        options: {
+          ...remainingOptions,
+          // Add a flag to identify imported accounts if needed
+          imported: importedAccount ?? false,
+        },
         methods: [SolMethod.SendAndConfirmTransaction],
       };
 
@@ -186,7 +210,10 @@ export class SolanaKeyring implements Keyring {
           methods: keyringAccount.methods,
           scopes: keyringAccount.scopes,
         },
-        accountNameSuggestion: `Solana Account ${index + 1}`,
+        // Adjust name suggestion based on whether it's imported
+        accountNameSuggestion: options?.importedAccount
+          ? `Imported Solana Account ${index + 1}`
+          : `Solana Account ${index + 1}`,
       });
 
       await this.#encryptedState.update((state) => {
@@ -501,5 +528,37 @@ export class SolanaKeyring implements Keyring {
       data: accountTransactions,
       next: nextSignature,
     };
+  }
+
+  async findExistingAccounts(): Promise<ExistingAccountData[]> {
+    try {
+      const existingAccounts: ExistingAccountData[] = [];
+
+      // Checks the first 5 derivation paths
+      for (let index = 0; index < 5; index++) {
+        const privateKeyBytes = await deriveSolanaPrivateKey(index);
+        const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
+        const address = await getAddressFromPublicKey(keyPair.publicKey);
+
+        const nativeAsset = await this.#assetsService.getNativeAsset(
+          address,
+          Network.Mainnet,
+        );
+
+        if (BigInt(nativeAsset.balance) > 0n) {
+          existingAccounts.push({
+            index,
+            address,
+            balance: BigInt(nativeAsset.balance),
+          });
+          break;
+        }
+      }
+
+      return existingAccounts;
+    } catch (error) {
+      this.#logger.error({ error }, 'Error finding existing accounts');
+      throw error;
+    }
   }
 }
