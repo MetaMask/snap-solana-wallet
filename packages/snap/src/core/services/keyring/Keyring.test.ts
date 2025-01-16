@@ -587,7 +587,7 @@ describe('SolanaKeyring', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      
+
       jest.mocked(deriveSolanaPrivateKey).mockReset();
       jest.mocked(deriveSolanaPrivateKey).mockImplementation((index) => {
         const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index]!;
@@ -596,7 +596,7 @@ describe('SolanaKeyring', () => {
         }
         return Promise.resolve(new Uint8Array(account.privateKeyBytesAsNum));
       });
-      
+
       // Adds an AssetsService mock for each test
       mockAssetsService = new AssetsService({
         connection: mockConnection,
@@ -624,7 +624,8 @@ describe('SolanaKeyring', () => {
     });
 
     it('finds accounts with non-zero balances', async () => {
-      jest.spyOn(mockAssetsService, 'getNativeAsset')
+      jest
+        .spyOn(mockAssetsService, 'getNativeAsset')
         .mockResolvedValueOnce({
           balance: '123456789',
           decimals: 9,
@@ -651,14 +652,13 @@ describe('SolanaKeyring', () => {
     });
 
     it('returns empty array when no accounts have balance', async () => {
-      jest.spyOn(mockAssetsService, 'getNativeAsset')
-        .mockResolvedValue({
-          balance: '0',
-          decimals: 9,
-          scope: Network.Localnet,
-          address: 'mock-address',
-          native: true,
-        });
+      jest.spyOn(mockAssetsService, 'getNativeAsset').mockResolvedValue({
+        balance: '0',
+        decimals: 9,
+        scope: Network.Localnet,
+        address: 'mock-address',
+        native: true,
+      });
 
       const existingAccounts = await keyring.findExistingAccounts();
 
@@ -667,7 +667,8 @@ describe('SolanaKeyring', () => {
     });
 
     it('stops searching after finding first account with balance', async () => {
-      const getNativeAssetSpy = jest.spyOn(mockAssetsService, 'getNativeAsset')
+      const getNativeAssetSpy = jest
+        .spyOn(mockAssetsService, 'getNativeAsset')
         .mockResolvedValueOnce({
           balance: '123456789',
           decimals: 9,
@@ -684,21 +685,22 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws error when derivation fails', async () => {
-      jest.mocked(deriveSolanaPrivateKey).mockRejectedValueOnce(
-        new Error('Error finding existing accounts')
-      );
+      jest
+        .mocked(deriveSolanaPrivateKey)
+        .mockRejectedValueOnce(new Error('Error finding existing accounts'));
 
       await expect(keyring.findExistingAccounts()).rejects.toThrow(
-        'Error finding existing accounts'
+        'Error finding existing accounts',
       );
     });
 
     it('throws error when getNativeAsset fails', async () => {
-      jest.spyOn(mockAssetsService, 'getNativeAsset')
+      jest
+        .spyOn(mockAssetsService, 'getNativeAsset')
         .mockRejectedValue(new Error('Error finding existing accounts'));
 
       await expect(keyring.findExistingAccounts()).rejects.toThrow(
-        'Error finding existing accounts'
+        'Error finding existing accounts',
       );
     });
   });

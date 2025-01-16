@@ -154,8 +154,8 @@ export class SolanaKeyring implements Keyring {
   }
 
   async createAccount(options?: {
-    index?: number;
     importedAccount?: boolean;
+    index?: number;
     [key: string]: Json | undefined;
   }): Promise<SolanaKeyringAccount> {
     try {

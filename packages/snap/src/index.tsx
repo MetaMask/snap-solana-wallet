@@ -213,7 +213,6 @@ export const onUpdate: OnUpdateHandler = async ({ origin }) => {
  * @see https://docs.metamask.io/snaps/features/lifecycle-hooks/#2-run-an-action-on-installation
  */
 export const onInstall: OnInstallHandler = async ({ origin }) => {
-
   try {
     const accounts = await keyring.listAccounts();
     if (accounts.length > 0) {
@@ -222,7 +221,7 @@ export const onInstall: OnInstallHandler = async ({ origin }) => {
 
     // If no accounts exist we need to check for existing accounts in the SRP
     const existingAccounts = await keyring.findExistingAccounts();
-    
+
     if (existingAccounts.length > 0) {
       // Import accounts with balance
       for (const accountData of existingAccounts) {
@@ -236,7 +235,6 @@ export const onInstall: OnInstallHandler = async ({ origin }) => {
       const handler = onUpdateHandlers[OnUpdateMethods.CreateAccount];
       await handler({ origin });
     }
-
   } catch (error: any) {
     logger.error(`onInstall error: ${JSON.stringify(error, null, 2)}`);
     throw error;
