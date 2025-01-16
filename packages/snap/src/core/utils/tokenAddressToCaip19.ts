@@ -7,6 +7,9 @@ import type { Network } from '../constants/solana';
  * @param address - The token address.
  * @returns The CAIP-19 identifier.
  */
-export function tokenAddressToCaip19(scope: Network, address: string): string {
+export function tokenAddressToCaip19(
+  scope: Network,
+  address: string,
+): `${string}:${string}/${string}:${string}` {
   return `${scope}/token:${address}`;
 }

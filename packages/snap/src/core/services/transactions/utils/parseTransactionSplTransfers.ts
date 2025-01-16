@@ -1,8 +1,8 @@
 import type { Transaction } from '@metamask/keyring-api';
 
 import type { Network } from '../../../constants/solana';
-import { TokenMetadata } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
+import { tokenAddressToCaip19 } from '../../../utils/tokenAddressToCaip19';
 
 /**
  * Parses SPL token transfers from a transaction data object.
@@ -21,8 +21,8 @@ export function parseTransactionSplTransfers({
   from: Transaction['from'];
   to: Transaction['to'];
 } {
-  const from: any[] = [];
-  const to: any[] = [];
+  const from: Transaction['from'] = [];
+  const to: Transaction['to'] = [];
 
   const preBalances = new Map(
     transactionData.meta?.preTokenBalances?.map((balance) => [
@@ -73,15 +73,11 @@ export function parseTransactionSplTransfers({
       owner,
     } = tokenDetails;
 
-    const caip19Id = `${scope}/token:${mint}`;
-    const tokenInformation =
-      TokenMetadata[caip19Id as keyof typeof TokenMetadata];
+    const caip19Id = tokenAddressToCaip19(scope, mint);
 
-    if (!owner || !tokenInformation) {
+    if (!owner) {
       continue;
     }
-
-    const unit = tokenInformation.symbol;
 
     const amount =
       Number(Math.abs(Number(balanceDiff))) / Math.pow(10, decimals);
@@ -92,7 +88,7 @@ export function parseTransactionSplTransfers({
         asset: {
           fungible: true,
           type: caip19Id,
-          unit,
+          unit: '', // This will get overwritten by the token metadata when we fetch it
           amount: amount.toString(),
         },
       });
@@ -104,7 +100,7 @@ export function parseTransactionSplTransfers({
         asset: {
           fungible: true,
           type: caip19Id,
-          unit,
+          unit: '', // This will get overwritten by the token metadata when we fetch it
           amount: amount.toString(),
         },
       });

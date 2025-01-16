@@ -18,7 +18,7 @@ const EnvStruct = object({
   PRICE_API_BASE_URL: string(),
   TOKEN_API_BASE_URL: string(),
   TOKEN_API_KEY: string(),
-  LOCAL_API_URL: string(),
+  LOCAL_API_BASE_URL: string(),
   LOCAL: optional(string()),
 });
 
@@ -78,7 +78,7 @@ export class ConfigProvider {
       TOKEN_API_KEY: process.env.TOKEN_API_KEY,
       // TODO: Remove this once we have a better way to handle local environment
       LOCAL: process.env.LOCAL,
-      LOCAL_API_URL: process.env.LOCAL_API_URL,
+      LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL,
     };
 
     // Validate and parse them before returning
@@ -111,20 +111,20 @@ export class ConfigProvider {
         : [Network.Mainnet, Network.Devnet],
       priceApi: {
         baseUrl: environment.LOCAL
-          ? environment.LOCAL_API_URL
+          ? environment.LOCAL_API_BASE_URL
           : environment.PRICE_API_BASE_URL,
       },
       tokenApi: {
         baseUrl: environment.LOCAL
-          ? environment.LOCAL_API_URL
+          ? environment.LOCAL_API_BASE_URL
           : environment.TOKEN_API_BASE_URL,
         apiKey: environment.TOKEN_API_KEY,
         addressesChunkSize: 100,
       },
       transactions: {
-        bootstrapLimit: 10,
-        storageLimit: 40,
-        fetchLimit: 10,
+        bootstrapLimit: 2,
+        storageLimit: 5,
+        fetchLimit: 2,
       },
     };
   }

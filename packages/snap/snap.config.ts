@@ -13,7 +13,7 @@ const environment = {
   PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL ?? '',
   TOKEN_API_BASE_URL: process.env.TOKEN_API_BASE_URL ?? '',
   TOKEN_API_KEY: process.env.TOKEN_API_KEY ?? '',
-  LOCAL_API_URL: process.env.LOCAL_API_URL ?? '',
+  LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL ?? '',
   LOCAL: process.env.LOCAL,
 };
 

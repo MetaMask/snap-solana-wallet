@@ -1,6 +1,6 @@
 import { address as asAddress } from '@solana/web3.js';
 
-import { Caip19Id, Network, Networks } from '../../../constants/solana';
+import { Network, Networks } from '../../../constants/solana';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { mapRpcTransaction } from './mapRpcTransaction';
@@ -134,8 +134,8 @@ describe('mapRpcTransaction', () => {
           address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
           asset: {
             fungible: true,
-            type: Caip19Id.UsdcDevnet,
-            unit: 'USDC',
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+            unit: '',
             amount: '0.01',
           },
         },
@@ -145,8 +145,8 @@ describe('mapRpcTransaction', () => {
           address: 'BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe',
           asset: {
             fungible: true,
-            type: Caip19Id.UsdcDevnet,
-            unit: 'USDC',
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+            unit: '',
             amount: '0.01',
           },
         },
@@ -189,8 +189,8 @@ describe('mapRpcTransaction', () => {
           address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
           asset: {
             fungible: true,
-            type: Caip19Id.UsdcDevnet,
-            unit: 'USDC',
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+            unit: '',
             amount: '0.01',
           },
         },
@@ -200,8 +200,8 @@ describe('mapRpcTransaction', () => {
           address: 'BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe',
           asset: {
             fungible: true,
-            type: Caip19Id.UsdcDevnet,
-            unit: 'USDC',
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+            unit: '',
             amount: '0.01',
           },
         },

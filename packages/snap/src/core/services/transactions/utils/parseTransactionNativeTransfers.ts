@@ -31,8 +31,8 @@ export function parseTransactionNativeTransfers({
     transactionData,
   });
 
-  const from: any[] = [];
-  const to: any[] = [];
+  const from: Transaction['from'] = [];
+  const to: Transaction['to'] = [];
 
   // Get the fee payer (first account in accountKeys)
   const feePayer = transactionData.transaction.message.accountKeys[0];

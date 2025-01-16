@@ -69,10 +69,15 @@ describe('SolanaKeyring', () => {
       }),
     } as unknown as ConfigProvider;
 
+    mockTokenMetadataService = {
+      getMultipleTokenMetadata: jest.fn().mockResolvedValue({}),
+    } as unknown as TokenMetadataService;
+
     const transactionsService = new TransactionsService({
       logger,
       connection: mockConnection,
       configProvider: mockConfigProvider,
+      tokenMetadataService: mockTokenMetadataService,
     });
 
     const assetsService = new AssetsService({

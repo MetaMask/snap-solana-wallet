@@ -7,12 +7,12 @@ import { refreshUiTokenPrices } from './refreshUiTokenPrices';
 export enum CronjobMethod {
   RefreshTokenPrices = 'refreshTokenPrices',
   RefreshTransactions = 'refreshTransactions',
-  RefreshAssetss = 'refreshAssets',
+  RefreshAssets = 'refreshAssets',
 }
 
 export const handlers: Record<CronjobMethod, OnCronjobHandler> = {
   [CronjobMethod.RefreshTokenPrices]: refreshUiTokenPrices,
   [CronjobMethod.RefreshTransactions]: refreshTransactions,
-  [CronjobMethod.RefreshAssetss]: refreshAssets,
+  [CronjobMethod.RefreshAssets]: refreshAssets,
   // Register new handlers here
 };

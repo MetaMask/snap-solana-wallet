@@ -4,6 +4,7 @@ import { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
+import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { MappedTransaction } from './types';
 import { mapRpcTransaction } from './utils/mapRpcTransaction';
 
@@ -14,21 +15,27 @@ export class TransactionsService {
 
   readonly #logger: ILogger;
 
+  readonly #tokenMetadataService: TokenMetadataService;
+
   constructor({
     logger,
     connection,
     configProvider,
+    tokenMetadataService,
   }: {
     logger: ILogger;
     configProvider: ConfigProvider;
     connection: SolanaConnection;
+    tokenMetadataService: TokenMetadataService;
   }) {
     this.#configProvider = configProvider;
     this.#connection = connection;
+    this.#tokenMetadataService = tokenMetadataService;
     this.#logger = logger;
   }
 
   async fetchInitialAddressTransactions(address: Address) {
+    console.log('Fetching initial transactions for address', address);
     const scopes = [Network.Mainnet, Network.Devnet];
 
     const transactions = (
@@ -52,6 +59,7 @@ export class TransactionsService {
     data: MappedTransaction[];
     next: Signature | null;
   }> {
+    console.log('Fetching address transactions for', address);
     /**
      * First get signatures
      */
@@ -100,6 +108,40 @@ export class TransactionsService {
       },
       [],
     );
+
+    /**
+     * Populate token metadata on the `from` and `to` arrays
+     * 1. Go through each `from` and `to` element and collect all CAIP 19 IDs for the assets that we need metadata for.
+     * 2. Fetch the metadata for this array of CAIP 19 IDs.
+     * 3. Map the metadata to the `from` and `to` arrays.
+     */
+    const caip19Ids = [
+      ...new Set(
+        mappedTransactionsData.flatMap(({ from, to }) => [
+          ...from
+            .filter((item) => item.asset?.fungible)
+            .map((item) => (item.asset as { type: string }).type),
+          ...to
+            .filter((item) => item.asset?.fungible)
+            .map((item) => (item.asset as { type: string }).type),
+        ]),
+      ),
+    ];
+    const tokenMetadata =
+      await this.#tokenMetadataService.getMultipleTokenMetadata(caip19Ids);
+    mappedTransactionsData.forEach((transaction) => {
+      transaction.from.forEach((from) => {
+        if (from.asset?.fungible && tokenMetadata[from.asset.type]) {
+          from.asset.unit = tokenMetadata[from.asset.type]?.symbol ?? '';
+        }
+      });
+
+      transaction.to.forEach((to) => {
+        if (to.asset?.fungible && tokenMetadata[to.asset.type]) {
+          to.asset.unit = tokenMetadata[to.asset.type]?.symbol ?? '';
+        }
+      });
+    });
 
     const next =
       signatures.length === pagination.limit

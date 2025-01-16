@@ -47,12 +47,6 @@ const splTokenHelper = new SplTokenHelper(
 const tokenMetadataClient = new TokenMetadataClient(configProvider);
 const priceApiClient = new PriceApiClient(configProvider);
 
-const transactionsService = new TransactionsService({
-  logger,
-  connection,
-  configProvider,
-});
-
 const assetsService = new AssetsService({
   connection,
   logger,
@@ -61,6 +55,13 @@ const assetsService = new AssetsService({
 const tokenMetadataService = new TokenMetadataService({
   tokenMetadataClient,
   logger,
+});
+
+const transactionsService = new TransactionsService({
+  logger,
+  connection,
+  configProvider,
+  tokenMetadataService,
 });
 
 const keyring = new SolanaKeyring({

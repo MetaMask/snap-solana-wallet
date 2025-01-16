@@ -24,7 +24,7 @@ export function parseTransactionFees({
   );
   const feeAmount = feeLamports.dividedBy(LAMPORTS_PER_SOL);
 
-  const fees: any[] = [
+  const fees: Transaction['fees'] = [
     {
       type: 'base',
       asset: {
