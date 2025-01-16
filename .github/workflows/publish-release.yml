@@ -17,7 +17,7 @@ on:
         required: true
       PRICE_API_BASE_URL:
         required: true
-      PRICE_API_BASE_URL_LOCAL:
+      LOCAL_API_URL:
         required: true
       TOKEN_API_BASE_URL:
         required: true
@@ -50,7 +50,7 @@ jobs:
           RPC_URL_TESTNET_LIST: ${{ secrets.RPC_URL_TESTNET_LIST }}
           RPC_URL_LOCALNET_LIST: ${{ secrets.RPC_URL_LOCALNET_LIST }}
           PRICE_API_BASE_URL: ${{ secrets.PRICE_API_BASE_URL }}
-          PRICE_API_BASE_URL_LOCAL: ${{ secrets.PRICE_API_BASE_URL_LOCAL }}
+          LOCAL_API_URL: ${{ secrets.LOCAL_API_URL }}
           TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
           TOKEN_API_KEY: ${{ secrets.TOKEN_API_KEY }}
       - uses: actions/cache@v4
