@@ -23,14 +23,6 @@ export enum Caip19Id {
   SolDevnet = `${Network.Devnet}/slip44:501`,
   SolTestnet = `${Network.Testnet}/slip44:501`,
   SolLocalnet = `${Network.Localnet}/slip44:501`,
-  /**
-   * SPL Tokens
-   */
-  UsdcMainnet = `${Network.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
-  UsdcDevnet = `${Network.Devnet}/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
-
-  EurcMainnet = `${Network.Mainnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
-  EurcDevnet = `${Network.Devnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
 }
 
 export const NETWORK_TO_EXPLORER_CLUSTER = {
@@ -47,8 +39,6 @@ export enum SolanaInternalRpcMethods {
 
 export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',
-  EurcMainnet = `${Network.Mainnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
-  EurcDevnet = `${Network.Devnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
 }
 
 export type TokenInfo = {
@@ -82,30 +72,6 @@ export const TokenMetadata = {
     caip19Id: Caip19Id.SolLocalnet,
     address: 'So11111111111111111111111111111111111111112',
     decimals: 9,
-  },
-  [Caip19Id.UsdcMainnet]: {
-    symbol: 'USDC',
-    caip19Id: Caip19Id.UsdcMainnet,
-    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-    decimals: 6,
-  },
-  [Caip19Id.UsdcDevnet]: {
-    symbol: 'USDC',
-    caip19Id: Caip19Id.UsdcDevnet,
-    address: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
-    decimals: 6,
-  },
-  [Caip19Id.EurcMainnet]: {
-    symbol: 'EURC',
-    caip19Id: Caip19Id.EurcMainnet,
-    address: 'HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
-    decimals: 6,
-  },
-  [Caip19Id.EurcDevnet]: {
-    symbol: 'EURC',
-    caip19Id: Caip19Id.EurcDevnet,
-    address: 'HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
-    decimals: 6,
   },
 } as const;
 

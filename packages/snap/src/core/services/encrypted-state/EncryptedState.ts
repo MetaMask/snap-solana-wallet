@@ -5,7 +5,7 @@ import { safeMerge } from '../../utils/safeMerge';
 import type { SolanaKeyringAccount } from '../keyring/Keyring';
 
 export type EncryptedStateValue = {
-  keyringAccounts?: Record<string, SolanaKeyringAccount>;
+  keyringAccounts: Record<string, SolanaKeyringAccount>;
 };
 
 export const DEFAULT_ENCRYPTED_STATE: EncryptedStateValue = {

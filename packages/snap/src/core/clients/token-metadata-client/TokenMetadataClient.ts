@@ -1,4 +1,4 @@
-import { Network } from '../../constants/solana';
+import { Network, SolanaCaip19Tokens } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
@@ -42,11 +42,12 @@ export class TokenMetadataClient {
 
       const response = await this.#fetch(
         `${baseUrl}/api/v0/fungibles/assets?fungible_ids=${addresses
+          // temporal fix for the token metadata client
+          // as this is going to be repalced by token api
+          // and both repsonse token address and token address should be CAIP-19
+          .filter((address) => Boolean(address.split('/token:')[1]))
           .map(
             (address) =>
-              // temporal fix for the token metadata client
-              // as this is going to be repalced by token api
-              // and both repsonse token address and token address should be CAIP-19
               `${SCOPE_TO_NETWORK[scope]}.${address.split('/token:')[1]}`,
           )
           .join(',')}`,
@@ -66,17 +67,20 @@ export class TokenMetadataClient {
       const tokenMetadataMap = new Map<string, SolanaTokenMetadata>();
 
       for (const metadata of tokenMetadata) {
-        const tokenAddress = tokenAddressToCaip19(
-          scope,
-          metadata.fungible_id.split('.')[1] ?? '',
-        );
+        const address = metadata.fungible_id.split('.')[1] ?? '';
+        const tokenAddress =
+          address === SolanaCaip19Tokens.SOL
+            ? `${scope}/${address}`
+            : tokenAddressToCaip19(
+                scope,
+                metadata.fungible_id.split('.')[1] ?? '',
+              );
 
         tokenMetadataMap.set(tokenAddress, {
           name: metadata.name,
           symbol: metadata.symbol,
-          iconUrl: `https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/${
-            metadata.fungible_id.split('.')[1]
-          }/logo.png`,
+          iconUrl: metadata.previews.image_small_url,
+          decimals: metadata.decimals,
         });
       }
 

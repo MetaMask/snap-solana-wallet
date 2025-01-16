@@ -8,12 +8,6 @@ export const SOLANA_MOCK_TOKEN: SolanaAsset = {
   balance: '123456789',
   decimals: 9,
   native: true,
-  metadata: {
-    iconUrl:
-      'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/sol/logo.png',
-    name: 'Solana',
-    symbol: 'SOL',
-  },
 };
 
 export const SOLANA_MOCK_SPL_TOKENS: SolanaAsset[] = [
@@ -23,12 +17,6 @@ export const SOLANA_MOCK_SPL_TOKENS: SolanaAsset[] = [
     balance: '123456789',
     decimals: 9,
     native: false,
-    metadata: {
-      iconUrl:
-        'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
-      name: 'Mock Token 1',
-      symbol: 'MOCK1',
-    },
   },
   {
     scope: Network.Localnet,
@@ -36,12 +24,6 @@ export const SOLANA_MOCK_SPL_TOKENS: SolanaAsset[] = [
     balance: '987654321',
     decimals: 9,
     native: false,
-    metadata: {
-      iconUrl:
-        'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address2/logo.png',
-      name: 'Mock Token 2',
-      symbol: 'MOCK2',
-    },
   },
 ];
 
@@ -51,17 +33,20 @@ export const SOLANA_MOCK_TOKEN_METADATA: Record<string, SolanaTokenMetadata> = {
       'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/sol/logo.png',
     name: 'Solana',
     symbol: 'SOL',
+    decimals: 9,
   },
   [`${Network.Localnet}/token:address1`]: {
     iconUrl:
       'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
     name: 'Mock Token 1',
     symbol: 'MOCK1',
+    decimals: 9,
   },
   [`${Network.Localnet}/token:address2`]: {
     iconUrl:
       'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address2/logo.png',
     name: 'Mock Token 2',
     symbol: 'MOCK2',
+    decimals: 9,
   },
 };

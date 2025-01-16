@@ -38,9 +38,49 @@ export const MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE = {
   jsonrpc: '2.0',
   result: {
     signature:
-      '64B85Y9vphG3nDvNx1j2cVrkFh8JdJE9whyj4m226JiUAcQxUn7gFuZZsDfjQioG8PTxSrEX9VdXTr63Tq8woRWk',
+      '3Avy1mZnwzwmo3EqhxXkHfuzGfMhfvw8tqkoNimgJWhrFEpoNzmUdPFx79VKJTo4XPfkepmoD5qvmhMFDX24tstq',
   },
   id: '0',
+};
+
+/**
+ * Sample response from the Solana RPC `getFeeForMessage` method
+ */
+export const MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE = {
+  jsonrpc: '2.0',
+  result: {
+    value: 15000,
+  },
+  id: '0',
+};
+
+/**
+ * Sample response from the Solana RPC `simulateTransaction` method
+ */
+export const MOCK_SOLANA_RPC_SIMULATE_TRANSACTION_RESPONSE = {
+  jsonrpc: '2.0',
+  result: {
+    context: {
+      slot: 218,
+    },
+    value: {
+      // eslint-disable-next-line id-denylist
+      err: null,
+      accounts: null,
+      logs: [
+        'Program 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri invoke [1]',
+        'Program 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri consumed 2366 of 1400000 compute units',
+        'Program return: 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri KgAAAAAAAAA=',
+        'Program 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri success',
+      ],
+      returnData: {
+        data: ['Kg==', 'base64'],
+        programId: '83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri',
+      },
+      unitsConsumed: 2366,
+    },
+  },
+  id: 1,
 };
 
 /**

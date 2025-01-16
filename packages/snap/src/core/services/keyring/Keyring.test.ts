@@ -3,12 +3,7 @@
 import { SolMethod } from '@metamask/keyring-api';
 import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
 
-import {
-  Caip19Id,
-  Network,
-  SolanaCaip19Tokens,
-  TokenMetadata,
-} from '../../constants/solana';
+import { Caip19Id, Network, SolanaCaip19Tokens } from '../../constants/solana';
 import {
   SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN,
@@ -34,7 +29,7 @@ import { EncryptedSolanaState } from '../encrypted-state/EncryptedState';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
 import type { StateValue } from '../state/State';
-import { DEFAULT_TOKEN_PRICES, SolanaState } from '../state/State';
+import { SolanaState } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from '../transactions/Transactions';
 import { SolanaKeyring } from './Keyring';
@@ -117,13 +112,9 @@ describe('SolanaKeyring', () => {
         {},
       ),
       mapInterfaceNameToId: {},
-      tokenPrices: {
-        ...DEFAULT_TOKEN_PRICES,
-        [Caip19Id.SolMainnet]: {
-          ...TokenMetadata[Caip19Id.SolMainnet],
-          price: 0,
-        },
-      },
+      tokenPrices: {},
+      isFetchingAssets: false,
+      assets: {},
       isFetchingTransactions: false,
       transactions: {},
     };
@@ -148,10 +139,11 @@ describe('SolanaKeyring', () => {
                   case 'get':
                     return mockStateValue;
                   case 'update':
-                    mockStateValue = params.newState as StateValue;
+                    mockStateValue = params.newState as EncryptedStateValue &
+                      StateValue;
                     return null;
                   case 'clear':
-                    mockStateValue = {} as StateValue;
+                    mockStateValue = {} as EncryptedStateValue & StateValue;
                     return null;
                   default:
                     throw new Error(`Unknown operation: ${params.operation}`);
@@ -256,14 +248,14 @@ describe('SolanaKeyring', () => {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
         tokenPrices: {
-          ...DEFAULT_TOKEN_PRICES,
-          [Caip19Id.SolMainnet]: {
-            ...TokenMetadata[Caip19Id.SolMainnet],
+          [Caip19Id.SolLocalnet]: {
             price: 0,
           },
         },
         isFetchingTransactions: false,
         transactions: {},
+        isFetchingAssets: false,
+        assets: {},
       };
 
       const firstAccount = await keyring.createAccount();
@@ -272,17 +264,14 @@ describe('SolanaKeyring', () => {
 
       expect(firstAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
       expect(secondAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
       expect(thirdAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
     });
@@ -292,14 +281,14 @@ describe('SolanaKeyring', () => {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
         tokenPrices: {
-          ...DEFAULT_TOKEN_PRICES,
-          [Caip19Id.SolMainnet]: {
-            ...TokenMetadata[Caip19Id.SolMainnet],
+          [Caip19Id.SolLocalnet]: {
             price: 0,
           },
         },
         isFetchingTransactions: false,
         transactions: {},
+        isFetchingAssets: false,
+        assets: {},
       };
 
       const firstAccount = await keyring.createAccount();
@@ -308,8 +297,8 @@ describe('SolanaKeyring', () => {
       const fourthAccount = await keyring.createAccount();
       const fifthAccount = await keyring.createAccount();
 
-      delete mockStateValue.keyringAccounts![secondAccount.id];
-      delete mockStateValue.keyringAccounts![fourthAccount.id];
+      delete mockStateValue.keyringAccounts[secondAccount.id];
+      delete mockStateValue.keyringAccounts[fourthAccount.id];
 
       const regeneratedSecondAccount = await keyring.createAccount();
       const regeneratedFourthAccount = await keyring.createAccount();
@@ -320,32 +309,26 @@ describe('SolanaKeyring', () => {
        */
       expect(firstAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
       expect(secondAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
       expect(thirdAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
       expect(fourthAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_3,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
       expect(fifthAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_4,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
       expect(sixthAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_5,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
 
@@ -354,12 +337,10 @@ describe('SolanaKeyring', () => {
        */
       expect(regeneratedSecondAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
       expect(regeneratedFourthAccount).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_3,
-        scopes: undefined, // TODO: Remove once we uncomment the scopes
         id: expect.any(String),
       });
     });

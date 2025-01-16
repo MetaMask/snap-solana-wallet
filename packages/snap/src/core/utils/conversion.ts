@@ -23,5 +23,7 @@ export const lamportsToSol = (
 export const solToLamports = (
   amountInSol: string | number | bigint | BigNumber,
 ): BigNumber => {
-  return BigNumber(amountInSol.toString()).multipliedBy(LAMPORTS_PER_SOL);
+  return BigNumber(amountInSol.toString())
+    .multipliedBy(LAMPORTS_PER_SOL)
+    .integerValue(BigNumber.ROUND_DOWN);
 };

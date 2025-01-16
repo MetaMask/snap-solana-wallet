@@ -9,11 +9,11 @@ describe('i18n', () => {
 
   it('returns the correct translation for a given key and replaces', () => {
     const translate = i18n('en');
-    const message = translate('confirmation.heading', {
+    const message = translate('transaction-failure.subtitle', {
       amount: '1.23',
       tokenSymbol: 'SOL',
     });
-    expect(message).toBe('Sending 1.23 SOL');
+    expect(message).toBe('Unable to send 1.23 SOL');
   });
 
   it('falls back to the default language if the preferred locale is not available', () => {

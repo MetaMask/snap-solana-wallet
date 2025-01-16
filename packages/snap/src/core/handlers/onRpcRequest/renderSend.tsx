@@ -1,23 +1,24 @@
 import type { Balance } from '@metamask/keyring-api';
-import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
+import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 
 import { Send } from '../../../features/send/Send';
 import type { SendContext } from '../../../features/send/types';
-import { SendCurrency } from '../../../features/send/types';
+import { SendCurrencyType } from '../../../features/send/types';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
 import {
-  assetsService,
   keyring,
   state,
+  tokenMetadataService,
   tokenPricesService,
 } from '../../../snapContext';
+import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import {
+  Caip19Id,
   Network,
   Networks,
   SOL_TRANSFER_FEE_LAMPORTS,
 } from '../../constants/solana';
-import { DEFAULT_TOKEN_PRICES } from '../../services/state/State';
 import { lamportsToSol } from '../../utils/conversion';
 import {
   createInterface,
@@ -30,21 +31,27 @@ import {
 import logger from '../../utils/logger';
 
 export const DEFAULT_SEND_CONTEXT: SendContext = {
-  scope: Network.Localnet,
+  scope: Network.Mainnet,
   fromAccountId: '',
   amount: '',
   toAddress: '',
   feeEstimatedInSol: lamportsToSol(SOL_TRANSFER_FEE_LAMPORTS).toString(),
   feePaidInSol: '0',
+  tokenCaipId: Caip19Id.SolMainnet,
   accounts: [],
-  currencySymbol: SendCurrency.SOL,
+  currencyType: SendCurrencyType.TOKEN,
   validation: {},
   balances: {},
-  tokenPrices: DEFAULT_TOKEN_PRICES,
+  assets: [],
+  tokenPrices: {},
+  tokenMetadata: {},
   preferences: {
     locale: 'en',
     currency: 'usd',
   },
+  error: null,
+  buildingTransaction: false,
+  transactionMessage: null,
   transaction: null,
   stage: 'send-form',
 };
@@ -62,9 +69,20 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const { scope, account } = params;
 
-  const token = Networks[scope].nativeToken.caip19Id;
+  const tokenCaipId = Networks[scope].nativeToken.caip19Id;
 
-  const context = { ...DEFAULT_SEND_CONTEXT, scope, fromAccountId: account };
+  /**
+   * First render:
+   * - Default context
+   * - Accounts
+   * - Preferences
+   */
+  const context1 = {
+    ...DEFAULT_SEND_CONTEXT,
+    scope,
+    fromAccountId: account,
+    tokenCaipId,
+  };
 
   const preferencesPromise = getPreferences().catch(
     () => DEFAULT_SEND_CONTEXT.preferences,
@@ -75,10 +93,10 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     preferencesPromise,
   ]);
 
-  context.accounts = accounts;
-  context.preferences = preferences;
+  context1.accounts = accounts;
+  context1.preferences = preferences;
 
-  const id = await createInterface(<Send context={context} />, context);
+  const id = await createInterface(<Send context={context1} />, context1);
 
   const dialogPromise = showDialog(id);
 
@@ -92,47 +110,91 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     };
   });
 
-  const getBalancesPromise = async () => {
-    const balances: Record<string, Balance> = {};
-    const promises = accounts.map(async (_account) =>
-      assetsService
-        .getNativeAsset(_account.address, scope)
-        .then((response) => {
-          if (response) {
-            balances[_account.id] = {
-              amount: lamportsToSol(response.balance).toString(),
-              unit: response?.metadata?.symbol ?? '',
-            };
-          }
-        })
-        .catch((error) => {
-          logger.error(
-            { error },
-            `Could not fetch balances for account ${_account.id}`,
-          );
-        }),
-    );
+  /**
+   * Second render:
+   * - Balances
+   * - Assets
+   */
+
+  const getAccountsAssetBalances = async () => {
+    const balances: Record<string, Record<string, Balance>> = {};
+    const assets: Set<string> = new Set();
+
+    const promises = accounts.map(async ({ id: accountId }) => {
+      try {
+        const accountAssets = await keyring.listAccountAssets(accountId);
+        const accountAssetsFromCurrentScope = accountAssets.filter((caipId) =>
+          caipId.startsWith(scope),
+        );
+
+        accountAssetsFromCurrentScope.forEach((asset) => {
+          assets.add(asset);
+        });
+
+        const accountBalances = await keyring.getAccountBalances(
+          accountId,
+          accountAssetsFromCurrentScope,
+        );
+
+        balances[accountId] = accountBalances;
+      } catch (error) {
+        balances[accountId] = {};
+        logger.error(
+          { error },
+          `Could not fetch balances for account ${accountId}`,
+        );
+      }
+    });
+
     await Promise.all(promises);
-    return balances;
+
+    return {
+      balances,
+      assets,
+    };
   };
 
-  const pricesPromise = tokenPricesService
-    .refreshPrices(id)
-    .catch(() => DEFAULT_TOKEN_PRICES);
+  const { assets, balances } = await getAccountsAssetBalances();
 
-  const [balances, tokenPrices, updatedContextFromInterface] =
-    await Promise.all([
-      getBalancesPromise(),
-      pricesPromise,
-      getInterfaceContext(id),
-    ]);
+  const context1FromInterface = await getInterfaceContext(id);
 
-  const updatedContext = { ...context, ...updatedContextFromInterface };
+  const context2 = { ...context1, ...context1FromInterface };
 
-  updatedContext.balances = balances;
-  updatedContext.tokenPrices = tokenPrices;
+  context2.assets = Array.from(assets);
+  context2.balances = balances;
 
-  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
+  await updateInterface(id, <Send context={context2} />, context2);
+
+  /**
+   * Thrid render:
+   * - Token prices
+   * - Token metadata + images
+   */
+
+  const tokenPricesPromise = tokenPricesService
+    .getMultipleTokenPrices(context2.assets, context2.preferences.currency)
+    .catch(() => ({}));
+
+  const tokenMetadataPromise = tokenMetadataService
+    .getMultipleTokenMetadata(context2.assets, context2.scope)
+    .then((metadata) => metadata)
+    .catch(() => ({} as Record<string, SolanaTokenMetadata>));
+
+  const [tokenPrices, tokenMetadata] = await Promise.all([
+    tokenPricesPromise,
+    tokenMetadataPromise,
+  ]);
+
+  const context2FromInterface = await getInterfaceContext(id);
+  const context3 = {
+    ...context2,
+    ...context2FromInterface,
+  };
+
+  context3.tokenPrices = tokenPrices;
+  context3.tokenMetadata = tokenMetadata;
+
+  await updateInterface(id, <Send context={context3} />, context3);
 
   return dialogPromise;
 };

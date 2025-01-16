@@ -5,7 +5,7 @@ import { ActionHeader } from '../../../../core/components/ActionHeader/ActionHea
 import { getSolanaExplorerUrl } from '../../../../core/utils/getSolanaExplorerUrl';
 import { i18n } from '../../../../core/utils/i18n';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
-import { getAmountInSol } from '../../selectors';
+import { getSelectedTokenMetadata, getTokenAmount } from '../../selectors';
 import type { SendContext } from '../../types';
 
 export type TransactionSuccessProps = {
@@ -13,9 +13,12 @@ export type TransactionSuccessProps = {
 };
 
 export const TransactionSuccess = ({ context }: TransactionSuccessProps) => {
-  const { currencySymbol, preferences, scope, transaction } = context;
+  const { preferences, transaction, scope } = context;
+
   const translate = i18n(preferences.locale);
-  const amountInSol = getAmountInSol(context);
+
+  const { tokenSymbol } = getSelectedTokenMetadata(context);
+  const tokenAmount = getTokenAmount(context);
 
   return (
     <Container>
@@ -24,8 +27,8 @@ export const TransactionSuccess = ({ context }: TransactionSuccessProps) => {
         <ActionHeader
           title={translate('transaction-success.title')}
           subtitle={translate('transaction-success.subtitle', {
-            amount: amountInSol,
-            tokenSymbol: currencySymbol,
+            amount: tokenAmount,
+            tokenSymbol,
           })}
           iconSrc={CheckIcon}
         />

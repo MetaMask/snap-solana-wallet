@@ -22,6 +22,12 @@
     "send.toField": {
       "message": "To"
     },
+    "send.amountField": {
+      "message": "Amount"
+    },
+    "send.assetField": {
+      "message": "Token"
+    },
     "send.toPlaceholder": {
       "message": "Enter public address"
     },
@@ -43,20 +49,17 @@
     "send.insufficientBalance": {
       "message": "Insufficient balance"
     },
+    "send.simulationTitleError": {
+      "message": "Transaction simulation failed"
+    },
+    "send.simulationMessageError": {
+      "message": "This transaction was reverted during simulation."
+    },
     "confirmation.title": {
       "message": "Review"
     },
-    "confirmation.heading": {
-      "message": "Sending {amount} {tokenSymbol}"
-    },
-    "confirmation.subheading": {
-      "message": "Review the transaction before proceeding"
-    },
     "confirmation.from": {
       "message": "From"
-    },
-    "confirmation.amount": {
-      "message": "Amount"
     },
     "confirmation.recipient": {
       "message": "Recipient"
@@ -69,9 +72,6 @@
     },
     "confirmation.fee": {
       "message": "Network fee"
-    },
-    "confirmation.total": {
-      "message": "Total"
     },
     "confirmation.sendButton": {
       "message": "Send"

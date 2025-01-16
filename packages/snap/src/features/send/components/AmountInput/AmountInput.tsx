@@ -3,33 +3,41 @@ import {
   Button,
   Field,
   Icon,
-  Image,
   Input,
   Text,
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
-import solanaIcon from '../../../../../images/coin.svg';
-import { SendFormNames } from '../../types';
+import { i18n, type Locale } from '../../../../core/utils/i18n';
+import { SendCurrencyType, SendFormNames } from '../../types';
 
 type AmountInputProps = {
   name: string;
   value: string;
-  currencySymbol: string;
+  tokenSymbol: string;
+  currency: string;
+  currencyType: SendCurrencyType;
+  locale: Locale;
   error?: string;
 };
 
 export const AmountInput: SnapComponent<AmountInputProps> = ({
   name,
   value,
-  currencySymbol,
+  tokenSymbol,
+  currency,
+  currencyType,
   error,
+  locale,
 }) => {
+  const translate = i18n(locale);
+  const symbol =
+    currencyType === SendCurrencyType.FIAT
+      ? currency.toUpperCase()
+      : tokenSymbol;
+
   return (
-    <Field label="" error={error}>
-      <Box direction="horizontal" center>
-        <Image src={solanaIcon} />
-      </Box>
+    <Field label={translate('send.amountField')} error={error}>
       <Input
         name={name}
         type="number"
@@ -40,7 +48,7 @@ export const AmountInput: SnapComponent<AmountInputProps> = ({
       />
       <Box direction="horizontal" center>
         <Box direction="vertical" alignment="center">
-          <Text>{currencySymbol}</Text>
+          <Text size="sm">{symbol}</Text>
         </Box>
         <Button name={SendFormNames.SwapCurrencyButton}>
           <Icon name="swap-vertical" color="primary" size="md" />

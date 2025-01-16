@@ -1,12 +1,13 @@
-import { SolMethod } from '@metamask/keyring-api';
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
+import type { CompilableTransactionMessage } from '@solana/web3.js';
 import { address } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 
 import {
-  Caip19Id,
+  Networks,
   SOL_TRANSFER_FEE_LAMPORTS,
 } from '../../../../core/constants/solana';
+import { caip19ToTokenAddress } from '../../../../core/utils/caip19ToTokenAddress';
 import {
   lamportsToSol,
   solToLamports,
@@ -16,16 +17,13 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
+import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { validateField } from '../../../../core/validation/form';
-import {
-  keyring,
-  splTokenHelper,
-  transactionHelper,
-} from '../../../../snapContext';
+import type { SnapExecutionContext } from '../../../../snapContext';
+import { getTokenAmount } from '../../selectors';
 import { Send } from '../../Send';
-import { SendCurrency, SendFormNames, type SendContext } from '../../types';
+import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 import { validateBalance } from '../../utils/balance';
-import { SendForm } from './SendForm';
 import { validation } from './validation';
 
 /**
@@ -58,7 +56,7 @@ async function onSourceAccountSelectorValueChange({
   context: SendContext;
 }) {
   context.fromAccountId = event.value as string;
-
+  context.error = null;
   context.validation[SendFormNames.SourceAccountSelector] =
     validateField<SendFormNames>(
       SendFormNames.SourceAccountSelector,
@@ -71,7 +69,7 @@ async function onSourceAccountSelectorValueChange({
     context,
   );
 
-  await updateInterface(id, <SendForm context={context} />, context);
+  await updateInterface(id, <Send context={context} />, context);
 }
 
 /**
@@ -91,7 +89,7 @@ async function onAmountInputChange({
   context: SendContext;
 }) {
   context.amount = event.value as string;
-
+  context.error = null;
   context.validation[SendFormNames.AmountInput] = validateField<SendFormNames>(
     SendFormNames.AmountInput,
     context.amount,
@@ -102,7 +100,32 @@ async function onAmountInputChange({
     context.validation[SendFormNames.AmountInput] ??
     validateBalance(context.amount, context);
 
-  await updateInterface(id, <SendForm context={context} />, context);
+  await updateInterface(id, <Send context={context} />, context);
+}
+
+/**
+ * Handles the change event for the asset selector.
+ *
+ * @param params - The parameters for the function.
+ * @param params.id - The id of the interface.
+ * @param params.event - The change event.
+ * @param params.context - The send context.
+ * @returns A promise that resolves when the operation is complete.
+ */
+async function onAssetSelectorValueChange({
+  id,
+  event,
+  context,
+}: {
+  id: string;
+  event: InputChangeEvent;
+  context: SendContext;
+}) {
+  context.tokenCaipId = event.value as string;
+  context.amount = '';
+  context.error = null;
+
+  await updateInterface(id, <Send context={context} />, context);
 }
 
 /**
@@ -118,19 +141,19 @@ async function onSwapCurrencyButtonClick({
   id: string;
   context: SendContext;
 }) {
-  context.currencySymbol =
-    context.currencySymbol === SendCurrency.SOL
-      ? SendCurrency.FIAT
-      : SendCurrency.SOL;
+  context.error = null;
+  context.currencyType =
+    context.currencyType === SendCurrencyType.TOKEN
+      ? SendCurrencyType.FIAT
+      : SendCurrencyType.TOKEN;
 
   const currentAmount = BigNumber(context.amount ?? '0');
 
-  // FIXME: for now, always use mainnet for prices
-  const { price } = context.tokenPrices[Caip19Id.SolMainnet] ?? { price: 0 };
+  const { price } = context.tokenPrices[context.tokenCaipId] ?? { price: 0 };
 
-  if (context.currencySymbol === SendCurrency.SOL) {
+  if (context.currencyType === SendCurrencyType.TOKEN) {
     /**
-     * If we switched to SOL, divide by currency rate
+     * If we switched to TOKEN, divide by currency rate
      */
     context.amount = currentAmount.dividedBy(price).toString();
   }
@@ -138,11 +161,11 @@ async function onSwapCurrencyButtonClick({
   /**
    * If the currency is USD, adjust the amount
    */
-  if (context.currencySymbol === SendCurrency.FIAT) {
+  if (context.currencyType === SendCurrencyType.FIAT) {
     context.amount = currentAmount.multipliedBy(price).toString();
   }
 
-  await updateInterface(id, <SendForm context={context} />, context);
+  await updateInterface(id, <Send context={context} />, context);
 }
 
 /**
@@ -158,54 +181,39 @@ async function onMaxAmountButtonClick({
   id: string;
   context: SendContext;
 }) {
-  const { fromAccountId, currencySymbol, balances, tokenPrices } = context;
-  const contextToUpdate = { ...context };
-  const balanceInSol = balances[fromAccountId]?.amount ?? '0';
+  const { fromAccountId, currencyType, balances, tokenCaipId, scope } = context;
+  const updatedContext: SendContext = { ...context };
+  const tokenBalance = balances[fromAccountId]?.[tokenCaipId]?.amount ?? '0';
+  const isNativeToken = tokenCaipId === Networks[scope].nativeToken.caip19Id;
 
-  /**
-   * This is only valid for sending SOL specifically.
-   * We should adapt if this event ends up being used for other kinds of transactions, like sending SPL tokens.
-   * @see {@link TransactionHelper#calculateCostInLamports}
-   */
-  const costInLamports = SOL_TRANSFER_FEE_LAMPORTS;
+  if (isNativeToken) {
+    // For a SOL transaction, we need to subtract the transfer fee
+    const balanceInLamportsAfterCost = solToLamports(tokenBalance).minus(
+      SOL_TRANSFER_FEE_LAMPORTS,
+    );
 
-  const balanceInLamportsAfterCost =
-    solToLamports(balanceInSol).minus(costInLamports);
-
-  const balanceInSolAfterCost = lamportsToSol(balanceInLamportsAfterCost);
-
-  contextToUpdate.feeEstimatedInSol = lamportsToSol(costInLamports).toString();
-
-  /**
-   * If the currency we set is SOL, set the amount to the balance
-   */
-  if (currencySymbol === SendCurrency.SOL) {
-    contextToUpdate.amount = balanceInSolAfterCost.toString();
+    const balanceInSolAfterCost = lamportsToSol(balanceInLamportsAfterCost);
+    updatedContext.amount = balanceInSolAfterCost.toString();
+  } else {
+    updatedContext.amount = tokenBalance;
   }
 
-  /**
-   * If the currency is USD, adjust the amount
-   */
-  if (currencySymbol === SendCurrency.FIAT) {
-    const price = BigNumber(tokenPrices[Caip19Id.SolMainnet]?.price ?? 0);
-    contextToUpdate.amount = balanceInSolAfterCost
-      .multipliedBy(price)
-      .toString();
+  if (currencyType === SendCurrencyType.FIAT) {
+    const { price } = context.tokenPrices[context.tokenCaipId] ?? { price: 0 };
+    updatedContext.amount = tokenToFiat(updatedContext.amount, price);
   }
 
-  contextToUpdate.validation[SendFormNames.AmountInput] =
-    contextToUpdate.validation[SendFormNames.AmountInput] ??
+  updatedContext.error = null;
+
+  updatedContext.validation[SendFormNames.AmountInput] =
+    updatedContext.validation[SendFormNames.AmountInput] ??
     validateField<SendFormNames>(
       SendFormNames.AmountInput,
-      contextToUpdate.amount,
+      updatedContext.amount,
       validation(context.preferences.locale),
     );
 
-  await updateInterface(
-    id,
-    <SendForm context={contextToUpdate} />,
-    contextToUpdate,
-  );
+  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 }
 
 /**
@@ -225,7 +233,7 @@ async function onDestinationAccountInputValueChange({
   context: SendContext;
 }) {
   context.toAddress = event.value as string;
-
+  context.error = null;
   context.validation[SendFormNames.DestinationAccountInput] =
     validateField<SendFormNames>(
       SendFormNames.DestinationAccountInput,
@@ -233,7 +241,7 @@ async function onDestinationAccountInputValueChange({
       validation(context.preferences.locale),
     );
 
-  await updateInterface(id, <SendForm context={context} />, context);
+  await updateInterface(id, <Send context={context} />, context);
 }
 
 /**
@@ -250,7 +258,8 @@ async function onClearButtonClick({
   context: SendContext;
 }) {
   context.toAddress = '';
-  await updateInterface(id, <SendForm context={context} />, context);
+  context.error = null;
+  await updateInterface(id, <Send context={context} />, context);
 }
 
 /**
@@ -268,78 +277,100 @@ async function onCancelButtonClick({ id }: { id: string }) {
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  * @param params.context - The send context.
+ * @param params.snapContext - The snap execution context.
  * @returns A promise that resolves when the operation is complete.
  */
 async function onSendButtonClick({
   id,
   context,
+  snapContext,
 }: {
   id: string;
   context: SendContext;
+  snapContext: SnapExecutionContext;
 }) {
+  const { keyring, transferSolHelper, transactionHelper, splTokenHelper } =
+    snapContext;
+  const { fromAccountId, tokenCaipId, scope, toAddress } = context;
+
   const updatedContext: SendContext = {
     ...context,
-    stage: 'transaction-confirmation',
+    error: null,
+    transactionMessage: null,
   };
 
+  // Show the loading state on the interface
+  updatedContext.buildingTransaction = true;
+
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
-}
 
-/**
- * Temporary handler to demo the transfer of USDC.
- * @param params - The parameters for the function.
- * @param params.id - The id of the interface.
- * @param params.context - The send context.
- */
-async function onTransferUsdcButtonClick({
-  id,
-  context,
-}: {
-  id: string;
-  context: SendContext;
-}) {
   try {
-    const fromAccount = await keyring.getAccountOrThrow(context.fromAccountId);
+    const account = await keyring.getAccountOrThrow(fromAccountId);
+    const tokenAmount = getTokenAmount(context);
 
-    const transactionMessage = await splTokenHelper.buildTransactionMessage(
-      fromAccount,
-      address('BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe'),
-      address('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'), // USDC mint address on Solana Devnet,
-      0.01,
-      context.scope,
+    let transactionMessage: CompilableTransactionMessage | null = null;
+
+    if (tokenCaipId === Networks[scope].nativeToken.caip19Id) {
+      /**
+       * Native token (SOL) transaction
+       */
+      transactionMessage = await transferSolHelper.buildTransactionMessage(
+        address(account.address),
+        address(toAddress),
+        tokenAmount,
+        scope,
+      );
+    } else {
+      /**
+       * SPL token transaction
+       */
+      transactionMessage = await splTokenHelper.buildTransactionMessage(
+        account,
+        address(toAddress),
+        address(caip19ToTokenAddress(tokenCaipId)),
+        tokenAmount,
+        scope,
+      );
+    }
+
+    if (!transactionMessage) {
+      throw new Error('Unable to generate transaction message');
+    }
+
+    const feeInLamports = await transactionHelper.getFeeForMessageInLamports(
+      transactionMessage,
+      scope,
     );
 
-    // Encode the transaction message to a JSON serializable format
-    const base64EncodedTransactionMessage =
+    updatedContext.stage = 'transaction-confirmation';
+    updatedContext.transactionMessage =
       await transactionHelper.base64EncodeTransactionMessage(
         transactionMessage,
       );
-
-    await keyring.handleSendAndConfirmTransaction({
-      id,
-      scope: context.scope,
-      account: context.fromAccountId, // Will be used to sign the transaction
-      request: {
-        method: SolMethod.SendAndConfirmTransaction,
-        params: {
-          base64EncodedTransactionMessage,
-        },
-      },
-    });
+    updatedContext.feeEstimatedInSol = lamportsToSol(feeInLamports).toString();
   } catch (error) {
-    logger.error({ error }, 'Error submitting request');
+    logger.error('Error sending transaction', error);
+
+    updatedContext.error = {
+      title: 'send.simulationTitleError',
+      message: 'send.simulationMessageError',
+    };
   }
+
+  updatedContext.buildingTransaction = false;
+
+  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 }
 
 export const eventHandlers = {
   [SendFormNames.BackButton]: onBackButtonClick,
   [SendFormNames.SourceAccountSelector]: onSourceAccountSelectorValueChange,
   [SendFormNames.AmountInput]: onAmountInputChange,
+  [SendFormNames.AssetSelector]: onAssetSelectorValueChange,
   [SendFormNames.SwapCurrencyButton]: onSwapCurrencyButtonClick,
   [SendFormNames.MaxAmountButton]: onMaxAmountButtonClick,
   [SendFormNames.DestinationAccountInput]: onDestinationAccountInputValueChange,
   [SendFormNames.ClearButton]: onClearButtonClick,
   [SendFormNames.CancelButton]: onCancelButtonClick,
   [SendFormNames.SendButton]: onSendButtonClick,
-  [SendFormNames.TransferUsdcButton]: onTransferUsdcButtonClick,
 };

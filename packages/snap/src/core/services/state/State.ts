@@ -1,62 +1,31 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { Transaction } from '@metamask/keyring-api';
+import type { Transaction, Balance } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 
-import type { TokenInfo } from '../../constants/solana';
-import { Caip19Id, TokenMetadata } from '../../constants/solana';
 import { safeMerge } from '../../utils/safeMerge';
 
-export type TokenPrice = TokenInfo & {
+export type TokenPrice = {
   price: number;
 };
 
+export type AccountId = string;
+
 export type StateValue = {
   mapInterfaceNameToId: Record<string, string>;
-  tokenPrices: Record<Caip19Id, TokenPrice>; // Maps currency caip19 id to their currency rate
+  tokenPrices: Record<string, TokenPrice>;
   isFetchingTransactions: boolean;
-  transactions: Record<string, Transaction[]>;
-};
-
-export const DEFAULT_TOKEN_PRICES: Record<Caip19Id, TokenPrice> = {
-  [Caip19Id.SolMainnet]: {
-    ...TokenMetadata[Caip19Id.SolMainnet],
-    price: 0,
-  },
-  [Caip19Id.SolDevnet]: {
-    ...TokenMetadata[Caip19Id.SolDevnet],
-    price: 0,
-  },
-  [Caip19Id.SolTestnet]: {
-    ...TokenMetadata[Caip19Id.SolTestnet],
-    price: 0,
-  },
-  [Caip19Id.SolLocalnet]: {
-    ...TokenMetadata[Caip19Id.SolLocalnet],
-    price: 0,
-  },
-  [Caip19Id.UsdcMainnet]: {
-    ...TokenMetadata[Caip19Id.UsdcMainnet],
-    price: 0,
-  },
-  [Caip19Id.UsdcDevnet]: {
-    ...TokenMetadata[Caip19Id.UsdcDevnet],
-    price: 0,
-  },
-  [Caip19Id.EurcMainnet]: {
-    ...TokenMetadata[Caip19Id.EurcMainnet],
-    price: 0,
-  },
-  [Caip19Id.EurcDevnet]: {
-    ...TokenMetadata[Caip19Id.EurcDevnet],
-    price: 0,
-  },
+  transactions: Record<AccountId, Transaction[]>;
+  isFetchingAssets: boolean;
+  assets: Record<AccountId, Record<string, Balance>>;
 };
 
 export const DEFAULT_STATE: StateValue = {
   mapInterfaceNameToId: {},
-  tokenPrices: DEFAULT_TOKEN_PRICES,
+  tokenPrices: {},
   isFetchingTransactions: false,
   transactions: {},
+  isFetchingAssets: false,
+  assets: {},
 };
 
 export class SolanaState {

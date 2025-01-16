@@ -8,6 +8,8 @@ export type SolanaTokenMetadata = {
   name: string;
   symbol: string;
   iconUrl: string;
+  decimals: number;
+  imageSvg?: string;
 };
 
 export type TokenMetadata = {

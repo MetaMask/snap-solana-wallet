@@ -31,18 +31,23 @@ export const createRetryingTransport = (baseTransport: RpcTransport) => {
   return async <TResponse>(
     ...args: Parameters<RpcTransport>
   ): Promise<TResponse> => {
+    const { payload } = args[0];
+    const { method } = payload as any;
+
     let requestError;
     for (let attempts = 0; attempts < MAX_ATTEMPTS; attempts++) {
       try {
         logger.info(
-          `[🚌 RetryingTransport] Attempt ${attempts + 1} of ${MAX_ATTEMPTS}`,
+          `[🚌 RetryingTransport] Attempt "${method}" ${
+            attempts + 1
+          } of ${MAX_ATTEMPTS}`,
         );
         return await baseTransport(...args);
       } catch (error) {
         logger.error(
-          `[🚌 RetryingTransport] Error during attempt ${
+          `[🚌 RetryingTransport] Error during attempt "${method}" ${
             attempts + 1
-          }: ${error}`,
+          } of ${MAX_ATTEMPTS}: ${error}`,
         );
         requestError = error;
         // Only sleep if we have more attempts remaining.

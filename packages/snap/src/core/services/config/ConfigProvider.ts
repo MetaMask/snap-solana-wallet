@@ -16,9 +16,9 @@ const EnvStruct = object({
   RPC_URL_TESTNET_LIST: CommaSeparatedString,
   RPC_URL_LOCALNET_LIST: CommaSeparatedString,
   PRICE_API_BASE_URL: string(),
-  PRICE_API_BASE_URL_LOCAL: string(),
   TOKEN_API_BASE_URL: string(),
   TOKEN_API_KEY: string(),
+  LOCAL_API_URL: string(),
   LOCAL: optional(string()),
 });
 
@@ -67,12 +67,12 @@ export class ConfigProvider {
       RPC_URL_LOCALNET_LIST: process.env.RPC_URL_LOCALNET_LIST,
       // Price API
       PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL,
-      PRICE_API_BASE_URL_LOCAL: process.env.PRICE_API_BASE_URL_LOCAL,
       // Token API
       TOKEN_API_BASE_URL: process.env.TOKEN_API_BASE_URL,
       TOKEN_API_KEY: process.env.TOKEN_API_KEY,
       // TODO: Remove this once we have a better way to handle local environment
       LOCAL: process.env.LOCAL,
+      LOCAL_API_URL: process.env.LOCAL_API_URL,
     };
 
     // Validate and parse them before returning
@@ -100,14 +100,18 @@ export class ConfigProvider {
         },
       ],
       isLocal: Boolean(environment.LOCAL),
-      activeNetworks: [Network.Mainnet, Network.Devnet],
+      activeNetworks: environment.LOCAL
+        ? [Network.Localnet]
+        : [Network.Mainnet, Network.Devnet],
       priceApi: {
         baseUrl: environment.LOCAL
-          ? environment.PRICE_API_BASE_URL_LOCAL
+          ? environment.LOCAL_API_URL
           : environment.PRICE_API_BASE_URL,
       },
       tokenApi: {
-        baseUrl: environment.TOKEN_API_BASE_URL,
+        baseUrl: environment.LOCAL
+          ? environment.LOCAL_API_URL
+          : environment.TOKEN_API_BASE_URL,
         apiKey: environment.TOKEN_API_KEY,
       },
     };

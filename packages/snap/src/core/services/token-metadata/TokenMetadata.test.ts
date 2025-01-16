@@ -5,18 +5,26 @@ import {
   SOLANA_MOCK_TOKEN_METADATA,
 } from '../../test/mocks/solana-assets';
 import type { SolanaAsset } from '../../types/solana';
+import type { ILogger } from '../../utils/logger';
 import { TokenMetadataService } from './TokenMetadata';
 
 describe('TokenMetadataService', () => {
   let tokenMetadataClient: TokenMetadataClient;
   let tokenMetadataService: TokenMetadataService;
-
+  let logger: ILogger;
   beforeEach(() => {
     tokenMetadataClient = {
       getTokenMetadataFromAddresses: jest.fn(),
     } as unknown as TokenMetadataClient;
 
-    tokenMetadataService = new TokenMetadataService({ tokenMetadataClient });
+    logger = {
+      error: jest.fn(),
+    } as unknown as ILogger;
+
+    tokenMetadataService = new TokenMetadataService({
+      tokenMetadataClient,
+      logger,
+    });
   });
 
   describe('getMultipleTokenMetadata', () => {
@@ -38,7 +46,7 @@ describe('TokenMetadataService', () => {
         .mockResolvedValue(mockMetadata);
 
       const result = await tokenMetadataService.getMultipleTokenMetadata(
-        tokens,
+        tokens.map((token) => token.address),
         scope,
       );
 
@@ -55,7 +63,10 @@ describe('TokenMetadataService', () => {
         .mockRejectedValue(error);
 
       await expect(
-        tokenMetadataService.getMultipleTokenMetadata(tokens, scope),
+        tokenMetadataService.getMultipleTokenMetadata(
+          tokens.map((token) => token.address),
+          scope,
+        ),
       ).rejects.toThrow('Error fetching token metadata');
     });
   });

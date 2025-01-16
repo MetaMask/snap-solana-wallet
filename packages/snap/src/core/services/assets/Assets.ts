@@ -5,12 +5,7 @@ import {
 import { BigNumber } from 'bignumber.js';
 
 import type { Network } from '../../constants/solana';
-import {
-  SOL_IMAGE_URL,
-  SOL_SYMBOL,
-  SolanaCaip19Tokens,
-  TOKEN_PROGRAM_ID,
-} from '../../constants/solana';
+import { SolanaCaip19Tokens, TOKEN_PROGRAM_ID } from '../../constants/solana';
 import type { SolanaAsset } from '../../types/solana';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
@@ -55,11 +50,6 @@ export class AssetsService {
       balance: response.value.toString(),
       decimals: 9,
       native: true,
-      metadata: {
-        symbol: SOL_SYMBOL,
-        name: 'Solana',
-        iconUrl: SOL_IMAGE_URL,
-      },
     };
   }
 

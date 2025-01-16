@@ -1,22 +1,13 @@
 import { SolMethod } from '@metamask/keyring-api';
-import { address } from '@solana/web3.js';
-import BigNumber from 'bignumber.js';
 
-import { Caip19Id } from '../../../../core/constants/solana';
 import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
-import {
-  keyring,
-  transactionHelper,
-  transferSolHelper,
-  type SnapExecutionContext,
-} from '../../../../snapContext';
+import { type SnapExecutionContext } from '../../../../snapContext';
 import { Send } from '../../Send';
 import type { SendContext } from '../../types';
-import { SendCurrency } from '../../types';
 import { TransactionConfirmationNames } from './TransactionConfirmation';
 
 /**
@@ -71,15 +62,17 @@ async function onConfirmButtonClick({
   context: SendContext;
   snapContext: SnapExecutionContext;
 }) {
-  const {
-    fromAccountId,
-    toAddress,
-    scope,
-    currencySymbol,
-    tokenPrices,
-    amount,
-    feeEstimatedInSol,
-  } = context;
+  const { feeEstimatedInSol, transactionMessage } = context;
+
+  context.error = null;
+
+  if (!transactionMessage) {
+    // if we find in this state there is no transaction message, we need to go back to the send form
+    context.stage = 'send-form';
+
+    await updateInterface(id, <Send context={context} />, context);
+    return;
+  }
 
   // First, show the pending stage
   const contextPending: SendContext = {
@@ -91,50 +84,20 @@ async function onConfirmButtonClick({
 
   // Then submit the transaction
   let signature: string | null = null;
-  const tokenPrice = tokenPrices[Caip19Id.SolMainnet];
-  const { price } = tokenPrice ?? { price: 0 };
-
-  const amountInSol = Number(
-    currencySymbol === SendCurrency.SOL
-      ? amount
-      : BigNumber(amount).dividedBy(BigNumber(price)).toString(),
-  );
 
   try {
-    const account = await keyring.getAccountOrThrow(fromAccountId);
-
-    const transactionMessage = await transferSolHelper.buildTransactionMessage(
-      address(account.address),
-      address(toAddress),
-      amountInSol,
-      scope,
-    );
-
-    // We can get the fee from the transaction message this way:
-    const feeInLamports = await transactionHelper.getFeeForMessageInLamports(
-      transactionMessage,
-      scope,
-    );
-    logger.log('Transaction fee in lamports', feeInLamports);
-
-    // Encode the transaction message to a JSON serializable format in order to send it over RPC.
-    const base64EncodedTransactionMessage =
-      await transactionHelper.base64EncodeTransactionMessage(
-        transactionMessage,
-      );
-
     // Send the transaction message to the keyring over RPC.
     // It will be decoded on the other side, then signed and sent to the network.
     // It MUST be signed on the other side, because the transaction message is stripped of its private keys during encoding, for security reasons.
     // Fees can also be calculated on the other side from the decoded transaction message.
-    const response = await keyring.handleSendAndConfirmTransaction({
+    const response = await snapContext.keyring.handleSendAndConfirmTransaction({
       id,
       scope: context.scope,
       account: context.fromAccountId, // Will be used to sign the transaction
       request: {
         method: SolMethod.SendAndConfirmTransaction,
         params: {
-          base64EncodedTransactionMessage,
+          base64EncodedTransactionMessage: transactionMessage,
         },
       },
     });
@@ -150,7 +113,6 @@ async function onConfirmButtonClick({
     transaction: {
       result: signature ? 'success' : 'failure',
       signature,
-      tokenPrice: tokenPrice ?? null,
     },
   };
 

@@ -65,9 +65,7 @@ describe('AssetsService', () => {
 
       const tokens = await assetsService.discoverTokens(address, scope);
 
-      expect(tokens).toStrictEqual(
-        SOLANA_MOCK_SPL_TOKENS.map(({ metadata, ...token }) => token),
-      );
+      expect(tokens).toStrictEqual(SOLANA_MOCK_SPL_TOKENS);
     });
 
     it('throws an error if the RPC call fails', async () => {
@@ -101,11 +99,6 @@ describe('AssetsService', () => {
         balance: '123456789',
         decimals: 9,
         native: true,
-        metadata: {
-          symbol: SOL_SYMBOL,
-          name: 'Solana',
-          iconUrl: SOL_IMAGE_URL,
-        },
       });
     });
 

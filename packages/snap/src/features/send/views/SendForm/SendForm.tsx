@@ -1,4 +1,5 @@
 import {
+  Banner,
   Box,
   Button,
   Container,
@@ -9,15 +10,16 @@ import {
 import { isNullOrUndefined } from '@metamask/utils';
 
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
-import { Caip19Id } from '../../../../core/constants/solana';
+import { Networks } from '../../../../core/constants/solana';
 import { formatCurrency } from '../../../../core/utils/formatCurrency';
 import { formatTokens } from '../../../../core/utils/formatTokens';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
 import { AmountInput } from '../../components/AmountInput/AmountInput';
+import { AssetSelector } from '../../components/AssetsSelector/AssetsSelector';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
-import { SendCurrency, SendFormNames, type SendContext } from '../../types';
+import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 
 type SendFormProps = {
   context: SendContext;
@@ -30,34 +32,46 @@ export const SendForm = ({
     amount,
     toAddress,
     validation,
-    currencySymbol,
+    currencyType,
+    tokenCaipId,
     scope,
     balances,
     tokenPrices,
+    tokenMetadata,
+    buildingTransaction,
+    error,
     preferences: { locale, currency },
   },
 }: SendFormProps) => {
   const translate = i18n(locale);
-  const nativeBalance = balances[fromAccountId]?.amount;
-  const isNativeBalanceDefined = nativeBalance !== undefined;
+  const selectedToken = balances[fromAccountId]?.[tokenCaipId];
+  const tokenBalance = selectedToken?.amount;
+  const tokenSymbol = selectedToken?.unit ?? '';
+  const isBalanceDefined = tokenBalance !== undefined;
+  const { price: nativePrice } = tokenPrices?.[
+    Networks[scope].nativeToken.caip19Id
+  ] ?? {
+    price: 0,
+  };
 
-  // FIXME: for now, always use mainnet for prices
-  const { price } = tokenPrices[Caip19Id.SolMainnet] ?? { price: 0 };
+  const { price: tokenPrice } = tokenPrices?.[tokenCaipId] ?? {
+    price: 0,
+  };
 
-  const currencyToBalance: Record<SendCurrency, string> = isNativeBalanceDefined
+  const currencyToBalance: Record<SendCurrencyType, string> = isBalanceDefined
     ? {
-        [SendCurrency.FIAT]: formatCurrency(
-          tokenToFiat(nativeBalance, price),
+        [SendCurrencyType.FIAT]: formatCurrency(
+          tokenToFiat(tokenBalance, tokenPrice),
           currency,
         ),
-        [SendCurrency.SOL]: formatTokens(nativeBalance, currencySymbol),
+        [SendCurrencyType.TOKEN]: formatTokens(tokenBalance, tokenSymbol),
       }
     : {
-        [SendCurrency.FIAT]: '',
-        [SendCurrency.SOL]: '',
+        [SendCurrencyType.FIAT]: '',
+        [SendCurrencyType.TOKEN]: '',
       };
 
-  const balance = currencyToBalance[currencySymbol];
+  const balance = currencyToBalance[currencyType];
 
   const canPickAmout =
     fromAccountId.length > 0 &&
@@ -69,8 +83,8 @@ export const SendForm = ({
     amount.length > 0 &&
     toAddress.length > 0 &&
     Object.values(validation).every(isNullOrUndefined) &&
-    isNativeBalanceDefined &&
-    Boolean(price);
+    isBalanceDefined &&
+    Boolean(tokenPrice);
 
   return (
     <Container>
@@ -92,7 +106,7 @@ export const SendForm = ({
             accounts={accounts}
             selectedAccountId={fromAccountId}
             balances={balances}
-            price={price}
+            price={nativePrice}
             locale={locale}
             currency={currency}
           />
@@ -101,21 +115,33 @@ export const SendForm = ({
               <Box>{null}</Box>
               <Box>{null}</Box>
               <Box>{null}</Box>
-              <AmountInput
-                name={SendFormNames.AmountInput}
-                error={validation?.[SendFormNames.AmountInput]?.message ?? ''}
-                currencySymbol={currencySymbol}
-                value={amount}
-              />
+              <Box direction="horizontal">
+                <AssetSelector
+                  tokenCaipId={tokenCaipId}
+                  tokenMetadata={tokenMetadata}
+                  selectedAccountId={fromAccountId}
+                  balances={balances}
+                  locale={locale}
+                />
+                <AmountInput
+                  name={SendFormNames.AmountInput}
+                  error={validation?.[SendFormNames.AmountInput]?.message ?? ''}
+                  currencyType={currencyType}
+                  tokenSymbol={tokenSymbol}
+                  currency={currency}
+                  value={amount}
+                  locale={locale}
+                />
+              </Box>
               <Box direction="horizontal" alignment="space-between" center>
                 {balance ? (
-                  <Text color="muted">{`${translate(
+                  <Text size="sm" color="muted">{`${translate(
                     'send.balance',
                   )}: ${balance}`}</Text>
                 ) : (
                   <Box>{null}</Box>
                 )}
-                <Button name={SendFormNames.MaxAmountButton}>
+                <Button size="sm" name={SendFormNames.MaxAmountButton}>
                   {translate('send.maxButton')}
                 </Button>
               </Box>
@@ -132,14 +158,25 @@ export const SendForm = ({
               validation?.[SendFormNames.DestinationAccountInput]?.message ?? ''
             }
           />
+          {error && (
+            <Box>
+              <Box>{null}</Box>
+              <Banner title={translate(error.title)} severity="warning">
+                <Text>{translate(error.message)}</Text>
+              </Banner>
+            </Box>
+          )}
         </Form>
-        <Button name={SendFormNames.TransferUsdcButton}>Transfer USDC</Button>
       </Box>
       <Footer>
         <Button name={SendFormNames.CancelButton}>
           {translate('send.cancelButton')}
         </Button>
-        <Button name={SendFormNames.SendButton} disabled={!canReview}>
+        <Button
+          name={SendFormNames.SendButton}
+          disabled={!canReview || buildingTransaction}
+          loading={buildingTransaction}
+        >
           {translate('send.continueButton')}
         </Button>
       </Footer>

@@ -9,32 +9,45 @@ import {
   updateInterface,
 } from '../../utils/interface';
 import logger from '../../utils/logger';
-import { DEFAULT_SEND_CONTEXT } from '../onRpcRequest/renderSend';
 
-export const refreshTokenPrices: OnCronjobHandler = async () => {
+export const refreshUiTokenPrices: OnCronjobHandler = async () => {
   try {
-    logger.info('[refreshTokenPrices] Cronjob triggered');
+    logger.info('[refreshUiTokenPrices] Cronjob triggered');
 
     const stateValue = await state.get();
     const sendFormInterfaceId =
       stateValue?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
 
-    const tokenPrices = await tokenPricesService.refreshPrices(
-      sendFormInterfaceId,
-    );
-
     // Update the interface context with the new rates.
     try {
       if (sendFormInterfaceId) {
         // Get the current context
-        const interfaceContext =
-          ((await getInterfaceContext(sendFormInterfaceId)) as SendContext) ??
-          DEFAULT_SEND_CONTEXT;
+        const interfaceContext = (await getInterfaceContext(
+          sendFormInterfaceId,
+        )) as SendContext;
+
+        if (!interfaceContext) {
+          logger.info('[refreshUiTokenPrices] No interface context found');
+          return;
+        }
+
+        if (!interfaceContext.assets) {
+          logger.info('[refreshUiTokenPrices] No assets found');
+          return;
+        }
+
+        const tokenPrices = await tokenPricesService.getMultipleTokenPrices(
+          interfaceContext.assets,
+          interfaceContext.preferences.currency,
+        );
 
         // Update the current context with the new rates
         const updatedInterfaceContext = {
           ...interfaceContext,
-          tokenPrices,
+          tokenPrices: {
+            ...interfaceContext.tokenPrices,
+            ...tokenPrices,
+          },
         };
 
         await updateInterface(

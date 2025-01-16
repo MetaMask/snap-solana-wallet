@@ -8,7 +8,10 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
-import type { Network } from '../../../../core/constants/solana';
+import {
+  SolanaCaip19Tokens,
+  type Network,
+} from '../../../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../../../core/services/keyring/Keyring';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCurrency } from '../../../../core/utils/formatCurrency';
@@ -22,7 +25,7 @@ type AccountSelectorProps = {
   name: string;
   scope: Network;
   accounts: SolanaKeyringAccount[];
-  balances: Record<string, Balance>;
+  balances: Record<string, Record<string, Balance>>;
   price: number;
   selectedAccountId: string;
   locale: Locale;
@@ -48,7 +51,8 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
     <Field label={translate('send.fromField')} error={error}>
       <Selector name={name} value={selectedAccountId} title="From">
         {accountsList.map((account) => {
-          const balance = balances[account.id];
+          const balance =
+            balances[account.id]?.[`${scope}/${SolanaCaip19Tokens.SOL}`];
           const { amount, unit } = balance ?? {};
 
           const value = amount && unit ? formatTokens(amount, unit) : '';

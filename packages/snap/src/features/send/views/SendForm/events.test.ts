@@ -5,14 +5,12 @@ import {
   LAMPORTS_PER_SOL,
   Network,
   SOL_TRANSFER_FEE_LAMPORTS,
-  TokenMetadata,
 } from '../../../../core/constants/solana';
-import { DEFAULT_TOKEN_PRICES } from '../../../../core/services/state/State';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import { updateInterface } from '../../../../core/utils/interface';
 import { keyring } from '../../../../snapContext';
 import type { SendContext } from '../../types';
-import { SendCurrency, SendFormNames } from '../../types';
+import { SendCurrencyType, SendFormNames } from '../../types';
 import { eventHandlers } from './events';
 
 jest.mock('../../../../core/utils/interface');
@@ -33,12 +31,16 @@ describe('onMaxAmountButtonClick', () => {
     fromAccountId: mockAccount.id,
     toAddress: mockToAddress,
     balances: {
-      [mockAccount.id]: { amount: mockBalanceInSol, unit: 'SOL' },
+      [mockAccount.id]: {
+        [Caip19Id.SolLocalnet]: {
+          amount: mockBalanceInSol,
+          unit: 'SOL',
+        },
+      },
     },
-    scope: Network.Testnet,
+    scope: Network.Localnet,
     tokenPrices: {
-      [Caip19Id.SolMainnet]: {
-        ...DEFAULT_TOKEN_PRICES[TokenMetadata[Caip19Id.SolMainnet].caip19Id],
+      [Caip19Id.SolLocalnet]: {
         price: Number(mockSolPrice),
       },
     },
@@ -46,14 +48,20 @@ describe('onMaxAmountButtonClick', () => {
     amount: '',
     accounts: [],
     feeEstimatedInSol: '',
-    currencySymbol: SendCurrency.SOL,
+    currencyType: SendCurrencyType.TOKEN,
     transaction: null,
-    stage: 'transaction-confirmation',
+    stage: 'send-form',
     preferences: {
       locale: 'en',
       currency: 'USD',
     },
     feePaidInSol: '0',
+    tokenCaipId: Caip19Id.SolLocalnet,
+    assets: [Caip19Id.SolLocalnet],
+    tokenMetadata: {},
+    buildingTransaction: false,
+    transactionMessage: null,
+    error: null,
   };
 
   beforeEach(() => {
@@ -67,9 +75,9 @@ describe('onMaxAmountButtonClick', () => {
   });
 
   it('calculates max amount in SOL correctly', async () => {
-    const context = {
+    const context: SendContext = {
       ...baseContext,
-      currencySymbol: SendCurrency.SOL,
+      currencyType: SendCurrencyType.TOKEN,
     };
 
     await eventHandlers[SendFormNames.MaxAmountButton]({ id: mockId, context });
@@ -86,7 +94,6 @@ describe('onMaxAmountButtonClick', () => {
       expect.anything(),
       expect.objectContaining({
         amount: expectedAmount,
-        feeEstimatedInSol: expectedFeeInSol,
       }),
     );
   });
@@ -94,7 +101,7 @@ describe('onMaxAmountButtonClick', () => {
   it('calculates max amount in FIAT correctly', async () => {
     const context = {
       ...baseContext,
-      currencySymbol: SendCurrency.FIAT,
+      currencyType: SendCurrencyType.FIAT,
     };
 
     await eventHandlers[SendFormNames.MaxAmountButton]({ id: mockId, context });
@@ -112,7 +119,6 @@ describe('onMaxAmountButtonClick', () => {
       expect.anything(),
       expect.objectContaining({
         amount: expectedAmount,
-        feeEstimatedInSol: expectedFeeInSol,
       }),
     );
   });

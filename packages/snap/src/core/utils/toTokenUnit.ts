@@ -17,11 +17,7 @@ export function toTokenUnits(
     throw new Error('Token amount cannot be negative');
   }
 
-  const result = bn.times(10 ** decimals);
-
-  if (!result.isInteger()) {
-    throw new Error('Token amount has too many decimal places');
-  }
+  const result = bn.times(10 ** decimals).integerValue(BigNumber.ROUND_DOWN);
 
   return BigInt(result.toString());
 }

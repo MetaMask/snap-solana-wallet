@@ -12,7 +12,6 @@ import type {
   UnixTimestamp,
 } from '@solana/web3.js';
 
-import type { SolanaTokenMetadata } from '../clients/token-metadata-client/types';
 import type { Network } from '../constants/solana';
 
 export type SolanaAsset = {
@@ -21,7 +20,6 @@ export type SolanaAsset = {
   balance: string;
   decimals: number;
   native: boolean;
-  metadata?: SolanaTokenMetadata;
 };
 
 export type SolanaInstruction = {

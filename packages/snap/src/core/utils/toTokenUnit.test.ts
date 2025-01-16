@@ -42,12 +42,8 @@ describe('toTokenUnits', () => {
     );
   });
 
-  it('throws error for too many decimal places', () => {
-    expect(() => toTokenUnits('0.0000001', 6)).toThrow(
-      'Token amount has too many decimal places',
-    );
-    expect(() => toTokenUnits(0.0000001, 6)).toThrow(
-      'Token amount has too many decimal places',
-    );
+  it('returns zero for too many decimal places', () => {
+    expect(toTokenUnits('0.0000001', 6)).toBe(0n);
+    expect(toTokenUnits(0.0000001, 6)).toBe(0n);
   });
 });

@@ -1,12 +1,17 @@
 import { Box, Button, Container, Footer } from '@metamask/snaps-sdk/jsx';
 
-import SolanaLogo from '../../../../../images/coin.svg';
 import { ActionHeader } from '../../../../core/components/ActionHeader/ActionHeader';
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
+import { formatCurrency } from '../../../../core/utils/formatCurrency';
 import { formatTokens } from '../../../../core/utils/formatTokens';
 import { i18n } from '../../../../core/utils/i18n';
+import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
-import { getAmountInSol } from '../../selectors';
+import {
+  getTokenAmount,
+  getSelectedTokenMetadata,
+  getSelectedTokenPrice,
+} from '../../selectors';
 import { type SendContext } from '../../types';
 
 export enum TransactionConfirmationNames {
@@ -22,9 +27,16 @@ type TransactionConfirmationProps = {
 export const TransactionConfirmation = ({
   context,
 }: TransactionConfirmationProps) => {
-  const { currencySymbol, preferences } = context;
+  const { preferences } = context;
   const translate = i18n(preferences.locale);
-  const amountInSol = getAmountInSol(context);
+
+  const { tokenImage, tokenSymbol } = getSelectedTokenMetadata(context);
+  const tokenAmount = getTokenAmount(context);
+  const tokenPrice = getSelectedTokenPrice(context);
+  const amountInUserCurrency = formatCurrency(
+    tokenToFiat(tokenAmount, tokenPrice),
+    preferences.currency,
+  );
 
   return (
     <Container>
@@ -34,12 +46,9 @@ export const TransactionConfirmation = ({
           backButtonName={TransactionConfirmationNames.BackButton}
         />
         <ActionHeader
-          title={translate('confirmation.heading', {
-            amount: formatTokens(amountInSol, ''),
-            tokenSymbol: currencySymbol,
-          })}
-          subtitle={translate('confirmation.subheading')}
-          iconSrc={SolanaLogo}
+          title={formatTokens(tokenAmount, tokenSymbol)}
+          subtitle={amountInUserCurrency}
+          iconSrc={tokenImage}
         />
         <TransactionDetails context={context} />
       </Box>

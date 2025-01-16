@@ -29,10 +29,15 @@ describe('TokenMetadataClient', () => {
 
   it('fetches and parses token metadata when one is returned', async () => {
     const tokenAddresses = ['address1', 'address2'];
-    const mockFetchResponse: Partial<TokenMetadata> = {
+    const mockFetchResponse = {
       fungible_id: 'solana.address1',
       symbol: 'MOCK',
       name: 'Mock Token',
+      decimals: 6,
+      previews: {
+        image_small_url:
+          'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
+      },
     };
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -50,6 +55,7 @@ describe('TokenMetadataClient', () => {
           'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
         name: 'Mock Token',
         symbol: 'MOCK',
+        decimals: 6,
       },
     });
   });
@@ -62,6 +68,11 @@ describe('TokenMetadataClient', () => {
           fungible_id: 'solana.address1',
           symbol: 'MOCK',
           name: 'Mock Token',
+          decimals: 6,
+          previews: {
+            image_small_url:
+              'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
+          },
         },
       ],
     };
@@ -81,6 +92,7 @@ describe('TokenMetadataClient', () => {
           'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
         name: 'Mock Token',
         symbol: 'MOCK',
+        decimals: 6,
       },
     });
   });

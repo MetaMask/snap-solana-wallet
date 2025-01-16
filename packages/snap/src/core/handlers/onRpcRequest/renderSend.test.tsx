@@ -1,19 +1,28 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { installSnap } from '@metamask/snaps-jest';
 
 import { Send } from '../../../features/send/Send';
 import {
   type SendContext,
-  SendCurrency,
+  SendCurrencyType,
   SendFormNames,
 } from '../../../features/send/types';
 import { TransactionConfirmationNames } from '../../../features/send/views/TransactionConfirmation/TransactionConfirmation';
-import { Caip19Id, Network } from '../../constants/solana';
+import {
+  Caip19Id,
+  Network,
+  SOL_IMAGE_URL,
+  SOL_SYMBOL,
+} from '../../constants/solana';
 import {
   MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE,
+  MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE,
   MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE,
+  MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE,
   MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE,
+  MOCK_SOLANA_RPC_SIMULATE_TRANSACTION_RESPONSE,
 } from '../../services/mocks/mockSolanaRpcResponses';
-import type { TokenPrice } from '../../services/state/State';
+import { SOL_IMAGE_SVG } from '../../test/mocks/solana-image-svg';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -29,51 +38,57 @@ const solanaKeyringAccounts = [
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 ];
 
+const solanaAccountBalances = {
+  [Caip19Id.SolLocalnet]: {
+    amount: '0.123456789',
+    unit: SOL_SYMBOL,
+  },
+  'solana:123456789abcdef/token:address1': {
+    amount: '0.123456789',
+    unit: '',
+  },
+  'solana:123456789abcdef/token:address2': {
+    amount: '0.123456789',
+    unit: '',
+  },
+};
+
 const mockContext: SendContext = {
   ...DEFAULT_SEND_CONTEXT,
   accounts: solanaKeyringAccounts,
   fromAccountId: '0',
   scope: Network.Localnet,
+  currencyType: SendCurrencyType.TOKEN,
+  tokenCaipId: Caip19Id.SolLocalnet,
+  assets: [
+    Caip19Id.SolLocalnet,
+    'solana:123456789abcdef/token:address1',
+    'solana:123456789abcdef/token:address2',
+  ],
   balances: {
-    '0': {
-      amount: '0.123456789',
-      unit: SendCurrency.SOL,
-    },
-    '1': {
-      amount: '0.123456789',
-      unit: SendCurrency.SOL,
-    },
+    '0': solanaAccountBalances,
+    '1': solanaAccountBalances,
   },
   tokenPrices: {
-    [Caip19Id.SolMainnet]: {
-      price: 200,
-      address: '',
-      decimals: 9,
-      symbol: SendCurrency.SOL,
-      caip19Id: Caip19Id.SolMainnet,
-    },
-    [Caip19Id.SolDevnet]: {
-      price: 200,
-      address: '',
-      decimals: 9,
-      symbol: SendCurrency.SOL,
-      caip19Id: Caip19Id.SolDevnet,
-    },
-    [Caip19Id.SolTestnet]: {
-      price: 200,
-      address: '',
-      decimals: 9,
-      symbol: SendCurrency.SOL,
-      caip19Id: Caip19Id.SolTestnet,
-    },
     [Caip19Id.SolLocalnet]: {
       price: 200,
-      address: '',
-      decimals: 9,
-      symbol: SendCurrency.SOL,
-      caip19Id: Caip19Id.SolLocalnet,
     },
-  } as Record<Caip19Id, TokenPrice>,
+    'solana:123456789abcdef/token:address1': {
+      price: 200,
+    },
+    'solana:123456789abcdef/token:address2': {
+      price: 200,
+    },
+  },
+  tokenMetadata: {
+    [Caip19Id.SolLocalnet]: {
+      name: 'Solana',
+      symbol: 'SOL',
+      iconUrl: SOL_IMAGE_URL,
+      imageSvg: SOL_IMAGE_SVG,
+      decimals: 9,
+    },
+  },
 };
 
 describe('Send', () => {
@@ -87,7 +102,7 @@ describe('Send', () => {
     mockSolanaRpc.shutdown();
   });
 
-  it.skip('renders the send form', async () => {
+  it('renders the send form', async () => {
     const { mockResolvedResult, server } = mockSolanaRpc;
 
     // temporary mock for the token prices
@@ -97,13 +112,25 @@ describe('Send', () => {
       (_: any, res: any) => {
         return res.json({
           price: 200,
-          // address: '0',
-          // decimals: 9,
-          // symbol: SendCurrency.SOL,
-          // caip19Id: Caip19Id.SolMainnet,
         });
       },
     );
+
+    server?.get('/api/v0/fungibles/assets', (_: any, res: any) => {
+      return res.json({
+        fungibles: [
+          {
+            fungible_id: 'solana.slip44:501',
+            symbol: 'SOL',
+            name: 'Solana',
+            decimals: 9,
+            previews: {
+              image_small_url: SOL_IMAGE_URL,
+            },
+          },
+        ],
+      });
+    });
 
     const { request, mockJsonRpc } = await installSnap();
 
@@ -128,8 +155,23 @@ describe('Send', () => {
     });
 
     mockResolvedResult({
+      method: 'getTokenAccountsByOwner',
+      result: MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result,
+    });
+
+    mockResolvedResult({
+      method: 'getFeeForMessage',
+      result: MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE.result,
+    });
+
+    mockResolvedResult({
       method: 'getBalance',
       result: MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE.result,
+    });
+
+    mockResolvedResult({
+      method: 'simulateTransaction',
+      result: MOCK_SOLANA_RPC_SIMULATE_TRANSACTION_RESPONSE.result,
     });
 
     const response = request({
@@ -141,9 +183,9 @@ describe('Send', () => {
       },
     });
 
-    // tmp mocking the delay: jest is going too fast (balances are not reached)
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
+    const screen1BeforeUpdate = await response.getInterface();
+    await screen1BeforeUpdate.waitForUpdate();
+    await screen1BeforeUpdate.waitForUpdate();
     const screen1 = await response.getInterface();
 
     const updatedContext1: SendContext = mockContext;
@@ -198,13 +240,6 @@ describe('Send', () => {
       transaction: {
         result: 'success',
         signature: MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result.signature,
-        tokenPrice: {
-          price: 200,
-          address: '0',
-          decimals: 9,
-          symbol: SendCurrency.SOL,
-          caip19Id: Caip19Id.SolMainnet,
-        },
       },
     };
 

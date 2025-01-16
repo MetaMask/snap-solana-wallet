@@ -167,12 +167,6 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
     return Promise.resolve();
   }
 
-  // Don't run cronjobs if there are no Solana accounts
-  const accounts = await keyring.listAccounts();
-  if (accounts.length === 0) {
-    return Promise.resolve();
-  }
-
   const handler = onCronjobHandlers[method as CronjobMethod];
 
   if (!handler) {

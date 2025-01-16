@@ -4,7 +4,7 @@ import ErrorIcon from '../../../../../images/error.svg';
 import { ActionHeader } from '../../../../core/components/ActionHeader/ActionHeader';
 import { i18n } from '../../../../core/utils/i18n';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
-import { getAmountInSol } from '../../selectors';
+import { getSelectedTokenMetadata, getTokenAmount } from '../../selectors';
 import type { SendContext } from '../../types';
 
 export type TransactionFailureProps = {
@@ -12,9 +12,12 @@ export type TransactionFailureProps = {
 };
 
 export const TransactionFailure = ({ context }: TransactionFailureProps) => {
-  const { currencySymbol, preferences } = context;
+  const { preferences } = context;
+
   const translate = i18n(preferences.locale);
-  const amountInSol = getAmountInSol(context);
+
+  const { tokenSymbol } = getSelectedTokenMetadata(context);
+  const tokenAmount = getTokenAmount(context);
 
   return (
     <Container>
@@ -23,8 +26,8 @@ export const TransactionFailure = ({ context }: TransactionFailureProps) => {
         <ActionHeader
           title={translate('transaction-failure.title')}
           subtitle={translate('transaction-failure.subtitle', {
-            amount: amountInSol,
-            tokenSymbol: currencySymbol,
+            amount: tokenAmount,
+            tokenSymbol,
           })}
           iconSrc={ErrorIcon}
         />
