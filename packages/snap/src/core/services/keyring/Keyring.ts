@@ -162,7 +162,7 @@ export class SolanaKeyring implements Keyring {
       // eslint-disable-next-line no-restricted-globals
       const id = crypto.randomUUID();
 
-      // Determine the account index
+      // Find the account index
       let index: number;
       if (options?.importedAccount && typeof options.index === 'number') {
         // Use the provided index for imported accounts
@@ -191,7 +191,6 @@ export class SolanaKeyring implements Keyring {
         scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
         options: {
           ...remainingOptions,
-          // Add a flag to identify imported accounts if needed
           imported: importedAccount ?? false,
         },
         methods: [SolMethod.SendAndConfirmTransaction],
@@ -210,7 +209,7 @@ export class SolanaKeyring implements Keyring {
           methods: keyringAccount.methods,
           scopes: keyringAccount.scopes,
         },
-        // Adjust name suggestion based on whether it's imported
+        // We adjust the name based on if it's imported or not
         accountNameSuggestion: options?.importedAccount
           ? `Imported Solana Account ${index + 1}`
           : `Solana Account ${index + 1}`,

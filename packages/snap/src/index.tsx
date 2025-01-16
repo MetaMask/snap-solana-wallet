@@ -219,7 +219,7 @@ export const onInstall: OnInstallHandler = async ({ origin }) => {
       return;
     }
 
-    // If no accounts exist we need to check for existing accounts in the SRP
+    // If no accounts exists we need to check for existing accounts in the SRP
     const existingAccounts = await keyring.findExistingAccounts();
 
     if (existingAccounts.length > 0) {
@@ -231,7 +231,7 @@ export const onInstall: OnInstallHandler = async ({ origin }) => {
         });
       }
     } else {
-      // Create a new account if no existing accounts were found
+      // Creates a new account if no existing accounts were found
       const handler = onUpdateHandlers[OnUpdateMethods.CreateAccount];
       await handler({ origin });
     }
