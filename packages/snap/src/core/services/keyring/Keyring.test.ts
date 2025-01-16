@@ -589,7 +589,7 @@ describe('SolanaKeyring', () => {
       jest.clearAllMocks();
 
       jest.mocked(deriveSolanaPrivateKey).mockReset();
-      jest.mocked(deriveSolanaPrivateKey).mockImplementation((index) => {
+      jest.mocked(deriveSolanaPrivateKey).mockImplementation(async (index) => {
         const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index]!;
         if (!account) {
           throw new Error('[deriveSolanaAddress] Not enough mocked indices');
