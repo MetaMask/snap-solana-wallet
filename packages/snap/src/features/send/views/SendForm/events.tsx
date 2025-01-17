@@ -147,6 +147,12 @@ async function onSwapCurrencyButtonClick({
       ? SendCurrencyType.FIAT
       : SendCurrencyType.TOKEN;
 
+  if (!context.amount) {
+    // if the amount is empty we dont need to update amount
+    await updateInterface(id, <Send context={context} />, context);
+    return;
+  }
+
   const currentAmount = BigNumber(context.amount ?? '0');
 
   const { price } = context.tokenPrices[context.tokenCaipId] ?? { price: 0 };
