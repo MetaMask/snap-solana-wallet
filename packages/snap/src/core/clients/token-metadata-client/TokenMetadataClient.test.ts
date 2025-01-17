@@ -3,7 +3,6 @@ import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import { TokenMetadataClient } from './TokenMetadataClient';
-import type { TokenMetadata } from './types';
 
 describe('TokenMetadataClient', () => {
   const mockFetch = jest.fn();
@@ -43,14 +42,10 @@ describe('TokenMetadataClient', () => {
       ok: true,
       json: jest.fn().mockResolvedValueOnce(mockFetchResponse),
     });
-    const scope = Network.Localnet;
-    const metadata = await client.getTokenMetadataFromAddresses(
-      tokenAddresses,
-      scope,
-    );
+    const metadata = await client.getTokenMetadataFromAddresses(tokenAddresses);
 
     expect(metadata).toStrictEqual({
-      'solana:123456789abcdef/token:address1': {
+      [`${Network.Mainnet}/token:address1`]: {
         iconUrl:
           'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
         name: 'Mock Token',
@@ -80,14 +75,10 @@ describe('TokenMetadataClient', () => {
       ok: true,
       json: jest.fn().mockResolvedValueOnce(mockFetchResponse),
     });
-    const scope = Network.Localnet;
-    const metadata = await client.getTokenMetadataFromAddresses(
-      tokenAddresses,
-      scope,
-    );
+    const metadata = await client.getTokenMetadataFromAddresses(tokenAddresses);
 
     expect(metadata).toStrictEqual({
-      'solana:123456789abcdef/token:address1': {
+      [`${Network.Mainnet}/token:address1`]: {
         iconUrl:
           'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
         name: 'Mock Token',
@@ -101,10 +92,9 @@ describe('TokenMetadataClient', () => {
     const tokenAddresses = ['address1', 'address2'];
     const errorMessage = 'Error fetching token metadata';
     mockFetch.mockRejectedValueOnce(new Error(errorMessage));
-    const scope = Network.Localnet;
 
     await expect(
-      client.getTokenMetadataFromAddresses(tokenAddresses, scope),
+      client.getTokenMetadataFromAddresses(tokenAddresses),
     ).rejects.toThrow(errorMessage);
     expect(mockLogger.error).toHaveBeenCalledWith(
       new Error(errorMessage),

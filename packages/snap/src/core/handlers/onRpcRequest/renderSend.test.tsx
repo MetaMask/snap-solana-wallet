@@ -120,7 +120,7 @@ describe('Send', () => {
       return res.json({
         fungibles: [
           {
-            fungible_id: 'solana.slip44:501',
+            fungible_id: 'solana-localnet.slip44:501',
             symbol: 'SOL',
             name: 'Solana',
             decimals: 9,
