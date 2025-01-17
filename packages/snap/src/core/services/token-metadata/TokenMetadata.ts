@@ -1,7 +1,6 @@
 import { getImageComponent } from '@metamask/snaps-sdk';
 
 import type { TokenMetadataClient } from '../../clients/token-metadata-client/TokenMetadataClient';
-import type { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 
 export class TokenMetadataService {
@@ -20,7 +19,7 @@ export class TokenMetadataService {
     this.#logger = logger;
   }
 
-  async getMultipleTokenMetadata(tokensCaipIds: string[], scope: Network) {
+  async getMultipleTokenMetadata(tokensCaipIds: string[]) {
     if (tokensCaipIds.length === 0) {
       return {};
     }
@@ -28,7 +27,6 @@ export class TokenMetadataService {
     const tokenMetadata =
       await this.#tokenMetadataClient.getTokenMetadataFromAddresses(
         tokensCaipIds,
-        scope,
       );
 
     const imagePromises = Object.keys(tokenMetadata).map(

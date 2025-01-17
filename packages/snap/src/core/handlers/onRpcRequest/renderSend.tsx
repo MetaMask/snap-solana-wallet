@@ -176,7 +176,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     .catch(() => ({}));
 
   const tokenMetadataPromise = tokenMetadataService
-    .getMultipleTokenMetadata(context2.assets, context2.scope)
+    .getMultipleTokenMetadata(context2.assets)
     .then((metadata) => metadata)
     .catch(() => ({} as Record<string, SolanaTokenMetadata>));
 

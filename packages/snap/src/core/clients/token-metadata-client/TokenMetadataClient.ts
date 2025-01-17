@@ -1,5 +1,6 @@
 import { Network, SolanaCaip19Tokens } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
+import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
@@ -15,6 +16,10 @@ const SCOPE_TO_NETWORK: Record<Network, string> = {
   [Network.Testnet]: 'solana-testnet',
   [Network.Localnet]: 'solana-localnet',
 };
+
+const NETWORK_TO_SCOPE = Object.fromEntries(
+  Object.entries(SCOPE_TO_NETWORK).map(([key, value]) => [value, key]),
+) as Record<string, Network>;
 
 export class TokenMetadataClient {
   readonly #configProvider: ConfigProvider;
@@ -34,21 +39,22 @@ export class TokenMetadataClient {
   }
 
   async getTokenMetadataFromAddresses(
-    addresses: string[],
-    scope: Network,
+    caip19Ids: string[],
   ): Promise<Record<string, SolanaTokenMetadata>> {
     try {
       const { baseUrl, apiKey } = this.#configProvider.get().tokenApi;
 
       const response = await this.#fetch(
-        `${baseUrl}/api/v0/fungibles/assets?fungible_ids=${addresses
+        `${baseUrl}/api/v0/fungibles/assets?fungible_ids=${caip19Ids
           // temporal fix for the token metadata client
           // as this is going to be repalced by token api
           // and both repsonse token address and token address should be CAIP-19
-          .filter((address) => Boolean(address.split('/token:')[1]))
+          .filter((caip19Id) => Boolean(caip19Id.split('/token:')[1]))
           .map(
             (address) =>
-              `${SCOPE_TO_NETWORK[scope]}.${address.split('/token:')[1]}`,
+              `${SCOPE_TO_NETWORK[getNetworkFromToken(address)]}.${
+                address.split('/token:')[1]
+              }`,
           )
           .join(',')}`,
         { headers: { 'X-API-KEY': apiKey } },
@@ -67,13 +73,15 @@ export class TokenMetadataClient {
       const tokenMetadataMap = new Map<string, SolanaTokenMetadata>();
 
       for (const metadata of tokenMetadata) {
-        const address = metadata.fungible_id.split('.')[1] ?? '';
+        const [network = 'solana', address = ''] =
+          metadata.fungible_id.split('.');
+
         const tokenAddress =
           address === SolanaCaip19Tokens.SOL
-            ? `${scope}/${address}`
+            ? `${NETWORK_TO_SCOPE[network]}/${address}`
             : tokenAddressToCaip19(
-                scope,
-                metadata.fungible_id.split('.')[1] ?? '',
+                NETWORK_TO_SCOPE[network] ?? Network.Mainnet,
+                address,
               );
 
         tokenMetadataMap.set(tokenAddress, {
