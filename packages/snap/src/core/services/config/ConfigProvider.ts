@@ -38,6 +38,7 @@ export type Config = {
   tokenApi: {
     baseUrl: string;
     apiKey: string;
+    addressesChunkSize: number;
   };
 };
 
@@ -113,6 +114,7 @@ export class ConfigProvider {
           ? environment.LOCAL_API_URL
           : environment.TOKEN_API_BASE_URL,
         apiKey: environment.TOKEN_API_KEY,
+        addressesChunkSize: 100,
       },
     };
   }

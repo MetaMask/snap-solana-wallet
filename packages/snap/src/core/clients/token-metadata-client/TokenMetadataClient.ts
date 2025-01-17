@@ -22,57 +22,88 @@ const NETWORK_TO_SCOPE = Object.fromEntries(
 ) as Record<string, Network>;
 
 export class TokenMetadataClient {
-  readonly #configProvider: ConfigProvider;
-
   readonly #fetch: typeof globalThis.fetch;
 
   readonly #logger: ILogger;
+
+  readonly #baseUrl: string;
+
+  readonly #apiKey: string;
+
+  readonly #addressesChunkSize: number;
 
   constructor(
     configProvider: ConfigProvider,
     _fetch: typeof globalThis.fetch = globalThis.fetch,
     _logger: ILogger = logger,
   ) {
-    this.#configProvider = configProvider;
     this.#fetch = _fetch;
     this.#logger = _logger;
+
+    const { baseUrl, apiKey, addressesChunkSize } =
+      configProvider.get().tokenApi;
+
+    this.#baseUrl = baseUrl;
+    this.#apiKey = apiKey;
+    this.#addressesChunkSize = addressesChunkSize;
+  }
+
+  async #fetchTokenMetadataBatch(
+    addresses: string[],
+  ): Promise<TokenMetadata[]> {
+    const response = await this.#fetch(
+      `${this.#baseUrl}/api/v0/fungibles/assets?fungible_ids=${addresses.join(
+        ',',
+      )}`,
+      { headers: { 'X-API-KEY': this.#apiKey } },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = (await response.json()) as
+      | TokenMetadataResponse
+      | TokenMetadata;
+
+    return 'fungibles' in data ? data.fungibles : [data];
   }
 
   async getTokenMetadataFromAddresses(
     caip19Ids: string[],
   ): Promise<Record<string, SolanaTokenMetadata>> {
     try {
-      const { baseUrl, apiKey } = this.#configProvider.get().tokenApi;
+      // Filter and transform addresses
+      const formattedAddresses = caip19Ids
+        .filter((caip19Id) => Boolean(caip19Id.split('/token:')[1]))
+        .map(
+          (address) =>
+            `${SCOPE_TO_NETWORK[getNetworkFromToken(address)]}.${
+              address.split('/token:')[1]
+            }`,
+        );
 
-      const response = await this.#fetch(
-        `${baseUrl}/api/v0/fungibles/assets?fungible_ids=${caip19Ids
-          // temporal fix for the token metadata client
-          // as this is going to be repalced by token api
-          // and both repsonse token address and token address should be CAIP-19
-          .filter((caip19Id) => Boolean(caip19Id.split('/token:')[1]))
-          .map(
-            (address) =>
-              `${SCOPE_TO_NETWORK[getNetworkFromToken(address)]}.${
-                address.split('/token:')[1]
-              }`,
-          )
-          .join(',')}`,
-        { headers: { 'X-API-KEY': apiKey } },
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Split addresses into chunks
+      const chunks: string[][] = [];
+      for (
+        let i = 0;
+        i < formattedAddresses.length;
+        i += this.#addressesChunkSize
+      ) {
+        chunks.push(formattedAddresses.slice(i, i + this.#addressesChunkSize));
       }
 
-      const data = (await response.json()) as
-        | TokenMetadataResponse
-        | TokenMetadata;
+      // Fetch metadata for each chunk
+      const tokenMetadataArrays = await Promise.all(
+        chunks.map(async (addresses) =>
+          this.#fetchTokenMetadataBatch(addresses),
+        ),
+      );
 
-      const tokenMetadata = 'fungibles' in data ? data.fungibles : [data];
-
+      // Flatten and process all metadata
       const tokenMetadataMap = new Map<string, SolanaTokenMetadata>();
 
-      for (const metadata of tokenMetadata) {
+      tokenMetadataArrays.flat().forEach((metadata) => {
         const [network = 'solana', address = ''] =
           metadata.fungible_id.split('.');
 
@@ -90,7 +121,7 @@ export class TokenMetadataClient {
           iconUrl: metadata.previews.image_small_url,
           decimals: metadata.decimals,
         });
-      }
+      });
 
       return Object.fromEntries(tokenMetadataMap);
     } catch (error) {
