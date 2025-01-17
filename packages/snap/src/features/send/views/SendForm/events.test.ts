@@ -15,18 +15,13 @@ import { eventHandlers } from './events';
 
 jest.mock('../../../../core/utils/interface');
 
-describe('onMaxAmountButtonClick', () => {
+describe('SendForm events', () => {
   const mockId = 'test-id';
-  const mockToAddress = 'destination-address';
   const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+  const mockToAddress = 'destination-address';
   const mockBalanceInSol = '1.5'; // 1.5 SOL
-  const mockCostInLamports = SOL_TRANSFER_FEE_LAMPORTS; // 0.000005 SOL
   const mockSolPrice = '20'; // $20 per SOL
-
-  const expectedFeeInSol = BigNumber(mockCostInLamports)
-    .dividedBy(LAMPORTS_PER_SOL)
-    .toString();
-
+  const mockCostInLamports = SOL_TRANSFER_FEE_LAMPORTS; // 0.000005 SOL
   const baseContext: SendContext = {
     fromAccountId: mockAccount.id,
     toAddress: mockToAddress,
@@ -64,62 +59,116 @@ describe('onMaxAmountButtonClick', () => {
     error: null,
   };
 
-  beforeEach(() => {
-    jest.spyOn(keyring, 'getAccountOrThrow').mockResolvedValue(mockAccount);
+  describe('onSwapCurrencyButtonClick', () => {
+    it('swaps the currency type', async () => {
+      const context: SendContext = {
+        ...baseContext,
+        currencyType: SendCurrencyType.TOKEN,
+      };
 
-    (updateInterface as jest.Mock).mockResolvedValue(undefined);
+      await eventHandlers[SendFormNames.SwapCurrencyButton]({
+        id: mockId,
+        context,
+      });
+
+      expect(context.currencyType).toBe(SendCurrencyType.FIAT);
+    });
+
+    it('does not update the amount if it is empty', async () => {
+      const context: SendContext = {
+        ...baseContext,
+        currencyType: SendCurrencyType.TOKEN,
+        amount: '',
+      };
+
+      await eventHandlers[SendFormNames.SwapCurrencyButton]({
+        id: mockId,
+        context,
+      });
+
+      expect(context.amount).toBe('');
+    });
+
+    it('updates the amount if it is not empty', async () => {
+      const context: SendContext = {
+        ...baseContext,
+        currencyType: SendCurrencyType.TOKEN,
+        amount: '1',
+      };
+
+      await eventHandlers[SendFormNames.SwapCurrencyButton]({
+        id: mockId,
+        context,
+      });
+
+      expect(context.amount).toBe(mockSolPrice);
+    });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  describe('onMaxAmountButtonClick', () => {
+    beforeEach(() => {
+      jest.spyOn(keyring, 'getAccountOrThrow').mockResolvedValue(mockAccount);
 
-  it('calculates max amount in SOL correctly', async () => {
-    const context: SendContext = {
-      ...baseContext,
-      currencyType: SendCurrencyType.TOKEN,
-    };
+      (updateInterface as jest.Mock).mockResolvedValue(undefined);
+    });
 
-    await eventHandlers[SendFormNames.MaxAmountButton]({ id: mockId, context });
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
 
-    // Expected SOL amount: (1.5 SOL * LAMPORTS_PER_SOL - 5000) / LAMPORTS_PER_SOL
-    const expectedAmount = BigNumber(mockBalanceInSol)
-      .multipliedBy(LAMPORTS_PER_SOL)
-      .minus(mockCostInLamports)
-      .dividedBy(LAMPORTS_PER_SOL)
-      .toString();
+    it('calculates max amount in SOL correctly', async () => {
+      const context: SendContext = {
+        ...baseContext,
+        currencyType: SendCurrencyType.TOKEN,
+      };
 
-    expect(updateInterface).toHaveBeenCalledWith(
-      mockId,
-      expect.anything(),
-      expect.objectContaining({
-        amount: expectedAmount,
-      }),
-    );
-  });
+      await eventHandlers[SendFormNames.MaxAmountButton]({
+        id: mockId,
+        context,
+      });
 
-  it('calculates max amount in FIAT correctly', async () => {
-    const context = {
-      ...baseContext,
-      currencyType: SendCurrencyType.FIAT,
-    };
+      // Expected SOL amount: (1.5 SOL * LAMPORTS_PER_SOL - 5000) / LAMPORTS_PER_SOL
+      const expectedAmount = BigNumber(mockBalanceInSol)
+        .multipliedBy(LAMPORTS_PER_SOL)
+        .minus(mockCostInLamports)
+        .dividedBy(LAMPORTS_PER_SOL)
+        .toString();
 
-    await eventHandlers[SendFormNames.MaxAmountButton]({ id: mockId, context });
+      expect(updateInterface).toHaveBeenCalledWith(
+        mockId,
+        expect.anything(),
+        expect.objectContaining({
+          amount: expectedAmount,
+        }),
+      );
+    });
 
-    // Expected FIAT amount: ((1.5 SOL * LAMPORTS_PER_SOL - 5000) / LAMPORTS_PER_SOL) * $20
-    const expectedAmount = BigNumber(mockBalanceInSol)
-      .multipliedBy(LAMPORTS_PER_SOL)
-      .minus(mockCostInLamports)
-      .dividedBy(LAMPORTS_PER_SOL)
-      .multipliedBy(mockSolPrice)
-      .toString();
+    it('calculates max amount in FIAT correctly', async () => {
+      const context = {
+        ...baseContext,
+        currencyType: SendCurrencyType.FIAT,
+      };
 
-    expect(updateInterface).toHaveBeenCalledWith(
-      mockId,
-      expect.anything(),
-      expect.objectContaining({
-        amount: expectedAmount,
-      }),
-    );
+      await eventHandlers[SendFormNames.MaxAmountButton]({
+        id: mockId,
+        context,
+      });
+
+      // Expected FIAT amount: ((1.5 SOL * LAMPORTS_PER_SOL - 5000) / LAMPORTS_PER_SOL) * $20
+      const expectedAmount = BigNumber(mockBalanceInSol)
+        .multipliedBy(LAMPORTS_PER_SOL)
+        .minus(mockCostInLamports)
+        .dividedBy(LAMPORTS_PER_SOL)
+        .multipliedBy(mockSolPrice)
+        .toString();
+
+      expect(updateInterface).toHaveBeenCalledWith(
+        mockId,
+        expect.anything(),
+        expect.objectContaining({
+          amount: expectedAmount,
+        }),
+      );
+    });
   });
 });
