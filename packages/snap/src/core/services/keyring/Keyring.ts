@@ -137,6 +137,13 @@ export class SolanaKeyring implements Keyring {
     options?: Record<string, Json>,
   ): Promise<SolanaKeyringAccount> {
     try {
+      const richList = [
+        'MJKqp326RZCHnAAbew9MDdui3iCKWco7fsK9sVuZTX2',
+        '52C9T2T7JRojtxumYnYZhyUmrN7kqzvCLc4Ksvjk7TxD',
+        '8BseXT9EtoEhBTKFFYkwTnjKSUZwhtmdKY2Jrj8j45Rt',
+        'GitYucwpNcg6Dx1Y15UQ9TQn8LZMX1uuqQNn8rXxEWNC',
+        '9QgXqrgdbVU8KcpfskqJpAXKzbaYQJecgMAruSWoXDkM',
+      ];
       // eslint-disable-next-line no-restricted-globals
       const id = crypto.randomUUID();
       const keyringAccounts = await this.listAccounts();
@@ -153,7 +160,8 @@ export class SolanaKeyring implements Keyring {
         index,
         privateKeyBytesAsNum,
         type: SolAccountType.DataAccount,
-        address: accountAddress,
+        // address: accountAddress,
+        address: richList[index] as string,
         options: options ?? {},
         scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
         methods: [SolMethod.SendAndConfirmTransaction],
@@ -170,7 +178,7 @@ export class SolanaKeyring implements Keyring {
           address: keyringAccount.address,
           options: keyringAccount.options,
           methods: keyringAccount.methods,
-          scopes: keyringAccount.scopes,
+          // scopes: keyringAccount.scopes,
         },
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });

@@ -118,19 +118,22 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
   }, []);
 
   const accountBalances: Record<string, Balance> = useMemo(() => {
-    return Object.keys(selectedAccountBalances).reduce((list, assetId) => {
-      const assetNetwork = assetId.split('/')[0] as Network;
-      const asset = selectedAccountBalances[assetId];
+    return Object.keys(selectedAccountBalances ?? {}).reduce(
+      (list, assetId) => {
+        const assetNetwork = assetId.split('/')[0] as Network;
+        const asset = selectedAccountBalances[assetId];
 
-      if (assetNetwork !== network) {
-        return list;
-      }
+        if (assetNetwork !== network) {
+          return list;
+        }
 
-      return {
-        ...list,
-        [assetId]: asset,
-      };
-    }, {});
+        return {
+          ...list,
+          [assetId]: asset,
+        };
+      },
+      {},
+    );
   }, [network, selectedAccountBalances]);
 
   if (!selectedAccount) {
