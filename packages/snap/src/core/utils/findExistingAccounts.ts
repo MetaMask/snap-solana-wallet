@@ -5,9 +5,14 @@ import {
 
 import { Network } from '../constants/solana';
 import type { AssetsService } from '../services/assets/Assets';
-import type { ExistingAccountData } from '../services/keyring/Keyring';
 import { deriveSolanaPrivateKey } from './deriveSolanaPrivateKey';
 import logger from './logger';
+
+export type ExistingAccountData = {
+  index: number;
+  address: string;
+  balance: bigint;
+};
 
 /**
  * Searches for existing Solana accounts with non-zero balances.

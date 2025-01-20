@@ -61,12 +61,6 @@ export type SolanaKeyringAccount = {
   privateKeyBytesAsNum: number[];
 } & KeyringAccount;
 
-export type ExistingAccountData = {
-  index: number;
-  address: string;
-  balance: bigint;
-};
-
 export class SolanaKeyring implements Keyring {
   readonly #state: SolanaState;
 
