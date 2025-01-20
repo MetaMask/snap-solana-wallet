@@ -25,12 +25,13 @@ import {
 } from './core/handlers/onUpdate';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
+import { findExistingAccounts } from './core/utils/findExistingAccounts';
 import { getClientStatus } from './core/utils/interface';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
-import snapContext, { keyring } from './snapContext';
+import snapContext, { keyring, assetsService } from './snapContext';
 
 installPolyfills();
 
@@ -220,7 +221,7 @@ export const onInstall: OnInstallHandler = async ({ origin }) => {
     }
 
     // If no accounts exists we need to check for existing accounts in the SRP
-    const existingAccounts = await keyring.findExistingAccounts();
+    const existingAccounts = await findExistingAccounts(assetsService);
 
     if (existingAccounts.length > 0) {
       // Import accounts with balance

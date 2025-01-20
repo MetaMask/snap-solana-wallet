@@ -23,7 +23,8 @@ import {
   getAddressFromPublicKey,
 } from '@solana/web3.js';
 
-import { Network, SOL_SYMBOL } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
+import { SOL_SYMBOL } from '../../constants/solana';
 import { lamportsToSol } from '../../utils/conversion';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
@@ -209,10 +210,7 @@ export class SolanaKeyring implements Keyring {
           methods: keyringAccount.methods,
           scopes: keyringAccount.scopes,
         },
-        // We adjust the name based on if it's imported or not
-        accountNameSuggestion: options?.importedAccount
-          ? `Imported Solana Account ${index + 1}`
-          : `Solana Account ${index + 1}`,
+        accountNameSuggestion: `Solana Account ${index + 1}`,
       });
 
       await this.#encryptedState.update((state) => {
@@ -527,37 +525,5 @@ export class SolanaKeyring implements Keyring {
       data: accountTransactions,
       next: nextSignature,
     };
-  }
-
-  async findExistingAccounts(): Promise<ExistingAccountData[]> {
-    try {
-      const existingAccounts: ExistingAccountData[] = [];
-
-      // Checks the first 5 derivation paths
-      for (let index = 0; index < 5; index++) {
-        const privateKeyBytes = await deriveSolanaPrivateKey(index);
-        const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
-        const address = await getAddressFromPublicKey(keyPair.publicKey);
-
-        const nativeAsset = await this.#assetsService.getNativeAsset(
-          address,
-          Network.Mainnet,
-        );
-
-        if (BigInt(nativeAsset.balance) > 0n) {
-          existingAccounts.push({
-            index,
-            address,
-            balance: BigInt(nativeAsset.balance),
-          });
-          break;
-        }
-      }
-
-      return existingAccounts;
-    } catch (error) {
-      this.#logger.error({ error }, 'Error finding existing accounts');
-      throw error;
-    }
   }
 }
