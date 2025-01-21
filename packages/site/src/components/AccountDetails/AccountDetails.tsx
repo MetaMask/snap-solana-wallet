@@ -20,6 +20,7 @@ import {
   Networks,
   SolanaInternalRpcMethods,
 } from '../../../../snap/src/core/constants/solana';
+import { getNetworkFromToken } from '../../../../snap/src/core/utils/getNetworkFromToken';
 import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
 import { useInvokeSnap } from '../../hooks';
@@ -118,19 +119,22 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
   }, []);
 
   const accountBalances: Record<string, Balance> = useMemo(() => {
-    return Object.keys(selectedAccountBalances).reduce((list, assetId) => {
-      const assetNetwork = assetId.split('/')[0] as Network;
-      const asset = selectedAccountBalances[assetId];
+    return Object.keys(selectedAccountBalances ?? {}).reduce(
+      (list, assetId) => {
+        const assetNetwork = getNetworkFromToken(assetId);
+        const asset = selectedAccountBalances[assetId];
 
-      if (assetNetwork !== network) {
-        return list;
-      }
+        if (assetNetwork !== network) {
+          return list;
+        }
 
-      return {
-        ...list,
-        [assetId]: asset,
-      };
-    }, {});
+        return {
+          ...list,
+          [assetId]: asset,
+        };
+      },
+      {},
+    );
   }, [network, selectedAccountBalances]);
 
   if (!selectedAccount) {
@@ -197,6 +201,8 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
       <Table.Root>
         <Table.Header>
           <Table.Row>
+            <Table.ColumnHeader>Network</Table.ColumnHeader>
+            <Table.ColumnHeader>Timestamp</Table.ColumnHeader>
             <Table.ColumnHeader>Type</Table.ColumnHeader>
             <Table.ColumnHeader>Signature</Table.ColumnHeader>
             <Table.ColumnHeader>From</Table.ColumnHeader>
@@ -207,6 +213,12 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
         <Table.Body>
           {transactions.map((tx) => (
             <Table.Row key={tx.id}>
+              <Table.Cell>{Networks[tx.chain as Network].cluster}</Table.Cell>
+              <Table.Cell>
+                {tx.timestamp
+                  ? new Date(tx.timestamp * 1000).toUTCString()
+                  : '-'}
+              </Table.Cell>
               <Table.Cell>{tx.type}</Table.Cell>
               <Table.Cell>
                 <Link

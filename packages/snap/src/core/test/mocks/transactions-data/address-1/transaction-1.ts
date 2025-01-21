@@ -1,0 +1,175 @@
+import type {
+  Base58EncodedBytes,
+  Blockhash,
+  Lamports,
+  Slot,
+  StringifiedBigInt,
+  StringifiedNumber,
+  UnixTimestamp,
+} from '@solana/web3.js';
+import { address as asAddress } from '@solana/web3.js';
+
+import type { SolanaTransaction } from '../../../../types/solana';
+
+export const ADDRESS_1_TRANSACTION_1_DATA: SolanaTransaction = {
+  blockTime: 1737042268n as UnixTimestamp,
+  meta: {
+    computeUnitsConsumed: 9563n,
+    // eslint-disable-next-line id-denylist
+    err: null,
+    fee: 13318n as Lamports,
+    innerInstructions: [],
+    loadedAddresses: { readonly: [], writable: [] },
+    logMessages: [
+      'Program ComputeBudget111111111111111111111111111111 invoke [1]',
+      'Program ComputeBudget111111111111111111111111111111 success',
+      'Program ComputeBudget111111111111111111111111111111 invoke [1]',
+      'Program ComputeBudget111111111111111111111111111111 success',
+      'Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL invoke [1]',
+      'Program log: CreateIdempotent',
+      'Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL consumed 4618 of 12131 compute units',
+      'Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL success',
+      'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]',
+      'Program log: Instruction: Transfer',
+      'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 7513 compute units',
+      'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success',
+    ],
+    postBalances: [
+      189181197766n,
+      0n,
+      2039280n,
+      2039280n,
+      1n,
+      1n,
+      1009200n,
+      934087680n,
+      731913600n,
+      2783815040n,
+      1461600n,
+    ] as Lamports[],
+    postTokenBalances: [
+      {
+        accountIndex: 2,
+        mint: asAddress('HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr'),
+        owner: asAddress('H3sjyipQtXAJkvWNkXhDgped7k323kAba8QMwCLcV79w'),
+        programId: asAddress('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        uiTokenAmount: {
+          amount: '599965960000456' as StringifiedBigInt,
+          decimals: 6,
+          uiAmount: 599965960.000456,
+          uiAmountString: '599965960.000456' as StringifiedNumber,
+        },
+      },
+      {
+        accountIndex: 3,
+        mint: asAddress('HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr'),
+        owner: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+        programId: asAddress('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        uiTokenAmount: {
+          amount: '20000000' as StringifiedBigInt,
+          decimals: 6,
+          uiAmount: 20.0,
+          uiAmountString: '20' as StringifiedNumber,
+        },
+      },
+    ],
+    preBalances: [
+      189181211084n,
+      0n,
+      2039280n,
+      2039280n,
+      1n,
+      1n,
+      1009200n,
+      934087680n,
+      731913600n,
+      2783815040n,
+      1461600n,
+    ] as Lamports[],
+    preTokenBalances: [
+      {
+        accountIndex: 2,
+        mint: asAddress('HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr'),
+        owner: asAddress('H3sjyipQtXAJkvWNkXhDgped7k323kAba8QMwCLcV79w'),
+        programId: asAddress('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        uiTokenAmount: {
+          amount: '599965970000456' as StringifiedBigInt,
+          decimals: 6,
+          uiAmount: 599965970.000456,
+          uiAmountString: '599965970.000456' as StringifiedNumber,
+        },
+      },
+      {
+        accountIndex: 3,
+        mint: asAddress('HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr'),
+        owner: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+        programId: asAddress('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        uiTokenAmount: {
+          amount: '10000000' as StringifiedBigInt,
+          decimals: 6,
+          uiAmount: 10.0,
+          uiAmountString: '10' as StringifiedNumber,
+        },
+      },
+    ],
+    rewards: [],
+    status: { Ok: null },
+  },
+  slot: 354529792n as Slot,
+  transaction: {
+    message: {
+      accountKeys: [
+        asAddress('BS5QyQcsFbrep8mNrCh5DtnTaihB2C2HUZEW8UJbY2xM'),
+        asAddress('H3sjyipQtXAJkvWNkXhDgped7k323kAba8QMwCLcV79w'),
+        asAddress('92N8pJdw1ZZUjo3FALH6QcnUB421DdF5urnL6idAgwFA'),
+        asAddress('BAnWT8bqq5KNTbq1uuCNk3xbTJP3ER7K9tRxtmsEDvSZ'),
+        asAddress('11111111111111111111111111111111'),
+        asAddress('ComputeBudget111111111111111111111111111111'),
+        asAddress('SysvarRent111111111111111111111111111111111'),
+        asAddress('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        asAddress('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'),
+        asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+        asAddress('HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr'),
+      ],
+      addressTableLookups: [],
+      header: {
+        numReadonlySignedAccounts: 1,
+        numReadonlyUnsignedAccounts: 7,
+        numRequiredSignatures: 2,
+      },
+      instructions: [
+        {
+          accounts: [],
+          data: '3dtdQMzm1EQP' as Base58EncodedBytes,
+          programIdIndex: 5,
+          stackHeight: null,
+        },
+        {
+          accounts: [],
+          data: 'HkM1hZ' as Base58EncodedBytes,
+          programIdIndex: 5,
+          stackHeight: null,
+        },
+        {
+          accounts: [0, 3, 9, 10, 4, 7, 6],
+          data: '2' as Base58EncodedBytes,
+          programIdIndex: 8,
+          stackHeight: null,
+        },
+        {
+          accounts: [2, 3, 1],
+          data: '3ay2hEw4e3yH' as Base58EncodedBytes,
+          programIdIndex: 7,
+          stackHeight: null,
+        },
+      ],
+      recentBlockhash:
+        'DtTefScQPkyAuurUHqwipH9g7G163p7jMX7NNSR44D66' as Blockhash,
+    },
+    signatures: [
+      'signature-1',
+      '3pCGrAVxQ7h5oKV9pjzTZx4br3EpQChuJzWXi93CQMfapbSoqDt8hiJMRQRti1UzC6saoBdBjL2gBw1ekfJjqixG',
+    ] as Base58EncodedBytes[],
+  },
+  version: 0,
+};
