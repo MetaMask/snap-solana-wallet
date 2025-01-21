@@ -208,6 +208,19 @@ export class SolanaKeyring implements Keyring {
         this.#logger.error({ error }, 'Error fetching initial transactions');
       }
 
+      try {
+        const assets = await this.listAccountAssets(keyringAccount.id);
+        const balances = await this.getAccountBalances(keyringAccount.id, assets);
+        
+        await this.#emitEvent(KeyringEvent.BalancesUpdated, {
+          balances: {
+            [keyringAccount.id]: balances,
+          },
+        });
+      } catch (error: any) {
+        this.#logger.error({ error }, 'Error fetching initial balances');
+      }
+
       return keyringAccount;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating account');
