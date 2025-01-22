@@ -2642,6 +2642,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@formatjs/intl-getcanonicallocales@npm:^2.5.4":
+  version: 2.5.4
+  resolution: "@formatjs/intl-getcanonicallocales@npm:2.5.4"
+  dependencies:
+    tslib: 2
+  checksum: 51cb117a339059c223d297296978f76f9b8adab9a437dc6257d747c1e564d33da633ce0f3098b1ad25029c9af5506fca9ecac824e8cc16868aba1dfd77bdb9c7
+  languageName: node
+  linkType: hard
+
 "@formatjs/intl-localematcher@npm:0.5.9":
   version: 0.5.9
   resolution: "@formatjs/intl-localematcher@npm:0.5.9"
@@ -4761,6 +4770,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@metamask/solana-wallet-snap@workspace:packages/snap"
   dependencies:
+    "@formatjs/intl-getcanonicallocales": ^2.5.4
     "@formatjs/intl-numberformat": ^8.15.1
     "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": ^4.0.0

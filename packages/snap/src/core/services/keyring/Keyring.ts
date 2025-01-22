@@ -369,6 +369,16 @@ export class SolanaKeyring implements Keyring {
 
       validateResponse(result, GetAccounBalancesResponseStruct);
 
+      await this.#state.update((state) => {
+        return {
+          ...state,
+          assets: {
+            ...(state?.assets ?? {}),
+            [account.id]: result,
+          },
+        };
+      });
+
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account balances');

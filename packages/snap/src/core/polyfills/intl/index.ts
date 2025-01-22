@@ -1,3 +1,4 @@
+import { getCanonicalLocales } from '@formatjs/intl-getcanonicallocales';
 import { NumberFormat } from '@formatjs/intl-numberformat/index';
 
 import { Collator } from './Collator';
@@ -10,6 +11,7 @@ export function install() {
     value: {
       Collator,
       NumberFormat,
+      getCanonicalLocales,
     },
     writable: true,
     configurable: true,

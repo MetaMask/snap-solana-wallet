@@ -64,7 +64,11 @@ export const SendForm = ({
           tokenToFiat(tokenBalance, tokenPrice),
           currency,
         ),
-        [SendCurrencyType.TOKEN]: formatTokens(tokenBalance, tokenSymbol),
+        [SendCurrencyType.TOKEN]: formatTokens(
+          tokenBalance,
+          tokenSymbol,
+          locale,
+        ),
       }
     : {
         [SendCurrencyType.FIAT]: '',

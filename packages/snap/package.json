@@ -38,6 +38,7 @@
     "test:watch": "yarn test --watch"
   },
   "devDependencies": {
+    "@formatjs/intl-getcanonicallocales": "^2.5.4",
     "@formatjs/intl-numberformat": "^8.15.1",
     "@jest/globals": "^29.5.0",
     "@metamask/auto-changelog": "^4.0.0",

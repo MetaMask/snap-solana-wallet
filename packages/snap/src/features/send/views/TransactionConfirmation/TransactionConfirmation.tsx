@@ -46,7 +46,7 @@ export const TransactionConfirmation = ({
           backButtonName={TransactionConfirmationNames.BackButton}
         />
         <ActionHeader
-          title={formatTokens(tokenAmount, tokenSymbol)}
+          title={formatTokens(tokenAmount, tokenSymbol, preferences.locale)}
           subtitle={amountInUserCurrency}
           iconSrc={tokenImage}
         />
