@@ -22,8 +22,6 @@ import {
   createKeyPairSignerFromPrivateKeyBytes,
   getAddressFromPublicKey,
 } from '@solana/web3.js';
-import type { Struct } from 'superstruct';
-import { assert } from 'superstruct';
 
 import { SOL_SYMBOL, type Network } from '../../constants/solana';
 import { lamportsToSol } from '../../utils/conversion';
@@ -34,10 +32,17 @@ import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
 import type { SendAndConfirmTransactionParams } from '../../validation/structs';
 import {
+  DeleteAccountStruct,
   GetAccounBalancesResponseStruct,
+  GetAccountBalancesStruct,
+  GetAccountStruct,
+  ListAccountAssetsResponseStruct,
+  ListAccountAssetsStruct,
+  ListAccountTransactionsStruct,
   SendAndConfirmTransactionParamsStruct,
+  SubmitRequestMethodStruct,
 } from '../../validation/structs';
-import { validateRequest } from '../../validation/validators';
+import { validateRequest, validateResponse } from '../../validation/validators';
 import type { AssetsService } from '../assets/Assets';
 import type { ConfigProvider } from '../config';
 import type { EncryptedSolanaState } from '../encrypted-state/EncryptedState';
@@ -115,21 +120,28 @@ export class SolanaKeyring implements Keyring {
 
   async getAccount(id: string): Promise<SolanaKeyringAccount | undefined> {
     try {
+      validateRequest(id, GetAccountStruct);
+
       const currentState = await this.#encryptedState.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
+
+      if (!keyringAccounts[id]) {
+        throw new Error(`Account "${id}" not found`);
+      }
 
       return keyringAccounts?.[id];
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account');
-      throw new Error('Error getting account');
+      throw error;
     }
   }
 
   async getAccountOrThrow(id: string): Promise<SolanaKeyringAccount> {
     const account = await this.getAccount(id);
     if (!account) {
-      throw new Error('Account not found');
+      throw new Error(`Account "${id}" not found`);
     }
+
     return account;
   }
 
@@ -210,6 +222,7 @@ export class SolanaKeyring implements Keyring {
 
       return keyringAccount;
     } catch (error: any) {
+      console.log('error', error);
       this.#logger.error({ error }, 'Error creating account');
       throw new Error('Error creating account');
     }
@@ -217,6 +230,8 @@ export class SolanaKeyring implements Keyring {
 
   async deleteAccount(id: string): Promise<void> {
     try {
+      validateRequest(id, DeleteAccountStruct);
+
       await Promise.all([
         this.#encryptedState.update((state) => {
           delete state?.keyringAccounts?.[id];
@@ -230,7 +245,7 @@ export class SolanaKeyring implements Keyring {
       await this.#emitEvent(KeyringEvent.AccountDeleted, { id });
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
-      throw new Error('Error deleting account');
+      throw error;
     }
   }
 
@@ -241,6 +256,8 @@ export class SolanaKeyring implements Keyring {
    */
   async listAccountAssets(id: string): Promise<CaipAssetType[]> {
     try {
+      validateRequest(id, ListAccountAssetsStruct);
+
       const account = await this.getAccount(id);
       if (!account) {
         throw new Error('Account not found');
@@ -268,7 +285,11 @@ export class SolanaKeyring implements Keyring {
         response.map((token) => token.address),
       );
 
-      return [...nativeAssets, ...tokenAssets];
+      const result = [...nativeAssets, ...tokenAssets];
+
+      validateResponse(result, ListAccountAssetsResponseStruct);
+
+      return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account assets');
       throw error;
@@ -286,6 +307,8 @@ export class SolanaKeyring implements Keyring {
     assets: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
     try {
+      validateRequest({ id, assets }, GetAccountBalancesStruct);
+
       const account = await this.getAccount(id);
       const balances = new Map<string, Balance>();
 
@@ -344,7 +367,7 @@ export class SolanaKeyring implements Keyring {
 
       const result = Object.fromEntries(balances.entries());
 
-      assert(result, GetAccounBalancesResponseStruct);
+      validateResponse(result, GetAccounBalancesResponseStruct);
 
       return result;
     } catch (error: any) {
@@ -375,6 +398,8 @@ export class SolanaKeyring implements Keyring {
   async #handleSubmitRequest(request: KeyringRequest): Promise<Json> {
     const { method } = request.request;
 
+    validateRequest(method, SubmitRequestMethodStruct);
+
     const methodToHandler: Record<
       SolMethod,
       (request: KeyringRequest) => Promise<Json>
@@ -398,7 +423,9 @@ export class SolanaKeyring implements Keyring {
   ): Promise<{ signature: string }> {
     const { scope, account: accountId } = request;
     const { params } = request.request;
-    validateRequest(params, SendAndConfirmTransactionParamsStruct as Struct);
+
+    validateRequest(params, SendAndConfirmTransactionParamsStruct);
+
     const { base64EncodedTransactionMessage } =
       params as SendAndConfirmTransactionParams;
 
@@ -428,6 +455,8 @@ export class SolanaKeyring implements Keyring {
     data: Transaction[];
     next: Signature | null;
   }> {
+    validateRequest({ accountId, pagination }, ListAccountTransactionsStruct);
+
     const keyringAccount = await this.getAccount(accountId);
 
     if (!keyringAccount) {

@@ -56,7 +56,7 @@ const solanaAccountBalances = {
 const mockContext: SendContext = {
   ...DEFAULT_SEND_CONTEXT,
   accounts: solanaKeyringAccounts,
-  fromAccountId: '0',
+  fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
   scope: Network.Localnet,
   currencyType: SendCurrencyType.TOKEN,
   tokenCaipId: Caip19Id.SolLocalnet,
@@ -66,8 +66,8 @@ const mockContext: SendContext = {
     'solana:123456789abcdef/token:address2',
   ],
   balances: {
-    '0': solanaAccountBalances,
-    '1': solanaAccountBalances,
+    [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
+    [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
   },
   tokenPrices: {
     [Caip19Id.SolLocalnet]: {
@@ -136,7 +136,12 @@ describe('Send', () => {
 
     mockJsonRpc({
       method: 'snap_manageState',
-      result: { keyringAccounts: solanaKeyringAccounts },
+      result: {
+        keyringAccounts: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
+        },
+      },
     });
 
     mockJsonRpc({
@@ -179,7 +184,7 @@ describe('Send', () => {
       method: RpcRequestMethod.StartSendTransactionFlow,
       params: {
         scope: Network.Localnet, // Routes the call to the mock RPC server running locally
-        account: '0',
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       },
     });
 
@@ -254,7 +259,7 @@ describe('Send', () => {
       method: RpcRequestMethod.StartSendTransactionFlow,
       params: {
         scope: 'wrong scope',
-        account: '0',
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       },
     });
 
