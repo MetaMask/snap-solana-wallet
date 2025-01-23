@@ -9,14 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.0]
 
-### Uncategorized
+### Added
 
-- test: add coverage for the cronjob ([#149](https://github.com/MetaMask/snap-solana-wallet/pull/149))
-- Sol 51 snap send spl tokens transaction ([#130](https://github.com/MetaMask/snap-solana-wallet/pull/130))
-- chore: fix file naming convention ([#129](https://github.com/MetaMask/snap-solana-wallet/pull/129))
-- feat: add SPL token transaction parsing ([#124](https://github.com/MetaMask/snap-solana-wallet/pull/124))
+- Add coverage for the cronjob ([#149](https://github.com/MetaMask/snap-solana-wallet/pull/149))
+- Snap send spl tokens transaction ([#130](https://github.com/MetaMask/snap-solana-wallet/pull/130))
+- Add SPL token transaction parsing ([#124](https://github.com/MetaMask/snap-solana-wallet/pull/124))
 
-## [1.0.5]
+## [1.1.0]
 
 ### Added
 
@@ -67,8 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
 [Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.2.0...HEAD
-[1.2.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.5...v1.2.0
-[1.0.5]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...v1.0.5
+[1.2.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.2...v1.0.4
 [1.0.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.0...v1.0.1
