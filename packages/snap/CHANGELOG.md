@@ -9,21 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.0]
 
-### Uncategorized
+### Added
 
-- feat: format tokens to the decimal ([#150](https://github.com/MetaMask/snap-solana-wallet/pull/150))
-- test: add coverage for the cronjob ([#149](https://github.com/MetaMask/snap-solana-wallet/pull/149))
-- fix: validating all keyring I/O ([#151](https://github.com/MetaMask/snap-solana-wallet/pull/151))
-- test: add tests for the transactions history feature ([#143](https://github.com/MetaMask/snap-solana-wallet/pull/143))
-- fix: can progress on send when amount is empty ([#148](https://github.com/MetaMask/snap-solana-wallet/pull/148))
-- feat: chunk token metadata requests ([#147](https://github.com/MetaMask/snap-solana-wallet/pull/147))
-- fix: allow token metadata service to fetch from tokens from different networks at the same time ([#146](https://github.com/MetaMask/snap-solana-wallet/pull/146))
-- feat: send spl tokens on send flow ([#144](https://github.com/MetaMask/snap-solana-wallet/pull/144))
-- refactor: expose buildTransactionMessage + base64 encoder / decoder ([#142](https://github.com/MetaMask/snap-solana-wallet/pull/142))
-- chore: adds onUpdate hook ([#131](https://github.com/MetaMask/snap-solana-wallet/pull/131))
-- Sol 51 snap send spl tokens transaction ([#130](https://github.com/MetaMask/snap-solana-wallet/pull/130))
-- chore: fix file naming convention ([#129](https://github.com/MetaMask/snap-solana-wallet/pull/129))
-- feat: add SPL token transaction parsing ([#124](https://github.com/MetaMask/snap-solana-wallet/pull/124))
+- Format tokens to the decimal ([#150](https://github.com/MetaMask/snap-solana-wallet/pull/150))
+- Add coverage for the transactions cronjob ([#149](https://github.com/MetaMask/snap-solana-wallet/pull/149))
+- Add tests for the transactions history feature ([#143](https://github.com/MetaMask/snap-solana-wallet/pull/143))
+- Send SPL tokens on send flow ([#144](https://github.com/MetaMask/snap-solana-wallet/pull/144))
+- Adds onUpdate hook ([#131](https://github.com/MetaMask/snap-solana-wallet/pull/131))
+- Snap send SPL tokens transaction ([#130](https://github.com/MetaMask/snap-solana-wallet/pull/130))
+- Add SPL token transaction parsing ([#124](https://github.com/MetaMask/snap-solana-wallet/pull/124))
+
+### Fixed
+
+- Validating all keyring I/O ([#151](https://github.com/MetaMask/snap-solana-wallet/pull/151))
+- Can progress on send when amount is empty ([#148](https://github.com/MetaMask/snap-solana-wallet/pull/148))
+- Chunk token metadata requests ([#147](https://github.com/MetaMask/snap-solana-wallet/pull/147))
+- Allow token metadata service to fetch from tokens from different networks at the same time ([#146](https://github.com/MetaMask/snap-solana-wallet/pull/146))
+- Expose buildTransactionMessage + base64 encoder / decoder ([#142](https://github.com/MetaMask/snap-solana-wallet/pull/142))
 
 ## [1.1.0]
 
