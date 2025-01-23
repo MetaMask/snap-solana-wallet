@@ -39,7 +39,9 @@
   },
   "devDependencies": {
     "@formatjs/intl-getcanonicallocales": "^2.5.4",
+    "@formatjs/intl-locale": "^4.2.9",
     "@formatjs/intl-numberformat": "^8.15.1",
+    "@formatjs/intl-pluralrules": "^5.4.2",
     "@jest/globals": "^29.5.0",
     "@metamask/auto-changelog": "^4.0.0",
     "@metamask/key-tree": "^9.1.2",

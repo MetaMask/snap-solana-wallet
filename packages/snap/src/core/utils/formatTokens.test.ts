@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import { formatTokens } from './formatTokens';
 
 describe('formatTokens', () => {
-  const locale = 'en';
+  const locale = 'en'; // This should work now with the project's polyfill
 
   describe('covers zero values', () => {
     it('returns "0" for zero amount', () => {

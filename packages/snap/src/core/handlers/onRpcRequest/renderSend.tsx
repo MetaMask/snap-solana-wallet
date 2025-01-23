@@ -13,13 +13,7 @@ import {
   tokenPricesService,
 } from '../../../snapContext';
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
-import {
-  Caip19Id,
-  Network,
-  Networks,
-  SOL_TRANSFER_FEE_LAMPORTS,
-} from '../../constants/solana';
-import { lamportsToSol } from '../../utils/conversion';
+import { Caip19Id, Network, Networks } from '../../constants/solana';
 import {
   createInterface,
   getInterfaceContext,
@@ -35,7 +29,7 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   fromAccountId: '',
   amount: '',
   toAddress: '',
-  feeEstimatedInSol: lamportsToSol(SOL_TRANSFER_FEE_LAMPORTS).toString(),
+  feeEstimatedInSol: '0',
   feePaidInSol: '0',
   tokenCaipId: Caip19Id.SolMainnet,
   accounts: [],

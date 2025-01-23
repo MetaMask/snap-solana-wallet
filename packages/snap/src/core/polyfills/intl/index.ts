@@ -1,5 +1,8 @@
+/* eslint-disable import/no-unassigned-import */
 import { getCanonicalLocales } from '@formatjs/intl-getcanonicallocales';
+import { Locale } from '@formatjs/intl-locale/index';
 import { NumberFormat } from '@formatjs/intl-numberformat/index';
+import { PluralRules } from '@formatjs/intl-pluralrules/index';
 
 import { Collator } from './Collator';
 
@@ -12,9 +15,16 @@ export function install() {
       Collator,
       NumberFormat,
       getCanonicalLocales,
+      Locale,
+      PluralRules,
     },
     writable: true,
     configurable: true,
     enumerable: true,
   });
+
+  import('@formatjs/intl-numberformat/locale-data/en');
+  import('@formatjs/intl-pluralrules/locale-data/en');
+  import('@formatjs/intl-numberformat/locale-data/es');
+  import('@formatjs/intl-pluralrules/locale-data/es');
 }
