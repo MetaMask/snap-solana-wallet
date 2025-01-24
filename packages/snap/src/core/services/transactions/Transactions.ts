@@ -1,3 +1,4 @@
+import type { CaipAssetType } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/web3.js';
 
 import { Network } from '../../constants/solana';
@@ -120,10 +121,10 @@ export class TransactionsService {
         mappedTransactionsData.flatMap(({ from, to }) => [
           ...from
             .filter((item) => item.asset?.fungible)
-            .map((item) => (item.asset as { type: string }).type),
+            .map((item) => (item.asset as { type: CaipAssetType }).type),
           ...to
             .filter((item) => item.asset?.fungible)
-            .map((item) => (item.asset as { type: string }).type),
+            .map((item) => (item.asset as { type: CaipAssetType }).type),
         ]),
       ),
     ];

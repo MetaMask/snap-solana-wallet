@@ -1,3 +1,4 @@
+import type { CaipAssetType } from '@metamask/keyring-api';
 import { getImageComponent } from '@metamask/snaps-sdk';
 
 import type { TokenMetadataClient } from '../../clients/token-metadata-client/TokenMetadataClient';
@@ -19,7 +20,7 @@ export class TokenMetadataService {
     this.#logger = logger;
   }
 
-  async getMultipleTokenMetadata(tokensCaipIds: string[]) {
+  async getMultipleTokenMetadata(tokensCaipIds: CaipAssetType[]) {
     if (tokensCaipIds.length === 0) {
       return {};
     }

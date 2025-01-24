@@ -32,11 +32,6 @@ export const NETWORK_TO_EXPLORER_CLUSTER = {
   [Network.Localnet]: 'local',
 };
 
-export enum SolanaInternalRpcMethods {
-  StartSendTransactionFlow = 'startSendTransactionFlow',
-  ListAccountAssets = 'listAccountAssets',
-}
-
 export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',
 }

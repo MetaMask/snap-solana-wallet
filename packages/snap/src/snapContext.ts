@@ -104,6 +104,7 @@ export {
   state,
   tokenPricesService,
   tokenMetadataService,
+  tokenMetadataClient,
   transactionHelper,
   transactionsService,
   transferSolHelper,

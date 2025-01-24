@@ -41,11 +41,15 @@ export const refreshUiTokenPrices: OnCronjobHandler = async () => {
           interfaceContext.preferences.currency,
         );
 
+        const updatedInterfaceContextFinal = (await getInterfaceContext(
+          sendFormInterfaceId,
+        )) as SendContext;
+
         // Update the current context with the new rates
         const updatedInterfaceContext = {
-          ...interfaceContext,
+          ...updatedInterfaceContextFinal,
           tokenPrices: {
-            ...interfaceContext.tokenPrices,
+            ...updatedInterfaceContextFinal.tokenPrices,
             ...tokenPrices,
           },
         };

@@ -86,7 +86,14 @@ const mockContext: SendContext = {
       symbol: 'SOL',
       iconUrl: SOL_IMAGE_URL,
       imageSvg: SOL_IMAGE_SVG,
-      decimals: 9,
+      fungible: false,
+      units: [
+        {
+          name: 'Solana',
+          symbol: 'SOL',
+          decimals: 9,
+        },
+      ],
     },
   },
 };

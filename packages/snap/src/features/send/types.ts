@@ -44,7 +44,7 @@ export type SendContext = {
   scope: Network;
   fromAccountId: string;
   amount: string;
-  tokenCaipId: string;
+  tokenCaipId: CaipAssetType;
   toAddress: string;
   accounts: SolanaKeyringAccount[];
   feeEstimatedInSol: string;
@@ -52,9 +52,9 @@ export type SendContext = {
   validation: Partial<Record<SendFormNames, FormFieldError>>;
   currencyType: SendCurrencyType;
   balances: Record<string, Record<CaipAssetType, Balance>>;
-  assets: string[];
-  tokenPrices: Record<string, TokenPrice>;
-  tokenMetadata: Record<string, SolanaTokenMetadata>;
+  assets: CaipAssetType[];
+  tokenPrices: Record<CaipAssetType, TokenPrice>;
+  tokenMetadata: Record<CaipAssetType, SolanaTokenMetadata>;
   transaction: SendTransation | null;
   buildingTransaction: boolean;
   transactionMessage: string | null;

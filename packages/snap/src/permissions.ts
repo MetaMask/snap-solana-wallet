@@ -12,9 +12,11 @@ const dappPermissions = new Set([
   KeyringRpcMethod.GetAccountBalances,
   KeyringRpcMethod.SubmitRequest,
   KeyringRpcMethod.ListAccountTransactions,
+  KeyringRpcMethod.ListAccountAssets,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
-  RpcRequestMethod.ListAccountAssets,
+  RpcRequestMethod.OnAssetLookup,
+  RpcRequestMethod.OnAssetConversion,
 ]);
 
 const metamaskPermissions = new Set([
@@ -26,9 +28,11 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.GetAccountBalances,
   KeyringRpcMethod.SubmitRequest,
   KeyringRpcMethod.ListAccountTransactions,
+  KeyringRpcMethod.ListAccountAssets,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
-  RpcRequestMethod.ListAccountAssets,
+  RpcRequestMethod.OnAssetLookup,
+  RpcRequestMethod.OnAssetConversion,
 ]);
 
 const allowedOrigins = [

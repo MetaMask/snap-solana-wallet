@@ -222,7 +222,6 @@ export class SolanaKeyring implements Keyring {
 
       return keyringAccount;
     } catch (error: any) {
-      console.log('error', error);
       this.#logger.error({ error }, 'Error creating account');
       throw new Error('Error creating account');
     }
@@ -285,7 +284,7 @@ export class SolanaKeyring implements Keyring {
         response.map((token) => token.address),
       );
 
-      const result = [...nativeAssets, ...tokenAssets];
+      const result = [...nativeAssets, ...tokenAssets] as CaipAssetType[];
 
       validateResponse(result, ListAccountAssetsResponseStruct);
 

@@ -1,4 +1,4 @@
-import type { Balance } from '@metamask/keyring-api';
+import type { Balance, CaipAssetType } from '@metamask/keyring-api';
 import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 
@@ -111,8 +111,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
    */
 
   const getAccountsAssetBalances = async () => {
-    const balances: Record<string, Record<string, Balance>> = {};
-    const assets: Set<string> = new Set();
+    const balances: Record<string, Record<CaipAssetType, Balance>> = {};
+    const assets: Set<CaipAssetType> = new Set();
 
     const promises = accounts.map(async ({ id: accountId }) => {
       try {
