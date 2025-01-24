@@ -1,10 +1,8 @@
+import { Network, SolanaCaip19Tokens } from '../../constants/solana';
 import {
-  Network,
-  SOL_IMAGE_URL,
-  SOL_SYMBOL,
-  SolanaCaip19Tokens,
-} from '../../constants/solana';
-import { SOLANA_MOCK_SPL_TOKENS } from '../../test/mocks/solana-assets';
+  SOLANA_MOCK_SPL_TOKENS,
+  SOLANA_MOCK_TOKEN,
+} from '../../test/mocks/solana-assets';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_1 } from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
@@ -44,6 +42,7 @@ describe('AssetsService', () => {
                 parsed: {
                   info: {
                     mint: 'tokenAddress1',
+                    isNative: false,
                     tokenAmount: {
                       amount: '0',
                       decimals: 6,
@@ -65,7 +64,16 @@ describe('AssetsService', () => {
 
       const tokens = await assetsService.discoverTokens(address, scope);
 
-      expect(tokens).toStrictEqual(SOLANA_MOCK_SPL_TOKENS);
+      expect(tokens).toStrictEqual([
+        ...SOLANA_MOCK_SPL_TOKENS,
+        {
+          address: 'solana:123456789abcdef/token:tokenAddress1',
+          balance: '0',
+          decimals: 6,
+          native: false,
+          scope: Network.Localnet,
+        },
+      ]);
     });
 
     it('throws an error if the RPC call fails', async () => {
@@ -93,13 +101,7 @@ describe('AssetsService', () => {
 
       const nativeAsset = await assetsService.getNativeAsset(address, scope);
 
-      expect(nativeAsset).toStrictEqual({
-        scope,
-        address: `${scope}/${SolanaCaip19Tokens.SOL}`,
-        balance: '123456789',
-        decimals: 9,
-        native: true,
-      });
+      expect(nativeAsset).toStrictEqual(SOLANA_MOCK_TOKEN);
     });
 
     it('throws an error if the RPC call fails', async () => {
