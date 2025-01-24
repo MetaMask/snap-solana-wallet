@@ -156,7 +156,11 @@ export const SendForm = ({
                 ) : (
                   <Box>{null}</Box>
                 )}
-                <Button size="sm" name={SendFormNames.MaxAmountButton}>
+                <Button
+                  size="sm"
+                  name={SendFormNames.MaxAmountButton}
+                  disabled={tokenBalance === '0'}
+                >
                   {translate('send.maxButton')}
                 </Button>
               </Box>

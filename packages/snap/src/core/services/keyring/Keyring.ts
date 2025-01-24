@@ -278,9 +278,7 @@ export class SolanaKeyring implements Keyring {
         ),
       );
 
-      const nativeAssets = this.#assetsService
-        .filterZeroBalanceTokens(nativeResponses)
-        .map((response) => response.address);
+      const nativeAssets = nativeResponses.map((response) => response.address);
 
       const tokenAssets = tokensResponses.flatMap((response) =>
         response.map((token) => token.address),

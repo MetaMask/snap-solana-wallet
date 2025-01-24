@@ -33,9 +33,7 @@ export class AssetsService {
   ): Promise<SolanaAsset[]> {
     const tokens = await this.#getAddressTokenAccounts(address, scope);
 
-    const nonZeroBalanceTokens = this.filterZeroBalanceTokens(tokens);
-
-    return nonZeroBalanceTokens;
+    return tokens;
   }
 
   async getNativeAsset(address: string, scope: Network): Promise<SolanaAsset> {
@@ -51,12 +49,6 @@ export class AssetsService {
       decimals: 9,
       native: true,
     };
-  }
-
-  filterZeroBalanceTokens(tokens: SolanaAsset[]) {
-    return tokens.filter((token) =>
-      new BigNumber(token.balance).isGreaterThan(0),
-    );
   }
 
   async #getAddressTokenAccounts(address: string, scope: Network) {
