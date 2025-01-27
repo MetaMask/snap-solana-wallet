@@ -38,10 +38,6 @@
     "test:watch": "yarn test --watch"
   },
   "devDependencies": {
-    "@formatjs/intl-getcanonicallocales": "^2.5.4",
-    "@formatjs/intl-locale": "^4.2.9",
-    "@formatjs/intl-numberformat": "^8.15.1",
-    "@formatjs/intl-pluralrules": "^5.4.2",
     "@jest/globals": "^29.5.0",
     "@metamask/auto-changelog": "^4.0.0",
     "@metamask/key-tree": "^9.1.2",
@@ -49,7 +45,7 @@
     "@metamask/keyring-snap-sdk": "^2.1.0",
     "@metamask/snaps-cli": "^6.2.1",
     "@metamask/snaps-jest": "8.11.0",
-    "@metamask/snaps-sdk": "^6.14.0",
+    "@metamask/snaps-sdk": "^6.16.0",
     "@metamask/utils": "^11.0.0",
     "@noble/ed25519": "^2.1.0",
     "@solana-program/compute-budget": "^0.6.1",

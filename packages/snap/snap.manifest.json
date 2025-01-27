@@ -78,6 +78,7 @@
       ]
     },
     "endowment:lifecycle-hooks": {},
+    "endowment:assets": {},
     "snap_manageAccounts": {},
     "snap_manageState": {},
     "snap_dialog": {},

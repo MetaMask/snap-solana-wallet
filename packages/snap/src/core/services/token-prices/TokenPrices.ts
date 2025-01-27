@@ -1,4 +1,5 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
+import type { AssetConversion } from '@metamask/snaps-sdk';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import type { SpotPrice } from '../../clients/price-api/types';
@@ -102,12 +103,7 @@ export class TokenPrices {
 
   async getMultipleTokenConversions(
     conversions: { from: CaipAssetType; to: CaipAssetType }[],
-  ): Promise<
-    Record<
-      CaipAssetType,
-      Record<CaipAssetType, { rate: string | null; conversionTime: number }>
-    >
-  > {
+  ): Promise<Record<CaipAssetType, Record<CaipAssetType, AssetConversion>>> {
     return Promise.all(
       conversions.map(async (conversion) =>
         this.getTokenConversion(conversion.from, conversion.to).catch(() => ({
@@ -116,26 +112,28 @@ export class TokenPrices {
         })),
       ),
     ).then((prices) =>
-      prices.reduce<
-        Record<
-          string,
-          Record<string, { rate: string | null; conversionTime: number }>
-        >
-      >((acc, price, index) => {
-        const from = conversions[index]?.from;
-        const to = conversions[index]?.to;
+      prices.reduce<Record<string, Record<string, AssetConversion>>>(
+        (acc, price, index) => {
+          const from = conversions[index]?.from;
+          const to = conversions[index]?.to;
 
-        if (from && to) {
-          if (!acc[from]) {
-            acc[from] = {};
+          if (!price.price) {
+            return acc;
           }
-          acc[from][to] = {
-            rate: price.price?.toString() ?? null,
-            conversionTime: Date.now(),
-          };
-        }
-        return acc;
-      }, {}),
+
+          if (from && to) {
+            if (!acc[from]) {
+              acc[from] = {};
+            }
+            acc[from][to] = {
+              rate: price.price?.toString(),
+              conversionTime: Date.now(),
+            };
+          }
+          return acc;
+        },
+        {},
+      ),
     );
   }
 

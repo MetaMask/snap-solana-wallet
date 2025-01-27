@@ -74,7 +74,7 @@ export class TokenMetadataClient {
 
   async getTokenMetadataFromAddresses(
     caip19Ids: CaipAssetType[],
-  ): Promise<Record<string, SolanaTokenMetadata>> {
+  ): Promise<Record<CaipAssetType, SolanaTokenMetadata>> {
     try {
       // Filter and transform addresses
       const formattedAddresses = caip19Ids
@@ -118,7 +118,7 @@ export class TokenMetadataClient {
         tokenMetadataMap.set(tokenAddress, {
           name: metadata.name,
           symbol: metadata.symbol,
-          fungible: Boolean(metadata.fungible_id),
+          fungible: true,
           iconUrl: metadata.previews.image_small_url,
           units: [
             {

@@ -1,22 +1,18 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
-import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
+import type { OnAssetsLookupHandler } from '@metamask/snaps-sdk';
 
 import { tokenMetadataClient } from '../../../snapContext';
 import { OnAssetLookupStruct } from '../../validation/structs';
 import { validateRequest } from '../../validation/validators';
 
-export const onAssetLookup: OnRpcRequestHandler = async ({ request }) => {
-  const { params } = request;
-
+export const onAssetLookup: OnAssetsLookupHandler = async (params) => {
   validateRequest(params, OnAssetLookupStruct);
 
-  const { assets } = params as {
-    assets: CaipAssetType[];
-  };
+  const { assets } = params;
 
   const metadata = await tokenMetadataClient.getTokenMetadataFromAddresses(
     assets,
   );
 
-  return metadata;
+  return { assets: metadata };
 };

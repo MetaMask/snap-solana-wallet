@@ -1,20 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
+import type { FungibleAssetMetadata } from '@metamask/snaps-sdk';
+
 export type TokenMetadataResponse = {
   fungibles: TokenMetadata[];
 };
 
-export type SolanaTokenMetadata = {
-  name: string;
-  symbol: string;
-  iconUrl: string;
-  fungible: boolean;
+export type SolanaTokenMetadata = FungibleAssetMetadata & {
   imageSvg?: string;
-  units: {
-    name: string;
-    symbol: string;
-    decimals: number;
-  }[];
 };
 
 export type TokenMetadata = {

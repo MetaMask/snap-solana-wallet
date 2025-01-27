@@ -1,6 +1,8 @@
 import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
 import type {
   Json,
+  OnAssetsConversionHandler,
+  OnAssetsLookupHandler,
   OnCronjobHandler,
   OnInstallHandler,
   OnKeyringRequestHandler,
@@ -13,6 +15,8 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
+import { onAssetConversion as onAssetConversionHandler } from './core/handlers/onAssetConversion/onAssetConversion';
+import { onAssetLookup as onAssetLookupHandler } from './core/handlers/onAssetLookup/onAssetLookup';
 import {
   CronjobMethod,
   handlers as onCronjobHandlers,
@@ -241,3 +245,7 @@ export const onInstall: OnInstallHandler = async ({ origin }) => {
     throw error;
   }
 };
+export const onAssetLookup: OnAssetsLookupHandler = onAssetLookupHandler;
+
+export const onAssetConversion: OnAssetsConversionHandler =
+  onAssetConversionHandler;
