@@ -1,7 +1,7 @@
 /* eslint-disable jest/prefer-strict-equal */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SolMethod } from '@metamask/keyring-api';
-import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
+import { type Json } from '@metamask/snaps-sdk';
 
 import { Caip19Id, Network, SolanaCaip19Tokens } from '../../constants/solana';
 import {

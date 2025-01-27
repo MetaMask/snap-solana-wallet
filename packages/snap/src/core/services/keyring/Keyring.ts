@@ -173,7 +173,7 @@ export class SolanaKeyring implements Keyring {
         methods: [SolMethod.SendAndConfirmTransaction],
       };
 
-      await this.#emitEvent(KeyringEvent.AccountCreated, {
+      await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
          * We can't pass the `keyringAccount` object because it contains the index
          * and the snaps sdk does not allow extra properties.
@@ -243,7 +243,7 @@ export class SolanaKeyring implements Keyring {
           return state;
         }),
       ]);
-      await this.#emitEvent(KeyringEvent.AccountDeleted, { accountId });
+      await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
       throw error;
@@ -385,7 +385,7 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  async #emitEvent(
+  async emitEvent(
     event: KeyringEvent,
     data: Record<string, Json>,
   ): Promise<void> {

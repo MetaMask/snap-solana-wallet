@@ -4268,15 +4268,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "@metamask/keyring-api@npm:14.0.0"
+"@metamask/keyring-api@npm:^15.0.0":
+  version: 15.0.0
+  resolution: "@metamask/keyring-api@npm:15.0.0"
   dependencies:
-    "@metamask/keyring-utils": ^1.2.0
+    "@metamask/keyring-utils": ^1.3.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.0.1
     bech32: ^2.0.0
-  checksum: 4de84896fd254d1e7fbe6a5161830cc88e2574c558316ce5b9afec0846aa2f3e74b996980a9eecc5c17fd04f125c5ec4151e1107923786c92ce85bdc3116cb3e
+  checksum: e69e0d9c0fb1112737a5fc66915b50ff9a4e7e68b6448967ed89e26f147a28ce0659d1c340976a4965c1a90347ed0c2a23d4d53b16a0ecea663e8c55103f65a0
   languageName: node
   linkType: hard
 
@@ -4303,6 +4303,17 @@ __metadata:
     "@metamask/utils": ^11.0.1
     bitcoin-address-validation: ^2.2.3
   checksum: dadbc6272cf2783d8fb8b92f7c2992daaf13f31312952e65e08c35ba2b6cad63b76322c511826be8fd7e4a41279caff0faed263d5938b10350b4d76bc44a7474
+  languageName: node
+  linkType: hard
+
+"@metamask/keyring-utils@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@metamask/keyring-utils@npm:1.3.0"
+  dependencies:
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.0.1
+    bitcoin-address-validation: ^2.2.3
+  checksum: cd7a9dfce7b74f34ca0a61e8d7a11cdca33073ed367c7853ba3620f7c91c36f44fe263a3b7487c6e5953b38f5ab008012c4f4948ea28f828d5b0733e278bb624
   languageName: node
   linkType: hard
 
@@ -4842,7 +4853,7 @@ __metadata:
     "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": ^4.0.0
     "@metamask/key-tree": ^9.1.2
-    "@metamask/keyring-api": ^14.0.0
+    "@metamask/keyring-api": ^15.0.0
     "@metamask/keyring-snap-sdk": ^2.1.0
     "@metamask/snaps-cli": ^6.2.1
     "@metamask/snaps-jest": 8.11.0
@@ -4877,7 +4888,7 @@ __metadata:
     "@chakra-ui/react": ^3.0.2
     "@emotion/react": ^11.13.3
     "@metamask/eslint-config-browser": ^12.1.0
-    "@metamask/keyring-api": ^14.0.0
+    "@metamask/keyring-api": ^15.0.0
     "@metamask/providers": ^18.1.0
     "@svgr/webpack": ^8.1.0
     "@testing-library/dom": ^10.4.0
