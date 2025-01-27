@@ -15,8 +15,8 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 
-import { onAssetConversion as onAssetConversionHandler } from './core/handlers/onAssetConversion/onAssetConversion';
-import { onAssetLookup as onAssetLookupHandler } from './core/handlers/onAssetLookup/onAssetLookup';
+import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
+import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';
 import {
   CronjobMethod,
   handlers as onCronjobHandlers,
@@ -245,7 +245,8 @@ export const onInstall: OnInstallHandler = async ({ origin }) => {
     throw error;
   }
 };
-export const onAssetLookup: OnAssetsLookupHandler = onAssetLookupHandler;
 
-export const onAssetConversion: OnAssetsConversionHandler =
-  onAssetConversionHandler;
+export const onAssetsLookup: OnAssetsLookupHandler = onAssetsLookupHandler;
+
+export const onAssetsConversion: OnAssetsConversionHandler =
+  onAssetsConversionHandler;

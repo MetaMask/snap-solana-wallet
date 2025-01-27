@@ -1,11 +1,10 @@
-import type { CaipAssetType } from '@metamask/keyring-api';
 import type { OnAssetsConversionHandler } from '@metamask/snaps-sdk';
 
 import { tokenPricesService } from '../../../snapContext';
 import { OnAssetConversionStruct } from '../../validation/structs';
 import { validateRequest } from '../../validation/validators';
 
-export const onAssetConversion: OnAssetsConversionHandler = async (params) => {
+export const onAssetsConversion: OnAssetsConversionHandler = async (params) => {
   validateRequest(params, OnAssetConversionStruct);
 
   const { conversions } = params;

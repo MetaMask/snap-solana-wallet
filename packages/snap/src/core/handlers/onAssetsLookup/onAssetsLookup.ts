@@ -5,7 +5,7 @@ import { tokenMetadataClient } from '../../../snapContext';
 import { OnAssetLookupStruct } from '../../validation/structs';
 import { validateRequest } from '../../validation/validators';
 
-export const onAssetLookup: OnAssetsLookupHandler = async (params) => {
+export const onAssetsLookup: OnAssetsLookupHandler = async (params) => {
   validateRequest(params, OnAssetLookupStruct);
 
   const { assets } = params;
