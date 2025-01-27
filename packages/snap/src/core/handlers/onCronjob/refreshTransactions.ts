@@ -1,4 +1,4 @@
-import type { Transaction } from '@metamask/keyring-api';
+import { KeyringEvent, type Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/web3.js';
 import { address as asAddress } from '@solana/web3.js';
 
@@ -219,6 +219,10 @@ export async function refreshTransactions() {
         isFetchingTransactions: false,
         transactions,
       };
+    });
+
+    await keyring.emitEvent(KeyringEvent.AccountTransactionsUpdated, {
+      transactions,
     });
 
     logger.info('[refreshTransactions] Cronjob finished');

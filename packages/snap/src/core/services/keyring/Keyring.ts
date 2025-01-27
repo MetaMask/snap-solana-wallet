@@ -236,6 +236,12 @@ export class SolanaKeyring implements Keyring {
             },
           };
         });
+
+        await this.emitEvent(KeyringEvent.AccountTransactionsUpdated, {
+          transactions: {
+            [keyringAccount.id]: [...transactions],
+          },
+        });
       } catch (error: any) {
         this.#logger.error({ error }, 'Error fetching initial transactions');
       }
@@ -244,7 +250,7 @@ export class SolanaKeyring implements Keyring {
         const assets = await this.listAccountAssets(keyringAccount.id);
         const balances = await this.getAccountBalances(keyringAccount.id, assets);
         
-        await this.#emitEvent(KeyringEvent.BalancesUpdated, {
+        await this.emitEvent(KeyringEvent.AccountBalancesUpdated, {
           balances: {
             [keyringAccount.id]: balances,
           },
@@ -487,6 +493,20 @@ export class SolanaKeyring implements Keyring {
       [signer],
       scope as Network,
     );
+
+    try {
+      const assets = await this.listAccountAssets(accountId);
+      const balances = await this.getAccountBalances(accountId, assets);
+      
+      await this.emitEvent(KeyringEvent.AccountBalancesUpdated, {
+        balances: {
+          [accountId]: balances,
+        },
+      });
+
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error updating balances after transaction');
+    }
 
     return { signature };
   }
