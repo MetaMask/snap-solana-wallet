@@ -27,7 +27,9 @@ export const ActionHeader = ({
     <Box alignment="center" center>
       <Box direction="horizontal" center>
         {isLoading ? <Spinner /> : null}
-        {iconSrc && !isLoading ? <Image src={iconSrc} /> : null}
+        {iconSrc && !isLoading ? (
+          <Image borderRadius="full" src={iconSrc} />
+        ) : null}
       </Box>
       <Heading size="lg">{title}</Heading>
       {subtitle ? <Text color="muted">{subtitle}</Text> : null}
