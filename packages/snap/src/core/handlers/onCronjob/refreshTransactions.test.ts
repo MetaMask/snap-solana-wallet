@@ -143,7 +143,7 @@ describe('refreshTransactions', () => {
     await refreshTransactions();
 
     // Verify state updates
-    expect(snapContext.state.update).toHaveBeenCalledTimes(2);
+    expect(snapContext.state.update).toHaveBeenCalledTimes(3);
 
     // Verify initial state update
     const firstUpdateCall = (snapContext.state.update as jest.Mock).mock
