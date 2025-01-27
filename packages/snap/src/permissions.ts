@@ -15,8 +15,6 @@ const dappPermissions = new Set([
   KeyringRpcMethod.ListAccountAssets,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
-  RpcRequestMethod.OnAssetLookup,
-  RpcRequestMethod.OnAssetConversion,
 ]);
 
 const metamaskPermissions = new Set([
@@ -31,8 +29,6 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.ListAccountAssets,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
-  RpcRequestMethod.OnAssetLookup,
-  RpcRequestMethod.OnAssetConversion,
 ]);
 
 const allowedOrigins = [

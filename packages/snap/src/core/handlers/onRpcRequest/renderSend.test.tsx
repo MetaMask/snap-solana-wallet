@@ -86,7 +86,7 @@ const mockContext: SendContext = {
       symbol: 'SOL',
       iconUrl: SOL_IMAGE_URL,
       imageSvg: SOL_IMAGE_SVG,
-      fungible: false,
+      fungible: true,
       units: [
         {
           name: 'Solana',

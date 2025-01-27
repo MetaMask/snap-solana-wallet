@@ -86,16 +86,3 @@ export const SendAndConfirmTransactionParamsStruct = object({
 export type SendAndConfirmTransactionParams = Infer<
   typeof SendAndConfirmTransactionParamsStruct
 >;
-
-export const OnAssetConversionStruct = object({
-  conversions: array(
-    object({
-      from: Caip19Struct,
-      to: Caip19Struct,
-    }),
-  ),
-});
-
-export const OnAssetLookupStruct = object({
-  assets: array(Caip19Struct),
-});

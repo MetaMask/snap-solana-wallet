@@ -32,21 +32,22 @@ export class TokenMetadataService {
 
     const imagePromises = Object.keys(tokenMetadata).map(
       async (tokenCaipId) => {
+        const caipAssetType = tokenCaipId as CaipAssetType;
         try {
-          if (!tokenMetadata[tokenCaipId]?.iconUrl) {
+          if (!tokenMetadata[caipAssetType]?.iconUrl) {
             throw new Error(`No metadata for ${tokenCaipId}`);
           }
 
           const imageSvg = await this.#generateImageComponent(
-            tokenMetadata[tokenCaipId].iconUrl,
+            tokenMetadata[caipAssetType].iconUrl,
           );
 
           if (!imageSvg) {
             throw new Error(`Unable to generate image for ${tokenCaipId}`);
           }
 
-          if (tokenMetadata[tokenCaipId]) {
-            tokenMetadata[tokenCaipId].imageSvg = imageSvg;
+          if (tokenMetadata[caipAssetType]) {
+            tokenMetadata[caipAssetType].imageSvg = imageSvg;
           } else {
             throw new Error(`No metadata for ${tokenCaipId}`);
           }
