@@ -23,6 +23,7 @@ export enum Caip19Id {
   SolDevnet = `${Network.Devnet}/slip44:501`,
   SolTestnet = `${Network.Testnet}/slip44:501`,
   SolLocalnet = `${Network.Localnet}/slip44:501`,
+  UsdcLocalnet = `${Network.Localnet}/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
 }
 
 export const NETWORK_TO_EXPLORER_CLUSTER = {
@@ -31,11 +32,6 @@ export const NETWORK_TO_EXPLORER_CLUSTER = {
   [Network.Testnet]: 'testnet',
   [Network.Localnet]: 'local',
 };
-
-export enum SolanaInternalRpcMethods {
-  StartSendTransactionFlow = 'startSendTransactionFlow',
-  ListAccountAssets = 'listAccountAssets',
-}
 
 export enum SolanaCaip19Tokens {
   SOL = 'slip44:501',

@@ -21,8 +21,10 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
   address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
   index: 0,
   type: 'solana:data-account',
-  id: '0',
-  options: {},
+  id: '123e4567-e89b-12d3-a456-426614174000',
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -35,8 +37,10 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   address: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
   index: 1,
   type: 'solana:data-account',
-  id: '1',
-  options: {},
+  id: '123e4567-e89b-12d3-a456-426614174001',
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -49,8 +53,10 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
   address: '27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD',
   index: 2,
   type: 'solana:data-account',
-  id: '2',
-  options: {},
+  id: '123e4567-e89b-12d3-a456-426614174002',
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -62,8 +68,10 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   address: '3SYHDFbhoxuTCYCGRw7KSL8GbwUoByjtvyy7pUZeAhh8',
   index: 3,
   type: 'solana:data-account',
-  id: '3',
-  options: {},
+  id: '123e4567-e89b-12d3-a456-426614174003',
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -76,8 +84,10 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
   address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
   index: 4,
   type: 'solana:data-account',
-  id: '4',
-  options: {},
+  id: '123e4567-e89b-12d3-a456-426614174004',
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [
@@ -90,8 +100,10 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
   address: 'GN1DST49kafBmRDnKKwUbR6nJWoqzSJBPoHwcTXzgmkH',
   index: 5,
   type: 'solana:data-account',
-  id: '5',
-  options: {},
+  id: '123e4567-e89b-12d3-a456-426614174005',
+  options: {
+    imported: false,
+  },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
   privateKeyBytesAsNum: [

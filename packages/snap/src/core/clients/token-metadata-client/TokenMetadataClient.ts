@@ -1,5 +1,8 @@
-import { Network, SolanaCaip19Tokens } from '../../constants/solana';
+import type { CaipAssetType } from '@metamask/keyring-api';
+
+import { Network, SOL_IMAGE_URL } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
+import { getCaip19Address } from '../../utils/getCaip19Address';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
@@ -70,7 +73,7 @@ export class TokenMetadataClient {
   }
 
   async getTokenMetadataFromAddresses(
-    caip19Ids: string[],
+    caip19Ids: CaipAssetType[],
   ): Promise<Record<string, SolanaTokenMetadata>> {
     try {
       // Filter and transform addresses
@@ -78,9 +81,9 @@ export class TokenMetadataClient {
         .filter((caip19Id) => Boolean(caip19Id.split('/token:')[1]))
         .map(
           (address) =>
-            `${SCOPE_TO_NETWORK[getNetworkFromToken(address)]}.${
-              address.split('/token:')[1]
-            }`,
+            `${
+              SCOPE_TO_NETWORK[getNetworkFromToken(address)]
+            }.${getCaip19Address(address)}`,
         );
 
       // Split addresses into chunks
@@ -107,21 +110,45 @@ export class TokenMetadataClient {
         const [network = 'solana', address = ''] =
           metadata.fungible_id.split('.');
 
-        const tokenAddress =
-          address === SolanaCaip19Tokens.SOL
-            ? `${NETWORK_TO_SCOPE[network]}/${address}`
-            : tokenAddressToCaip19(
-                NETWORK_TO_SCOPE[network] ?? Network.Mainnet,
-                address,
-              );
+        const tokenAddress = tokenAddressToCaip19(
+          NETWORK_TO_SCOPE[network] ?? Network.Mainnet,
+          address,
+        );
 
         tokenMetadataMap.set(tokenAddress, {
           name: metadata.name,
           symbol: metadata.symbol,
+          fungible: Boolean(metadata.fungible_id),
           iconUrl: metadata.previews.image_small_url,
-          decimals: metadata.decimals,
+          units: [
+            {
+              name: metadata.name,
+              symbol: metadata.symbol,
+              decimals: metadata.decimals,
+            },
+          ],
         });
       });
+
+      // FIXME: remove this when platform api is ready
+      // adding native token metadata for now as simplehash does not support caip19 ids
+      caip19Ids
+        .filter((caip19Id) => !caip19Id.split('/token:')[1])
+        .forEach((caip19Id) => {
+          tokenMetadataMap.set(caip19Id, {
+            name: 'Solana',
+            symbol: 'SOL',
+            fungible: true,
+            iconUrl: SOL_IMAGE_URL,
+            units: [
+              {
+                name: 'Solana',
+                symbol: 'SOL',
+                decimals: 9,
+              },
+            ],
+          });
+        });
 
       return Object.fromEntries(tokenMetadataMap);
     } catch (error) {

@@ -55,7 +55,8 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
             balances[account.id]?.[`${scope}/${SolanaCaip19Tokens.SOL}`];
           const { amount, unit } = balance ?? {};
 
-          const value = amount && unit ? formatTokens(amount, unit) : '';
+          const value =
+            amount && unit ? formatTokens(amount, unit, locale) : '';
           const extra =
             amount && unit
               ? formatCurrency(tokenToFiat(amount, price), currency)

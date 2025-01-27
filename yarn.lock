@@ -2633,12 +2633,73 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@formatjs/ecma402-abstract@npm:2.3.2":
+  version: 2.3.2
+  resolution: "@formatjs/ecma402-abstract@npm:2.3.2"
+  dependencies:
+    "@formatjs/fast-memoize": 2.2.6
+    "@formatjs/intl-localematcher": 0.5.10
+    decimal.js: 10
+    tslib: 2
+  checksum: 7f95750f0c9949c3b09d5260189886654057172ad7199f06b3cfddfb90ba2b03454fa6e284a6e325632e702b0592fd1d0dac1e0124ed08647dad6d03b693c809
+  languageName: node
+  linkType: hard
+
 "@formatjs/fast-memoize@npm:2.2.5":
   version: 2.2.5
   resolution: "@formatjs/fast-memoize@npm:2.2.5"
   dependencies:
     tslib: 2
   checksum: 1009b9f782c7b8c0530cde86a68d174bc8055bbf3207eb662429016c2f793bef534e950a13d012861826860ec97d0240fd89eda619267a8191270f581c025f1b
+  languageName: node
+  linkType: hard
+
+"@formatjs/fast-memoize@npm:2.2.6":
+  version: 2.2.6
+  resolution: "@formatjs/fast-memoize@npm:2.2.6"
+  dependencies:
+    tslib: 2
+  checksum: efa5601dddbd94412ee567d5d067dfd206afa2d08553435f6938e69acba3309b83b9b15021cd30550d5fb93817a53b7691098a11a73f621c2d9318efad49fd76
+  languageName: node
+  linkType: hard
+
+"@formatjs/intl-enumerator@npm:1.8.8":
+  version: 1.8.8
+  resolution: "@formatjs/intl-enumerator@npm:1.8.8"
+  dependencies:
+    "@formatjs/ecma402-abstract": 2.3.2
+    tslib: 2
+  checksum: d92930bd400eb4fb4626ea4556ce20d01d58c4563d42e70abbd66d08ee3aa2a79690103bbc0e4b8bf4d9f0bf6cedc6f0dc0067fda3877275874292a54400e68e
+  languageName: node
+  linkType: hard
+
+"@formatjs/intl-getcanonicallocales@npm:2.5.4, @formatjs/intl-getcanonicallocales@npm:^2.5.4":
+  version: 2.5.4
+  resolution: "@formatjs/intl-getcanonicallocales@npm:2.5.4"
+  dependencies:
+    tslib: 2
+  checksum: 51cb117a339059c223d297296978f76f9b8adab9a437dc6257d747c1e564d33da633ce0f3098b1ad25029c9af5506fca9ecac824e8cc16868aba1dfd77bdb9c7
+  languageName: node
+  linkType: hard
+
+"@formatjs/intl-locale@npm:^4.2.9":
+  version: 4.2.9
+  resolution: "@formatjs/intl-locale@npm:4.2.9"
+  dependencies:
+    "@formatjs/ecma402-abstract": 2.3.2
+    "@formatjs/intl-enumerator": 1.8.8
+    "@formatjs/intl-getcanonicallocales": 2.5.4
+    tslib: 2
+  checksum: fb89e0430b8f931cdb63620dc164bb11fff73d6c9e1254e1b34522fb8a45505b6ef92d63ebe04663c296fc35e852d2d8fd1461d1dc2b382df9c4c6d7eaf4e383
+  languageName: node
+  linkType: hard
+
+"@formatjs/intl-localematcher@npm:0.5.10":
+  version: 0.5.10
+  resolution: "@formatjs/intl-localematcher@npm:0.5.10"
+  dependencies:
+    tslib: 2
+  checksum: b36b66e2c81ef9e8b99be784a317c74364c8b6b396e0e1be259fbafda41403c40aec14241efcc4e556580e20f5b71e20351d110cd63e447330d3936d156ebb29
   languageName: node
   linkType: hard
 
@@ -2660,6 +2721,18 @@ __metadata:
     decimal.js: 10
     tslib: 2
   checksum: fbcd07ec51fed5b9996be2f32e15b9d6add873020b8b819f9d5cf512ca03ace368b058af01bbdb4b56b947b8b0ddd36efd295c850ef8eab97cbab2254897d15c
+  languageName: node
+  linkType: hard
+
+"@formatjs/intl-pluralrules@npm:^5.4.2":
+  version: 5.4.2
+  resolution: "@formatjs/intl-pluralrules@npm:5.4.2"
+  dependencies:
+    "@formatjs/ecma402-abstract": 2.3.2
+    "@formatjs/intl-localematcher": 0.5.10
+    decimal.js: 10
+    tslib: 2
+  checksum: 94a5714a37c9cc25fb013a5fb69fcd6757457fc59097b7dde99f63adbf1cb4d9c4df8438bc019aa52bc0a8cec03eb37d186608db036df0a74c42a58c6fe89ac6
   languageName: node
   linkType: hard
 
@@ -4195,40 +4268,52 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^13.0.0":
-  version: 13.0.0
-  resolution: "@metamask/keyring-api@npm:13.0.0"
+"@metamask/keyring-api@npm:^15.0.0":
+  version: 15.0.0
+  resolution: "@metamask/keyring-api@npm:15.0.0"
   dependencies:
-    "@metamask/keyring-utils": ^1.0.0
+    "@metamask/keyring-utils": ^1.3.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.0.1
     bech32: ^2.0.0
-  checksum: 07ba621e7db7e1b4ec8705baa3fb5a5a354c01642bd0d7621e2cbcc889182c92ef826f3d1a95cc71c0e685d24df0178e752a860a515e2f3151a75445a90c6228
+  checksum: e69e0d9c0fb1112737a5fc66915b50ff9a4e7e68b6448967ed89e26f147a28ce0659d1c340976a4965c1a90347ed0c2a23d4d53b16a0ecea663e8c55103f65a0
   languageName: node
   linkType: hard
 
-"@metamask/keyring-snap-sdk@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/keyring-snap-sdk@npm:1.1.0"
+"@metamask/keyring-snap-sdk@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@metamask/keyring-snap-sdk@npm:2.1.0"
   dependencies:
-    "@metamask/keyring-utils": ^1.0.0
+    "@metamask/keyring-utils": ^1.2.0
     "@metamask/snaps-sdk": ^6.7.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.0.1
     webextension-polyfill: ^0.12.0
   peerDependencies:
     "@metamask/providers": ^18.3.1
-  checksum: 277c020e4064746eb0eec865de2377c20a5aa581430118eeeac28a9efdc9c862fe205ed2d3c2d401eed9de40052fb39e86a69901e6f1baeab8a62ce3933e2209
+  checksum: d7ed5dfa7a3134f32c2d3bf7eba47586e3f93defec82275d57cb5cd47a406c6545cf8c6cb62a393d240241768d9a0a7d313dce129e5c3844ab0e51ea1e2f3cf8
   languageName: node
   linkType: hard
 
-"@metamask/keyring-utils@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/keyring-utils@npm:1.0.0"
+"@metamask/keyring-utils@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@metamask/keyring-utils@npm:1.2.0"
   dependencies:
     "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^9.3.0
-  checksum: 9b1c9a0805ac1f62c0ec1a6381cf1a892ac367b86de77a83f56617a9391ca5fca4803d84a95d15266b31f2c22e7711da166dfb05f10ef528146c256ce4eb8c92
+    "@metamask/utils": ^11.0.1
+    bitcoin-address-validation: ^2.2.3
+  checksum: dadbc6272cf2783d8fb8b92f7c2992daaf13f31312952e65e08c35ba2b6cad63b76322c511826be8fd7e4a41279caff0faed263d5938b10350b4d76bc44a7474
+  languageName: node
+  linkType: hard
+
+"@metamask/keyring-utils@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@metamask/keyring-utils@npm:1.3.0"
+  dependencies:
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.0.1
+    bitcoin-address-validation: ^2.2.3
+  checksum: cd7a9dfce7b74f34ca0a61e8d7a11cdca33073ed367c7853ba3620f7c91c36f44fe263a3b7487c6e5953b38f5ab008012c4f4948ea28f828d5b0733e278bb624
   languageName: node
   linkType: hard
 
@@ -4761,12 +4846,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@metamask/solana-wallet-snap@workspace:packages/snap"
   dependencies:
+    "@formatjs/intl-getcanonicallocales": ^2.5.4
+    "@formatjs/intl-locale": ^4.2.9
     "@formatjs/intl-numberformat": ^8.15.1
+    "@formatjs/intl-pluralrules": ^5.4.2
     "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": ^4.0.0
     "@metamask/key-tree": ^9.1.2
-    "@metamask/keyring-api": ^13.0.0
-    "@metamask/keyring-snap-sdk": ^1.1.0
+    "@metamask/keyring-api": ^15.0.0
+    "@metamask/keyring-snap-sdk": ^2.1.0
     "@metamask/snaps-cli": ^6.2.1
     "@metamask/snaps-jest": 8.11.0
     "@metamask/snaps-sdk": ^6.14.0
@@ -4800,7 +4888,7 @@ __metadata:
     "@chakra-ui/react": ^3.0.2
     "@emotion/react": ^11.13.3
     "@metamask/eslint-config-browser": ^12.1.0
-    "@metamask/keyring-api": ^13.0.0
+    "@metamask/keyring-api": ^15.0.0
     "@metamask/providers": ^18.1.0
     "@svgr/webpack": ^8.1.0
     "@testing-library/dom": ^10.4.0
@@ -4913,7 +5001,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^9.2.1, @metamask/utils@npm:^9.3.0":
+"@metamask/utils@npm:^9.2.1":
   version: 9.3.0
   resolution: "@metamask/utils@npm:9.3.0"
   dependencies:
@@ -10561,6 +10649,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"base58-js@npm:^1.0.0":
+  version: 1.0.5
+  resolution: "base58-js@npm:1.0.5"
+  checksum: 46c1b39d3a70bca0a47d56069c74a25d547680afd0f28609c90f280f5d614f5de36db5df993fa334db24008a68ab784a72fcdaa13eb40078e03c8999915a1100
+  languageName: node
+  linkType: hard
+
 "base64-js@npm:^1.0.2, base64-js@npm:^1.3.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
@@ -10621,6 +10716,17 @@ __metadata:
   version: 2.2.0
   resolution: "binary-extensions@npm:2.2.0"
   checksum: ccd267956c58d2315f5d3ea6757cf09863c5fc703e50fbeb13a7dc849b812ef76e3cf9ca8f35a0c48498776a7478d7b4a0418e1e2b8cb9cb9731f2922aaad7f8
+  languageName: node
+  linkType: hard
+
+"bitcoin-address-validation@npm:^2.2.3":
+  version: 2.2.3
+  resolution: "bitcoin-address-validation@npm:2.2.3"
+  dependencies:
+    base58-js: ^1.0.0
+    bech32: ^2.0.0
+    sha256-uint8array: ^0.10.3
+  checksum: 71ff67397275ef52a9e5e1f614fb57e9142d2a4d2f140c266051dc71f8b698930516133a2e1261def457ad4ecbe650535d4360367ece2d389001ec2a5a3d60f6
   languageName: node
   linkType: hard
 
@@ -22662,6 +22768,13 @@ __metadata:
   bin:
     sha.js: ./bin.js
   checksum: ebd3f59d4b799000699097dadb831c8e3da3eb579144fd7eb7a19484cbcbb7aca3c68ba2bb362242eb09e33217de3b4ea56e4678184c334323eca24a58e3ad07
+  languageName: node
+  linkType: hard
+
+"sha256-uint8array@npm:^0.10.3":
+  version: 0.10.7
+  resolution: "sha256-uint8array@npm:0.10.7"
+  checksum: ff735efd42664ab3d663cbc71a2e5f58a02637e9d57e072c509b5765f5368a2dc34fafefa390e065ef24415946b780ac72fd4582eeeb745ece42256de5b85e94
   languageName: node
   linkType: hard
 

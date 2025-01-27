@@ -8,18 +8,18 @@ import {
   Link,
   Table,
 } from '@chakra-ui/react';
-import type {
-  Balance,
-  KeyringAccount,
-  Transaction,
+import {
+  KeyringRpcMethod,
+  type Balance,
+  type KeyringAccount,
+  type Transaction,
 } from '@metamask/keyring-api';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Network } from '../../../../snap/src/core/constants/solana';
-import {
-  Networks,
-  SolanaInternalRpcMethods,
-} from '../../../../snap/src/core/constants/solana';
+import { Networks } from '../../../../snap/src/core/constants/solana';
+import { RpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
+import { getNetworkFromToken } from '../../../../snap/src/core/utils/getNetworkFromToken';
 import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
 import { useInvokeSnap } from '../../hooks';
@@ -53,9 +53,32 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
   const invokeKeyring = useInvokeKeyring();
   const invokeSnap = useInvokeSnap();
 
+  const handleGetMetadata = async () => {
+    const metadata = await invokeSnap({
+      method: RpcRequestMethod.OnAssetLookup,
+      params: {
+        assets: Object.keys(selectedAccountBalances),
+      },
+    });
+    console.log({ metadata });
+  };
+
+  const handleGetConversions = async () => {
+    const conversions = await invokeSnap({
+      method: RpcRequestMethod.OnAssetConversion,
+      params: {
+        conversions: Object.keys(selectedAccountBalances).map((balanceId) => ({
+          from: balanceId,
+          to: 'swift:0/iso4217:EUR',
+        })),
+      },
+    });
+    console.log({ conversions });
+  };
+
   const fetchAccount = async (id: string) => {
     const account = (await invokeKeyring({
-      method: 'keyring_getAccount',
+      method: KeyringRpcMethod.GetAccount,
       params: { id },
     })) as KeyringAccount;
 
@@ -63,15 +86,17 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
   };
 
   const fetchAccountBalances = async (id: string) => {
-    const assets = await invokeSnap({
-      method: SolanaInternalRpcMethods.ListAccountAssets,
+    const assets = await invokeKeyring({
+      method: KeyringRpcMethod.ListAccountAssets,
       params: {
         id,
       },
     });
 
+    console.log({ id, assets });
+
     const balances = (await invokeKeyring({
-      method: 'keyring_getAccountBalances',
+      method: KeyringRpcMethod.GetAccountBalances,
       params: { id, assets },
     })) as Record<string, Balance>;
 
@@ -86,7 +111,7 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
     initialFetchRef.current = true;
 
     const response = (await invokeKeyring({
-      method: 'keyring_listAccountTransactions',
+      method: KeyringRpcMethod.ListAccountTransactions,
       params: {
         id,
         pagination: {
@@ -118,19 +143,22 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
   }, []);
 
   const accountBalances: Record<string, Balance> = useMemo(() => {
-    return Object.keys(selectedAccountBalances).reduce((list, assetId) => {
-      const assetNetwork = assetId.split('/')[0] as Network;
-      const asset = selectedAccountBalances[assetId];
+    return Object.keys(selectedAccountBalances ?? {}).reduce(
+      (list, assetId) => {
+        const assetNetwork = getNetworkFromToken(assetId);
+        const asset = selectedAccountBalances[assetId];
 
-      if (assetNetwork !== network) {
-        return list;
-      }
+        if (assetNetwork !== network) {
+          return list;
+        }
 
-      return {
-        ...list,
-        [assetId]: asset,
-      };
-    }, {});
+        return {
+          ...list,
+          [assetId]: asset,
+        };
+      },
+      {},
+    );
   }, [network, selectedAccountBalances]);
 
   if (!selectedAccount) {
@@ -149,6 +177,8 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
       <Flex marginBottom="2">
         <ChakraText marginRight="2">Keyring Account ID:</ChakraText>
         <Code>{selectedAccount.id}</Code>
+        <Button onClick={handleGetMetadata}>Get metadata</Button>
+        <Button onClick={handleGetConversions}>Get converisons</Button>
       </Flex>
       <Link
         colorPalette="purple"
@@ -197,6 +227,8 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
       <Table.Root>
         <Table.Header>
           <Table.Row>
+            <Table.ColumnHeader>Network</Table.ColumnHeader>
+            <Table.ColumnHeader>Timestamp</Table.ColumnHeader>
             <Table.ColumnHeader>Type</Table.ColumnHeader>
             <Table.ColumnHeader>Signature</Table.ColumnHeader>
             <Table.ColumnHeader>From</Table.ColumnHeader>
@@ -207,6 +239,12 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
         <Table.Body>
           {transactions.map((tx) => (
             <Table.Row key={tx.id}>
+              <Table.Cell>{Networks[tx.chain as Network].cluster}</Table.Cell>
+              <Table.Cell>
+                {tx.timestamp
+                  ? new Date(tx.timestamp * 1000).toUTCString()
+                  : '-'}
+              </Table.Cell>
               <Table.Cell>{tx.type}</Table.Cell>
               <Table.Cell>
                 <Link

@@ -1,3 +1,4 @@
+import type { CaipAssetType } from '@metamask/keyring-api';
 import type {
   Address,
   Base58EncodedBytes,
@@ -16,7 +17,7 @@ import type { Network } from '../constants/solana';
 
 export type SolanaAsset = {
   scope: Network;
-  address: string;
+  address: CaipAssetType;
   balance: string;
   decimals: number;
   native: boolean;

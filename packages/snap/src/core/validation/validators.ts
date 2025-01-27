@@ -26,7 +26,10 @@ export const validateOrigin = (origin: string, method: string): void => {
  * @param struct - The expected structure of the request parameters.
  * @throws {typeof InvalidParamsError} If the request parameters do not conform to the expected structure.
  */
-export function validateRequest<Params>(requestParams: Params, struct: Struct) {
+export function validateRequest<Params>(
+  requestParams: Params,
+  struct: Struct<any>,
+) {
   try {
     assert(requestParams, struct);
   } catch (error: any) {
@@ -42,7 +45,10 @@ export function validateRequest<Params>(requestParams: Params, struct: Struct) {
  * @param struct - The expected structure of the response.
  * @throws {SnapError} If the response does not conform to the expected structure.
  */
-export function validateResponse<Params>(response: Params, struct: Struct) {
+export function validateResponse<Params>(
+  response: Params,
+  struct: Struct<any>,
+) {
   try {
     assert(response, struct);
   } catch (error) {

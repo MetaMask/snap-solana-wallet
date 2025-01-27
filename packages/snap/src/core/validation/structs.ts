@@ -1,8 +1,12 @@
+import { SolMethod } from '@metamask/keyring-api';
 import type { Infer } from 'superstruct';
 import {
+  array,
   enums,
+  nullable,
   number,
   object,
+  optional,
   pattern,
   record,
   refine,
@@ -10,6 +14,12 @@ import {
 } from 'superstruct';
 
 import { Caip19Id } from '../constants/solana';
+
+// create a uuid validation
+export const Uuid = pattern(
+  string(),
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+);
 
 export const PositiveNumber = refine(number(), 'positive', (value) => {
   if (value < 0) {
@@ -33,6 +43,30 @@ export const Caip19Struct = pattern(
 );
 export const AssetsStruct = enums(Object.values(Caip19Id));
 
+/**
+ * Keyring validations
+ */
+export const GetAccountStruct = object({
+  accountId: Uuid,
+});
+export const DeleteAccountStruct = object({
+  accountId: Uuid,
+});
+export const ListAccountAssetsStruct = object({
+  accountId: Uuid,
+});
+export const GetAccountBalancesStruct = object({
+  accountId: Uuid,
+  assets: array(Caip19Struct),
+});
+export const ListAccountTransactionsStruct = object({
+  accountId: Uuid,
+  pagination: object({
+    limit: number(),
+    next: optional(nullable(string())),
+  }),
+});
+
 export const GetAccounBalancesResponseStruct = record(
   Caip19Struct,
   object({
@@ -41,6 +75,10 @@ export const GetAccounBalancesResponseStruct = record(
   }),
 );
 
+export const ListAccountAssetsResponseStruct = array(Caip19Struct);
+
+export const SubmitRequestMethodStruct = enums(Object.values(SolMethod));
+
 export const SendAndConfirmTransactionParamsStruct = object({
   base64EncodedTransactionMessage: string(),
 });
@@ -48,3 +86,16 @@ export const SendAndConfirmTransactionParamsStruct = object({
 export type SendAndConfirmTransactionParams = Infer<
   typeof SendAndConfirmTransactionParamsStruct
 >;
+
+export const OnAssetConversionStruct = object({
+  conversions: array(
+    object({
+      from: Caip19Struct,
+      to: Caip19Struct,
+    }),
+  ),
+});
+
+export const OnAssetLookupStruct = object({
+  assets: array(Caip19Struct),
+});

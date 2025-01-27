@@ -87,7 +87,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
         <Row label={translate('confirmation.fee')}>
           <Value
             extra={feeInUserCurrency}
-            value={formatTokens(feeToDisplay, networkSymbol)}
+            value={formatTokens(feeToDisplay, networkSymbol, locale)}
           />
         </Row>
       </Section>

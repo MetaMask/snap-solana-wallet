@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0]
+
+### Added
+
+- Format tokens to the decimal ([#150](https://github.com/MetaMask/snap-solana-wallet/pull/150))
+- Add coverage for the transactions cronjob ([#149](https://github.com/MetaMask/snap-solana-wallet/pull/149))
+- Add tests for the transactions history feature ([#143](https://github.com/MetaMask/snap-solana-wallet/pull/143))
+- Send SPL tokens on send flow ([#144](https://github.com/MetaMask/snap-solana-wallet/pull/144))
+- Adds onUpdate hook ([#131](https://github.com/MetaMask/snap-solana-wallet/pull/131))
+- Snap send SPL tokens transaction ([#130](https://github.com/MetaMask/snap-solana-wallet/pull/130))
+- Add SPL token transaction parsing ([#124](https://github.com/MetaMask/snap-solana-wallet/pull/124))
+
+### Fixed
+
+- Validating all keyring I/O ([#151](https://github.com/MetaMask/snap-solana-wallet/pull/151))
+- Can progress on send when amount is empty ([#148](https://github.com/MetaMask/snap-solana-wallet/pull/148))
+- Chunk token metadata requests ([#147](https://github.com/MetaMask/snap-solana-wallet/pull/147))
+- Allow token metadata service to fetch from tokens from different networks at the same time ([#146](https://github.com/MetaMask/snap-solana-wallet/pull/146))
+- Expose buildTransactionMessage + base64 encoder / decoder ([#142](https://github.com/MetaMask/snap-solana-wallet/pull/142))
+
 ## [1.1.0]
 
 ### Added
@@ -109,9 +129,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.5...v1.1.0
-[1.0.5]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...v1.0.5
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.1...v1.0.2

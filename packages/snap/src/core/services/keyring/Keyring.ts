@@ -22,10 +22,9 @@ import {
   createKeyPairSignerFromPrivateKeyBytes,
   getAddressFromPublicKey,
 } from '@solana/web3.js';
-import type { Struct } from 'superstruct';
-import { assert } from 'superstruct';
 
-import { SOL_SYMBOL, type Network } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
+import { SOL_SYMBOL } from '../../constants/solana';
 import { lamportsToSol } from '../../utils/conversion';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
@@ -34,10 +33,17 @@ import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
 import type { SendAndConfirmTransactionParams } from '../../validation/structs';
 import {
+  DeleteAccountStruct,
   GetAccounBalancesResponseStruct,
+  GetAccountBalancesStruct,
+  GetAccountStruct,
+  ListAccountAssetsResponseStruct,
+  ListAccountAssetsStruct,
+  ListAccountTransactionsStruct,
   SendAndConfirmTransactionParamsStruct,
+  SubmitRequestMethodStruct,
 } from '../../validation/structs';
-import { validateRequest } from '../../validation/validators';
+import { validateRequest, validateResponse } from '../../validation/validators';
 import type { AssetsService } from '../assets/Assets';
 import type { ConfigProvider } from '../config';
 import type { EncryptedSolanaState } from '../encrypted-state/EncryptedState';
@@ -113,34 +119,54 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  async getAccount(id: string): Promise<SolanaKeyringAccount | undefined> {
+  async getAccount(
+    accountId: string,
+  ): Promise<SolanaKeyringAccount | undefined> {
     try {
+      validateRequest({ accountId }, GetAccountStruct);
+
       const currentState = await this.#encryptedState.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
-      return keyringAccounts?.[id];
+      if (!keyringAccounts[accountId]) {
+        throw new Error(`Account "${accountId}" not found`);
+      }
+
+      return keyringAccounts?.[accountId];
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account');
-      throw new Error('Error getting account');
+      throw error;
     }
   }
 
-  async getAccountOrThrow(id: string): Promise<SolanaKeyringAccount> {
-    const account = await this.getAccount(id);
+  async getAccountOrThrow(accountId: string): Promise<SolanaKeyringAccount> {
+    const account = await this.getAccount(accountId);
     if (!account) {
-      throw new Error('Account not found');
+      throw new Error(`Account "${accountId}" not found`);
     }
+
     return account;
   }
 
-  async createAccount(
-    options?: Record<string, Json>,
-  ): Promise<SolanaKeyringAccount> {
+  async createAccount(options?: {
+    importedAccount?: boolean;
+    index?: number;
+    [key: string]: Json | undefined;
+  }): Promise<SolanaKeyringAccount> {
     try {
       // eslint-disable-next-line no-restricted-globals
       const id = crypto.randomUUID();
-      const keyringAccounts = await this.listAccounts();
-      const index = getLowestUnusedIndex(keyringAccounts);
+
+      // Find the account index
+      let index: number;
+      if (options?.importedAccount && typeof options.index === 'number') {
+        // Use the provided index for imported accounts
+        index = options.index;
+      } else {
+        // Get the lowest unused index for new accounts
+        const keyringAccounts = await this.listAccounts();
+        index = getLowestUnusedIndex(keyringAccounts);
+      }
 
       const privateKeyBytes = await deriveSolanaPrivateKey(index);
       const privateKeyBytesAsNum = Array.from(privateKeyBytes);
@@ -148,18 +174,24 @@ export class SolanaKeyring implements Keyring {
       const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
       const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
 
+      // Filter out our special properties from options
+      const { importedAccount, index: _, ...remainingOptions } = options ?? {};
+
       const keyringAccount: SolanaKeyringAccount = {
         id,
         index,
         privateKeyBytesAsNum,
         type: SolAccountType.DataAccount,
         address: accountAddress,
-        options: options ?? {},
         scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
+        options: {
+          ...remainingOptions,
+          imported: importedAccount ?? false,
+        },
         methods: [SolMethod.SendAndConfirmTransaction],
       };
 
-      await this.#emitEvent(KeyringEvent.AccountCreated, {
+      await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
          * We can't pass the `keyringAccount` object because it contains the index
          * and the snaps sdk does not allow extra properties.
@@ -228,33 +260,37 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  async deleteAccount(id: string): Promise<void> {
+  async deleteAccount(accountId: string): Promise<void> {
     try {
+      validateRequest({ accountId }, DeleteAccountStruct);
+
       await Promise.all([
         this.#encryptedState.update((state) => {
-          delete state?.keyringAccounts?.[id];
+          delete state?.keyringAccounts?.[accountId];
           return state;
         }),
         this.#state.update((state) => {
-          delete state?.transactions?.[id];
+          delete state?.transactions?.[accountId];
           return state;
         }),
       ]);
-      await this.#emitEvent(KeyringEvent.AccountDeleted, { id });
+      await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
-      throw new Error('Error deleting account');
+      throw error;
     }
   }
 
   /**
    * Returns the list of assets for the given account in all Solana networks.
-   * @param id - The id of the account.
+   * @param accountId - The id of the account.
    * @returns CAIP-19 assets ids.
    */
-  async listAccountAssets(id: string): Promise<CaipAssetType[]> {
+  async listAccountAssets(accountId: string): Promise<CaipAssetType[]> {
     try {
-      const account = await this.getAccount(id);
+      validateRequest({ accountId }, ListAccountAssetsStruct);
+
+      const account = await this.getAccount(accountId);
       if (!account) {
         throw new Error('Account not found');
       }
@@ -273,15 +309,17 @@ export class SolanaKeyring implements Keyring {
         ),
       );
 
-      const nativeAssets = this.#assetsService
-        .filterZeroBalanceTokens(nativeResponses)
-        .map((response) => response.address);
+      const nativeAssets = nativeResponses.map((response) => response.address);
 
       const tokenAssets = tokensResponses.flatMap((response) =>
         response.map((token) => token.address),
       );
 
-      return [...nativeAssets, ...tokenAssets];
+      const result = [...nativeAssets, ...tokenAssets] as CaipAssetType[];
+
+      validateResponse(result, ListAccountAssetsResponseStruct);
+
+      return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account assets');
       throw error;
@@ -290,16 +328,18 @@ export class SolanaKeyring implements Keyring {
 
   /**
    * Returns the balances of the given account for the given assets.
-   * @param id - The id of the account.
+   * @param accountId - The id of the account.
    * @param assets - The assets to get the balances for (CAIP-19 ids).
    * @returns The balances of the account for the given assets.
    */
   async getAccountBalances(
-    id: string,
+    accountId: string,
     assets: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
     try {
-      const account = await this.getAccount(id);
+      validateRequest({ accountId, assets }, GetAccountBalancesStruct);
+
+      const account = await this.getAccount(accountId);
       const balances = new Map<string, Balance>();
 
       if (!account) {
@@ -357,7 +397,17 @@ export class SolanaKeyring implements Keyring {
 
       const result = Object.fromEntries(balances.entries());
 
-      assert(result, GetAccounBalancesResponseStruct);
+      validateResponse(result, GetAccounBalancesResponseStruct);
+
+      await this.#state.update((state) => {
+        return {
+          ...state,
+          assets: {
+            ...(state?.assets ?? {}),
+            [account.id]: result,
+          },
+        };
+      });
 
       return result;
     } catch (error: any) {
@@ -366,15 +416,18 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  async #emitEvent(
+  async emitEvent(
     event: KeyringEvent,
     data: Record<string, Json>,
   ): Promise<void> {
     await emitSnapKeyringEvent(snap, event, data);
   }
 
-  async filterAccountChains(id: string, chains: string[]): Promise<string[]> {
-    throw new Error(`Implement me! ${id} ${chains.toString()}`);
+  async filterAccountChains(
+    accountId: string,
+    chains: string[],
+  ): Promise<string[]> {
+    throw new Error(`Implement me! ${accountId} ${chains.toString()}`);
   }
 
   async updateAccount(account: KeyringAccount): Promise<void> {
@@ -387,6 +440,8 @@ export class SolanaKeyring implements Keyring {
 
   async #handleSubmitRequest(request: KeyringRequest): Promise<Json> {
     const { method } = request.request;
+
+    validateRequest(method, SubmitRequestMethodStruct);
 
     const methodToHandler: Record<
       SolMethod,
@@ -411,7 +466,9 @@ export class SolanaKeyring implements Keyring {
   ): Promise<{ signature: string }> {
     const { scope, account: accountId } = request;
     const { params } = request.request;
-    validateRequest(params, SendAndConfirmTransactionParamsStruct as Struct);
+
+    validateRequest(params, SendAndConfirmTransactionParamsStruct);
+
     const { base64EncodedTransactionMessage } =
       params as SendAndConfirmTransactionParams;
 
@@ -441,6 +498,8 @@ export class SolanaKeyring implements Keyring {
     data: Transaction[];
     next: Signature | null;
   }> {
+    validateRequest({ accountId, pagination }, ListAccountTransactionsStruct);
+
     const keyringAccount = await this.getAccount(accountId);
 
     if (!keyringAccount) {

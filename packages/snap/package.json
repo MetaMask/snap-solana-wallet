@@ -1,6 +1,6 @@
 {
   "name": "@metamask/solana-wallet-snap",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A Solana wallet Snap.",
   "repository": {
     "type": "git",
@@ -38,12 +38,15 @@
     "test:watch": "yarn test --watch"
   },
   "devDependencies": {
+    "@formatjs/intl-getcanonicallocales": "^2.5.4",
+    "@formatjs/intl-locale": "^4.2.9",
     "@formatjs/intl-numberformat": "^8.15.1",
+    "@formatjs/intl-pluralrules": "^5.4.2",
     "@jest/globals": "^29.5.0",
     "@metamask/auto-changelog": "^4.0.0",
     "@metamask/key-tree": "^9.1.2",
-    "@metamask/keyring-api": "^13.0.0",
-    "@metamask/keyring-snap-sdk": "^1.1.0",
+    "@metamask/keyring-api": "^15.0.0",
+    "@metamask/keyring-snap-sdk": "^2.1.0",
     "@metamask/snaps-cli": "^6.2.1",
     "@metamask/snaps-jest": "8.11.0",
     "@metamask/snaps-sdk": "^6.14.0",

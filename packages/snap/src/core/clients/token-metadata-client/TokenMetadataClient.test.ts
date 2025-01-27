@@ -57,7 +57,14 @@ describe('TokenMetadataClient', () => {
           'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
         name: 'Mock Token',
         symbol: 'MOCK',
-        decimals: 6,
+        fungible: true,
+        units: [
+          {
+            decimals: 6,
+            name: 'Mock Token',
+            symbol: 'MOCK',
+          },
+        ],
       },
     });
   });
@@ -93,7 +100,14 @@ describe('TokenMetadataClient', () => {
           'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
         name: 'Mock Token',
         symbol: 'MOCK',
-        decimals: 6,
+        fungible: true,
+        units: [
+          {
+            decimals: 6,
+            name: 'Mock Token',
+            symbol: 'MOCK',
+          },
+        ],
       },
     });
   });

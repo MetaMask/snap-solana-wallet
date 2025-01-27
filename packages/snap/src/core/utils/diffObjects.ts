@@ -1,6 +1,7 @@
 type DiffResult = {
   added: Record<string, any>;
   deleted: Record<string, any>;
+  changed: Record<string, any>;
   hasDiff: boolean;
 };
 
@@ -17,6 +18,7 @@ export function diffObjects(
   const diffs: DiffResult = {
     added: {},
     deleted: {},
+    changed: {},
     hasDiff: false,
   };
 
@@ -39,6 +41,8 @@ export function diffObjects(
         ) {
           findDiffs(o1[key], o2[key], newPath);
         } else if (o1[key] !== o2[key]) {
+          const topKey = newPath.split('.')[0];
+          diffs.changed[topKey ?? key] = object2[topKey ?? key];
           diffs.hasDiff = true;
         }
       }

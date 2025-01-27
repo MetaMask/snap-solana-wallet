@@ -64,7 +64,11 @@ export const SendForm = ({
           tokenToFiat(tokenBalance, tokenPrice),
           currency,
         ),
-        [SendCurrencyType.TOKEN]: formatTokens(tokenBalance, tokenSymbol),
+        [SendCurrencyType.TOKEN]: formatTokens(
+          tokenBalance,
+          tokenSymbol,
+          locale,
+        ),
       }
     : {
         [SendCurrencyType.FIAT]: '',
@@ -110,6 +114,17 @@ export const SendForm = ({
             locale={locale}
             currency={currency}
           />
+          <Box>{null}</Box>
+          <Box>{null}</Box>
+          <Box>{null}</Box>
+          <ToAddressField
+            locale={locale}
+            name={SendFormNames.DestinationAccountInput}
+            value={toAddress}
+            error={
+              validation?.[SendFormNames.DestinationAccountInput]?.message ?? ''
+            }
+          />
           {canPickAmout && (
             <Box>
               <Box>{null}</Box>
@@ -141,23 +156,16 @@ export const SendForm = ({
                 ) : (
                   <Box>{null}</Box>
                 )}
-                <Button size="sm" name={SendFormNames.MaxAmountButton}>
+                <Button
+                  size="sm"
+                  name={SendFormNames.MaxAmountButton}
+                  disabled={tokenBalance === '0'}
+                >
                   {translate('send.maxButton')}
                 </Button>
               </Box>
             </Box>
           )}
-          <Box>{null}</Box>
-          <Box>{null}</Box>
-          <Box>{null}</Box>
-          <ToAddressField
-            locale={locale}
-            name={SendFormNames.DestinationAccountInput}
-            value={toAddress}
-            error={
-              validation?.[SendFormNames.DestinationAccountInput]?.message ?? ''
-            }
-          />
           {error && (
             <Box>
               <Box>{null}</Box>

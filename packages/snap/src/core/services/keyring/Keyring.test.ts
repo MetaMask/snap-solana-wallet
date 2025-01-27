@@ -1,7 +1,7 @@
 /* eslint-disable jest/prefer-strict-equal */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SolMethod } from '@metamask/keyring-api';
-import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
+import { type Json } from '@metamask/snaps-sdk';
 
 import { Caip19Id, Network, SolanaCaip19Tokens } from '../../constants/solana';
 import {
@@ -48,6 +48,8 @@ jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
     return new Uint8Array(account.privateKeyBytesAsNum);
   }),
 }));
+
+const NON_EXISTENT_ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174009';
 
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
@@ -195,17 +197,25 @@ describe('SolanaKeyring', () => {
 
   describe('listAccountAssets', () => {
     it('lists account assets', async () => {
-      const assets = await keyring.listAccountAssets('1');
+      const assets = await keyring.listAccountAssets(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      );
       expect(assets).toStrictEqual([
         SOLANA_MOCK_TOKEN.address,
         ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.address),
       ]);
     });
 
-    it('throws an error if account is not found', async () => {
+    it('throws and error if the account provided is not a uuid', async () => {
       await expect(
         keyring.listAccountAssets('non-existent-id'),
-      ).rejects.toThrow('Account not found');
+      ).rejects.toThrow(/Expected a string matching/u);
+    });
+
+    it('throws an error if account is not found', async () => {
+      await expect(
+        keyring.listAccountAssets(NON_EXISTENT_ACCOUNT_ID),
+      ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
     });
 
     it('returns empty if no active networks', async () => {
@@ -213,20 +223,31 @@ describe('SolanaKeyring', () => {
         .spyOn(mockConfigProvider, 'get')
         .mockReturnValue({ activeNetworks: [] } as unknown as Config);
 
-      const assets = await keyring.listAccountAssets('1');
+      const assets = await keyring.listAccountAssets(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      );
       expect(assets).toStrictEqual([]);
     });
   });
 
   describe('getAccount', () => {
     it('gets account by id', async () => {
-      const account = await keyring.getAccount('1');
+      const account = await keyring.getAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
+      );
       expect(account).toStrictEqual(MOCK_SOLANA_KEYRING_ACCOUNT_1);
     });
 
+    it('throws and error if the account provided is not a uuid', async () => {
+      await expect(keyring.getAccount('non-existent-id')).rejects.toThrow(
+        /Expected a string matching/u,
+      );
+    });
+
     it('returns undefined if account is not found', async () => {
-      const account = await keyring.getAccount('4124151');
-      expect(account).toBeUndefined();
+      await expect(keyring.getAccount(NON_EXISTENT_ACCOUNT_ID)).rejects.toThrow(
+        `Account "${NON_EXISTENT_ACCOUNT_ID}" not found`,
+      );
     });
 
     it('throws an error if state fails to be retrieved', async () => {
@@ -234,17 +255,17 @@ describe('SolanaKeyring', () => {
         new Error('State error'),
       );
 
-      await expect(keyring.getAccount('1')).rejects.toThrow(
-        'Error getting account',
-      );
+      await expect(
+        keyring.getAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id),
+      ).rejects.toThrow('State error');
     });
   });
 
   describe('getAccountOrThrow', () => {
     it('throws an error if account is not found', async () => {
-      await expect(keyring.getAccountOrThrow('4124151')).rejects.toThrow(
-        'Account not found',
-      );
+      await expect(
+        keyring.getAccountOrThrow(NON_EXISTENT_ACCOUNT_ID),
+      ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
     });
   });
 
@@ -374,13 +395,24 @@ describe('SolanaKeyring', () => {
 
   describe('deleteAccount', () => {
     it('deletes an account', async () => {
-      const accountBeforeDeletion = await keyring.getAccount('1');
+      const accountBeforeDeletion = await keyring.getAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
+      );
       expect(accountBeforeDeletion).toBeDefined();
 
-      await keyring.deleteAccount('1');
+      await keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id);
 
-      const deletedAccount = await keyring.getAccount('1');
-      expect(deletedAccount).toBeUndefined();
+      await expect(
+        keyring.getAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id),
+      ).rejects.toThrow(
+        `Account "${MOCK_SOLANA_KEYRING_ACCOUNT_1.id}" not found`,
+      );
+    });
+
+    it('throws an error if account provided is not a uuid', async () => {
+      await expect(keyring.deleteAccount('non-existent-id')).rejects.toThrow(
+        /Expected a string matching/u,
+      );
     });
 
     it('throws an error if state fails to be retrieved', async () => {
@@ -388,9 +420,9 @@ describe('SolanaKeyring', () => {
         new Error('State error'),
       );
 
-      await expect(keyring.deleteAccount('delete-id')).rejects.toThrow(
-        'Error deleting account',
-      );
+      await expect(
+        keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id),
+      ).rejects.toThrow('State error');
     });
   });
 
@@ -404,9 +436,10 @@ describe('SolanaKeyring', () => {
 
   describe('getAccountBalances', () => {
     it('gets account balance', async () => {
-      const accountBalance = await keyring.getAccountBalances('1', [
-        Caip19Id.SolLocalnet,
-      ]);
+      const accountBalance = await keyring.getAccountBalances(
+        MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
+        [Caip19Id.SolLocalnet],
+      );
       expect(accountBalance).toStrictEqual({
         [Caip19Id.SolLocalnet]: {
           amount: '0.123456789',
@@ -416,11 +449,14 @@ describe('SolanaKeyring', () => {
     });
 
     it('gets account and token balances', async () => {
-      const accountBalance = await keyring.getAccountBalances('1', [
-        `${Network.Localnet}/${SolanaCaip19Tokens.SOL}`,
-        `${Network.Localnet}/token:address1`,
-        `${Network.Localnet}/token:address2`,
-      ]);
+      const accountBalance = await keyring.getAccountBalances(
+        MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
+        [
+          `${Network.Localnet}/${SolanaCaip19Tokens.SOL}`,
+          `${Network.Localnet}/token:address1`,
+          `${Network.Localnet}/token:address2`,
+        ],
+      );
       expect(accountBalance).toStrictEqual({
         [`${Network.Localnet}/${SolanaCaip19Tokens.SOL}`]: {
           amount: '0.123456789',
@@ -448,7 +484,9 @@ describe('SolanaKeyring', () => {
       } as any);
 
       await expect(
-        keyring.getAccountBalances('0', [Caip19Id.SolMainnet]),
+        keyring.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_1.id, [
+          Caip19Id.SolMainnet,
+        ]),
       ).rejects.toThrow('Error getting assets');
     });
   });
@@ -506,28 +544,7 @@ describe('SolanaKeyring', () => {
       });
     });
 
-    it('throws error when account is not found', async () => {
-      jest.spyOn(keyring as any, 'getAccount').mockResolvedValue(undefined);
-
-      const request = {
-        id: 'some-id',
-        scope: Network.Devnet,
-        account: 'non-existent-account',
-        request: {
-          method: SolMethod.SendAndConfirmTransaction,
-          params: {
-            base64EncodedTransactionMessage:
-              'someBase64EncodedTransactionMessage',
-          },
-        },
-      };
-
-      await expect(keyring.submitRequest(request)).rejects.toThrow(
-        'Account not found',
-      );
-    });
-
-    it('throws MethodNotFoundError for unsupported methods', async () => {
+    it('throws an error if the method is not supported', async () => {
       const request = {
         id: 'some-id',
         scope: Network.Devnet,
@@ -539,7 +556,28 @@ describe('SolanaKeyring', () => {
       };
 
       await expect(keyring.submitRequest(request)).rejects.toThrow(
-        MethodNotFoundError,
+        /but received: "unsupportedMethod"/u,
+      );
+    });
+
+    it('throws error when account is not found', async () => {
+      jest.spyOn(keyring as any, 'getAccount').mockResolvedValue(undefined);
+
+      const request = {
+        id: 'some-id',
+        scope: Network.Devnet,
+        account: NON_EXISTENT_ACCOUNT_ID,
+        request: {
+          method: SolMethod.SendAndConfirmTransaction,
+          params: {
+            base64EncodedTransactionMessage:
+              'someBase64EncodedTransactionMessage',
+          },
+        },
+      };
+
+      await expect(keyring.submitRequest(request)).rejects.toThrow(
+        `Account "${NON_EXISTENT_ACCOUNT_ID}" not found`,
       );
     });
   });

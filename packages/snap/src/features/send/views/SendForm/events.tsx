@@ -1,3 +1,4 @@
+import type { CaipAssetType } from '@metamask/keyring-api';
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import type { CompilableTransactionMessage } from '@solana/web3.js';
 import { address } from '@solana/web3.js';
@@ -7,11 +8,11 @@ import {
   Networks,
   SOL_TRANSFER_FEE_LAMPORTS,
 } from '../../../../core/constants/solana';
-import { caip19ToTokenAddress } from '../../../../core/utils/caip19ToTokenAddress';
 import {
   lamportsToSol,
   solToLamports,
 } from '../../../../core/utils/conversion';
+import { getCaip19Address } from '../../../../core/utils/getCaip19Address';
 import {
   resolveInterface,
   updateInterface,
@@ -121,7 +122,7 @@ async function onAssetSelectorValueChange({
   event: InputChangeEvent;
   context: SendContext;
 }) {
-  context.tokenCaipId = event.value as string;
+  context.tokenCaipId = event.value as CaipAssetType;
   context.amount = '';
   context.error = null;
 
@@ -333,7 +334,7 @@ async function onSendButtonClick({
       transactionMessage = await splTokenHelper.buildTransactionMessage(
         account,
         address(toAddress),
-        address(caip19ToTokenAddress(tokenCaipId)),
+        address(getCaip19Address(tokenCaipId)),
         tokenAmount,
         scope,
       );
