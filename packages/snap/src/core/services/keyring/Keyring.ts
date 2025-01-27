@@ -248,8 +248,11 @@ export class SolanaKeyring implements Keyring {
 
       try {
         const assets = await this.listAccountAssets(keyringAccount.id);
-        const balances = await this.getAccountBalances(keyringAccount.id, assets);
-        
+        const balances = await this.getAccountBalances(
+          keyringAccount.id,
+          assets,
+        );
+
         await this.emitEvent(KeyringEvent.AccountBalancesUpdated, {
           balances: {
             [keyringAccount.id]: balances,
@@ -497,15 +500,17 @@ export class SolanaKeyring implements Keyring {
     try {
       const assets = await this.listAccountAssets(accountId);
       const balances = await this.getAccountBalances(accountId, assets);
-      
+
       await this.emitEvent(KeyringEvent.AccountBalancesUpdated, {
         balances: {
           [accountId]: balances,
         },
       });
-
     } catch (error: any) {
-      this.#logger.error({ error }, 'Error updating balances after transaction');
+      this.#logger.error(
+        { error },
+        'Error updating balances after transaction',
+      );
     }
 
     return { signature };
