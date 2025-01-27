@@ -42,14 +42,14 @@ describe('findExistingAccounts', () => {
         balance: '123456789',
         decimals: 9,
         scope: Network.Mainnet,
-        address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
+        address: 'solana:mainnet/slip44:501',
         native: true,
       })
       .mockResolvedValue({
         balance: '0',
         decimals: 9,
         scope: Network.Mainnet,
-        address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
+        address: 'solana:mainnet/slip44:501',
         native: true,
       });
 
@@ -68,7 +68,7 @@ describe('findExistingAccounts', () => {
       balance: '0',
       decimals: 9,
       scope: Network.Mainnet,
-      address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
+      address: 'solana:mainnet/slip44:501',
       native: true,
     });
 
@@ -83,7 +83,7 @@ describe('findExistingAccounts', () => {
       balance: '123456789',
       decimals: 9,
       scope: Network.Mainnet,
-      address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
+      address: 'solana:mainnet/slip44:501',
       native: true,
     });
 
