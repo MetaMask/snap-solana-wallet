@@ -8,6 +8,7 @@ describe('diffObjects', () => {
     expect(result).toStrictEqual({
       added: { b: 2 },
       deleted: {},
+      changed: {},
       hasDiff: true,
     });
   });
@@ -19,6 +20,7 @@ describe('diffObjects', () => {
     expect(result).toStrictEqual({
       added: {},
       deleted: { b: 2 },
+      changed: {},
       hasDiff: true,
     });
   });
@@ -30,6 +32,7 @@ describe('diffObjects', () => {
     expect(result).toStrictEqual({
       added: { 'b.d': 4 },
       deleted: {},
+      changed: {},
       hasDiff: true,
     });
   });
@@ -41,6 +44,7 @@ describe('diffObjects', () => {
     expect(result).toStrictEqual({
       added: {},
       deleted: { 'b.d': 4 },
+      changed: {},
       hasDiff: true,
     });
   });
@@ -52,6 +56,7 @@ describe('diffObjects', () => {
     expect(result).toStrictEqual({
       added: {},
       deleted: {},
+      changed: { b: 3 },
       hasDiff: true,
     });
   });
@@ -63,6 +68,7 @@ describe('diffObjects', () => {
     expect(result).toStrictEqual({
       added: {},
       deleted: {},
+      changed: {},
       hasDiff: false,
     });
   });
@@ -74,6 +80,7 @@ describe('diffObjects', () => {
     expect(result).toStrictEqual({
       added: {},
       deleted: {},
+      changed: {},
       hasDiff: false,
     });
   });
