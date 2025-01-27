@@ -14,7 +14,8 @@ import {
   type KeyringResponse,
 } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import { MethodNotFoundError, type Json } from '@metamask/snaps-sdk';
+import type { Json } from '@metamask/snaps-controllers';
+import { MethodNotFoundError } from '@metamask/snaps-sdk';
 import type { Signature } from '@solana/web3.js';
 import {
   address as asAddress,
@@ -207,38 +208,13 @@ export class SolanaKeyring implements Keyring {
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
 
-      await this.#encryptedState.update((state) => {
-        return {
-          ...state,
-          keyringAccounts: {
-            ...(state?.keyringAccounts ?? {}),
-            [keyringAccount.id]: keyringAccount,
-          },
-        };
-      });
-
-      try {
-        const transactions = (
-          await this.#transactionsService.fetchInitialAddressTransactions(
-            asAddress(keyringAccount.address),
-          )
-        ).map((tx) => ({
-          ...tx,
-          account: keyringAccount.id,
-        }));
-
-        await this.#state.update((state) => {
-          return {
-            ...state,
-            transactions: {
-              ...(state?.transactions ?? {}),
-              [keyringAccount.id]: [...transactions],
-            },
-          };
-        });
-      } catch (error: any) {
-        this.#logger.error({ error }, 'Error fetching initial transactions');
-      }
+      await this.#encryptedState.update((state) => ({
+        ...state,
+        keyringAccounts: {
+          ...(state?.keyringAccounts ?? {}),
+          [keyringAccount.id]: keyringAccount,
+        },
+      }));
 
       return keyringAccount;
     } catch (error: any) {
@@ -386,15 +362,13 @@ export class SolanaKeyring implements Keyring {
 
       validateResponse(result, GetAccounBalancesResponseStruct);
 
-      await this.#state.update((state) => {
-        return {
-          ...state,
-          assets: {
-            ...(state?.assets ?? {}),
-            [account.id]: result,
-          },
-        };
-      });
+      await this.#state.update((state) => ({
+        ...state,
+        assets: {
+          ...(state?.assets ?? {}),
+          [account.id]: result,
+        },
+      }));
 
       return result;
     } catch (error: any) {
@@ -478,6 +452,14 @@ export class SolanaKeyring implements Keyring {
     return { signature };
   }
 
+  /**
+   * Bootstrap the transactions for the given account.
+   * @param accountId - The id of the account.
+   * @param pagination - The pagination options.
+   * @param pagination.limit - The limit of the transactions to fetch.
+   * @param pagination.next - The next signature to fetch from.
+   * @returns The transactions for the given account.
+   */
   async listAccountTransactions(
     accountId: string,
     pagination: { limit: number; next?: Signature | null },
@@ -485,39 +467,82 @@ export class SolanaKeyring implements Keyring {
     data: Transaction[];
     next: Signature | null;
   }> {
-    validateRequest({ accountId, pagination }, ListAccountTransactionsStruct);
+    try {
+      validateRequest({ accountId, pagination }, ListAccountTransactionsStruct);
 
-    const keyringAccount = await this.getAccount(accountId);
+      const keyringAccount = await this.getAccount(accountId);
 
-    if (!keyringAccount) {
-      throw new Error('Account not found');
+      if (!keyringAccount) {
+        throw new Error('Account not found');
+      }
+
+      const currentState = await this.#state.get();
+      const allTransactions = currentState?.transactions?.[accountId] ?? [];
+
+      /**
+       * If we don't have any transactions, we might need to bootstrap them as this may be the first call.
+       * We'll fetch the transactions from the blockchain and store them in the state.
+       */
+      if (!allTransactions.length) {
+        await this.#state.update((state) => ({
+          ...state,
+          isFetchingTransactions: true,
+        }));
+
+        const transactions = (
+          await this.#transactionsService.fetchLatestAddressTransactions(
+            asAddress(keyringAccount.address),
+            pagination.limit,
+          )
+        ).map((tx) => ({
+          ...tx,
+          account: keyringAccount.id,
+        }));
+
+        await this.#state.update((state) => ({
+          ...state,
+          isFetchingTransactions: false,
+          transactions: {
+            ...(state?.transactions ?? {}),
+            [keyringAccount.id]: transactions,
+          },
+        }));
+
+        return {
+          data: transactions,
+          next: null,
+        };
+      }
+
+      // Find the starting index based on the 'next' signature
+      const startIndex = pagination.next
+        ? allTransactions.findIndex((tx) => tx.id === pagination.next)
+        : 0;
+
+      // Get transactions from startIndex to startIndex + limit
+      const accountTransactions = allTransactions.slice(
+        startIndex,
+        startIndex + pagination.limit,
+      );
+
+      // Determine the next signature for pagination
+      const hasMore = startIndex + pagination.limit < allTransactions.length;
+      const nextSignature = hasMore
+        ? (allTransactions[startIndex + pagination.limit]?.id as Signature) ??
+          null
+        : null;
+
+      return {
+        data: accountTransactions,
+        next: nextSignature,
+      };
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error listing account transactions');
+      await this.#state.update((state) => ({
+        ...state,
+        isFetchingTransactions: false,
+      }));
+      throw error;
     }
-
-    const currentState = await this.#state.get();
-
-    const allTransactions = currentState?.transactions?.[accountId] ?? [];
-
-    // Find the starting index based on the 'next' signature
-    const startIndex = pagination.next
-      ? allTransactions.findIndex((tx) => tx.id === pagination.next)
-      : 0;
-
-    // Get transactions from startIndex to startIndex + limit
-    const accountTransactions = allTransactions.slice(
-      startIndex,
-      startIndex + pagination.limit,
-    );
-
-    // Determine the next signature for pagination
-    const hasMore = startIndex + pagination.limit < allTransactions.length;
-    const nextSignature = hasMore
-      ? (allTransactions[startIndex + pagination.limit]?.id as Signature) ??
-        null
-      : null;
-
-    return {
-      data: accountTransactions,
-      next: nextSignature,
-    };
   }
 }

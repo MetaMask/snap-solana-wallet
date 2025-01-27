@@ -35,7 +35,8 @@ export class TokenMetadataService {
         const caipAssetType = tokenCaipId as CaipAssetType;
         try {
           if (!tokenMetadata[caipAssetType]?.iconUrl) {
-            throw new Error(`No metadata for ${tokenCaipId}`);
+            this.#logger.warn(`No metadata for ${tokenCaipId}`);
+            return;
           }
 
           const imageSvg = await this.#generateImageComponent(
@@ -43,13 +44,14 @@ export class TokenMetadataService {
           );
 
           if (!imageSvg) {
-            throw new Error(`Unable to generate image for ${tokenCaipId}`);
+            this.#logger.warn(`Unable to generate image for ${tokenCaipId}`);
+            return;
           }
 
           if (tokenMetadata[caipAssetType]) {
             tokenMetadata[caipAssetType].imageSvg = imageSvg;
           } else {
-            throw new Error(`No metadata for ${tokenCaipId}`);
+            this.#logger.warn(`No metadata for ${tokenCaipId}`);
           }
         } catch (error) {
           this.#logger.error(error);
