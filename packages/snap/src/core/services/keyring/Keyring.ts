@@ -118,28 +118,30 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  async getAccount(id: string): Promise<SolanaKeyringAccount | undefined> {
+  async getAccount(
+    accountId: string,
+  ): Promise<SolanaKeyringAccount | undefined> {
     try {
-      validateRequest(id, GetAccountStruct);
+      validateRequest({ accountId }, GetAccountStruct);
 
       const currentState = await this.#encryptedState.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
-      if (!keyringAccounts[id]) {
-        throw new Error(`Account "${id}" not found`);
+      if (!keyringAccounts[accountId]) {
+        throw new Error(`Account "${accountId}" not found`);
       }
 
-      return keyringAccounts?.[id];
+      return keyringAccounts?.[accountId];
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account');
       throw error;
     }
   }
 
-  async getAccountOrThrow(id: string): Promise<SolanaKeyringAccount> {
-    const account = await this.getAccount(id);
+  async getAccountOrThrow(accountId: string): Promise<SolanaKeyringAccount> {
+    const account = await this.getAccount(accountId);
     if (!account) {
-      throw new Error(`Account "${id}" not found`);
+      throw new Error(`Account "${accountId}" not found`);
     }
 
     return account;
@@ -227,21 +229,21 @@ export class SolanaKeyring implements Keyring {
     }
   }
 
-  async deleteAccount(id: string): Promise<void> {
+  async deleteAccount(accountId: string): Promise<void> {
     try {
-      validateRequest(id, DeleteAccountStruct);
+      validateRequest({ accountId }, DeleteAccountStruct);
 
       await Promise.all([
         this.#encryptedState.update((state) => {
-          delete state?.keyringAccounts?.[id];
+          delete state?.keyringAccounts?.[accountId];
           return state;
         }),
         this.#state.update((state) => {
-          delete state?.transactions?.[id];
+          delete state?.transactions?.[accountId];
           return state;
         }),
       ]);
-      await this.#emitEvent(KeyringEvent.AccountDeleted, { id });
+      await this.#emitEvent(KeyringEvent.AccountDeleted, { accountId });
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
       throw error;
@@ -250,14 +252,14 @@ export class SolanaKeyring implements Keyring {
 
   /**
    * Returns the list of assets for the given account in all Solana networks.
-   * @param id - The id of the account.
+   * @param accountId - The id of the account.
    * @returns CAIP-19 assets ids.
    */
-  async listAccountAssets(id: string): Promise<CaipAssetType[]> {
+  async listAccountAssets(accountId: string): Promise<CaipAssetType[]> {
     try {
-      validateRequest(id, ListAccountAssetsStruct);
+      validateRequest({ accountId }, ListAccountAssetsStruct);
 
-      const account = await this.getAccount(id);
+      const account = await this.getAccount(accountId);
       if (!account) {
         throw new Error('Account not found');
       }
@@ -297,18 +299,18 @@ export class SolanaKeyring implements Keyring {
 
   /**
    * Returns the balances of the given account for the given assets.
-   * @param id - The id of the account.
+   * @param accountId - The id of the account.
    * @param assets - The assets to get the balances for (CAIP-19 ids).
    * @returns The balances of the account for the given assets.
    */
   async getAccountBalances(
-    id: string,
+    accountId: string,
     assets: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
     try {
-      validateRequest({ id, assets }, GetAccountBalancesStruct);
+      validateRequest({ accountId, assets }, GetAccountBalancesStruct);
 
-      const account = await this.getAccount(id);
+      const account = await this.getAccount(accountId);
       const balances = new Map<string, Balance>();
 
       if (!account) {
@@ -392,8 +394,11 @@ export class SolanaKeyring implements Keyring {
     await emitSnapKeyringEvent(snap, event, data);
   }
 
-  async filterAccountChains(id: string, chains: string[]): Promise<string[]> {
-    throw new Error(`Implement me! ${id} ${chains.toString()}`);
+  async filterAccountChains(
+    accountId: string,
+    chains: string[],
+  ): Promise<string[]> {
+    throw new Error(`Implement me! ${accountId} ${chains.toString()}`);
   }
 
   async updateAccount(account: KeyringAccount): Promise<void> {

@@ -105,7 +105,11 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
     }
 
     logger.error(
-      `onKeyringRequest error: ${JSON.stringify(snapError.toJSON(), null, 2)}`,
+      `onKeyringRequest - ${request.method} - Error: ${JSON.stringify(
+        snapError.toJSON(),
+        null,
+        2,
+      )}`,
     );
 
     throw snapError;

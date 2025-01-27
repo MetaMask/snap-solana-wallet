@@ -3,8 +3,10 @@ import type { Infer } from 'superstruct';
 import {
   array,
   enums,
+  nullable,
   number,
   object,
+  optional,
   pattern,
   record,
   refine,
@@ -14,7 +16,7 @@ import {
 import { Caip19Id } from '../constants/solana';
 
 // create a uuid validation
-export const UuidStruct = pattern(
+export const Uuid = pattern(
   string(),
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
 );
@@ -44,18 +46,24 @@ export const AssetsStruct = enums(Object.values(Caip19Id));
 /**
  * Keyring validations
  */
-export const GetAccountStruct = UuidStruct;
-export const DeleteAccountStruct = UuidStruct;
-export const ListAccountAssetsStruct = UuidStruct;
+export const GetAccountStruct = object({
+  accountId: Uuid,
+});
+export const DeleteAccountStruct = object({
+  accountId: Uuid,
+});
+export const ListAccountAssetsStruct = object({
+  accountId: Uuid,
+});
 export const GetAccountBalancesStruct = object({
-  id: UuidStruct,
+  accountId: Uuid,
   assets: array(Caip19Struct),
 });
 export const ListAccountTransactionsStruct = object({
-  id: UuidStruct,
+  accountId: Uuid,
   pagination: object({
     limit: number(),
-    next: string(),
+    next: optional(nullable(string())),
   }),
 });
 
