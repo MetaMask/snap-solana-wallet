@@ -1,3 +1,5 @@
+import type { CaipAssetType } from '@metamask/keyring-api';
+
 import { Network } from '../constants/solana';
 import type { AssetsService } from '../services/assets/Assets';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../test/mocks/solana-keyring-accounts';
@@ -42,14 +44,14 @@ describe('findExistingAccounts', () => {
         balance: '123456789',
         decimals: 9,
         scope: Network.Mainnet,
-        address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
+        address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address as CaipAssetType,
         native: true,
       })
       .mockResolvedValue({
         balance: '0',
         decimals: 9,
         scope: Network.Mainnet,
-        address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
+        address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address as CaipAssetType,
         native: true,
       });
 
@@ -58,7 +60,7 @@ describe('findExistingAccounts', () => {
     expect(existingAccounts).toHaveLength(1);
     expect(existingAccounts[0]).toStrictEqual({
       index: 0,
-      address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
+      address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address as CaipAssetType,
       balance: 123456789n,
     });
   });
@@ -68,7 +70,7 @@ describe('findExistingAccounts', () => {
       balance: '0',
       decimals: 9,
       scope: Network.Mainnet,
-      address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
+      address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address as CaipAssetType,
       native: true,
     });
 
@@ -83,7 +85,7 @@ describe('findExistingAccounts', () => {
       balance: '123456789',
       decimals: 9,
       scope: Network.Mainnet,
-      address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
+      address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address as CaipAssetType,
       native: true,
     });
 
