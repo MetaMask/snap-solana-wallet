@@ -34,6 +34,7 @@ describe('SendForm events', () => {
       },
     },
     scope: Network.Localnet,
+    tokenPricesFetchStatus: 'initial',
     tokenPrices: {
       [Caip19Id.SolLocalnet]: {
         price: Number(mockSolPrice),

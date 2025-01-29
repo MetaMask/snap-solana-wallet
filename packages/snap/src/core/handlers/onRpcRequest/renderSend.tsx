@@ -38,6 +38,7 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   balances: {},
   assets: [],
   tokenPrices: {},
+  tokenPricesFetchStatus: 'initial',
   tokenMetadata: {},
   preferences: {
     locale: 'en',
@@ -156,6 +157,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   context2.assets = Array.from(assets);
   context2.balances = balances;
+  context2.tokenPricesFetchStatus = 'fetching';
 
   await updateInterface(id, <Send context={context2} />, context2);
 
@@ -165,28 +167,35 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
    * - Token metadata + images
    */
 
+  // Object to store the new data to apply on the context
+  const partialContext3: Partial<SendContext> = {};
+
   const tokenPricesPromise = tokenPricesService
     .getMultipleTokenPrices(context2.assets, context2.preferences.currency)
-    .catch(() => ({}));
+    .then((prices) => {
+      partialContext3.tokenPrices = prices;
+      partialContext3.tokenPricesFetchStatus = 'fetched';
+    })
+    .catch(() => {
+      partialContext3.tokenPricesFetchStatus = 'error';
+    });
 
   const tokenMetadataPromise = tokenMetadataService
     .getMultipleTokenMetadata(context2.assets)
-    .then((metadata) => metadata)
+    .then((tokenMetadata) => {
+      partialContext3.tokenMetadata = tokenMetadata;
+    })
     .catch(() => ({} as Record<string, SolanaTokenMetadata>));
 
-  const [tokenPrices, tokenMetadata] = await Promise.all([
-    tokenPricesPromise,
-    tokenMetadataPromise,
-  ]);
+  await Promise.all([tokenPricesPromise, tokenMetadataPromise]);
 
   const context2FromInterface = await getInterfaceContext(id);
+
   const context3 = {
     ...context2,
     ...context2FromInterface,
+    ...partialContext3,
   };
-
-  context3.tokenPrices = tokenPrices;
-  context3.tokenMetadata = tokenMetadata;
 
   await updateInterface(id, <Send context={context3} />, context3);
 

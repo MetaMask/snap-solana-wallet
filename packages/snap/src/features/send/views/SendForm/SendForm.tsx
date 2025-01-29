@@ -36,6 +36,7 @@ export const SendForm = ({ context }: SendFormProps) => {
     tokenCaipId,
     scope,
     balances,
+    tokenPricesFetchStatus,
     tokenMetadata,
     buildingTransaction,
     error,
@@ -47,14 +48,17 @@ export const SendForm = ({ context }: SendFormProps) => {
   const tokenSymbol = selectedToken?.unit ?? '';
   const isBalanceDefined = tokenBalance !== undefined;
 
-  const maybeNativePrice = getNativeTokenPrice(context);
-  const maybeSelectedTokenPrice = getSelectedTokenPrice(context);
-  const isSelectedTokenPriceAvailable = maybeSelectedTokenPrice !== undefined;
+  const nativePrice = getNativeTokenPrice(context);
+  const selectedTokenPrice = getSelectedTokenPrice(context);
+
+  const isSelectedTokenPriceUnavailable =
+    tokenPricesFetchStatus === 'error' ||
+    (tokenPricesFetchStatus === 'fetched' && selectedTokenPrice === undefined);
 
   const currencyToBalance: Record<SendCurrencyType, string> = isBalanceDefined
     ? {
         [SendCurrencyType.FIAT]: formatCurrency(
-          tokenToFiat(tokenBalance, maybeSelectedTokenPrice ?? 0),
+          tokenToFiat(tokenBalance, selectedTokenPrice ?? 0),
           currency,
         ),
         [SendCurrencyType.TOKEN]: formatTokens(
@@ -90,7 +94,7 @@ export const SendForm = ({ context }: SendFormProps) => {
           backButtonName={SendFormNames.BackButton}
         />
         <Form name={SendFormNames.Form}>
-          {!isSelectedTokenPriceAvailable && (
+          {isSelectedTokenPriceUnavailable && (
             <Banner title="" severity="info">
               <Text>
                 {translate('send.selectedTokenPriceNotAvailable', {
@@ -111,7 +115,7 @@ export const SendForm = ({ context }: SendFormProps) => {
             accounts={accounts}
             selectedAccountId={fromAccountId}
             balances={balances}
-            price={maybeNativePrice ?? null} // Cannot pass undefined here so we switch to null
+            price={nativePrice ?? null} // Cannot pass undefined here so we switch to null
             locale={locale}
             currency={currency}
           />
@@ -147,7 +151,7 @@ export const SendForm = ({ context }: SendFormProps) => {
                   currency={currency}
                   value={amount}
                   locale={locale}
-                  swapCurrencyButtonEnabled={isSelectedTokenPriceAvailable}
+                  swapCurrencyButtonDisabled={isSelectedTokenPriceUnavailable}
                 />
               </Box>
               <Box direction="horizontal" alignment="space-between" center>

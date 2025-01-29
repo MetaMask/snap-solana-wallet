@@ -19,7 +19,7 @@ type AmountInputProps = {
   currencyType: SendCurrencyType;
   locale: Locale;
   error?: string;
-  swapCurrencyButtonEnabled?: boolean;
+  swapCurrencyButtonDisabled?: boolean;
 };
 
 export const AmountInput: SnapComponent<AmountInputProps> = ({
@@ -30,7 +30,7 @@ export const AmountInput: SnapComponent<AmountInputProps> = ({
   currencyType,
   error,
   locale,
-  swapCurrencyButtonEnabled = true,
+  swapCurrencyButtonDisabled = false,
 }) => {
   const translate = i18n(locale);
   const symbol =
@@ -54,11 +54,11 @@ export const AmountInput: SnapComponent<AmountInputProps> = ({
         </Box>
         <Button
           name={SendFormNames.SwapCurrencyButton}
-          disabled={!swapCurrencyButtonEnabled}
+          disabled={swapCurrencyButtonDisabled}
         >
           <Icon
             name="swap-vertical"
-            color={swapCurrencyButtonEnabled ? 'primary' : 'muted'}
+            color={swapCurrencyButtonDisabled ? 'muted' : 'primary'}
             size="md"
           />
         </Button>
