@@ -115,7 +115,7 @@ export const SendForm = ({ context }: SendFormProps) => {
             accounts={accounts}
             selectedAccountId={fromAccountId}
             balances={balances}
-            price={nativePrice ?? null} // Cannot pass undefined here so we switch to null
+            price={nativePrice ?? null}
             locale={locale}
             currency={currency}
           />
