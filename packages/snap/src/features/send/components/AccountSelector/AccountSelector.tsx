@@ -26,7 +26,7 @@ type AccountSelectorProps = {
   scope: Network;
   accounts: SolanaKeyringAccount[];
   balances: Record<string, Record<string, Balance>>;
-  price: number;
+  price: number | null;
   selectedAccountId: string;
   locale: Locale;
   currency: string;
@@ -56,9 +56,12 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
           const { amount, unit } = balance ?? {};
 
           const value =
-            amount && unit ? formatTokens(amount, unit, locale) : '';
+            amount !== undefined && unit
+              ? formatTokens(amount, unit, locale)
+              : '';
+
           const extra =
-            amount && unit
+            amount !== undefined && price !== null && currency
               ? formatCurrency(tokenToFiat(amount, price), currency)
               : '';
 

@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js';
 
 import SolanaLogo from '../../../images/coin.svg';
+import { Networks } from '../../core/constants/solana';
 import { SendCurrencyType, type SendContext } from './types';
 
 /**
@@ -9,10 +10,17 @@ import { SendCurrencyType, type SendContext } from './types';
 
 export const getTokenAmount = (context: SendContext) => {
   const { amount, tokenPrices, tokenCaipId, currencyType } = context;
-  const { price } = tokenPrices[tokenCaipId] ?? { price: 0 };
-  return currencyType === SendCurrencyType.TOKEN
-    ? amount
-    : BigNumber(amount).dividedBy(BigNumber(price)).toString();
+  const price = tokenPrices[tokenCaipId]?.price;
+
+  if (currencyType === SendCurrencyType.TOKEN) {
+    return amount;
+  }
+
+  if (price === undefined) {
+    throw new Error('Token price is undefined, cannot convert to fiat amount.');
+  }
+
+  return BigNumber(amount).dividedBy(BigNumber(price)).toString();
 };
 
 export const getSelectedTokenMetadata = (context: SendContext) => {
@@ -27,8 +35,16 @@ export const getSelectedTokenMetadata = (context: SendContext) => {
   };
 };
 
-export const getSelectedTokenPrice = (context: SendContext) => {
+export const getSelectedTokenPrice = (
+  context: SendContext,
+): number | undefined => {
   const { tokenCaipId, tokenPrices } = context;
+  return tokenPrices?.[tokenCaipId]?.price;
+};
 
-  return tokenPrices?.[tokenCaipId]?.price ?? 0;
+export const getNativeTokenPrice = (
+  context: SendContext,
+): number | undefined => {
+  const { tokenPrices, scope } = context;
+  return tokenPrices?.[Networks[scope].nativeToken.caip19Id]?.price;
 };

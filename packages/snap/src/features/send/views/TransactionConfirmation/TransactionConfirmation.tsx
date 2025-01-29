@@ -8,9 +8,9 @@ import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
 import {
-  getTokenAmount,
   getSelectedTokenMetadata,
   getSelectedTokenPrice,
+  getTokenAmount,
 } from '../../selectors';
 import { type SendContext } from '../../types';
 
@@ -32,11 +32,14 @@ export const TransactionConfirmation = ({
 
   const { tokenImage, tokenSymbol } = getSelectedTokenMetadata(context);
   const tokenAmount = getTokenAmount(context);
-  const tokenPrice = getSelectedTokenPrice(context);
-  const amountInUserCurrency = formatCurrency(
-    tokenToFiat(tokenAmount, tokenPrice),
-    preferences.currency,
-  );
+  const selectedTokenPrice = getSelectedTokenPrice(context);
+  const amountInUserCurrency =
+    selectedTokenPrice === undefined
+      ? ''
+      : formatCurrency(
+          tokenToFiat(tokenAmount, selectedTokenPrice),
+          preferences.currency,
+        );
 
   return (
     <Container>
