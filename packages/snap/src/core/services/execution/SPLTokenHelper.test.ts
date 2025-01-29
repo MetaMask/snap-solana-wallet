@@ -33,7 +33,6 @@ describe('SplTokenHelper', () => {
   const mockTransactionHelper = {
     sendTransaction: jest.fn(),
     getLatestBlockhash: jest.fn(),
-    calculateCostInLamports: jest.fn(),
     getTokenMintInfo: jest.fn(),
     getComputeUnitEstimate: jest.fn(),
   } as unknown as TransactionHelper;

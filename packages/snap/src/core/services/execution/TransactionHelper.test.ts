@@ -100,38 +100,6 @@ describe('TransactionHelper', () => {
     });
   });
 
-  //   describe('calculateCostInLamports', () => {
-  //     const mockTransactionMessage = {};
-
-  //     it('calculates transaction cost successfully', async () => {
-  //       const expectedCost = '5000';
-  //       mockRpcResponse.send.mockResolvedValueOnce({ value: expectedCost });
-
-  //       const result = await transactionHelper.calculateCostInLamports(
-  //         mockTransactionMessage as any,
-  //         Network.Mainnet,
-  //       );
-
-  //       expect(result).toStrictEqual(expectedCost);
-  //       expect(logger.log).toHaveBeenCalledTimes(3);
-  //       expect(mockConnection.getRpc).toHaveBeenCalledWith(Network.Mainnet);
-  //     });
-
-  //     it('throws and logs error when calculation fails', async () => {
-  //       const error = new Error('Calculation error');
-  //       mockRpcResponse.send.mockRejectedValueOnce(error);
-
-  //       await expect(
-  //         transactionHelper.calculateCostInLamports(
-  //           mockTransactionMessage as any,
-  //           Network.Mainnet,
-  //         ),
-  //       ).rejects.toThrow('Calculation error');
-
-  //       expect(logger.error).toHaveBeenCalledWith(error);
-  //     });
-  //   });
-
   describe('sendTransaction', () => {
     const mockTransactionMessage = {
       instructions: [],

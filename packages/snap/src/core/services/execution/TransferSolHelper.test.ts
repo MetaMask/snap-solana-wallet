@@ -24,7 +24,6 @@ jest.mock('@solana-program/system');
 describe('TransferSolHelper', () => {
   const mockTransactionHelper = {
     getLatestBlockhash: jest.fn(),
-    calculateCostInLamports: jest.fn(),
     sendTransaction: jest.fn(),
     getComputeUnitEstimate: jest.fn(),
   } as unknown as TransactionHelper;
