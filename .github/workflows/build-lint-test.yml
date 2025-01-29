@@ -17,8 +17,6 @@ on:
         required: true
       TOKEN_API_BASE_URL:
         required: true
-      TOKEN_API_KEY:
-        required: true
 
 jobs:
   prepare:
@@ -47,7 +45,6 @@ jobs:
       PRICE_API_BASE_URL: ${{ secrets.PRICE_API_BASE_URL }}
       LOCAL_API_BASE_URL: ${{ secrets.LOCAL_API_BASE_URL }}
       TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
-      TOKEN_API_KEY: ${{ secrets.TOKEN_API_KEY }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
@@ -114,7 +111,6 @@ jobs:
       PRICE_API_BASE_URL: ${{ secrets.PRICE_API_BASE_URL }}
       LOCAL_API_BASE_URL: ${{ secrets.LOCAL_API_BASE_URL }}
       TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
-      TOKEN_API_KEY: ${{ secrets.TOKEN_API_KEY }}
       LOCAL: true
     steps:
       - uses: actions/checkout@v3

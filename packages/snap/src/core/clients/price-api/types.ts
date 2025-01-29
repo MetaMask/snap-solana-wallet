@@ -1,3 +1,5 @@
+import type { CaipAssetType } from '@metamask/keyring-api';
+
 export type PriceApiClientConfig = {
   baseUrl: string;
 };
@@ -23,3 +25,7 @@ export type SpotPrice = {
   pricePercentChange200d?: number;
   totalVolume?: number;
 };
+
+export type SpotPrices = Record<CaipAssetType, Record<string, number>>;
+
+export type SpotPriceResponse = Record<CaipAssetType, SpotPrice>;

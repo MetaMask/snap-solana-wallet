@@ -1,37 +1,34 @@
+import type { CaipAssetType } from '@metamask/keyring-api';
+
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import { Caip19Id } from '../../constants/solana';
-import type { ILogger } from '../../utils/logger';
 import { TokenPrices } from './TokenPrices';
 
 describe('TokenPricesService', () => {
   describe('getMultipleTokenPrices', () => {
     let tokenPricesService: TokenPrices;
     let mockPriceApiClient: PriceApiClient;
-    let mockLogger: ILogger;
     const currency = 'usd';
 
     beforeEach(() => {
       mockPriceApiClient = {
-        getSpotPrice: jest.fn().mockResolvedValue({ price: 1.23 }),
+        getMultipleSpotPrices: jest.fn().mockResolvedValue({
+          [Caip19Id.SolMainnet]: { price: 1.23 },
+          [Caip19Id.UsdcLocalnet]: { price: 1.23 },
+        }),
       } as unknown as PriceApiClient;
 
-      mockLogger = {
-        info: jest.fn(),
-        error: jest.fn(),
-      } as unknown as ILogger;
-
-      tokenPricesService = new TokenPrices(mockPriceApiClient, mockLogger);
+      tokenPricesService = new TokenPrices(mockPriceApiClient);
     });
 
     it('returns the correct token prices', async () => {
-      const caip19Ids = [
+      const caip19Ids: CaipAssetType[] = [
         Caip19Id.SolMainnet,
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111',
+        Caip19Id.UsdcLocalnet,
       ];
       const expectedPrices = {
         [Caip19Id.SolMainnet]: { price: 1.23 },
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111':
-          { price: 1.23 },
+        [Caip19Id.UsdcLocalnet]: { price: 1.23 },
       };
 
       const prices = await tokenPricesService.getMultipleTokenPrices(
@@ -43,14 +40,13 @@ describe('TokenPricesService', () => {
     });
 
     it('returns the correct token prices when using a different currency', async () => {
-      const caip19Ids = [
+      const caip19Ids: CaipAssetType[] = [
         Caip19Id.SolMainnet,
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111',
+        Caip19Id.UsdcLocalnet,
       ];
       const expectedPrices = {
         [Caip19Id.SolMainnet]: { price: 1.23 },
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111':
-          { price: 1.23 },
+        [Caip19Id.UsdcLocalnet]: { price: 1.23 },
       };
 
       const prices = await tokenPricesService.getMultipleTokenPrices(
@@ -62,24 +58,56 @@ describe('TokenPricesService', () => {
     });
 
     it('returns an empty object if no caip19Ids are provided', async () => {
-      const caip19Ids: string[] = [];
+      const caip19Ids: CaipAssetType[] = [];
+
       const prices = await tokenPricesService.getMultipleTokenPrices(
         caip19Ids,
         currency,
       );
       expect(prices).toStrictEqual({});
     });
+  });
 
-    it('returns an empty object if the price api fails', async () => {
-      jest
-        .mocked(mockPriceApiClient.getSpotPrice)
-        .mockRejectedValue(new Error('Error fetching spot price'));
+  describe('getMultipleTokenConversions', () => {
+    let tokenPricesService: TokenPrices;
+    let mockPriceApiClient: PriceApiClient;
+    const currency = 'usd';
 
-      const prices = await tokenPricesService.getMultipleTokenPrices(
-        [Caip19Id.SolMainnet],
-        currency,
+    beforeEach(() => {
+      mockPriceApiClient = {
+        getMultipleSpotPrices: jest.fn().mockResolvedValue({
+          [Caip19Id.SolLocalnet]: { price: 1.23 },
+          [Caip19Id.UsdcLocalnet]: { price: 1.23 },
+        }),
+      } as unknown as PriceApiClient;
+
+      tokenPricesService = new TokenPrices(mockPriceApiClient);
+    });
+
+    it('returns the correct token conversions', async () => {
+      const conversions: { from: CaipAssetType; to: CaipAssetType }[] = [
+        { from: Caip19Id.SolLocalnet, to: 'swift:0/iso4217:EUR' },
+        { from: Caip19Id.UsdcLocalnet, to: 'swift:0/iso4217:EUR' },
+      ];
+
+      const result = await tokenPricesService.getMultipleTokenConversions(
+        conversions,
       );
-      expect(prices).toStrictEqual({});
+
+      expect(result).toStrictEqual({
+        [Caip19Id.SolLocalnet]: {
+          'swift:0/iso4217:EUR': {
+            rate: '1.23',
+            conversionTime: expect.any(Number),
+          },
+        },
+        [Caip19Id.UsdcLocalnet]: {
+          'swift:0/iso4217:EUR': {
+            rate: '1.23',
+            conversionTime: expect.any(Number),
+          },
+        },
+      });
     });
   });
 });

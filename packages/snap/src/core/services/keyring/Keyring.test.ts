@@ -120,7 +120,6 @@ describe('SolanaKeyring', () => {
         {},
       ),
       mapInterfaceNameToId: {},
-      tokenPrices: {},
       isFetchingAssets: false,
       assets: {},
       isFetchingTransactions: false,
@@ -274,11 +273,6 @@ describe('SolanaKeyring', () => {
       mockStateValue = {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
-        tokenPrices: {
-          [Caip19Id.SolLocalnet]: {
-            price: 0,
-          },
-        },
         isFetchingTransactions: false,
         transactions: {},
         isFetchingAssets: false,
@@ -307,11 +301,6 @@ describe('SolanaKeyring', () => {
       mockStateValue = {
         keyringAccounts: {},
         mapInterfaceNameToId: {},
-        tokenPrices: {
-          [Caip19Id.SolLocalnet]: {
-            price: 0,
-          },
-        },
         isFetchingTransactions: false,
         transactions: {},
         isFetchingAssets: false,

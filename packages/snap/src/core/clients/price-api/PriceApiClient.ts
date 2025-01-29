@@ -1,53 +1,81 @@
 /* eslint-disable no-restricted-globals */
+import type { CaipAssetType } from '@metamask/keyring-api';
+
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
-import type { SpotPrice } from './types';
+import type { SpotPriceResponse, SpotPrices } from './types';
 
 export class PriceApiClient {
-  readonly #configProvider: ConfigProvider;
-
   readonly #fetch: typeof globalThis.fetch;
 
   readonly #logger: ILogger;
+
+  readonly #baseUrl: string;
+
+  readonly #chunkSize: number;
 
   constructor(
     configProvider: ConfigProvider,
     _fetch: typeof globalThis.fetch = globalThis.fetch,
     _logger: ILogger = logger,
   ) {
-    this.#configProvider = configProvider;
+    const { baseUrl, chunkSize } = configProvider.get().priceApi;
+
     this.#fetch = _fetch;
     this.#logger = _logger;
+    this.#baseUrl = baseUrl;
+    this.#chunkSize = chunkSize;
   }
 
-  /**
-   * Get spot price for a token given its chain ID in CAIP-2 format and address.
-   *
-   * @param chainIdInCaip2 - Chain ID in CAIP-2 format.
-   * @param tokenAddress - Contract address of token to get price for.
-   * @param vsCurrency - Currency to convert prices to, default is USD.
-   * @returns The spot price.
-   */
-  async getSpotPrice(
-    chainIdInCaip2: string,
-    tokenAddress: string,
+  async getMultipleSpotPrices(
+    tokenCaip19Ids: CaipAssetType[],
     vsCurrency = 'usd',
-  ): Promise<SpotPrice> {
+  ): Promise<SpotPriceResponse> {
     try {
-      const { baseUrl } = this.#configProvider.get().priceApi;
-
-      const response = await this.#fetch(
-        `${baseUrl}/v2/chains/${chainIdInCaip2}/spot-prices/${tokenAddress}?vsCurrency=${vsCurrency}`,
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Split tokenCaip19Ids into chunks
+      const chunks: CaipAssetType[][] = [];
+      for (let i = 0; i < tokenCaip19Ids.length; i += this.#chunkSize) {
+        chunks.push(tokenCaip19Ids.slice(i, i + this.#chunkSize));
       }
 
-      return await response.json();
+      // Make parallel requests for each chunk
+      const responses = await Promise.all(
+        chunks.map(async (chunk) => {
+          const params = [
+            `vsCurrency=${encodeURIComponent(vsCurrency)}`,
+            `assetIds=${encodeURIComponent(chunk.join(','))}`,
+            `includeMarketData=false`,
+          ];
+
+          const response = await this.#fetch(
+            `${this.#baseUrl}/v3/spot-prices?${params.join('&')}`,
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const prices = (await response.json()) as SpotPrices;
+
+          return Object.keys(prices).reduce(
+            (acc: SpotPriceResponse, caip19Id) => {
+              acc[caip19Id as CaipAssetType] = {
+                price: prices?.[caip19Id as CaipAssetType]?.[
+                  vsCurrency
+                ] as number,
+              };
+              return acc;
+            },
+            {},
+          );
+        }),
+      );
+
+      // Combine all responses
+      return responses.reduce((prices, price) => ({ ...prices, ...price }), {});
     } catch (error) {
-      this.#logger.error(error, 'Error fetching spot prices:');
+      this.#logger.error(error, 'Error fetching spot prices');
       throw error;
     }
   }

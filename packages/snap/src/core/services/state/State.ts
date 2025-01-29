@@ -2,17 +2,13 @@
 import type { Transaction, Balance } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 
+import type { SpotPriceResponse } from '../../clients/price-api/types';
 import { safeMerge } from '../../utils/safeMerge';
-
-export type TokenPrice = {
-  price: number;
-};
 
 export type AccountId = string;
 
 export type StateValue = {
   mapInterfaceNameToId: Record<string, string>;
-  tokenPrices: Record<string, TokenPrice>;
   isFetchingTransactions: boolean;
   transactions: Record<AccountId, Transaction[]>;
   isFetchingAssets: boolean;
@@ -21,7 +17,6 @@ export type StateValue = {
 
 export const DEFAULT_STATE: StateValue = {
   mapInterfaceNameToId: {},
-  tokenPrices: {},
   isFetchingTransactions: false,
   transactions: {},
   isFetchingAssets: false,

@@ -1,28 +1,9 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 
-import { Network, SOL_IMAGE_URL } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
-import { getCaip19Address } from '../../utils/getCaip19Address';
-import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
-import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
-import type {
-  SolanaTokenMetadata,
-  TokenMetadata,
-  TokenMetadataResponse,
-} from './types';
-
-const SCOPE_TO_NETWORK: Record<Network, string> = {
-  [Network.Mainnet]: 'solana',
-  [Network.Devnet]: 'solana-devnet',
-  [Network.Testnet]: 'solana-testnet',
-  [Network.Localnet]: 'solana-localnet',
-};
-
-const NETWORK_TO_SCOPE = Object.fromEntries(
-  Object.entries(SCOPE_TO_NETWORK).map(([key, value]) => [value, key]),
-) as Record<string, Network>;
+import type { SolanaTokenMetadata, TokenMetadata } from './types';
 
 export class TokenMetadataClient {
   readonly #fetch: typeof globalThis.fetch;
@@ -31,9 +12,9 @@ export class TokenMetadataClient {
 
   readonly #baseUrl: string;
 
-  readonly #apiKey: string;
+  readonly #chunkSize: number;
 
-  readonly #addressesChunkSize: number;
+  readonly #tokenIconBaseUrl: string;
 
   constructor(
     configProvider: ConfigProvider,
@@ -43,83 +24,62 @@ export class TokenMetadataClient {
     this.#fetch = _fetch;
     this.#logger = _logger;
 
-    const { baseUrl, apiKey, addressesChunkSize } =
-      configProvider.get().tokenApi;
+    const { baseUrl, chunkSize } = configProvider.get().tokenApi;
 
     this.#baseUrl = baseUrl;
-    this.#apiKey = apiKey;
-    this.#addressesChunkSize = addressesChunkSize;
+    this.#chunkSize = chunkSize;
+    this.#tokenIconBaseUrl = 'https://uat-static.cx.metamask.io';
   }
 
   async #fetchTokenMetadataBatch(
-    addresses: string[],
+    caip19Ids: CaipAssetType[],
   ): Promise<TokenMetadata[]> {
+    const params = [`assetIds=${encodeURIComponent(caip19Ids.join(','))}`];
+
     const response = await this.#fetch(
-      `${this.#baseUrl}/api/v0/fungibles/assets?fungible_ids=${addresses.join(
-        ',',
-      )}`,
-      { headers: { 'X-API-KEY': this.#apiKey } },
+      `${this.#baseUrl}/v3/assets?${params.join('&')}`,
     );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = (await response.json()) as
-      | TokenMetadataResponse
-      | TokenMetadata;
+    const data = (await response.json()) as TokenMetadata[];
 
-    return 'fungibles' in data ? data.fungibles : [data];
+    return data;
   }
 
   async getTokenMetadataFromAddresses(
     caip19Ids: CaipAssetType[],
   ): Promise<Record<CaipAssetType, SolanaTokenMetadata>> {
     try {
-      // Filter and transform addresses
-      const formattedAddresses = caip19Ids
-        .filter((caip19Id) => Boolean(caip19Id.split('/token:')[1]))
-        .map(
-          (address) =>
-            `${
-              SCOPE_TO_NETWORK[getNetworkFromToken(address)]
-            }.${getCaip19Address(address)}`,
-        );
-
       // Split addresses into chunks
-      const chunks: string[][] = [];
-      for (
-        let i = 0;
-        i < formattedAddresses.length;
-        i += this.#addressesChunkSize
-      ) {
-        chunks.push(formattedAddresses.slice(i, i + this.#addressesChunkSize));
+      const chunks: CaipAssetType[][] = [];
+      for (let i = 0; i < caip19Ids.length; i += this.#chunkSize) {
+        chunks.push(caip19Ids.slice(i, i + this.#chunkSize));
       }
 
       // Fetch metadata for each chunk
-      const tokenMetadataArrays = await Promise.all(
-        chunks.map(async (addresses) =>
-          this.#fetchTokenMetadataBatch(addresses),
-        ),
+      const tokenMetadataResponses = await Promise.all(
+        chunks.map(async (chunk) => this.#fetchTokenMetadataBatch(chunk)),
       );
 
       // Flatten and process all metadata
       const tokenMetadataMap = new Map<string, SolanaTokenMetadata>();
 
-      tokenMetadataArrays.flat().forEach((metadata) => {
-        const [network = 'solana', address = ''] =
-          metadata.fungible_id.split('.');
-
-        const tokenAddress = tokenAddressToCaip19(
-          NETWORK_TO_SCOPE[network] ?? Network.Mainnet,
-          address,
-        );
-
-        tokenMetadataMap.set(tokenAddress, {
+      tokenMetadataResponses.flat().forEach((metadata) => {
+        tokenMetadataMap.set(metadata.assetId, {
           name: metadata.name,
           symbol: metadata.symbol,
           fungible: true,
-          iconUrl: metadata.previews.image_small_url,
+          iconUrl:
+            metadata?.iconUrl ??
+            `${
+              this.#tokenIconBaseUrl
+            }/api/v2/tokenIcons/assets/${metadata.assetId.replace(
+              /:/gu,
+              '/',
+            )}.png`,
           units: [
             {
               name: metadata.name,
@@ -129,26 +89,6 @@ export class TokenMetadataClient {
           ],
         });
       });
-
-      // FIXME: remove this when platform api is ready
-      // adding native token metadata for now as simplehash does not support caip19 ids
-      caip19Ids
-        .filter((caip19Id) => !caip19Id.split('/token:')[1])
-        .forEach((caip19Id) => {
-          tokenMetadataMap.set(caip19Id, {
-            name: 'Solana',
-            symbol: 'SOL',
-            fungible: true,
-            iconUrl: SOL_IMAGE_URL,
-            units: [
-              {
-                name: 'Solana',
-                symbol: 'SOL',
-                decimals: 9,
-              },
-            ],
-          });
-        });
 
       return Object.fromEntries(tokenMetadataMap);
     } catch (error) {

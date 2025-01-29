@@ -5,6 +5,23 @@ import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import { TokenMetadataClient } from './TokenMetadataClient';
 
+const MOCK_METADATA_RESPONSE = [
+  {
+    decimals: 9,
+    assetId:
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:1GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr',
+    name: 'Popcat 1',
+    symbol: 'POPCAT',
+  },
+  {
+    decimals: 9,
+    assetId:
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr',
+    name: 'Popcat 2',
+    symbol: 'POPCAT',
+  },
+];
+
 describe('TokenMetadataClient', () => {
   const mockFetch = jest.fn();
   const mockLogger = {
@@ -21,8 +38,7 @@ describe('TokenMetadataClient', () => {
       get: jest.fn().mockReturnValue({
         tokenApi: {
           baseUrl: 'https://some-mock-url.com',
-          apiKey: 'some-api-key',
-          addressesChunkSize: 100,
+          chunkSize: 50,
         },
       }),
     } as unknown as ConfigProvider;
@@ -30,111 +46,60 @@ describe('TokenMetadataClient', () => {
     client = new TokenMetadataClient(mockConfigProvider, mockFetch, mockLogger);
   });
 
-  it('fetches and parses token metadata when one is returned', async () => {
+  it('fetches and parses token metadata', async () => {
     const tokenAddresses = [
       tokenAddressToCaip19(Network.Localnet, 'address1'),
       tokenAddressToCaip19(Network.Localnet, 'address2'),
     ];
-    const mockFetchResponse = {
-      fungible_id: 'solana.address1',
-      symbol: 'MOCK',
-      name: 'Mock Token',
-      decimals: 6,
-      previews: {
-        image_small_url:
-          'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
-      },
-    };
+
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: jest.fn().mockResolvedValueOnce(mockFetchResponse),
+      json: jest.fn().mockResolvedValueOnce(MOCK_METADATA_RESPONSE),
     });
     const metadata = await client.getTokenMetadataFromAddresses(tokenAddresses);
 
     expect(metadata).toStrictEqual({
-      [`${Network.Mainnet}/token:address1`]: {
-        iconUrl:
-          'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
-        name: 'Mock Token',
-        symbol: 'MOCK',
-        fungible: true,
-        units: [
-          {
-            decimals: 6,
-            name: 'Mock Token',
-            symbol: 'MOCK',
-          },
-        ],
-      },
-    });
-  });
-
-  it('fetches and parses token metadata when multiple are returned', async () => {
-    const tokenAddresses = [
-      tokenAddressToCaip19(Network.Localnet, 'address1'),
-      tokenAddressToCaip19(Network.Localnet, 'address2'),
-    ];
-    const mockFetchResponse = {
-      fungibles: [
+      [`solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:1GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr`]:
         {
-          fungible_id: 'solana.address1',
-          symbol: 'MOCK',
-          name: 'Mock Token',
-          decimals: 6,
-          previews: {
-            image_small_url:
-              'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
-          },
+          iconUrl:
+            'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/1GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr.png',
+          name: 'Popcat 1',
+          symbol: 'POPCAT',
+          fungible: true,
+          units: [
+            {
+              decimals: 9,
+              name: 'Popcat 1',
+              symbol: 'POPCAT',
+            },
+          ],
         },
-      ],
-    };
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValueOnce(mockFetchResponse),
-    });
-    const metadata = await client.getTokenMetadataFromAddresses(tokenAddresses);
-
-    expect(metadata).toStrictEqual({
-      [`${Network.Mainnet}/token:address1`]: {
-        iconUrl:
-          'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
-        name: 'Mock Token',
-        symbol: 'MOCK',
-        fungible: true,
-        units: [
-          {
-            decimals: 6,
-            name: 'Mock Token',
-            symbol: 'MOCK',
-          },
-        ],
-      },
+      [`solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr`]:
+        {
+          iconUrl:
+            'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr.png',
+          name: 'Popcat 2',
+          symbol: 'POPCAT',
+          fungible: true,
+          units: [
+            {
+              decimals: 9,
+              name: 'Popcat 2',
+              symbol: 'POPCAT',
+            },
+          ],
+        },
     });
   });
 
-  it('handles addresses in cunch when more than the limit is provided', async () => {
-    const tokenAddresses = Array.from({ length: 120 }, (_, i) =>
+  it('handles addresses in chunks when more than the limit is provided', async () => {
+    const tokenAddresses = Array.from({ length: 60 }, (_, i) =>
       tokenAddressToCaip19(Network.Localnet, `address${i}`),
     );
 
-    const mockFetchResponse = {
-      fungibles: [
-        {
-          fungible_id: 'solana.address1',
-          symbol: 'MOCK',
-          name: 'Mock Token',
-          decimals: 6,
-          previews: {
-            image_small_url:
-              'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/address1/logo.png',
-          },
-        },
-      ],
-    };
-
     mockFetch.mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue(mockFetchResponse),
+      json: jest.fn().mockResolvedValue(MOCK_METADATA_RESPONSE),
     });
 
     await client.getTokenMetadataFromAddresses(tokenAddresses);

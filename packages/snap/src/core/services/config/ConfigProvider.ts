@@ -17,7 +17,6 @@ const EnvStruct = object({
   RPC_URL_LOCALNET_LIST: CommaSeparatedString,
   PRICE_API_BASE_URL: string(),
   TOKEN_API_BASE_URL: string(),
-  TOKEN_API_KEY: string(),
   LOCAL_API_BASE_URL: string(),
   LOCAL: optional(string()),
 });
@@ -34,11 +33,11 @@ export type Config = {
   activeNetworks: Network[];
   priceApi: {
     baseUrl: string;
+    chunkSize: number;
   };
   tokenApi: {
     baseUrl: string;
-    apiKey: string;
-    addressesChunkSize: number;
+    chunkSize: number;
   };
   transactions: {
     bootstrapLimit: number;
@@ -75,7 +74,6 @@ export class ConfigProvider {
       PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL,
       // Token API
       TOKEN_API_BASE_URL: process.env.TOKEN_API_BASE_URL,
-      TOKEN_API_KEY: process.env.TOKEN_API_KEY,
       // TODO: Remove this once we have a better way to handle local environment
       LOCAL: process.env.LOCAL,
       LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL,
@@ -113,13 +111,13 @@ export class ConfigProvider {
         baseUrl: environment.LOCAL
           ? environment.LOCAL_API_BASE_URL
           : environment.PRICE_API_BASE_URL,
+        chunkSize: 50,
       },
       tokenApi: {
         baseUrl: environment.LOCAL
           ? environment.LOCAL_API_BASE_URL
           : environment.TOKEN_API_BASE_URL,
-        apiKey: environment.TOKEN_API_KEY,
-        addressesChunkSize: 100,
+        chunkSize: 50,
       },
       transactions: {
         bootstrapLimit: 2,

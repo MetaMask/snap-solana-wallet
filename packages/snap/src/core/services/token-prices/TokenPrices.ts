@@ -2,12 +2,9 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 import type { AssetConversion } from '@metamask/snaps-sdk';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
-import type { SpotPrice } from '../../clients/price-api/types';
-import { Network, Networks, type Caip19Id } from '../../constants/solana';
+import type { SpotPriceResponse } from '../../clients/price-api/types';
 import { getCaip19Address } from '../../utils/getCaip19Address';
-import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
-import type { ILogger } from '../../utils/logger';
-import type { TokenPrice } from '../state/State';
+import logger, { type ILogger } from '../../utils/logger';
 
 /**
  * Maps token addresses to their corresponding currency tickers.
@@ -43,112 +40,72 @@ export class TokenPrices {
 
   readonly #logger: ILogger;
 
-  constructor(priceApiClient: PriceApiClient, _logger: ILogger) {
+  constructor(priceApiClient: PriceApiClient, _logger: ILogger = logger) {
     this.#priceApiClient = priceApiClient;
     this.#logger = _logger;
   }
 
+  #caipToCurrency(caip19Id: CaipAssetType): string {
+    const isCurrency = caip19Id.includes('/iso4217:');
+    const currency = isCurrency
+      ? caip19Id?.split('/iso4217:')[1]
+      : TOKEN_ADDRESS_TO_CRYPTO_CURRENCY[getCaip19Address(caip19Id)];
+
+    return currency ?? 'usd';
+  }
+
   async getMultipleTokenPrices(
-    caip19Ids: string[],
+    caip19Ids: CaipAssetType[],
     currency?: string,
-  ): Promise<Record<Caip19Id, TokenPrice>> {
-    const tokenPrices: Record<string, TokenPrice> = {};
+  ): Promise<SpotPriceResponse> {
+    if (caip19Ids.length === 0) {
+      return {};
+    }
 
-    const promises = caip19Ids.map(async (caip19Id) => {
-      // FIXME: This is a hack to get the token address from the caip19Id.
-      const address = caip19Id.split('/token:')[1] as string;
-      const tokenAddress =
-        address ?? Networks[Network.Mainnet].nativeToken.address;
+    try {
+      const tokenPrices = await this.#priceApiClient.getMultipleSpotPrices(
+        caip19Ids,
+        currency,
+      );
 
-      const spotPrice = await this.#priceApiClient
-        .getSpotPrice(
-          getNetworkFromToken(caip19Id),
-          tokenAddress,
-          currency ?? 'usd',
-        )
-        // Catch errors on individual calls, so that one that fails does not break for others.
-        .catch((error) => {
-          this.#logger.info(
-            { error },
-            `Could not fetch spot price for token ${caip19Id}`,
-          );
-          return undefined;
-        });
-
-      return {
-        caip19Id,
-        spotPrice,
-      };
-    });
-
-    const tokenSymbolsWithSpotPrices = await Promise.all(promises);
-
-    // Update the rates with the spot prices.
-    tokenSymbolsWithSpotPrices
-      /**
-       * We filter out currencies for which we could not fetch the spot price.
-       * This is to ensure that we do not mess up the state for currencies that possibly had a correct spot price before.
-       */
-      .filter((item): item is { caip19Id: Caip19Id; spotPrice: SpotPrice } =>
-        Boolean(item.spotPrice),
-      )
-      .forEach(({ caip19Id, spotPrice }) => {
-        tokenPrices[caip19Id] = {
-          price: spotPrice.price,
-        };
-      });
-
-    return tokenPrices;
+      return tokenPrices;
+    } catch (error) {
+      this.#logger.error(error, 'Error fetching token prices');
+      return {};
+    }
   }
 
   async getMultipleTokenConversions(
     conversions: { from: CaipAssetType; to: CaipAssetType }[],
   ): Promise<Record<CaipAssetType, Record<CaipAssetType, AssetConversion>>> {
-    return Promise.all(
-      conversions.map(async (conversion) =>
-        this.getTokenConversion(conversion.from, conversion.to).catch(() => ({
-          price: null,
-          conversionTime: Date.now(),
-        })),
-      ),
-    ).then((prices) =>
-      prices.reduce<Record<string, Record<string, AssetConversion>>>(
-        (acc, price, index) => {
-          const from = conversions[index]?.from;
-          const to = conversions[index]?.to;
+    const result: Record<
+      CaipAssetType,
+      Record<CaipAssetType, AssetConversion>
+    > = {};
+    const to = conversions[0]?.to as CaipAssetType;
 
-          if (!price.price) {
-            return acc;
-          }
-
-          if (from && to) {
-            if (!acc[from]) {
-              acc[from] = {};
-            }
-            acc[from][to] = {
-              rate: price.price?.toString(),
-              conversionTime: Date.now(),
-            };
-          }
-          return acc;
-        },
-        {},
-      ),
+    const tokenPrices = await this.#priceApiClient.getMultipleSpotPrices(
+      conversions.map((conversion) => conversion.from),
+      this.#caipToCurrency(to),
     );
-  }
 
-  async getTokenConversion(
-    from: CaipAssetType,
-    to: CaipAssetType,
-  ): Promise<TokenPrice> {
-    const toIsCurrency = to.includes('/iso4217:');
+    conversions.forEach((conversion) => {
+      const fromAssetId = conversion.from;
+      const toAssetId = conversion.to;
+      const assetPrice = tokenPrices[fromAssetId]?.price;
 
-    const fromNetwork = getNetworkFromToken(from);
-    const fromToken = getCaip19Address(from);
-    const currency = toIsCurrency
-      ? getCaip19Address(to)?.toLowerCase()
-      : TOKEN_ADDRESS_TO_CRYPTO_CURRENCY[getCaip19Address(to)];
+      if (!assetPrice) {
+        return;
+      }
 
-    return this.#priceApiClient.getSpotPrice(fromNetwork, fromToken, currency);
+      result[fromAssetId] = {
+        [toAssetId]: {
+          rate: assetPrice.toString(),
+          conversionTime: Date.now(),
+        },
+      };
+    });
+
+    return result;
   }
 }

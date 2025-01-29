@@ -114,29 +114,30 @@ describe('Send', () => {
 
     // temporary mock for the token prices
     // FIXME: when we have a better way to handle external requests
-    server?.get(
-      `/v2/chains/:chainIdInCaip2/spot-prices/:tokenAddress`,
-      (_: any, res: any) => {
-        return res.json({
-          price: 200,
-        });
-      },
-    );
-
-    server?.get('/api/v0/fungibles/assets', (_: any, res: any) => {
+    server?.get(`/v3/spot-prices`, (_: any, res: any) => {
       return res.json({
-        fungibles: [
-          {
-            fungible_id: 'solana-localnet.slip44:501',
-            symbol: 'SOL',
-            name: 'Solana',
-            decimals: 9,
-            previews: {
-              image_small_url: SOL_IMAGE_URL,
-            },
-          },
-        ],
+        [Caip19Id.SolLocalnet]: {
+          usd: 200,
+        },
+        'solana:123456789abcdef/token:address1': {
+          usd: 200,
+        },
+        'solana:123456789abcdef/token:address2': {
+          usd: 200,
+        },
       });
+    });
+
+    server?.get('/v3/assets', (_: any, res: any) => {
+      return res.json([
+        {
+          decimals: 9,
+          assetId: Caip19Id.SolLocalnet,
+          iconUrl: SOL_IMAGE_URL,
+          name: 'Solana',
+          symbol: 'SOL',
+        },
+      ]);
     });
 
     const { request, mockJsonRpc } = await installSnap();

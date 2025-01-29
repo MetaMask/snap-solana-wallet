@@ -1,7 +1,8 @@
+import { Caip19Id } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import { mockLogger } from '../../services/mocks/logger';
 import { PriceApiClient } from './PriceApiClient';
-import type { SpotPrice } from './types';
+import type { SpotPriceResponse, SpotPrices } from './types';
 
 describe('PriceApiClient', () => {
   const mockFetch = jest.fn();
@@ -14,26 +15,39 @@ describe('PriceApiClient', () => {
       get: jest.fn().mockReturnValue({
         priceApi: {
           baseUrl: 'https://some-mock-url.com',
+          chunkSize: 50,
         },
       }),
     } as unknown as ConfigProvider;
 
     client = new PriceApiClient(mockConfigProvider, mockFetch, mockLogger);
+
+    mockFetch.mockClear();
   });
 
-  it('fetches spot price successfully', async () => {
-    const mockResponse: SpotPrice = { price: 100 };
+  it('fetches multiple spot prices successfully', async () => {
+    const mockResponse: SpotPrices = {
+      [Caip19Id.SolLocalnet]: { usd: 100 },
+      [Caip19Id.UsdcLocalnet]: { usd: 100 },
+    };
+    const expectedResponse: SpotPriceResponse = {
+      [Caip19Id.SolLocalnet]: { price: 100 },
+      [Caip19Id.UsdcLocalnet]: { price: 100 },
+    };
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: jest.fn().mockResolvedValueOnce(mockResponse),
     });
 
-    const result = await client.getSpotPrice('chainId', 'tokenAddress');
+    const result = await client.getMultipleSpotPrices([
+      Caip19Id.SolLocalnet,
+      Caip19Id.UsdcLocalnet,
+    ]);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://some-mock-url.com/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=usd',
+      'https://some-mock-url.com/v3/spot-prices?vsCurrency=usd&assetIds=solana%3A123456789abcdef%2Fslip44%3A501%2Csolana%3A123456789abcdef%2Ftoken%3A4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU&includeMarketData=false',
     );
-    expect(result).toBe(mockResponse);
+    expect(result).toStrictEqual(expectedResponse);
   });
 
   it('logs and throws an error if fetch fails', async () => {
@@ -41,11 +55,14 @@ describe('PriceApiClient', () => {
     mockFetch.mockRejectedValueOnce(mockError);
 
     await expect(
-      client.getSpotPrice('chainId', 'tokenAddress'),
+      client.getMultipleSpotPrices([
+        Caip19Id.SolLocalnet,
+        Caip19Id.UsdcLocalnet,
+      ]),
     ).rejects.toThrow('Fetch failed');
     expect(mockLogger.error).toHaveBeenCalledWith(
       mockError,
-      'Error fetching spot prices:',
+      'Error fetching spot prices',
     );
   });
 
@@ -56,49 +73,40 @@ describe('PriceApiClient', () => {
     });
 
     await expect(
-      client.getSpotPrice('chainId', 'tokenAddress'),
+      client.getMultipleSpotPrices([
+        Caip19Id.SolLocalnet,
+        Caip19Id.UsdcLocalnet,
+      ]),
     ).rejects.toThrow('HTTP error! status: 404');
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.any(Error),
-      'Error fetching spot prices:',
+      'Error fetching spot prices',
     );
   });
 
   it('fetches spot price with custom vsCurrency', async () => {
-    const mockResponse: SpotPrice = { price: 1.5 };
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: jest.fn().mockResolvedValueOnce(mockResponse),
-    });
-
-    const result = await client.getSpotPrice('chainId', 'tokenAddress', 'eur');
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://some-mock-url.com/v2/chains/chainId/spot-prices/tokenAddress?vsCurrency=eur',
-    );
-    expect(result).toBe(mockResponse);
-  });
-
-  it('handles full SpotPrice response', async () => {
-    const mockResponse: SpotPrice = {
-      price: 100,
-      priceChange1d: 5,
-      pricePercentChange1d: 5,
-      marketCap: 1000000,
-      totalVolume: 500000,
-      high1d: 105,
-      low1d: 95,
+    const mockResponse: SpotPrices = {
+      [Caip19Id.SolLocalnet]: { eur: 100 },
+      [Caip19Id.UsdcLocalnet]: { eur: 100 },
+    };
+    const expectedResponse: SpotPriceResponse = {
+      [Caip19Id.SolLocalnet]: { price: 100 },
+      [Caip19Id.UsdcLocalnet]: { price: 100 },
     };
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: jest.fn().mockResolvedValueOnce(mockResponse),
     });
 
-    const result = await client.getSpotPrice('chainId', 'tokenAddress');
+    const result = await client.getMultipleSpotPrices(
+      [Caip19Id.SolLocalnet, Caip19Id.UsdcLocalnet],
+      'eur',
+    );
 
-    expect(result).toBe(mockResponse);
-    expect(result.priceChange1d).toBe(5);
-    expect(result.marketCap).toBe(1000000);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://some-mock-url.com/v3/spot-prices?vsCurrency=eur&assetIds=solana%3A123456789abcdef%2Fslip44%3A501%2Csolana%3A123456789abcdef%2Ftoken%3A4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU&includeMarketData=false',
+    );
+    expect(result).toStrictEqual(expectedResponse);
   });
 
   it('handles malformed JSON response', async () => {
@@ -108,11 +116,14 @@ describe('PriceApiClient', () => {
     });
 
     await expect(
-      client.getSpotPrice('chainId', 'tokenAddress'),
+      client.getMultipleSpotPrices([
+        Caip19Id.SolLocalnet,
+        Caip19Id.UsdcLocalnet,
+      ]),
     ).rejects.toThrow('Invalid JSON');
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.any(Error),
-      'Error fetching spot prices:',
+      'Error fetching spot prices',
     );
   });
 
@@ -120,11 +131,14 @@ describe('PriceApiClient', () => {
     mockFetch.mockRejectedValueOnce(new Error('Network timeout'));
 
     await expect(
-      client.getSpotPrice('chainId', 'tokenAddress'),
+      client.getMultipleSpotPrices([
+        Caip19Id.SolLocalnet,
+        Caip19Id.UsdcLocalnet,
+      ]),
     ).rejects.toThrow('Network timeout');
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.any(Error),
-      'Error fetching spot prices:',
+      'Error fetching spot prices',
     );
   });
 });
