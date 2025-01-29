@@ -7,12 +7,14 @@ import {
   addSignersToTransactionMessage,
   compileTransactionMessage,
   decompileTransactionMessage,
+  decompileTransactionMessageFetchingLookupTables,
   getBase64Decoder,
   getBase64Encoder,
   getCompiledTransactionMessageDecoder,
   getCompiledTransactionMessageEncoder,
   getComputeUnitEstimateForTransactionMessageFactory,
   getSignatureFromTransaction,
+  getTransactionDecoder,
   pipe,
   sendTransactionWithoutConfirmingFactory,
   signTransactionMessageWithSigners,
@@ -182,6 +184,50 @@ export class TransactionHelper {
     );
   }
 
+  async base64DecodeBridgeTransactionMessage(
+    base64EncodedTransactionMessage: string,
+    scope,
+  ) {
+    this.#logger.log(
+      '======Decoding with base64DecodeBridgeTransactionMessage',
+    );
+    // const base64Encoder = getBase64Encoder();
+    // const transactionBytes = base64Encoder.encode(
+    //   base64EncodedTransactionMessage,
+    // );
+    // this.#logger.log('======encoded transaction message:', transactionBytes);
+
+    // const transactionDecoder = getTransactionDecoder();
+    // const decodedTx = transactionDecoder.decode(transactionBytes);
+    // this.#logger.log('======decodedTx transaction message:', decodedTx);
+
+    // const decoded = getCompiledTransactionMessageDecoder().decode(
+    //   decodedTx.messageBytes,
+    // );
+    // this.#logger.log('======Decoded compiled message:', decoded);
+
+    // const decompiled = await decompileTransactionMessageFetchingLookupTables(
+    //   decoded,
+    //   this.#connection.getRpc(scope),
+    // );
+    // this.#logger.log('======decompiled transaction message:', decompiled);
+
+    // return decompiled;
+
+    return pipe(
+      base64EncodedTransactionMessage,
+      getBase64Encoder().encode,
+      getTransactionDecoder().decode,
+      ({ messageBytes }) =>
+        getCompiledTransactionMessageDecoder().decode(messageBytes),
+      async (decodedMessageBytes) =>
+        await decompileTransactionMessageFetchingLookupTables(
+          decodedMessageBytes,
+          this.#connection.getRpc(scope),
+        ),
+    );
+  }
+
   /**
    * Sends a transaction message to the network.
    *
@@ -222,6 +268,7 @@ export class TransactionHelper {
 
       await sendTransactionWithoutConfirming(signedTransaction, {
         commitment: 'confirmed',
+        // skipPreflight: true,
       });
       return signature;
     } catch (error: any) {

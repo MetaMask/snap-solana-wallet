@@ -478,6 +478,38 @@ export class SolanaKeyring implements Keyring {
     return { signature };
   }
 
+  async handleSendAndConfirmBridgeTransaction(
+    request: KeyringRequest,
+  ): Promise<{ signature: string }> {
+    const { scope, account: accountId } = request;
+    const { params } = request.request;
+    this.#logger.log('======handleSendAndConfirmBridgeTransaction');
+
+    validateRequest(params, SendAndConfirmTransactionParamsStruct);
+
+    const { base64EncodedTransactionMessage } =
+      params as SendAndConfirmTransactionParams;
+
+    const account = await this.getAccountOrThrow(accountId);
+    const signer = await createKeyPairSignerFromPrivateKeyBytes(
+      Uint8Array.from(account.privateKeyBytesAsNum),
+    );
+
+    const decodedTransactionMessage =
+      await this.#transactionHelper.base64DecodeBridgeTransactionMessage(
+        base64EncodedTransactionMessage,
+        scope,
+      );
+
+    const signature = await this.#transactionHelper.sendTransaction(
+      decodedTransactionMessage,
+      [signer],
+      scope as Network,
+    );
+
+    return { signature };
+  }
+
   async listAccountTransactions(
     accountId: string,
     pagination: { limit: number; next?: Signature | null },

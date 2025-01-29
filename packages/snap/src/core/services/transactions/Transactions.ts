@@ -60,7 +60,7 @@ export class TransactionsService {
     data: MappedTransaction[];
     next: Signature | null;
   }> {
-    console.log('Fetching address transactions for', address);
+    this.#logger.log('Fetching address transactions for', address);
     /**
      * First get signatures
      */
