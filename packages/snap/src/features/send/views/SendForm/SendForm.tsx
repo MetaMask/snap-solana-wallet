@@ -87,7 +87,8 @@ export const SendForm = ({ context }: SendFormProps) => {
     amount.length > 0 &&
     toAddress.length > 0 &&
     Object.values(validation).every(isNullOrUndefined) &&
-    isBalanceDefined;
+    isBalanceDefined &&
+    !buildingTransaction;
 
   return (
     <Container>
@@ -195,7 +196,7 @@ export const SendForm = ({ context }: SendFormProps) => {
         </Button>
         <Button
           name={SendFormNames.SendButton}
-          disabled={!canReview || buildingTransaction}
+          disabled={!canReview}
           loading={buildingTransaction}
         >
           {translate('send.continueButton')}

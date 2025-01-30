@@ -1,7 +1,5 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
-import type { CompilableTransactionMessage } from '@solana/web3.js';
-import { address } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 
 import {
@@ -12,19 +10,16 @@ import {
   lamportsToSol,
   solToLamports,
 } from '../../../../core/utils/conversion';
-import { getCaip19Address } from '../../../../core/utils/getCaip19Address';
 import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
-import logger from '../../../../core/utils/logger';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { validateField } from '../../../../core/validation/form';
-import type { SnapExecutionContext } from '../../../../snapContext';
-import { getTokenAmount } from '../../selectors';
 import { Send } from '../../Send';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 import { validateBalance } from '../../utils/balance';
+import { buildTxIfValid } from './throttledBuildTransactionMessageAndStoreInContext';
 import { validation } from './validation';
 
 /**
@@ -71,6 +66,8 @@ async function onSourceAccountSelectorValueChange({
   );
 
   await updateInterface(id, <Send context={context} />, context);
+
+  await buildTxIfValid(id, context);
 }
 
 /**
@@ -102,6 +99,8 @@ async function onAmountInputChange({
     validateBalance(context.amount, context);
 
   await updateInterface(id, <Send context={context} />, context);
+
+  await buildTxIfValid(id, context);
 }
 
 /**
@@ -127,6 +126,8 @@ async function onAssetSelectorValueChange({
   context.error = null;
 
   await updateInterface(id, <Send context={context} />, context);
+
+  await buildTxIfValid(id, context);
 }
 
 /**
@@ -221,6 +222,8 @@ async function onMaxAmountButtonClick({
     );
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
+
+  await buildTxIfValid(id, updatedContext);
 }
 
 /**
@@ -249,6 +252,8 @@ async function onDestinationAccountInputValueChange({
     );
 
   await updateInterface(id, <Send context={context} />, context);
+
+  await buildTxIfValid(id, context);
 }
 
 /**
@@ -284,88 +289,17 @@ async function onCancelButtonClick({ id }: { id: string }) {
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  * @param params.context - The send context.
- * @param params.snapContext - The snap execution context.
  * @returns A promise that resolves when the operation is complete.
  */
 async function onSendButtonClick({
   id,
   context,
-  snapContext,
 }: {
   id: string;
   context: SendContext;
-  snapContext: SnapExecutionContext;
 }) {
-  const { keyring, transferSolHelper, transactionHelper, splTokenHelper } =
-    snapContext;
-  const { fromAccountId, tokenCaipId, scope, toAddress } = context;
-
-  const updatedContext: SendContext = {
-    ...context,
-    error: null,
-    transactionMessage: null,
-  };
-
-  // Show the loading state on the interface
-  updatedContext.buildingTransaction = true;
-
-  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
-
-  try {
-    const account = await keyring.getAccountOrThrow(fromAccountId);
-    const tokenAmount = getTokenAmount(context);
-
-    let transactionMessage: CompilableTransactionMessage | null = null;
-
-    if (tokenCaipId === Networks[scope].nativeToken.caip19Id) {
-      /**
-       * Native token (SOL) transaction
-       */
-      transactionMessage = await transferSolHelper.buildTransactionMessage(
-        address(account.address),
-        address(toAddress),
-        tokenAmount,
-        scope,
-      );
-    } else {
-      /**
-       * SPL token transaction
-       */
-      transactionMessage = await splTokenHelper.buildTransactionMessage(
-        account,
-        address(toAddress),
-        address(getCaip19Address(tokenCaipId)),
-        tokenAmount,
-        scope,
-      );
-    }
-
-    if (!transactionMessage) {
-      throw new Error('Unable to generate transaction message');
-    }
-
-    const feeInLamports = await transactionHelper.getFeeForMessageInLamports(
-      transactionMessage,
-      scope,
-    );
-
-    updatedContext.stage = 'transaction-confirmation';
-    updatedContext.transactionMessage =
-      await transactionHelper.base64EncodeTransactionMessage(
-        transactionMessage,
-      );
-    updatedContext.feeEstimatedInSol = lamportsToSol(feeInLamports).toString();
-  } catch (error) {
-    logger.error('Error sending transaction', error);
-
-    updatedContext.error = {
-      title: 'send.simulationTitleError',
-      message: 'send.simulationMessageError',
-    };
-  }
-
-  updatedContext.buildingTransaction = false;
-
+  const updatedContext: SendContext = { ...context };
+  updatedContext.stage = 'transaction-confirmation';
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 }
 
