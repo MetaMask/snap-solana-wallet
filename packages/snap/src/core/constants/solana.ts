@@ -3,7 +3,7 @@ import { address } from '@solana/web3.js';
 /* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';
 export const SOL_IMAGE_URL =
-  'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png';
+  'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png';
 export const LAMPORTS_PER_SOL = 1_000_000_000;
 export const NETWORK_BLOCK_EXPLORER_URL = 'https://explorer.solana.com';
 
