@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0]
+
+### Uncategorized
+
+- feat: integrate platform apis ([#162](https://github.com/MetaMask/snap-solana-wallet/pull/162))
+- fix: hide network fee price when no prices ([#164](https://github.com/MetaMask/snap-solana-wallet/pull/164))
+- feat: can send tokens even when price fetch fails ([#161](https://github.com/MetaMask/snap-solana-wallet/pull/161))
+- SIP-29 handlers ([#159](https://github.com/MetaMask/snap-solana-wallet/pull/159))
+- chore: onInstall hook work ([#145](https://github.com/MetaMask/snap-solana-wallet/pull/145))
+- feat: update assets events ([#158](https://github.com/MetaMask/snap-solana-wallet/pull/158))
+- fix: clicking on max when balance is zero ([#155](https://github.com/MetaMask/snap-solana-wallet/pull/155))
+- fix: transactions list request had improper validation ([#156](https://github.com/MetaMask/snap-solana-wallet/pull/156))
+- feat: switch order of fields on send ([#154](https://github.com/MetaMask/snap-solana-wallet/pull/154))
+- feat: sip29 in rpc ([#153](https://github.com/MetaMask/snap-solana-wallet/pull/153))
+
 ## [1.2.0]
 
 ### Added
@@ -129,7 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.3...v1.0.4
