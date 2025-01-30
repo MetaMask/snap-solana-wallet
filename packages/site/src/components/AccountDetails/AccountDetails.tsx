@@ -18,11 +18,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Network } from '../../../../snap/src/core/constants/solana';
 import { Networks } from '../../../../snap/src/core/constants/solana';
-import { RpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
 import { getNetworkFromToken } from '../../../../snap/src/core/utils/getNetworkFromToken';
 import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
-import { useInvokeSnap } from '../../hooks';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 import { formatLongString } from '../../utils/format-long-string';
 
@@ -51,30 +49,6 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
   const initialFetchRef = useRef(false);
 
   const invokeKeyring = useInvokeKeyring();
-  const invokeSnap = useInvokeSnap();
-
-  const handleGetMetadata = async () => {
-    const metadata = await invokeSnap({
-      method: RpcRequestMethod.OnAssetLookup,
-      params: {
-        assets: Object.keys(selectedAccountBalances),
-      },
-    });
-    console.log({ metadata });
-  };
-
-  const handleGetConversions = async () => {
-    const conversions = await invokeSnap({
-      method: RpcRequestMethod.OnAssetConversion,
-      params: {
-        conversions: Object.keys(selectedAccountBalances).map((balanceId) => ({
-          from: balanceId,
-          to: 'swift:0/iso4217:EUR',
-        })),
-      },
-    });
-    console.log({ conversions });
-  };
 
   const fetchAccount = async (id: string) => {
     const account = (await invokeKeyring({
@@ -92,8 +66,6 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
         id,
       },
     });
-
-    console.log({ id, assets });
 
     const balances = (await invokeKeyring({
       method: KeyringRpcMethod.GetAccountBalances,
@@ -177,8 +149,6 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
       <Flex marginBottom="2">
         <ChakraText marginRight="2">Keyring Account ID:</ChakraText>
         <Code>{selectedAccount.id}</Code>
-        <Button onClick={handleGetMetadata}>Get metadata</Button>
-        <Button onClick={handleGetConversions}>Get converisons</Button>
       </Flex>
       <Link
         colorPalette="purple"
