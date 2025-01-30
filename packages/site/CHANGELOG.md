@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0]
 
-### Uncategorized
+### Added
 
 - feat: update assets events ([#158](https://github.com/MetaMask/snap-solana-wallet/pull/158))
 - feat: sip29 in rpc ([#153](https://github.com/MetaMask/snap-solana-wallet/pull/153))
