@@ -49,15 +49,15 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 
   const networkName = network.name;
   const networkSymbol = network.nativeToken.symbol;
-  const tokenPrice = tokenPrices[network.nativeToken.caip19Id]?.price ?? 0;
+  const tokenPrice = tokenPrices[network.nativeToken.caip19Id]?.price;
 
   const transactionSpeed = '<1s';
 
   const feeToDisplay = transaction ? feePaidInSol : feeEstimatedInSol;
-  const feeInUserCurrency = formatCurrency(
-    tokenToFiat(feeToDisplay, tokenPrice),
-    currency,
-  );
+  const feeInUserCurrency =
+    tokenPrice === undefined
+      ? ''
+      : formatCurrency(tokenToFiat(feeToDisplay, tokenPrice), currency);
 
   return (
     <Box>
