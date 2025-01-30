@@ -51,9 +51,12 @@ export const SendForm = ({ context }: SendFormProps) => {
   const nativePrice = getNativeTokenPrice(context);
   const selectedTokenPrice = getSelectedTokenPrice(context);
 
-  const isSelectedTokenPriceUnavailable =
+  const balanceUndefinedOrZero =
+    tokenBalance === undefined || tokenBalance === '0';
+  const selectedTokenPriceUnavailable = selectedTokenPrice === undefined;
+  const showTokenPriceMessage =
     tokenPricesFetchStatus === 'error' ||
-    (tokenPricesFetchStatus === 'fetched' && selectedTokenPrice === undefined);
+    (tokenPricesFetchStatus === 'fetched' && selectedTokenPriceUnavailable);
 
   const currencyToBalance: Record<SendCurrencyType, string> = isBalanceDefined
     ? {
@@ -94,7 +97,7 @@ export const SendForm = ({ context }: SendFormProps) => {
           backButtonName={SendFormNames.BackButton}
         />
         <Form name={SendFormNames.Form}>
-          {isSelectedTokenPriceUnavailable && (
+          {showTokenPriceMessage && (
             <Banner title="" severity="info">
               <Text>
                 {translate('send.selectedTokenPriceNotAvailable', {
@@ -151,7 +154,9 @@ export const SendForm = ({ context }: SendFormProps) => {
                   currency={currency}
                   value={amount}
                   locale={locale}
-                  swapCurrencyButtonDisabled={isSelectedTokenPriceUnavailable}
+                  swapCurrencyButtonDisabled={
+                    selectedTokenPriceUnavailable || balanceUndefinedOrZero
+                  }
                 />
               </Box>
               <Box direction="horizontal" alignment="space-between" center>
@@ -165,7 +170,9 @@ export const SendForm = ({ context }: SendFormProps) => {
                 <Button
                   size="sm"
                   name={SendFormNames.MaxAmountButton}
-                  disabled={tokenBalance === '0'}
+                  disabled={
+                    selectedTokenPriceUnavailable || balanceUndefinedOrZero
+                  }
                 >
                   {translate('send.maxButton')}
                 </Button>

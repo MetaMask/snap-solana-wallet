@@ -23,7 +23,12 @@ export const Navigation: SnapComponent<NavigationProps> = ({
         </Button>
       ) : null}
       <Heading size="sm">{title}</Heading>
-      <Box>{null}</Box>
+      <Box direction="horizontal">
+        <Box>{null}</Box>
+        <Box>{null}</Box>
+        <Box>{null}</Box>
+        <Box>{null}</Box>
+      </Box>
     </Box>
   );
 };
