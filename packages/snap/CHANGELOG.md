@@ -9,18 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0]
 
-### Uncategorized
+### Added
 
-- feat: integrate platform apis ([#162](https://github.com/MetaMask/snap-solana-wallet/pull/162))
-- fix: hide network fee price when no prices ([#164](https://github.com/MetaMask/snap-solana-wallet/pull/164))
-- feat: can send tokens even when price fetch fails ([#161](https://github.com/MetaMask/snap-solana-wallet/pull/161))
+- Integrate platform apis ([#162](https://github.com/MetaMask/snap-solana-wallet/pull/162))
+- Hide network fee price when no prices ([#164](https://github.com/MetaMask/snap-solana-wallet/pull/164))
+- Can send tokens even when price fetch fails ([#161](https://github.com/MetaMask/snap-solana-wallet/pull/161))
 - SIP-29 handlers ([#159](https://github.com/MetaMask/snap-solana-wallet/pull/159))
-- chore: onInstall hook work ([#145](https://github.com/MetaMask/snap-solana-wallet/pull/145))
-- feat: update assets events ([#158](https://github.com/MetaMask/snap-solana-wallet/pull/158))
-- fix: clicking on max when balance is zero ([#155](https://github.com/MetaMask/snap-solana-wallet/pull/155))
-- fix: transactions list request had improper validation ([#156](https://github.com/MetaMask/snap-solana-wallet/pull/156))
-- feat: switch order of fields on send ([#154](https://github.com/MetaMask/snap-solana-wallet/pull/154))
-- feat: sip29 in rpc ([#153](https://github.com/MetaMask/snap-solana-wallet/pull/153))
+- onInstall handler ([#145](https://github.com/MetaMask/snap-solana-wallet/pull/145))
+- Update assets events ([#158](https://github.com/MetaMask/snap-solana-wallet/pull/158))
+- Switch order of fields on send ([#154](https://github.com/MetaMask/snap-solana-wallet/pull/154))
+- Sip29 in rpc ([#153](https://github.com/MetaMask/snap-solana-wallet/pull/153))
+
+### Fixed
+
+- Clicking on max when balance is zero ([#155](https://github.com/MetaMask/snap-solana-wallet/pull/155))
+- Transactions list request had improper validation ([#156](https://github.com/MetaMask/snap-solana-wallet/pull/156))
 
 ## [1.2.0]
 
