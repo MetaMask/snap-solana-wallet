@@ -17,6 +17,7 @@ const EnvStruct = object({
   RPC_URL_LOCALNET_LIST: CommaSeparatedString,
   PRICE_API_BASE_URL: string(),
   TOKEN_API_BASE_URL: string(),
+  STATIC_API_BASE_URL: string(),
   LOCAL_API_BASE_URL: string(),
   LOCAL: optional(string()),
 });
@@ -38,6 +39,9 @@ export type Config = {
   tokenApi: {
     baseUrl: string;
     chunkSize: number;
+  };
+  staticApi: {
+    baseUrl: string;
   };
   transactions: {
     bootstrapLimit: number;
@@ -74,6 +78,8 @@ export class ConfigProvider {
       PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL,
       // Token API
       TOKEN_API_BASE_URL: process.env.TOKEN_API_BASE_URL,
+      // Static API
+      STATIC_API_BASE_URL: process.env.STATIC_API_BASE_URL,
       // TODO: Remove this once we have a better way to handle local environment
       LOCAL: process.env.LOCAL,
       LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL,
@@ -118,6 +124,9 @@ export class ConfigProvider {
           ? environment.LOCAL_API_BASE_URL
           : environment.TOKEN_API_BASE_URL,
         chunkSize: 50,
+      },
+      staticApi: {
+        baseUrl: environment.STATIC_API_BASE_URL,
       },
       transactions: {
         bootstrapLimit: 2,

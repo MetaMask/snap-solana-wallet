@@ -21,6 +21,8 @@ on:
         required: true
       TOKEN_API_BASE_URL:
         required: true
+      STATIC_API_BASE_URL:
+        required: true
 
 jobs:
   publish-release:
@@ -50,6 +52,7 @@ jobs:
           PRICE_API_BASE_URL: ${{ secrets.PRICE_API_BASE_URL }}
           LOCAL_API_BASE_URL: ${{ secrets.LOCAL_API_BASE_URL }}
           TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
+          STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
       - uses: actions/cache@v4
         id: restore-build
         with:

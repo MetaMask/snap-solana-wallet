@@ -24,11 +24,11 @@ export class TokenMetadataClient {
     this.#fetch = _fetch;
     this.#logger = _logger;
 
-    const { baseUrl, chunkSize } = configProvider.get().tokenApi;
+    const { tokenApi, staticApi } = configProvider.get();
 
-    this.#baseUrl = baseUrl;
-    this.#chunkSize = chunkSize;
-    this.#tokenIconBaseUrl = 'https://uat-static.cx.metamask.io';
+    this.#baseUrl = tokenApi.baseUrl;
+    this.#chunkSize = tokenApi.chunkSize;
+    this.#tokenIconBaseUrl = staticApi.baseUrl;
   }
 
   async #fetchTokenMetadataBatch(
