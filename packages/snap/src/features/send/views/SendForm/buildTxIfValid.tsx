@@ -21,8 +21,6 @@ const buildTransactionMessageAndStoreInContext = async (
   id: string,
   context: SendContext,
 ) => {
-  console.log('🏂🏂🏂🏂🏂 coucou', context);
-
   const updatedContext: SendContext = {
     ...context,
   };
@@ -35,25 +33,15 @@ const buildTransactionMessageAndStoreInContext = async (
     let transactionMessage: CompilableTransactionMessage | null = null;
 
     if (tokenCaipId === Networks[scope].nativeToken.caip19Id) {
-      console.log('account.address', account.address);
-      console.log('toAddress', toAddress);
-      console.log('tokenAmount', tokenAmount);
-      console.log('scope', scope);
-      /**
-       * Native token (SOL) transaction
-       */
+      // Native token (SOL) transaction
       transactionMessage = await transferSolHelper.buildTransactionMessage(
         address(account.address),
         address(toAddress),
         tokenAmount,
         scope,
       );
-
-      console.log('transactionMessage', transactionMessage);
     } else {
-      /**
-       * SPL token transaction
-       */
+      // SPL token transaction
       transactionMessage = await splTokenHelper.buildTransactionMessage(
         account,
         address(toAddress),
@@ -92,7 +80,7 @@ const buildTransactionMessageAndStoreInContext = async (
 };
 
 /**
- * A thottled version to avoid multiple calls to the function since it's potentially called on every keystroke.
+ * A thottled version to avoid too many successive calls to the function since it's potentially called on every keystroke.
  */
 const throttledBuildTransactionMessageAndStoreInContext = debounce(
   buildTransactionMessageAndStoreInContext,

@@ -46,5 +46,5 @@ export const getNativeTokenPrice = (
   context: SendContext,
 ): number | undefined => {
   const { tokenPrices, scope } = context;
-  return tokenPrices?.[Networks[scope].nativeToken.caip19Id]?.price;
+  return tokenPrices?.[Networks[scope]?.nativeToken?.caip19Id]?.price;
 };
