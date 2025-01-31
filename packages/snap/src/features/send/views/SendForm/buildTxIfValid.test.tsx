@@ -7,7 +7,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import { updateInterface } from '../../../../core/utils/interface';
-import { isAllFieldsValid } from '../../../../core/validation/form';
+import { sendFieldsAreValid } from '../../../../core/validation/form';
 import {
   keyring,
   splTokenHelper,
@@ -15,7 +15,7 @@ import {
   transferSolHelper,
 } from '../../../../snapContext';
 import { SendCurrencyType, type SendContext } from '../../types';
-import { buildTxIfValid } from './buildTxIfValid';
+import { buildTxIfValid } from '../../utils/buildTxIfValid';
 
 // Mock dependencies
 jest.mock('../../../../core/utils/interface');
@@ -51,7 +51,7 @@ describe('buildTxIfValid', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Setup default mock implementations
-    (isAllFieldsValid as jest.Mock).mockReturnValue(true);
+    (sendFieldsAreValid as jest.Mock).mockReturnValue(true);
     (keyring.getAccountOrThrow as jest.Mock).mockResolvedValue({
       address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
     });
@@ -66,8 +66,8 @@ describe('buildTxIfValid', () => {
     ).mockResolvedValue('base64-encoded');
   });
 
-  it('should not build transaction if fields are invalid', async () => {
-    (isAllFieldsValid as jest.Mock).mockReturnValue(false);
+  it('does not build transaction if fields are invalid', async () => {
+    (sendFieldsAreValid as jest.Mock).mockReturnValue(false);
 
     await buildTxIfValid(mockId, mockContext);
 
@@ -75,7 +75,7 @@ describe('buildTxIfValid', () => {
     expect(keyring.getAccountOrThrow).not.toHaveBeenCalled();
   });
 
-  it('should build SOL transfer transaction when tokenCaipId is native token', async () => {
+  it('builds SOL transfer transaction when tokenCaipId is native token', async () => {
     await buildTxIfValid(mockId, mockContext);
 
     expect(transferSolHelper.buildTransactionMessage).toHaveBeenCalledWith(
@@ -87,7 +87,7 @@ describe('buildTxIfValid', () => {
     expect(updateInterface).toHaveBeenCalledTimes(2);
   });
 
-  it('should build SPL token transaction when tokenCaipId is not native token', async () => {
+  it('builds SPL token transaction when tokenCaipId is not native token', async () => {
     const splContext = {
       ...mockContext,
       tokenCaipId: Caip19Id.UsdcLocalnet,
@@ -99,7 +99,7 @@ describe('buildTxIfValid', () => {
     expect(updateInterface).toHaveBeenCalledTimes(2);
   });
 
-  it('should handle transaction build errors', async () => {
+  it('handles transaction build errors', async () => {
     (transferSolHelper.buildTransactionMessage as jest.Mock).mockRejectedValue(
       new Error('Build failed'),
     );
@@ -119,7 +119,7 @@ describe('buildTxIfValid', () => {
     );
   });
 
-  it('should update interface with fee estimation', async () => {
+  it('updates interface with fee estimation', async () => {
     await buildTxIfValid(mockId, mockContext);
 
     expect(updateInterface).toHaveBeenLastCalledWith(

@@ -30,7 +30,6 @@ import {
 import type { MockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../test/utils';
-import { sleep } from '../../utils/sleep';
 import { DEFAULT_SEND_CONTEXT } from './renderSend';
 import { RpcRequestMethod } from './types';
 
@@ -112,6 +111,8 @@ describe('Send', () => {
 
   it('renders the send form', async () => {
     const { mockResolvedResult, server } = mockSolanaRpc;
+
+    console.log('🇹🇭server', server);
 
     // temporary mock for the token prices
     // FIXME: when we have a better way to handle external requests
@@ -224,14 +225,14 @@ describe('Send', () => {
 
     await screen2.typeInField(SendFormNames.AmountInput, '0.001');
 
-    await sleep(1000); // Sleep to make sure the debounce has finished
+    await screen2.waitForUpdate();
 
     const screen3 = await response.getInterface();
 
     const updatedContext3: SendContext = {
       ...updatedContext2,
       amount: '0.001',
-      buildingTransaction: true,
+      transactionMessage: 'some-base64-encoded-message',
     };
 
     expect(screen3).toRender(<Send context={updatedContext3} />);

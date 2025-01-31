@@ -80,6 +80,8 @@ const createAppIfNotExists = () => {
       const id = requestId ?? '0';
 
       const mockStack = mocks.get(method);
+      console.log('🇹🇭🇹🇭🇹🇭🇹🇭method', method);
+      console.log('🇹🇭🇹🇭🇹🇭🇹🇭mockStack', mockStack);
       if (!mockStack) {
         return res.status(400).json({
           jsonrpc: '2.0',

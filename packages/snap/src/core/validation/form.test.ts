@@ -6,7 +6,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../test/mocks/solana-keyring-accounts';
 import type { FieldValidationFunction } from '../types/form';
-import { isAllFieldsValid, required, validateField } from './form';
+import { required, sendFieldsAreValid, validateField } from './form';
 
 describe('validateField', () => {
   const validation: Partial<Record<'test', FieldValidationFunction[]>> = {
@@ -32,7 +32,7 @@ describe('validateField', () => {
   });
 });
 
-describe('isAllFieldsValid', () => {
+describe('sendFieldsAreValid', () => {
   it('returns true when all fields are valid', () => {
     const context = {
       preferences: {
@@ -52,7 +52,7 @@ describe('isAllFieldsValid', () => {
       currencyType: SendCurrencyType.TOKEN,
     } as unknown as SendContext;
 
-    const result = isAllFieldsValid(context);
+    const result = sendFieldsAreValid(context);
     expect(result).toBe(true);
   });
 
@@ -75,7 +75,7 @@ describe('isAllFieldsValid', () => {
       currencyType: SendCurrencyType.TOKEN,
     } as unknown as SendContext;
 
-    const result = isAllFieldsValid(context);
+    const result = sendFieldsAreValid(context);
     expect(result).toBe(false);
   });
 
@@ -98,7 +98,7 @@ describe('isAllFieldsValid', () => {
       currencyType: SendCurrencyType.TOKEN,
     } as unknown as SendContext;
 
-    const result = isAllFieldsValid(contextWithInvalidBalance);
+    const result = sendFieldsAreValid(contextWithInvalidBalance);
     expect(result).toBe(false);
   });
 });

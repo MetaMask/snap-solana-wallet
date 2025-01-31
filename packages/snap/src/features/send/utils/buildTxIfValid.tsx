@@ -1,21 +1,21 @@
 import { address, type CompilableTransactionMessage } from '@solana/web3.js';
 import { debounce } from 'lodash';
 
-import { Networks } from '../../../../core/constants/solana';
-import { lamportsToSol } from '../../../../core/utils/conversion';
-import { getCaip19Address } from '../../../../core/utils/getCaip19Address';
-import { updateInterface } from '../../../../core/utils/interface';
-import logger from '../../../../core/utils/logger';
-import { isAllFieldsValid } from '../../../../core/validation/form';
+import { Networks } from '../../../core/constants/solana';
+import { lamportsToSol } from '../../../core/utils/conversion';
+import { getCaip19Address } from '../../../core/utils/getCaip19Address';
+import { updateInterface } from '../../../core/utils/interface';
+import logger from '../../../core/utils/logger';
+import { sendFieldsAreValid } from '../../../core/validation/form';
 import {
   keyring,
   splTokenHelper,
   transactionHelper,
   transferSolHelper,
-} from '../../../../snapContext';
-import { getTokenAmount } from '../../selectors';
-import { Send } from '../../Send';
-import { type SendContext } from '../../types';
+} from '../../../snapContext';
+import { getTokenAmount } from '../selectors';
+import { Send } from '../Send';
+import { type SendContext } from '../types';
 
 const buildTransactionMessageAndStoreInContext = async (
   id: string,
@@ -100,7 +100,7 @@ const throttledBuildTransactionMessageAndStoreInContext = debounce(
  * @param context - The send context.
  */
 export const buildTxIfValid = async (id: string, context: SendContext) => {
-  if (isAllFieldsValid(context)) {
+  if (sendFieldsAreValid(context)) {
     const updatedContext: SendContext = {
       ...context,
     };

@@ -19,7 +19,7 @@ import { validateField } from '../../../../core/validation/form';
 import { Send } from '../../Send';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 import { validateBalance } from '../../utils/balance';
-import { buildTxIfValid } from './buildTxIfValid';
+import { buildTxIfValid } from '../../utils/buildTxIfValid';
 import { validation } from './validation';
 
 /**

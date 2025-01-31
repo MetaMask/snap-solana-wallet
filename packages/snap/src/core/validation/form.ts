@@ -42,7 +42,7 @@ export function validateField<FieldNames extends string | number | symbol>(
  * @param context - The send context, where values are read from.
  * @returns True if all fields are valid, otherwise false.
  */
-export function isAllFieldsValid(context: SendContext): boolean {
+export function sendFieldsAreValid(context: SendContext): boolean {
   const allValidators = validation(context.preferences.locale);
 
   const values: Partial<Record<SendFormNames, string>> = {

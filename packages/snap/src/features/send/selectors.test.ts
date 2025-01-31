@@ -63,7 +63,7 @@ describe('Send selectors', () => {
   });
 
   describe('getSelectedTokenMetadata', () => {
-    it('should return token metadata with required fields', () => {
+    it('returns token metadata with required fields', () => {
       const result = getSelectedTokenMetadata(mockContext);
       expect(result).toStrictEqual({
         ...mockContext.tokenMetadata[mockTokenCaipId],
@@ -72,7 +72,7 @@ describe('Send selectors', () => {
       });
     });
 
-    it('should return default values when token metadata is missing', () => {
+    it('returns default values when token metadata is missing', () => {
       const noMetadataContext = {
         ...mockContext,
         tokenMetadata: {},
@@ -86,12 +86,12 @@ describe('Send selectors', () => {
   });
 
   describe('getSelectedTokenPrice', () => {
-    it('should return the price for the selected token', () => {
+    it('returns the price for the selected token', () => {
       const result = getSelectedTokenPrice(mockContext);
       expect(result).toBe(2);
     });
 
-    it('should return undefined when price is not available', () => {
+    it('returns undefined when price is not available', () => {
       const noPriceContext = {
         ...mockContext,
         tokenPrices: {},
@@ -102,12 +102,12 @@ describe('Send selectors', () => {
   });
 
   describe('getNativeTokenPrice', () => {
-    it('should return the price for the native token', () => {
+    it('returns the price for the native token', () => {
       const result = getNativeTokenPrice(mockContext);
       expect(result).toBe(50);
     });
 
-    it('should return undefined when native token price is not available', () => {
+    it('returns undefined when native token price is not available', () => {
       const noPriceContext = {
         ...mockContext,
         tokenPrices: {},

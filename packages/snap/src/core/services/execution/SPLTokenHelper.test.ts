@@ -65,7 +65,7 @@ describe('SplTokenHelper', () => {
       mockFrom.privateKeyBytesAsNum = [1, 2, 3];
     });
 
-    it('should successfully transfer SPL tokens', async () => {
+    it('successfully transfers SPL tokens', async () => {
       const mockAssociatedTokenAccountSender = {
         exists: true,
         address: 'mockAssociatedTokenAddressSender' as Address,
@@ -119,7 +119,7 @@ describe('SplTokenHelper', () => {
       expect(mockTransactionHelper.sendTransaction).toHaveBeenCalled();
     });
 
-    it('should throw error if transfer fails', async () => {
+    it('throws error if transfer fails', async () => {
       const error = new Error('Transfer failed');
       jest
         .spyOn(splTokenHelper, 'getOrCreateAssociatedTokenAccount')
@@ -145,7 +145,7 @@ describe('SplTokenHelper', () => {
     const mockNetwork = Network.Localnet;
     const mockPayer = {} as unknown as KeyPairSigner;
 
-    it('should return existing associated token account', async () => {
+    it('returns existing associated token account', async () => {
       const mockAccount = {
         exists: true,
         address: 'mockAddress' as Address,
@@ -164,7 +164,7 @@ describe('SplTokenHelper', () => {
       expect(result).toStrictEqual(mockAccount);
     });
 
-    it('should create new associated token account if it does not exist', async () => {
+    it('creates new associated token account if it does not exist', async () => {
       const mockNonExistingAccount = {
         exists: false,
       } as unknown as MaybeAccount<any>;
@@ -192,7 +192,7 @@ describe('SplTokenHelper', () => {
       expect(result).toStrictEqual(mockNewAccount);
     });
 
-    it('should throw error if payer is not provided for new account creation', async () => {
+    it('throws error if payer is not provided for new account creation', async () => {
       const mockNonExistingAccount = {
         exists: false,
       } as unknown as MaybeAccount<any>;
@@ -216,7 +216,7 @@ describe('SplTokenHelper', () => {
     const mockOwner = address(MOCK_SOLANA_KEYRING_ACCOUNTS[0].address);
     const mockNetwork = Network.Localnet;
 
-    it('should return associated token account', async () => {
+    it('returns associated token account', async () => {
       const mockAccount = {
         exists: true,
         address: 'mockAddress' as Address,
@@ -235,7 +235,7 @@ describe('SplTokenHelper', () => {
       expect(result).toStrictEqual(mockAccount);
     });
 
-    it('should handle non-existent associated token account', async () => {
+    it('handles non-existent associated token account', async () => {
       const mockNonExistingAccount = {
         exists: false,
       } as unknown as MaybeAccount<any>;
@@ -262,7 +262,7 @@ describe('SplTokenHelper', () => {
       address: 'mockPayerAddress' as Address,
     } as unknown as KeyPairSigner;
 
-    it('should create new associated token account', async () => {
+    it('creates new associated token account', async () => {
       const mockNonExistingAccount = {
         exists: false,
       } as unknown as MaybeAccount<any>;
@@ -305,7 +305,7 @@ describe('SplTokenHelper', () => {
       expect(mockTransactionHelper.sendTransaction).toHaveBeenCalled();
     });
 
-    it('should throw error if account already exists', async () => {
+    it('throws error if account already exists', async () => {
       const mockExistingAccount = {
         exists: true,
         address: 'mockAddress' as Address,
@@ -330,7 +330,7 @@ describe('SplTokenHelper', () => {
     const mockMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU' as Address;
     const mockNetwork = Network.Localnet;
 
-    it('should return token account when it exists', async () => {
+    it('returns token account when it exists', async () => {
       const mockTokenAccount = {
         exists: true,
         address: mockMint,
@@ -359,7 +359,7 @@ describe('SplTokenHelper', () => {
       expect(fetchJsonParsedAccountSpy).toHaveBeenCalled();
     });
 
-    it('should return non-existing account when token account does not exist', async () => {
+    it('returns non-existing account when token account does not exist', async () => {
       const mockNonExistingAccount = {
         exists: false,
       } as unknown as MaybeAccount<any>;
@@ -386,7 +386,7 @@ describe('SplTokenHelper', () => {
   });
 
   describe('getDecimals', () => {
-    it('should return decimals from token account', () => {
+    it('returns decimals from token account', () => {
       const mockTokenAccount = {
         exists: true,
         data: { decimals: 6 },
@@ -396,7 +396,7 @@ describe('SplTokenHelper', () => {
       expect(result).toBe(6);
     });
 
-    it('should throw error if account does not exist', () => {
+    it('throws error if account does not exist', () => {
       const mockTokenAccount = {
         exists: false,
       } as unknown as MaybeAccount<any> & Exists;
@@ -406,7 +406,7 @@ describe('SplTokenHelper', () => {
       );
     });
 
-    it('should throw error if decimals are not found', () => {
+    it('throws error if decimals are not found', () => {
       const mockTokenAccount = {
         exists: true,
         data: {},
@@ -419,7 +419,7 @@ describe('SplTokenHelper', () => {
   });
 
   describe('assertAccountDecoded', () => {
-    it('should not throw for decoded account', () => {
+    it('does not throw for decoded account', () => {
       const mockDecodedAccount = {
         exists: true,
         data: { someField: 'value' },
@@ -430,7 +430,7 @@ describe('SplTokenHelper', () => {
       }).not.toThrow();
     });
 
-    it('should throw for encoded account (Uint8Array)', () => {
+    it('throws for encoded account (Uint8Array)', () => {
       const mockEncodedAccount = {
         exists: true,
         data: new Uint8Array([1, 2, 3]),
@@ -441,7 +441,7 @@ describe('SplTokenHelper', () => {
       }).toThrow('Token account is encoded. Implement a decoder.');
     });
 
-    it('should throw for non-existent account', () => {
+    it('throws for non-existent account', () => {
       const mockNonExistentAccount = {
         exists: false,
         data: { someField: 'value' },
