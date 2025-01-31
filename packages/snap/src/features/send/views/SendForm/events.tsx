@@ -210,7 +210,6 @@ async function onMaxAmountButtonClick({
   updatedContext.error = null;
 
   updatedContext.validation[SendFormNames.AmountInput] =
-    updatedContext.validation[SendFormNames.AmountInput] ??
     validateField<SendFormNames>(
       SendFormNames.AmountInput,
       updatedContext.amount,
