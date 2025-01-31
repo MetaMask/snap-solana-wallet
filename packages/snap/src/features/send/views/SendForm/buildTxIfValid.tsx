@@ -72,6 +72,8 @@ const buildTransactionMessageAndStoreInContext = async (
       title: 'send.simulationTitleError',
       message: 'send.simulationMessageError',
     };
+
+    updatedContext.transactionMessage = null;
   }
 
   updatedContext.buildingTransaction = false;
@@ -98,16 +100,20 @@ const throttledBuildTransactionMessageAndStoreInContext = debounce(
  * @param context - The send context.
  */
 export const buildTxIfValid = async (id: string, context: SendContext) => {
-  const isAllValid = isAllFieldsValid(context);
-
-  if (isAllValid) {
+  if (isAllFieldsValid(context)) {
     const updatedContext: SendContext = {
       ...context,
     };
 
     // Show the loading state on the interface
     updatedContext.buildingTransaction = true;
+    updatedContext.transactionMessage = null;
 
+    /**
+     * Doing this here instead of in the throttled call prevents a "laggy" impression on the UI that would be caused by the debounce.
+     * We immediately update the UI to show the loading state, even though
+     * we in fact wait for the end of the keystrokes to start building the transaction.
+     */
     await updateInterface(
       id,
       <Send context={updatedContext} />,
