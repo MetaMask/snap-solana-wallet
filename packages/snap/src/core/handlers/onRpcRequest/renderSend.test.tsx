@@ -112,8 +112,6 @@ describe('Send', () => {
   it('renders the send form', async () => {
     const { mockResolvedResult, server } = mockSolanaRpc;
 
-    console.log('🇹🇭server', server);
-
     // temporary mock for the token prices
     // FIXME: when we have a better way to handle external requests
     server?.get(`/v3/spot-prices`, (_: any, res: any) => {
