@@ -1,4 +1,3 @@
-import { isNullOrUndefined } from '@metamask/utils';
 import { address, type CompilableTransactionMessage } from '@solana/web3.js';
 import { debounce } from 'lodash';
 
@@ -7,6 +6,7 @@ import { lamportsToSol } from '../../../../core/utils/conversion';
 import { getCaip19Address } from '../../../../core/utils/getCaip19Address';
 import { updateInterface } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
+import { isAllFieldsValid } from '../../../../core/validation/form';
 import {
   keyring,
   splTokenHelper,
@@ -110,7 +110,7 @@ const throttledBuildTransactionMessageAndStoreInContext = debounce(
  * @param context - The send context.
  */
 export const buildTxIfValid = async (id: string, context: SendContext) => {
-  const isAllValid = Object.values(context.validation).every(isNullOrUndefined);
+  const isAllValid = isAllFieldsValid(context);
 
   if (isAllValid) {
     const updatedContext: SendContext = {

@@ -15,7 +15,7 @@ export function validateBalance(
   context: SendContext,
 ): FormFieldError | null {
   const translate = i18n(context.preferences.locale);
-  const { price } = context.tokenPrices[context.tokenCaipId] ?? { price: 0 };
+  const { price } = context.tokenPrices?.[context.tokenCaipId] ?? { price: 0 };
 
   const amountGreaterThanBalance =
     parseFloat(

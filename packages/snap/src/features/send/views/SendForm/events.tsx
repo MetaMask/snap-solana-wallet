@@ -159,16 +159,12 @@ async function onSwapCurrencyButtonClick({
 
   const { price } = context.tokenPrices[context.tokenCaipId] ?? { price: 0 };
 
+  // If we switched to TOKEN, divide by currency rate
   if (context.currencyType === SendCurrencyType.TOKEN) {
-    /**
-     * If we switched to TOKEN, divide by currency rate
-     */
     context.amount = currentAmount.dividedBy(price).toString();
   }
 
-  /**
-   * If the currency is USD, adjust the amount
-   */
+  // If the currency is USD, adjust the amount
   if (context.currencyType === SendCurrencyType.FIAT) {
     context.amount = currentAmount.multipliedBy(price).toString();
   }
