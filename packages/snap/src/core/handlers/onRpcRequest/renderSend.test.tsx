@@ -30,6 +30,7 @@ import {
 import type { MockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../test/utils';
+import { sleep } from '../../utils/sleep';
 import { DEFAULT_SEND_CONTEXT } from './renderSend';
 import { RpcRequestMethod } from './types';
 
@@ -223,11 +224,14 @@ describe('Send', () => {
 
     await screen2.typeInField(SendFormNames.AmountInput, '0.001');
 
+    await sleep(1000); // Sleep to make sure the debounce has finished
+
     const screen3 = await response.getInterface();
 
     const updatedContext3: SendContext = {
       ...updatedContext2,
       amount: '0.001',
+      buildingTransaction: true,
     };
 
     expect(screen3).toRender(<Send context={updatedContext3} />);
