@@ -82,13 +82,18 @@ export const SendForm = ({ context }: SendFormProps) => {
     toAddress.length > 0 &&
     isNullOrUndefined(validation?.[SendFormNames.DestinationAccountInput]);
 
+  const isTransactionMessageSuccessfullyBuild =
+    !isNullOrUndefined(context.transactionMessage) &&
+    context.transactionMessage !== '';
+
   const canReview =
     fromAccountId.length > 0 &&
     amount.length > 0 &&
     toAddress.length > 0 &&
     Object.values(validation).every(isNullOrUndefined) &&
     isBalanceDefined &&
-    !buildingTransaction;
+    !buildingTransaction &&
+    isTransactionMessageSuccessfullyBuild;
 
   return (
     <Container>
