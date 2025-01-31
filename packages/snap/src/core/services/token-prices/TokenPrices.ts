@@ -48,7 +48,7 @@ export class TokenPrices {
   #caipToCurrency(caip19Id: CaipAssetType): string {
     const isCurrency = caip19Id.includes('/iso4217:');
     const currency = isCurrency
-      ? caip19Id?.split('/iso4217:')[1]
+      ? caip19Id?.split('/iso4217:')?.[1]?.toLowerCase()
       : TOKEN_ADDRESS_TO_CRYPTO_CURRENCY[getCaip19Address(caip19Id)];
 
     return currency ?? 'usd';
