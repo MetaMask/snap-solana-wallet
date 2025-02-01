@@ -20,6 +20,7 @@ import {
   sendTransactionWithoutConfirmingFactory,
   signTransactionMessageWithSigners,
   type Blockhash,
+  decompileTransactionMessageFetchingLookupTables,
 } from '@solana/web3.js';
 
 import type { Network } from '../../constants/solana';
@@ -196,17 +197,23 @@ export class TransactionHelper {
    * Base64 decode a transaction message: converts a base64 encoded string back to a transaction message.
    *
    * @param base64EncodedTransactionMessage - The base64 encoded transaction message to decode.
+   * @param scope - The network on which the transaction is being sent.
    * @returns The decoded transaction message.
    */
   async base64DecodeTransaction(
     base64EncodedTransactionMessage: string,
+    scope: Network,
   ): Promise<CompilableTransactionMessage> {
     return pipe(
       base64EncodedTransactionMessage,
       getBase64Encoder().encode,
       getTransactionDecoder().decode,
       (tx) => getCompiledTransactionMessageDecoder().decode(tx.messageBytes),
-      decompileTransactionMessage,
+      async (decodedMessageBytes) =>
+        decompileTransactionMessageFetchingLookupTables(
+          decodedMessageBytes,
+          this.#connection.getRpc(scope),
+        ),
     );
   }
 

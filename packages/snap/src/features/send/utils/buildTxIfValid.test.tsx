@@ -1,26 +1,26 @@
 import { address } from '@solana/web3.js';
 
-import { Caip19Id, Network } from '../../../../core/constants/solana';
-import { DEFAULT_SEND_CONTEXT } from '../../../../core/handlers/onRpcRequest/renderSend';
+import { Caip19Id, Network } from '../../../core/constants/solana';
+import { DEFAULT_SEND_CONTEXT } from '../../../core/handlers/onRpcRequest/renderSend';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
-} from '../../../../core/test/mocks/solana-keyring-accounts';
-import { updateInterface } from '../../../../core/utils/interface';
-import { sendFieldsAreValid } from '../../../../core/validation/form';
+} from '../../../core/test/mocks/solana-keyring-accounts';
+import { updateInterface } from '../../../core/utils/interface';
+import { sendFieldsAreValid } from '../../../core/validation/form';
 import {
   keyring,
   splTokenHelper,
   transactionHelper,
   transferSolHelper,
-} from '../../../../snapContext';
-import { SendCurrencyType, type SendContext } from '../../types';
-import { buildTxIfValid } from '../../utils/buildTxIfValid';
+} from '../../../snapContext';
+import { SendCurrencyType, type SendContext } from '../types';
+import { buildTxIfValid } from './buildTxIfValid';
 
 // Mock dependencies
-jest.mock('../../../../core/utils/interface');
-jest.mock('../../../../core/validation/form');
-jest.mock('../../../../snapContext');
+jest.mock('../../../core/utils/interface');
+jest.mock('../../../core/validation/form');
+jest.mock('../../../snapContext');
 jest.mock('lodash', () => ({
   debounce: (fn: any) => fn, // Make debounce synchronous for testing
 }));
@@ -126,8 +126,7 @@ describe('buildTxIfValid', () => {
       mockId,
       expect.anything(),
       expect.objectContaining({
-        feeEstimatedInSol: expect.any(String),
-        transactionMessage: 'base64-encoded',
+        feeEstimatedInSol: '0.000005',
         buildingTransaction: false,
       }),
     );

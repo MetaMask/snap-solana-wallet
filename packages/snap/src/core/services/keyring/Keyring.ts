@@ -466,6 +466,7 @@ export class SolanaKeyring implements Keyring {
     const decodedTransactionMessage =
       await this.#transactionHelper.base64DecodeTransaction(
         base64EncodedTransactionMessage,
+        scope as Network,
       );
 
     const signature = await this.#transactionHelper.sendTransaction(
