@@ -7,7 +7,6 @@ import {
   addSignersToTransactionMessage,
   compileTransaction,
   compileTransactionMessage,
-  decompileTransactionMessage,
   getBase64Decoder,
   getBase64Encoder,
   getCompiledTransactionMessageEncoder,
