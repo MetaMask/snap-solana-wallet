@@ -11,7 +11,7 @@ const prodOrigins = [
 ];
 
 const config = new ConfigProvider().get();
-const isDev = config.environment === 'local';
+const isDev = ['local', 'test'].includes(config.environment);
 
 const allowedOrigins = isDev ? ['http://localhost:3000'] : prodOrigins;
 
