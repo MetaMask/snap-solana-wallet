@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 import type { Infer } from 'superstruct';
-import { array, coerce, create, object, optional, string } from 'superstruct';
+import { array, coerce, create, enums, object, string } from 'superstruct';
 
 import { Network, Networks } from '../../constants/solana';
 
@@ -11,6 +11,7 @@ const CommaSeparatedString = coerce(
 );
 
 const EnvStruct = object({
+  ENVIRONMENT: enums(['local', 'test', 'production']),
   RPC_URL_MAINNET_LIST: CommaSeparatedString,
   RPC_URL_DEVNET_LIST: CommaSeparatedString,
   RPC_URL_TESTNET_LIST: CommaSeparatedString,
@@ -19,7 +20,6 @@ const EnvStruct = object({
   TOKEN_API_BASE_URL: string(),
   STATIC_API_BASE_URL: string(),
   LOCAL_API_BASE_URL: string(),
-  LOCAL: optional(string()),
 });
 
 export type Env = Infer<typeof EnvStruct>;
@@ -29,8 +29,8 @@ export type NetworkWithRpcUrls = (typeof Networks)[Network] & {
 };
 
 export type Config = {
+  environment: string;
   networks: NetworkWithRpcUrls[];
-  isLocal: boolean;
   activeNetworks: Network[];
   priceApi: {
     baseUrl: string;
@@ -70,6 +70,7 @@ export class ConfigProvider {
 
   #parseEnvironment() {
     const rawEnvironment = {
+      ENVIRONMENT: process.env.ENVIRONMENT,
       RPC_URL_MAINNET_LIST: process.env.RPC_URL_MAINNET_LIST,
       RPC_URL_DEVNET_LIST: process.env.RPC_URL_DEVNET_LIST,
       RPC_URL_TESTNET_LIST: process.env.RPC_URL_TESTNET_LIST,
@@ -80,8 +81,6 @@ export class ConfigProvider {
       TOKEN_API_BASE_URL: process.env.TOKEN_API_BASE_URL,
       // Static API
       STATIC_API_BASE_URL: process.env.STATIC_API_BASE_URL,
-      // TODO: Remove this once we have a better way to handle local environment
-      LOCAL: process.env.LOCAL,
       LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL,
     };
 
@@ -91,6 +90,7 @@ export class ConfigProvider {
 
   #buildConfig(environment: Env): Config {
     return {
+      environment: environment.ENVIRONMENT,
       networks: [
         {
           ...Networks[Network.Mainnet],
@@ -109,20 +109,22 @@ export class ConfigProvider {
           rpcUrls: environment.RPC_URL_LOCALNET_LIST,
         },
       ],
-      isLocal: Boolean(environment.LOCAL),
-      activeNetworks: environment.LOCAL
-        ? [Network.Localnet]
-        : [Network.Mainnet, Network.Devnet],
+      activeNetworks:
+        environment.ENVIRONMENT === 'local'
+          ? [Network.Localnet]
+          : [Network.Mainnet, Network.Devnet],
       priceApi: {
-        baseUrl: environment.LOCAL
-          ? environment.LOCAL_API_BASE_URL
-          : environment.PRICE_API_BASE_URL,
+        baseUrl:
+          environment.ENVIRONMENT === 'local'
+            ? environment.LOCAL_API_BASE_URL
+            : environment.PRICE_API_BASE_URL,
         chunkSize: 50,
       },
       tokenApi: {
-        baseUrl: environment.LOCAL
-          ? environment.LOCAL_API_BASE_URL
-          : environment.TOKEN_API_BASE_URL,
+        baseUrl:
+          environment.ENVIRONMENT === 'local'
+            ? environment.LOCAL_API_BASE_URL
+            : environment.TOKEN_API_BASE_URL,
         chunkSize: 50,
       },
       staticApi: {
