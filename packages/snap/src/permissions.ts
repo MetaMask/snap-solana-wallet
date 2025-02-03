@@ -2,6 +2,10 @@ import { KeyringRpcMethod } from '@metamask/keyring-api';
 
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 
+declare global {
+  var environment: { NODE_ENV?: string };
+}
+
 const prodOrigins = [
   'https://portfolio.metamask.io',
   'https://portfolio-builds.metafi-dev.codefi.network',
@@ -9,26 +13,26 @@ const prodOrigins = [
   'https://ramps-dev.portfolio.metamask.io',
 ];
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = globalThis.environment?.NODE_ENV === 'development';
 
-const allowedOrigins = isDev 
-  ? ['http://localhost:3000']
-  : prodOrigins;
+const allowedOrigins = isDev ? ['http://localhost:3000'] : prodOrigins;
 
-const dappPermissions = isDev ? new Set([
-  // Keyring methods
-  KeyringRpcMethod.ListAccounts,
-  KeyringRpcMethod.GetAccount,
-  KeyringRpcMethod.CreateAccount,
-  KeyringRpcMethod.FilterAccountChains,
-  KeyringRpcMethod.DeleteAccount,
-  KeyringRpcMethod.GetAccountBalances,
-  KeyringRpcMethod.SubmitRequest,
-  KeyringRpcMethod.ListAccountTransactions,
-  KeyringRpcMethod.ListAccountAssets,
-  // RPC methods
-  RpcRequestMethod.StartSendTransactionFlow,
-]) : new Set([]);
+const dappPermissions = isDev
+  ? new Set([
+      // Keyring methods
+      KeyringRpcMethod.ListAccounts,
+      KeyringRpcMethod.GetAccount,
+      KeyringRpcMethod.CreateAccount,
+      KeyringRpcMethod.FilterAccountChains,
+      KeyringRpcMethod.DeleteAccount,
+      KeyringRpcMethod.GetAccountBalances,
+      KeyringRpcMethod.SubmitRequest,
+      KeyringRpcMethod.ListAccountTransactions,
+      KeyringRpcMethod.ListAccountAssets,
+      // RPC methods
+      RpcRequestMethod.StartSendTransactionFlow,
+    ])
+  : new Set([]);
 
 const metamaskPermissions = new Set([
   // Keyring methods

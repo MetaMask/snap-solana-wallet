@@ -15,6 +15,7 @@ const environment = {
   STATIC_API_BASE_URL: process.env.STATIC_API_BASE_URL ?? '',
   LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL ?? '',
   LOCAL: process.env.LOCAL,
+  NODE_ENV: process.env.NODE_ENV ?? 'production',
 };
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -32,8 +33,8 @@ const config: SnapConfig = {
   },
   manifest: {
     path: isDev ? './snap.dev.manifest.json' : './snap.manifest.json',
-    update: true
-  }
+    update: true,
+  },
 };
 
 export default config;
