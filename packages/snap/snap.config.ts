@@ -29,7 +29,10 @@ const config: SnapConfig = {
     crypto: true,
   },
   manifest: {
-    path: environment.ENVIRONMENT === 'local' ? './snap.dev.manifest.json' : './snap.manifest.json',
+    path:
+      environment.ENVIRONMENT === 'local'
+        ? './snap.dev.manifest.json'
+        : './snap.manifest.json',
     update: true,
   },
 };
