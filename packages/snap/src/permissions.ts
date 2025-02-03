@@ -3,7 +3,8 @@ import { KeyringRpcMethod } from '@metamask/keyring-api';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 
 declare global {
-  var environment: { NODE_ENV?: string };
+  // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
+  var environment: { nodeEnv?: string };
 }
 
 const prodOrigins = [
@@ -13,7 +14,7 @@ const prodOrigins = [
   'https://ramps-dev.portfolio.metamask.io',
 ];
 
-const isDev = globalThis.environment?.NODE_ENV === 'development';
+const isDev = globalThis.environment?.nodeEnv === 'development';
 
 const allowedOrigins = isDev ? ['http://localhost:3000'] : prodOrigins;
 
