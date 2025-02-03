@@ -22,9 +22,6 @@ const withSolanaErrorLogging =
     logFn(...args);
   };
 
-// eslint-disable-next-line no-restricted-globals
-const isLocal = Boolean(process.env.LOCAL);
-
 /**
  * A decorator function that noops if the environment is not local,
  * and runs the decorated function otherwise.
@@ -32,10 +29,11 @@ const isLocal = Boolean(process.env.LOCAL);
  * @param fn - The function to wrap.
  * @returns The wrapped function.
  */
-const withNoopOutsideLocal =
+const withNoopInProduction =
   (fn: (...args: any[]) => void) =>
   (...args: any[]) => {
-    if (!isLocal) {
+    // eslint-disable-next-line no-restricted-globals
+    if (process.env.ENVIRONMENT === 'production') {
       return;
     }
     fn(...args);
@@ -45,11 +43,11 @@ const withNoopOutsideLocal =
  * A basic logger that wraps the console, extending its functionality to properly log Solana errors.
  */
 const logger: ILogger = {
-  log: withNoopOutsideLocal(console.log),
-  info: withNoopOutsideLocal(console.info),
-  warn: withNoopOutsideLocal(console.warn),
-  debug: withNoopOutsideLocal(console.debug),
-  error: withNoopOutsideLocal(withSolanaErrorLogging(console.error)),
+  log: withNoopInProduction(console.log),
+  info: withNoopInProduction(console.info),
+  warn: withNoopInProduction(console.warn),
+  debug: withNoopInProduction(console.debug),
+  error: withNoopInProduction(withSolanaErrorLogging(console.error)),
 };
 
 export default logger;

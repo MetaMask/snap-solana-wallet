@@ -139,3 +139,29 @@ export const MOCK_SOLANA_RPC_GET_TRANSACTION_RESPONSE = {
   },
   id: '0',
 };
+
+export const MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_RESPONSE = {
+  jsonrpc: '2.0',
+  result: {
+    context: { apiVersion: '2.0.15', slot: 341197247 },
+    value: [
+      {
+        data: ['', 'base58'],
+        executable: false,
+        lamports: 88849814690250,
+        owner: '11111111111111111111111111111111',
+        rentEpoch: 1844674407370955,
+        space: 0,
+      },
+      {
+        data: ['', 'base58'],
+        executable: false,
+        lamports: 998763433,
+        owner: '2WRuhE4GJFoE23DYzp2ij6ZnuQ8p9mJeU6gDgfsjR4or',
+        rentEpoch: 1844674407370955,
+        space: 0,
+      },
+    ],
+  },
+  id: '0',
+};

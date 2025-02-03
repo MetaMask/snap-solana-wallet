@@ -91,7 +91,7 @@ describe('SolanaKeyring', () => {
       getLatestBlockhash: jest.fn(),
       getComputeUnitEstimate: jest.fn(),
       sendTransaction: jest.fn(),
-      base64DecodeTransactionMessage: jest.fn(),
+      base64DecodeTransaction: jest.fn(),
     } as unknown as TransactionHelper;
 
     mockTokenMetadataService = {

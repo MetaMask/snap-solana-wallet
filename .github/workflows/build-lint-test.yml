@@ -40,6 +40,7 @@ jobs:
     needs:
       - prepare
     env:
+      ENVIRONMENT: production
       RPC_URL_MAINNET_LIST: ${{ secrets.RPC_URL_MAINNET_LIST }}
       RPC_URL_DEVNET_LIST: ${{ secrets.RPC_URL_DEVNET_LIST }}
       RPC_URL_TESTNET_LIST: ${{ secrets.RPC_URL_TESTNET_LIST }}
@@ -107,6 +108,7 @@ jobs:
       - prepare
       - build
     env:
+      ENVIRONMENT: test
       RPC_URL_MAINNET_LIST: ${{ secrets.RPC_URL_MAINNET_LIST }}
       RPC_URL_DEVNET_LIST: ${{ secrets.RPC_URL_DEVNET_LIST }}
       RPC_URL_TESTNET_LIST: ${{ secrets.RPC_URL_TESTNET_LIST }}
@@ -115,7 +117,6 @@ jobs:
       LOCAL_API_BASE_URL: ${{ secrets.LOCAL_API_BASE_URL }}
       TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
       STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
-      LOCAL: true
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js

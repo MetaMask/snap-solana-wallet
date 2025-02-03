@@ -436,7 +436,6 @@ export class SolanaKeyring implements Keyring {
     > = {
       [SolMethod.SendAndConfirmTransaction]:
         this.handleSendAndConfirmTransaction.bind(this),
-      // Register other handlers here
     };
 
     if (!(method in methodToHandler)) {
@@ -465,8 +464,9 @@ export class SolanaKeyring implements Keyring {
     );
 
     const decodedTransactionMessage =
-      await this.#transactionHelper.base64DecodeTransactionMessage(
+      await this.#transactionHelper.base64DecodeTransaction(
         base64EncodedTransactionMessage,
+        scope as Network,
       );
 
     const signature = await this.#transactionHelper.sendTransaction(

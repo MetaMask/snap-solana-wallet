@@ -6,6 +6,7 @@ import { resolve } from 'path';
 dotenv.config();
 
 const environment = {
+  ENVIRONMENT: process.env.ENVIRONMENT ?? '',
   RPC_URL_MAINNET_LIST: process.env.RPC_URL_MAINNET_LIST ?? '',
   RPC_URL_DEVNET_LIST: process.env.RPC_URL_DEVNET_LIST ?? '',
   RPC_URL_TESTNET_LIST: process.env.RPC_URL_TESTNET_LIST ?? '',
@@ -14,11 +15,7 @@ const environment = {
   TOKEN_API_BASE_URL: process.env.TOKEN_API_BASE_URL ?? '',
   STATIC_API_BASE_URL: process.env.STATIC_API_BASE_URL ?? '',
   LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL ?? '',
-  LOCAL: process.env.LOCAL,
-  NODE_ENV: process.env.NODE_ENV ?? 'production',
 };
-
-const isDev = process.env.NODE_ENV === 'development';
 
 const config: SnapConfig = {
   bundler: 'webpack',
@@ -32,7 +29,7 @@ const config: SnapConfig = {
     crypto: true,
   },
   manifest: {
-    path: isDev ? './snap.dev.manifest.json' : './snap.manifest.json',
+    path: environment.ENVIRONMENT === 'local' ? './snap.dev.manifest.json' : './snap.manifest.json',
     update: true,
   },
 };

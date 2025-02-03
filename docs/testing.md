@@ -5,8 +5,8 @@ Make sure you are familiar with the framework before writting tests.
 
 ### Prerequisites
 
-Tests should be run with a `LOCAL=true` env varriable on your `.env` file.
-This is because we want to mock external dependencies by proxying all calls to our local mock server.
+Tests should be run with a `ENVIRONMENT=test` env varriable on your `.env` file.
+This is because we want to mock external dependencies by proxying all calls to a local mock server, started as part of the tests setup.
 
 ### Running tests
 

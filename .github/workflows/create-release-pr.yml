@@ -58,6 +58,7 @@ jobs:
           ./scripts/update-release-pr.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENVIRONMENT: production
           RPC_URL_MAINNET_LIST: ${{ secrets.RPC_URL_MAINNET_LIST }}
           RPC_URL_DEVNET_LIST: ${{ secrets.RPC_URL_DEVNET_LIST }}
           RPC_URL_TESTNET_LIST: ${{ secrets.RPC_URL_TESTNET_LIST }}
