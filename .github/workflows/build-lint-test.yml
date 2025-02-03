@@ -126,7 +126,7 @@ jobs:
           cache: 'yarn'
       - run: yarn install --immutable
       - name: Build for tests
-        run: yarn workspace @metamask/solana-wallet-snap build
+        run: yarn workspace @metamask/solana-wallet-snap build:test
       - name: Run tests
         run: yarn test
       - name: Upload test artifacts

@@ -16,6 +16,7 @@
   "scripts": {
     "allow-scripts": "yarn workspace root allow-scripts",
     "build": "ENVIRONMENT=production mm-snap build && yarn locale:build && yarn build-preinstalled-snap",
+    "build:test": "ENVIRONMENT=test mm-snap build && yarn locale:build && yarn build-preinstalled-snap",
     "start": "ENVIRONMENT=local concurrently \"mm-snap watch\" \"yarn locale:build:watch\"",
     "build-preinstalled-snap": "node scripts/build-preinstalled-snap.js",
     "build:clean": "yarn clean && yarn build",
