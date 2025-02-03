@@ -17,6 +17,8 @@ const environment = {
   LOCAL: process.env.LOCAL,
 };
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const config: SnapConfig = {
   bundler: 'webpack',
   input: resolve(__dirname, 'src/index.tsx'),
@@ -28,6 +30,10 @@ const config: SnapConfig = {
     buffer: true,
     crypto: true,
   },
+  manifest: {
+    path: isDev ? './snap.dev.manifest.json' : './snap.manifest.json',
+    update: true
+  }
 };
 
 export default config;

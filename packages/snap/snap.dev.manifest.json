@@ -21,6 +21,7 @@
     ]
   },
   "initialConnections": {
+    "http://localhost:3000": {},
     "https://portfolio.metamask.io": {},
     "https://portfolio-builds.metafi-dev.codefi.network": {},
     "https://dev.portfolio.metamask.io": {},
@@ -33,6 +34,7 @@
     },
     "endowment:keyring": {
       "allowedOrigins": [
+        "http://localhost:3000",
         "https://portfolio.metamask.io",
         "https://portfolio-builds.metafi-dev.codefi.network",
         "https://dev.portfolio.metamask.io",
