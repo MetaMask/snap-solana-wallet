@@ -61,9 +61,7 @@ const buildTransactionMessageAndStoreInContext = async (
     );
 
     updatedContext.transactionMessage =
-      await transactionHelper.base64EncodeTransactionMessage(
-        transactionMessage,
-      );
+      await transactionHelper.base64EncodeTransaction(transactionMessage);
     updatedContext.feeEstimatedInSol = lamportsToSol(feeInLamports).toString();
   } catch (error) {
     logger.error('Error generating transaction message', error);

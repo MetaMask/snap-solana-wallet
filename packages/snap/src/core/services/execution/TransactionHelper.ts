@@ -5,18 +5,21 @@ import type {
 } from '@solana/web3.js';
 import {
   addSignersToTransactionMessage,
+  compileTransaction,
   compileTransactionMessage,
-  decompileTransactionMessage,
   getBase64Decoder,
   getBase64Encoder,
-  getCompiledTransactionMessageDecoder,
   getCompiledTransactionMessageEncoder,
+  getCompiledTransactionMessageDecoder,
   getComputeUnitEstimateForTransactionMessageFactory,
   getSignatureFromTransaction,
+  getTransactionDecoder,
+  getTransactionEncoder,
   pipe,
   sendTransactionWithoutConfirmingFactory,
   signTransactionMessageWithSigners,
   type Blockhash,
+  decompileTransactionMessageFetchingLookupTables,
 } from '@solana/web3.js';
 
 import type { Network } from '../../constants/solana';
@@ -166,19 +169,50 @@ export class TransactionHelper {
   }
 
   /**
+   * Convert a transaction to a base64 encoded string.
+   *
+   * Convenient to send a transaction via json serializable channels.
+   *
+   * @param transactionMessage - The transaction to base64 encode.
+   * @returns The base64 encoded transaction.
+   */
+  async base64EncodeTransaction(
+    transactionMessage: CompilableTransactionMessage,
+  ): Promise<string> {
+    const base64EncodedMessage = pipe(
+      transactionMessage,
+      // Compile transaction.
+      compileTransaction,
+      // Encode the transaction into a byte array.
+      getTransactionEncoder().encode,
+      // Encode that byte array as a base64 string.
+      getBase64Decoder().decode,
+    );
+
+    return base64EncodedMessage;
+  }
+
+  /**
    * Base64 decode a transaction message: converts a base64 encoded string back to a transaction message.
    *
    * @param base64EncodedTransactionMessage - The base64 encoded transaction message to decode.
+   * @param scope - The network on which the transaction is being sent.
    * @returns The decoded transaction message.
    */
-  async base64DecodeTransactionMessage(
+  async base64DecodeTransaction(
     base64EncodedTransactionMessage: string,
+    scope: Network,
   ): Promise<CompilableTransactionMessage> {
     return pipe(
       base64EncodedTransactionMessage,
       getBase64Encoder().encode,
-      getCompiledTransactionMessageDecoder().decode,
-      decompileTransactionMessage,
+      getTransactionDecoder().decode,
+      (tx) => getCompiledTransactionMessageDecoder().decode(tx.messageBytes),
+      async (decodedMessageBytes) =>
+        decompileTransactionMessageFetchingLookupTables(
+          decodedMessageBytes,
+          this.#connection.getRpc(scope),
+        ),
     );
   }
 
