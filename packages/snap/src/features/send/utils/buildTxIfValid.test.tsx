@@ -55,15 +55,18 @@ describe('buildTxIfValid', () => {
     (keyring.getAccountOrThrow as jest.Mock).mockResolvedValue({
       address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
     });
+
     (transferSolHelper.buildTransactionMessage as jest.Mock).mockResolvedValue({
       someTransactionData: 'data',
     });
+
     (
       transactionHelper.getFeeForMessageInLamports as jest.Mock
     ).mockResolvedValue(5000);
-    (
-      transactionHelper.base64EncodeTransactionMessage as jest.Mock
-    ).mockResolvedValue('base64-encoded');
+
+    (transactionHelper.base64EncodeTransaction as jest.Mock).mockResolvedValue(
+      'base64-encoded',
+    );
   });
 
   it('does not build transaction if fields are invalid', async () => {
@@ -127,6 +130,7 @@ describe('buildTxIfValid', () => {
       expect.anything(),
       expect.objectContaining({
         feeEstimatedInSol: '0.000005',
+        transactionMessage: 'base64-encoded',
         buildingTransaction: false,
       }),
     );
