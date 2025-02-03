@@ -3,9 +3,7 @@ import { KeyringRpcMethod } from '@metamask/keyring-api';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { ConfigProvider } from './core/services/config/ConfigProvider';
 
-const prodOrigins = [
-  'https://portfolio.metamask.io',
-];
+const prodOrigins = ['https://portfolio.metamask.io'];
 
 const config = new ConfigProvider().get();
 const isDev = ['local', 'test'].includes(config.environment);
