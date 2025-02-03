@@ -110,19 +110,19 @@ export class ConfigProvider {
         },
       ],
       activeNetworks:
-        environment.ENVIRONMENT === 'local'
+        environment.ENVIRONMENT === 'test'
           ? [Network.Localnet]
           : [Network.Mainnet, Network.Devnet],
       priceApi: {
         baseUrl:
-          environment.ENVIRONMENT === 'local'
+          environment.ENVIRONMENT === 'test'
             ? environment.LOCAL_API_BASE_URL
             : environment.PRICE_API_BASE_URL,
         chunkSize: 50,
       },
       tokenApi: {
         baseUrl:
-          environment.ENVIRONMENT === 'local'
+          environment.ENVIRONMENT === 'test'
             ? environment.LOCAL_API_BASE_URL
             : environment.TOKEN_API_BASE_URL,
         chunkSize: 50,
