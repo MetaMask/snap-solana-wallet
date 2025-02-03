@@ -69,7 +69,7 @@ export const AccountDetails = ({ accountId }: { accountId: string }) => {
 
     const balances = (await invokeKeyring({
       method: KeyringRpcMethod.GetAccountBalances,
-      params: { id, assets },
+      params: { id, assets: assets ?? [] },
     })) as Record<string, Balance>;
 
     setSelectedAccountBalances(balances);

@@ -1,5 +1,9 @@
 import { Button, IconButton, Link, Table } from '@chakra-ui/react';
-import { type Balance, type KeyringAccount } from '@metamask/keyring-api';
+import {
+  KeyringRpcMethod,
+  type Balance,
+  type KeyringAccount,
+} from '@metamask/keyring-api';
 import { Link as RouterLink } from 'gatsby';
 import { useEffect, useState } from 'react';
 import { LuCopy } from 'react-icons/lu';
@@ -28,7 +32,7 @@ export const AccountRow = ({
 
   const fetchBalance = async () => {
     const response = (await invokeKeyring({
-      method: 'keyring_getAccountBalances',
+      method: KeyringRpcMethod.GetAccountBalances,
       params: {
         id: account.id,
         assets: [`${network}/${SOLANA_TOKEN}`],

@@ -1,5 +1,5 @@
 import { Button, Text as ChakraText, Flex, Table } from '@chakra-ui/react';
-import type { KeyringAccount } from '@metamask/keyring-api';
+import { KeyringRpcMethod, type KeyringAccount } from '@metamask/keyring-api';
 import { useEffect, useState } from 'react';
 
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
@@ -11,7 +11,7 @@ export const Accounts = () => {
 
   const fetchAccounts = async () => {
     const accountList = (await invokeKeyring({
-      method: 'keyring_listAccounts',
+      method: KeyringRpcMethod.ListAccounts,
     })) as KeyringAccount[];
 
     setAccounts(accountList);
@@ -19,7 +19,7 @@ export const Accounts = () => {
 
   const handleCreateAccount = async () => {
     await invokeKeyring({
-      method: 'keyring_createAccount',
+      method: KeyringRpcMethod.CreateAccount,
       params: { options: {} },
     });
     await fetchAccounts();
@@ -27,7 +27,7 @@ export const Accounts = () => {
 
   const handleDeleteAccount = async (id: string) => {
     await invokeKeyring({
-      method: 'keyring_deleteAccount',
+      method: KeyringRpcMethod.DeleteAccount,
       params: { id },
     });
     await fetchAccounts();

@@ -35,19 +35,21 @@ export class TransactionsService {
     this.#logger = logger;
   }
 
-  async fetchInitialAddressTransactions(address: Address) {
-    console.log('Fetching initial transactions for address', address);
+  async fetchLatestAddressTransactions(address: Address, limit: number) {
+    console.log('Fetching latest transactions for address', address);
     const scopes = [Network.Mainnet, Network.Devnet];
 
     const transactions = (
       await Promise.all(
         scopes.map(async (scope) =>
           this.fetchAddressTransactions(scope, address, {
-            limit: this.#configProvider.get().transactions.bootstrapLimit,
+            limit,
           }),
         ),
       )
-    ).flatMap(({ data }) => data);
+    )
+      .flatMap(({ data }) => data)
+      .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
 
     return transactions;
   }

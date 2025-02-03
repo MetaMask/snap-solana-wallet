@@ -14,5 +14,4 @@ export const handlers: Record<CronjobMethod, OnCronjobHandler> = {
   [CronjobMethod.RefreshTokenPrices]: refreshUiTokenPrices,
   [CronjobMethod.RefreshTransactions]: refreshTransactions,
   [CronjobMethod.RefreshAssets]: refreshAssets,
-  // Register new handlers here
 };
