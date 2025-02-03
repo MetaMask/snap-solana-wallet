@@ -4,7 +4,7 @@ import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 
 declare global {
   // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
-  var environment: { nodeEnv?: string };
+  var environment: { NODE_ENV?: string };
 }
 
 const prodOrigins = [
@@ -14,7 +14,7 @@ const prodOrigins = [
   'https://ramps-dev.portfolio.metamask.io',
 ];
 
-const isDev = globalThis.environment?.nodeEnv === 'development';
+const isDev = globalThis.environment?.NODE_ENV === 'development';
 
 const allowedOrigins = isDev ? ['http://localhost:3000'] : prodOrigins;
 
