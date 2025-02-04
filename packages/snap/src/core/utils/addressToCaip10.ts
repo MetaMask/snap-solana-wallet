@@ -1,4 +1,4 @@
-import type { Network } from '../constants/solana';
+import type { Caip10Address, Network } from '../constants/solana';
 
 /**
  * Converts a Solana address to a CAIP-10 address.
@@ -10,6 +10,6 @@ import type { Network } from '../constants/solana';
 export function addressToCaip10(
   scope: Network,
   address: string,
-): `${string}:${string}:${string}` {
+): Caip10Address {
   return `${scope}:${address}`;
 }

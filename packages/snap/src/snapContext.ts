@@ -12,6 +12,7 @@ import { SolanaState } from './core/services/state/State';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPrices } from './core/services/token-prices/TokenPrices';
 import { TransactionsService } from './core/services/transactions/Transactions';
+import { WalletStandardService } from './core/services/wallet-standard/WalletStandardService';
 import logger from './core/utils/logger';
 
 /**
@@ -31,6 +32,7 @@ export type SnapExecutionContext = {
   transactionsService: TransactionsService;
   transferSolHelper: TransferSolHelper;
   splTokenHelper: SplTokenHelper;
+  walletStandardService: WalletStandardService;
 };
 
 const configProvider = new ConfigProvider();
@@ -64,6 +66,8 @@ const transactionsService = new TransactionsService({
   tokenMetadataService,
 });
 
+const walletStandardService = new WalletStandardService(logger);
+
 const keyring = new SolanaKeyring({
   state,
   encryptedState,
@@ -73,6 +77,7 @@ const keyring = new SolanaKeyring({
   logger,
   assetsService,
   tokenMetadataService,
+  walletStandardService,
 });
 
 const tokenPricesService = new TokenPrices(priceApiClient);
@@ -91,6 +96,7 @@ const snapContext: SnapExecutionContext = {
   transactionsService,
   transferSolHelper,
   splTokenHelper,
+  walletStandardService,
 };
 
 export {
@@ -102,12 +108,13 @@ export {
   priceApiClient,
   splTokenHelper,
   state,
-  tokenPricesService,
-  tokenMetadataService,
   tokenMetadataClient,
+  tokenMetadataService,
+  tokenPricesService,
   transactionHelper,
   transactionsService,
   transferSolHelper,
+  walletStandardService,
 };
 
 export default snapContext;

@@ -98,7 +98,6 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
 }): Promise<Json> => {
   try {
     validateOrigin(origin, request.method);
-
     return (await handleKeyringRequest(
       keyring,
       request,

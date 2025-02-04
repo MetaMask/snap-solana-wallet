@@ -32,6 +32,7 @@ import type { StateValue } from '../state/State';
 import { SolanaState } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from '../transactions/Transactions';
+import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
 import { SolanaKeyring } from './Keyring';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
@@ -58,6 +59,7 @@ describe('SolanaKeyring', () => {
   let mockConnection: SolanaConnection;
   let mockTransactionHelper: TransactionHelper;
   let mockTokenMetadataService: TokenMetadataService;
+  let mockWalletStandardService: WalletStandardService;
 
   beforeEach(() => {
     mockConnection = createMockConnection();
@@ -99,6 +101,11 @@ describe('SolanaKeyring', () => {
         .fn()
         .mockResolvedValue(SOLANA_MOCK_TOKEN_METADATA),
     } as unknown as TokenMetadataService;
+
+    mockWalletStandardService = {
+      resolveAccountAddress: jest.fn(),
+    } as unknown as WalletStandardService;
+
     keyring = new SolanaKeyring({
       state,
       encryptedState,
@@ -107,6 +114,7 @@ describe('SolanaKeyring', () => {
       assetsService,
       tokenMetadataService: mockTokenMetadataService,
       transactionHelper: mockTransactionHelper,
+      walletStandardService: mockWalletStandardService,
       logger,
     });
 
