@@ -193,6 +193,14 @@ export class SolanaKeyring implements Keyring {
         methods: [SolMethod.SendAndConfirmTransaction],
       };
 
+      await this.#encryptedState.update((state) => ({
+        ...state,
+        keyringAccounts: {
+          ...(state?.keyringAccounts ?? {}),
+          [keyringAccount.id]: keyringAccount,
+        },
+      }));
+
       await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
          * We can't pass the `keyringAccount` object because it contains the index
@@ -208,14 +216,6 @@ export class SolanaKeyring implements Keyring {
         },
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
-
-      await this.#encryptedState.update((state) => ({
-        ...state,
-        keyringAccounts: {
-          ...(state?.keyringAccounts ?? {}),
-          [keyringAccount.id]: keyringAccount,
-        },
-      }));
 
       return keyringAccount;
     } catch (error: any) {

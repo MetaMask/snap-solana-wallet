@@ -44,9 +44,7 @@ export type Config = {
     baseUrl: string;
   };
   transactions: {
-    bootstrapLimit: number;
     storageLimit: number;
-    fetchLimit: number;
   };
 };
 
@@ -131,9 +129,7 @@ export class ConfigProvider {
         baseUrl: environment.STATIC_API_BASE_URL,
       },
       transactions: {
-        bootstrapLimit: 2,
-        storageLimit: 5,
-        fetchLimit: 2,
+        storageLimit: 20,
       },
     };
   }
