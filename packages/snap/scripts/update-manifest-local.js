@@ -8,12 +8,13 @@ const environment = process.env.ENVIRONMENT || 'local';
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
 if (environment === 'local' || environment === 'test') {
-  manifest.initialConnections = {
-    ...(manifest.initialConnections || {}),
-    'http://localhost:3000': {},
-  };
+  manifest.initialConnections['http://localhost:3000'] = {};
 
-  if (manifest.initialPermissions?.['endowment:keyring']?.allowedOrigins) {
+  if (
+    manifest.initialPermissions &&
+    manifest.initialPermissions['endowment:keyring'] &&
+    manifest.initialPermissions['endowment:keyring'].allowedOrigins
+  ) {
     if (
       !manifest.initialPermissions['endowment:keyring'].allowedOrigins.includes(
         'http://localhost:3000',
@@ -28,11 +29,18 @@ if (environment === 'local' || environment === 'test') {
   console.log('Added localhost entries to snap.manifest.json');
 } else if (environment === 'production') {
   // Remove entries for production
-  if (manifest.initialConnections?.['http://localhost:3000']) {
+  if (
+    manifest.initialConnections &&
+    manifest.initialConnections['http://localhost:3000']
+  ) {
     delete manifest.initialConnections['http://localhost:3000'];
   }
 
-  if (manifest.initialPermissions?.['endowment:keyring']?.allowedOrigins) {
+  if (
+    manifest.initialPermissions &&
+    manifest.initialPermissions['endowment:keyring'] &&
+    manifest.initialPermissions['endowment:keyring'].allowedOrigins
+  ) {
     manifest.initialPermissions['endowment:keyring'].allowedOrigins =
       manifest.initialPermissions['endowment:keyring'].allowedOrigins.filter(
         (origin) => origin !== 'http://localhost:3000',
