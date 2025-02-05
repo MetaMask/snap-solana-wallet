@@ -29,8 +29,9 @@ import {
   getAddressFromPublicKey,
 } from '@solana/web3.js';
 
+import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { Network } from '../../constants/solana';
-import { SOL_SYMBOL } from '../../constants/solana';
+import { SOL_SYMBOL, SolanaCaip19Tokens } from '../../constants/solana';
 import { lamportsToSol } from '../../utils/conversion';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
@@ -202,6 +203,14 @@ export class SolanaKeyring implements Keyring {
         methods: [SolMethod.SendAndConfirmTransaction],
       };
 
+      await this.#encryptedState.update((state) => ({
+        ...state,
+        keyringAccounts: {
+          ...(state?.keyringAccounts ?? {}),
+          [keyringAccount.id]: keyringAccount,
+        },
+      }));
+
       await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
          * We can't pass the `keyringAccount` object because it contains the index
@@ -217,14 +226,6 @@ export class SolanaKeyring implements Keyring {
         },
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
-
-      await this.#encryptedState.update((state) => ({
-        ...state,
-        keyringAccounts: {
-          ...(state?.keyringAccounts ?? {}),
-          [keyringAccount.id]: keyringAccount,
-        },
-      }));
 
       return keyringAccount;
     } catch (error: any) {
@@ -313,13 +314,14 @@ export class SolanaKeyring implements Keyring {
       validateRequest({ accountId, assets }, GetAccountBalancesStruct);
 
       const account = await this.getAccount(accountId);
-      const balances = new Map<string, Balance>();
+      const balances = new Map<CaipAssetType, Balance>();
+      const metadata = new Map<CaipAssetType, SolanaTokenMetadata>();
 
       if (!account) {
         throw new Error('Account not found');
       }
 
-      const assetsByNetwork = assets.reduce<Record<Network, string[]>>(
+      const assetsByNetwork = assets.reduce<Record<Network, CaipAssetType[]>>(
         (groups, asset) => {
           const network = getNetworkFromToken(asset);
 
@@ -330,7 +332,7 @@ export class SolanaKeyring implements Keyring {
           groups[network].push(asset);
           return groups;
         },
-        {} as Record<Network, string[]>,
+        {} as Record<Network, CaipAssetType[]>,
       );
 
       for (const network of Object.keys(assetsByNetwork)) {
@@ -348,7 +350,13 @@ export class SolanaKeyring implements Keyring {
           );
 
         for (const asset of networkAssets) {
-          if (asset.endsWith('slip44:501')) {
+          // update token metadata if exist
+          if (tokenMetadata[asset]) {
+            metadata.set(asset, tokenMetadata[asset]);
+          }
+
+          if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
+            // update native asset balance
             balances.set(asset, {
               amount: lamportsToSol(nativeAsset.balance).toString(),
               unit: SOL_SYMBOL,
@@ -358,6 +366,7 @@ export class SolanaKeyring implements Keyring {
               (token) => token.address === asset,
             );
 
+            // update spl token balance if exist
             if (splToken) {
               balances.set(asset, {
                 amount: fromTokenUnits(splToken.balance, splToken.decimals),
@@ -372,13 +381,19 @@ export class SolanaKeyring implements Keyring {
 
       validateResponse(result, GetAccounBalancesResponseStruct);
 
-      await this.#state.update((state) => ({
-        ...state,
-        assets: {
-          ...(state?.assets ?? {}),
-          [account.id]: result,
-        },
-      }));
+      await this.#state.update((state) => {
+        return {
+          ...state,
+          assets: {
+            ...(state?.assets ?? {}),
+            [account.id]: result,
+          },
+          metadata: {
+            ...(state?.metadata ?? {}),
+            ...Object.fromEntries(metadata.entries()),
+          },
+        };
+      });
 
       return result;
     } catch (error: any) {

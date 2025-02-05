@@ -9,6 +9,7 @@ import {
   transactionsService,
 } from '../../../snapContext';
 import { Network } from '../../constants/solana';
+import type { SolanaKeyringAccount } from '../../services/keyring/Keyring';
 import { mapRpcTransaction } from '../../services/transactions/utils/mapRpcTransaction';
 import logger from '../../utils/logger';
 
@@ -48,7 +49,7 @@ async function collectNewTransactionSignatures({
   existingSignatures,
 }: {
   scopes?: Network[];
-  accounts: { id: string; address: string }[];
+  accounts: SolanaKeyringAccount[];
   existingSignatures: Set<string>;
 }): Promise<SignatureMapping> {
   const newSignaturesMapping: SignatureMapping = {
@@ -127,7 +128,7 @@ async function fetchAndMapTransactionsPerAccount({
   newSignaturesMapping,
 }: {
   scopes?: Network[];
-  accounts: { id: string; address: string }[];
+  accounts: SolanaKeyringAccount[];
   newSignaturesMapping: SignatureMapping;
 }): Promise<Record<string, Transaction[]>> {
   const newTransactions: Record<string, Transaction[]> = {};
@@ -176,17 +177,46 @@ async function fetchAndMapTransactionsPerAccount({
 
           return {
             ...mappedTx,
-            account: account.address,
+            account: account.id,
           };
         })
-        .filter((tx): tx is Transaction => tx !== null)
-        .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
+        .filter((tx): tx is Transaction => tx !== null);
 
       newTransactions[account.id]?.push(...accountTransactions);
     }
   }
 
   return newTransactions;
+}
+
+/**
+ * Merges and sorts transactions for all accounts.
+ * @param options - Options for merging and sorting transactions.
+ * @param options.accounts - List of accounts to process.
+ * @param options.previousTransactionsByAccount - Previous transactions by account.
+ * @param options.newTransactionsByAccount - New transactions by account.
+ * @returns Updated transactions record.
+ */
+function mergeSortAndTrimTransactions({
+  accounts,
+  previousTransactionsByAccount,
+  newTransactionsByAccount,
+}: {
+  accounts: SolanaKeyringAccount[];
+  previousTransactionsByAccount: Record<string, Transaction[]>;
+  newTransactionsByAccount: Record<string, Transaction[]>;
+}): Record<string, Transaction[]> {
+  return Object.fromEntries(
+    accounts.map((account) => [
+      account.id,
+      [
+        ...(previousTransactionsByAccount[account.id] ?? []),
+        ...(newTransactionsByAccount[account.id] ?? []),
+      ]
+        .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0))
+        .slice(0, configProvider.get().transactions.storageLimit),
+    ]),
+  );
 }
 
 /**
@@ -226,15 +256,11 @@ export async function refreshTransactions() {
       newSignaturesMapping,
     });
 
-    const updatedTransactions = Object.fromEntries(
-      accounts.map((account) => [
-        account.id,
-        [
-          ...(transactionsByAccount[account.id] ?? []),
-          ...(newTransactionsByAccount[account.id] ?? []),
-        ],
-      ]),
-    );
+    const updatedTransactionsByAccount = mergeSortAndTrimTransactions({
+      accounts,
+      previousTransactionsByAccount: transactionsByAccount,
+      newTransactionsByAccount,
+    });
 
     await keyring.emitEvent(KeyringEvent.AccountTransactionsUpdated, {
       transactions: newTransactionsByAccount,
@@ -243,7 +269,7 @@ export async function refreshTransactions() {
     await state.update((oldState) => ({
       ...oldState,
       isFetchingTransactions: false,
-      transactions: updatedTransactions,
+      transactions: updatedTransactionsByAccount,
     }));
 
     logger.info('[refreshTransactions] Cronjob finished');

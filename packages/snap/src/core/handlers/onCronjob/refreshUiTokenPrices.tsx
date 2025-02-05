@@ -31,6 +31,14 @@ export const refreshUiTokenPrices: OnCronjobHandler = async () => {
           return;
         }
 
+        // we only want to refresh the token prices when the user is in the transaction confirmation stage
+        if (interfaceContext.stage !== 'transaction-confirmation') {
+          logger.info(
+            '[refreshUiTokenPrices] Not in transaction confirmation stage',
+          );
+          return;
+        }
+
         if (!interfaceContext.assets) {
           logger.info('[refreshUiTokenPrices] No assets found');
           return;

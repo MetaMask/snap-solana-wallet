@@ -6,23 +6,14 @@ import { Send } from '../../../features/send/Send';
 import type { SendContext } from '../../../features/send/types';
 import { SendCurrencyType } from '../../../features/send/types';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
-import {
-  keyring,
-  state,
-  tokenMetadataService,
-  tokenPricesService,
-} from '../../../snapContext';
-import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
+import { keyring, state, tokenPricesService } from '../../../snapContext';
 import { Caip19Id, Network, Networks } from '../../constants/solana';
 import {
   createInterface,
-  getInterfaceContext,
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   showDialog,
-  updateInterface,
 } from '../../utils/interface';
-import logger from '../../utils/logger';
 
 export const DEFAULT_SEND_CONTEXT: SendContext = {
   scope: Network.Mainnet,
@@ -66,13 +57,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const tokenCaipId = Networks[scope].nativeToken.caip19Id;
 
-  /**
-   * First render:
-   * - Default context
-   * - Accounts
-   * - Preferences
-   */
-  const context1 = {
+  const context = {
     ...DEFAULT_SEND_CONTEXT,
     scope,
     fromAccountId: account,
@@ -83,15 +68,43 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     () => DEFAULT_SEND_CONTEXT.preferences,
   );
 
-  const [accounts, preferences] = await Promise.all([
+  /**
+   * 1. Get the current state (from snap)
+   * 2. Get the accounts (from keyring)
+   * 3. Get the preferences (from extension)
+   * 4. Get the token metadata (from state)
+   */
+  const [currentState, accounts, preferences] = await Promise.all([
+    state.get(),
     keyring.listAccounts(),
     preferencesPromise,
   ]);
 
-  context1.accounts = accounts;
-  context1.preferences = preferences;
+  const accountBalances = currentState.assets[context.fromAccountId] ?? {};
+  const tokenMetadata = currentState.metadata ?? {};
 
-  const id = await createInterface(<Send context={context1} />, context1);
+  context.accounts = accounts;
+  context.preferences = preferences;
+  context.assets = Object.keys(accountBalances) as CaipAssetType[];
+  context.balances = currentState.assets;
+  context.tokenMetadata = tokenMetadata;
+
+  const tokenPricesPromise = tokenPricesService
+    .getMultipleTokenPrices(context.assets, context.preferences.currency)
+    .then((prices) => {
+      context.tokenPrices = prices;
+      context.tokenPricesFetchStatus = 'fetched';
+    })
+    .catch(() => {
+      context.tokenPricesFetchStatus = 'error';
+    });
+
+  /**
+   * 5. Get the token prices (from api)
+   */
+  await Promise.all([tokenPricesPromise]);
+
+  const id = await createInterface(<Send context={context} />, context);
 
   const dialogPromise = showDialog(id);
 
@@ -104,100 +117,6 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
       },
     };
   });
-
-  /**
-   * Second render:
-   * - Balances
-   * - Assets
-   */
-
-  const getAccountsAssetBalances = async () => {
-    const balances: Record<string, Record<CaipAssetType, Balance>> = {};
-    const assets: Set<CaipAssetType> = new Set();
-
-    const promises = accounts.map(async ({ id: accountId }) => {
-      try {
-        const accountAssets = await keyring.listAccountAssets(accountId);
-        const accountAssetsFromCurrentScope = accountAssets.filter((caipId) =>
-          caipId.startsWith(scope),
-        );
-
-        accountAssetsFromCurrentScope.forEach((asset) => {
-          assets.add(asset);
-        });
-
-        const accountBalances = await keyring.getAccountBalances(
-          accountId,
-          accountAssetsFromCurrentScope,
-        );
-
-        balances[accountId] = accountBalances;
-      } catch (error) {
-        balances[accountId] = {};
-        logger.error(
-          { error },
-          `Could not fetch balances for account ${accountId}`,
-        );
-      }
-    });
-
-    await Promise.all(promises);
-
-    return {
-      balances,
-      assets,
-    };
-  };
-
-  const { assets, balances } = await getAccountsAssetBalances();
-
-  const context1FromInterface = await getInterfaceContext(id);
-
-  const context2 = { ...context1, ...context1FromInterface };
-
-  context2.assets = Array.from(assets);
-  context2.balances = balances;
-  context2.tokenPricesFetchStatus = 'fetching';
-
-  await updateInterface(id, <Send context={context2} />, context2);
-
-  /**
-   * Thrid render:
-   * - Token prices
-   * - Token metadata + images
-   */
-
-  // Object to store the new data to apply on the context
-  const partialContext3: Partial<SendContext> = {};
-
-  const tokenPricesPromise = tokenPricesService
-    .getMultipleTokenPrices(context2.assets, context2.preferences.currency)
-    .then((prices) => {
-      partialContext3.tokenPrices = prices;
-      partialContext3.tokenPricesFetchStatus = 'fetched';
-    })
-    .catch(() => {
-      partialContext3.tokenPricesFetchStatus = 'error';
-    });
-
-  const tokenMetadataPromise = tokenMetadataService
-    .getMultipleTokenMetadata(context2.assets)
-    .then((tokenMetadata) => {
-      partialContext3.tokenMetadata = tokenMetadata;
-    })
-    .catch(() => ({} as Record<string, SolanaTokenMetadata>));
-
-  await Promise.all([tokenPricesPromise, tokenMetadataPromise]);
-
-  const context2FromInterface = await getInterfaceContext(id);
-
-  const context3 = {
-    ...context2,
-    ...context2FromInterface,
-    ...partialContext3,
-  };
-
-  await updateInterface(id, <Send context={context3} />, context3);
 
   return dialogPromise;
 };

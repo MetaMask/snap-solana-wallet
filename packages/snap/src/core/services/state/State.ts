@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { Transaction, Balance } from '@metamask/keyring-api';
+import type {
+  Transaction,
+  Balance,
+  CaipAssetType,
+} from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 
-import type { SpotPriceResponse } from '../../clients/price-api/types';
+import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import { safeMerge } from '../../utils/safeMerge';
 
 export type AccountId = string;
@@ -12,7 +16,8 @@ export type StateValue = {
   isFetchingTransactions: boolean;
   transactions: Record<AccountId, Transaction[]>;
   isFetchingAssets: boolean;
-  assets: Record<AccountId, Record<string, Balance>>;
+  assets: Record<AccountId, Record<CaipAssetType, Balance>>;
+  metadata: Record<CaipAssetType, SolanaTokenMetadata>;
 };
 
 export const DEFAULT_STATE: StateValue = {
@@ -21,6 +26,7 @@ export const DEFAULT_STATE: StateValue = {
   transactions: {},
   isFetchingAssets: false,
   assets: {},
+  metadata: {},
 };
 
 export class SolanaState {

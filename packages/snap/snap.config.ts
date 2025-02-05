@@ -28,6 +28,12 @@ const config: SnapConfig = {
     buffer: true,
     crypto: true,
   },
+  manifest: {
+    path: ['local', 'test'].includes(environment.ENVIRONMENT)
+      ? './snap.dev.manifest.json'
+      : './snap.manifest.json',
+    update: true,
+  },
 };
 
 export default config;

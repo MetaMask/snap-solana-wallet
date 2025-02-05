@@ -129,18 +129,6 @@ describe('Send', () => {
       });
     });
 
-    server?.get('/v3/assets', (_: any, res: any) => {
-      return res.json([
-        {
-          decimals: 9,
-          assetId: Caip19Id.SolLocalnet,
-          iconUrl: SOL_IMAGE_URL,
-          name: 'Solana',
-          symbol: 'SOL',
-        },
-      ]);
-    });
-
     const { request, mockJsonRpc } = await installSnap();
 
     mockJsonRpc({
@@ -149,6 +137,20 @@ describe('Send', () => {
         keyringAccounts: {
           [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
           [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
+        },
+        assets: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
+          [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
+        },
+        metadata: {
+          [Caip19Id.SolLocalnet]: {
+            assetId: Caip19Id.SolLocalnet,
+            name: 'Solana',
+            symbol: 'SOL',
+            iconUrl: SOL_IMAGE_URL,
+            imageSvg: SOL_IMAGE_SVG,
+            decimals: 9,
+          },
         },
       },
     });
@@ -202,9 +204,6 @@ describe('Send', () => {
       },
     });
 
-    const screen1BeforeUpdate = await response.getInterface();
-    await screen1BeforeUpdate.waitForUpdate();
-    await screen1BeforeUpdate.waitForUpdate();
     const screen1 = await response.getInterface();
 
     const updatedContext1: SendContext = mockContext;
