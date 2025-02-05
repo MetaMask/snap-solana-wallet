@@ -9,18 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.0]
 
-### Uncategorized
+### Added
 
-- Sol 132 snap implement resolve account address ([#175](https://github.com/MetaMask/snap-solana-wallet/pull/175))
-- fix: transactions data flow problems ([#174](https://github.com/MetaMask/snap-solana-wallet/pull/174))
-- fix: latency on send flow updates ([#173](https://github.com/MetaMask/snap-solana-wallet/pull/173))
-- chore: updates snap permissions ([#172](https://github.com/MetaMask/snap-solana-wallet/pull/172))
-- feat: implement push based transactions list ([#157](https://github.com/MetaMask/snap-solana-wallet/pull/157))
+- Implement `resolveAccountAddress` ([#175](https://github.com/MetaMask/snap-solana-wallet/pull/175))
+- Implement push based transactions list ([#157](https://github.com/MetaMask/snap-solana-wallet/pull/157))
+- Parity with compiled transactions ([#169](https://github.com/MetaMask/snap-solana-wallet/pull/169))
+
+### Fixed
+
+- Transactions data flow problems ([#174](https://github.com/MetaMask/snap-solana-wallet/pull/174))
+- Latency on send flow updates ([#173](https://github.com/MetaMask/snap-solana-wallet/pull/173))
+- Conversions currency to lowercase ([#167](https://github.com/MetaMask/snap-solana-wallet/pull/167))
+- Disable buttons until prices and balances are available ([#166](https://github.com/MetaMask/snap-solana-wallet/pull/166))
+
+### Changed
+
+- Update on snap permissions ([#172](https://github.com/MetaMask/snap-solana-wallet/pull/172))
 - Improve env ([#171](https://github.com/MetaMask/snap-solana-wallet/pull/171))
-- feat: parity with compiled transactions ([#169](https://github.com/MetaMask/snap-solana-wallet/pull/169))
-- Sol 109 snap transaction simulation to input change ([#168](https://github.com/MetaMask/snap-solana-wallet/pull/168))
-- fix: conversions currency to lowercase ([#167](https://github.com/MetaMask/snap-solana-wallet/pull/167))
-- fix: disable buttons until prices and balances are available ([#166](https://github.com/MetaMask/snap-solana-wallet/pull/166))
+- Transaction simulation to input change ([#168](https://github.com/MetaMask/snap-solana-wallet/pull/168))
 
 ## [1.3.0]
 
