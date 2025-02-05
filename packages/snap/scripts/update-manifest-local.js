@@ -9,7 +9,7 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
 if (environment === 'local' || environment === 'test') {
   manifest.initialConnections = {
-    ...manifest.initialConnections,
+    ...(manifest.initialConnections || {}),
     'http://localhost:3000': {},
   };
 
