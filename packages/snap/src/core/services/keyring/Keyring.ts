@@ -581,7 +581,7 @@ export class SolanaKeyring implements Keyring {
           request,
         );
 
-      return caip10Address ? { address: caip10Address } : null;
+      return { address: caip10Address };
     } catch (error: any) {
       this.#logger.error({ error }, 'Error resolving account address');
       return null;

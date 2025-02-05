@@ -49,9 +49,6 @@ export class WalletStandardService {
     assert(scope, NetworkStruct);
 
     const { method, params } = request;
-    if (!params) {
-      throw new Error('No params');
-    }
 
     const accountsWithThisScope = keyringAccounts.filter((account) =>
       account.scopes.includes(scope),
@@ -107,6 +104,8 @@ export class WalletStandardService {
         return addressToCaip10(scope, address);
       }
       default: {
+        // This code is unreachable because the "validateRequest" function
+        // already protects against invalid methods.
         this.#logger.warn({ method }, 'Unsupported method');
         throw new Error('Unsupported method');
       }

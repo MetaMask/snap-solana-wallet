@@ -100,31 +100,69 @@ const SolanaSignAndSendTransactionInputStruct = type({
   options: optional(SolanaSignAndSendTransactionOptionsStruct),
 });
 
+const JsonRpcDefaultsStruct = object({
+  id: number(),
+  jsonrpc: string(),
+});
+
+export const SolanaSignAndSendAllTransactionsRequestStruct = object({
+  ...JsonRpcDefaultsStruct.schema,
+  method: enums([SignAndSendAllTransactions]),
+  params: array(SolanaSignTransactionInputStruct),
+});
+
+export const SolanaSignAndSendTransactionRequestStruct = object({
+  ...JsonRpcDefaultsStruct.schema,
+  method: enums([SolanaSignAndSendTransaction]),
+  params: SolanaSignAndSendTransactionInputStruct,
+});
+
+export const SolanaSignInRequestStruct = object({
+  ...JsonRpcDefaultsStruct.schema,
+  method: enums([SolanaSignIn]),
+  params: SolanaSignInInputStruct,
+});
+
+export const SolanaSignMessageRequestStruct = object({
+  ...JsonRpcDefaultsStruct.schema,
+  method: enums([SolanaSignMessage]),
+  params: SolanaSignMessageInputStruct,
+});
+
+export const SolanaSignTransactionRequestStruct = object({
+  ...JsonRpcDefaultsStruct.schema,
+  method: enums([SolanaSignTransaction]),
+  params: SolanaSignTransactionInputStruct,
+});
+
+export type SolanaSignAndSendAllTransactionsRequest = Infer<
+  typeof SolanaSignAndSendAllTransactionsRequestStruct
+>;
+
+export type SolanaSignAndSendTransactionRequest = Infer<
+  typeof SolanaSignAndSendTransactionRequestStruct
+>;
+
+export type SolanaSignInRequest = Infer<typeof SolanaSignInRequestStruct>;
+
+export type SolanaSignMessageRequest = Infer<
+  typeof SolanaSignMessageRequestStruct
+>;
+
+export type SolanaSignTransactionRequest = Infer<
+  typeof SolanaSignTransactionRequestStruct
+>;
+
 /**
  * Validates that a JsonRpcRequest is a valid Solana Wallet Standard request.
  * @see https://github.com/anza-xyz/wallet-standard/tree/master/packages/core/features/src
  */
 export const SolanaWalletStandardRequestStruct = union([
-  object({
-    method: enums([SignAndSendAllTransactions]),
-    params: array(SolanaSignTransactionInputStruct),
-  }),
-  object({
-    method: enums([SolanaSignAndSendTransaction]),
-    params: SolanaSignAndSendTransactionInputStruct,
-  }),
-  object({
-    method: enums([SolanaSignIn]),
-    params: SolanaSignInInputStruct,
-  }),
-  object({
-    method: enums([SolanaSignMessage]),
-    params: SolanaSignMessageInputStruct,
-  }),
-  object({
-    method: enums([SolanaSignTransaction]),
-    params: SolanaSignTransactionInputStruct,
-  }),
+  SolanaSignAndSendAllTransactionsRequestStruct,
+  SolanaSignAndSendTransactionRequestStruct,
+  SolanaSignInRequestStruct,
+  SolanaSignMessageRequestStruct,
+  SolanaSignTransactionRequestStruct,
 ]);
 
 export type SolanaWalletStandardRequest = Infer<
