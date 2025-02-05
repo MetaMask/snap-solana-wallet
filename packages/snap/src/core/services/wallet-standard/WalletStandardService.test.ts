@@ -176,35 +176,6 @@ describe('WalletStandardService', () => {
       ).rejects.toThrow('Account not found');
     });
 
-    // it('rejects request without params', async () => {
-    //   const request: JsonRpcRequest = {
-    //     id: 1,
-    //     jsonrpc: '2.0',
-    //     method: SolanaSignTransaction,
-    //   };
-
-    //   await expect(
-    //     service.resolveAccountAddress(mockAccounts, scope, request),
-    //   ).rejects.toThrow('No params');
-    // });
-
-    // it('rejects unsupported method', async () => {
-    //   const request: JsonRpcRequest = {
-    //     id: 1,
-    //     jsonrpc: '2.0',
-    //     method: 'unsupported-method',
-    //     params: {},
-    //   };
-
-    //   await expect(
-    //     service.resolveAccountAddress(mockAccounts, scope, request),
-    //   ).rejects.toThrow('Unsupported method');
-    //   expect(mockLogger.warn).toHaveBeenCalledWith(
-    //     { method: 'unsupported-method' },
-    //     'Unsupported method',
-    //   );
-    // });
-
     it('rejects when no accounts match scope', async () => {
       const request =
         MOCK_SIGN_TRANSACTION_REQUEST as unknown as JsonRpcRequest;
