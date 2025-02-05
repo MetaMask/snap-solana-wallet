@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0]
+
+### Uncategorized
+
+- Sol 132 snap implement resolve account address ([#175](https://github.com/MetaMask/snap-solana-wallet/pull/175))
+- fix: transactions data flow problems ([#174](https://github.com/MetaMask/snap-solana-wallet/pull/174))
+- fix: latency on send flow updates ([#173](https://github.com/MetaMask/snap-solana-wallet/pull/173))
+- chore: updates snap permissions ([#172](https://github.com/MetaMask/snap-solana-wallet/pull/172))
+- feat: implement push based transactions list ([#157](https://github.com/MetaMask/snap-solana-wallet/pull/157))
+- Improve env ([#171](https://github.com/MetaMask/snap-solana-wallet/pull/171))
+- feat: parity with compiled transactions ([#169](https://github.com/MetaMask/snap-solana-wallet/pull/169))
+- Sol 109 snap transaction simulation to input change ([#168](https://github.com/MetaMask/snap-solana-wallet/pull/168))
+- fix: conversions currency to lowercase ([#167](https://github.com/MetaMask/snap-solana-wallet/pull/167))
+- fix: disable buttons until prices and balances are available ([#166](https://github.com/MetaMask/snap-solana-wallet/pull/166))
+
 ## [1.3.0]
 
 ### Added
@@ -147,7 +162,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...v1.1.0

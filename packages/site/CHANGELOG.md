@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0]
+
+### Uncategorized
+
+- Sol 132 snap implement resolve account address ([#175](https://github.com/MetaMask/snap-solana-wallet/pull/175))
+- feat: implement push based transactions list ([#157](https://github.com/MetaMask/snap-solana-wallet/pull/157))
+- fix: conversions currency to lowercase ([#167](https://github.com/MetaMask/snap-solana-wallet/pull/167))
+
 ## [1.3.0]
 
 ### Added
@@ -72,7 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.0.4...v1.1.0
