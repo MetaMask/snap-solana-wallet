@@ -37,6 +37,7 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.SubmitRequest,
   KeyringRpcMethod.ListAccountTransactions,
   KeyringRpcMethod.ListAccountAssets,
+  KeyringRpcMethod.ResolveAccountAddress,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
 ]);

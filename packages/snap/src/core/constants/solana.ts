@@ -103,3 +103,5 @@ export const Networks = {
     nativeToken: TokenMetadata[Caip19Id.SolLocalnet],
   },
 } as const;
+
+export type Caip10Address = `${Network}:${string}`;

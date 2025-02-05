@@ -10,6 +10,7 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 
 import { Networks } from '../../../../core/constants/solana';
+import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCurrency } from '../../../../core/utils/formatCurrency';
 import { formatTokens } from '../../../../core/utils/formatTokens';
 import { getSolanaExplorerUrl } from '../../../../core/utils/getSolanaExplorerUrl';
@@ -41,11 +42,8 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   const fromAddress = accounts.find((account) => account.id === fromAccountId)
     ?.address as string;
 
-  // FIXME: Get this out to a helper function (ie: address to CAIP-10).
-  const fromAddressCaip2 =
-    `${scope}:${fromAddress}` as `${string}:${string}:${string}`;
-  const toAddressCaip2 =
-    `${scope}:${toAddress}` as `${string}:${string}:${string}`;
+  const fromAddressCaip2 = addressToCaip10(scope, fromAddress);
+  const toAddressCaip2 = addressToCaip10(scope, toAddress);
 
   const networkName = network.name;
   const networkSymbol = network.nativeToken.symbol;

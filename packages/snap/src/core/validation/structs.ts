@@ -13,7 +13,7 @@ import {
   string,
 } from 'superstruct';
 
-import { Caip19Id } from '../constants/solana';
+import { Caip19Id, Network } from '../constants/solana';
 
 // create a uuid validation
 export const Uuid = pattern(
@@ -86,3 +86,5 @@ export const SendAndConfirmTransactionParamsStruct = object({
 export type SendAndConfirmTransactionParams = Infer<
   typeof SendAndConfirmTransactionParamsStruct
 >;
+
+export const NetworkStruct = enums(Object.values(Network));

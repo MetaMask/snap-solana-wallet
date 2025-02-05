@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
-import type { Transaction } from '@metamask/keyring-api';
+import type {
+  ResolvedAccountAddress,
+  Transaction,
+} from '@metamask/keyring-api';
 import {
   KeyringEvent,
   SolAccountType,
   SolMethod,
-  SolScopes,
+  SolScope,
   type Balance,
   type CaipAssetType,
   type Keyring,
@@ -15,7 +18,9 @@ import {
 } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { Json } from '@metamask/snaps-controllers';
+import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { MethodNotFoundError } from '@metamask/snaps-sdk';
+import type { CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/web3.js';
 import {
   address as asAddress,
@@ -33,7 +38,6 @@ import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
-import type { SendAndConfirmTransactionParams } from '../../validation/structs';
 import {
   DeleteAccountStruct,
   GetAccounBalancesResponseStruct,
@@ -53,6 +57,7 @@ import type { TransactionHelper } from '../execution/TransactionHelper';
 import type { SolanaState } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TransactionsService } from '../transactions/Transactions';
+import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
 
 /**
  * We need to store the index of the KeyringAccount in the state because
@@ -80,6 +85,8 @@ export class SolanaKeyring implements Keyring {
 
   readonly #transactionHelper: TransactionHelper;
 
+  readonly #walletStandardService: WalletStandardService;
+
   constructor({
     state,
     configProvider,
@@ -89,6 +96,7 @@ export class SolanaKeyring implements Keyring {
     transactionHelper,
     assetsService,
     tokenMetadataService,
+    walletStandardService,
   }: {
     state: SolanaState;
     configProvider: ConfigProvider;
@@ -98,6 +106,7 @@ export class SolanaKeyring implements Keyring {
     transactionHelper: TransactionHelper;
     assetsService: AssetsService;
     tokenMetadataService: TokenMetadataService;
+    walletStandardService: WalletStandardService;
   }) {
     this.#state = state;
     this.#configProvider = configProvider;
@@ -107,6 +116,7 @@ export class SolanaKeyring implements Keyring {
     this.#transactionHelper = transactionHelper;
     this.#assetsService = assetsService;
     this.#tokenMetadataService = tokenMetadataService;
+    this.#walletStandardService = walletStandardService;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -185,7 +195,7 @@ export class SolanaKeyring implements Keyring {
         privateKeyBytesAsNum,
         type: SolAccountType.DataAccount,
         address: accountAddress,
-        scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
+        scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
         options: {
           ...remainingOptions,
           imported: importedAccount ?? false,
@@ -444,8 +454,7 @@ export class SolanaKeyring implements Keyring {
 
     validateRequest(params, SendAndConfirmTransactionParamsStruct);
 
-    const { base64EncodedTransactionMessage } =
-      params as SendAndConfirmTransactionParams;
+    const { base64EncodedTransactionMessage } = params;
 
     const account = await this.getAccountOrThrow(accountId);
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
@@ -558,6 +567,39 @@ export class SolanaKeyring implements Keyring {
         isFetchingTransactions: false,
       }));
       throw error;
+    }
+  }
+
+  /**
+   * Resolves the address of an account from a signing request.
+   *
+   * This is required by the routing system of MetaMask to dispatch
+   * incoming non-EVM dapp signing requests.
+   *
+   * @param scope - Request's scope (CAIP-2).
+   * @param request - Signing request object.
+   * @returns A Promise that resolves to the account address that must
+   * be used to process this signing request, or null if none candidates
+   * could be found.
+   */
+  async resolveAccountAddress(
+    scope: CaipChainId,
+    request: JsonRpcRequest,
+  ): Promise<ResolvedAccountAddress | null> {
+    try {
+      const allAccounts = await this.listAccounts();
+
+      const caip10Address =
+        await this.#walletStandardService.resolveAccountAddress(
+          allAccounts,
+          scope,
+          request,
+        );
+
+      return { address: caip10Address };
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error resolving account address');
+      return null;
     }
   }
 }

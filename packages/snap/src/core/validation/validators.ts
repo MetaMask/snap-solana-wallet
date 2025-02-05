@@ -4,7 +4,7 @@ import {
   SnapError,
   UnauthorizedError,
 } from '@metamask/snaps-sdk';
-import type { Struct } from 'superstruct';
+import type { Infer, Struct } from 'superstruct';
 import { assert } from 'superstruct';
 
 import { originPermissions } from '../../permissions';
@@ -26,10 +26,10 @@ export const validateOrigin = (origin: string, method: string): void => {
  * @param struct - The expected structure of the request parameters.
  * @throws {typeof InvalidParamsError} If the request parameters do not conform to the expected structure.
  */
-export function validateRequest<Params>(
+export function validateRequest<Params, TStruct extends Struct<any>>(
   requestParams: Params,
-  struct: Struct<any>,
-) {
+  struct: TStruct,
+): asserts requestParams is Infer<TStruct> {
   try {
     assert(requestParams, struct);
   } catch (error: any) {
@@ -45,10 +45,10 @@ export function validateRequest<Params>(
  * @param struct - The expected structure of the response.
  * @throws {SnapError} If the response does not conform to the expected structure.
  */
-export function validateResponse<Params>(
+export function validateResponse<Params, TStruct extends Struct<any>>(
   response: Params,
-  struct: Struct<any>,
-) {
+  struct: TStruct,
+): asserts response is Infer<TStruct> {
   try {
     assert(response, struct);
   } catch (error) {

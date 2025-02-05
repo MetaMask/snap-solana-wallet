@@ -1,6 +1,7 @@
 /* eslint-disable jest/prefer-strict-equal */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SolMethod } from '@metamask/keyring-api';
+import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
 
 import { Caip19Id, Network, SolanaCaip19Tokens } from '../../constants/solana';
@@ -32,6 +33,7 @@ import type { StateValue } from '../state/State';
 import { SolanaState } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from '../transactions/Transactions';
+import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
 import { SolanaKeyring } from './Keyring';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
@@ -58,6 +60,7 @@ describe('SolanaKeyring', () => {
   let mockConnection: SolanaConnection;
   let mockTransactionHelper: TransactionHelper;
   let mockTokenMetadataService: TokenMetadataService;
+  let mockWalletStandardService: WalletStandardService;
 
   beforeEach(() => {
     mockConnection = createMockConnection();
@@ -99,6 +102,11 @@ describe('SolanaKeyring', () => {
         .fn()
         .mockResolvedValue(SOLANA_MOCK_TOKEN_METADATA),
     } as unknown as TokenMetadataService;
+
+    mockWalletStandardService = {
+      resolveAccountAddress: jest.fn(),
+    } as unknown as WalletStandardService;
+
     keyring = new SolanaKeyring({
       state,
       encryptedState,
@@ -107,6 +115,7 @@ describe('SolanaKeyring', () => {
       assetsService,
       tokenMetadataService: mockTokenMetadataService,
       transactionHelper: mockTransactionHelper,
+      walletStandardService: mockWalletStandardService,
       logger,
     });
 
@@ -571,6 +580,54 @@ describe('SolanaKeyring', () => {
       await expect(keyring.submitRequest(request)).rejects.toThrow(
         `Account "${NON_EXISTENT_ACCOUNT_ID}" not found`,
       );
+    });
+  });
+
+  describe('resolveAccountAddress', () => {
+    it('returns resolved address when wallet standard service resolves successfully', async () => {
+      const mockScope = Network.Testnet;
+      const mockRequest = {
+        method: 'someMethod',
+        params: [],
+      } as unknown as JsonRpcRequest;
+      const mockResolvedAddress = `${mockScope}:resolved-address`;
+
+      jest
+        .spyOn(mockWalletStandardService, 'resolveAccountAddress')
+        .mockResolvedValue(mockResolvedAddress);
+
+      const result = await keyring.resolveAccountAddress(
+        mockScope,
+        mockRequest,
+      );
+
+      expect(result).toStrictEqual({ address: mockResolvedAddress });
+      expect(
+        mockWalletStandardService.resolveAccountAddress,
+      ).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNTS,
+        mockScope,
+        mockRequest,
+      );
+    });
+
+    it('returns null when an error occurs', async () => {
+      const mockScope = Network.Testnet;
+      const mockRequest = {
+        method: 'someMethod',
+        params: [],
+      } as unknown as JsonRpcRequest;
+
+      jest
+        .spyOn(mockWalletStandardService, 'resolveAccountAddress')
+        .mockRejectedValue(new Error('Something went wrong'));
+
+      const result = await keyring.resolveAccountAddress(
+        mockScope,
+        mockRequest,
+      );
+
+      expect(result).toBeNull();
     });
   });
 });
