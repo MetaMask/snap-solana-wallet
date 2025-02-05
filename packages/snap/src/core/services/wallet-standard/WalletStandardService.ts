@@ -20,7 +20,7 @@ import type { SolanaKeyringAccount } from '../keyring/Keyring';
 import { SolanaWalletStandardRequestStruct } from './structs';
 
 export class WalletStandardService {
-  #logger: ILogger;
+  readonly #logger: ILogger;
 
   constructor(_logger = logger) {
     this.#logger = _logger;
