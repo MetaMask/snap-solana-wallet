@@ -28,7 +28,6 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.SubmitRequest,
   KeyringRpcMethod.ListAccountTransactions,
   KeyringRpcMethod.ListAccountAssets,
-  KeyringRpcMethod.ResolveAccountAddress, // TODO: Do we need this? Decide based on https://github.com/MetaMask/SIPs/blob/main/SIPS/sip-26.md#account-snaps
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
 ]);
