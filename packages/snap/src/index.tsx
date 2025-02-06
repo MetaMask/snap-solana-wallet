@@ -14,6 +14,7 @@ import {
   SnapError,
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
+import { assert, enums } from 'superstruct';
 
 import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
 import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';
@@ -168,6 +169,7 @@ export const onUserInput: OnUserInputHandler = async ({
  */
 export const onCronjob: OnCronjobHandler = async ({ request }) => {
   const { method } = request;
+  assert(method, enums(Object.values(CronjobMethod)));
 
   // Don't run cronjobs if client is locked
   // This assumes we don't want to run cronjobs while the client is locked
@@ -176,15 +178,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
     return Promise.resolve();
   }
 
-  const handler = onCronjobHandlers[method as CronjobMethod];
-
-  if (!handler) {
-    throw new MethodNotFoundError(
-      `Cronjob method ${method} not found. Available methods: ${Object.values(
-        CronjobMethod,
-      ).toString()}`,
-    ) as unknown as Error;
-  }
+  const handler = onCronjobHandlers[method];
 
   return handler({ request });
 };
