@@ -3,6 +3,7 @@ import type { Infer } from 'superstruct';
 import {
   array,
   enums,
+  integer,
   nullable,
   number,
   object,
@@ -62,7 +63,7 @@ export const GetAccountBalancesStruct = object({
 export const ListAccountTransactionsStruct = object({
   accountId: Uuid,
   pagination: object({
-    limit: number(),
+    limit: integer(),
     next: optional(nullable(string())),
   }),
 });
