@@ -2,7 +2,7 @@ import {
   address as asAddress,
   type JsonParsedTokenAccount,
 } from '@solana/web3.js';
-import { BigNumber } from 'bignumber.js';
+import { assert } from 'superstruct';
 
 import type { Network } from '../../constants/solana';
 import { SolanaCaip19Tokens, TOKEN_PROGRAM_ID } from '../../constants/solana';
@@ -10,6 +10,10 @@ import type { SolanaAsset } from '../../types/solana';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { SolanaConnection } from '../connection';
+import {
+  GetBalanceResponseStruct,
+  GetTokenAccountsByOwnerResponseStruct,
+} from '../connection/structs';
 
 export class AssetsService {
   readonly #logger: ILogger;
@@ -42,6 +46,8 @@ export class AssetsService {
       .getBalance(asAddress(address))
       .send();
 
+    assert(response, GetBalanceResponseStruct);
+
     return {
       scope,
       address: `${scope}/${SolanaCaip19Tokens.SOL}`,
@@ -65,6 +71,8 @@ export class AssetsService {
           },
         )
         .send();
+
+      assert(response, GetTokenAccountsByOwnerResponseStruct);
 
       return response.value.map((token) =>
         this.#mapRpcSolanaToken(token.account.data.parsed.info, scope),

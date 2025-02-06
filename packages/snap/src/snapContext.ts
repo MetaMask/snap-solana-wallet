@@ -1,6 +1,6 @@
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
-import { AssetsService } from './core/services/assets/Assets';
+import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { EncryptedSolanaState } from './core/services/encrypted-state/EncryptedState';

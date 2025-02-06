@@ -50,7 +50,7 @@ import {
   SubmitRequestMethodStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
-import type { AssetsService } from '../assets/Assets';
+import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
 import type { EncryptedSolanaState } from '../encrypted-state/EncryptedState';
 import type { TransactionHelper } from '../execution/TransactionHelper';

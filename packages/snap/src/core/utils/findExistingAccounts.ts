@@ -1,10 +1,10 @@
 import {
-  getAddressFromPublicKey,
   createKeyPairFromPrivateKeyBytes,
+  getAddressFromPublicKey,
 } from '@solana/web3.js';
 
 import { Network } from '../constants/solana';
-import type { AssetsService } from '../services/assets/Assets';
+import type { AssetsService } from '../services/assets/AssetsService';
 import { deriveSolanaPrivateKey } from './deriveSolanaPrivateKey';
 import logger from './logger';
 

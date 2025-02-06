@@ -1,5 +1,12 @@
+import type { GetLatestBlockhashApi } from '@solana/web3.js';
+import { blockhash, lamports, type GetBalanceApi } from '@solana/web3.js';
+
 /**
  * Sample response from the Solana RPC `getBalance` method
+ * This is the response are received in JSON from the RPC.
+ *
+ * The Solana SDK then transforms the response into a {@link ReturnType<GetBalanceApi.getBalance>} object,
+ * where types slightly differ, see next mock.
  */
 export const MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE = {
   jsonrpc: '2.0',
@@ -11,6 +18,15 @@ export const MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE = {
     value: 123456789,
   },
   id: '0',
+};
+
+export const MOCK_SOLANA_RPC_GET_BALANCE_AS_SDK_RESPONSE: ReturnType<
+  GetBalanceApi['getBalance']
+> = {
+  context: {
+    slot: 302900219n,
+  },
+  value: lamports(123456789n),
 };
 
 /**
@@ -29,6 +45,18 @@ export const MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE = {
     },
   },
   id: '0',
+};
+
+export const MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_AS_SDK_RESPONSE: ReturnType<
+  GetLatestBlockhashApi['getLatestBlockhash']
+> = {
+  context: {
+    slot: 346468641n,
+  },
+  value: {
+    blockhash: blockhash('8HSvyvQvdRoFkCPnrtqF3dAS4SpPEbMKUVTdrK9auMR'),
+    lastValidBlockHeight: 334650256n,
+  },
 };
 
 /**
@@ -130,6 +158,13 @@ export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
     ],
   },
   id: '0',
+};
+
+export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_AS_SDK_RESPONSE = {
+  context: {
+    slot: 302900219n,
+  },
+  value: MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value,
 };
 
 export const MOCK_SOLANA_RPC_GET_TRANSACTION_RESPONSE = {

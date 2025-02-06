@@ -1,7 +1,7 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 
 import { Network } from '../constants/solana';
-import type { AssetsService } from '../services/assets/Assets';
+import type { AssetsService } from '../services/assets/AssetsService';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from './deriveSolanaPrivateKey';
 import { findExistingAccounts } from './findExistingAccounts';

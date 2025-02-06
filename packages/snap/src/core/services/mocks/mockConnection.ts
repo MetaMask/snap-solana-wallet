@@ -1,8 +1,8 @@
 import type { SolanaConnection } from '../connection/SolanaConnection';
 import {
-  MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE,
-  MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE,
-  MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE,
+  MOCK_SOLANA_RPC_GET_BALANCE_AS_SDK_RESPONSE,
+  MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_AS_SDK_RESPONSE,
+  MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_AS_SDK_RESPONSE,
   MOCK_SOLANA_RPC_GET_TRANSACTION_RESPONSE,
   MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE,
 } from './mockSolanaRpcResponses';
@@ -11,14 +11,14 @@ const createMockGetBalance = () =>
   jest.fn().mockReturnValue({
     send: jest
       .fn()
-      .mockReturnValue(MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE.result),
+      .mockReturnValue(MOCK_SOLANA_RPC_GET_BALANCE_AS_SDK_RESPONSE),
   });
 
 const createMockGetLatestBlockhash = () =>
   jest.fn().mockReturnValue({
     send: jest
       .fn()
-      .mockReturnValue(MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result),
+      .mockReturnValue(MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_AS_SDK_RESPONSE),
   });
 
 const createMockSendTransaction = () =>
@@ -93,7 +93,7 @@ const createMockGetTokenAccountsByOwner = () =>
     send: jest
       .fn()
       .mockReturnValue(
-        MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result,
+        MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_AS_SDK_RESPONSE,
       ),
   });
 

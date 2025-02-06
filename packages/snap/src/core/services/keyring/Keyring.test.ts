@@ -25,7 +25,7 @@ import {
 } from '../../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import logger from '../../utils/logger';
-import { AssetsService } from '../assets/Assets';
+import { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
 import type { Config } from '../config/ConfigProvider';
 import type { SolanaConnection } from '../connection/SolanaConnection';

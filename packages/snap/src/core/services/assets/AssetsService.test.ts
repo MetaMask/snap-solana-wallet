@@ -1,4 +1,4 @@
-import { Network, SolanaCaip19Tokens } from '../../constants/solana';
+import { Network } from '../../constants/solana';
 import {
   SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN,
@@ -8,7 +8,7 @@ import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { createMockConnection } from '../mocks/mockConnection';
 import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/mockSolanaRpcResponses';
-import { AssetsService } from './Assets';
+import { AssetsService } from './AssetsService';
 
 jest.mock('../connection/SolanaConnection');
 jest.mock('../../utils/logger');
@@ -32,6 +32,9 @@ describe('AssetsService', () => {
       const scope = Network.Localnet;
 
       const mockSend = jest.fn().mockReturnValue({
+        context: {
+          slot: 302900219n,
+        },
         value: [
           ...MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value,
           // adding a 0 balance token to the response in purpose
@@ -42,6 +45,7 @@ describe('AssetsService', () => {
                 parsed: {
                   info: {
                     mint: 'tokenAddress1',
+                    owner: 'owner1',
                     isNative: false,
                     tokenAmount: {
                       amount: '0',
@@ -92,6 +96,37 @@ describe('AssetsService', () => {
         assetsService.discoverTokens(address, scope),
       ).rejects.toThrow('Network error');
     });
+
+    it('throws an error if the response from the RPC is not valid', async () => {
+      const { address } = MOCK_SOLANA_KEYRING_ACCOUNT_1;
+      const scope = Network.Localnet;
+
+      const mockResponse = {
+        context: {
+          slot: 302900219n,
+        },
+        value: [
+          {
+            account: {
+              data: {
+                parsed: null, // Missing parsed data
+              },
+            },
+          },
+        ],
+      };
+
+      const mockSend = jest.fn().mockReturnValue(mockResponse);
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getTokenAccountsByOwner: jest.fn().mockReturnValue({ send: mockSend }),
+      } as any);
+
+      await expect(
+        assetsService.discoverTokens(address, scope),
+      ).rejects.toThrow(
+        'At path: value.0.account.data.parsed -- Expected an object, but received: null',
+      );
+    });
   });
 
   describe('getNativeAsset', () => {
@@ -116,6 +151,28 @@ describe('AssetsService', () => {
       await expect(
         assetsService.getNativeAsset(address, scope),
       ).rejects.toThrow('Network error');
+    });
+
+    it('throws an error if the response from the RPC is not valid', async () => {
+      const { address } = MOCK_SOLANA_KEYRING_ACCOUNT_1;
+      const scope = Network.Localnet;
+
+      const mockResponse = {
+        context: {
+          slot: 4, // not a bigint
+        },
+        value: 12345n,
+      };
+      const mockSend = jest.fn().mockReturnValue(mockResponse);
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getBalance: jest.fn().mockReturnValue({ send: mockSend }),
+      } as any);
+
+      await expect(
+        assetsService.getNativeAsset(address, scope),
+      ).rejects.toThrow(
+        'At path: context.slot -- Expected a value of type `bigint`, but received: `4`',
+      );
     });
   });
 });
