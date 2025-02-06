@@ -3,12 +3,11 @@ import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenM
 import { AssetsService } from './core/services/assets/Assets';
 import { ConfigProvider } from './core/services/config';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
-import { EncryptedSolanaState } from './core/services/encrypted-state/EncryptedState';
+import { EncryptedState } from './core/services/encrypted-state/EncryptedState';
 import { SplTokenHelper } from './core/services/execution/SplTokenHelper';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
 import { TransferSolHelper } from './core/services/execution/TransferSolHelper';
 import { SolanaKeyring } from './core/services/keyring/Keyring';
-import { SolanaState } from './core/services/state/State';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPrices } from './core/services/token-prices/TokenPrices';
 import { TransactionsService } from './core/services/transactions/Transactions';
@@ -24,8 +23,7 @@ export type SnapExecutionContext = {
   connection: SolanaConnection;
   keyring: SolanaKeyring;
   priceApiClient: PriceApiClient;
-  encryptedState: EncryptedSolanaState;
-  state: SolanaState;
+  state: EncryptedState;
   assetsService: AssetsService;
   tokenPricesService: TokenPrices;
   transactionHelper: TransactionHelper;
@@ -36,8 +34,7 @@ export type SnapExecutionContext = {
 };
 
 const configProvider = new ConfigProvider();
-const state = new SolanaState();
-const encryptedState = new EncryptedSolanaState();
+const state = new EncryptedState();
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);
 const transferSolHelper = new TransferSolHelper(transactionHelper, logger);
@@ -70,7 +67,6 @@ const walletStandardService = new WalletStandardService(logger);
 
 const keyring = new SolanaKeyring({
   state,
-  encryptedState,
   configProvider,
   transactionsService,
   transactionHelper,
@@ -87,7 +83,6 @@ const snapContext: SnapExecutionContext = {
   connection,
   keyring,
   priceApiClient,
-  encryptedState,
   state,
   /* Services */
   assetsService,
@@ -103,7 +98,6 @@ export {
   assetsService,
   configProvider,
   connection,
-  encryptedState,
   keyring,
   priceApiClient,
   splTokenHelper,

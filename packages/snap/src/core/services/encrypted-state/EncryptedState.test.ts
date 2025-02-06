@@ -6,10 +6,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
 } from '../../test/mocks/solana-keyring-accounts';
 import type { EncryptedStateValue } from './EncryptedState';
-import {
-  DEFAULT_ENCRYPTED_STATE,
-  EncryptedSolanaState,
-} from './EncryptedState';
+import { DEFAULT_ENCRYPTED_STATE, EncryptedState } from './EncryptedState';
 
 const snap = {
   request: jest.fn(),
@@ -18,10 +15,10 @@ const snap = {
 (globalThis as any).snap = snap;
 
 describe('EncryptedSolanaState', () => {
-  let solanaState: EncryptedSolanaState;
+  let solanaState: EncryptedState;
 
   beforeEach(() => {
-    solanaState = new EncryptedSolanaState();
+    solanaState = new EncryptedState();
     jest.clearAllMocks();
   });
 
@@ -37,7 +34,7 @@ describe('EncryptedSolanaState', () => {
 
     expect(snap.request).toHaveBeenCalledWith({
       method: 'snap_manageState',
-      params: { operation: 'get' },
+      params: { operation: 'get', encrypted: true },
     });
     expect(state).toStrictEqual(mockState);
   });
@@ -65,6 +62,7 @@ describe('EncryptedSolanaState', () => {
       params: {
         operation: 'update',
         newState: newState as unknown as Record<string, Json>,
+        encrypted: true,
       },
     });
   });
@@ -95,7 +93,7 @@ describe('EncryptedSolanaState', () => {
 
     expect(snap.request).toHaveBeenCalledWith({
       method: 'snap_manageState',
-      params: { operation: 'get' },
+      params: { operation: 'get', encrypted: true },
     });
 
     expect(snap.request).toHaveBeenCalledWith({
@@ -103,6 +101,7 @@ describe('EncryptedSolanaState', () => {
       params: {
         operation: 'update',
         newState: updatedState as unknown as Record<string, Json>,
+        encrypted: true,
       },
     });
   });

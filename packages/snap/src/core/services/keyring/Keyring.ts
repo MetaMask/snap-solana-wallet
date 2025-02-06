@@ -52,13 +52,11 @@ import {
 import { validateRequest, validateResponse } from '../../validation/validators';
 import type { AssetsService } from '../assets/Assets';
 import type { ConfigProvider } from '../config';
-import type { EncryptedSolanaState } from '../encrypted-state/EncryptedState';
+import type { EncryptedState } from '../encrypted-state/EncryptedState';
 import type { TransactionHelper } from '../execution/TransactionHelper';
-import type { SolanaState } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TransactionsService } from '../transactions/Transactions';
 import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
-
 /**
  * We need to store the index of the KeyringAccount in the state because
  * we want to be able to restore any account with a previously used index.
@@ -69,11 +67,9 @@ export type SolanaKeyringAccount = {
 } & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
-  readonly #state: SolanaState;
+  readonly #state: EncryptedState;
 
   readonly #configProvider: ConfigProvider;
-
-  readonly #encryptedState: EncryptedSolanaState;
 
   readonly #logger: ILogger;
 
@@ -90,7 +86,6 @@ export class SolanaKeyring implements Keyring {
   constructor({
     state,
     configProvider,
-    encryptedState,
     logger,
     transactionsService,
     transactionHelper,
@@ -98,9 +93,8 @@ export class SolanaKeyring implements Keyring {
     tokenMetadataService,
     walletStandardService,
   }: {
-    state: SolanaState;
+    state: EncryptedState;
     configProvider: ConfigProvider;
-    encryptedState: EncryptedSolanaState;
     logger: ILogger;
     transactionsService: TransactionsService;
     transactionHelper: TransactionHelper;
@@ -110,7 +104,6 @@ export class SolanaKeyring implements Keyring {
   }) {
     this.#state = state;
     this.#configProvider = configProvider;
-    this.#encryptedState = encryptedState;
     this.#logger = logger;
     this.#transactionsService = transactionsService;
     this.#transactionHelper = transactionHelper;
@@ -121,7 +114,7 @@ export class SolanaKeyring implements Keyring {
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
-      const currentState = await this.#encryptedState.get();
+      const currentState = await this.#state.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
       return Object.values(keyringAccounts).sort((a, b) => a.index - b.index);
@@ -137,7 +130,7 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, GetAccountStruct);
 
-      const currentState = await this.#encryptedState.get();
+      const currentState = await this.#state.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
       if (!keyringAccounts[accountId]) {
@@ -203,7 +196,7 @@ export class SolanaKeyring implements Keyring {
         methods: [SolMethod.SendAndConfirmTransaction],
       };
 
-      await this.#encryptedState.update((state) => ({
+      await this.#state.update((state) => ({
         ...state,
         keyringAccounts: {
           ...(state?.keyringAccounts ?? {}),
@@ -239,7 +232,7 @@ export class SolanaKeyring implements Keyring {
       validateRequest({ accountId }, DeleteAccountStruct);
 
       await Promise.all([
-        this.#encryptedState.update((state) => {
+        this.#state.update((state) => {
           delete state?.keyringAccounts?.[accountId];
           return state;
         }),
