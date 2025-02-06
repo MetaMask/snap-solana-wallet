@@ -11,7 +11,12 @@ import {
   SpotPricesFromPriceApiWithoutMarketDataStruct,
   VsCurrencyParamStruct,
 } from './structs';
-import type { SpotPrices, VsCurrencyParam } from './types';
+import type {
+  ExchangeRate,
+  FiatTicker,
+  SpotPrices,
+  VsCurrencyParam,
+} from './types';
 
 export class PriceApiClient {
   readonly #fetch: typeof globalThis.fetch;
@@ -37,6 +42,24 @@ export class PriceApiClient {
     this.#chunkSize = chunkSize;
   }
 
+  async getFiatExchangeRates(): Promise<Record<FiatTicker, ExchangeRate>> {
+    try {
+      const response = await this.#fetch(
+        `${this.#baseUrl}/v1/exchange-rates/fiat`,
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      this.#logger.error(error, 'Error fetching fiat exchange rates');
+      throw error;
+    }
+  }
+
   async getMultipleSpotPrices(
     tokenCaip19Ids: CaipAssetType[],
     vsCurrency: VsCurrencyParam = 'usd',
@@ -44,6 +67,10 @@ export class PriceApiClient {
     try {
       assert(tokenCaip19Ids, array(Caip19Struct));
       assert(vsCurrency, VsCurrencyParamStruct);
+
+      if (tokenCaip19Ids.length === 0) {
+        return {};
+      }
 
       // Split tokenCaip19Ids into chunks
       const chunks: CaipAssetType[][] = [];
