@@ -4,7 +4,7 @@ import { mockLogger } from '../../services/mocks/logger';
 import { PriceApiClient } from './PriceApiClient';
 import type {
   SpotPrices,
-  SpotPricesFromPriceApiWithIncludeMarketDataFalse,
+  SpotPricesFromPriceApiWithoutMarketData,
 } from './types';
 
 describe('PriceApiClient', () => {
@@ -29,7 +29,7 @@ describe('PriceApiClient', () => {
   });
 
   it('fetches multiple spot prices successfully', async () => {
-    const mockResponse: SpotPricesFromPriceApiWithIncludeMarketDataFalse = {
+    const mockResponse: SpotPricesFromPriceApiWithoutMarketData = {
       [KnownCaip19Id.SolLocalnet]: { usd: 100 },
       [KnownCaip19Id.UsdcLocalnet]: { usd: 100 },
     };
@@ -88,7 +88,7 @@ describe('PriceApiClient', () => {
   });
 
   it('fetches spot price with custom vsCurrency', async () => {
-    const mockResponse: SpotPricesFromPriceApiWithIncludeMarketDataFalse = {
+    const mockResponse: SpotPricesFromPriceApiWithoutMarketData = {
       [KnownCaip19Id.SolLocalnet]: { eur: 100 },
       [KnownCaip19Id.UsdcLocalnet]: { eur: 100 },
     };
@@ -149,7 +149,7 @@ describe('PriceApiClient', () => {
     const mockMalformedResponse = {
       [KnownCaip19Id.SolLocalnet]: { name: 'Bob' },
       [KnownCaip19Id.UsdcLocalnet]: { usd: 100 },
-    } as unknown as SpotPricesFromPriceApiWithIncludeMarketDataFalse;
+    } as unknown as SpotPricesFromPriceApiWithoutMarketData;
 
     mockFetch.mockResolvedValueOnce({
       ok: true,

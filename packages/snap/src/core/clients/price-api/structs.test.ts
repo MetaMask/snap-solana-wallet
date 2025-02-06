@@ -1,6 +1,6 @@
 import { assert } from 'superstruct';
 
-import { SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct } from './structs';
+import { SpotPricesFromPriceApiWithoutMarketDataStruct } from './structs';
 
 describe('structs', () => {
   describe('SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct', () => {
@@ -13,10 +13,7 @@ describe('structs', () => {
       };
 
       expect(() =>
-        assert(
-          spotPrices,
-          SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct,
-        ),
+        assert(spotPrices, SpotPricesFromPriceApiWithoutMarketDataStruct),
       ).not.toThrow();
     });
 
@@ -28,10 +25,7 @@ describe('structs', () => {
       };
 
       expect(() =>
-        assert(
-          spotPrices,
-          SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct,
-        ),
+        assert(spotPrices, SpotPricesFromPriceApiWithoutMarketDataStruct),
       ).toThrow('Expected a positive number but received a negative number -4');
     });
   });

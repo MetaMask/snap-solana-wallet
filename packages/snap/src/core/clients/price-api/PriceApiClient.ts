@@ -5,7 +5,7 @@ import { assert } from 'superstruct';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
-import { SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct } from './structs';
+import { SpotPricesFromPriceApiWithoutMarketDataStruct } from './structs';
 import type { SpotPrices } from './types';
 
 export class PriceApiClient {
@@ -61,7 +61,7 @@ export class PriceApiClient {
           const spotPricesResponse = await response.json();
           assert(
             spotPricesResponse,
-            SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct,
+            SpotPricesFromPriceApiWithoutMarketDataStruct,
           );
 
           const result = Object.keys(spotPricesResponse).reduce(

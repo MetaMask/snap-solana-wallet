@@ -14,7 +14,7 @@ import { Caip19Struct, PositiveNumber } from '../../validation/structs';
  *   "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501": null
  * }
  */
-export const SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct = record(
+export const SpotPricesFromPriceApiWithoutMarketDataStruct = record(
   Caip19Struct,
   nullable(record(string(), PositiveNumber)),
 );
