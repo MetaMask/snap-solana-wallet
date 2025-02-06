@@ -1,5 +1,5 @@
 import SolanaLogo from '../../../images/coin.svg';
-import { Caip19Id, Network, Networks } from '../../core/constants/solana';
+import { KnownCaip19Id, Network, Networks } from '../../core/constants/solana';
 import { DEFAULT_SEND_CONTEXT } from '../../core/handlers/onRpcRequest/renderSend';
 import {
   getNativeTokenPrice,
@@ -11,7 +11,7 @@ import type { SendContext } from './types';
 import { SendCurrencyType } from './types';
 
 describe('Send selectors', () => {
-  const mockTokenCaipId = Caip19Id.UsdcLocalnet;
+  const mockTokenCaipId = KnownCaip19Id.UsdcLocalnet;
   const mockContext: SendContext = {
     ...DEFAULT_SEND_CONTEXT,
     amount: '100',

@@ -1,8 +1,10 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
+import { assert } from 'superstruct';
 
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
+import { TokenMetadataResponseStruct } from './structs';
 import type { SolanaTokenMetadata, TokenMetadata } from './types';
 
 export class TokenMetadataClient {
@@ -44,7 +46,8 @@ export class TokenMetadataClient {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = (await response.json()) as TokenMetadata[];
+    const data = await response.json();
+    assert(data, TokenMetadataResponseStruct);
 
     return data;
   }

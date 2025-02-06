@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 
 import {
-  Caip19Id,
+  KnownCaip19Id,
   LAMPORTS_PER_SOL,
   Network,
   SOL_TRANSFER_FEE_LAMPORTS,
@@ -27,7 +27,7 @@ describe('SendForm events', () => {
     toAddress: mockToAddress,
     balances: {
       [mockAccount.id]: {
-        [Caip19Id.SolLocalnet]: {
+        [KnownCaip19Id.SolLocalnet]: {
           amount: mockBalanceInSol,
           unit: 'SOL',
         },
@@ -36,7 +36,7 @@ describe('SendForm events', () => {
     scope: Network.Localnet,
     tokenPricesFetchStatus: 'initial',
     tokenPrices: {
-      [Caip19Id.SolLocalnet]: {
+      [KnownCaip19Id.SolLocalnet]: {
         price: Number(mockSolPrice),
       },
     },
@@ -52,8 +52,8 @@ describe('SendForm events', () => {
       currency: 'USD',
     },
     feePaidInSol: '0',
-    tokenCaipId: Caip19Id.SolLocalnet,
-    assets: [Caip19Id.SolLocalnet],
+    tokenCaipId: KnownCaip19Id.SolLocalnet,
+    assets: [KnownCaip19Id.SolLocalnet],
     tokenMetadata: {},
     buildingTransaction: false,
     transactionMessage: null,

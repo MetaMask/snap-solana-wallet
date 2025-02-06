@@ -18,7 +18,7 @@ export enum Network {
   Localnet = 'solana:123456789abcdef',
 }
 
-export enum Caip19Id {
+export enum KnownCaip19Id {
   SolMainnet = `${Network.Mainnet}/slip44:501`,
   SolDevnet = `${Network.Devnet}/slip44:501`,
   SolTestnet = `${Network.Testnet}/slip44:501`,
@@ -39,33 +39,33 @@ export enum SolanaCaip19Tokens {
 
 export type TokenInfo = {
   symbol: string;
-  caip19Id: Caip19Id;
+  caip19Id: KnownCaip19Id;
   address: string;
   decimals: number;
 };
 
 export const TokenMetadata = {
-  [Caip19Id.SolMainnet]: {
+  [KnownCaip19Id.SolMainnet]: {
     symbol: 'SOL',
-    caip19Id: Caip19Id.SolMainnet,
+    caip19Id: KnownCaip19Id.SolMainnet,
     address: 'So11111111111111111111111111111111111111112',
     decimals: 9,
   },
-  [Caip19Id.SolDevnet]: {
+  [KnownCaip19Id.SolDevnet]: {
     symbol: 'SOL',
-    caip19Id: Caip19Id.SolDevnet,
+    caip19Id: KnownCaip19Id.SolDevnet,
     address: 'So11111111111111111111111111111111111111112',
     decimals: 9,
   },
-  [Caip19Id.SolTestnet]: {
+  [KnownCaip19Id.SolTestnet]: {
     symbol: 'SOL',
-    caip19Id: Caip19Id.SolTestnet,
+    caip19Id: KnownCaip19Id.SolTestnet,
     address: 'So11111111111111111111111111111111111111112',
     decimals: 9,
   },
-  [Caip19Id.SolLocalnet]: {
+  [KnownCaip19Id.SolLocalnet]: {
     symbol: 'SOL',
-    caip19Id: Caip19Id.SolLocalnet,
+    caip19Id: KnownCaip19Id.SolLocalnet,
     address: 'So11111111111111111111111111111111111111112',
     decimals: 9,
   },
@@ -82,25 +82,25 @@ export const Networks = {
     caip2Id: Network.Mainnet,
     cluster: 'mainnet',
     name: 'Solana Mainnet',
-    nativeToken: TokenMetadata[Caip19Id.SolMainnet],
+    nativeToken: TokenMetadata[KnownCaip19Id.SolMainnet],
   },
   [Network.Devnet]: {
     caip2Id: Network.Devnet,
     cluster: 'devnet',
     name: 'Solana Devnet',
-    nativeToken: TokenMetadata[Caip19Id.SolDevnet],
+    nativeToken: TokenMetadata[KnownCaip19Id.SolDevnet],
   },
   [Network.Testnet]: {
     caip2Id: Network.Testnet,
     cluster: 'testnet',
     name: 'Solana Testnet',
-    nativeToken: TokenMetadata[Caip19Id.SolTestnet],
+    nativeToken: TokenMetadata[KnownCaip19Id.SolTestnet],
   },
   [Network.Localnet]: {
     caip2Id: Network.Localnet,
     cluster: 'local',
     name: 'Solana Localnet',
-    nativeToken: TokenMetadata[Caip19Id.SolLocalnet],
+    nativeToken: TokenMetadata[KnownCaip19Id.SolLocalnet],
   },
 } as const;
 

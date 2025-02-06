@@ -127,4 +127,27 @@ describe('TokenMetadataClient', () => {
       errorMessage,
     );
   });
+
+  it('throws an error if the response includes an invalid assetId', async () => {
+    const tokenAddresses = [
+      tokenAddressToCaip19(Network.Localnet, 'address1'),
+      tokenAddressToCaip19(Network.Localnet, 'address2'),
+    ];
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValueOnce([
+        {
+          decimals: 9,
+          assetId: 'bad-asset-id',
+          name: 'Popcat 1',
+          symbol: 'POPCAT',
+        },
+      ]),
+    });
+
+    await expect(
+      client.getTokenMetadataFromAddresses(tokenAddresses),
+    ).rejects.toThrow(/At path: 0.assetId -- Expected a string matching/u);
+  });
 });

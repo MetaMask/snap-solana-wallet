@@ -1,4 +1,4 @@
-import type { Balance, CaipAssetType } from '@metamask/keyring-api';
+import type { CaipAssetType } from '@metamask/keyring-api';
 import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 
@@ -7,7 +7,7 @@ import type { SendContext } from '../../../features/send/types';
 import { SendCurrencyType } from '../../../features/send/types';
 import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
 import { keyring, state, tokenPricesService } from '../../../snapContext';
-import { Caip19Id, Network, Networks } from '../../constants/solana';
+import { KnownCaip19Id, Network, Networks } from '../../constants/solana';
 import {
   createInterface,
   getPreferences,
@@ -22,7 +22,7 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   toAddress: '',
   feeEstimatedInSol: '0',
   feePaidInSol: '0',
-  tokenCaipId: Caip19Id.SolMainnet,
+  tokenCaipId: KnownCaip19Id.SolMainnet,
   accounts: [],
   currencyType: SendCurrencyType.TOKEN,
   validation: {},

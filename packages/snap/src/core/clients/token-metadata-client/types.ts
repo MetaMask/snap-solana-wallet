@@ -1,16 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import type { CaipAssetType } from '@metamask/keyring-api';
 import type { FungibleAssetMetadata } from '@metamask/snaps-sdk';
+import type { Infer } from 'superstruct';
+
+import type { TokenMetadataStruct } from './structs';
 
 export type SolanaTokenMetadata = FungibleAssetMetadata & {
   imageSvg?: string;
 };
 
-export type TokenMetadata = {
-  decimals: number;
-  assetId: CaipAssetType;
-  name: string;
-  symbol: string;
-  iconUrl?: string;
-};
+export type TokenMetadata = Infer<typeof TokenMetadataStruct>;

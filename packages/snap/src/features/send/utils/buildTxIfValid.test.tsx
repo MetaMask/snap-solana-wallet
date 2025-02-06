@@ -1,6 +1,6 @@
 import { address } from '@solana/web3.js';
 
-import { Caip19Id, Network } from '../../../core/constants/solana';
+import { KnownCaip19Id, Network } from '../../../core/constants/solana';
 import { DEFAULT_SEND_CONTEXT } from '../../../core/handlers/onRpcRequest/renderSend';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -30,7 +30,7 @@ describe('buildTxIfValid', () => {
   const mockContext = {
     ...DEFAULT_SEND_CONTEXT,
     fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-    tokenCaipId: Caip19Id.SolTestnet,
+    tokenCaipId: KnownCaip19Id.SolTestnet,
     scope: Network.Testnet,
     toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
     amount: '1.0',
@@ -40,7 +40,7 @@ describe('buildTxIfValid', () => {
     },
     balances: {
       [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-        [Caip19Id.SolTestnet]: {
+        [KnownCaip19Id.SolTestnet]: {
           amount: '100',
         },
       },
@@ -93,7 +93,7 @@ describe('buildTxIfValid', () => {
   it('builds SPL token transaction when tokenCaipId is not native token', async () => {
     const splContext = {
       ...mockContext,
-      tokenCaipId: Caip19Id.UsdcLocalnet,
+      tokenCaipId: KnownCaip19Id.UsdcLocalnet,
     } as unknown as SendContext;
 
     await buildTxIfValid(mockId, splContext);

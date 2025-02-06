@@ -1,6 +1,6 @@
 import type { SendContext } from '../../features/send/types';
 import { SendCurrencyType } from '../../features/send/types';
-import { Caip19Id } from '../constants/solana';
+import { KnownCaip19Id } from '../constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -38,13 +38,13 @@ describe('sendFieldsAreValid', () => {
       preferences: {
         locale: 'en',
       },
-      tokenCaipId: Caip19Id.SolTestnet,
+      tokenCaipId: KnownCaip19Id.SolTestnet,
       fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
       amount: '100',
       balances: {
         [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          [Caip19Id.SolTestnet]: {
+          [KnownCaip19Id.SolTestnet]: {
             amount: '123', // sender has 123 SOL, more than the amount to send
           },
         },
@@ -61,13 +61,13 @@ describe('sendFieldsAreValid', () => {
       preferences: {
         locale: 'en',
       },
-      tokenCaipId: Caip19Id.SolTestnet,
+      tokenCaipId: KnownCaip19Id.SolTestnet,
       fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
       amount: '', // amount is invalid
       balances: {
         [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          [Caip19Id.SolTestnet]: {
+          [KnownCaip19Id.SolTestnet]: {
             amount: '123',
           },
         },
@@ -84,13 +84,13 @@ describe('sendFieldsAreValid', () => {
       preferences: {
         locale: 'en',
       },
-      tokenCaipId: Caip19Id.SolTestnet,
+      tokenCaipId: KnownCaip19Id.SolTestnet,
       fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
       amount: '100',
       balances: {
         [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          [Caip19Id.SolTestnet]: {
+          [KnownCaip19Id.SolTestnet]: {
             amount: '5', // sender has 5 SOL, but we're trying to send 100
           },
         },

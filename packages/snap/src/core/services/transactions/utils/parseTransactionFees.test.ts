@@ -1,4 +1,4 @@
-import { Caip19Id, Network } from '../../../constants/solana';
+import { KnownCaip19Id, Network } from '../../../constants/solana';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { parseTransactionFees } from './parseTransactionFees';
@@ -15,7 +15,7 @@ describe('parseTransactionFees', () => {
         asset: {
           amount: '0.000005',
           fungible: true,
-          type: Caip19Id.SolLocalnet,
+          type: KnownCaip19Id.SolLocalnet,
           unit: 'SOL',
         },
         type: 'base',
@@ -34,7 +34,7 @@ describe('parseTransactionFees', () => {
         asset: {
           amount: '0.000005',
           fungible: true,
-          type: Caip19Id.SolLocalnet,
+          type: KnownCaip19Id.SolLocalnet,
           unit: 'SOL',
         },
         type: 'base',

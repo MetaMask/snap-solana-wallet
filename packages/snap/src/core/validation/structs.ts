@@ -14,7 +14,7 @@ import {
   string,
 } from 'superstruct';
 
-import { Caip19Id, Network } from '../constants/solana';
+import { Network } from '../constants/solana';
 
 // create a uuid validation
 export const Uuid = pattern(
@@ -35,6 +35,14 @@ export const PositiveNumberStringStruct = pattern(
 );
 
 /**
+ * Validates a URL string. Accepts http and https protocols.
+ */
+export const UrlStruct = pattern(
+  string(),
+  /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/u,
+);
+
+/**
  * Validates a CAIP-19 asset identifier string, for instance
  * "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
  */
@@ -42,7 +50,6 @@ export const Caip19Struct = pattern(
   string(),
   /^[-a-z0-9]{3,8}:[-a-zA-Z0-9]{1,64}\/[-a-zA-Z0-9]{1,64}(:[-a-zA-Z0-9]{1,64})?$/u,
 );
-export const AssetsStruct = enums(Object.values(Caip19Id));
 
 /**
  * Keyring validations
