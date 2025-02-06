@@ -2,7 +2,7 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 import type { AssetConversion } from '@metamask/snaps-sdk';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
-import type { SpotPriceResponse } from '../../clients/price-api/types';
+import type { SpotPrices } from '../../clients/price-api/types';
 import { getCaip19Address } from '../../utils/getCaip19Address';
 import logger, { type ILogger } from '../../utils/logger';
 
@@ -57,7 +57,7 @@ export class TokenPrices {
   async getMultipleTokenPrices(
     caip19Ids: CaipAssetType[],
     currency?: string,
-  ): Promise<SpotPriceResponse> {
+  ): Promise<SpotPrices> {
     if (caip19Ids.length === 0) {
       return {};
     }

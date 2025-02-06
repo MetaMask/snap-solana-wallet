@@ -2,7 +2,10 @@ import { Caip19Id } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import { mockLogger } from '../../services/mocks/logger';
 import { PriceApiClient } from './PriceApiClient';
-import type { SpotPriceResponse, SpotPrices } from './types';
+import type {
+  SpotPrices,
+  SpotPricesFromPriceApiWithIncludeMarketDataFalse,
+} from './types';
 
 describe('PriceApiClient', () => {
   const mockFetch = jest.fn();
@@ -26,11 +29,11 @@ describe('PriceApiClient', () => {
   });
 
   it('fetches multiple spot prices successfully', async () => {
-    const mockResponse: SpotPrices = {
+    const mockResponse: SpotPricesFromPriceApiWithIncludeMarketDataFalse = {
       [Caip19Id.SolLocalnet]: { usd: 100 },
       [Caip19Id.UsdcLocalnet]: { usd: 100 },
     };
-    const expectedResponse: SpotPriceResponse = {
+    const expectedResponse: SpotPrices = {
       [Caip19Id.SolLocalnet]: { price: 100 },
       [Caip19Id.UsdcLocalnet]: { price: 100 },
     };
@@ -85,11 +88,11 @@ describe('PriceApiClient', () => {
   });
 
   it('fetches spot price with custom vsCurrency', async () => {
-    const mockResponse: SpotPrices = {
+    const mockResponse: SpotPricesFromPriceApiWithIncludeMarketDataFalse = {
       [Caip19Id.SolLocalnet]: { eur: 100 },
       [Caip19Id.UsdcLocalnet]: { eur: 100 },
     };
-    const expectedResponse: SpotPriceResponse = {
+    const expectedResponse: SpotPrices = {
       [Caip19Id.SolLocalnet]: { price: 100 },
       [Caip19Id.UsdcLocalnet]: { price: 100 },
     };
@@ -139,6 +142,27 @@ describe('PriceApiClient', () => {
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.any(Error),
       'Error fetching spot prices',
+    );
+  });
+
+  it('throws when malformed response from the Price API', async () => {
+    const mockMalformedResponse = {
+      [Caip19Id.SolLocalnet]: { name: 'Bob' },
+      [Caip19Id.UsdcLocalnet]: { usd: 100 },
+    } as unknown as SpotPricesFromPriceApiWithIncludeMarketDataFalse;
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValueOnce(mockMalformedResponse),
+    });
+
+    await expect(
+      client.getMultipleSpotPrices([
+        Caip19Id.SolLocalnet,
+        Caip19Id.UsdcLocalnet,
+      ]),
+    ).rejects.toThrow(
+      'At path: solana:123456789abcdef/slip44:501.name -- Expected a number, but received: "Bob"',
     );
   });
 });

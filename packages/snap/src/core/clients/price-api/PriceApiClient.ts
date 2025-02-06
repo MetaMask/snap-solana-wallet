@@ -1,10 +1,12 @@
 /* eslint-disable no-restricted-globals */
 import type { CaipAssetType } from '@metamask/keyring-api';
+import { assert } from 'superstruct';
 
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
-import type { SpotPriceResponse, SpotPrices } from './types';
+import { SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct } from './structs';
+import type { SpotPrices } from './types';
 
 export class PriceApiClient {
   readonly #fetch: typeof globalThis.fetch;
@@ -31,7 +33,7 @@ export class PriceApiClient {
   async getMultipleSpotPrices(
     tokenCaip19Ids: CaipAssetType[],
     vsCurrency = 'usd',
-  ): Promise<SpotPriceResponse> {
+  ): Promise<SpotPrices> {
     try {
       // Split tokenCaip19Ids into chunks
       const chunks: CaipAssetType[][] = [];
@@ -56,19 +58,28 @@ export class PriceApiClient {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          const prices = (await response.json()) as SpotPrices;
+          const spotPricesResponse = await response.json();
+          assert(
+            spotPricesResponse,
+            SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct,
+          );
 
-          return Object.keys(prices).reduce(
-            (acc: SpotPriceResponse, caip19Id) => {
+          const result = Object.keys(spotPricesResponse).reduce(
+            (acc: SpotPrices, caip19Id) => {
+              const price =
+                spotPricesResponse?.[caip19Id as CaipAssetType]?.[vsCurrency];
+              if (!price) {
+                return acc;
+              }
               acc[caip19Id as CaipAssetType] = {
-                price: prices?.[caip19Id as CaipAssetType]?.[
-                  vsCurrency
-                ] as number,
+                price,
               };
               return acc;
             },
             {},
           );
+
+          return result;
         }),
       );
 

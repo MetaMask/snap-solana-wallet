@@ -4,28 +4,21 @@ export type PriceApiClientConfig = {
   baseUrl: string;
 };
 
-export type SpotPrice = {
-  allTimeHigh?: number;
-  allTimeLow?: number;
-  circulatingSupply?: number;
-  dilutedMarketCap?: number;
-  high1d?: number;
-  id?: string;
-  low1d?: number;
-  marketCap?: number;
-  marketCapPercentChange1d?: number;
-  price: number;
-  priceChange1d?: number;
-  pricePercentChange1d?: number;
-  pricePercentChange1h?: number;
-  pricePercentChange1y?: number;
-  pricePercentChange7d?: number;
-  pricePercentChange14d?: number;
-  pricePercentChange30d?: number;
-  pricePercentChange200d?: number;
-  totalVolume?: number;
-};
+/**
+ * When includeMarketData=false, the price api returns this format,
+ * where price value is indexed by CAIP-19 and currency:
+ *
+ * @example
+ * {
+ *   "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501": {
+ *     "usd": 202.53
+ *   },
+ *  ...
+ * }
+ */
+export type SpotPricesFromPriceApiWithIncludeMarketDataFalse = Record<
+  CaipAssetType,
+  Record<string, number>
+>;
 
-export type SpotPrices = Record<CaipAssetType, Record<string, number>>;
-
-export type SpotPriceResponse = Record<CaipAssetType, SpotPrice>;
+export type SpotPrices = Record<CaipAssetType, { price: number }>;
