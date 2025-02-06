@@ -30,11 +30,9 @@ import type { ConfigProvider } from '../config';
 import type { Config } from '../config/ConfigProvider';
 import type { SolanaConnection } from '../connection/SolanaConnection';
 import type { EncryptedStateValue } from '../encrypted-state/EncryptedState';
-import { EncryptedSolanaState } from '../encrypted-state/EncryptedState';
+import { EncryptedState } from '../encrypted-state/EncryptedState';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
-import type { StateValue } from '../state/State';
-import { SolanaState } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from '../transactions/Transactions';
 import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
@@ -59,7 +57,7 @@ const NON_EXISTENT_ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174009';
 
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
-  let mockStateValue: StateValue & EncryptedStateValue;
+  let mockStateValue: EncryptedStateValue;
   let mockConfigProvider: ConfigProvider;
   let mockConnection: SolanaConnection;
   let mockTransactionHelper: TransactionHelper;
@@ -69,8 +67,7 @@ describe('SolanaKeyring', () => {
   beforeEach(() => {
     mockConnection = createMockConnection();
 
-    const state = new SolanaState();
-    const encryptedState = new EncryptedSolanaState();
+    const state = new EncryptedState();
 
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
@@ -113,7 +110,6 @@ describe('SolanaKeyring', () => {
 
     keyring = new SolanaKeyring({
       state,
-      encryptedState,
       configProvider: mockConfigProvider,
       transactionsService,
       assetsService,
@@ -160,11 +156,10 @@ describe('SolanaKeyring', () => {
                   case 'get':
                     return mockStateValue;
                   case 'update':
-                    mockStateValue = params.newState as EncryptedStateValue &
-                      StateValue;
+                    mockStateValue = params.newState as EncryptedStateValue;
                     return null;
                   case 'clear':
-                    mockStateValue = {} as EncryptedStateValue & StateValue;
+                    mockStateValue = {} as EncryptedStateValue;
                     return null;
                   default:
                     throw new Error(`Unknown operation: ${params.operation}`);
