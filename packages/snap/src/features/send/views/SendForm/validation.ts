@@ -1,4 +1,4 @@
-import { enums, nonempty, object, string } from 'superstruct';
+import { enums, object } from 'superstruct';
 
 import { Network } from '../../../../core/constants/solana';
 import type { FieldValidationFunction } from '../../../../core/types/form';
@@ -8,11 +8,12 @@ import {
   greatherThanZero,
   required,
 } from '../../../../core/validation/form';
+import { Uuid } from '../../../../core/validation/structs';
 import { SendFormNames } from '../../types';
 
 export const StartSendTransactionFlowParamsStruct = object({
   scope: enums([...Object.values(Network)]),
-  account: nonempty(string()),
+  account: Uuid,
 });
 
 export const validation: (

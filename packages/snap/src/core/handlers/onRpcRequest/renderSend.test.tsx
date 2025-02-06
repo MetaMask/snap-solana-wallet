@@ -269,7 +269,7 @@ describe('Send', () => {
     expect(screen5).toRender(<Send context={updatedContext5} />);
   });
 
-  it('fails when wrong params are given', async () => {
+  it('fails when wrong scope', async () => {
     const { request } = await installSnap();
 
     const response = await request({
@@ -284,6 +284,25 @@ describe('Send', () => {
     expect(response).toRespondWithError({
       code: expect.any(Number),
       message: expect.stringMatching(/At path: scope/u),
+      stack: expect.any(String),
+    });
+  });
+
+  it('fails when account is not a uuid', async () => {
+    const { request } = await installSnap();
+
+    const response = await request({
+      origin: TEST_ORIGIN,
+      method: RpcRequestMethod.StartSendTransactionFlow,
+      params: {
+        scope: Network.Localnet,
+        account: 'not-a-uuid',
+      },
+    });
+
+    expect(response).toRespondWithError({
+      code: expect.any(Number),
+      message: expect.stringMatching(/At path: account/u),
       stack: expect.any(String),
     });
   });
