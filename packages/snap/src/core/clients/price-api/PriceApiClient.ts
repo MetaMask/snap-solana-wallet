@@ -54,10 +54,14 @@ export class PriceApiClient {
       // Make parallel requests for each chunk
       const responses = await Promise.all(
         chunks.map(async (chunk) => {
-          const url = buildUrl(this.#baseUrl, '/v3/spot-prices', {
-            vsCurrency,
-            assetIds: chunk.join(','),
-            includeMarketData: 'false',
+          const url = buildUrl({
+            baseUrl: this.#baseUrl,
+            path: '/v3/spot-prices',
+            queryParams: {
+              vsCurrency,
+              assetIds: chunk.join(','),
+              includeMarketData: 'false',
+            },
           });
 
           const response = await this.#fetch(url);

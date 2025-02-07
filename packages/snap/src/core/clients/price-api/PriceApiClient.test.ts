@@ -183,7 +183,7 @@ describe('PriceApiClient', () => {
 
       expect(
         () => new PriceApiClient(invalidConfigProvider, mockFetch, mockLogger),
-      ).toThrow(/Expected a string matching/u);
+      ).toThrow('URL must use http or https protocol');
     });
 
     it('rejects tokenCaip19Ids that are invalid or that include malicious inputs', async () => {
