@@ -1,9 +1,11 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
-import { assert } from 'superstruct';
+import { array, assert } from 'superstruct';
 
 import type { ConfigProvider } from '../../services/config';
+import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
+import { Caip19Struct, UrlStruct } from '../../validation/structs';
 import { TokenMetadataResponseStruct } from './structs';
 import type { SolanaTokenMetadata, TokenMetadata } from './types';
 
@@ -27,20 +29,29 @@ export class TokenMetadataClient {
     this.#logger = _logger;
 
     const { tokenApi, staticApi } = configProvider.get();
+    const { baseUrl, chunkSize } = tokenApi;
 
-    this.#baseUrl = tokenApi.baseUrl;
-    this.#chunkSize = tokenApi.chunkSize;
+    assert(baseUrl, UrlStruct);
+
+    this.#baseUrl = baseUrl;
+    this.#chunkSize = chunkSize;
     this.#tokenIconBaseUrl = staticApi.baseUrl;
   }
 
   async #fetchTokenMetadataBatch(
     caip19Ids: CaipAssetType[],
   ): Promise<TokenMetadata[]> {
-    const params = [`assetIds=${encodeURIComponent(caip19Ids.join(','))}`];
+    assert(caip19Ids, array(Caip19Struct));
 
-    const response = await this.#fetch(
-      `${this.#baseUrl}/v3/assets?${params.join('&')}`,
-    );
+    const url = buildUrl({
+      baseUrl: this.#baseUrl,
+      path: '/v3/assets',
+      queryParams: {
+        assetIds: caip19Ids.join(','),
+      },
+    });
+
+    const response = await this.#fetch(url);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -56,6 +67,8 @@ export class TokenMetadataClient {
     caip19Ids: CaipAssetType[],
   ): Promise<Record<CaipAssetType, SolanaTokenMetadata>> {
     try {
+      assert(caip19Ids, array(Caip19Struct));
+
       // Split addresses into chunks
       const chunks: CaipAssetType[][] = [];
       for (let i = 0; i < caip19Ids.length; i += this.#chunkSize) {
@@ -77,12 +90,13 @@ export class TokenMetadataClient {
           fungible: true,
           iconUrl:
             metadata?.iconUrl ??
-            `${
-              this.#tokenIconBaseUrl
-            }/api/v2/tokenIcons/assets/${metadata.assetId.replace(
-              /:/gu,
-              '/',
-            )}.png`,
+            buildUrl({
+              baseUrl: this.#tokenIconBaseUrl,
+              path: '/api/v2/tokenIcons/assets/{assetId}.png',
+              pathParams: {
+                assetId: metadata.assetId.replace(/:/gu, '/'),
+              },
+            }),
           units: [
             {
               name: metadata.name,
