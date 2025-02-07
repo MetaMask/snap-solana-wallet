@@ -3,8 +3,15 @@ import type { Infer } from 'superstruct';
 import { array, coerce, create, enums, object, string } from 'superstruct';
 
 import { Network, Networks } from '../../constants/solana';
+import { UrlStruct } from '../../validation/structs';
 
-const CommaSeparatedString = coerce(
+const CommaSeparatedListOfUrlsStruct = coerce(
+  array(UrlStruct),
+  string(),
+  (value: string) => value.split(','),
+);
+
+const CommaSeparatedListOfStringsStruct = coerce(
   array(string()),
   string(),
   (value: string) => value.split(','),
@@ -12,13 +19,13 @@ const CommaSeparatedString = coerce(
 
 const EnvStruct = object({
   ENVIRONMENT: enums(['local', 'test', 'production']),
-  RPC_URL_MAINNET_LIST: CommaSeparatedString,
-  RPC_URL_DEVNET_LIST: CommaSeparatedString,
-  RPC_URL_TESTNET_LIST: CommaSeparatedString,
-  RPC_URL_LOCALNET_LIST: CommaSeparatedString,
-  PRICE_API_BASE_URL: string(),
-  TOKEN_API_BASE_URL: string(),
-  STATIC_API_BASE_URL: string(),
+  RPC_URL_MAINNET_LIST: CommaSeparatedListOfUrlsStruct,
+  RPC_URL_DEVNET_LIST: CommaSeparatedListOfUrlsStruct,
+  RPC_URL_TESTNET_LIST: CommaSeparatedListOfUrlsStruct,
+  RPC_URL_LOCALNET_LIST: CommaSeparatedListOfStringsStruct,
+  PRICE_API_BASE_URL: UrlStruct,
+  TOKEN_API_BASE_URL: UrlStruct,
+  STATIC_API_BASE_URL: UrlStruct,
   LOCAL_API_BASE_URL: string(),
 });
 
