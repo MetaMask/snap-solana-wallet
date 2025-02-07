@@ -1,5 +1,6 @@
 import type { Network } from '../constants/solana';
 import { NETWORK_BLOCK_EXPLORER_URL, Networks } from '../constants/solana';
+import { buildUrl } from './buildUrl';
 
 /**
  * Get the Solana Explorer URL for a given scope, type, and value.
@@ -15,7 +16,12 @@ export function getSolanaExplorerUrl(
   value: string,
 ) {
   const { cluster } = Networks[scope];
-  return `${NETWORK_BLOCK_EXPLORER_URL}/${type}/${value}${
-    cluster ? `?cluster=${cluster}` : ''
-  }`;
+
+  const url = buildUrl({
+    baseUrl: NETWORK_BLOCK_EXPLORER_URL,
+    path: `/${type}/${value}`,
+    queryParams: cluster ? { cluster } : undefined,
+  });
+
+  return url;
 }

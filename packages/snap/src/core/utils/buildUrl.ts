@@ -5,8 +5,8 @@ import { UrlStruct } from '../validation/structs';
 export type BuildUrlParams = {
   baseUrl: string;
   path: string;
-  pathParams?: Record<string, string | undefined>;
-  queryParams?: Record<string, string | undefined>;
+  pathParams?: Record<string, string> | undefined;
+  queryParams?: Record<string, string> | undefined;
 };
 
 /**
