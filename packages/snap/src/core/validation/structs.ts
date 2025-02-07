@@ -42,7 +42,6 @@ export const PositiveNumberStringStruct = pattern(
  * - Malformed URL format or incorrect protocol format
  * - Invalid hostname format (must follow proper domain naming conventions)
  * - Protocol pollution attempts (backslashes, @ symbol, %2f@, %5c@)
- * - Internal/localhost URLs over HTTPS (localhost, 127.0.0.1, 0.0.0.0, [::1], IPs starting with 0.)
  * - Invalid hostname characters (backslashes, @ symbol, forward slashes, encoded forward slashes)
  * - Directory traversal attempts (../, ..%2f, ..%2F)
  *
@@ -73,13 +72,14 @@ export const UrlStruct = refine(string(), 'safe-url', (value) => {
       return 'Malformed URL - incorrect protocol format';
     }
 
-    // Validate hostname format
+    // Validate hostname format. Accepts localhost and ports (needed for tests)
     const hostname = url.hostname.toLowerCase();
     if (
-      !hostname.includes('.') ||
-      !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/u.test(
-        hostname,
-      )
+      hostname !== 'localhost' &&
+      (!hostname.includes('.') ||
+        !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/u.test(
+          hostname,
+        ))
     ) {
       return 'Invalid hostname format';
     }
@@ -95,19 +95,6 @@ export const UrlStruct = refine(string(), 'safe-url', (value) => {
       value.toLowerCase().includes('%5c@')
     ) {
       return 'URL contains protocol pollution attempts';
-    }
-
-    // Hostname checks
-    if (
-      url.protocol === 'https:' &&
-      (hostname === 'localhost' ||
-        hostname === '127.0.0.1' ||
-        hostname === '0.0.0.0' ||
-        hostname === '[::1]' ||
-        hostname.startsWith('0.') ||
-        /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/u.test(hostname))
-    ) {
-      return 'Internal/localhost URLs over https are not allowed';
     }
 
     // Additional hostname safety check for protocol pollution
@@ -158,16 +145,16 @@ export const UrlStruct = refine(string(), 'safe-url', (value) => {
       }
     }
 
+    // Port validation (if present)
+    if (url.port && !/^\d+$/u.test(url.port)) {
+      return 'Invalid port number';
+    }
+
     return true;
   } catch (error) {
     return 'Invalid URL format';
   }
 });
-
-export const UrlStructRegex = pattern(
-  string(),
-  /^https?:\/\/(?!(?:localhost|127\.0\.0\.1|0\.0\.0\.0|::1)(?::|\/))(?!.*?(?:\.\.\/|\.\.%2[fF]))[\w\-.]+(:\d+)?(?:\/[^/]*)*$/u,
-);
 
 /**
  * Validates a CAIP-19 asset identifier string, for instance

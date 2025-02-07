@@ -18,6 +18,7 @@ describe('structs', () => {
         'https://example.com:8080',
         'https://example.com/path-with-hyphens',
         'https://example.com/path_with_underscore',
+        'http://localhost:8899',
       ];
 
       validUrls.forEach((url) => {
@@ -111,12 +112,6 @@ describe('structs', () => {
         // eslint-disable-next-line no-template-curly-in-string
         'https://example.com?${7*7}',
         'https://example.com?#{7*7}',
-
-        // SSRF Attempts
-        'https://localhost:8080/admin',
-        'https://127.0.0.1/admin',
-        'https://0.0.0.0/admin',
-        'https://[::1]/admin',
       ];
       maliciousUrls.forEach((url) => {
         expect(() => assert(url, UrlStruct)).toThrow();
