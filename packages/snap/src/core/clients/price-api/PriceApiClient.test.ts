@@ -1,3 +1,5 @@
+import type { CaipAssetType } from '@metamask/keyring-api';
+
 import { KnownCaip19Id } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import { mockLogger } from '../../services/mocks/logger';
@@ -5,6 +7,7 @@ import { PriceApiClient } from './PriceApiClient';
 import type {
   SpotPrices,
   SpotPricesFromPriceApiWithoutMarketData,
+  VsCurrencyParam,
 } from './types';
 
 describe('PriceApiClient', () => {
@@ -164,5 +167,77 @@ describe('PriceApiClient', () => {
     ).rejects.toThrow(
       'At path: solana:123456789abcdef/slip44:501.name -- Expected a number, but received: "Bob"',
     );
+  });
+
+  describe('security', () => {
+    it('rejects invalid base URLs in constructor', () => {
+      const invalidConfigProvider = {
+        get: jest.fn().mockReturnValue({
+          priceApi: {
+            // eslint-disable-next-line no-script-url
+            baseUrl: 'javascript:alert(1)',
+            chunkSize: 50,
+          },
+        }),
+      } as unknown as ConfigProvider;
+
+      expect(
+        () => new PriceApiClient(invalidConfigProvider, mockFetch, mockLogger),
+      ).toThrow(/Expected a string matching/u);
+    });
+
+    it('rejects tokenCaip19Ids that are invalid or that include malicious inputs', async () => {
+      await expect(
+        client.getMultipleSpotPrices([
+          KnownCaip19Id.SolLocalnet,
+          'INVALID<script>alert(1)</script>' as CaipAssetType,
+        ]),
+      ).rejects.toThrow(/Expected a string matching/u);
+    });
+
+    it('rejects vsCurrency parameters that are invalid or that include malicious inputs', async () => {
+      await expect(
+        client.getMultipleSpotPrices(
+          [KnownCaip19Id.SolLocalnet],
+          'INVALID<script>alert(1)</script>' as VsCurrencyParam,
+        ),
+      ).rejects.toThrow(/Expected one of/u);
+    });
+
+    it('handles URLs with multiple query parameters safely', async () => {
+      const mockResponse: SpotPricesFromPriceApiWithoutMarketData = {
+        [KnownCaip19Id.SolLocalnet]: { usd: 100 },
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce(mockResponse),
+      });
+
+      await client.getMultipleSpotPrices([KnownCaip19Id.SolLocalnet]);
+
+      // Verify URL is properly constructed with encoded parameters
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /^https:\/\/some-mock-url\.com\/v3\/spot-prices\?([^&=]+=[^&]*&)*[^&=]+=.+$/u,
+        ),
+      );
+    });
+
+    it('rejects non-printable characters in input', async () => {
+      const mockResponse: SpotPricesFromPriceApiWithoutMarketData = {
+        [KnownCaip19Id.SolLocalnet]: { usd: 100 },
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce(mockResponse),
+      });
+
+      await expect(
+        client.getMultipleSpotPrices(
+          [KnownCaip19Id.SolLocalnet],
+          'usd\x00\x1F' as VsCurrencyParam, // Adding null and unit separator characters
+        ),
+      ).rejects.toThrow(/Expected one of/u);
+    });
   });
 });
