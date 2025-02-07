@@ -1,39 +1,46 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import type { AssetConversion } from '@metamask/snaps-sdk';
+import { array, assert } from 'superstruct';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
-import type { SpotPrices } from '../../clients/price-api/types';
+import { VsCurrencyParamStruct } from '../../clients/price-api/structs';
+import type {
+  SpotPrices,
+  VsCurrencyParam,
+} from '../../clients/price-api/types';
 import { getCaip19Address } from '../../utils/getCaip19Address';
 import logger, { type ILogger } from '../../utils/logger';
+import { Caip19Struct } from '../../validation/structs';
 
 /**
  * Maps token addresses to their corresponding currency tickers.
  * Used for converting between token addresses and currency codes.
  */
-export const TOKEN_ADDRESS_TO_CRYPTO_CURRENCY: Record<string, string> = {
-  // Bitcoin
-  bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh: 'btc',
-  // Ethereum
-  '0x742d35Cc6634C0532925a3b844Bc454e4438f44e': 'eth',
-  // Litecoin
-  ltc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh: 'ltc',
-  // Bitcoin Cash
-  'bitcoincash:qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh': 'bch',
-  // Binance Coin
-  bnb1jxfh2g85q3v0tdq56fnevx6xcxtcnhtsmcu64m: 'bnb',
-  // EOS
-  'eosio.token': 'eos',
-  // XRP
-  rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh: 'xrp',
-  // Stellar Lumens
-  GDZKRELJ4KHDF7BEDNEJC4NQRLRIPQB5FXPQK6BTCSERVEQC6NQPH3DZ: 'xlm',
-  // Chainlink
-  '0x514910771af9ca656af840dff83e8264ecf986ca': 'link',
-  // Polkadot
-  '1FRMM8PEiWXYax7rpS6X4XZX1aAAxSWx1CrKTyrVYhV24fg': 'dot',
-  // Yearn.finance
-  '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e': 'yfi',
-};
+export const TOKEN_ADDRESS_TO_CRYPTO_CURRENCY: Record<string, VsCurrencyParam> =
+  {
+    // Bitcoin
+    bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh: 'btc',
+    // Ethereum
+    '0x742d35Cc6634C0532925a3b844Bc454e4438f44e': 'eth',
+    // Litecoin
+    ltc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh: 'ltc',
+    // Bitcoin Cash
+    'bitcoincash:qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh': 'bch',
+    // Binance Coin
+    bnb1jxfh2g85q3v0tdq56fnevx6xcxtcnhtsmcu64m: 'bnb',
+    // EOS
+    'eosio.token': 'eos',
+    // XRP
+    rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh: 'xrp',
+    // Stellar Lumens
+    GDZKRELJ4KHDF7BEDNEJC4NQRLRIPQB5FXPQK6BTCSERVEQC6NQPH3DZ: 'xlm',
+    // Chainlink
+    '0x514910771af9ca656af840dff83e8264ecf986ca': 'link',
+    // Polkadot
+    '1FRMM8PEiWXYax7rpS6X4XZX1aAAxSWx1CrKTyrVYhV24fg': 'dot',
+    // Yearn.finance
+    '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e': 'yfi',
+  };
 
 export class TokenPrices {
   readonly #priceApiClient: PriceApiClient;
@@ -45,19 +52,28 @@ export class TokenPrices {
     this.#logger = _logger;
   }
 
-  #caipToCurrency(caip19Id: CaipAssetType): string {
+  #caipToCurrency(caip19Id: CaipAssetType): VsCurrencyParam {
     const isCurrency = caip19Id.includes('/iso4217:');
     const currency = isCurrency
       ? caip19Id?.split('/iso4217:')?.[1]?.toLowerCase()
       : TOKEN_ADDRESS_TO_CRYPTO_CURRENCY[getCaip19Address(caip19Id)];
 
-    return currency ?? 'usd';
+    if (!currency) {
+      return 'usd';
+    }
+
+    assert(currency, VsCurrencyParamStruct);
+
+    return currency;
   }
 
   async getMultipleTokenPrices(
     caip19Ids: CaipAssetType[],
     currency?: string,
   ): Promise<SpotPrices> {
+    assert(caip19Ids, array(Caip19Struct));
+    assert(currency, VsCurrencyParamStruct);
+
     if (caip19Ids.length === 0) {
       return {};
     }

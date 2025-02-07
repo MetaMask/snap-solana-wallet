@@ -10,9 +10,11 @@ export type BuildUrlParams = {
 };
 
 /**
- * Safely builds a URL with the given base URL and parameters:
+ * Builds a URL with the given base URL and parameters:
  * - The `URL` API provides proper URL parsing and encoding.
  * - The `path` is sanitized to prevent path traversal attacks.
+ *
+ * Ensures that the built URL is safe, valid, and sanitized.
  *
  * @param params - The parameters to build the URL from.
  * @returns The built URL.

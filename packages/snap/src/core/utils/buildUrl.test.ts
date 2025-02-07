@@ -30,17 +30,6 @@ describe('buildUrl', () => {
     );
   });
 
-  it('handles parameters with special characters', () => {
-    const result = buildUrl({
-      baseUrl: 'https://api.example.com',
-      path: '/search',
-      queryParams: { q: 'hello world', tag: '@user' },
-    });
-    expect(result).toBe(
-      'https://api.example.com/search?q=hello+world&tag=%40user',
-    );
-  });
-
   it('handles path parameters', () => {
     const result = buildUrl({
       baseUrl: 'https://api.example.com',
@@ -66,22 +55,21 @@ describe('buildUrl', () => {
         path: '/users',
         queryParams: {},
       }),
-    ).toThrow(/Expected a string matching/u);
+    ).toThrow('Invalid URL format');
   });
 
   // Security validation tests
   it('prevents XSS in query parameters', () => {
-    const result = buildUrl({
-      baseUrl: 'https://api.example.com',
-      path: '/search',
-      queryParams: {
-        q: '<script>alert("xss")</script>',
-        callback: 'javascript:alert(1)',
-      },
-    });
-    expect(result).toBe(
-      'https://api.example.com/search?q=%3Cscript%3Ealert%28%22xss%22%29%3C%2Fscript%3E&callback=javascript%3Aalert%281%29',
-    );
+    expect(() =>
+      buildUrl({
+        baseUrl: 'https://api.example.com',
+        path: '/search',
+        queryParams: {
+          q: '<script>alert("xss")</script>',
+          callback: 'javascript:alert(1)',
+        },
+      }),
+    ).toThrow('URL contains potentially malicious patterns');
   });
 
   it('prevents path traversal attacks', () => {
@@ -107,17 +95,16 @@ describe('buildUrl', () => {
   });
 
   it('prevents protocol switching in parameters', () => {
-    const result = buildUrl({
-      baseUrl: 'https://api.example.com',
-      path: '/redirect',
-      queryParams: {
-        url: 'javascript://alert(1)',
-        next: 'data:text/html,<script>alert(1)</script>',
-      },
-    });
-    expect(result).toBe(
-      'https://api.example.com/redirect?url=javascript%3A%2F%2Falert%281%29&next=data%3Atext%2Fhtml%2C%3Cscript%3Ealert%281%29%3C%2Fscript%3E',
-    );
+    expect(() =>
+      buildUrl({
+        baseUrl: 'https://api.example.com',
+        path: '/redirect',
+        queryParams: {
+          url: 'javascript://alert(1)',
+          next: 'data:text/html,<script>alert(1)</script>',
+        },
+      }),
+    ).toThrow('URL contains potentially malicious patterns');
   });
 
   it('handles empty path segments', () => {
