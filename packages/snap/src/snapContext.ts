@@ -1,4 +1,5 @@
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
+import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
@@ -10,6 +11,7 @@ import { TransferSolHelper } from './core/services/execution/TransferSolHelper';
 import { SolanaKeyring } from './core/services/keyring/Keyring';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
+import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
 import { TransactionsService } from './core/services/transactions/Transactions';
 import { WalletStandardService } from './core/services/wallet-standard/WalletStandardService';
 import logger from './core/utils/logger';
@@ -64,6 +66,10 @@ const transactionsService = new TransactionsService({
 });
 
 const walletStandardService = new WalletStandardService(logger);
+const transactionScanService = new TransactionScanService(
+  new SecurityAlertsApiClient(configProvider),
+  logger,
+);
 
 const keyring = new SolanaKeyring({
   state,
@@ -74,6 +80,7 @@ const keyring = new SolanaKeyring({
   assetsService,
   tokenMetadataService,
   walletStandardService,
+  transactionScanService,
 });
 
 const tokenPricesService = new TokenPricesService(priceApiClient);

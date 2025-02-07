@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
-import type {
-  ResolvedAccountAddress,
-  Transaction,
-} from '@metamask/keyring-api';
 import {
   KeyringEvent,
   SolAccountType,
   SolMethod,
   SolScope,
+  type ResolvedAccountAddress,
+  type Transaction,
   type Balance,
   type CaipAssetType,
   type Keyring,
@@ -28,14 +26,20 @@ import {
   getAddressDecoder,
 } from '@solana/web3.js';
 
+import {
+  DEFAULT_CONFIRMATION_CONTEXT,
+  renderConfirmation,
+} from '../../../features/confirmation/renderConfirmation';
+import type { ConfirmationContext } from '../../../features/confirmation/types';
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
-import type { Network } from '../../constants/solana';
+import type { Caip10Address, Network } from '../../constants/solana';
 import { SOL_SYMBOL, SolanaCaip19Tokens } from '../../constants/solana';
 import { lamportsToSol } from '../../utils/conversion';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
+import { parseInstructions } from '../../utils/instructions';
 import type { ILogger } from '../../utils/logger';
 import {
   DeleteAccountStruct,
@@ -54,8 +58,10 @@ import type { ConfigProvider } from '../config';
 import type { EncryptedState } from '../encrypted-state/EncryptedState';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
+import type { TransactionScanService } from '../transaction-scan/TransactionScan';
 import type { TransactionsService } from '../transactions/Transactions';
 import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
+
 /**
  * We need to store the index of the KeyringAccount in the state because
  * we want to be able to restore any account with a previously used index.
@@ -81,6 +87,8 @@ export class SolanaKeyring implements Keyring {
 
   readonly #walletStandardService: WalletStandardService;
 
+  readonly #transactionScanService: TransactionScanService;
+
   constructor({
     state,
     configProvider,
@@ -90,6 +98,7 @@ export class SolanaKeyring implements Keyring {
     assetsService,
     tokenMetadataService,
     walletStandardService,
+    transactionScanService,
   }: {
     state: EncryptedState;
     configProvider: ConfigProvider;
@@ -99,6 +108,7 @@ export class SolanaKeyring implements Keyring {
     assetsService: AssetsService;
     tokenMetadataService: TokenMetadataService;
     walletStandardService: WalletStandardService;
+    transactionScanService: TransactionScanService;
   }) {
     this.#state = state;
     this.#configProvider = configProvider;
@@ -108,6 +118,7 @@ export class SolanaKeyring implements Keyring {
     this.#assetsService = assetsService;
     this.#tokenMetadataService = tokenMetadataService;
     this.#walletStandardService = walletStandardService;
+    this.#transactionScanService = transactionScanService;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -217,6 +228,20 @@ export class SolanaKeyring implements Keyring {
         account: keyringAccount,
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
+
+      /**
+       * Adding account to snap state.
+       *
+       * Needs to be done after the event is emitted to avoid the snap
+       * saving the account before the user has confirmed the account creation.
+       */
+      await this.#state.update((state) => ({
+        ...state,
+        keyringAccounts: {
+          ...(state?.keyringAccounts ?? {}),
+          [keyringAccount.id]: keyringAccount,
+        },
+      }));
 
       return keyringAccount;
     } catch (error: any) {
@@ -436,9 +461,10 @@ export class SolanaKeyring implements Keyring {
 
   async handleSendAndConfirmTransaction(
     request: KeyringRequest,
-  ): Promise<{ signature: string }> {
+    showConfirmation = true,
+  ): Promise<{ signature: string } | null> {
     const { scope, account: accountId } = request;
-    const { params } = request.request;
+    const { params, method } = request.request;
 
     validateRequest(params, SendAndConfirmTransactionParamsStruct);
 
@@ -450,19 +476,60 @@ export class SolanaKeyring implements Keyring {
       privateKeyBytes,
     );
 
-    const decodedTransactionMessage =
-      await this.#transactionHelper.base64DecodeTransaction(
-        base64EncodedTransactionMessage,
+    try {
+      const [decodedTransaction, feeInLamports, scanResult] = await Promise.all(
+        [
+          this.#transactionHelper.base64DecodeTransaction(
+            base64EncodedTransactionMessage,
+            scope as Network,
+          ),
+          this.#transactionHelper.getFeeForMessageInLamports(
+            base64EncodedTransactionMessage,
+            scope as Network,
+          ),
+          showConfirmation
+            ? this.#transactionScanService.scanTransaction({
+                method: method as SolMethod,
+                accountAddress: account.address,
+                transaction: base64EncodedTransactionMessage,
+                scope: scope as Network,
+              })
+            : null,
+        ],
+      );
+
+      if (showConfirmation) {
+        const confirmationContext: ConfirmationContext = {
+          ...DEFAULT_CONFIRMATION_CONTEXT,
+          scope: scope as Network,
+          method: method as SolMethod,
+          transaction: base64EncodedTransactionMessage,
+          account,
+          feeEstimatedInSol: feeInLamports
+            ? lamportsToSol(feeInLamports).toString()
+            : null,
+          scan: scanResult,
+          advanced: {
+            shown: Boolean(scanResult),
+            instructions: parseInstructions(decodedTransaction.instructions),
+          },
+        };
+
+        await renderConfirmation(confirmationContext);
+        return null;
+      }
+
+      const signature = await this.#transactionHelper.sendTransaction(
+        decodedTransaction,
+        [signer],
         scope as Network,
       );
 
-    const signature = await this.#transactionHelper.sendTransaction(
-      decodedTransactionMessage,
-      [signer],
-      scope as Network,
-    );
-
-    return { signature };
+      return { signature };
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error sending and confirming transaction');
+      throw error;
+    }
   }
 
   /**

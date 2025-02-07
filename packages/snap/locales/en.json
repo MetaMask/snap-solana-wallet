@@ -58,50 +58,83 @@
     "send.selectedTokenPriceNotAvailable": {
       "message": "Prices for tokens in {currency} are currently not available. You are still able to send tokens."
     },
-    "confirmation.title": {
+    "send.confirmation.title": {
       "message": "Review"
     },
-    "confirmation.from": {
+    "send.confirmation.from": {
       "message": "From"
     },
-    "confirmation.recipient": {
+    "send.confirmation.recipient": {
       "message": "Recipient"
     },
-    "confirmation.network": {
+    "send.confirmation.network": {
       "message": "Network"
     },
-    "confirmation.transactionSpeed": {
+    "send.confirmation.transactionSpeed": {
       "message": "Transaction speed"
     },
-    "confirmation.fee": {
+    "send.confirmation.fee": {
       "message": "Network fee"
     },
-    "confirmation.sendButton": {
+    "send.confirmation.sendButton": {
       "message": "Send"
+    },
+    "send.confirmation.cancelButton": {
+      "message": "Cancel"
+    },
+    "send.confirmation.viewTransaction": {
+      "message": "View transaction"
+    },
+    "send.send-pending.title": {
+      "message": "Sending..."
+    },
+    "send.send-pending.subtitle": {
+      "message": "Your transaction was submitted."
+    },
+    "send.transaction-success.title": {
+      "message": "Sent"
+    },
+    "send.transaction-success.subtitle": {
+      "message": "{amount} {tokenSymbol} was successfully sent"
+    },
+    "send.transaction-failure.title": {
+      "message": "Transaction failed"
+    },
+    "send.transaction-failure.subtitle": {
+      "message": "Unable to send {amount} {tokenSymbol}"
+    },
+    "confirmation.advanced.show": {
+      "message": "Show advanced"
+    },
+    "confirmation.advanced.hide": {
+      "message": "Hide advanced"
     },
     "confirmation.cancelButton": {
       "message": "Cancel"
     },
-    "confirmation.viewTransaction": {
-      "message": "View transaction"
+    "confirmation.confirmButton": {
+      "message": "Confirm"
     },
-    "send-pending.title": {
-      "message": "Sending..."
+    "confirmation.title": {
+      "message": "Transaction request"
     },
-    "send-pending.subtitle": {
-      "message": "Your transaction was submitted."
+    "confirmation.subtitle": {
+      "message": "Review the transaction before confirming."
     },
-    "transaction-success.title": {
-      "message": "Sent"
+    "confirmation.advanced.unknownInstruction": {
+      "message": "Unknown"
     },
-    "transaction-success.subtitle": {
-      "message": "{amount} {tokenSymbol} was successfully sent"
+    "confirmation.advanced.programId": {
+      "message": "Program ID"
     },
-    "transaction-failure.title": {
-      "message": "Transaction failed"
+    "confirmation.advanced.data": {
+      "message": "Data"
     },
-    "transaction-failure.subtitle": {
-      "message": "Unable to send {amount} {tokenSymbol}"
+    "confirmation.fee": {
+      "message": "Network fee"
+    },
+    "confirmation.feeError": {
+      "message": "Unable to estimate fee"
     }
   }
 }

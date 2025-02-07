@@ -45,7 +45,7 @@ export const TransactionConfirmation = ({
     <Container>
       <Box>
         <Navigation
-          title={translate('confirmation.title')}
+          title={translate('send.confirmation.title')}
           backButtonName={TransactionConfirmationNames.BackButton}
         />
         <ActionHeader
@@ -57,10 +57,10 @@ export const TransactionConfirmation = ({
       </Box>
       <Footer>
         <Button name={TransactionConfirmationNames.CancelButton}>
-          {translate('confirmation.cancelButton')}
+          {translate('send.confirmation.cancelButton')}
         </Button>
         <Button name={TransactionConfirmationNames.ConfirmButton}>
-          {translate('confirmation.sendButton')}
+          {translate('send.confirmation.sendButton')}
         </Button>
       </Footer>
     </Container>

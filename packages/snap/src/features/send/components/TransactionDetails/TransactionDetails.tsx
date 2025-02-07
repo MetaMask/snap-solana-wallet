@@ -53,20 +53,20 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 
   const feeToDisplay = transaction ? feePaidInSol : feeEstimatedInSol;
   const feeInUserCurrency =
-    tokenPrice === undefined
+    tokenPrice === undefined || feeToDisplay === null
       ? ''
       : formatCurrency(tokenToFiat(feeToDisplay, tokenPrice), currency);
 
   return (
     <Box>
       <Section>
-        <Row label={translate('confirmation.from')}>
+        <Row label={translate('send.confirmation.from')}>
           <Link href={getSolanaExplorerUrl(scope, 'address', fromAddress)}>
             <Address address={fromAddressCaip2} displayName />
           </Link>
         </Row>
 
-        <Row label={translate('confirmation.recipient')}>
+        <Row label={translate('send.confirmation.recipient')}>
           <Link href={getSolanaExplorerUrl(scope, 'address', toAddress)}>
             <Address address={toAddressCaip2} displayName />
           </Link>
@@ -74,18 +74,22 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
       </Section>
 
       <Section>
-        <Row label={translate('confirmation.network')}>
+        <Row label={translate('send.confirmation.network')}>
           <Text>{networkName}</Text>
         </Row>
 
-        <Row label={translate('confirmation.transactionSpeed')}>
+        <Row label={translate('send.confirmation.transactionSpeed')}>
           <Text>{transactionSpeed}</Text>
         </Row>
 
-        <Row label={translate('confirmation.fee')}>
+        <Row label={translate('send.confirmation.fee')}>
           <Value
             extra={feeInUserCurrency}
-            value={formatTokens(feeToDisplay, networkSymbol, locale)}
+            value={
+              feeToDisplay
+                ? formatTokens(feeToDisplay, networkSymbol, locale)
+                : ''
+            }
           />
         </Row>
       </Section>

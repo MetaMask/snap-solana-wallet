@@ -112,25 +112,55 @@ export class TransactionHelper {
    * @see https://solana.com/developers/cookbook/transactions/calculate-cost
    * @returns The fee for the transaction in lamports.
    */
-  async getFeeForMessageInLamports(
+  async getFeeFromTransactionInLamports(
     budgetedTransactionMessage: CompilableTransactionMessage,
     network: Network,
-  ): Promise<string> {
+  ): Promise<string | null> {
     const base64EncodedMessage = await this.base64EncodeTransactionMessage(
       budgetedTransactionMessage,
     );
 
-    const rpc = this.#connection.getRpc(network);
+    return await this.getFeeForMessageInLamports(base64EncodedMessage, network);
+  }
 
-    const transactionCost = await rpc
-      .getFeeForMessage(base64EncodedMessage as TransactionMessageBytesBase64)
-      .send();
+  /**
+   * Gets the fee for a transaction message in lamports.
+   *
+   * @param base64EncodedMessage - The base64 encoded transaction message to get the fee for.
+   * @param network - The network on which the transaction is being sent.
+   * @see https://solana.com/developers/cookbook/transactions/calculate-cost
+   * @returns The fee for the transaction in lamports.
+   */
+  async getFeeForMessageInLamports(
+    base64EncodedMessage: string,
+    network: Network,
+  ): Promise<string | null> {
+    try {
+      const message = pipe(
+        base64EncodedMessage,
+        getBase64Encoder().encode,
+        getTransactionDecoder().decode,
+        (tx) => tx.messageBytes,
+        getCompiledTransactionMessageDecoder().decode,
+        getCompiledTransactionMessageEncoder().encode,
+        getBase64Decoder().decode,
+      );
 
-    this.#logger.log(
-      `Transaction is estimated to cost ${transactionCost.value} lamports`,
-    );
+      const rpc = this.#connection.getRpc(network);
 
-    return transactionCost.value as any;
+      const transactionCost = await rpc
+        .getFeeForMessage(message as TransactionMessageBytesBase64)
+        .send();
+
+      this.#logger.log(
+        `Transaction is estimated to cost ${transactionCost.value} lamports`,
+      );
+
+      return transactionCost.value as any;
+    } catch (error: any) {
+      this.#logger.error(error);
+      return null;
+    }
   }
 
   /**

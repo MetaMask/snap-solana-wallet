@@ -40,7 +40,7 @@
     "send.toInvalidError": {
       "message": "Dirección de Solana no válida"
     },
-    "confirmation.title": {
+    "send.confirmation.title": {
       "message": "Revisar"
     },
     "confirmation.heading": {
@@ -49,52 +49,52 @@
     "confirmation.subheading": {
       "message": "Revise la transacción antes de continuar"
     },
-    "confirmation.from": {
+    "send.confirmation.from": {
       "message": "De"
     },
     "confirmation.amount": {
       "message": "Monto"
     },
-    "confirmation.recipient": {
+    "send.confirmation.recipient": {
       "message": "Destinatario"
     },
-    "confirmation.network": {
+    "send.confirmation.network": {
       "message": "Red"
     },
-    "confirmation.transactionSpeed": {
+    "send.confirmation.transactionSpeed": {
       "message": "Velocidad de la transacción"
     },
-    "confirmation.fee": {
+    "send.confirmation.fee": {
       "message": "Tarifa de red"
     },
     "confirmation.total": {
       "message": "Total"
     },
-    "confirmation.sendButton": {
+    "send.confirmation.sendButton": {
       "message": "Enviar"
     },
-    "confirmation.cancelButton": {
+    "send.confirmation.cancelButton": {
       "message": "Cancelar"
     },
-    "confirmation.viewTransaction": {
+    "send.confirmation.viewTransaction": {
       "message": "Ver transacción"
     },
-    "send-pending.title": {
+    "send.send-pending.title": {
       "message": "Enviando..."
     },
-    "send-pending.subtitle": {
+    "send.send-pending.subtitle": {
       "message": "Se envió su transacción."
     },
-    "transaction-success.title": {
+    "send.transaction-success.title": {
       "message": "Enviado"
     },
-    "transaction-success.subtitle": {
+    "send.transaction-success.subtitle": {
       "message": "El envío de {amount} {tokenSymbol} se realizó correctamente"
     },
-    "transaction-failure.title": {
+    "send.transaction-failure.title": {
       "message": "Transacción fallida"
     },
-    "transaction-failure.subtitle": {
+    "send.transaction-failure.subtitle": {
       "message": "Error al enviar {amount} {tokenSymbol}"
     }
   }

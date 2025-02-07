@@ -24,8 +24,8 @@ export const TransactionFailure = ({ context }: TransactionFailureProps) => {
       <Box>
         <Box>{null}</Box>
         <ActionHeader
-          title={translate('transaction-failure.title')}
-          subtitle={translate('transaction-failure.subtitle', {
+          title={translate('send.transaction-failure.title')}
+          subtitle={translate('send.transaction-failure.subtitle', {
             amount: tokenAmount,
             tokenSymbol,
           })}

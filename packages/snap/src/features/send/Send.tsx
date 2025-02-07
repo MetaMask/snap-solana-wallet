@@ -7,14 +7,14 @@ import { TransactionConfirmation } from './views/TransactionConfirmation/Transac
 import { TransactionFailure } from './views/TransactionFailure/TransactionFailure';
 import { TransactionSuccess } from './views/TransactionSuccess/TransactionSuccess';
 
-type SendProps = {
+export type SendProps = {
   context: SendContext;
 };
 
 /**
  * Maps each stage of the send flow to its corresponding component.
  */
-const MapStageToComponent: Record<
+export const MapStageToComponent: Record<
   SendFlowStage,
   SnapComponent<{ context: SendContext }>
 > = {

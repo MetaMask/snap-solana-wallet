@@ -25,8 +25,8 @@ export const TransactionSuccess = ({ context }: TransactionSuccessProps) => {
       <Box>
         <Box>{null}</Box>
         <ActionHeader
-          title={translate('transaction-success.title')}
-          subtitle={translate('transaction-success.subtitle', {
+          title={translate('send.transaction-success.title')}
+          subtitle={translate('send.transaction-success.subtitle', {
             amount: tokenAmount,
             tokenSymbol,
           })}
@@ -38,7 +38,7 @@ export const TransactionSuccess = ({ context }: TransactionSuccessProps) => {
             <Link
               href={getSolanaExplorerUrl(scope, 'tx', transaction?.signature)}
             >
-              {translate('confirmation.viewTransaction')}
+              {translate('send.confirmation.viewTransaction')}
             </Link>
           </Box>
         ) : null}

@@ -61,7 +61,7 @@ describe('buildTxIfValid', () => {
     });
 
     (
-      transactionHelper.getFeeForMessageInLamports as jest.Mock
+      transactionHelper.getFeeFromTransactionInLamports as jest.Mock
     ).mockResolvedValue(5000);
 
     (transactionHelper.base64EncodeTransaction as jest.Mock).mockResolvedValue(

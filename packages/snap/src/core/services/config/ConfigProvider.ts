@@ -26,6 +26,7 @@ const EnvStruct = object({
   PRICE_API_BASE_URL: UrlStruct,
   TOKEN_API_BASE_URL: UrlStruct,
   STATIC_API_BASE_URL: UrlStruct,
+  SECURITY_ALERTS_API_BASE_URL: UrlStruct,
   LOCAL_API_BASE_URL: string(),
 });
 
@@ -52,6 +53,9 @@ export type Config = {
   };
   transactions: {
     storageLimit: number;
+  };
+  securityAlertsApi: {
+    baseUrl: string;
   };
 };
 
@@ -86,6 +90,9 @@ export class ConfigProvider {
       TOKEN_API_BASE_URL: process.env.TOKEN_API_BASE_URL,
       // Static API
       STATIC_API_BASE_URL: process.env.STATIC_API_BASE_URL,
+      // Blockaid
+      SECURITY_ALERTS_API_BASE_URL: process.env.SECURITY_ALERTS_API_BASE_URL,
+      // Local API
       LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL,
     };
 
@@ -137,6 +144,9 @@ export class ConfigProvider {
       },
       transactions: {
         storageLimit: 20,
+      },
+      securityAlertsApi: {
+        baseUrl: environment.SECURITY_ALERTS_API_BASE_URL,
       },
     };
   }
