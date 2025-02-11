@@ -1,11 +1,11 @@
 import { SLIP10Node } from '@metamask/key-tree';
 
 import {
-  MOCK_SOLANA_KEYRING_ACCOUNT_0,
-  MOCK_SOLANA_KEYRING_ACCOUNT_1,
-  MOCK_SOLANA_KEYRING_ACCOUNT_2,
-  MOCK_SOLANA_KEYRING_ACCOUNT_3,
-  MOCK_SOLANA_KEYRING_ACCOUNT_4,
+  MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES,
+  MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES,
+  MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES,
+  MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
 } from '../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from './deriveSolanaPrivateKey';
 import { getBip32Entropy } from './getBip32Entropy';
@@ -71,19 +71,19 @@ describe('deriveSolanaPrivateKey', () => {
     const fifthPrivateKey = await deriveSolanaPrivateKey(4);
 
     expect(firstPrivateKey).toStrictEqual(
-      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_0.privateKeyBytesAsNum),
+      MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
     );
     expect(secondPrivateKey).toStrictEqual(
-      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_1.privateKeyBytesAsNum),
+      MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES,
     );
     expect(thirdPrivateKey).toStrictEqual(
-      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_2.privateKeyBytesAsNum),
+      MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES,
     );
     expect(fourthPrivateKey).toStrictEqual(
-      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_3.privateKeyBytesAsNum),
+      MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES,
     );
     expect(fifthPrivateKey).toStrictEqual(
-      new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNT_4.privateKeyBytesAsNum),
+      MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
     );
   });
 

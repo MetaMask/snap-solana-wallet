@@ -1,5 +1,4 @@
 /* eslint-disable jest/prefer-strict-equal */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
@@ -22,6 +21,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
+  MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
 } from '../../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import logger from '../../utils/logger';
@@ -45,11 +45,11 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 
 jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
   deriveSolanaPrivateKey: jest.fn().mockImplementation((index) => {
-    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index]!;
+    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index];
     if (!account) {
       throw new Error('[deriveSolanaAddress] Not enough mocked indices');
     }
-    return new Uint8Array(account.privateKeyBytesAsNum);
+    return MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES[account.id];
   }),
 }));
 
@@ -65,6 +65,8 @@ describe('SolanaKeyring', () => {
   let mockWalletStandardService: WalletStandardService;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     mockConnection = createMockConnection();
 
     const state = new EncryptedState();
@@ -373,7 +375,7 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws when deriving address fails', async () => {
-      jest.mocked(deriveSolanaPrivateKey).mockImplementation(async () => {
+      jest.mocked(deriveSolanaPrivateKey).mockImplementationOnce(async () => {
         return Promise.reject(new Error('Error deriving address'));
       });
 
