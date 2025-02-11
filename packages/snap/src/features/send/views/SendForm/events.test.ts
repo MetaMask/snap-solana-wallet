@@ -104,6 +104,26 @@ describe('SendForm events', () => {
 
       expect(context.amount).toBe(mockSolPrice);
     });
+
+    it('throws an error if the token price is zero', async () => {
+      const context: SendContext = {
+        ...baseContext,
+        currencyType: SendCurrencyType.FIAT,
+        amount: '1',
+        tokenPrices: {
+          [KnownCaip19Id.SolLocalnet]: {
+            price: 0,
+          },
+        },
+      };
+
+      await expect(
+        eventHandlers[SendFormNames.SwapCurrencyButton]({
+          id: mockId,
+          context,
+        }),
+      ).rejects.toThrow('Token price is zero, cannot convert to fiat amount.');
+    });
   });
 
   describe('onMaxAmountButtonClick', () => {

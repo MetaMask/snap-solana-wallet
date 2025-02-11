@@ -162,6 +162,9 @@ async function onSwapCurrencyButtonClick({
 
   // If we switched to TOKEN, divide by currency rate
   if (context.currencyType === SendCurrencyType.TOKEN) {
+    if (!price) {
+      throw new Error('Token price is zero, cannot convert to fiat amount.');
+    }
     context.amount = currentAmount.dividedBy(price).toString();
   }
 
