@@ -7,13 +7,18 @@ import {
 } from '@solana/web3.js';
 
 import { Network } from '../../constants/solana';
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import {
+  MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+  MOCK_SOLANA_KEYRING_ACCOUNTS,
+  MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
+} from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { TransactionHelper } from './TransactionHelper';
 
 // Mock dependencies
 jest.mock('@solana-program/compute-budget');
+
 jest.mock('@solana/web3.js', () => ({
   ...jest.requireActual('@solana/web3.js'),
   getBase64Decoder: () => ({
@@ -31,6 +36,16 @@ jest.mock('@solana/web3.js', () => ({
   signTransactionMessageWithSigners: jest.fn(),
   getSignatureFromTransaction: jest.fn(),
   sendTransactionWithoutConfirmingFactory: jest.fn(),
+}));
+
+jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
+  deriveSolanaPrivateKey: jest.fn().mockImplementation((index) => {
+    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index];
+    if (!account) {
+      throw new Error('[deriveSolanaAddress] Not enough mocked indices');
+    }
+    return MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES[account.id];
+  }),
 }));
 
 describe('TransactionHelper', () => {
@@ -53,7 +68,7 @@ describe('TransactionHelper', () => {
     jest.clearAllMocks();
     transactionHelper = new TransactionHelper(mockConnection, logger);
     mockSigner = await createKeyPairSignerFromPrivateKeyBytes(
-      Uint8Array.from(MOCK_SOLANA_KEYRING_ACCOUNT_0.privateKeyBytesAsNum),
+      MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
     );
   });
 

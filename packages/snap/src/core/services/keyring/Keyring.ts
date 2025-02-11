@@ -63,7 +63,6 @@ import type { WalletStandardService } from '../wallet-standard/WalletStandardSer
  */
 export type SolanaKeyringAccount = {
   index: number;
-  privateKeyBytesAsNum: number[];
 } & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
@@ -174,7 +173,6 @@ export class SolanaKeyring implements Keyring {
       }
 
       const privateKeyBytes = await deriveSolanaPrivateKey(index);
-      const privateKeyBytesAsNum = Array.from(privateKeyBytes);
 
       const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
       const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
@@ -185,7 +183,6 @@ export class SolanaKeyring implements Keyring {
       const keyringAccount: SolanaKeyringAccount = {
         id,
         index,
-        privateKeyBytesAsNum,
         type: SolAccountType.DataAccount,
         address: accountAddress,
         scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
@@ -450,8 +447,9 @@ export class SolanaKeyring implements Keyring {
     const { base64EncodedTransactionMessage } = params;
 
     const account = await this.getAccountOrThrow(accountId);
+    const privateKeyBytes = await deriveSolanaPrivateKey(account.index);
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      Uint8Array.from(account.privateKeyBytesAsNum),
+      privateKeyBytes,
     );
 
     const decodedTransactionMessage =

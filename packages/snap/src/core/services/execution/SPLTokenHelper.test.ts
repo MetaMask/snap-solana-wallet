@@ -15,7 +15,10 @@ import {
 } from '@solana/web3.js';
 
 import { Network } from '../../constants/solana';
-import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
+import {
+  MOCK_SOLANA_KEYRING_ACCOUNTS,
+  MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
+} from '../../test/mocks/solana-keyring-accounts';
 import { mockLogger } from '../mocks/logger';
 import { createMockConnection } from '../mocks/mockConnection';
 import type { Exists, MaybeHasDecimals } from './SplTokenHelper';
@@ -25,6 +28,16 @@ import type { TransactionHelper } from './TransactionHelper';
 jest.mock('@solana/web3.js', () => ({
   ...jest.requireActual('@solana/web3.js'),
   createKeyPairSignerFromPrivateKeyBytes: jest.fn(),
+}));
+
+jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
+  deriveSolanaPrivateKey: jest.fn().mockImplementation((index) => {
+    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index];
+    if (!account) {
+      throw new Error('[deriveSolanaAddress] Not enough mocked indices');
+    }
+    return MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES[account.id];
+  }),
 }));
 
 describe('SplTokenHelper', () => {
@@ -62,7 +75,6 @@ describe('SplTokenHelper', () => {
       (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue(
         mockSigner,
       );
-      mockFrom.privateKeyBytesAsNum = [1, 2, 3];
     });
 
     it('successfully transfers SPL tokens', async () => {

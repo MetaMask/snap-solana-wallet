@@ -2,17 +2,20 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 
 import { Network } from '../constants/solana';
 import type { AssetsService } from '../services/assets/AssetsService';
-import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../test/mocks/solana-keyring-accounts';
+import {
+  MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+  MOCK_SOLANA_KEYRING_ACCOUNTS,
+} from '../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from './deriveSolanaPrivateKey';
 import { findExistingAccounts } from './findExistingAccounts';
 
 // Mock the whole module
 jest.mock('./deriveSolanaPrivateKey', () => ({
-  deriveSolanaPrivateKey: jest.fn().mockImplementation(async (_index) => {
-    const privateKeyBytes =
-      MOCK_SOLANA_KEYRING_ACCOUNTS[0].privateKeyBytesAsNum;
-    return new Uint8Array(privateKeyBytes);
-  }),
+  deriveSolanaPrivateKey: jest
+    .fn()
+    .mockImplementation(
+      async () => MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+    ),
 }));
 
 describe('findExistingAccounts', () => {
@@ -26,11 +29,11 @@ describe('findExistingAccounts', () => {
     } as unknown as jest.Mocked<AssetsService>;
 
     // Needs to be reset before each test
-    jest.mocked(deriveSolanaPrivateKey).mockImplementation(async () => {
-      const privateKeyBytes =
-        MOCK_SOLANA_KEYRING_ACCOUNTS[0].privateKeyBytesAsNum;
-      return new Uint8Array(privateKeyBytes);
-    });
+    jest
+      .mocked(deriveSolanaPrivateKey)
+      .mockImplementation(
+        async () => MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+      );
   });
 
   afterEach(() => {
@@ -110,9 +113,7 @@ describe('findExistingAccounts', () => {
     // We mock the deriveSolanaPrivateKey to succeed first with the same mock data
     jest
       .mocked(deriveSolanaPrivateKey)
-      .mockResolvedValueOnce(
-        new Uint8Array(MOCK_SOLANA_KEYRING_ACCOUNTS[0].privateKeyBytesAsNum),
-      );
+      .mockResolvedValueOnce(MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES);
 
     jest
       .spyOn(mockAssetsService, 'getNativeAsset')

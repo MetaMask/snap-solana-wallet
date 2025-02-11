@@ -25,6 +25,7 @@ import {
 import type BigNumber from 'bignumber.js';
 
 import type { Network } from '../../constants/solana';
+import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import type { ILogger } from '../../utils/logger';
 import { retry } from '../../utils/retry';
 import { toTokenUnits } from '../../utils/toTokenUnit';
@@ -70,8 +71,9 @@ export class SplTokenHelper implements ITransactionMessageBuilder {
     try {
       this.#logger.log('Transfer SPL token');
 
+      const privateKeyBytes = await deriveSolanaPrivateKey(from.index);
       const signer = await createKeyPairSignerFromPrivateKeyBytes(
-        Uint8Array.from(from.privateKeyBytesAsNum),
+        privateKeyBytes,
       );
 
       const transactionMessage = await this.buildTransactionMessage(
@@ -102,8 +104,9 @@ export class SplTokenHelper implements ITransactionMessageBuilder {
   ): Promise<CompilableTransactionMessage> {
     this.#logger.log('Build transfer SPL token transaction message');
 
+    const privateKeyBytes = await deriveSolanaPrivateKey(from.index);
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      Uint8Array.from(from.privateKeyBytesAsNum),
+      privateKeyBytes,
     );
 
     // SPL tokens are not held in the wallet's account, they are held in the associated token account.

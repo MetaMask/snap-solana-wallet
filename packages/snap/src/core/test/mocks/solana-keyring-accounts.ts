@@ -23,11 +23,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
   },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
-  privateKeyBytesAsNum: [
-    201, 78, 195, 68, 173, 217, 17, 236, 239, 65, 202, 20, 18, 250, 160, 56,
-    151, 150, 31, 187, 150, 2, 50, 207, 153, 155, 163, 236, 59, 134, 83, 102,
-  ],
 };
+
+export const MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES = Uint8Array.from([
+  201, 78, 195, 68, 173, 217, 17, 236, 239, 65, 202, 20, 18, 250, 160, 56, 151,
+  150, 31, 187, 150, 2, 50, 207, 153, 155, 163, 236, 59, 134, 83, 102,
+]);
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   address: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
@@ -39,11 +40,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
-  privateKeyBytesAsNum: [
-    58, 174, 98, 154, 253, 237, 125, 206, 109, 159, 134, 239, 189, 179, 106,
-    243, 179, 3, 131, 173, 86, 94, 23, 72, 63, 239, 110, 125, 30, 210, 84, 194,
-  ],
 };
+
+export const MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES = Uint8Array.from([
+  58, 174, 98, 154, 253, 237, 125, 206, 109, 159, 134, 239, 189, 179, 106, 243,
+  179, 3, 131, 173, 86, 94, 23, 72, 63, 239, 110, 125, 30, 210, 84, 194,
+]);
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
   address: '27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD',
@@ -55,11 +57,13 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
   },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
-  privateKeyBytesAsNum: [
-    217, 83, 246, 6, 62, 72, 189, 87, 62, 43, 66, 168, 205, 49, 195, 7, 119,
-    128, 101, 85, 226, 215, 67, 23, 223, 247, 240, 157, 111, 214, 41, 42,
-  ],
 };
+
+export const MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES = Uint8Array.from([
+  217, 83, 246, 6, 62, 72, 189, 87, 62, 43, 66, 168, 205, 49, 195, 7, 119, 128,
+  101, 85, 226, 215, 67, 23, 223, 247, 240, 157, 111, 214, 41, 42,
+]);
+
 export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   address: '3SYHDFbhoxuTCYCGRw7KSL8GbwUoByjtvyy7pUZeAhh8',
   index: 3,
@@ -70,11 +74,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
-  privateKeyBytesAsNum: [
-    197, 249, 13, 144, 108, 95, 220, 46, 159, 169, 72, 221, 192, 106, 72, 127,
-    10, 3, 95, 186, 173, 83, 212, 239, 180, 41, 7, 213, 92, 250, 122, 122,
-  ],
 };
+
+export const MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES = Uint8Array.from([
+  197, 249, 13, 144, 108, 95, 220, 46, 159, 169, 72, 221, 192, 106, 72, 127, 10,
+  3, 95, 186, 173, 83, 212, 239, 180, 41, 7, 213, 92, 250, 122, 122,
+]);
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
   address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
@@ -86,11 +91,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
   },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
-  privateKeyBytesAsNum: [
-    182, 222, 182, 183, 103, 56, 65, 161, 67, 188, 55, 244, 249, 208, 7, 60,
-    253, 87, 234, 231, 209, 140, 109, 175, 247, 42, 249, 9, 224, 62, 60, 54,
-  ],
 };
+
+export const MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES = Uint8Array.from([
+  182, 222, 182, 183, 103, 56, 65, 161, 67, 188, 55, 244, 249, 208, 7, 60, 253,
+  87, 234, 231, 209, 140, 109, 175, 247, 42, 249, 9, 224, 62, 60, 54,
+]);
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
   address: 'GN1DST49kafBmRDnKKwUbR6nJWoqzSJBPoHwcTXzgmkH',
@@ -102,11 +108,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
   },
   methods: [SolMethod.SendAndConfirmTransaction],
   scopes: ALL_SCOPES,
-  privateKeyBytesAsNum: [
-    130, 137, 152, 17, 6, 45, 56, 235, 140, 148, 107, 75, 184, 175, 54, 227,
-    184, 27, 142, 254, 188, 4, 157, 96, 132, 101, 35, 165, 225, 205, 245, 102,
-  ],
 };
+
+export const MOCK_SOLANA_KEYRING_ACCOUNT_5_PRIVATE_KEY_BYTES = Uint8Array.from([
+  130, 137, 152, 17, 6, 45, 56, 235, 140, 148, 107, 75, 184, 175, 54, 227, 184,
+  27, 142, 254, 188, 4, 157, 96, 132, 101, 35, 165, 225, 205, 245, 102,
+]);
 
 export const MOCK_SOLANA_KEYRING_ACCOUNTS = [
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -116,3 +123,18 @@ export const MOCK_SOLANA_KEYRING_ACCOUNTS = [
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
 ] as const;
+
+export const MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES = {
+  [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]:
+    MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+  [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]:
+    MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES,
+  [MOCK_SOLANA_KEYRING_ACCOUNT_2.id]:
+    MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES,
+  [MOCK_SOLANA_KEYRING_ACCOUNT_3.id]:
+    MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES,
+  [MOCK_SOLANA_KEYRING_ACCOUNT_4.id]:
+    MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
+  [MOCK_SOLANA_KEYRING_ACCOUNT_5.id]:
+    MOCK_SOLANA_KEYRING_ACCOUNT_5_PRIVATE_KEY_BYTES,
+} as const;
