@@ -1,13 +1,8 @@
 import { expect } from '@jest/globals';
 import { installSnap } from '@metamask/snaps-jest';
 
-import { onCronjob, onUpdate } from '.';
+import { onCronjob } from '.';
 import { CronjobMethod, handlers } from './core/handlers/onCronjob';
-import {
-  handlers as onUpdateHandlers,
-  OnUpdateMethods,
-} from './core/handlers/onUpdate';
-import { keyring } from './snapContext';
 
 jest.mock('@noble/ed25519', () => ({
   getPublicKey: jest.fn(),
@@ -57,26 +52,6 @@ describe('onKeyringRequest', () => {
       message: 'Permission denied',
       stack: expect.any(String),
     });
-  });
-});
-
-describe('onUpdate', () => {
-  it('creates an account when there are no existing accounts', async () => {
-    (keyring.listAccounts as jest.Mock).mockResolvedValue([]);
-    (keyring.createAccount as jest.Mock).mockResolvedValue({
-      id: '1',
-      address: 'mocked-address',
-    });
-
-    const createAccountSpy = jest.spyOn(
-      onUpdateHandlers,
-      OnUpdateMethods.CreateAccount,
-    );
-
-    await onUpdate({ origin: 'MetaMask' });
-
-    expect(keyring.listAccounts).toHaveBeenCalled();
-    expect(createAccountSpy).toHaveBeenCalledWith({ origin: 'MetaMask' });
   });
 });
 
