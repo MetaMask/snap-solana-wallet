@@ -4103,7 +4103,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:16.1.0, @metamask/keyring-api@npm:^16.1.0":
+"@metamask/keyring-api@npm:17.0.0":
+  version: 17.0.0
+  resolution: "@metamask/keyring-api@npm:17.0.0"
+  dependencies:
+    "@metamask/keyring-utils": ^2.0.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.1.0
+    bech32: ^2.0.0
+  checksum: 72cf0245e4c474d8c2b4c9a1df6e67b2025177c965657b89b28199cd4d2a7cd92019dfcba70a951b474f5233ab3d0500c789d0983a04cef282279fb5425a3442
+  languageName: node
+  linkType: hard
+
+"@metamask/keyring-api@npm:^16.1.0":
   version: 16.1.0
   resolution: "@metamask/keyring-api@npm:16.1.0"
   dependencies:
@@ -4115,18 +4127,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-snap-sdk@npm:2.1.2":
-  version: 2.1.2
-  resolution: "@metamask/keyring-snap-sdk@npm:2.1.2"
+"@metamask/keyring-snap-sdk@npm:3.0.0":
+  version: 3.0.0
+  resolution: "@metamask/keyring-snap-sdk@npm:3.0.0"
   dependencies:
     "@metamask/keyring-utils": ^2.0.0
-    "@metamask/snaps-sdk": ^6.7.0
+    "@metamask/snaps-sdk": ^6.16.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.1.0
     webextension-polyfill: ^0.12.0
   peerDependencies:
-    "@metamask/providers": ^18.3.1
-  checksum: a117e7a0de87621b899b3dd497f2f66a0ba3d7128e0974f8b9ae8f39e11a79d92a3e6e4d60785eed07ea0cfd65bf4ac1878c62ee1f000836b5a58d78e1e1e368
+    "@metamask/providers": ^19.0.0
+  checksum: 261565c5036a3929d02af7d46f7479127fecc8076645db1a1704e71d8bddf3f79dde0e7d34dead329d19ecb004e9f9898140ee50341883c05255c8032453d019
   languageName: node
   linkType: hard
 
@@ -4518,7 +4530,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-sdk@npm:6.16.0, @metamask/snaps-sdk@npm:^6.14.0, @metamask/snaps-sdk@npm:^6.15.0, @metamask/snaps-sdk@npm:^6.16.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.9.0":
+"@metamask/snaps-sdk@npm:6.16.0, @metamask/snaps-sdk@npm:^6.15.0, @metamask/snaps-sdk@npm:^6.16.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.9.0":
   version: 6.16.0
   resolution: "@metamask/snaps-sdk@npm:6.16.0"
   dependencies:
@@ -4639,8 +4651,8 @@ __metadata:
     "@jest/globals": 29.5.0
     "@metamask/auto-changelog": 4.0.0
     "@metamask/key-tree": 9.1.2
-    "@metamask/keyring-api": 16.1.0
-    "@metamask/keyring-snap-sdk": 2.1.2
+    "@metamask/keyring-api": 17.0.0
+    "@metamask/keyring-snap-sdk": 3.0.0
     "@metamask/snaps-cli": 6.5.1
     "@metamask/snaps-jest": 8.11.0
     "@metamask/snaps-sdk": 6.16.0
