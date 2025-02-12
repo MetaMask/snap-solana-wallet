@@ -32,7 +32,7 @@ import {
 } from '../../../features/confirmation/renderConfirmation';
 import type { ConfirmationContext } from '../../../features/confirmation/types';
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
-import type { Caip10Address, Network } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
 import { SOL_SYMBOL, SolanaCaip19Tokens } from '../../constants/solana';
 import { lamportsToSol } from '../../utils/conversion';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
@@ -468,7 +468,8 @@ export class SolanaKeyring implements Keyring {
 
     validateRequest(params, SendAndConfirmTransactionParamsStruct);
 
-    const { base64EncodedTransactionMessage } = params;
+    const { base64EncodedTransactionMessage: base64EncodedTransaction } =
+      params;
 
     const account = await this.getAccountOrThrow(accountId);
     const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
@@ -477,33 +478,31 @@ export class SolanaKeyring implements Keyring {
     );
 
     try {
-      const [decodedTransaction, feeInLamports, scanResult] = await Promise.all(
-        [
-          this.#transactionHelper.base64DecodeTransaction(
-            base64EncodedTransactionMessage,
-            scope as Network,
-          ),
-          this.#transactionHelper.getFeeForMessageInLamports(
-            base64EncodedTransactionMessage,
-            scope as Network,
-          ),
-          showConfirmation
-            ? this.#transactionScanService.scanTransaction({
-                method: method as SolMethod,
-                accountAddress: account.address,
-                transaction: base64EncodedTransactionMessage,
-                scope: scope as Network,
-              })
-            : null,
-        ],
-      );
+      const decodedTransactionMessage =
+        await this.#transactionHelper.base64DecodeTransaction(
+          base64EncodedTransaction,
+          scope as Network,
+        );
 
       if (showConfirmation) {
+        const [feeInLamports, scanResult] = await Promise.all([
+          this.#transactionHelper.getFeeFromTransactionInLamports(
+            decodedTransactionMessage,
+            scope as Network,
+          ),
+          this.#transactionScanService.scanTransaction({
+            method: method as SolMethod,
+            accountAddress: account.address,
+            transaction: base64EncodedTransaction,
+            scope: scope as Network,
+          }),
+        ]);
+
         const confirmationContext: ConfirmationContext = {
           ...DEFAULT_CONFIRMATION_CONTEXT,
           scope: scope as Network,
           method: method as SolMethod,
-          transaction: base64EncodedTransactionMessage,
+          transaction: base64EncodedTransaction,
           account,
           feeEstimatedInSol: feeInLamports
             ? lamportsToSol(feeInLamports).toString()
@@ -511,7 +510,9 @@ export class SolanaKeyring implements Keyring {
           scan: scanResult,
           advanced: {
             shown: Boolean(scanResult),
-            instructions: parseInstructions(decodedTransaction.instructions),
+            instructions: parseInstructions(
+              decodedTransactionMessage.instructions,
+            ),
           },
         };
 
@@ -520,7 +521,7 @@ export class SolanaKeyring implements Keyring {
       }
 
       const signature = await this.#transactionHelper.sendTransaction(
-        decodedTransaction,
+        decodedTransactionMessage,
         [signer],
         scope as Network,
       );

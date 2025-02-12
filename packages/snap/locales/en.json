@@ -103,6 +103,12 @@
     "send.transaction-failure.subtitle": {
       "message": "Unable to send {amount} {tokenSymbol}"
     },
+    "confirmation.account": {
+      "message": "Account"
+    },
+    "confirmation.network": {
+      "message": "Network"
+    },
     "confirmation.advanced.show": {
       "message": "Show advanced"
     },

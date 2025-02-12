@@ -136,20 +136,10 @@ export class TransactionHelper {
     network: Network,
   ): Promise<string | null> {
     try {
-      const message = pipe(
-        base64EncodedMessage,
-        getBase64Encoder().encode,
-        getTransactionDecoder().decode,
-        (tx) => tx.messageBytes,
-        getCompiledTransactionMessageDecoder().decode,
-        getCompiledTransactionMessageEncoder().encode,
-        getBase64Decoder().decode,
-      );
-
       const rpc = this.#connection.getRpc(network);
 
       const transactionCost = await rpc
-        .getFeeForMessage(message as TransactionMessageBytesBase64)
+        .getFeeForMessage(base64EncodedMessage as TransactionMessageBytesBase64)
         .send();
 
       this.#logger.log(
@@ -225,16 +215,16 @@ export class TransactionHelper {
   /**
    * Base64 decode a transaction message: converts a base64 encoded string back to a transaction message.
    *
-   * @param base64EncodedTransactionMessage - The base64 encoded transaction message to decode.
+   * @param base64EncodedTransaction - The base64 encoded transaction message to decode.
    * @param scope - The network on which the transaction is being sent.
    * @returns The decoded transaction message.
    */
   async base64DecodeTransaction(
-    base64EncodedTransactionMessage: string,
+    base64EncodedTransaction: string,
     scope: Network,
   ): Promise<CompilableTransactionMessage> {
     return pipe(
-      base64EncodedTransactionMessage,
+      base64EncodedTransaction,
       getBase64Encoder().encode,
       getTransactionDecoder().decode,
       (tx) => getCompiledTransactionMessageDecoder().decode(tx.messageBytes),

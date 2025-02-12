@@ -33,6 +33,8 @@
   "send.transaction-success.subtitle": "{amount} {tokenSymbol} was successfully sent",
   "send.transaction-failure.title": "Transaction failed",
   "send.transaction-failure.subtitle": "Unable to send {amount} {tokenSymbol}",
+  "confirmation.account": "Account",
+  "confirmation.network": "Network",
   "confirmation.advanced.show": "Show advanced",
   "confirmation.advanced.hide": "Hide advanced",
   "confirmation.cancelButton": "Cancel",
