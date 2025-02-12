@@ -9,18 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.0]
 
-### Uncategorized
+### Added
 
-- Fix versions ([#189](https://github.com/MetaMask/snap-solana-wallet/pull/189))
-- feat: bump keyring-snap-sdk version to enable the dispatcher ([#188](https://github.com/MetaMask/snap-solana-wallet/pull/188))
-- fix: don't store private keys in state, derive them on the fly ([#187](https://github.com/MetaMask/snap-solana-wallet/pull/187))
-- chore: remove onUpdate and onInstall handlers ([#186](https://github.com/MetaMask/snap-solana-wallet/pull/186))
-- chore: pin package.json versions ([#185](https://github.com/MetaMask/snap-solana-wallet/pull/185))
-- Sol 147 potential url injections in api calls ([#182](https://github.com/MetaMask/snap-solana-wallet/pull/182))
-- fix: unnecessary `tsx` extension on the snap's entry point file ([#180](https://github.com/MetaMask/snap-solana-wallet/pull/180))
-- Sol 135 audit lax or missing runtime input validation major ([#179](https://github.com/MetaMask/snap-solana-wallet/pull/179))
-- Sol 124 audit use encrypted state as standard ([#178](https://github.com/MetaMask/snap-solana-wallet/pull/178))
-- fix: adds script to dynamically change the manifest file ([#177](https://github.com/MetaMask/snap-solana-wallet/pull/177))
+- Script to dynamically change the manifest file ([#177](https://github.com/MetaMask/snap-solana-wallet/pull/177))
+
+### Fixed
+
+- Audit: Pin dependency versions ([#189](https://github.com/MetaMask/snap-solana-wallet/pull/189)) and ([#185](https://github.com/MetaMask/snap-solana-wallet/pull/185))
+- Audit: Potential url injections in api calls ([#182](https://github.com/MetaMask/snap-solana-wallet/pull/182))
+- Audit: Unnecessary `tsx` extension on the snap's entry point file ([#180](https://github.com/MetaMask/snap-solana-wallet/pull/180))
+- Audit: LAX or missing runtime input validation ([#179](https://github.com/MetaMask/snap-solana-wallet/pull/179))
+- Bump `keyring-snap-sdk` version to enable the dispatcher ([#188](https://github.com/MetaMask/snap-solana-wallet/pull/188))
+
+### Changed
+
+- Audit: Use encrypted state to store user information ([#178](https://github.com/MetaMask/snap-solana-wallet/pull/178))
+- Derive Account private keys on demand ([#187](https://github.com/MetaMask/snap-solana-wallet/pull/187))
+
+#### Removed
+
+- `onUpdate` and `onInstall` handlers ([#186](https://github.com/MetaMask/snap-solana-wallet/pull/186))
 
 ## [1.4.0]
 
