@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0]
+
+### Uncategorized
+
+- Fix versions ([#189](https://github.com/MetaMask/snap-solana-wallet/pull/189))
+- feat: bump keyring-snap-sdk version to enable the dispatcher ([#188](https://github.com/MetaMask/snap-solana-wallet/pull/188))
+- fix: don't store private keys in state, derive them on the fly ([#187](https://github.com/MetaMask/snap-solana-wallet/pull/187))
+- chore: remove onUpdate and onInstall handlers ([#186](https://github.com/MetaMask/snap-solana-wallet/pull/186))
+- chore: pin package.json versions ([#185](https://github.com/MetaMask/snap-solana-wallet/pull/185))
+- Sol 147 potential url injections in api calls ([#182](https://github.com/MetaMask/snap-solana-wallet/pull/182))
+- fix: unnecessary `tsx` extension on the snap's entry point file ([#180](https://github.com/MetaMask/snap-solana-wallet/pull/180))
+- Sol 135 audit lax or missing runtime input validation major ([#179](https://github.com/MetaMask/snap-solana-wallet/pull/179))
+- Sol 124 audit use encrypted state as standard ([#178](https://github.com/MetaMask/snap-solana-wallet/pull/178))
+- fix: adds script to dynamically change the manifest file ([#177](https://github.com/MetaMask/snap-solana-wallet/pull/177))
+
 ## [1.4.0]
 
 ### Added
@@ -15,18 +30,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement push based transactions list ([#157](https://github.com/MetaMask/snap-solana-wallet/pull/157))
 - Parity with compiled transactions ([#169](https://github.com/MetaMask/snap-solana-wallet/pull/169))
 
+### Changed
+
+- Update on snap permissions ([#172](https://github.com/MetaMask/snap-solana-wallet/pull/172))
+- Improve env ([#171](https://github.com/MetaMask/snap-solana-wallet/pull/171))
+- Transaction simulation to input change ([#168](https://github.com/MetaMask/snap-solana-wallet/pull/168))
+
 ### Fixed
 
 - Transactions data flow problems ([#174](https://github.com/MetaMask/snap-solana-wallet/pull/174))
 - Latency on send flow updates ([#173](https://github.com/MetaMask/snap-solana-wallet/pull/173))
 - Conversions currency to lowercase ([#167](https://github.com/MetaMask/snap-solana-wallet/pull/167))
 - Disable buttons until prices and balances are available ([#166](https://github.com/MetaMask/snap-solana-wallet/pull/166))
-
-### Changed
-
-- Update on snap permissions ([#172](https://github.com/MetaMask/snap-solana-wallet/pull/172))
-- Improve env ([#171](https://github.com/MetaMask/snap-solana-wallet/pull/171))
-- Transaction simulation to input change ([#168](https://github.com/MetaMask/snap-solana-wallet/pull/168))
 
 ## [1.3.0]
 
@@ -168,7 +183,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.1.0...v1.2.0
