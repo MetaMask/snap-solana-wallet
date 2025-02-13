@@ -1,4 +1,4 @@
-import { JsonSLIP10Node, type SLIP10NodeInterface } from '@metamask/key-tree';
+import type { JsonSLIP10Node } from '@metamask/key-tree';
 
 /**
  * Retrieves a `SLIP10NodeInterface` object for the specified path and curve.

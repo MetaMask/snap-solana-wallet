@@ -26,7 +26,6 @@ import {
   address as asAddress,
   createKeyPairFromPrivateKeyBytes,
   createKeyPairSignerFromPrivateKeyBytes,
-  getAddressDecoder,
   getAddressFromPublicKey,
 } from '@solana/web3.js';
 
@@ -173,8 +172,9 @@ export class SolanaKeyring implements Keyring {
         index = getLowestUnusedIndex(keyringAccounts);
       }
 
-      const { publicKeyBytes } = await deriveSolanaPrivateKey(index);
-      const accountAddress = getAddressDecoder().decode(publicKeyBytes);
+      const privateKeyBytes = await deriveSolanaPrivateKey(index);
+      const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
+      const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
 
       // Filter out our special properties from options
       const { importedAccount, index: _, ...remainingOptions } = options ?? {};
@@ -448,7 +448,7 @@ export class SolanaKeyring implements Keyring {
     const { base64EncodedTransactionMessage } = params;
 
     const account = await this.getAccountOrThrow(accountId);
-    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+    const privateKeyBytes = await deriveSolanaPrivateKey(account.index);
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );

@@ -1,4 +1,6 @@
 /* eslint-disable jest/prefer-strict-equal */
+import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
+import { SLIP10Node } from '@metamask/key-tree';
 import { SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
@@ -14,6 +16,7 @@ import {
   SOLANA_MOCK_TOKEN_METADATA,
 } from '../../test/mocks/solana-assets';
 import {
+  MOCK_SEED_PHRASE_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
@@ -24,6 +27,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
 } from '../../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
+import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
@@ -43,14 +47,18 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
   emitSnapKeyringEvent: jest.fn().mockResolvedValue(null),
 }));
 
-jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
-  deriveSolanaPrivateKey: jest.fn().mockImplementation((index) => {
-    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index];
-    if (!account) {
-      throw new Error('[deriveSolanaAddress] Not enough mocked indices');
-    }
-    return MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES[account.id];
-  }),
+jest.mock('../../utils/getBip32Entropy', () => ({
+  getBip32Entropy: jest
+    .fn()
+    .mockImplementation(async (path: string[], curve: SupportedCurve) => {
+      return await SLIP10Node.fromDerivationPath({
+        derivationPath: [
+          MOCK_SEED_PHRASE_BYTES,
+          ...path.slice(1).map((node) => `slip10:${node}` as SLIP10PathNode),
+        ],
+        curve,
+      });
+    }),
 }));
 
 const NON_EXISTENT_ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174009';
@@ -379,7 +387,7 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws when deriving address fails', async () => {
-      jest.mocked(deriveSolanaPrivateKey).mockImplementationOnce(async () => {
+      jest.mocked(getBip32Entropy).mockImplementationOnce(async () => {
         return Promise.reject(new Error('Error deriving address'));
       });
 

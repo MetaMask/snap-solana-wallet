@@ -36,7 +36,7 @@ const CURVE = 'ed25519' as const;
  */
 export async function deriveSolanaPrivateKey(
   index: number,
-): Promise<{ privateKeyBytes: Uint8Array, publicKeyBytes: Uint8Array }> {
+): Promise<Uint8Array> {
   logger.log({ index }, 'Generating solana wallet');
 
   /**
@@ -50,11 +50,11 @@ export async function deriveSolanaPrivateKey(
   try {
     const node = await getBip32Entropy([...DERIVATION_PATH, ...hdPath], CURVE);
 
-    if (!node.privateKey || !node.publicKey) {
+    if (!node.privateKey) {
       throw new Error('Unable to derive Solana key');
     }
 
-    return { privateKeyBytes: hexToBytes(node.privateKey), publicKeyBytes: hexToBytes(node.publicKey) };
+    return hexToBytes(node.privateKey);
   } catch (error: any) {
     logger.error({ error }, 'Error deriving keypair');
     throw new Error(error);

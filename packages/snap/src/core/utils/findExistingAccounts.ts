@@ -30,7 +30,7 @@ export async function findExistingAccounts(
 
     // Checks the first 5 derivation paths
     for (let index = 0; index < 5; index++) {
-      const { privateKeyBytes } = await deriveSolanaPrivateKey(index);
+      const privateKeyBytes = await deriveSolanaPrivateKey(index);
       const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
       const address = await getAddressFromPublicKey(keyPair.publicKey);
 
