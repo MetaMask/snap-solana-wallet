@@ -1,5 +1,6 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
+import BigNumber from 'bignumber.js';
 import { assert } from 'superstruct';
 
 import { Send } from '../../../features/send/Send';
@@ -80,14 +81,28 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     preferencesPromise,
   ]);
 
-  const accountBalances = currentState.assets[context.fromAccountId] ?? {};
   const tokenMetadata = currentState.metadata ?? {};
 
   context.accounts = accounts;
   context.preferences = preferences;
-  context.assets = Object.keys(accountBalances) as CaipAssetType[];
-  context.balances = currentState.assets;
   context.tokenMetadata = tokenMetadata;
+
+  // filter balances by scope and amount > 0 but keeping the structure
+  context.balances = Object.fromEntries(
+    Object.entries(currentState.assets).map(([accountId, balances]) => [
+      accountId,
+      Object.fromEntries(
+        Object.entries(balances).filter(
+          ([caipId, balance]) =>
+            caipId.startsWith(scope) && new BigNumber(balance.amount).gt(0),
+        ),
+      ),
+    ]),
+  );
+  // filter assets by scope keeping the structure
+  context.assets = Object.keys(context.balances).flatMap((accountId) =>
+    Object.keys(context.balances[accountId] ?? {}),
+  ) as CaipAssetType[];
 
   const tokenPricesPromise = tokenPricesService
     .getMultipleTokenPrices(context.assets, context.preferences.currency)

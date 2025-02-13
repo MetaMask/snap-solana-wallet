@@ -335,9 +335,10 @@ export class SolanaKeyring implements Keyring {
         ]);
 
         const tokenMetadata =
-          await this.#tokenMetadataService.getMultipleTokenMetadata(
-            tokenAssets.map((token) => token.address),
-          );
+          await this.#tokenMetadataService.getMultipleTokenMetadata([
+            nativeAsset.address,
+            ...tokenAssets.map((token) => token.address),
+          ]);
 
         for (const asset of networkAssets) {
           // update token metadata if exist
