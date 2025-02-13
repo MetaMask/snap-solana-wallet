@@ -156,7 +156,7 @@ export class SolanaKeyring implements Keyring {
     importedAccount?: boolean;
     index?: number;
     [key: string]: Json | undefined;
-  }): Promise<SolanaKeyringAccount> {
+  }): Promise<KeyringAccount> {
     try {
       // eslint-disable-next-line no-restricted-globals
       const id = crypto.randomUUID();
@@ -201,14 +201,14 @@ export class SolanaKeyring implements Keyring {
         },
       }));
 
-      const keyringAccount = {
+      const keyringAccount: KeyringAccount = {
         type: solanaKeyringAccount.type,
         id: solanaKeyringAccount.id,
         address: solanaKeyringAccount.address,
         options: solanaKeyringAccount.options,
         methods: solanaKeyringAccount.methods,
         scopes: solanaKeyringAccount.scopes,
-      } as SolanaKeyringAccount;
+      };
 
       await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
