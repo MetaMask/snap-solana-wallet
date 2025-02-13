@@ -201,23 +201,25 @@ export class SolanaKeyring implements Keyring {
         },
       }));
 
+      const simplifiedAccount = {
+        type: keyringAccount.type,
+        id: keyringAccount.id,
+        address: keyringAccount.address,
+        options: keyringAccount.options,
+        methods: keyringAccount.methods,
+        scopes: keyringAccount.scopes,
+      } as SolanaKeyringAccount;
+
       await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
          * We can't pass the `keyringAccount` object because it contains the index
          * and the snaps sdk does not allow extra properties.
          */
-        account: {
-          type: keyringAccount.type,
-          id: keyringAccount.id,
-          address: keyringAccount.address,
-          options: keyringAccount.options,
-          methods: keyringAccount.methods,
-          scopes: keyringAccount.scopes,
-        },
+        account: simplifiedAccount,
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
 
-      return keyringAccount;
+      return simplifiedAccount;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating account');
       throw new Error('Error creating account');
