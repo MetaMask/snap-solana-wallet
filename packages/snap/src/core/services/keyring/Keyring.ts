@@ -180,7 +180,7 @@ export class SolanaKeyring implements Keyring {
       // Filter out our special properties from options
       const { importedAccount, index: _, ...remainingOptions } = options ?? {};
 
-      const keyringAccount: SolanaKeyringAccount = {
+      const solanaKeyringAccount: SolanaKeyringAccount = {
         id,
         index,
         type: SolAccountType.DataAccount,
@@ -197,17 +197,17 @@ export class SolanaKeyring implements Keyring {
         ...state,
         keyringAccounts: {
           ...(state?.keyringAccounts ?? {}),
-          [keyringAccount.id]: keyringAccount,
+          [solanaKeyringAccount.id]: solanaKeyringAccount,
         },
       }));
 
-      const simplifiedAccount = {
-        type: keyringAccount.type,
-        id: keyringAccount.id,
-        address: keyringAccount.address,
-        options: keyringAccount.options,
-        methods: keyringAccount.methods,
-        scopes: keyringAccount.scopes,
+      const keyringAccount = {
+        type: solanaKeyringAccount.type,
+        id: solanaKeyringAccount.id,
+        address: solanaKeyringAccount.address,
+        options: solanaKeyringAccount.options,
+        methods: solanaKeyringAccount.methods,
+        scopes: solanaKeyringAccount.scopes,
       } as SolanaKeyringAccount;
 
       await this.emitEvent(KeyringEvent.AccountCreated, {
@@ -215,11 +215,11 @@ export class SolanaKeyring implements Keyring {
          * We can't pass the `keyringAccount` object because it contains the index
          * and the snaps sdk does not allow extra properties.
          */
-        account: simplifiedAccount,
+        account: keyringAccount,
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
 
-      return simplifiedAccount;
+      return keyringAccount;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating account');
       throw new Error('Error creating account');
