@@ -3361,7 +3361,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/globals@npm:29.5.0, @jest/globals@npm:^29.5.0":
+"@jest/globals@npm:^29.5.0":
   version: 29.5.0
   resolution: "@jest/globals@npm:29.5.0"
   dependencies:
@@ -4103,7 +4103,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:16.1.0, @metamask/keyring-api@npm:^16.1.0":
+"@metamask/keyring-api@npm:17.0.0":
+  version: 17.0.0
+  resolution: "@metamask/keyring-api@npm:17.0.0"
+  dependencies:
+    "@metamask/keyring-utils": ^2.0.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.1.0
+    bech32: ^2.0.0
+  checksum: 72cf0245e4c474d8c2b4c9a1df6e67b2025177c965657b89b28199cd4d2a7cd92019dfcba70a951b474f5233ab3d0500c789d0983a04cef282279fb5425a3442
+  languageName: node
+  linkType: hard
+
+"@metamask/keyring-api@npm:^16.1.0":
   version: 16.1.0
   resolution: "@metamask/keyring-api@npm:16.1.0"
   dependencies:
@@ -4115,29 +4127,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-snap-sdk@npm:2.1.0":
-  version: 2.1.0
-  resolution: "@metamask/keyring-snap-sdk@npm:2.1.0"
+"@metamask/keyring-snap-sdk@npm:3.0.0":
+  version: 3.0.0
+  resolution: "@metamask/keyring-snap-sdk@npm:3.0.0"
   dependencies:
-    "@metamask/keyring-utils": ^1.2.0
-    "@metamask/snaps-sdk": ^6.7.0
+    "@metamask/keyring-utils": ^2.0.0
+    "@metamask/snaps-sdk": ^6.16.0
     "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.0.1
+    "@metamask/utils": ^11.1.0
     webextension-polyfill: ^0.12.0
   peerDependencies:
-    "@metamask/providers": ^18.3.1
-  checksum: d7ed5dfa7a3134f32c2d3bf7eba47586e3f93defec82275d57cb5cd47a406c6545cf8c6cb62a393d240241768d9a0a7d313dce129e5c3844ab0e51ea1e2f3cf8
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-utils@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@metamask/keyring-utils@npm:1.2.0"
-  dependencies:
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.0.1
-    bitcoin-address-validation: ^2.2.3
-  checksum: dadbc6272cf2783d8fb8b92f7c2992daaf13f31312952e65e08c35ba2b6cad63b76322c511826be8fd7e4a41279caff0faed263d5938b10350b4d76bc44a7474
+    "@metamask/providers": ^19.0.0
+  checksum: 261565c5036a3929d02af7d46f7479127fecc8076645db1a1704e71d8bddf3f79dde0e7d34dead329d19ecb004e9f9898140ee50341883c05255c8032453d019
   languageName: node
   linkType: hard
 
@@ -4529,7 +4530,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-sdk@npm:6.16.0, @metamask/snaps-sdk@npm:^6.14.0, @metamask/snaps-sdk@npm:^6.15.0, @metamask/snaps-sdk@npm:^6.16.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.9.0":
+"@metamask/snaps-sdk@npm:6.16.0, @metamask/snaps-sdk@npm:^6.15.0, @metamask/snaps-sdk@npm:^6.16.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.9.0":
   version: 6.16.0
   resolution: "@metamask/snaps-sdk@npm:6.16.0"
   dependencies:
@@ -4647,11 +4648,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@metamask/solana-wallet-snap@workspace:packages/snap"
   dependencies:
-    "@jest/globals": 29.5.0
+    "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": 4.0.0
     "@metamask/key-tree": 9.1.2
-    "@metamask/keyring-api": 16.1.0
-    "@metamask/keyring-snap-sdk": 2.1.0
+    "@metamask/keyring-api": 17.0.0
+    "@metamask/keyring-snap-sdk": 3.0.0
     "@metamask/snaps-cli": 6.5.1
     "@metamask/snaps-jest": 8.11.0
     "@metamask/snaps-sdk": 6.16.0
@@ -4662,21 +4663,21 @@ __metadata:
     "@solana-program/token": 0.4.1
     "@solana/wallet-standard-core": 1.1.2
     "@solana/web3.js": 2
-    "@testing-library/jest-dom": 6.6.2
-    "@types/express": 5.0.0
-    "@types/lodash": 4.17.15
+    "@testing-library/jest-dom": ^6.6.2
+    "@types/express": ^5.0.0
+    "@types/lodash": ^4.17.15
     "@types/react": 18.2.4
     "@types/react-dom": 18.2.4
-    "@wallet-standard/base": 1.1.0
-    bignumber.js: 9.1.2
-    buffer: 6.0.3
-    concurrently: 9.1.0
-    dotenv: 16.4.5
-    express: 4.21.1
-    jest: 29.7.0
-    jest-transform-stub: 2.0.0
-    lodash: 4.17.21
-    rimraf: 6.0.1
+    "@wallet-standard/base": ^1.1.0
+    bignumber.js: ^9.1.2
+    buffer: ^6.0.3
+    concurrently: ^9.1.0
+    dotenv: ^16.4.5
+    express: ^4.21.1
+    jest: ^29.7.0
+    jest-transform-stub: ^2.0.0
+    lodash: ^4.17.21
+    rimraf: ^6.0.1
     superstruct: 2.0.2
     ts-jest: ^29.2.0
   languageName: unknown
@@ -6816,7 +6817,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/jest-dom@npm:6.6.2, @testing-library/jest-dom@npm:^6.6.2":
+"@testing-library/jest-dom@npm:^6.6.2":
   version: 6.6.2
   resolution: "@testing-library/jest-dom@npm:6.6.2"
   dependencies:
@@ -7117,7 +7118,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express@npm:5.0.0":
+"@types/express@npm:^5.0.0":
   version: 5.0.0
   resolution: "@types/express@npm:5.0.0"
   dependencies:
@@ -7256,17 +7257,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.17.15":
-  version: 4.17.15
-  resolution: "@types/lodash@npm:4.17.15"
-  checksum: 5037564154411f4ac0b187b914031c150520a7ca037dea007f774b7123c97c0da55b2e41ae81dc1bc80ff09e8d6a236455ea676d5062af12c592b8e81baec7bf
-  languageName: node
-  linkType: hard
-
 "@types/lodash@npm:^4.14.92":
   version: 4.14.195
   resolution: "@types/lodash@npm:4.14.195"
   checksum: 39b75ca635b3fa943d17d3d3aabc750babe4c8212485a4df166fe0516e39288e14b0c60afc6e21913cc0e5a84734633c71e617e2bd14eaa1cf51b8d7799c432e
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:^4.17.15":
+  version: 4.17.15
+  resolution: "@types/lodash@npm:4.17.15"
+  checksum: 5037564154411f4ac0b187b914031c150520a7ca037dea007f774b7123c97c0da55b2e41ae81dc1bc80ff09e8d6a236455ea676d5062af12c592b8e81baec7bf
   languageName: node
   linkType: hard
 
@@ -7692,7 +7693,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/base@npm:1.1.0, @wallet-standard/base@npm:^1.1.0":
+"@wallet-standard/base@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/base@npm:1.1.0"
   checksum: 4057188f615f1deeb0c8a39f04018d4575f87cb387749dab6bc2e8232a95400be51ea4235450829bb256aa21136621f47167383ef1767f0eb3109f1140c74d86
@@ -10603,7 +10604,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bignumber.js@npm:9.1.2, bignumber.js@npm:^9.1.2":
+"bignumber.js@npm:^9.1.2":
   version: 9.1.2
   resolution: "bignumber.js@npm:9.1.2"
   checksum: 582c03af77ec9cb0ebd682a373ee6c66475db94a4325f92299621d544aa4bd45cb45fd60001610e94aef8ae98a0905fa538241d9638d4422d57abbeeac6fadaf
@@ -11006,16 +11007,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"buffer@npm:6.0.3, buffer@npm:^6.0.3":
-  version: 6.0.3
-  resolution: "buffer@npm:6.0.3"
-  dependencies:
-    base64-js: "npm:^1.3.1"
-    ieee754: "npm:^1.2.1"
-  checksum: 5ad23293d9a731e4318e420025800b42bf0d264004c0286c8cc010af7a270c7a0f6522e84f54b9ad65cbd6db20b8badbfd8d2ebf4f80fa03dab093b89e68c3f9
-  languageName: node
-  linkType: hard
-
 "buffer@npm:^5.5.0":
   version: 5.7.1
   resolution: "buffer@npm:5.7.1"
@@ -11023,6 +11014,16 @@ __metadata:
     base64-js: "npm:^1.3.1"
     ieee754: "npm:^1.1.13"
   checksum: e2cf8429e1c4c7b8cbd30834ac09bd61da46ce35f5c22a78e6c2f04497d6d25541b16881e30a019c6fd3154150650ccee27a308eff3e26229d788bbdeb08ab84
+  languageName: node
+  linkType: hard
+
+"buffer@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "buffer@npm:6.0.3"
+  dependencies:
+    base64-js: "npm:^1.3.1"
+    ieee754: "npm:^1.2.1"
+  checksum: 5ad23293d9a731e4318e420025800b42bf0d264004c0286c8cc010af7a270c7a0f6522e84f54b9ad65cbd6db20b8badbfd8d2ebf4f80fa03dab093b89e68c3f9
   languageName: node
   linkType: hard
 
@@ -11831,9 +11832,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"concurrently@npm:9.1.0":
-  version: 9.1.0
-  resolution: "concurrently@npm:9.1.0"
+"concurrently@npm:^9.1.0":
+  version: 9.1.2
+  resolution: "concurrently@npm:9.1.2"
   dependencies:
     chalk: ^4.1.2
     lodash: ^4.17.21
@@ -11845,7 +11846,7 @@ __metadata:
   bin:
     conc: dist/bin/concurrently.js
     concurrently: dist/bin/concurrently.js
-  checksum: 17d554f7e8f839fe023f673b63847d7b4895c6917e29d161ba17e3335a73dc66e1469486e5cfc3e90890ac2ba8c951a0d1dc297cf7b589c0cd9a89689a8ab6fb
+  checksum: 9e25e8ee6272ada26739aff1fb43e96ac458fafca82f45b8360bdd9115d60bbc679d282dfc52001b861b6e9f32b3063aed975691d8dec9e62807a9679763a1d8
   languageName: node
   linkType: hard
 
@@ -13150,10 +13151,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:16.4.5":
-  version: 16.4.5
-  resolution: "dotenv@npm:16.4.5"
-  checksum: 301a12c3d44fd49888b74eb9ccf9f07a1f5df43f489e7fcb89647a2edcd84c42d6bc349dc8df099cd18f07c35c7b04685c1a4f3e6a6a9e6b30f8d48c15b7f49c
+"dotenv@npm:^16.4.5":
+  version: 16.4.7
+  resolution: "dotenv@npm:16.4.7"
+  checksum: c27419b5875a44addcc56cc69b7dc5b0e6587826ca85d5b355da9303c6fc317fc9989f1f18366a16378c9fdd9532d14117a1abe6029cc719cdbbef6eaef2cea4
   languageName: node
   linkType: hard
 
@@ -14453,45 +14454,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express@npm:4.21.1":
-  version: 4.21.1
-  resolution: "express@npm:4.21.1"
-  dependencies:
-    accepts: ~1.3.8
-    array-flatten: 1.1.1
-    body-parser: 1.20.3
-    content-disposition: 0.5.4
-    content-type: ~1.0.4
-    cookie: 0.7.1
-    cookie-signature: 1.0.6
-    debug: 2.6.9
-    depd: 2.0.0
-    encodeurl: ~2.0.0
-    escape-html: ~1.0.3
-    etag: ~1.8.1
-    finalhandler: 1.3.1
-    fresh: 0.5.2
-    http-errors: 2.0.0
-    merge-descriptors: 1.0.3
-    methods: ~1.1.2
-    on-finished: 2.4.1
-    parseurl: ~1.3.3
-    path-to-regexp: 0.1.10
-    proxy-addr: ~2.0.7
-    qs: 6.13.0
-    range-parser: ~1.2.1
-    safe-buffer: 5.2.1
-    send: 0.19.0
-    serve-static: 1.16.2
-    setprototypeof: 1.2.0
-    statuses: 2.0.1
-    type-is: ~1.6.18
-    utils-merge: 1.0.1
-    vary: ~1.1.2
-  checksum: 5ac2b26d8aeddda5564fc0907227d29c100f90c0ead2ead9d474dc5108e8fb306c2de2083c4e3ba326e0906466f2b73417dbac16961f4075ff9f03785fd940fe
-  languageName: node
-  linkType: hard
-
 "express@npm:^4.18.2":
   version: 4.19.2
   resolution: "express@npm:4.19.2"
@@ -14528,6 +14490,45 @@ __metadata:
     utils-merge: "npm:1.0.1"
     vary: "npm:~1.1.2"
   checksum: 212dbd6c2c222a96a61bc927639c95970a53b06257080bb9e2838adb3bffdb966856551fdad1ab5dd654a217c35db94f987d0aa88d48fb04d306340f5f34dca5
+  languageName: node
+  linkType: hard
+
+"express@npm:^4.21.1":
+  version: 4.21.2
+  resolution: "express@npm:4.21.2"
+  dependencies:
+    accepts: ~1.3.8
+    array-flatten: 1.1.1
+    body-parser: 1.20.3
+    content-disposition: 0.5.4
+    content-type: ~1.0.4
+    cookie: 0.7.1
+    cookie-signature: 1.0.6
+    debug: 2.6.9
+    depd: 2.0.0
+    encodeurl: ~2.0.0
+    escape-html: ~1.0.3
+    etag: ~1.8.1
+    finalhandler: 1.3.1
+    fresh: 0.5.2
+    http-errors: 2.0.0
+    merge-descriptors: 1.0.3
+    methods: ~1.1.2
+    on-finished: 2.4.1
+    parseurl: ~1.3.3
+    path-to-regexp: 0.1.12
+    proxy-addr: ~2.0.7
+    qs: 6.13.0
+    range-parser: ~1.2.1
+    safe-buffer: 5.2.1
+    send: 0.19.0
+    serve-static: 1.16.2
+    setprototypeof: 1.2.0
+    statuses: 2.0.1
+    type-is: ~1.6.18
+    utils-merge: 1.0.1
+    vary: ~1.1.2
+  checksum: 3aef1d355622732e20b8f3a7c112d4391d44e2131f4f449e1f273a309752a41abfad714e881f177645517cbe29b3ccdc10b35e7e25c13506114244a5b72f549d
   languageName: node
   linkType: hard
 
@@ -18011,7 +18012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-transform-stub@npm:2.0.0":
+"jest-transform-stub@npm:^2.0.0":
   version: 2.0.0
   resolution: "jest-transform-stub@npm:2.0.0"
   checksum: c46134257e5fb047f5952e4a4a1339925dd009da15aa8d3310ba1d3e4d22266ed6c675cd18e58c9d5ca2246718d6cc8ff00ea6a4b6f3b2a6b285b6426f6ae8fe
@@ -18122,7 +18123,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:29.7.0":
+"jest@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest@npm:29.7.0"
   dependencies:
@@ -18766,7 +18767,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.21, lodash@npm:^4.17.10, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:~4.17.0":
+"lodash@npm:^4.17.10, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:~4.17.0":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
@@ -20643,10 +20644,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"path-to-regexp@npm:0.1.10":
-  version: 0.1.10
-  resolution: "path-to-regexp@npm:0.1.10"
-  checksum: ab7a3b7a0b914476d44030340b0a65d69851af2a0f33427df1476100ccb87d409c39e2182837a96b98fb38c4ef2ba6b87bdad62bb70a2c153876b8061760583c
+"path-to-regexp@npm:0.1.12":
+  version: 0.1.12
+  resolution: "path-to-regexp@npm:0.1.12"
+  checksum: ab237858bee7b25ecd885189f175ab5b5161e7b712b360d44f5c4516b8d271da3e4bf7bf0a7b9153ecb04c7d90ce8ff5158614e1208819cf62bac2b08452722e
   languageName: node
   linkType: hard
 
@@ -22261,18 +22262,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:6.0.1, rimraf@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "rimraf@npm:6.0.1"
-  dependencies:
-    glob: "npm:^11.0.0"
-    package-json-from-dist: "npm:^1.0.0"
-  bin:
-    rimraf: dist/esm/bin.mjs
-  checksum: 8ba5b84131c1344e9417cb7e8c05d8368bb73cbe5dd4c1d5eb49fc0b558209781658d18c450460e30607d0b7865bb067482839a2f343b186b07ae87715837e66
-  languageName: node
-  linkType: hard
-
 "rimraf@npm:^2.6.2":
   version: 2.7.1
   resolution: "rimraf@npm:2.7.1"
@@ -22292,6 +22281,18 @@ __metadata:
   bin:
     rimraf: bin.js
   checksum: 87f4164e396f0171b0a3386cc1877a817f572148ee13a7e113b238e48e8a9f2f31d009a92ec38a591ff1567d9662c6b67fd8818a2dbbaed74bc26a87a2a4a9a0
+  languageName: node
+  linkType: hard
+
+"rimraf@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "rimraf@npm:6.0.1"
+  dependencies:
+    glob: "npm:^11.0.0"
+    package-json-from-dist: "npm:^1.0.0"
+  bin:
+    rimraf: dist/esm/bin.mjs
+  checksum: 8ba5b84131c1344e9417cb7e8c05d8368bb73cbe5dd4c1d5eb49fc0b558209781658d18c450460e30607d0b7865bb067482839a2f343b186b07ae87715837e66
   languageName: node
   linkType: hard
 
