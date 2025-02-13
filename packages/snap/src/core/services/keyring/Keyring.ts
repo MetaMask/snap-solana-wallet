@@ -24,9 +24,8 @@ import type { CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/web3.js';
 import {
   address as asAddress,
-  createKeyPairFromPrivateKeyBytes,
   createKeyPairSignerFromPrivateKeyBytes,
-  getAddressFromPublicKey,
+  getAddressDecoder,
 } from '@solana/web3.js';
 
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
@@ -172,9 +171,10 @@ export class SolanaKeyring implements Keyring {
         index = getLowestUnusedIndex(keyringAccounts);
       }
 
-      const privateKeyBytes = await deriveSolanaPrivateKey(index);
-      const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
-      const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
+      const { publicKeyBytes } = await deriveSolanaPrivateKey(index);
+      const accountAddress = getAddressDecoder().decode(
+        publicKeyBytes.slice(1),
+      );
 
       // Filter out our special properties from options
       const { importedAccount, index: _, ...remainingOptions } = options ?? {};
@@ -448,7 +448,7 @@ export class SolanaKeyring implements Keyring {
     const { base64EncodedTransactionMessage } = params;
 
     const account = await this.getAccountOrThrow(accountId);
-    const privateKeyBytes = await deriveSolanaPrivateKey(account.index);
+    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );

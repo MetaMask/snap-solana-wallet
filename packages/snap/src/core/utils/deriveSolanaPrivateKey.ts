@@ -20,7 +20,7 @@ const DERIVATION_PATH = [`m`, `44'`, `501'`];
 const CURVE = 'ed25519' as const;
 
 /**
- * Derives a Solana private key from a given index using BIP44 derivation path.
+ * Derives a Solana private and public key from a given index using BIP44 derivation path.
  * The derivation path follows Phantom wallet's standard: m/44'/501'/index'/0'.
  *
  * @param index - The account index to derive. Must be a non-negative integer.
@@ -28,7 +28,7 @@ const CURVE = 'ed25519' as const;
  * @throws {Error} If unable to derive private key or if derivation fails.
  * @example
  * ```typescript
- * const privateKey = await deriveSolanaPrivateKey(0);
+ * const { privateKeyBytes, publicKeyBytes } = await deriveSolanaPrivateKey(0);
  * ```
  * @see {@link https://help.phantom.app/hc/en-us/articles/12988493966227-What-derivation-paths-does-Phantom-wallet-support} Phantom wallet derivation paths
  * @see {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki} BIP44 specification
@@ -36,7 +36,7 @@ const CURVE = 'ed25519' as const;
  */
 export async function deriveSolanaPrivateKey(
   index: number,
-): Promise<Uint8Array> {
+): Promise<{ privateKeyBytes: Uint8Array; publicKeyBytes: Uint8Array }> {
   logger.log({ index }, 'Generating solana wallet');
 
   /**
@@ -50,11 +50,14 @@ export async function deriveSolanaPrivateKey(
   try {
     const node = await getBip32Entropy([...DERIVATION_PATH, ...hdPath], CURVE);
 
-    if (!node.privateKey) {
-      throw new Error('Unable to derive Solana key');
+    if (!node.privateKey || !node.publicKey) {
+      throw new Error('Unable to derive private key');
     }
 
-    return hexToBytes(node.privateKey);
+    return {
+      privateKeyBytes: hexToBytes(node.privateKey),
+      publicKeyBytes: hexToBytes(node.publicKey),
+    };
   } catch (error: any) {
     logger.error({ error }, 'Error deriving keypair');
     throw new Error(error);

@@ -62,11 +62,21 @@ describe('deriveSolanaPrivateKey', () => {
   });
 
   it('successfully derives Solana private keys', async () => {
-    const firstPrivateKey = await deriveSolanaPrivateKey(0);
-    const secondPrivateKey = await deriveSolanaPrivateKey(1);
-    const thirdPrivateKey = await deriveSolanaPrivateKey(2);
-    const fourthPrivateKey = await deriveSolanaPrivateKey(3);
-    const fifthPrivateKey = await deriveSolanaPrivateKey(4);
+    const { privateKeyBytes: firstPrivateKey } = await deriveSolanaPrivateKey(
+      0,
+    );
+    const { privateKeyBytes: secondPrivateKey } = await deriveSolanaPrivateKey(
+      1,
+    );
+    const { privateKeyBytes: thirdPrivateKey } = await deriveSolanaPrivateKey(
+      2,
+    );
+    const { privateKeyBytes: fourthPrivateKey } = await deriveSolanaPrivateKey(
+      3,
+    );
+    const { privateKeyBytes: fifthPrivateKey } = await deriveSolanaPrivateKey(
+      4,
+    );
 
     expect(firstPrivateKey).toStrictEqual(
       MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
