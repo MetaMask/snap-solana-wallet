@@ -1,4 +1,4 @@
-import { type SLIP10NodeInterface } from '@metamask/key-tree';
+import { JsonSLIP10Node, type SLIP10NodeInterface } from '@metamask/key-tree';
 
 /**
  * Retrieves a `SLIP10NodeInterface` object for the specified path and curve.
@@ -10,7 +10,7 @@ import { type SLIP10NodeInterface } from '@metamask/key-tree';
 export async function getBip32Entropy(
   path: string[],
   curve: 'secp256k1' | 'ed25519',
-): Promise<SLIP10NodeInterface> {
+): Promise<JsonSLIP10Node> {
   const node = await snap.request({
     method: 'snap_getBip32Entropy',
     params: {
@@ -19,5 +19,5 @@ export async function getBip32Entropy(
     },
   });
 
-  return node as SLIP10NodeInterface;
+  return node;
 }

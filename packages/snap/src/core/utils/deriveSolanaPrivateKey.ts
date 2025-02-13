@@ -1,5 +1,4 @@
-import type { SLIP10PathNode } from '@metamask/key-tree';
-import { SLIP10Node } from '@metamask/key-tree';
+import { hexToBytes } from '@metamask/utils';
 
 import { getBip32Entropy } from './getBip32Entropy';
 import logger from './logger';
@@ -37,7 +36,7 @@ const CURVE = 'ed25519' as const;
  */
 export async function deriveSolanaPrivateKey(
   index: number,
-): Promise<Uint8Array> {
+): Promise<{ privateKeyBytes: Uint8Array, publicKeyBytes: Uint8Array }> {
   logger.log({ index }, 'Generating solana wallet');
 
   /**
@@ -49,23 +48,13 @@ export async function deriveSolanaPrivateKey(
   const hdPath = [`${index}'`, `0'`];
 
   try {
-    const rootNode = await getBip32Entropy(DERIVATION_PATH, CURVE);
+    const node = await getBip32Entropy([...DERIVATION_PATH, ...hdPath], CURVE);
 
-    const node = await SLIP10Node.fromJSON(rootNode);
-
-    const slip10Path: SLIP10PathNode[] = hdPath.map(
-      (segment: string) => `slip10:${segment}` as SLIP10PathNode,
-    );
-
-    const slipNode = await node.derive(slip10Path);
-
-    const { privateKeyBytes } = slipNode;
-
-    if (!privateKeyBytes) {
-      throw new Error('Unable to derive private key');
+    if (!node.privateKey || !node.publicKey) {
+      throw new Error('Unable to derive Solana key');
     }
 
-    return privateKeyBytes;
+    return { privateKeyBytes: hexToBytes(node.privateKey), publicKeyBytes: hexToBytes(node.publicKey) };
   } catch (error: any) {
     logger.error({ error }, 'Error deriving keypair');
     throw new Error(error);
