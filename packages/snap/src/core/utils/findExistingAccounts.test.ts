@@ -4,6 +4,7 @@ import { Network } from '../constants/solana';
 import type { AssetsService } from '../services/assets/AssetsService';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+  MOCK_SOLANA_KEYRING_ACCOUNT_0_PUBLIC_KEY_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../test/mocks/solana-keyring-accounts';
 import { deriveSolanaPrivateKey } from './deriveSolanaPrivateKey';
@@ -29,11 +30,10 @@ describe('findExistingAccounts', () => {
     } as unknown as jest.Mocked<AssetsService>;
 
     // Needs to be reset before each test
-    jest
-      .mocked(deriveSolanaPrivateKey)
-      .mockImplementation(
-        async () => MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
-      );
+    jest.mocked(deriveSolanaPrivateKey).mockResolvedValue({
+      privateKeyBytes: MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+      publicKeyBytes: MOCK_SOLANA_KEYRING_ACCOUNT_0_PUBLIC_KEY_BYTES,
+    });
   });
 
   afterEach(() => {
@@ -111,9 +111,10 @@ describe('findExistingAccounts', () => {
 
   it('throws error when getNativeAsset fails', async () => {
     // We mock the deriveSolanaPrivateKey to succeed first with the same mock data
-    jest
-      .mocked(deriveSolanaPrivateKey)
-      .mockResolvedValueOnce(MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES);
+    jest.mocked(deriveSolanaPrivateKey).mockResolvedValueOnce({
+      privateKeyBytes: MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+      publicKeyBytes: MOCK_SOLANA_KEYRING_ACCOUNT_0_PUBLIC_KEY_BYTES,
+    });
 
     jest
       .spyOn(mockAssetsService, 'getNativeAsset')

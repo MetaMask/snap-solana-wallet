@@ -35,6 +35,11 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES = Uint8Array.from([
   150, 31, 187, 150, 2, 50, 207, 153, 155, 163, 236, 59, 134, 83, 102,
 ]);
 
+export const MOCK_SOLANA_KEYRING_ACCOUNT_0_PUBLIC_KEY_BYTES = Uint8Array.from([
+  0, 153, 176, 2, 143, 157, 158, 175, 50, 134, 226, 145, 237, 10, 87, 130, 63,
+  185, 200, 241, 76, 205, 92, 21, 136, 75, 157, 88, 79, 89, 248, 223, 116,
+]);
+
 export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   address: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
   index: 1,
