@@ -230,8 +230,9 @@ export class SolanaKeyring implements Keyring {
       validateRequest({ accountId }, DeleteAccountStruct);
 
       await this.#state.update((state) => {
-        delete state?.transactions?.[accountId];
         delete state?.keyringAccounts?.[accountId];
+        delete state?.assets?.[accountId];
+        delete state?.transactions?.[accountId];
         return state;
       });
 
