@@ -240,6 +240,24 @@ export class TransactionHelper {
   }
 
   /**
+   * Base64 encode a transaction message from a base64 encoded transaction.
+   *
+   * @param base64EncodedTransaction - The base64 encoded transaction to encode.
+   * @returns The base64 encoded transaction message.
+   */
+  async base64EncodeTransactionMessageFromBase64EncodedTransaction(
+    base64EncodedTransaction: string,
+  ): Promise<string> {
+    return pipe(
+      base64EncodedTransaction,
+      getBase64Encoder().encode,
+      getTransactionDecoder().decode,
+      (tx) => tx.messageBytes,
+      getBase64Decoder().decode,
+    );
+  }
+
+  /**
    * Sends a transaction message to the network.
    *
    * The transaction message MUST have:

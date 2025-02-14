@@ -1,7 +1,7 @@
 import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
 import { installSnap } from '@metamask/snaps-jest';
 
-import { Caip19Id, Network } from '../../core/constants/solana';
+import { KnownCaip19Id, Network } from '../../core/constants/solana';
 import { MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE } from '../../core/services/mocks/mockSolanaRpcResponses';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -24,7 +24,7 @@ const mockConfirmationContext: ConfirmationContext = {
   scan: null,
   feeEstimatedInSol: '15000',
   tokenPrices: {
-    [Caip19Id.SolLocalnet]: {
+    [KnownCaip19Id.SolLocalnet]: {
       price: 200,
     },
   },
@@ -48,7 +48,7 @@ describe.skip('Confirmation', () => {
 
     server?.get(`/v3/spot-prices`, (_: any, res: any) => {
       return res.json({
-        [Caip19Id.SolLocalnet]: { price: 200 },
+        [KnownCaip19Id.SolLocalnet]: { price: 200 },
       });
     });
 

@@ -24,7 +24,7 @@ type TransactionDetailsProps = {
   accountAddress: string | null;
   scope: Network;
   feeInSol: string | null;
-  nativePrice: number;
+  nativePrice: number | null;
   fetchingPricesStatus: FetchStatus;
   preferences: Preferences;
 };
@@ -60,6 +60,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
           avatar
         />
       </Box>
+      <Box>{null}</Box>
       <Box alignment="space-between" direction="horizontal">
         <Text fontWeight="medium" color="alternative">
           {translate('confirmation.network')}
@@ -69,13 +70,18 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
           <Text>{Networks[scope].name}</Text>
         </Box>
       </Box>
+      <Box>{null}</Box>
       <Box alignment="space-between" direction="horizontal">
         <Text fontWeight="medium" color="alternative">
           {translate('confirmation.fee')}
         </Text>
         {feeInSol ? (
           <Box direction="horizontal" alignment="center">
-            {pricesFetching ? <Skeleton /> : <Text>{feeInFiat}</Text>}
+            {pricesFetching ? (
+              <Skeleton />
+            ) : (
+              <Text color="muted">{feeInFiat}</Text>
+            )}
             <Text>
               {formatTokens(
                 feeInSol,

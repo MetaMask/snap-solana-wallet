@@ -33,6 +33,7 @@ export type SnapExecutionContext = {
   transferSolHelper: TransferSolHelper;
   splTokenHelper: SplTokenHelper;
   walletStandardService: WalletStandardService;
+  transactionScanService: TransactionScanService;
 };
 
 const configProvider = new ConfigProvider();
@@ -99,6 +100,7 @@ const snapContext: SnapExecutionContext = {
   transferSolHelper,
   splTokenHelper,
   walletStandardService,
+  transactionScanService,
 };
 
 export {
@@ -116,6 +118,7 @@ export {
   transactionsService,
   transferSolHelper,
   walletStandardService,
+  transactionScanService,
 };
 
 export default snapContext;

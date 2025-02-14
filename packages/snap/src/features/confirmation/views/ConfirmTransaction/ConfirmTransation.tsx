@@ -11,6 +11,7 @@ import {
 import { Networks } from '../../../../core/constants/solana';
 import { i18n } from '../../../../core/utils/i18n';
 import { Advanced } from '../../components/Advanced/Advanced';
+import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
 import { ConfirmationFormNames, type ConfirmationContext } from '../../types';
 
@@ -21,17 +22,23 @@ export const ConfirmTransaction: SnapComponent<{
 
   const feeInSol = context.feeEstimatedInSol;
   const { nativeToken } = Networks[context.scope];
-  const nativePrice = context.tokenPrices[nativeToken.caip19Id]?.price;
+  const nativePrice = context.tokenPrices[nativeToken.caip19Id]?.price ?? null;
 
   return (
     <Container>
       <Box>
         <Box alignment="center" center>
-          <Heading>{translate('confirmation.title')}</Heading>
-          <Text color="alternative" alignment="center">
-            {translate('confirmation.subtitle')}
-          </Text>
+          <Box>{null}</Box>
+          <Heading size="lg">{translate('confirmation.title')}</Heading>
+          <Box>{null}</Box>
+          <Box>{null}</Box>
         </Box>
+        {/* TODO: Add it back when blockers are resolved */}
+        {/* <EstimatedChanges
+          scanFetchStatus={context.scanFetchStatus}
+          changes={context.scan?.estimatedChanges ?? null}
+          locale={context.preferences.locale}
+        /> */}
         <TransactionDetails
           accountAddress={context.account?.address ?? null}
           scope={context.scope}

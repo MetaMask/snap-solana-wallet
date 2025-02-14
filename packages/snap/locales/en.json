@@ -109,6 +109,15 @@
     "confirmation.network": {
       "message": "Network"
     },
+    "confirmation.estimatedChanges": {
+      "message": "Estimated changes"
+    },
+    "confirmation.estimatedChanges.send": {
+      "message": "You send"
+    },
+    "confirmation.estimatedChanges.receive": {
+      "message": "You receive"
+    },
     "confirmation.advanced.show": {
       "message": "Show advanced"
     },
@@ -123,9 +132,6 @@
     },
     "confirmation.title": {
       "message": "Transaction request"
-    },
-    "confirmation.subtitle": {
-      "message": "Review the transaction before confirming."
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Unknown"

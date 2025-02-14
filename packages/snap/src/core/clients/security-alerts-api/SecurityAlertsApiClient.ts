@@ -6,6 +6,7 @@ import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
+import type { SecurityAlertSimulationValidationResponse } from './types';
 
 const SCOPE_TO_CHAIN: Record<Network, string> = {
   [Network.Mainnet]: 'mainnet',
@@ -45,10 +46,21 @@ export class SecurityAlertsApiClient {
     transactions: string[];
     scope: Network;
     options: string[];
-  }): Promise<any> {
+  }): Promise<SecurityAlertSimulationValidationResponse> {
     const base64AccountAddress = Buffer.from(
       bs58.decode(accountAddress),
     ).toString('base64');
+
+    this.#logger.info(
+      {
+        method,
+        accountAddress,
+        transactions,
+        scope,
+        options,
+      },
+      'Scanning transactions',
+    );
 
     const response = await this.#fetch(`${this.#baseUrl}/solana/message/scan`, {
       headers: {

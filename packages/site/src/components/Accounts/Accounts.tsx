@@ -39,6 +39,10 @@ export const Accounts = () => {
   };
 
   const handleSendAndConfirmTransaction = async () => {
+    const lifiQuote = await fetch(
+      'https://li.quest/v1/quote?fromChain=SOL&toChain=SOL&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&fromAmount=1000000',
+    ).then(async (quote) => quote.json());
+
     await invokeKeyring({
       method: KeyringRpcMethod.SubmitRequest,
       params: {
@@ -48,8 +52,7 @@ export const Accounts = () => {
         request: {
           method: SolMethod.SendAndConfirmTransaction,
           params: {
-            base64EncodedTransactionMessage:
-              'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAJDL90BPMeQxbCdwSbyC2lv/FG3wE/28MLN5GTUYRikvRDkOL72EsPrSrrKZF33sPiMFwhF786GU/O6Np6ngUZdtMjqo7S3idbRg4oDnEPLya1vPuQf89zrLobei3jVynGDSg9DdKCNU/vCuOw4ifTfNicomb7F93498t8zvvk69xVBqfVFxjHdMkoVmOYaR1etoteuKObS21cc1VbIQAAAADJQ50nw+haoQXDsfyfvHCSGDU/W09+jX/pqudxOXg8mQMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAjJclj04kifG7PRApFI4NgwtaE5na/xCEBI572Nvp+Fm8B8VuYK09PxdzgurGVI+6H9Ms/ZDKArPnz6GF/c5zmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABHnVW/IxwG7udMVuzmgVB/2xst6j9I5RArHNola8E4+0P/on9df2SnTAmx8pWHneSwmrNt/J3VFLMhqns4zl6MrMruE4b+iaalNGVOibbNg0k2uzuaQzIcST94pSFUY5BQMCBAUJAOg3NM1RfEIABgAFAqiyAgAGAAkDooUJAAAAAAAHBgABAAgJDwEBChIPAAIBCggKCwoQAAwNDgECDxEk5RfLl3rjrSoBAAAAPQFkAAFAQg8AAAAAABCjTlMBAAAAMgAAAbg5ybz1lV0THKePgXJxVjhOuM+rVRVuJmkK/QBsDtEfAxobHAMBHRk=',
+            base64EncodedTransactionMessage: lifiQuote.transactionRequest.data,
           },
         },
       },
