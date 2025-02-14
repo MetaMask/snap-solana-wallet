@@ -477,6 +477,14 @@ export class SolanaKeyring implements Keyring {
       privateKeyBytes,
     );
 
+    const transactionMessage = pipe(
+      base64EncodedTransaction,
+      getBase64Encoder().encode,
+      getTransactionDecoder().decode,
+      (tx) => tx.messageBytes,
+      getBase64Decoder().decode,
+    );
+
     try {
       const decodedTransactionMessage =
         await this.#transactionHelper.base64DecodeTransaction(
@@ -486,12 +494,12 @@ export class SolanaKeyring implements Keyring {
 
       if (showConfirmation) {
         const [feeInLamports, scanResult] = await Promise.all([
-          this.#transactionHelper.getFeeFromTransactionInLamports(
-            decodedTransactionMessage,
+          this.#transactionHelper.getFeeForMessageInLamports(
+            transactionMessage,
             scope as Network,
           ),
           this.#transactionScanService.scanTransaction({
-            method: method as SolMethod,
+            method: 'signAndSendTransaction', // TODO: add method comming from the request
             accountAddress: account.address,
             transaction: base64EncodedTransaction,
             scope: scope as Network,
@@ -509,7 +517,7 @@ export class SolanaKeyring implements Keyring {
             : null,
           scan: scanResult,
           advanced: {
-            shown: Boolean(scanResult),
+            shown: !scanResult,
             instructions: parseInstructions(
               decodedTransactionMessage.instructions,
             ),

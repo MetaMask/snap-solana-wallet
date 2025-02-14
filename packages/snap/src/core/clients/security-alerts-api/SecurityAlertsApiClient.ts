@@ -50,28 +50,24 @@ export class SecurityAlertsApiClient {
       bs58.decode(accountAddress),
     ).toString('base64');
 
-    const response = await this.#fetch(
-      `${this.#baseUrl}/v0/solana/message/scan`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          accept: 'application/json',
-          'x-client-id': '', // FIXME: Add the correct client id when it works
-        },
-        method: 'POST',
-        body: JSON.stringify({
-          method,
-          encoding: 'base64',
-          account_address: base64AccountAddress,
-          metadata: {
-            url: 'https://example.com', // FIXME: Add the correct url
-          },
-          chain: SCOPE_TO_CHAIN[scope],
-          transactions,
-          options,
-        }),
+    const response = await this.#fetch(`${this.#baseUrl}/solana/message/scan`, {
+      headers: {
+        'Content-Type': 'application/json',
+        accept: 'application/json',
       },
-    );
+      method: 'POST',
+      body: JSON.stringify({
+        method,
+        encoding: 'base64',
+        account_address: base64AccountAddress,
+        metadata: {
+          url: 'https://metamask.io', // FIXME: Add the correct url
+        },
+        chain: SCOPE_TO_CHAIN[scope],
+        transactions,
+        options,
+      }),
+    });
 
     return response.json();
   }

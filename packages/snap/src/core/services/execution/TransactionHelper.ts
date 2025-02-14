@@ -139,7 +139,10 @@ export class TransactionHelper {
       const rpc = this.#connection.getRpc(network);
 
       const transactionCost = await rpc
-        .getFeeForMessage(base64EncodedMessage as TransactionMessageBytesBase64)
+        .getFeeForMessage(
+          base64EncodedMessage as TransactionMessageBytesBase64,
+          { commitment: 'confirmed' },
+        )
         .send();
 
       this.#logger.log(
