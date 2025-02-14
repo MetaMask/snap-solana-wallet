@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.0]
 
-### Uncategorized
+### Fixed
 
-- perf: Speed up Solana key derivation ([#191](https://github.com/MetaMask/snap-solana-wallet/pull/191))
-- chore: update returned account ([#193](https://github.com/MetaMask/snap-solana-wallet/pull/193))
+- Speed up Solana key derivation ([#191](https://github.com/MetaMask/snap-solana-wallet/pull/191))
+- Update returned account ([#193](https://github.com/MetaMask/snap-solana-wallet/pull/193))
 
 ## [1.5.0]
 
