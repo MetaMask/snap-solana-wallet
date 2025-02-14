@@ -263,7 +263,7 @@ export async function refreshTransactions() {
     });
 
     await keyring.emitEvent(KeyringEvent.AccountTransactionsUpdated, {
-      transactions: newTransactionsByAccount,
+      transactions: updatedTransactionsByAccount,
     });
 
     await state.update((oldState) => ({
