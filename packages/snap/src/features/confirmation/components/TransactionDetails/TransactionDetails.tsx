@@ -1,3 +1,4 @@
+import type { CaipAssetType } from '@metamask/keyring-api';
 import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 import {
   Address,
@@ -12,7 +13,6 @@ import {
 
 import type { Network } from '../../../../core/constants/solana';
 import { Networks } from '../../../../core/constants/solana';
-import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import type { FetchStatus, Preferences } from '../../../../core/types/snap';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCurrency } from '../../../../core/utils/formatCurrency';
@@ -27,6 +27,7 @@ type TransactionDetailsProps = {
   nativePrice: number | null;
   fetchingPricesStatus: FetchStatus;
   preferences: Preferences;
+  assetsImages: Record<CaipAssetType, string>;
 };
 
 export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
@@ -36,6 +37,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   nativePrice,
   fetchingPricesStatus,
   preferences,
+  assetsImages,
 }) => {
   const translate = i18n(preferences.locale);
 
@@ -66,7 +68,10 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
           {translate('confirmation.network')}
         </Text>
         <Box direction="horizontal" alignment="center">
-          <Image borderRadius="medium" src={SOL_IMAGE_SVG} />
+          <Image
+            borderRadius="medium"
+            src={assetsImages[Networks[scope].nativeToken.caip19Id] ?? ''}
+          />
           <Text>{Networks[scope].name}</Text>
         </Box>
       </Box>

@@ -58,7 +58,6 @@ import type { ConfigProvider } from '../config';
 import type { EncryptedState } from '../encrypted-state/EncryptedState';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
-import type { TransactionScanService } from '../transaction-scan/TransactionScan';
 import type { TransactionsService } from '../transactions/Transactions';
 import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
 
@@ -87,8 +86,6 @@ export class SolanaKeyring implements Keyring {
 
   readonly #walletStandardService: WalletStandardService;
 
-  readonly #transactionScanService: TransactionScanService;
-
   constructor({
     state,
     configProvider,
@@ -98,7 +95,6 @@ export class SolanaKeyring implements Keyring {
     assetsService,
     tokenMetadataService,
     walletStandardService,
-    transactionScanService,
   }: {
     state: EncryptedState;
     configProvider: ConfigProvider;
@@ -108,7 +104,6 @@ export class SolanaKeyring implements Keyring {
     assetsService: AssetsService;
     tokenMetadataService: TokenMetadataService;
     walletStandardService: WalletStandardService;
-    transactionScanService: TransactionScanService;
   }) {
     this.#state = state;
     this.#configProvider = configProvider;
@@ -118,7 +113,6 @@ export class SolanaKeyring implements Keyring {
     this.#assetsService = assetsService;
     this.#tokenMetadataService = tokenMetadataService;
     this.#walletStandardService = walletStandardService;
-    this.#transactionScanService = transactionScanService;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {

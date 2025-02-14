@@ -81,7 +81,6 @@ const keyring = new SolanaKeyring({
   assetsService,
   tokenMetadataService,
   walletStandardService,
-  transactionScanService,
 });
 
 const tokenPricesService = new TokenPricesService(priceApiClient);

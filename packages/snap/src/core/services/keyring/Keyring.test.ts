@@ -36,10 +36,11 @@ import { EncryptedState } from '../encrypted-state/EncryptedState';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
-import type { TransactionScanService } from '../transaction-scan/TransactionScan';
 import { TransactionsService } from '../transactions/Transactions';
 import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
 import { SolanaKeyring } from './Keyring';
+
+jest.mock('../../../features/confirmation/renderConfirmation');
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   ...jest.requireActual('@metamask/keyring-snap-sdk'),
@@ -70,7 +71,6 @@ describe('SolanaKeyring', () => {
   let mockTransactionHelper: TransactionHelper;
   let mockTokenMetadataService: TokenMetadataService;
   let mockWalletStandardService: WalletStandardService;
-  let mockTransactionScanService: TransactionScanService;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -119,10 +119,6 @@ describe('SolanaKeyring', () => {
       resolveAccountAddress: jest.fn(),
     } as unknown as WalletStandardService;
 
-    mockTransactionScanService = {
-      scanTransaction: jest.fn(),
-    } as unknown as TransactionScanService;
-
     keyring = new SolanaKeyring({
       state,
       logger,
@@ -132,7 +128,6 @@ describe('SolanaKeyring', () => {
       tokenMetadataService: mockTokenMetadataService,
       transactionHelper: mockTransactionHelper,
       walletStandardService: mockWalletStandardService,
-      transactionScanService: mockTransactionScanService,
     });
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts

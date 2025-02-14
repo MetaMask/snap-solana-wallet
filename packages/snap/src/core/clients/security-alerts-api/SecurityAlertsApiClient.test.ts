@@ -48,7 +48,7 @@ describe('SecurityAlertsApiClient', () => {
       expect(scanResult).toStrictEqual(mockResponse);
     });
 
-    it('should throw an error if the fetch fails', async () => {
+    it('throws an error if the fetch fails', async () => {
       const mockError = new Error('Fetch failed');
       mockFetch.mockRejectedValueOnce(mockError);
 
@@ -63,7 +63,7 @@ describe('SecurityAlertsApiClient', () => {
       ).rejects.toThrow(mockError);
     });
 
-    it('should throw an error if the response is not ok', async () => {
+    it('throws an error if the response is not ok', async () => {
       const mockError = new Error('Fetch failed');
       mockFetch.mockResolvedValueOnce({
         ok: true,

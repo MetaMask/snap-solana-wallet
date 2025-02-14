@@ -16,6 +16,15 @@ export class TransactionScanService {
     this.#logger = logger;
   }
 
+  /**
+   * Scans a transaction.
+   * @param params - The parameters for the function.
+   * @param params.method - The method of the transaction.
+   * @param params.accountAddress - The address of the account.
+   * @param params.transaction - The transaction to scan.
+   * @param params.scope - The scope of the transaction.
+   * @returns The result of the scan.
+   */
   async scanTransaction({
     method,
     accountAddress,
@@ -40,7 +49,7 @@ export class TransactionScanService {
         status: result.status,
         estimatedChanges: {
           assets:
-            result.result.simulation.account_summary.account_assets_diff.map(
+            result.result?.simulation?.account_summary?.account_assets_diff?.map(
               (asset) => ({
                 type: asset.in ? 'in' : 'out',
                 symbol:
@@ -56,8 +65,8 @@ export class TransactionScanService {
             ),
         },
         validation: {
-          type: result.result.validation.result_type,
-          reason: result.result.validation.reason,
+          type: result.result?.validation?.result_type,
+          reason: result.result?.validation?.reason,
         },
       };
     } catch (error) {

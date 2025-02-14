@@ -1,4 +1,4 @@
-import type { SolMethod } from '@metamask/keyring-api';
+import type { CaipAssetType, SolMethod } from '@metamask/keyring-api';
 
 import type { SpotPrices } from '../../core/clients/price-api/types';
 import type { Network } from '../../core/constants/solana';
@@ -28,6 +28,7 @@ export type ConfirmationContext = {
   tokenPricesFetchStatus: FetchStatus;
   scan: TransactionScanResult | null;
   scanFetchStatus: FetchStatus;
+  assetsImages: Record<CaipAssetType, string>;
   advanced: {
     shown: boolean;
     instructions: SolanaInstruction[];

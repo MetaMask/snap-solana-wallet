@@ -46,6 +46,7 @@ export const ConfirmTransaction: SnapComponent<{
           nativePrice={nativePrice}
           fetchingPricesStatus={context.tokenPricesFetchStatus}
           preferences={context.preferences}
+          assetsImages={context.assetsImages}
         />
         <Advanced
           instructions={context.advanced.instructions}

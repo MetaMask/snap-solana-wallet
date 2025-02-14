@@ -1,4 +1,5 @@
 import type { SecurityAlertsApiClient } from '../../clients/security-alerts-api/SecurityAlertsApiClient';
+import type { SecurityAlertSimulationValidationResponse } from '../../clients/security-alerts-api/types';
 import { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import { TransactionScanService } from './TransactionScan';
@@ -24,7 +25,13 @@ describe('TransactionScan', () => {
       );
     });
 
-    it('should scan a transaction', async () => {
+    it('scans a transaction', async () => {
+      jest
+        .spyOn(mockSecurityAlertsApiClient, 'scanTransactions')
+        .mockResolvedValue({
+          status: 'SUCCESS',
+        } as SecurityAlertSimulationValidationResponse);
+
       const result = await transactionScanService.scanTransaction({
         method: 'method',
         accountAddress: 'accountAddress',
@@ -32,10 +39,12 @@ describe('TransactionScan', () => {
         scope: Network.Mainnet,
       });
 
-      expect(result).toStrictEqual({});
+      expect(result).toMatchObject({
+        status: 'SUCCESS',
+      });
     });
 
-    it('should return null if the scan fails', async () => {
+    it('returns null if the scan fails', async () => {
       jest
         .spyOn(mockSecurityAlertsApiClient, 'scanTransactions')
         .mockRejectedValue(new Error('Scan failed'));

@@ -66,7 +66,9 @@ async function onConfirmButtonClick({
     throw new Error('Account not found');
   }
 
-  const privateKeyBytes = await deriveSolanaPrivateKey(context.account.index);
+  const { privateKeyBytes } = await deriveSolanaPrivateKey(
+    context.account.index,
+  );
   const signer = await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
   const decodedTransaction = await transactionHelper.base64DecodeTransaction(

@@ -1,6 +1,6 @@
 import { SolMethod } from '@metamask/keyring-api';
 
-import { Network, Networks } from '../../core/constants/solana';
+import { Network, Networks, SOL_IMAGE_URL } from '../../core/constants/solana';
 import { lamportsToSol } from '../../core/utils/conversion';
 import {
   createInterface,
@@ -9,6 +9,7 @@ import {
   updateInterface,
 } from '../../core/utils/interface';
 import {
+  tokenMetadataService,
   tokenPricesService,
   transactionHelper,
   transactionScanService,
@@ -26,6 +27,7 @@ export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmationContext = {
   feeEstimatedInSol: '0',
   tokenPrices: {},
   tokenPricesFetchStatus: 'fetching',
+  assetsImages: {},
   preferences: {
     locale: 'en',
     currency: 'usd',
@@ -50,12 +52,30 @@ export async function renderConfirmation(incomingContext: ConfirmationContext) {
   const context = {
     ...DEFAULT_CONFIRMATION_CONTEXT,
     ...incomingContext,
-    preferences: await getPreferences().catch(
-      () => DEFAULT_CONFIRMATION_CONTEXT.preferences,
-    ),
   };
 
-  const assets = [Networks[context.scope].nativeToken.caip19Id];
+  const preferencesPromise = getPreferences()
+    .then((preferences) => {
+      context.preferences = preferences;
+    })
+    .catch(() => {
+      context.preferences = DEFAULT_CONFIRMATION_CONTEXT.preferences;
+    });
+
+  const assetsImagesPromise = tokenMetadataService
+    .generateImageComponent(SOL_IMAGE_URL, 20, 20)
+    .then((image) => {
+      if (image) {
+        context.assetsImages = {
+          [Networks[context.scope].nativeToken.caip19Id]: image,
+        };
+      }
+    })
+    .catch(() => {
+      context.assetsImages = {};
+    });
+
+  await Promise.all([preferencesPromise, assetsImagesPromise]);
 
   const id = await createInterface(<Confirmation context={context} />, context);
 
@@ -74,6 +94,8 @@ export async function renderConfirmation(incomingContext: ConfirmationContext) {
     await transactionHelper.base64EncodeTransactionMessageFromBase64EncodedTransaction(
       context.transaction,
     );
+
+  const assets = [Networks[context.scope].nativeToken.caip19Id];
 
   const tokenPricesPromise = tokenPricesService
     .getMultipleTokenPrices(assets, context.preferences.currency)
