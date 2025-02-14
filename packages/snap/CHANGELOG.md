@@ -7,19 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0]
+
+### Uncategorized
+
+- feat: support conversions for all supported assets ([#181](https://github.com/MetaMask/snap-solana-wallet/pull/181))
+- fix: remove assets data for deleted accounts ([#196](https://github.com/MetaMask/snap-solana-wallet/pull/196))
+- fix: concurrent state updates cannot happen ([#195](https://github.com/MetaMask/snap-solana-wallet/pull/195))
+- perf: Speed up Solana key derivation ([#191](https://github.com/MetaMask/snap-solana-wallet/pull/191))
+- chore: update returned account ([#193](https://github.com/MetaMask/snap-solana-wallet/pull/193))
+
 ## [1.5.0]
 
 ### Added
 
 - Script to dynamically change the manifest file ([#177](https://github.com/MetaMask/snap-solana-wallet/pull/177))
-
-### Fixed
-
-- Audit: Pin dependency versions ([#189](https://github.com/MetaMask/snap-solana-wallet/pull/189)) and ([#185](https://github.com/MetaMask/snap-solana-wallet/pull/185))
-- Audit: Potential url injections in api calls ([#182](https://github.com/MetaMask/snap-solana-wallet/pull/182))
-- Audit: Unnecessary `tsx` extension on the snap's entry point file ([#180](https://github.com/MetaMask/snap-solana-wallet/pull/180))
-- Audit: LAX or missing runtime input validation ([#179](https://github.com/MetaMask/snap-solana-wallet/pull/179))
-- Bump `keyring-snap-sdk` version to enable the dispatcher ([#188](https://github.com/MetaMask/snap-solana-wallet/pull/188))
 
 ### Changed
 
@@ -29,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Removed
 
 - `onUpdate` and `onInstall` handlers ([#186](https://github.com/MetaMask/snap-solana-wallet/pull/186))
+
+### Fixed
+
+- Audit: Pin dependency versions ([#189](https://github.com/MetaMask/snap-solana-wallet/pull/189)) and ([#185](https://github.com/MetaMask/snap-solana-wallet/pull/185))
+- Audit: Potential url injections in api calls ([#182](https://github.com/MetaMask/snap-solana-wallet/pull/182))
+- Audit: Unnecessary `tsx` extension on the snap's entry point file ([#180](https://github.com/MetaMask/snap-solana-wallet/pull/180))
+- Audit: LAX or missing runtime input validation ([#179](https://github.com/MetaMask/snap-solana-wallet/pull/179))
+- Bump `keyring-snap-sdk` version to enable the dispatcher ([#188](https://github.com/MetaMask/snap-solana-wallet/pull/188))
 
 ## [1.4.0]
 
@@ -191,7 +201,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.2.0...v1.3.0
