@@ -67,3 +67,4 @@ jobs:
           LOCAL_API_BASE_URL: ${{ secrets.LOCAL_API_BASE_URL }}
           TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
           STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
+          SECURITY_ALERTS_API_BASE_URL: ${{ secrets.SECURITY_ALERTS_API_BASE_URL }}
