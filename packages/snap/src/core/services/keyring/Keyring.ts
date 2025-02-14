@@ -229,20 +229,6 @@ export class SolanaKeyring implements Keyring {
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
 
-      /**
-       * Adding account to snap state.
-       *
-       * Needs to be done after the event is emitted to avoid the snap
-       * saving the account before the user has confirmed the account creation.
-       */
-      await this.#state.update((state) => ({
-        ...state,
-        keyringAccounts: {
-          ...(state?.keyringAccounts ?? {}),
-          [keyringAccount.id]: keyringAccount,
-        },
-      }));
-
       return keyringAccount;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating account');
