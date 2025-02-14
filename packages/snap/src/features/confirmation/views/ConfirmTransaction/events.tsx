@@ -1,5 +1,6 @@
 import { createKeyPairSignerFromPrivateKeyBytes } from '@solana/web3.js';
 
+import { deriveSolanaPrivateKey } from '../../../../core/utils/deriveSolanaPrivateKey';
 import {
   resolveInterface,
   updateInterface,
@@ -65,22 +66,22 @@ async function onConfirmButtonClick({
     throw new Error('Account not found');
   }
 
-  const signer = await createKeyPairSignerFromPrivateKeyBytes(
-    Uint8Array.from(context.account.privateKeyBytesAsNum),
-  );
+  const privateKeyBytes = await deriveSolanaPrivateKey(context.account.index);
+  const signer = await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
   const decodedTransaction = await transactionHelper.base64DecodeTransaction(
     context.transaction,
     context.scope,
   );
 
-  await transactionHelper.sendTransaction(
-    decodedTransaction,
-    [signer],
-    context.scope,
-  );
-
-  await resolveInterface(id, false);
+  await Promise.all([
+    transactionHelper.sendTransaction(
+      decodedTransaction,
+      [signer],
+      context.scope,
+    ),
+    resolveInterface(id, false),
+  ]);
 }
 
 export const eventHandlers = {

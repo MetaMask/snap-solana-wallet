@@ -472,10 +472,6 @@ export class SolanaKeyring implements Keyring {
       params;
 
     const account = await this.getAccountOrThrow(accountId);
-    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
 
     try {
       const decodedTransactionMessage =
@@ -502,6 +498,11 @@ export class SolanaKeyring implements Keyring {
         await renderConfirmation(confirmationContext);
         return null;
       }
+
+      const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+      const signer = await createKeyPairSignerFromPrivateKeyBytes(
+        privateKeyBytes,
+      );
 
       const signature = await this.#transactionHelper.sendTransaction(
         decodedTransactionMessage,
