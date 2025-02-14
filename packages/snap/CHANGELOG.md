@@ -9,13 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.0]
 
-### Uncategorized
+### Added
 
-- feat: support conversions for all supported assets ([#181](https://github.com/MetaMask/snap-solana-wallet/pull/181))
-- fix: remove assets data for deleted accounts ([#196](https://github.com/MetaMask/snap-solana-wallet/pull/196))
-- fix: concurrent state updates cannot happen ([#195](https://github.com/MetaMask/snap-solana-wallet/pull/195))
-- perf: Speed up Solana key derivation ([#191](https://github.com/MetaMask/snap-solana-wallet/pull/191))
-- chore: update returned account ([#193](https://github.com/MetaMask/snap-solana-wallet/pull/193))
+- Support conversions for all supported assets ([#181](https://github.com/MetaMask/snap-solana-wallet/pull/181))
+
+### Fixed
+
+- Remove assets data for deleted accounts ([#196](https://github.com/MetaMask/snap-solana-wallet/pull/196))
+- Concurrent state updates ([#195](https://github.com/MetaMask/snap-solana-wallet/pull/195))
+- Speed up Solana key derivation ([#191](https://github.com/MetaMask/snap-solana-wallet/pull/191))
+- Update returned account ([#193](https://github.com/MetaMask/snap-solana-wallet/pull/193))
 
 ## [1.5.0]
 
