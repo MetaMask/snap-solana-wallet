@@ -24,9 +24,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
-  MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
 } from '../../test/mocks/solana-keyring-accounts';
-import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import { AssetsService } from '../assets/AssetsService';

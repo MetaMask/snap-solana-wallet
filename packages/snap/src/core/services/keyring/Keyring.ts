@@ -229,16 +229,13 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, DeleteAccountStruct);
 
-      await Promise.all([
-        this.#state.update((state) => {
-          delete state?.keyringAccounts?.[accountId];
-          return state;
-        }),
-        this.#state.update((state) => {
-          delete state?.transactions?.[accountId];
-          return state;
-        }),
-      ]);
+      await this.#state.update((state) => {
+        delete state?.keyringAccounts?.[accountId];
+        delete state?.assets?.[accountId];
+        delete state?.transactions?.[accountId];
+        return state;
+      });
+
       await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
