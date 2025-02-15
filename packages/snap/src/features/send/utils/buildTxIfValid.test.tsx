@@ -10,9 +10,9 @@ import { updateInterface } from '../../../core/utils/interface';
 import { sendFieldsAreValid } from '../../../core/validation/form';
 import {
   keyring,
-  splTokenHelper,
+  sendSolBuilder,
+  sendSplTokenBuilder,
   transactionHelper,
-  transferSolHelper,
 } from '../../../snapContext';
 import { SendCurrencyType, type SendContext } from '../types';
 import { buildTxIfValid } from './buildTxIfValid';
@@ -56,7 +56,7 @@ describe('buildTxIfValid', () => {
       address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
     });
 
-    (transferSolHelper.buildTransactionMessage as jest.Mock).mockResolvedValue({
+    (sendSolBuilder.buildTransactionMessage as jest.Mock).mockResolvedValue({
       someTransactionData: 'data',
     });
 
@@ -81,7 +81,7 @@ describe('buildTxIfValid', () => {
   it('builds SOL transfer transaction when tokenCaipId is native token', async () => {
     await buildTxIfValid(mockId, mockContext);
 
-    expect(transferSolHelper.buildTransactionMessage).toHaveBeenCalledWith(
+    expect(sendSolBuilder.buildTransactionMessage).toHaveBeenCalledWith(
       address(MOCK_SOLANA_KEYRING_ACCOUNT_0.address),
       address(MOCK_SOLANA_KEYRING_ACCOUNT_1.address),
       '1.0',
@@ -98,12 +98,12 @@ describe('buildTxIfValid', () => {
 
     await buildTxIfValid(mockId, splContext);
 
-    expect(splTokenHelper.buildTransactionMessage).toHaveBeenCalled();
+    expect(sendSplTokenBuilder.buildTransactionMessage).toHaveBeenCalled();
     expect(updateInterface).toHaveBeenCalledTimes(2);
   });
 
   it('handles transaction build errors', async () => {
-    (transferSolHelper.buildTransactionMessage as jest.Mock).mockRejectedValue(
+    (sendSolBuilder.buildTransactionMessage as jest.Mock).mockRejectedValue(
       new Error('Build failed'),
     );
 

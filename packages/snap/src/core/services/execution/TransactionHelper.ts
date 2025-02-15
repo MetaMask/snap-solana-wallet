@@ -36,7 +36,7 @@ import type { SolanaConnection } from '../connection';
  *
  * @example
  * const transactionHelper = new TransactionHelper(connection, logger);
- * const transferSolHelper = new TransferSolHelper(transactionHelper, logger);
+ * const sendSolBuilder = new SendSolBuilder(transactionHelper, logger);
  */
 export class TransactionHelper {
   readonly #connection: SolanaConnection;

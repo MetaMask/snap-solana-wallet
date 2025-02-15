@@ -5,9 +5,9 @@ import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { EncryptedState } from './core/services/encrypted-state/EncryptedState';
-import { SplTokenHelper } from './core/services/execution/SplTokenHelper';
+import { SendSolBuilder } from './core/services/execution/builders/SendSolBuilder';
+import { SendSplTokenBuilder } from './core/services/execution/builders/SendSplTokenBuilder';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
-import { TransferSolHelper } from './core/services/execution/TransferSolHelper';
 import { SolanaKeyring } from './core/services/keyring/Keyring';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
@@ -30,8 +30,8 @@ export type SnapExecutionContext = {
   tokenPricesService: TokenPricesService;
   transactionHelper: TransactionHelper;
   transactionsService: TransactionsService;
-  transferSolHelper: TransferSolHelper;
-  splTokenHelper: SplTokenHelper;
+  sendSolBuilder: SendSolBuilder;
+  sendSplTokenBuilder: SendSplTokenBuilder;
   walletStandardService: WalletStandardService;
   transactionScanService: TransactionScanService;
 };
@@ -40,8 +40,8 @@ const configProvider = new ConfigProvider();
 const state = new EncryptedState();
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);
-const transferSolHelper = new TransferSolHelper(transactionHelper, logger);
-const splTokenHelper = new SplTokenHelper(
+const sendSolBuilder = new SendSolBuilder(transactionHelper, logger);
+const sendSplTokenBuilder = new SendSplTokenBuilder(
   connection,
   transactionHelper,
   logger,
@@ -96,8 +96,8 @@ const snapContext: SnapExecutionContext = {
   tokenPricesService,
   transactionHelper,
   transactionsService,
-  transferSolHelper,
-  splTokenHelper,
+  sendSolBuilder,
+  sendSplTokenBuilder,
   walletStandardService,
   transactionScanService,
 };
@@ -108,16 +108,16 @@ export {
   connection,
   keyring,
   priceApiClient,
-  splTokenHelper,
+  sendSolBuilder,
+  sendSplTokenBuilder,
   state,
   tokenMetadataClient,
   tokenMetadataService,
   tokenPricesService,
   transactionHelper,
-  transactionsService,
-  transferSolHelper,
-  walletStandardService,
   transactionScanService,
+  transactionsService,
+  walletStandardService,
 };
 
 export default snapContext;

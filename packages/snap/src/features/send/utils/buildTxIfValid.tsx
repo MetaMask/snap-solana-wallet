@@ -9,9 +9,9 @@ import logger from '../../../core/utils/logger';
 import { sendFieldsAreValid } from '../../../core/validation/form';
 import {
   keyring,
-  splTokenHelper,
+  sendSolBuilder,
+  sendSplTokenBuilder,
   transactionHelper,
-  transferSolHelper,
 } from '../../../snapContext';
 import { getTokenAmount } from '../selectors';
 import { Send } from '../Send';
@@ -34,7 +34,7 @@ const buildTransactionMessageAndStoreInContext = async (
 
     if (tokenCaipId === Networks[scope].nativeToken.caip19Id) {
       // Native token (SOL) transaction
-      transactionMessage = await transferSolHelper.buildTransactionMessage(
+      transactionMessage = await sendSolBuilder.buildTransactionMessage(
         address(account.address),
         address(toAddress),
         tokenAmount,
@@ -42,7 +42,7 @@ const buildTransactionMessageAndStoreInContext = async (
       );
     } else {
       // SPL token transaction
-      transactionMessage = await splTokenHelper.buildTransactionMessage(
+      transactionMessage = await sendSplTokenBuilder.buildTransactionMessage(
         account,
         address(toAddress),
         address(getCaip19Address(tokenCaipId)),

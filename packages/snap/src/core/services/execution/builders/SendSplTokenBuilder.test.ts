@@ -9,23 +9,27 @@ import type {
 } from '@solana/web3.js';
 import { address, type Address, type MaybeAccount } from '@solana/web3.js';
 
-import { KnownCaip19Id, Network, TokenMetadata } from '../../constants/solana';
+import {
+  KnownCaip19Id,
+  Network,
+  TokenMetadata,
+} from '../../../constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNTS,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
-} from '../../test/mocks/solana-keyring-accounts';
-import { mockLogger } from '../mocks/logger';
-import { createMockConnection } from '../mocks/mockConnection';
-import type { Exists, MaybeHasDecimals } from './SplTokenHelper';
-import { SplTokenHelper } from './SplTokenHelper';
-import type { TransactionHelper } from './TransactionHelper';
+} from '../../../test/mocks/solana-keyring-accounts';
+import { mockLogger } from '../../mocks/logger';
+import { createMockConnection } from '../../mocks/mockConnection';
+import type { TransactionHelper } from '../TransactionHelper';
+import type { Exists, MaybeHasDecimals } from './SendSplTokenBuilder';
+import { SendSplTokenBuilder } from './SendSplTokenBuilder';
 
 jest.mock('@solana/web3.js', () => ({
   ...jest.requireActual('@solana/web3.js'),
   fetchJsonParsedAccount: jest.fn(),
 }));
 
-jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
+jest.mock('../../../utils/deriveSolanaPrivateKey', () => ({
   deriveSolanaPrivateKey: jest.fn().mockImplementation((index) => {
     const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index];
     if (!account) {
@@ -39,7 +43,7 @@ jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
   }),
 }));
 
-describe('SplTokenHelper', () => {
+describe('SendSplTokenBuilder', () => {
   const mockConnection = createMockConnection();
 
   const mockTransactionHelper = {
@@ -49,11 +53,11 @@ describe('SplTokenHelper', () => {
     getComputeUnitEstimate: jest.fn(),
   } as unknown as TransactionHelper;
 
-  let splTokenHelper: SplTokenHelper;
+  let sendSplTokenBuilder: SendSplTokenBuilder;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    splTokenHelper = new SplTokenHelper(
+    sendSplTokenBuilder = new SendSplTokenBuilder(
       mockConnection,
       mockTransactionHelper,
       mockLogger,
@@ -93,7 +97,7 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any> & Exists;
 
       jest
-        .spyOn(splTokenHelper, 'getOrCreateAssociatedTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getOrCreateAssociatedTokenAccount')
         .mockResolvedValueOnce(mockFromTokenAccount)
         .mockResolvedValueOnce(mockToTokenAccount);
 
@@ -104,16 +108,17 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<MaybeHasDecimals> & Exists;
 
       jest
-        .spyOn(splTokenHelper, 'getTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getTokenAccount')
         .mockResolvedValue(mockTokenAccount);
 
-      const transactionMessage = await splTokenHelper.buildTransactionMessage(
-        mockFrom,
-        mockTo,
-        mockMint,
-        mockAmount,
-        mockNetwork,
-      );
+      const transactionMessage =
+        await sendSplTokenBuilder.buildTransactionMessage(
+          mockFrom,
+          mockTo,
+          mockMint,
+          mockAmount,
+          mockNetwork,
+        );
 
       // Verify the transaction message
       expect(transactionMessage).toStrictEqual({
@@ -189,14 +194,15 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any> & Exists;
 
       jest
-        .spyOn(splTokenHelper, 'getAssociatedTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getAssociatedTokenAccount')
         .mockResolvedValue(mockAccount);
 
-      const result = await splTokenHelper.getOrCreateAssociatedTokenAccount(
-        mockMint,
-        mockOwner,
-        mockNetwork,
-      );
+      const result =
+        await sendSplTokenBuilder.getOrCreateAssociatedTokenAccount(
+          mockMint,
+          mockOwner,
+          mockNetwork,
+        );
 
       expect(result).toStrictEqual(mockAccount);
     });
@@ -212,19 +218,20 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any> & Exists;
 
       jest
-        .spyOn(splTokenHelper, 'getAssociatedTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getAssociatedTokenAccount')
         .mockResolvedValueOnce(mockNonExistingAccount);
 
       jest
-        .spyOn(splTokenHelper, 'createAssociatedTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'createAssociatedTokenAccount')
         .mockResolvedValue(mockNewAccount);
 
-      const result = await splTokenHelper.getOrCreateAssociatedTokenAccount(
-        mockMint,
-        mockOwner,
-        mockNetwork,
-        mockPayer,
-      );
+      const result =
+        await sendSplTokenBuilder.getOrCreateAssociatedTokenAccount(
+          mockMint,
+          mockOwner,
+          mockNetwork,
+          mockPayer,
+        );
 
       expect(result).toStrictEqual(mockNewAccount);
     });
@@ -235,11 +242,11 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any>;
 
       jest
-        .spyOn(splTokenHelper, 'getAssociatedTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getAssociatedTokenAccount')
         .mockResolvedValue(mockNonExistingAccount);
 
       await expect(
-        splTokenHelper.getOrCreateAssociatedTokenAccount(
+        sendSplTokenBuilder.getOrCreateAssociatedTokenAccount(
           mockMint,
           mockOwner,
           mockNetwork,
@@ -260,10 +267,10 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any>;
 
       jest
-        .spyOn(splTokenHelper, 'getTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getTokenAccount')
         .mockResolvedValue(mockAccount);
 
-      const result = await splTokenHelper.getAssociatedTokenAccount(
+      const result = await sendSplTokenBuilder.getAssociatedTokenAccount(
         mockMint,
         mockOwner,
         mockNetwork,
@@ -278,10 +285,10 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any>;
 
       jest
-        .spyOn(splTokenHelper, 'getTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getTokenAccount')
         .mockResolvedValue(mockNonExistingAccount);
 
-      const result = await splTokenHelper.getAssociatedTokenAccount(
+      const result = await sendSplTokenBuilder.getAssociatedTokenAccount(
         mockMint,
         mockOwner,
         mockNetwork,
@@ -310,11 +317,11 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any> & Exists;
 
       jest
-        .spyOn(splTokenHelper, 'getAssociatedTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getAssociatedTokenAccount')
         .mockResolvedValue(mockNonExistingAccount);
 
       jest
-        .spyOn(splTokenHelper, 'getTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getTokenAccount')
         .mockResolvedValueOnce(mockNonExistingAccount)
         .mockResolvedValueOnce(mockNewAccount);
 
@@ -331,7 +338,7 @@ describe('SplTokenHelper', () => {
         .spyOn(mockTransactionHelper, 'sendTransaction')
         .mockResolvedValue('mockSignature');
 
-      const result = await splTokenHelper.createAssociatedTokenAccount(
+      const result = await sendSplTokenBuilder.createAssociatedTokenAccount(
         mockMint,
         mockOwner,
         mockNetwork,
@@ -349,11 +356,11 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any>;
 
       jest
-        .spyOn(splTokenHelper, 'getAssociatedTokenAccount')
+        .spyOn(sendSplTokenBuilder, 'getAssociatedTokenAccount')
         .mockResolvedValue(mockExistingAccount);
 
       await expect(
-        splTokenHelper.createAssociatedTokenAccount(
+        sendSplTokenBuilder.createAssociatedTokenAccount(
           mockMint,
           mockOwner,
           mockNetwork,
@@ -386,7 +393,7 @@ describe('SplTokenHelper', () => {
       );
       fetchJsonParsedAccountSpy.mockResolvedValue(mockTokenAccount);
 
-      const result = await splTokenHelper.getTokenAccount(
+      const result = await sendSplTokenBuilder.getTokenAccount(
         mockMint,
         mockNetwork,
       );
@@ -411,7 +418,7 @@ describe('SplTokenHelper', () => {
       );
       fetchJsonParsedAccountSpy.mockResolvedValue(mockNonExistingAccount);
 
-      const result = await splTokenHelper.getTokenAccount(
+      const result = await sendSplTokenBuilder.getTokenAccount(
         mockMint,
         mockNetwork,
       );
@@ -429,7 +436,7 @@ describe('SplTokenHelper', () => {
         data: { decimals: 6 },
       } as unknown as MaybeAccount<MaybeHasDecimals> & Exists;
 
-      const result = splTokenHelper.getDecimals(mockTokenAccount);
+      const result = sendSplTokenBuilder.getDecimals(mockTokenAccount);
       expect(result).toBe(6);
     });
 
@@ -438,7 +445,7 @@ describe('SplTokenHelper', () => {
         exists: false,
       } as unknown as MaybeAccount<any> & Exists;
 
-      expect(() => splTokenHelper.getDecimals(mockTokenAccount)).toThrow(
+      expect(() => sendSplTokenBuilder.getDecimals(mockTokenAccount)).toThrow(
         'Token account does not exist',
       );
     });
@@ -449,7 +456,7 @@ describe('SplTokenHelper', () => {
         data: {},
       } as unknown as MaybeAccount<any> & Exists;
 
-      expect(() => splTokenHelper.getDecimals(mockTokenAccount)).toThrow(
+      expect(() => sendSplTokenBuilder.getDecimals(mockTokenAccount)).toThrow(
         'Decimals not found',
       );
     });
@@ -463,7 +470,7 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any> & Exists;
 
       expect(() => {
-        SplTokenHelper.assertAccountDecoded(mockDecodedAccount);
+        SendSplTokenBuilder.assertAccountDecoded(mockDecodedAccount);
       }).not.toThrow();
     });
 
@@ -474,7 +481,7 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any> & Exists;
 
       expect(() => {
-        SplTokenHelper.assertAccountDecoded(mockEncodedAccount);
+        SendSplTokenBuilder.assertAccountDecoded(mockEncodedAccount);
       }).toThrow('Token account is encoded. Implement a decoder.');
     });
 
@@ -485,7 +492,7 @@ describe('SplTokenHelper', () => {
       } as unknown as MaybeAccount<any>;
 
       expect(() => {
-        SplTokenHelper.assertAccountDecoded(mockNonExistentAccount);
+        SendSplTokenBuilder.assertAccountDecoded(mockNonExistentAccount);
       }).toThrow('Token account does not exist');
     });
   });

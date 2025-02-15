@@ -12,16 +12,16 @@ import {
 } from '@solana/web3.js';
 import type BigNumber from 'bignumber.js';
 
-import type { Network } from '../../constants/solana';
-import { solToLamports } from '../../utils/conversion';
-import type { ILogger } from '../../utils/logger';
-import type { TransactionHelper } from './TransactionHelper';
-import type { ITransactionMessageBuilder } from './types';
+import type { Network } from '../../../constants/solana';
+import { solToLamports } from '../../../utils/conversion';
+import type { ILogger } from '../../../utils/logger';
+import type { TransactionHelper } from '../TransactionHelper';
+import type { ITransactionMessageBuilder } from './ITransactionMessageBuilder';
 
 /**
  * Helper class for transferring SOL.
  */
-export class TransferSolHelper implements ITransactionMessageBuilder {
+export class SendSolBuilder implements ITransactionMessageBuilder {
   readonly #transactionHelper: TransactionHelper;
 
   readonly #logger: ILogger;

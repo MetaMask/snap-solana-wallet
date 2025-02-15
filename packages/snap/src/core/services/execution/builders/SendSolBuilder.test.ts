@@ -2,13 +2,13 @@ import type { Blockhash } from '@solana/web3.js';
 import { address } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 
-import { Network } from '../../constants/solana';
-import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
-import logger from '../../utils/logger';
-import type { TransactionHelper } from './TransactionHelper';
-import { TransferSolHelper } from './TransferSolHelper';
+import { Network } from '../../../constants/solana';
+import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../test/mocks/solana-keyring-accounts';
+import logger from '../../../utils/logger';
+import type { TransactionHelper } from '../TransactionHelper';
+import { SendSolBuilder } from './SendSolBuilder';
 
-describe('TransferSolHelper', () => {
+describe('SendSolBuilder', () => {
   const mockTransactionHelper = {
     getLatestBlockhash: jest.fn(),
     sendTransaction: jest.fn(),
@@ -20,11 +20,11 @@ describe('TransferSolHelper', () => {
   const mockAmount = BigNumber(1); // 1 SOL
   const mockNetwork = Network.Testnet;
 
-  let transferSolHelper: TransferSolHelper;
+  let sendSolBuilder: SendSolBuilder;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    transferSolHelper = new TransferSolHelper(mockTransactionHelper, logger);
+    sendSolBuilder = new SendSolBuilder(mockTransactionHelper, logger);
   });
 
   describe('buildTransactionMessage', () => {
@@ -44,15 +44,13 @@ describe('TransferSolHelper', () => {
         .mockResolvedValue(5000);
 
       // Execute
-      const transactionMessage =
-        await transferSolHelper.buildTransactionMessage(
-          mockFrom,
-          mockTo,
-          mockAmount,
-          mockNetwork,
-        );
+      const transactionMessage = await sendSolBuilder.buildTransactionMessage(
+        mockFrom,
+        mockTo,
+        mockAmount,
+        mockNetwork,
+      );
 
-      console.log(transactionMessage);
       // Verify
       expect(transactionMessage).toStrictEqual({
         version: 0,
@@ -96,7 +94,7 @@ describe('TransferSolHelper', () => {
       );
 
       await expect(
-        transferSolHelper.buildTransactionMessage(
+        sendSolBuilder.buildTransactionMessage(
           mockFrom,
           mockTo,
           mockAmount,
