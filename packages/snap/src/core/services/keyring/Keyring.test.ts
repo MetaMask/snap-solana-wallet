@@ -1,4 +1,6 @@
 /* eslint-disable jest/prefer-strict-equal */
+import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
+import { SLIP10Node } from '@metamask/key-tree';
 import { SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
@@ -14,6 +16,7 @@ import {
   SOLANA_MOCK_TOKEN_METADATA,
 } from '../../test/mocks/solana-assets';
 import {
+  MOCK_SEED_PHRASE_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
@@ -21,9 +24,8 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
-  MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
 } from '../../test/mocks/solana-keyring-accounts';
-import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
+import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
@@ -38,19 +40,25 @@ import { TransactionsService } from '../transactions/Transactions';
 import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
 import { SolanaKeyring } from './Keyring';
 
+jest.mock('../../../features/confirmation/renderConfirmation');
+
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   ...jest.requireActual('@metamask/keyring-snap-sdk'),
   emitSnapKeyringEvent: jest.fn().mockResolvedValue(null),
 }));
 
-jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
-  deriveSolanaPrivateKey: jest.fn().mockImplementation((index) => {
-    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index];
-    if (!account) {
-      throw new Error('[deriveSolanaAddress] Not enough mocked indices');
-    }
-    return MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES[account.id];
-  }),
+jest.mock('../../utils/getBip32Entropy', () => ({
+  getBip32Entropy: jest
+    .fn()
+    .mockImplementation(async (path: string[], curve: SupportedCurve) => {
+      return await SLIP10Node.fromDerivationPath({
+        derivationPath: [
+          MOCK_SEED_PHRASE_BYTES,
+          ...path.slice(1).map((node) => `slip10:${node}` as SLIP10PathNode),
+        ],
+        curve,
+      });
+    }),
 }));
 
 const NON_EXISTENT_ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174009';
@@ -98,6 +106,7 @@ describe('SolanaKeyring', () => {
       getComputeUnitEstimate: jest.fn(),
       sendTransaction: jest.fn(),
       base64DecodeTransaction: jest.fn(),
+      getFeeForMessageInLamports: jest.fn(),
     } as unknown as TransactionHelper;
 
     mockTokenMetadataService = {
@@ -112,13 +121,13 @@ describe('SolanaKeyring', () => {
 
     keyring = new SolanaKeyring({
       state,
+      logger,
       configProvider: mockConfigProvider,
       transactionsService,
       assetsService,
       tokenMetadataService: mockTokenMetadataService,
       transactionHelper: mockTransactionHelper,
       walletStandardService: mockWalletStandardService,
-      logger,
     });
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
@@ -295,17 +304,24 @@ describe('SolanaKeyring', () => {
       const secondAccount = await keyring.createAccount();
       const thirdAccount = await keyring.createAccount();
 
-      expect(firstAccount).toEqual({
+      const accounts = Object.values(mockStateValue.keyringAccounts);
+      expect(accounts).toHaveLength(3);
+
+      const accountIndex0 = accounts.find((acc) => acc.index === 0);
+      const accountIndex1 = accounts.find((acc) => acc.index === 1);
+      const accountIndex2 = accounts.find((acc) => acc.index === 2);
+
+      expect(accountIndex0).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        id: expect.any(String),
+        id: firstAccount.id,
       });
-      expect(secondAccount).toEqual({
+      expect(accountIndex1).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        id: expect.any(String),
+        id: secondAccount.id,
       });
-      expect(thirdAccount).toEqual({
+      expect(accountIndex2).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
-        id: expect.any(String),
+        id: thirdAccount.id,
       });
     });
 
@@ -333,49 +349,46 @@ describe('SolanaKeyring', () => {
       const regeneratedFourthAccount = await keyring.createAccount();
       const sixthAccount = await keyring.createAccount();
 
-      /**
-       * Accounts are created in order
-       */
-      expect(firstAccount).toEqual({
+      const accounts = Object.values(mockStateValue.keyringAccounts);
+      expect(accounts).toHaveLength(6);
+
+      const accountIndex0 = accounts.find((acc) => acc.index === 0);
+      const accountIndex1 = accounts.find((acc) => acc.index === 1);
+      const accountIndex2 = accounts.find((acc) => acc.index === 2);
+      const accountIndex3 = accounts.find((acc) => acc.index === 3);
+      const accountIndex4 = accounts.find((acc) => acc.index === 4);
+      const accountIndex5 = accounts.find((acc) => acc.index === 5);
+
+      expect(accountIndex0).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        id: expect.any(String),
+        id: firstAccount.id,
       });
-      expect(secondAccount).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        id: expect.any(String),
-      });
-      expect(thirdAccount).toEqual({
+      expect(accountIndex2).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
-        id: expect.any(String),
+        id: thirdAccount.id,
       });
-      expect(fourthAccount).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_3,
-        id: expect.any(String),
-      });
-      expect(fifthAccount).toEqual({
+      expect(accountIndex4).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_4,
-        id: expect.any(String),
-      });
-      expect(sixthAccount).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_5,
-        id: expect.any(String),
+        id: fifthAccount.id,
       });
 
-      /**
-       * Regenerated accounts should pick up the missing indices
-       */
-      expect(regeneratedSecondAccount).toEqual({
+      expect(accountIndex1).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        id: expect.any(String),
+        id: regeneratedSecondAccount.id,
       });
-      expect(regeneratedFourthAccount).toEqual({
+      expect(accountIndex3).toEqual({
         ...MOCK_SOLANA_KEYRING_ACCOUNT_3,
-        id: expect.any(String),
+        id: regeneratedFourthAccount.id,
+      });
+
+      expect(accountIndex5).toEqual({
+        ...MOCK_SOLANA_KEYRING_ACCOUNT_5,
+        id: sixthAccount.id,
       });
     });
 
     it('throws when deriving address fails', async () => {
-      jest.mocked(deriveSolanaPrivateKey).mockImplementationOnce(async () => {
+      jest.mocked(getBip32Entropy).mockImplementationOnce(async () => {
         return Promise.reject(new Error('Error deriving address'));
       });
 
@@ -493,82 +506,40 @@ describe('SolanaKeyring', () => {
     });
   });
 
-  describe('handleSubmitRequest', () => {
-    describe('when method is SendAndConfirmTransaction', () => {
-      it('throws error when params are invalid', async () => {
-        const request = {
-          id: 'some-id',
-          scope: Network.Devnet,
-          account: MOCK_SOLANA_KEYRING_ACCOUNT_4.id,
-          request: {
-            method: SolMethod.SendAndConfirmTransaction,
-            params: {
-              base64EncodedTransactionMessage: undefined as unknown as string,
-            },
-          },
-        };
-
-        await expect(keyring.submitRequest(request)).rejects.toThrow(
-          'At path: base64EncodedTransactionMessage -- Expected a string, but received: undefined',
-        );
-      });
-
-      it('calls the transaction helper to send and confirm a transaction', async () => {
-        jest
-          .spyOn(keyring, 'getAccount')
-          .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_4);
-
-        jest
-          .spyOn(mockTransactionHelper, 'sendTransaction')
-          .mockResolvedValue('someSignature');
-
-        const request = {
-          id: 'some-id',
-          scope: Network.Devnet,
-          account: MOCK_SOLANA_KEYRING_ACCOUNT_4.id,
-          request: {
-            method: SolMethod.SendAndConfirmTransaction,
-            params: {
-              base64EncodedTransactionMessage:
-                'someBase64EncodedTransactionMessage',
-            },
-          },
-        };
-
-        const response = await keyring.submitRequest(request);
-
-        expect(response).toStrictEqual({
-          pending: false,
-          result: {
-            signature: 'someSignature',
-          },
-        });
-      });
-    });
-
-    it('throws an error if the method is not supported', async () => {
+  describe('handleSendAndConfirmTransaction', () => {
+    it('throws error when params are invalid', async () => {
       const request = {
         id: 'some-id',
         scope: Network.Devnet,
-        account: MOCK_SOLANA_KEYRING_ACCOUNT_3.id,
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_4.id,
         request: {
-          method: 'unsupportedMethod' as SolMethod,
-          params: {},
+          method: SolMethod.SendAndConfirmTransaction,
+          params: {
+            base64EncodedTransactionMessage: undefined as unknown as string,
+          },
         },
       };
 
-      await expect(keyring.submitRequest(request)).rejects.toThrow(
-        /but received: "unsupportedMethod"/u,
+      await expect(
+        keyring.handleSendAndConfirmTransaction(request, false),
+      ).rejects.toThrow(
+        'At path: base64EncodedTransactionMessage -- Expected a string, but received: undefined',
       );
     });
 
-    it('throws error when account is not found', async () => {
-      jest.spyOn(keyring as any, 'getAccount').mockResolvedValue(undefined);
+    it('calls the transaction helper to send and confirm a transaction', async () => {
+      jest
+        .spyOn(keyring, 'getAccount')
+        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_4);
+
+      jest
+        .spyOn(mockTransactionHelper, 'sendTransaction')
+        .mockResolvedValue('someSignature');
 
       const request = {
         id: 'some-id',
         scope: Network.Devnet,
-        account: NON_EXISTENT_ACCOUNT_ID,
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_4.id,
         request: {
           method: SolMethod.SendAndConfirmTransaction,
           params: {
@@ -578,10 +549,52 @@ describe('SolanaKeyring', () => {
         },
       };
 
-      await expect(keyring.submitRequest(request)).rejects.toThrow(
-        `Account "${NON_EXISTENT_ACCOUNT_ID}" not found`,
+      const response = await keyring.handleSendAndConfirmTransaction(
+        request,
+        false,
       );
+
+      expect(response).toStrictEqual({
+        signature: 'someSignature',
+      });
     });
+  });
+
+  it('throws an error if the method is not supported', async () => {
+    const request = {
+      id: 'some-id',
+      scope: Network.Devnet,
+      account: MOCK_SOLANA_KEYRING_ACCOUNT_3.id,
+      request: {
+        method: 'unsupportedMethod' as SolMethod,
+        params: {},
+      },
+    };
+
+    await expect(keyring.submitRequest(request)).rejects.toThrow(
+      /but received: "unsupportedMethod"/u,
+    );
+  });
+
+  it('throws error when account is not found', async () => {
+    jest.spyOn(keyring as any, 'getAccount').mockResolvedValue(undefined);
+
+    const request = {
+      id: 'some-id',
+      scope: Network.Devnet,
+      account: NON_EXISTENT_ACCOUNT_ID,
+      request: {
+        method: SolMethod.SendAndConfirmTransaction,
+        params: {
+          base64EncodedTransactionMessage:
+            'someBase64EncodedTransactionMessage',
+        },
+      },
+    };
+
+    await expect(keyring.submitRequest(request)).rejects.toThrow(
+      `Account "${NON_EXISTENT_ACCOUNT_ID}" not found`,
+    );
   });
 
   describe('resolveAccountAddress', () => {

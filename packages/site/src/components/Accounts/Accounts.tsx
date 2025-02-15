@@ -1,7 +1,12 @@
 import { Button, Text as ChakraText, Flex, Table } from '@chakra-ui/react';
-import { KeyringRpcMethod, type KeyringAccount } from '@metamask/keyring-api';
+import {
+  KeyringRpcMethod,
+  SolMethod,
+  type KeyringAccount,
+} from '@metamask/keyring-api';
 import { useEffect, useState } from 'react';
 
+import { Network } from '../../../../snap/src/core/constants/solana';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 import { AccountRow } from './AccountRow';
 
@@ -33,6 +38,26 @@ export const Accounts = () => {
     await fetchAccounts();
   };
 
+  const handleSendAndConfirmTransaction = async () => {
+    const lifiQuote = await fetch(
+      'https://li.quest/v1/quote?fromChain=SOL&toChain=SOL&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&fromAmount=1000000',
+    ).then(async (quote) => quote.json());
+
+    await invokeKeyring({
+      method: KeyringRpcMethod.SubmitRequest,
+      params: {
+        id: accounts?.[0]?.id,
+        scope: Network.Mainnet,
+        account: accounts?.[0]?.id,
+        request: {
+          method: SolMethod.SendAndConfirmTransaction,
+          params: {
+            base64EncodedTransactionMessage: lifiQuote.transactionRequest.data,
+          },
+        },
+      },
+    });
+  };
   useEffect(() => {
     fetchAccounts();
   }, []);
@@ -44,6 +69,13 @@ export const Accounts = () => {
           Accounts
         </ChakraText>
         <Flex>
+          <Button
+            colorPalette="purple"
+            onClick={handleSendAndConfirmTransaction}
+            marginRight="3"
+          >
+            Send and confirm transaction
+          </Button>
           <Button colorPalette="purple" onClick={fetchAccounts} marginRight="3">
             Refresh
           </Button>

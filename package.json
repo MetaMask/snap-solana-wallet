@@ -1,6 +1,6 @@
 {
   "name": "solana-wallet-snap-monorepo",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "description": "",
   "homepage": "https://github.com/MetaMask/snap-solana-wallet#readme",
@@ -36,7 +36,7 @@
     ]
   },
   "resolutions": {
-    "@metamask/snaps-sdk@^6.7.0": "^6.14.0"
+    "@metamask/snaps-sdk@^6.7.0": "^6.17.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",

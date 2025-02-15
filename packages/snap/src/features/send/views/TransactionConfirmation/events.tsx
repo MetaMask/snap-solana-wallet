@@ -90,18 +90,22 @@ async function onConfirmButtonClick({
     // It will be decoded on the other side, then signed and sent to the network.
     // It MUST be signed on the other side, because the transaction message is stripped of its private keys during encoding, for security reasons.
     // Fees can also be calculated on the other side from the decoded transaction message.
-    const response = await snapContext.keyring.handleSendAndConfirmTransaction({
-      id,
-      scope: context.scope,
-      account: context.fromAccountId, // Will be used to sign the transaction
-      request: {
-        method: SolMethod.SendAndConfirmTransaction,
-        params: {
-          base64EncodedTransactionMessage: transactionMessage,
+    const response = await snapContext.keyring.handleSendAndConfirmTransaction(
+      {
+        id,
+        scope: context.scope,
+        account: context.fromAccountId, // Will be used to sign the transaction
+        request: {
+          method: SolMethod.SendAndConfirmTransaction,
+          params: {
+            base64EncodedTransactionMessage: transactionMessage,
+          },
         },
       },
-    });
-    signature = response.signature;
+      false, // We don't want to show the confirmation dialog here, because we already showed it in the previous stage
+    );
+
+    signature = response?.signature ?? null;
   } catch (error) {
     logger.error({ error }, 'Error submitting request');
   }

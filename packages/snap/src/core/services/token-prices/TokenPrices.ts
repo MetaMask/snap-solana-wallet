@@ -1,48 +1,17 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import type { AssetConversion } from '@metamask/snaps-sdk';
+import BigNumber from 'bignumber.js';
 import { array, assert } from 'superstruct';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import { VsCurrencyParamStruct } from '../../clients/price-api/structs';
-import type {
-  SpotPrices,
-  VsCurrencyParam,
-} from '../../clients/price-api/types';
+import type { FiatTicker, SpotPrices } from '../../clients/price-api/types';
 import { getCaip19Address } from '../../utils/getCaip19Address';
+import { isFiat } from '../../utils/isFiat';
 import logger, { type ILogger } from '../../utils/logger';
 import { Caip19Struct } from '../../validation/structs';
 
-/**
- * Maps token addresses to their corresponding currency tickers.
- * Used for converting between token addresses and currency codes.
- */
-export const TOKEN_ADDRESS_TO_CRYPTO_CURRENCY: Record<string, VsCurrencyParam> =
-  {
-    // Bitcoin
-    bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh: 'btc',
-    // Ethereum
-    '0x742d35Cc6634C0532925a3b844Bc454e4438f44e': 'eth',
-    // Litecoin
-    ltc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh: 'ltc',
-    // Bitcoin Cash
-    'bitcoincash:qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh': 'bch',
-    // Binance Coin
-    bnb1jxfh2g85q3v0tdq56fnevx6xcxtcnhtsmcu64m: 'bnb',
-    // EOS
-    'eosio.token': 'eos',
-    // XRP
-    rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh: 'xrp',
-    // Stellar Lumens
-    GDZKRELJ4KHDF7BEDNEJC4NQRLRIPQB5FXPQK6BTCSERVEQC6NQPH3DZ: 'xlm',
-    // Chainlink
-    '0x514910771af9ca656af840dff83e8264ecf986ca': 'link',
-    // Polkadot
-    '1FRMM8PEiWXYax7rpS6X4XZX1aAAxSWx1CrKTyrVYhV24fg': 'dot',
-    // Yearn.finance
-    '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e': 'yfi',
-  };
-
-export class TokenPrices {
+export class TokenPricesService {
   readonly #priceApiClient: PriceApiClient;
 
   readonly #logger: ILogger;
@@ -52,19 +21,9 @@ export class TokenPrices {
     this.#logger = _logger;
   }
 
-  #caipToCurrency(caip19Id: CaipAssetType): VsCurrencyParam {
-    const isCurrency = caip19Id.includes('/iso4217:');
-    const currency = isCurrency
-      ? caip19Id?.split('/iso4217:')?.[1]?.toLowerCase()
-      : TOKEN_ADDRESS_TO_CRYPTO_CURRENCY[getCaip19Address(caip19Id)];
-
-    if (!currency) {
-      return 'usd';
-    }
-
-    assert(currency, VsCurrencyParamStruct);
-
-    return currency;
+  #fiatCaipIdToSymbol(caip19Id: CaipAssetType) {
+    const caip19Address = getCaip19Address(caip19Id);
+    return caip19Address.toLowerCase() as FiatTicker;
   }
 
   async getMultipleTokenPrices(
@@ -93,32 +52,106 @@ export class TokenPrices {
 
   async getMultipleTokenConversions(
     conversions: { from: CaipAssetType; to: CaipAssetType }[],
-  ): Promise<Record<CaipAssetType, Record<CaipAssetType, AssetConversion>>> {
+  ): Promise<
+    Record<CaipAssetType, Record<CaipAssetType, AssetConversion | null>>
+  > {
+    if (conversions.length === 0) {
+      return {};
+    }
+
+    /**
+     * `from` and `to` can represent both fiat and crypto assets. For us to get their values
+     * the best approach is to use Price API's `getFiatExchangeRates` method for fiat prices,
+     * `getMultipleSpotPrices` for crypto prices and then using USD as an intermediate currency
+     * to convert the prices to the correct currency.
+     */
+    const allAssets = conversions.flatMap((conversion) => [
+      conversion.from,
+      conversion.to,
+    ]);
+    const cryptoAssets = allAssets.filter((asset) => !isFiat(asset));
+
+    const [fiatExchangeRates, cryptoPrices] = await Promise.all([
+      this.#priceApiClient.getFiatExchangeRates(),
+      this.#priceApiClient.getMultipleSpotPrices(cryptoAssets, 'usd'),
+    ]);
+
+    /**
+     * Now that we have the data, convert the `from`s to `to`s.
+     *
+     * We need to handle the following cases:
+     * 1. `from` and `to` are both fiat
+     * 2. `from` and `to` are both crypto
+     * 3. `from` is fiat and `to` is crypto
+     * 4. `from` is crypto and `to` is fiat
+     *
+     * We also need to keep in mind that although `cryptoPrices` are indexed
+     * by CAIP 19 IDs, the `fiatExchangeRates` are indexed by currency symbols.
+     * To convert fiat currency symbols to CAIP 19 IDs, we can use the
+     * `this.#fiatSymbolToCaip19Id` method.
+     */
+
     const result: Record<
       CaipAssetType,
-      Record<CaipAssetType, AssetConversion>
+      Record<CaipAssetType, AssetConversion | null>
     > = {};
-    const to = conversions[0]?.to as CaipAssetType;
-
-    const tokenPrices = await this.#priceApiClient.getMultipleSpotPrices(
-      conversions.map((conversion) => conversion.from),
-      this.#caipToCurrency(to),
-    );
 
     conversions.forEach((conversion) => {
-      const fromAssetId = conversion.from;
-      const toAssetId = conversion.to;
-      const assetPrice = tokenPrices[fromAssetId]?.price;
+      const { from, to } = conversion;
 
-      if (!assetPrice) {
+      if (!result[from]) {
+        result[from] = {};
+      }
+
+      let fromUsdRate: BigNumber;
+      let toUsdRate: BigNumber;
+
+      if (isFiat(from)) {
+        /**
+         * Beware:
+         * We need to invert the fiat exchange rate because exchange rate != spot price
+         */
+        const fiatExchangeRate =
+          fiatExchangeRates[this.#fiatCaipIdToSymbol(from)]?.value;
+
+        if (!fiatExchangeRate) {
+          result[from][to] = null;
+          return;
+        }
+
+        fromUsdRate = new BigNumber(1).dividedBy(fiatExchangeRate);
+      } else {
+        fromUsdRate = new BigNumber(cryptoPrices[from]?.price ?? 0);
+      }
+
+      if (isFiat(to)) {
+        /**
+         * Beware:
+         * We need to invert the fiat exchange rate because exchange rate != spot price
+         */
+        const fiatExchangeRate =
+          fiatExchangeRates[this.#fiatCaipIdToSymbol(to)]?.value;
+
+        if (!fiatExchangeRate) {
+          result[from][to] = null;
+          return;
+        }
+
+        toUsdRate = new BigNumber(1).dividedBy(fiatExchangeRate);
+      } else {
+        toUsdRate = new BigNumber(cryptoPrices[to]?.price ?? 0);
+      }
+
+      if (fromUsdRate.isZero() || toUsdRate.isZero()) {
+        result[from][to] = null;
         return;
       }
 
-      result[fromAssetId] = {
-        [toAssetId]: {
-          rate: assetPrice.toString(),
-          conversionTime: Date.now(),
-        },
+      const rate = fromUsdRate.dividedBy(toUsdRate).toString();
+
+      result[from][to] = {
+        rate,
+        conversionTime: Date.now(),
       };
     });
 

@@ -60,7 +60,7 @@ export class SplTokenHelper implements ITransactionMessageBuilder {
   ): Promise<CompilableTransactionMessage> {
     this.#logger.log('Build transfer SPL token transaction message');
 
-    const privateKeyBytes = await deriveSolanaPrivateKey(from.index);
+    const { privateKeyBytes } = await deriveSolanaPrivateKey(from.index);
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );

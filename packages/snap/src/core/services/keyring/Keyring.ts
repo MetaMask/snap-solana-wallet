@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
-import type {
-  ResolvedAccountAddress,
-  Transaction,
-} from '@metamask/keyring-api';
 import {
   KeyringEvent,
   SolAccountType,
   SolMethod,
   SolScope,
+  type ResolvedAccountAddress,
+  type Transaction,
   type Balance,
   type CaipAssetType,
   type Keyring,
@@ -24,11 +22,15 @@ import type { CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/web3.js';
 import {
   address as asAddress,
-  createKeyPairFromPrivateKeyBytes,
   createKeyPairSignerFromPrivateKeyBytes,
-  getAddressFromPublicKey,
+  getAddressDecoder,
 } from '@solana/web3.js';
 
+import {
+  DEFAULT_CONFIRMATION_CONTEXT,
+  renderConfirmation,
+} from '../../../features/confirmation/renderConfirmation';
+import type { ConfirmationContext } from '../../../features/confirmation/types';
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { Network } from '../../constants/solana';
 import { SOL_SYMBOL, SolanaCaip19Tokens } from '../../constants/solana';
@@ -37,6 +39,7 @@ import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
+import { parseInstructions } from '../../utils/instructions';
 import type { ILogger } from '../../utils/logger';
 import {
   DeleteAccountStruct,
@@ -57,6 +60,7 @@ import type { TransactionHelper } from '../execution/TransactionHelper';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TransactionsService } from '../transactions/Transactions';
 import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
+
 /**
  * We need to store the index of the KeyringAccount in the state because
  * we want to be able to restore any account with a previously used index.
@@ -156,7 +160,7 @@ export class SolanaKeyring implements Keyring {
     importedAccount?: boolean;
     index?: number;
     [key: string]: Json | undefined;
-  }): Promise<SolanaKeyringAccount> {
+  }): Promise<KeyringAccount> {
     try {
       // eslint-disable-next-line no-restricted-globals
       const id = crypto.randomUUID();
@@ -172,15 +176,15 @@ export class SolanaKeyring implements Keyring {
         index = getLowestUnusedIndex(keyringAccounts);
       }
 
-      const privateKeyBytes = await deriveSolanaPrivateKey(index);
-
-      const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
-      const accountAddress = await getAddressFromPublicKey(keyPair.publicKey);
+      const { publicKeyBytes } = await deriveSolanaPrivateKey(index);
+      const accountAddress = getAddressDecoder().decode(
+        publicKeyBytes.slice(1),
+      );
 
       // Filter out our special properties from options
       const { importedAccount, index: _, ...remainingOptions } = options ?? {};
 
-      const keyringAccount: SolanaKeyringAccount = {
+      const solanaKeyringAccount: SolanaKeyringAccount = {
         id,
         index,
         type: SolAccountType.DataAccount,
@@ -197,23 +201,25 @@ export class SolanaKeyring implements Keyring {
         ...state,
         keyringAccounts: {
           ...(state?.keyringAccounts ?? {}),
-          [keyringAccount.id]: keyringAccount,
+          [solanaKeyringAccount.id]: solanaKeyringAccount,
         },
       }));
+
+      const keyringAccount: KeyringAccount = {
+        type: solanaKeyringAccount.type,
+        id: solanaKeyringAccount.id,
+        address: solanaKeyringAccount.address,
+        options: solanaKeyringAccount.options,
+        methods: solanaKeyringAccount.methods,
+        scopes: solanaKeyringAccount.scopes,
+      };
 
       await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
          * We can't pass the `keyringAccount` object because it contains the index
          * and the snaps sdk does not allow extra properties.
          */
-        account: {
-          type: keyringAccount.type,
-          id: keyringAccount.id,
-          address: keyringAccount.address,
-          options: keyringAccount.options,
-          methods: keyringAccount.methods,
-          scopes: keyringAccount.scopes,
-        },
+        account: keyringAccount,
         accountNameSuggestion: `Solana Account ${index + 1}`,
       });
 
@@ -228,16 +234,13 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, DeleteAccountStruct);
 
-      await Promise.all([
-        this.#state.update((state) => {
-          delete state?.keyringAccounts?.[accountId];
-          return state;
-        }),
-        this.#state.update((state) => {
-          delete state?.transactions?.[accountId];
-          return state;
-        }),
-      ]);
+      await this.#state.update((state) => {
+        delete state?.keyringAccounts?.[accountId];
+        delete state?.assets?.[accountId];
+        delete state?.transactions?.[accountId];
+        return state;
+      });
+
       await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
@@ -438,33 +441,60 @@ export class SolanaKeyring implements Keyring {
 
   async handleSendAndConfirmTransaction(
     request: KeyringRequest,
-  ): Promise<{ signature: string }> {
+    showConfirmation = true,
+  ): Promise<{ signature: string } | null> {
     const { scope, account: accountId } = request;
-    const { params } = request.request;
+    const { params, method } = request.request;
 
     validateRequest(params, SendAndConfirmTransactionParamsStruct);
 
-    const { base64EncodedTransactionMessage } = params;
+    const { base64EncodedTransactionMessage: base64EncodedTransaction } =
+      params;
 
     const account = await this.getAccountOrThrow(accountId);
-    const privateKeyBytes = await deriveSolanaPrivateKey(account.index);
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
 
-    const decodedTransactionMessage =
-      await this.#transactionHelper.base64DecodeTransaction(
-        base64EncodedTransactionMessage,
+    try {
+      const decodedTransactionMessage =
+        await this.#transactionHelper.base64DecodeTransaction(
+          base64EncodedTransaction,
+          scope as Network,
+        );
+
+      if (showConfirmation) {
+        const confirmationContext: ConfirmationContext = {
+          ...DEFAULT_CONFIRMATION_CONTEXT,
+          scope: scope as Network,
+          method: method as SolMethod,
+          transaction: base64EncodedTransaction,
+          account,
+          advanced: {
+            shown: false,
+            instructions: parseInstructions(
+              decodedTransactionMessage.instructions,
+            ),
+          },
+        };
+
+        await renderConfirmation(confirmationContext);
+        return null;
+      }
+
+      const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+      const signer = await createKeyPairSignerFromPrivateKeyBytes(
+        privateKeyBytes,
+      );
+
+      const signature = await this.#transactionHelper.sendTransaction(
+        decodedTransactionMessage,
+        [signer],
         scope as Network,
       );
 
-    const signature = await this.#transactionHelper.sendTransaction(
-      decodedTransactionMessage,
-      [signer],
-      scope as Network,
-    );
-
-    return { signature };
+      return { signature };
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error sending and confirming transaction');
+      throw error;
+    }
   }
 
   /**

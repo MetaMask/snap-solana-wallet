@@ -25,6 +25,7 @@ import {
 } from '../../services/mocks/mockSolanaRpcResponses';
 import { SOL_IMAGE_SVG } from '../../test/mocks/solana-image-svg';
 import {
+  MOCK_SEED_PHRASE,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../test/mocks/solana-keyring-accounts';
@@ -129,25 +130,8 @@ describe('Send', () => {
       });
     });
 
-    const { request, mockJsonRpc } = await installSnap();
-
-    const mockRootNode = {
-      depth: 2,
-      masterFingerprint: 3974444335,
-      parentFingerprint: 2046425034,
-      index: 2147484149,
-      curve: 'ed25519' as const,
-      privateKey:
-        '0x7acf6060833428c2196ce6e2c5ba5455394602814b9ec6b9bac453b357be7b24',
-      publicKey:
-        '0x00389ed03449fbc42a3ec134609b664a50e7a78bad800bad1629113590bfc9af9b',
-      chainCode:
-        '0x99d7cef35ae591a92eab31e0007f0199e3bea62d211a219526bf2ae06799886d',
-    };
-
-    mockJsonRpc({
-      method: 'snap_getBip32Entropy',
-      result: mockRootNode,
+    const { request, mockJsonRpc } = await installSnap({
+      options: { secretRecoveryPhrase: MOCK_SEED_PHRASE },
     });
 
     mockJsonRpc({

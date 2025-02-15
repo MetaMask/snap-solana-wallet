@@ -5,7 +5,7 @@ import type { SolanaTokenMetadata } from '../../core/clients/token-metadata-clie
 import type { Network } from '../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../core/services/keyring/Keyring';
 import type { FormFieldError } from '../../core/types/error';
-import type { Preferences } from '../../core/types/snap';
+import type { FetchStatus, Preferences } from '../../core/types/snap';
 import type { LocalizedMessage } from '../../core/utils/i18n';
 
 export type SendFlowStage =
@@ -47,8 +47,8 @@ export type SendContext = {
   tokenCaipId: CaipAssetType;
   toAddress: string;
   accounts: SolanaKeyringAccount[];
-  feeEstimatedInSol: string;
-  feePaidInSol: string;
+  feeEstimatedInSol: string | null;
+  feePaidInSol: string | null;
   validation: Partial<Record<SendFormNames, FormFieldError>>;
   currencyType: SendCurrencyType;
   balances: Record<string, Record<CaipAssetType, Balance>>;
@@ -67,11 +67,3 @@ export type SendContext = {
     link?: string;
   } | null;
 };
-
-/**
- * 'initial' - The initial state, where no data has been fetched yet.
- * 'fetching' - The state where data is being fetched.
- * 'fetched' - The state where data has been fetched successfully.
- * 'error' - The state where an error occurred while fetching data.
- */
-export type FetchStatus = 'initial' | 'fetching' | 'fetched' | 'error';

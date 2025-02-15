@@ -39,7 +39,7 @@ export class TokenMetadataService {
             return;
           }
 
-          const imageSvg = await this.#generateImageComponent(
+          const imageSvg = await this.generateImageComponent(
             tokenMetadata[caipAssetType].iconUrl,
           );
 
@@ -64,12 +64,12 @@ export class TokenMetadataService {
     return tokenMetadata;
   }
 
-  async #generateImageComponent(imageUrl?: string) {
+  async generateImageComponent(imageUrl?: string, width = 48, height = 48) {
     if (!imageUrl) {
       return null;
     }
 
-    return getImageComponent(imageUrl, { width: 48, height: 48 })
+    return getImageComponent(imageUrl, { width, height })
       .then((image) => image.value)
       .catch(() => null);
   }

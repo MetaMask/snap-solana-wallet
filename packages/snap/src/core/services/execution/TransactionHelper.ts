@@ -112,25 +112,48 @@ export class TransactionHelper {
    * @see https://solana.com/developers/cookbook/transactions/calculate-cost
    * @returns The fee for the transaction in lamports.
    */
-  async getFeeForMessageInLamports(
+  async getFeeFromTransactionInLamports(
     budgetedTransactionMessage: CompilableTransactionMessage,
     network: Network,
-  ): Promise<string> {
+  ): Promise<string | null> {
     const base64EncodedMessage = await this.base64EncodeTransactionMessage(
       budgetedTransactionMessage,
     );
 
-    const rpc = this.#connection.getRpc(network);
+    return await this.getFeeForMessageInLamports(base64EncodedMessage, network);
+  }
 
-    const transactionCost = await rpc
-      .getFeeForMessage(base64EncodedMessage as TransactionMessageBytesBase64)
-      .send();
+  /**
+   * Gets the fee for a transaction message in lamports.
+   *
+   * @param base64EncodedMessage - The base64 encoded transaction message to get the fee for.
+   * @param network - The network on which the transaction is being sent.
+   * @see https://solana.com/developers/cookbook/transactions/calculate-cost
+   * @returns The fee for the transaction in lamports.
+   */
+  async getFeeForMessageInLamports(
+    base64EncodedMessage: string,
+    network: Network,
+  ): Promise<string | null> {
+    try {
+      const rpc = this.#connection.getRpc(network);
 
-    this.#logger.log(
-      `Transaction is estimated to cost ${transactionCost.value} lamports`,
-    );
+      const transactionCost = await rpc
+        .getFeeForMessage(
+          base64EncodedMessage as TransactionMessageBytesBase64,
+          { commitment: 'confirmed' },
+        )
+        .send();
 
-    return transactionCost.value as any;
+      this.#logger.log(
+        `Transaction is estimated to cost ${transactionCost.value} lamports`,
+      );
+
+      return transactionCost.value as any;
+    } catch (error: any) {
+      this.#logger.error(error);
+      return null;
+    }
   }
 
   /**
@@ -192,16 +215,16 @@ export class TransactionHelper {
   /**
    * Base64 decode a transaction message: converts a base64 encoded string back to a transaction message.
    *
-   * @param base64EncodedTransactionMessage - The base64 encoded transaction message to decode.
+   * @param base64EncodedTransaction - The base64 encoded transaction message to decode.
    * @param scope - The network on which the transaction is being sent.
    * @returns The decoded transaction message.
    */
   async base64DecodeTransaction(
-    base64EncodedTransactionMessage: string,
+    base64EncodedTransaction: string,
     scope: Network,
   ): Promise<CompilableTransactionMessage> {
     return pipe(
-      base64EncodedTransactionMessage,
+      base64EncodedTransaction,
       getBase64Encoder().encode,
       getTransactionDecoder().decode,
       (tx) => getCompiledTransactionMessageDecoder().decode(tx.messageBytes),
@@ -210,6 +233,24 @@ export class TransactionHelper {
           decodedMessageBytes,
           this.#connection.getRpc(scope),
         ),
+    );
+  }
+
+  /**
+   * Base64 encode a transaction message from a base64 encoded transaction.
+   *
+   * @param base64EncodedTransaction - The base64 encoded transaction to encode.
+   * @returns The base64 encoded transaction message.
+   */
+  async base64EncodeTransactionMessageFromBase64EncodedTransaction(
+    base64EncodedTransaction: string,
+  ): Promise<string> {
+    return pipe(
+      base64EncodedTransaction,
+      getBase64Encoder().encode,
+      getTransactionDecoder().decode,
+      (tx) => tx.messageBytes,
+      getBase64Decoder().decode,
     );
   }
 

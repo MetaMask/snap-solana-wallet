@@ -17,8 +17,8 @@ export const SendPending = ({ context }: SendPendingProps) => {
       <Box>
         <Box>{null}</Box>
         <ActionHeader
-          title={translate('send-pending.title')}
-          subtitle={translate('send-pending.subtitle')}
+          title={translate('send.send-pending.title')}
+          subtitle={translate('send.send-pending.subtitle')}
           isLoading
         />
         <TransactionDetails context={context} />

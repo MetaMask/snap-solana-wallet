@@ -155,4 +155,28 @@ describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
       expect(result).toStrictEqual(transactionMessage);
     });
   });
+
+  describe('getFeeForMessageInLamports', () => {
+    it('returns the fee for a message in lamports', async () => {
+      mockRpcResponse.send.mockResolvedValueOnce({ value: 100000 });
+
+      const result = await transactionHelper.getFeeForMessageInLamports(
+        'mockMessage',
+        Network.Mainnet,
+      );
+
+      expect(result).toBe(100000);
+    });
+
+    it('returns null when the fee cannot be fetched', async () => {
+      mockRpcResponse.send.mockRejectedValueOnce(new Error('Network error'));
+
+      const result = await transactionHelper.getFeeForMessageInLamports(
+        'mockMessage',
+        Network.Mainnet,
+      );
+
+      expect(result).toBeNull();
+    });
+  });
 });

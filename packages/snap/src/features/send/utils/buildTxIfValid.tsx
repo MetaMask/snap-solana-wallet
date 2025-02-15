@@ -55,14 +55,17 @@ const buildTransactionMessageAndStoreInContext = async (
       throw new Error('Unable to generate transaction message');
     }
 
-    const feeInLamports = await transactionHelper.getFeeForMessageInLamports(
-      transactionMessage,
-      scope,
-    );
+    const feeInLamports =
+      await transactionHelper.getFeeFromTransactionInLamports(
+        transactionMessage,
+        scope,
+      );
 
     updatedContext.transactionMessage =
       await transactionHelper.base64EncodeTransaction(transactionMessage);
-    updatedContext.feeEstimatedInSol = lamportsToSol(feeInLamports).toString();
+    updatedContext.feeEstimatedInSol = feeInLamports
+      ? lamportsToSol(feeInLamports).toString()
+      : null;
   } catch (error) {
     logger.error('Error generating transaction message', error);
 
