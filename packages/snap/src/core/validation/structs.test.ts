@@ -2,9 +2,24 @@
 import { assert, is } from 'superstruct';
 
 import { KnownCaip19Id } from '../constants/solana';
-import { Caip19Struct, UrlStruct } from './structs';
+import { Caip19Struct, UrlStruct, Uuid } from './structs';
 
 describe('structs', () => {
+  describe('Uuid', () => {
+    it('validates valid UUIDs', () => {
+      const validUuids = [
+        'c747acb9-1b2b-4352-b9da-3d658fcc3cc7',
+        '2507a426-ac26-43c4-a82a-250f5d999398',
+        '52d181f4-d050-4971-b448-17c15107fa3b',
+      ];
+
+      validUuids.forEach((uuid) => {
+        expect(() => assert(uuid, Uuid)).not.toThrow();
+        expect(is(uuid, Uuid)).toBe(true);
+      });
+    });
+  });
+
   describe('UrlStruct', () => {
     it('validates valid URLs', () => {
       const validUrls = [

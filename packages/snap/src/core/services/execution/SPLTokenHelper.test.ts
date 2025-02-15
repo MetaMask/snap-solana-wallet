@@ -7,14 +7,9 @@ import type {
   Rpc,
   SolanaRpcApi,
 } from '@solana/web3.js';
-import {
-  address,
-  createKeyPairSignerFromPrivateKeyBytes,
-  type Address,
-  type MaybeAccount,
-} from '@solana/web3.js';
+import { address, type Address, type MaybeAccount } from '@solana/web3.js';
 
-import { Network } from '../../constants/solana';
+import { KnownCaip19Id, Network, TokenMetadata } from '../../constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNTS,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
@@ -27,7 +22,7 @@ import type { TransactionHelper } from './TransactionHelper';
 
 jest.mock('@solana/web3.js', () => ({
   ...jest.requireActual('@solana/web3.js'),
-  createKeyPairSignerFromPrivateKeyBytes: jest.fn(),
+  fetchJsonParsedAccount: jest.fn(),
 }));
 
 jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
@@ -61,38 +56,44 @@ describe('SplTokenHelper', () => {
     );
   });
 
-  describe('transferSplToken', () => {
+  // write unit tests for buildTransactionMessage, with actual content
+  describe('buildTransactionMessage', () => {
     const mockFrom = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
-    const mockTo = MOCK_SOLANA_KEYRING_ACCOUNTS[1];
-    const mockMint = 'mockMintAddress' as Address;
+    const mockTo = address(MOCK_SOLANA_KEYRING_ACCOUNTS[1].address);
+    const mockMint = address(TokenMetadata[KnownCaip19Id.UsdcLocalnet].address);
     const mockNetwork = Network.Localnet;
-    const mockSigner = {
-      address: 'mockSignerAddress' as Address,
-      signTransaction: jest.fn(),
-    };
+    const mockAmount = '1000';
 
     beforeEach(() => {
-      (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue(
-        mockSigner,
-      );
+      jest
+        .spyOn(mockTransactionHelper, 'getLatestBlockhash')
+        .mockResolvedValue({
+          blockhash: 'mockBlockhash' as Blockhash,
+          lastValidBlockHeight: BigInt(1000),
+        });
+
+      jest
+        .spyOn(mockTransactionHelper, 'getComputeUnitEstimate')
+        .mockResolvedValue(200000);
     });
 
-    it('successfully transfers SPL tokens', async () => {
-      const mockAssociatedTokenAccountSender = {
+    it('successfully builds a transaction message for SPL token transfer', async () => {
+      const mockFromTokenAccount = {
         exists: true,
-        address: 'mockAssociatedTokenAddressSender' as Address,
+        address: 'fromTokenAccount' as Address,
       } as unknown as MaybeAccount<any> & Exists;
 
-      const mockAssociatedTokenAccountReceiver = {
+      const mockToTokenAccount = {
         exists: true,
-        address: 'mockAssociatedTokenAddress' as Address,
+        address: 'toTokenAccount' as Address,
       } as unknown as MaybeAccount<any> & Exists;
 
       jest
         .spyOn(splTokenHelper, 'getOrCreateAssociatedTokenAccount')
-        .mockResolvedValueOnce(mockAssociatedTokenAccountSender)
-        .mockResolvedValueOnce(mockAssociatedTokenAccountReceiver);
+        .mockResolvedValueOnce(mockFromTokenAccount)
+        .mockResolvedValueOnce(mockToTokenAccount);
 
+      // Mock token accounts
       const mockTokenAccount = {
         exists: true,
         data: { decimals: 6 },
@@ -102,52 +103,72 @@ describe('SplTokenHelper', () => {
         .spyOn(splTokenHelper, 'getTokenAccount')
         .mockResolvedValue(mockTokenAccount);
 
-      const mockBlockhash = {
-        blockhash: 'blockhash123' as Blockhash,
-        lastValidBlockHeight: BigInt(1),
-      };
-
-      jest
-        .spyOn(mockTransactionHelper, 'getLatestBlockhash')
-        .mockResolvedValue(mockBlockhash);
-
-      jest
-        .spyOn(mockTransactionHelper, 'sendTransaction')
-        .mockResolvedValue('mockSignature');
-
-      jest
-        .spyOn(mockTransactionHelper, 'getComputeUnitEstimate')
-        .mockResolvedValue(5000);
-
-      const result = await splTokenHelper.transferSplToken(
+      const transactionMessage = await splTokenHelper.buildTransactionMessage(
         mockFrom,
-        address(mockTo.address),
+        mockTo,
         mockMint,
-        '1',
+        mockAmount,
         mockNetwork,
       );
 
-      expect(result).toBe('mockSignature');
-      expect(mockTransactionHelper.sendTransaction).toHaveBeenCalled();
-    });
-
-    it('throws error if transfer fails', async () => {
-      const error = new Error('Transfer failed');
-      jest
-        .spyOn(splTokenHelper, 'getOrCreateAssociatedTokenAccount')
-        .mockRejectedValue(error);
-
-      await expect(
-        splTokenHelper.transferSplToken(
-          mockFrom,
-          address(mockTo.address),
-          mockMint,
-          '1',
-          mockNetwork,
-        ),
-      ).rejects.toThrow('Transfer failed');
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      // Verify the transaction message
+      expect(transactionMessage).toStrictEqual({
+        version: 0,
+        feePayer: {
+          address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+        },
+        lifetimeConstraint: {
+          blockhash: 'mockBlockhash',
+          lastValidBlockHeight: 1000n,
+        },
+        instructions: [
+          {
+            data: Uint8Array.from([2, 64, 13, 3, 0]),
+            programAddress: 'ComputeBudget111111111111111111111111111111',
+          },
+          {
+            accounts: [
+              {
+                address: 'fromTokenAccount',
+                role: 1,
+              },
+              {
+                address: 'toTokenAccount',
+                role: 1,
+              },
+              {
+                address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+                role: 2,
+                signer: {
+                  address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+                  keyPair: {
+                    privateKey: expect.objectContaining({
+                      algorithm: {
+                        name: 'Ed25519',
+                      },
+                      extractable: false,
+                      type: 'private',
+                      usages: ['sign'],
+                    }),
+                    publicKey: expect.objectContaining({
+                      algorithm: {
+                        name: 'Ed25519',
+                      },
+                      extractable: true,
+                      type: 'public',
+                      usages: ['verify'],
+                    }),
+                  },
+                  signMessages: expect.any(Function),
+                  signTransactions: expect.any(Function),
+                },
+              },
+            ],
+            data: Uint8Array.from([3, 0, 202, 154, 59, 0, 0, 0, 0]),
+            programAddress: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+          },
+        ],
+      });
     });
   });
 

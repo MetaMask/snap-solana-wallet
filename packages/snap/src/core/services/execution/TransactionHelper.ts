@@ -7,10 +7,11 @@ import {
   addSignersToTransactionMessage,
   compileTransaction,
   compileTransactionMessage,
+  decompileTransactionMessageFetchingLookupTables,
   getBase64Decoder,
   getBase64Encoder,
-  getCompiledTransactionMessageEncoder,
   getCompiledTransactionMessageDecoder,
+  getCompiledTransactionMessageEncoder,
   getComputeUnitEstimateForTransactionMessageFactory,
   getSignatureFromTransaction,
   getTransactionDecoder,
@@ -19,7 +20,6 @@ import {
   sendTransactionWithoutConfirmingFactory,
   signTransactionMessageWithSigners,
   type Blockhash,
-  decompileTransactionMessageFetchingLookupTables,
 } from '@solana/web3.js';
 
 import type { Network } from '../../constants/solana';
@@ -154,13 +154,10 @@ export class TransactionHelper {
   ): Promise<string> {
     const base64EncodedMessage = pipe(
       transactionMessage,
-
       // Compile it.
       compileTransactionMessage,
-
       // Convert the compiled message into a byte array.
       getCompiledTransactionMessageEncoder().encode,
-
       // Encode that byte array as a base64 string.
       getBase64Decoder().decode,
     );

@@ -51,50 +51,6 @@ export class SplTokenHelper implements ITransactionMessageBuilder {
     this.#logger = logger;
   }
 
-  /**
-   * Execute a transaction to transfer an SPL token from one account to another.
-   *
-   * @param from - The account from which the token will be transferred.
-   * @param to - The address to which the token will be transferred.
-   * @param mint - The mint address of the asset to transfer.
-   * @param amountInToken - The amount of the asset to transfer. For instance, 1 to transfer 1 USDC.
-   * @param network - The network on which to transfer the asset.
-   * @returns The signature of the transaction.
-   */
-  async transferSplToken(
-    from: SolanaKeyringAccount,
-    to: Address,
-    mint: Address,
-    amountInToken: string | number | bigint | BigNumber,
-    network: Network,
-  ): Promise<string> {
-    try {
-      this.#logger.log('Transfer SPL token');
-
-      const privateKeyBytes = await deriveSolanaPrivateKey(from.index);
-      const signer = await createKeyPairSignerFromPrivateKeyBytes(
-        privateKeyBytes,
-      );
-
-      const transactionMessage = await this.buildTransactionMessage(
-        from,
-        to,
-        mint,
-        amountInToken,
-        network,
-      );
-
-      return this.#transactionHelper.sendTransaction(
-        transactionMessage,
-        [signer],
-        network,
-      );
-    } catch (error) {
-      this.#logger.error({ error }, 'Error transferring SPL token');
-      throw error;
-    }
-  }
-
   async buildTransactionMessage(
     from: SolanaKeyringAccount,
     to: Address,

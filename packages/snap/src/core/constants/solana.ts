@@ -23,6 +23,8 @@ export enum KnownCaip19Id {
   SolDevnet = `${Network.Devnet}/slip44:501`,
   SolTestnet = `${Network.Testnet}/slip44:501`,
   SolLocalnet = `${Network.Localnet}/slip44:501`,
+  UsdcMainnet = `${Network.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+  UsdcDevnet = `${Network.Devnet}/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
   UsdcLocalnet = `${Network.Localnet}/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
 }
 
@@ -68,6 +70,24 @@ export const TokenMetadata = {
     caip19Id: KnownCaip19Id.SolLocalnet,
     address: 'So11111111111111111111111111111111111111112',
     decimals: 9,
+  },
+  [KnownCaip19Id.UsdcMainnet]: {
+    symbol: 'USDC',
+    caip19Id: KnownCaip19Id.UsdcMainnet,
+    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    decimals: 6,
+  },
+  [KnownCaip19Id.UsdcDevnet]: {
+    symbol: 'USDC',
+    caip19Id: KnownCaip19Id.UsdcDevnet,
+    address: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+    decimals: 6,
+  },
+  [KnownCaip19Id.UsdcLocalnet]: {
+    symbol: 'USDC',
+    caip19Id: KnownCaip19Id.UsdcLocalnet,
+    address: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+    decimals: 6,
   },
 } as const;
 

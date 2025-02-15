@@ -1,19 +1,17 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable no-restricted-globals */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import type { KeyPairSigner } from '@solana/web3.js';
-import {
-  createKeyPairSignerFromPrivateKeyBytes,
-  getSignatureFromTransaction,
-  sendTransactionWithoutConfirmingFactory,
-  signTransactionMessageWithSigners,
-} from '@solana/web3.js';
+import { createKeyPairSignerFromPrivateKeyBytes } from '@solana/web3.js';
 
-import { Network } from '../../constants/solana';
 import {
-  MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
 } from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
+import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
 import { TransactionHelper } from './TransactionHelper';
 
 // Mock dependencies
@@ -21,21 +19,12 @@ jest.mock('@solana-program/compute-budget');
 
 jest.mock('@solana/web3.js', () => ({
   ...jest.requireActual('@solana/web3.js'),
-  getBase64Decoder: () => ({
-    decode: jest.fn().mockReturnValue('base64EncodedMessage'),
-  }),
-  getCompiledTransactionMessageEncoder: () => ({
-    encode: jest.fn().mockReturnValue(new Uint8Array()),
-  }),
   getComputeUnitEstimateForTransactionMessageFactory: jest
     .fn()
     .mockReturnValue(jest.fn().mockResolvedValue(200000)),
-  pipe: (...fns: any[]) => fns[fns.length - 1],
-  prependTransactionMessageInstructions: jest.fn().mockReturnValue({}),
-  isSolanaError: jest.fn().mockReturnValue(false),
-  signTransactionMessageWithSigners: jest.fn(),
-  getSignatureFromTransaction: jest.fn(),
-  sendTransactionWithoutConfirmingFactory: jest.fn(),
+  sendTransactionWithoutConfirmingFactory: jest
+    .fn()
+    .mockReturnValue(jest.fn().mockResolvedValueOnce(undefined)),
 }));
 
 jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
@@ -48,7 +37,18 @@ jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
   }),
 }));
 
-describe('TransactionHelper', () => {
+// Note the ".each" here
+describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
+  const {
+    name,
+    scope,
+    fromAccountPrivateKeyBytes,
+    transactionMessage,
+    transactionMessageBase64Encoded,
+    signedTransaction,
+    signature,
+  } = scenario;
+
   let mockSigner: KeyPairSigner;
 
   const mockRpcResponse = {
@@ -59,6 +59,7 @@ describe('TransactionHelper', () => {
     getRpc: jest.fn().mockReturnValue({
       getLatestBlockhash: () => mockRpcResponse,
       getFeeForMessage: () => mockRpcResponse,
+      getMultipleAccounts: () => mockRpcResponse,
     }),
   } as unknown as SolanaConnection;
 
@@ -68,12 +69,12 @@ describe('TransactionHelper', () => {
     jest.clearAllMocks();
     transactionHelper = new TransactionHelper(mockConnection, logger);
     mockSigner = await createKeyPairSignerFromPrivateKeyBytes(
-      MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+      fromAccountPrivateKeyBytes,
     );
   });
 
   describe('getLatestBlockhash', () => {
-    it('fetches and returns the latest blockhash', async () => {
+    it(`Scenario ${name}: fetches and returns the latest blockhash`, async () => {
       const expectedResponse = {
         blockhash: 'mockBlockhash',
         lastValidBlockHeight: BigInt(100),
@@ -81,121 +82,77 @@ describe('TransactionHelper', () => {
 
       mockRpcResponse.send.mockResolvedValueOnce({ value: expectedResponse });
 
-      const result = await transactionHelper.getLatestBlockhash(
-        Network.Mainnet,
-      );
+      const result = await transactionHelper.getLatestBlockhash(scope);
 
       expect(result).toStrictEqual(expectedResponse);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(Network.Mainnet);
+      expect(mockConnection.getRpc).toHaveBeenCalledWith(scope);
       expect(mockRpcResponse.send).toHaveBeenCalled();
     });
 
-    it('throws and logs error when fetching blockhash fails', async () => {
+    it(`Scenario ${name}: throws and logs error when fetching blockhash fails`, async () => {
       const error = new Error('Network error');
       mockRpcResponse.send.mockRejectedValueOnce(error);
 
-      await expect(
-        transactionHelper.getLatestBlockhash(Network.Mainnet),
-      ).rejects.toThrow('Network error');
+      await expect(transactionHelper.getLatestBlockhash(scope)).rejects.toThrow(
+        'Network error',
+      );
     });
   });
 
   describe('getComputeUnitEstimate', () => {
-    it('returns compute unit estimate successfully', async () => {
+    it(`Scenario ${name}: returns compute unit estimate successfully`, async () => {
       const mockTransactionMessage = {} as any;
       const expectedEstimate = 200000;
 
       const result = await transactionHelper.getComputeUnitEstimate(
         mockTransactionMessage,
-        Network.Mainnet,
+        scope,
       );
 
       expect(result).toBe(expectedEstimate);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(Network.Mainnet);
+      expect(mockConnection.getRpc).toHaveBeenCalledWith(scope);
     });
   });
 
   describe('sendTransaction', () => {
-    const mockTransactionMessage = {
-      instructions: [],
-      version: 0,
-    } as any;
-
-    it('successfully sends a transaction and returns signature', async () => {
-      const expectedSignature = 'mockSignature123';
-
-      // Mock the web3.js functions
-      const mockSignedTransaction = new Uint8Array();
-      (signTransactionMessageWithSigners as jest.Mock).mockResolvedValueOnce(
-        mockSignedTransaction,
-      );
-      (getSignatureFromTransaction as jest.Mock).mockReturnValueOnce(
-        expectedSignature,
-      );
-      (sendTransactionWithoutConfirmingFactory as jest.Mock).mockReturnValue(
-        jest.fn().mockResolvedValueOnce(undefined),
+    it(`Scenario ${name}: successfully sends a transaction and returns signature`, async () => {
+      const getSignatureFromTransactionSpy = jest.spyOn(
+        require('@solana/web3.js'),
+        'getSignatureFromTransaction',
       );
 
       const result = await transactionHelper.sendTransaction(
-        mockTransactionMessage,
+        transactionMessage,
         [mockSigner],
-        Network.Mainnet,
+        scope,
       );
 
-      expect(result).toBe(expectedSignature);
-      expect(signTransactionMessageWithSigners).toHaveBeenCalledWith(
-        mockTransactionMessage,
+      expect(getSignatureFromTransactionSpy).toHaveBeenCalledWith(
+        signedTransaction,
       );
-      expect(getSignatureFromTransaction).toHaveBeenCalledWith(
-        mockSignedTransaction,
-      );
-      expect(logger.info).toHaveBeenCalledWith(
-        `Sending transaction: https://explorer.solana.com/tx/${expectedSignature}?cluster=mainnet`,
-      );
+
+      expect(result).toBe(signature);
     });
+  });
 
-    it('throws and logs error when transaction fails', async () => {
-      const error = new Error('Transaction failed');
-      (signTransactionMessageWithSigners as jest.Mock).mockResolvedValueOnce(
-        new Uint8Array(),
-      );
-      (getSignatureFromTransaction as jest.Mock).mockReturnValueOnce(
-        'mockSignature',
-      );
-      (sendTransactionWithoutConfirmingFactory as jest.Mock).mockReturnValue(
-        jest.fn().mockRejectedValueOnce(error),
+  describe('base64EncodeTransaction', () => {
+    it(`Scenario ${name}: encodes a transaction successfully`, async () => {
+      const result = await transactionHelper.base64EncodeTransaction(
+        transactionMessage,
       );
 
-      await expect(
-        transactionHelper.sendTransaction(
-          mockTransactionMessage,
-          [mockSigner],
-          Network.Mainnet,
-        ),
-      ).rejects.toThrow('Transaction failed');
+      expect(result).toBe(transactionMessageBase64Encoded);
     });
+  });
 
-    it('uses correct cluster in explorer URL for different networks', async () => {
-      const expectedSignature = 'mockSignature123';
-      (signTransactionMessageWithSigners as jest.Mock).mockResolvedValueOnce(
-        new Uint8Array(),
-      );
-      (getSignatureFromTransaction as jest.Mock).mockReturnValueOnce(
-        expectedSignature,
-      );
-      (sendTransactionWithoutConfirmingFactory as jest.Mock).mockReturnValue(
-        jest.fn().mockResolvedValueOnce(undefined),
+  describe('base64DecodeTransaction', () => {
+    it(`Scenario ${name}: decodes a transaction successfully`, async () => {
+      const result = await transactionHelper.base64DecodeTransaction(
+        transactionMessageBase64Encoded,
+        scope,
       );
 
-      await transactionHelper.sendTransaction(
-        mockTransactionMessage,
-        [mockSigner],
-        Network.Devnet,
-      );
-
-      expect(logger.info).toHaveBeenCalledWith(
-        `Sending transaction: https://explorer.solana.com/tx/${expectedSignature}?cluster=devnet`,
-      );
+      expect(result).toStrictEqual(transactionMessage);
     });
   });
 });

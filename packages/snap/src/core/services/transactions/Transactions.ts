@@ -36,7 +36,6 @@ export class TransactionsService {
   }
 
   async fetchLatestAddressTransactions(address: Address, limit: number) {
-    console.log('Fetching latest transactions for address', address);
     const scopes = [Network.Mainnet, Network.Devnet];
 
     const transactions = (
@@ -62,7 +61,6 @@ export class TransactionsService {
     data: MappedTransaction[];
     next: Signature | null;
   }> {
-    console.log('Fetching address transactions for', address);
     /**
      * First get signatures
      */

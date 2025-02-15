@@ -1,9 +1,5 @@
-import { getTransferSolInstruction } from '@solana-program/system';
 import type { Blockhash } from '@solana/web3.js';
-import {
-  address,
-  createKeyPairSignerFromPrivateKeyBytes,
-} from '@solana/web3.js';
+import { address } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 
 import { Network } from '../../constants/solana';
@@ -11,15 +7,6 @@ import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-ac
 import logger from '../../utils/logger';
 import type { TransactionHelper } from './TransactionHelper';
 import { TransferSolHelper } from './TransferSolHelper';
-
-// Mock dependencies
-jest.mock('@solana/web3.js', () => ({
-  ...jest.requireActual('@solana/web3.js'),
-  lamports: jest.fn(),
-  createKeyPairSignerFromPrivateKeyBytes: jest.fn(),
-}));
-
-jest.mock('@solana-program/system');
 
 describe('TransferSolHelper', () => {
   const mockTransactionHelper = {
@@ -48,13 +35,6 @@ describe('TransferSolHelper', () => {
         lastValidBlockHeight: BigInt(1),
       };
 
-      // Setup mocks
-      (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
-        address: mockFrom,
-      });
-
-      (getTransferSolInstruction as jest.Mock).mockReturnValue({});
-
       jest
         .spyOn(mockTransactionHelper, 'getLatestBlockhash')
         .mockResolvedValue(mockBlockhash);
@@ -72,12 +52,41 @@ describe('TransferSolHelper', () => {
           mockNetwork,
         );
 
+      console.log(transactionMessage);
       // Verify
-      expect(transactionMessage).toBeDefined();
-      expect(getTransferSolInstruction).toHaveBeenCalled();
-      expect(mockTransactionHelper.getLatestBlockhash).toHaveBeenCalledWith(
-        mockNetwork,
-      );
+      expect(transactionMessage).toStrictEqual({
+        version: 0,
+        feePayer: { address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP' },
+        lifetimeConstraint: {
+          blockhash: 'blockhash123',
+          lastValidBlockHeight: 1n,
+        },
+        instructions: [
+          {
+            programAddress: 'ComputeBudget111111111111111111111111111111',
+            data: Uint8Array.from([2, 136, 19, 0, 0]),
+          },
+          {
+            accounts: [
+              {
+                address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+                role: 3,
+                signer: {
+                  address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+                  signMessages: expect.any(Function),
+                  signTransactions: expect.any(Function),
+                },
+              },
+              {
+                address: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
+                role: 1,
+              },
+            ],
+            programAddress: '11111111111111111111111111111111',
+            data: Uint8Array.from([2, 0, 0, 0, 0, 202, 154, 59, 0, 0, 0, 0]),
+          },
+        ],
+      });
     });
 
     it('throws error when building message fails', async () => {
