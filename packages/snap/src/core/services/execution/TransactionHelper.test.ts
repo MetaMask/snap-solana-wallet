@@ -5,6 +5,7 @@
 import type { KeyPairSigner } from '@solana/web3.js';
 import { createKeyPairSignerFromPrivateKeyBytes } from '@solana/web3.js';
 
+import { Network } from '../../constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNTS,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
@@ -33,7 +34,11 @@ jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
     if (!account) {
       throw new Error('[deriveSolanaAddress] Not enough mocked indices');
     }
-    return MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES[account.id];
+    return {
+      privateKeyBytes:
+        MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES[account.id],
+      publicKeyBytes: null, // We don't need public key bytes for the tests
+    };
   }),
 }));
 
