@@ -176,9 +176,7 @@ export const SendForm = ({ context }: SendFormProps) => {
                 <Button
                   size="sm"
                   name={SendFormNames.MaxAmountButton}
-                  disabled={
-                    selectedTokenPriceUnavailable || balanceUndefinedOrZero
-                  }
+                  disabled={balanceUndefinedOrZero}
                 >
                   {translate('send.maxButton')}
                 </Button>
