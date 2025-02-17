@@ -10,8 +10,8 @@ import {
 import { isNullOrUndefined } from '@metamask/utils';
 
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
-import { formatCurrency } from '../../../../core/utils/formatCurrency';
-import { formatTokens } from '../../../../core/utils/formatTokens';
+import { formatCrypto } from '../../../../core/utils/formatCrypto';
+import { formatFiat } from '../../../../core/utils/formatFiat';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
@@ -42,6 +42,7 @@ export const SendForm = ({ context }: SendFormProps) => {
     error,
     preferences: { locale, currency },
   } = context;
+
   const translate = i18n(locale);
   const selectedToken = balances[fromAccountId]?.[tokenCaipId];
   const tokenBalance = selectedToken?.amount;
@@ -60,11 +61,11 @@ export const SendForm = ({ context }: SendFormProps) => {
 
   const currencyToBalance: Record<SendCurrencyType, string> = isBalanceDefined
     ? {
-        [SendCurrencyType.FIAT]: formatCurrency(
+        [SendCurrencyType.FIAT]: formatFiat(
           tokenToFiat(tokenBalance, selectedTokenPrice ?? 0),
           currency,
         ),
-        [SendCurrencyType.TOKEN]: formatTokens(
+        [SendCurrencyType.TOKEN]: formatCrypto(
           tokenBalance,
           tokenSymbol,
           locale,
@@ -95,6 +96,18 @@ export const SendForm = ({ context }: SendFormProps) => {
     !buildingTransaction &&
     isTransactionMessageSuccessfullyBuild;
 
+  const balancesToShow = Object.fromEntries(
+    Object.entries(balances).map(([accountId, perAccountBalances]) => [
+      accountId,
+      Object.fromEntries(
+        Object.entries(perAccountBalances).filter(
+          ([_, perAccountTokenBalance]) =>
+            perAccountTokenBalance.amount !== '0',
+        ),
+      ),
+    ]),
+  );
+
   return (
     <Container>
       <Box>
@@ -123,7 +136,7 @@ export const SendForm = ({ context }: SendFormProps) => {
             }
             accounts={accounts}
             selectedAccountId={fromAccountId}
-            balances={balances}
+            balances={balancesToShow}
             price={nativePrice ?? null}
             locale={locale}
             currency={currency}
@@ -149,7 +162,7 @@ export const SendForm = ({ context }: SendFormProps) => {
                   tokenCaipId={tokenCaipId}
                   tokenMetadata={tokenMetadata}
                   selectedAccountId={fromAccountId}
-                  balances={balances}
+                  balances={balancesToShow}
                   locale={locale}
                 />
                 <AmountInput

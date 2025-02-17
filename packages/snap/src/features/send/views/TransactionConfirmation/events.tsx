@@ -1,5 +1,7 @@
+import type { Balance, CaipAssetType } from '@metamask/keyring-api';
 import { SolMethod } from '@metamask/keyring-api';
 
+import { KnownCaip19Id } from '../../../../core/constants/solana';
 import {
   resolveInterface,
   updateInterface,
@@ -7,7 +9,7 @@ import {
 import logger from '../../../../core/utils/logger';
 import { type SnapExecutionContext } from '../../../../snapContext';
 import { Send } from '../../Send';
-import type { SendContext } from '../../types';
+import { type SendContext } from '../../types';
 import { TransactionConfirmationNames } from './TransactionConfirmation';
 
 /**
@@ -110,6 +112,31 @@ async function onConfirmButtonClick({
     logger.error({ error }, 'Error submitting request');
   }
 
+  /**
+   * If the transaction was using SPL tokens, we need to clear out the token if
+   * we happen to send the complete balance.
+   */
+  const isSplToken = ![
+    KnownCaip19Id.SolMainnet,
+    KnownCaip19Id.SolDevnet,
+    KnownCaip19Id.SolTestnet,
+    KnownCaip19Id.SolLocalnet,
+  ].includes(context.tokenCaipId as KnownCaip19Id);
+
+  const sourceAccountBalances = context.balances[
+    context.fromAccountId
+  ] as Record<CaipAssetType, Balance>;
+
+  const balanceBefore = sourceAccountBalances[context.tokenCaipId]?.amount;
+  const balanceSent = context.amount;
+
+  if (isSplToken && balanceBefore === balanceSent) {
+    delete sourceAccountBalances[context.tokenCaipId];
+  }
+
+  /**
+   * Finally, update context
+   */
   const updatedContext: SendContext = {
     ...context,
     stage: signature ? 'transaction-success' : 'transaction-failure',
