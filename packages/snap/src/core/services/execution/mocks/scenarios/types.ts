@@ -13,4 +13,10 @@ export type MockExecutionScenario = {
   transactionMessageBase64Encoded: string;
   signedTransaction: any;
   signature: string;
+  /* The mock response from the getMultipleAccounts RPC call */
+  getMultipleAccountsResponse?:
+    | {
+        result: object;
+      }
+    | undefined;
 };

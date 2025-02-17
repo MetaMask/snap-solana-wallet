@@ -52,6 +52,7 @@ describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
     transactionMessageBase64Encoded,
     signedTransaction,
     signature,
+    getMultipleAccountsResponse,
   } = scenario;
 
   let mockSigner: KeyPairSigner;
@@ -64,7 +65,9 @@ describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
     getRpc: jest.fn().mockReturnValue({
       getLatestBlockhash: () => mockRpcResponse,
       getFeeForMessage: () => mockRpcResponse,
-      getMultipleAccounts: () => mockRpcResponse,
+      getMultipleAccounts: jest.fn().mockReturnValue({
+        send: jest.fn().mockResolvedValue(getMultipleAccountsResponse?.result),
+      }),
     }),
   } as unknown as SolanaConnection;
 
