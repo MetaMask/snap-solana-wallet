@@ -24,6 +24,7 @@ const dappPermissions = isDev
       KeyringRpcMethod.ListAccountAssets,
       // RPC methods
       RpcRequestMethod.StartSendTransactionFlow,
+      RpcRequestMethod.GetFeeForTransaction,
     ])
   : new Set([]);
 
@@ -40,6 +41,7 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.ResolveAccountAddress,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
+  RpcRequestMethod.GetFeeForTransaction,
 ]);
 
 const metamask = 'metamask';

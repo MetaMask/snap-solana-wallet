@@ -275,3 +275,12 @@ export const Curenc = enums([
   'bits',
   'sats',
 ]);
+
+export const GetFeeForTransactionParamsStruct = object({
+  transaction: string(),
+  scope: enums(Object.values(Network)),
+});
+
+export const GetFeeForTransactionResponseStruct = object({
+  value: nullable(PositiveNumberStringStruct),
+});
