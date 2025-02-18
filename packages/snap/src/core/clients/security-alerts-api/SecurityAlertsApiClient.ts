@@ -47,6 +47,14 @@ export class SecurityAlertsApiClient {
     scope: Network;
     options: string[];
   }): Promise<SecurityAlertSimulationValidationResponse> {
+    // eslint-disable-next-line no-param-reassign
+    transactions = [
+      'vxBNpvao9QJmLKXUThbbjRnxm3ufu4Wku97kHd5a67FDjSqeHwcPrBKTjAHp4ECr61eWwoxvUEVTuuWX65P9bCNDJrTJpX64vjdtpHA8cogA4C92Ubj813wUUA8Ey4Bvcrdj5c1bSTCnwoE8HeFYiyioRLNZTpShx8zkyzXaxkpUvPVRN26363bGvJDNSJt8bihmwAPxfrH7kSV9BvAuhRWsiuUAN4GZzyAiptknHZ1xjzrKAHz68UNJpWnYkaUThye6r3iULZUcp7baBaGAtnUmAdDMGG1UpBusWLF',
+    ];
+
+    // eslint-disable-next-line no-param-reassign
+    accountAddress = '86xCnPeV69n6t3DnyGvkKobf9FdN2H9oiVDdaMpo2MMY';
+
     const base64AccountAddress = Buffer.from(
       bs58.decode(accountAddress),
     ).toString('base64');
@@ -70,8 +78,8 @@ export class SecurityAlertsApiClient {
       method: 'POST',
       body: JSON.stringify({
         method,
-        encoding: 'base64',
-        account_address: base64AccountAddress,
+        encoding: 'base58',
+        account_address: accountAddress,
         metadata: {
           url: 'https://metamask.io', // FIXME: Add the correct url
         },

@@ -10,9 +10,9 @@ import {
 } from '../../utils/interface';
 import logger from '../../utils/logger';
 
-export const refreshUiTokenPrices: OnCronjobHandler = async () => {
+export const refreshSendTokenPrices: OnCronjobHandler = async () => {
   try {
-    logger.info('[refreshUiTokenPrices] Cronjob triggered');
+    logger.info('[refreshSendTokenPrices] Cronjob triggered');
 
     const stateValue = await state.get();
     const sendFormInterfaceId =
@@ -71,11 +71,11 @@ export const refreshUiTokenPrices: OnCronjobHandler = async () => {
     } catch (error) {
       logger.info(
         { error },
-        '[refreshTokenPrices] Could not update the interface, but token prices were properly refreshed and saved in the state.',
+        '[refreshSendTokenPrices] Could not update the interface, but token prices were properly refreshed and saved in the state.',
       );
     }
-    logger.info('[refreshTokenPrices] Cronjob suceeded');
+    logger.info('[refreshSendTokenPrices] Cronjob suceeded');
   } catch (error) {
-    logger.info({ error }, '[refreshTokenPrices] Cronjob failed');
+    logger.info({ error }, '[refreshSendTokenPrices] Cronjob failed');
   }
 };

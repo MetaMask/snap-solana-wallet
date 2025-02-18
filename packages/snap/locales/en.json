@@ -118,6 +118,15 @@
     "confirmation.estimatedChanges.receive": {
       "message": "You receive"
     },
+    "confirmation.estimatedChanges.notAvailable": {
+      "message": "Not available"
+    },
+    "confirmation.estimatedChanges.noChanges": {
+      "message": "No changes"
+    },
+    "confirmation.estimatedChanges.tooltip": {
+      "message": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
+    },
     "confirmation.advanced.show": {
       "message": "Show advanced"
     },
@@ -147,6 +156,24 @@
     },
     "confirmation.feeError": {
       "message": "Unable to estimate fee"
+    },
+    "confirmation.simulationErrorTitle": {
+      "message": "This transaction was reverted during simulation."
+    },
+    "confirmation.simulationErrorSubtitle": {
+      "message": "Reason: {reason}"
+    },
+    "confirmation.validationErrorTitle": {
+      "message": "This is a deceptive request"
+    },
+    "confirmation.validationErrorSubtitle": {
+      "message": "If you approve this request, a third party known for scams will take all your assets."
+    },
+    "confirmation.validationErrorLearnMore": {
+      "message": "Learn more"
+    },
+    "confirmation.validationErrorSecurityAdviced": {
+      "message": "Security advice by"
     }
   }
 }

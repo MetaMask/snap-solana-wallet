@@ -9,6 +9,7 @@ export type TransactionScanAssetChange = {
   symbol: string;
   name: string;
   logo: string | null;
+  imageSvg: string | null;
 };
 
 export type TransactionScanEstimatedChanges = {
@@ -20,8 +21,14 @@ export type TransactionScanValidation = {
   reason: SecurityAlertSimulationValidationResponse['result']['validation']['reason'];
 };
 
+export type TransactionScanError = {
+  type: string | null;
+  code: string | null;
+};
+
 export type TransactionScanResult = {
   status: TransactionScanStatus;
   estimatedChanges: TransactionScanEstimatedChanges;
   validation: TransactionScanValidation;
+  error: TransactionScanError | null;
 };

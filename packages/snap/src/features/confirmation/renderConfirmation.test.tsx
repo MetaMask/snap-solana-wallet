@@ -2,7 +2,10 @@ import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
 import { installSnap } from '@metamask/snaps-jest';
 
 import { KnownCaip19Id, Network } from '../../core/constants/solana';
-import { MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE } from '../../core/services/mocks/mockSolanaRpcResponses';
+import {
+  MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE,
+  MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_RESPONSE,
+} from '../../core/services/mocks/mockSolanaRpcResponses';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -12,6 +15,7 @@ import {
   startMockSolanaRpc,
 } from '../../core/test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../core/test/utils';
+import { Confirmation } from './Confirmation';
 import { DEFAULT_CONFIRMATION_CONTEXT } from './renderConfirmation';
 import type { ConfirmationContext } from './types';
 
@@ -20,7 +24,7 @@ const mockConfirmationContext: ConfirmationContext = {
   scope: Network.Localnet,
   account: MOCK_SOLANA_KEYRING_ACCOUNT_0,
   transaction:
-    'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAKD790BPMeQxbCdwSbyC2lv/FG3wE/28MLN5GTUYRikvRDkOL72EsPrSrrKZF33sPiMFwhF786GU/O6Np6ngUZdtMjqo7S3idbRg4oDnEPLya1vPuQf89zrLobei3jVynGDckPtHsyvKRD5kG18GfE89zudv2AAqE9tL9IhOAOw9W0RxnJjereNbC1ST5c1Ecpf6D2O2jh58j+LmrO+1djreYoPQ3SgjVP7wrjsOIn03zYnKJm+xfd+PfLfM775OvcVQan1RcYx3TJKFZjmGkdXraLXrijm0ttXHNVWyEAAAAAXRiZ/3+jOPdJE967sYVyjzFslS7Pv8klUvUrYsNfgIwDBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZvAfFbmCtPT8Xc4LqxlSPuh/TLP2QygKz58+hhf3Oc5gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPgpflRP9EQGoTt/pkws/6PsbhXfiTXgDHQXDervAT8320P/on9df2SnTAmx8pWHneSwmrNt/J3VFLMhqns4zl6JeOC0XV7uuM/X6Tg1gcX4QcONGcnQjcoqMnS3Xo5rlqBQUCBgcJABCTcUBLNgMACAAFAriBFgAIAAkD+PYCAAAAAAAJBgABAAoLFwEBDCEXDQACAwQBGAoMDA4MGQ8QERITAwQNFxobDRQVFgQDFxopwSCbM0HWnIEGAgAAAEMyAAI9ATIAAgDKmjsAAAAAe18oPuIEAAAyAAACWD3XVG/asrsC2JVrP/34ePBaOw2eQrlkG73z55rz95IFNEswMTIEDTwzTbg5ybz1lV0THKePgXJxVjhOuM+rVRVuJmkK/QBsDtEfAxobHAEd',
+    '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',
   scan: null,
   feeEstimatedInSol: '15000',
   tokenPrices: {
@@ -32,7 +36,7 @@ const mockConfirmationContext: ConfirmationContext = {
 };
 
 // FIXME: OnKeyringRequest doesnt let us test the confirmation dialog
-describe.skip('Confirmation', () => {
+describe('Confirmation', () => {
   let mockSolanaRpc: MockSolanaRpc;
 
   beforeAll(() => {
@@ -74,11 +78,17 @@ describe.skip('Confirmation', () => {
       result: MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE.result,
     });
 
+    mockResolvedResult({
+      method: 'getMultipleAccounts',
+      result: MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_RESPONSE.result,
+    });
+
     const response = await onKeyringRequest({
       origin: TEST_ORIGIN,
       method: KeyringRpcMethod.SubmitRequest,
+      id: '4b445722-6766-4f99-ade5-c2c9295f21d0', // uuidv4
       params: {
-        id: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        id: '4b445722-6766-4f99-ade5-c2c9295f21d0', // uuidv4
         scope: Network.Localnet,
         account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
         request: {
@@ -91,10 +101,10 @@ describe.skip('Confirmation', () => {
       },
     });
 
-    // const screen1BeforeUpdate = await response.response.getInterface();
+    const screen1BeforeUpdate = await (response as any).getInterface();
 
-    // expect(screen1BeforeUpdate).toRender(
-    //   <Confirmation context={mockConfirmationContext} />,
-    // );
+    expect(screen1BeforeUpdate).toRender(
+      <Confirmation context={mockConfirmationContext} />,
+    );
   });
 });

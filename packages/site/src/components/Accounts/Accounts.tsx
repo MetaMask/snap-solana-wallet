@@ -40,11 +40,13 @@ export const Accounts = () => {
 
   const handleSendAndConfirmTransaction = async () => {
     const lifiQuote = await fetch(
-      'https://li.quest/v1/quote?fromChain=SOL&toChain=SOL&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&fromAmount=1000000',
+      // 'https://li.quest/v1/quote?fromChain=SOL&toChain=ARB&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=0xaf88d065e77c8cC2239327C5EDb3A432268e5831&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=0x2d757E532bE32766A64088e9200f0979c42372DC&fromAmount=100000',
+      'https://li.quest/v1/quote?fromChain=SOL&toChain=SOL&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=HaMv3cdfDW6357yjpDur6kb6w52BUPJrMJpR76tjpump&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&fromAmount=1000000',
     ).then(async (quote) => quote.json());
 
     await invokeKeyring({
       method: KeyringRpcMethod.SubmitRequest,
+      id: '4b445722-6766-4f99-ade5-c2c9295f21d0', // uuidv4
       params: {
         id: accounts?.[0]?.id,
         scope: Network.Mainnet,
@@ -72,7 +74,6 @@ export const Accounts = () => {
           <Button
             colorPalette="purple"
             onClick={handleSendAndConfirmTransaction}
-            marginRight="3"
           >
             Send and confirm transaction
           </Button>

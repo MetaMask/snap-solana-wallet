@@ -46,7 +46,7 @@ export class TransactionScanService {
       });
 
       return {
-        status: result.status,
+        status: result?.status,
         estimatedChanges: {
           assets:
             result.result?.simulation?.account_summary?.account_assets_diff?.map(
@@ -61,13 +61,26 @@ export class TransactionScanService {
                 logo: 'logo' in asset.asset ? asset.asset.logo : null,
                 value: asset.in?.value ?? asset.out?.value ?? null,
                 price: asset.in?.usd_price ?? asset.out?.usd_price ?? null,
+                imageSvg: null,
               }),
-            ),
+            ) ?? [],
         },
         validation: {
           type: result.result?.validation?.result_type,
           reason: result.result?.validation?.reason,
         },
+        error: result?.error_details
+          ? {
+              type:
+                'type' in result.error_details
+                  ? result.error_details.type
+                  : null,
+              code:
+                'code' in result.error_details
+                  ? result.error_details.code
+                  : null,
+            }
+          : null,
       };
     } catch (error) {
       this.#logger.error(error);
