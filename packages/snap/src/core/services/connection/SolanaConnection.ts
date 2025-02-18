@@ -3,8 +3,10 @@ import {
   type Rpc,
   type SolanaRpcApi,
 } from '@solana/web3.js';
+import { assert } from 'superstruct';
 
-import { Network } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
+import { NetworkStruct } from '../../validation/structs';
 import type { ConfigProvider } from '../config/ConfigProvider';
 import { createMainTransport } from './transport';
 
@@ -26,16 +28,6 @@ export class SolanaConnection {
     this.#configProvider = configProvider;
   }
 
-  #isValidNetwork(network: string): network is Network {
-    return Object.values(Network).includes(network as Network);
-  }
-
-  #validateNetworkOrThrow(network: Network): void {
-    if (!this.#isValidNetwork(network)) {
-      throw new Error(`Invalid network: ${String(network)}`);
-    }
-  }
-
   #createRpc(caip2Id: Network): Rpc<SolanaRpcApi> {
     const network = this.#configProvider.getNetworkBy('caip2Id', caip2Id);
     const transport = createMainTransport(network.rpcUrls);
@@ -53,7 +45,7 @@ export class SolanaConnection {
    * @returns The RPC client for the given network CAIP-2 ID.
    */
   public getRpc(caip2Id: Network): Rpc<SolanaRpcApi> {
-    this.#validateNetworkOrThrow(caip2Id);
+    assert(caip2Id, NetworkStruct);
     return this.#networkCaip2IdToRpc.get(caip2Id) ?? this.#createRpc(caip2Id);
   }
 }

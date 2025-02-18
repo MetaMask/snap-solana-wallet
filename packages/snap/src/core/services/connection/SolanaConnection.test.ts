@@ -80,7 +80,7 @@ describe('SolanaConnection', () => {
     it('throws an error for an invalid network', () => {
       expect(() => {
         connection.getRpc('invalid-network' as Network);
-      }).toThrow('Invalid network: invalid-network');
+      }).toThrow(/Expected one of/u);
     });
   });
 });
