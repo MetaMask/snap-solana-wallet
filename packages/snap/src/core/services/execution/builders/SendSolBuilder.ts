@@ -1,10 +1,6 @@
 import { getSetComputeUnitLimitInstruction } from '@solana-program/compute-budget';
 import { getTransferSolInstruction } from '@solana-program/system';
-import type {
-  Address,
-  CompilableTransactionMessage,
-  TransactionMessageWithBlockhashLifetime,
-} from '@solana/web3.js';
+import type { Address, CompilableTransactionMessage } from '@solana/web3.js';
 import {
   appendTransactionMessageInstruction,
   createNoopSigner,
@@ -49,9 +45,7 @@ export class SendSolBuilder implements ITransactionMessageBuilder {
     to: Address,
     amountInSol: string | number | bigint | BigNumber,
     network: Network,
-  ): Promise<
-    CompilableTransactionMessage & TransactionMessageWithBlockhashLifetime
-  > {
+  ): Promise<CompilableTransactionMessage> {
     try {
       const amountInLamports = BigInt(solToLamports(amountInSol).toString());
 

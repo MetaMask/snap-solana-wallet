@@ -5,10 +5,7 @@ import {
   getTransferInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
-import type {
-  CompilableTransactionMessage,
-  TransactionMessageWithBlockhashLifetime,
-} from '@solana/web3.js';
+import type { CompilableTransactionMessage } from '@solana/web3.js';
 import {
   appendTransactionMessageInstruction,
   appendTransactionMessageInstructions,
@@ -60,9 +57,7 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
     mint: Address,
     amountInToken: string | number | bigint | BigNumber,
     network: Network,
-  ): Promise<
-    CompilableTransactionMessage & TransactionMessageWithBlockhashLifetime
-  > {
+  ): Promise<CompilableTransactionMessage> {
     this.#logger.log('Build transfer SPL token transaction message');
 
     const { privateKeyBytes } = await deriveSolanaPrivateKey(from.index);

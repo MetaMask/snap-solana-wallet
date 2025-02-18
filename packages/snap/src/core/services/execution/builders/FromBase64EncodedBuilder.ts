@@ -1,4 +1,3 @@
-import type { TransactionMessageWithBlockhashLifetime } from '@solana/web3.js';
 import {
   setTransactionMessageLifetimeUsingBlockhash,
   type CompilableTransactionMessage,
@@ -21,9 +20,7 @@ export class FromBase64EncodedBuilder implements ITransactionMessageBuilder {
   async buildTransactionMessage(
     base64EncodedTransaction: string,
     network: Network,
-  ): Promise<
-    CompilableTransactionMessage & TransactionMessageWithBlockhashLifetime
-  > {
+  ): Promise<CompilableTransactionMessage> {
     const transactionMessage =
       await this.#transactionHelper.base64DecodeTransaction(
         base64EncodedTransaction,

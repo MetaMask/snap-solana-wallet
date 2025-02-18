@@ -1,7 +1,4 @@
-import type {
-  CompilableTransactionMessage,
-  TransactionMessageWithBlockhashLifetime,
-} from '@solana/web3.js';
+import type { CompilableTransactionMessage } from '@solana/web3.js';
 
 /**
  * A transaction message builder is a class that can build a transaction message.
@@ -10,7 +7,5 @@ import type {
 export type ITransactionMessageBuilder = {
   buildTransactionMessage(
     ...args: unknown[]
-  ): Promise<
-    CompilableTransactionMessage & TransactionMessageWithBlockhashLifetime
-  >;
+  ): Promise<CompilableTransactionMessage>;
 };
