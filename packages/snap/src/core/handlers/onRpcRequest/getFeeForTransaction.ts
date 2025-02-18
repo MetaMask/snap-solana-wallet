@@ -1,5 +1,5 @@
 import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
-import { type Infer, assert } from 'superstruct';
+import { assert } from 'superstruct';
 
 import { transactionHelper } from '../../../snapContext';
 import logger from '../../utils/logger';
@@ -11,11 +11,9 @@ import {
 export const getFeeForTransaction: OnRpcRequestHandler = async ({
   request,
 }) => {
-  const { transaction, scope } = request.params as Infer<
-    typeof GetFeeForTransactionParamsStruct
-  >;
-
   assert(request.params, GetFeeForTransactionParamsStruct);
+
+  const { transaction, scope } = request.params;
 
   try {
     const message =
