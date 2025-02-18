@@ -1,4 +1,7 @@
-import { createKeyPairSignerFromPrivateKeyBytes } from '@solana/web3.js';
+import {
+  assertIsTransactionMessageWithBlockhashLifetime,
+  createKeyPairSignerFromPrivateKeyBytes,
+} from '@solana/web3.js';
 
 import { deriveSolanaPrivateKey } from '../../../../core/utils/deriveSolanaPrivateKey';
 import {
@@ -75,6 +78,8 @@ async function onConfirmButtonClick({
     context.transaction,
     context.scope,
   );
+
+  assertIsTransactionMessageWithBlockhashLifetime(decodedTransaction);
 
   await Promise.all([
     transactionHelper.sendTransaction(

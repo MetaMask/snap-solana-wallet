@@ -33,6 +33,7 @@ import type { Config } from '../config/ConfigProvider';
 import type { SolanaConnection } from '../connection/SolanaConnection';
 import type { EncryptedStateValue } from '../encrypted-state/EncryptedState';
 import { EncryptedState } from '../encrypted-state/EncryptedState';
+import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
@@ -71,6 +72,7 @@ describe('SolanaKeyring', () => {
   let mockTransactionHelper: TransactionHelper;
   let mockTokenMetadataService: TokenMetadataService;
   let mockWalletStandardService: WalletStandardService;
+  let mockFromBase64EncodedBuilder: FromBase64EncodedBuilder;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -119,6 +121,10 @@ describe('SolanaKeyring', () => {
       resolveAccountAddress: jest.fn(),
     } as unknown as WalletStandardService;
 
+    mockFromBase64EncodedBuilder = {
+      buildTransactionMessage: jest.fn(),
+    } as unknown as FromBase64EncodedBuilder;
+
     keyring = new SolanaKeyring({
       state,
       logger,
@@ -128,6 +134,7 @@ describe('SolanaKeyring', () => {
       tokenMetadataService: mockTokenMetadataService,
       transactionHelper: mockTransactionHelper,
       walletStandardService: mockWalletStandardService,
+      fromBase64EncodedBuilder: mockFromBase64EncodedBuilder,
     });
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts

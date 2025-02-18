@@ -1,4 +1,7 @@
-import type { CompilableTransactionMessage } from '@solana/web3.js';
+import type {
+  CompilableTransactionMessage,
+  TransactionMessageWithBlockhashLifetime,
+} from '@solana/web3.js';
 
 import type { Network } from '../../../../constants/solana';
 import type { SolanaKeyringAccount } from '../../../keyring/Keyring';
@@ -9,7 +12,8 @@ export type MockExecutionScenario = {
   fromAccount: SolanaKeyringAccount;
   toAccount: SolanaKeyringAccount;
   fromAccountPrivateKeyBytes: Uint8Array;
-  transactionMessage: CompilableTransactionMessage;
+  transactionMessage: CompilableTransactionMessage &
+    TransactionMessageWithBlockhashLifetime;
   transactionMessageBase64Encoded: string;
   signedTransaction: any;
   signature: string;

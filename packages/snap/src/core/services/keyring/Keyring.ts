@@ -5,14 +5,14 @@ import {
   SolAccountType,
   SolMethod,
   SolScope,
-  type ResolvedAccountAddress,
-  type Transaction,
   type Balance,
   type CaipAssetType,
   type Keyring,
   type KeyringAccount,
   type KeyringRequest,
   type KeyringResponse,
+  type ResolvedAccountAddress,
+  type Transaction,
 } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { Json } from '@metamask/snaps-controllers';
@@ -25,6 +25,7 @@ import {
   createKeyPairSignerFromPrivateKeyBytes,
   getAddressDecoder,
 } from '@solana/web3.js';
+import { assert, enums } from 'superstruct';
 
 import {
   DEFAULT_CONFIRMATION_CONTEXT,
@@ -49,16 +50,20 @@ import {
   ListAccountAssetsResponseStruct,
   ListAccountAssetsStruct,
   ListAccountTransactionsStruct,
+  NetworkStruct,
   SendAndConfirmTransactionParamsStruct,
   SubmitRequestMethodStruct,
+  Uuid,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
 import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
 import type { EncryptedState } from '../encrypted-state/EncryptedState';
+import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TransactionsService } from '../transactions/Transactions';
+import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
 import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
 
 /**
@@ -86,6 +91,8 @@ export class SolanaKeyring implements Keyring {
 
   readonly #walletStandardService: WalletStandardService;
 
+  readonly #fromBase64EncodedBuilder: FromBase64EncodedBuilder;
+
   constructor({
     state,
     configProvider,
@@ -95,6 +102,7 @@ export class SolanaKeyring implements Keyring {
     assetsService,
     tokenMetadataService,
     walletStandardService,
+    fromBase64EncodedBuilder,
   }: {
     state: EncryptedState;
     configProvider: ConfigProvider;
@@ -104,6 +112,7 @@ export class SolanaKeyring implements Keyring {
     assetsService: AssetsService;
     tokenMetadataService: TokenMetadataService;
     walletStandardService: WalletStandardService;
+    fromBase64EncodedBuilder: FromBase64EncodedBuilder;
   }) {
     this.#state = state;
     this.#configProvider = configProvider;
@@ -113,6 +122,7 @@ export class SolanaKeyring implements Keyring {
     this.#assetsService = assetsService;
     this.#tokenMetadataService = tokenMetadataService;
     this.#walletStandardService = walletStandardService;
+    this.#fromBase64EncodedBuilder = fromBase64EncodedBuilder;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -444,9 +454,12 @@ export class SolanaKeyring implements Keyring {
     showConfirmation = true,
   ): Promise<{ signature: string } | null> {
     const { scope, account: accountId } = request;
-    const { params, method } = request.request;
+    assert(scope, NetworkStruct);
+    assert(accountId, Uuid);
 
+    const { params, method } = request.request;
     validateRequest(params, SendAndConfirmTransactionParamsStruct);
+    assert(method, enums(Object.values(SolMethod)));
 
     const { base64EncodedTransactionMessage: base64EncodedTransaction } =
       params;
@@ -454,24 +467,22 @@ export class SolanaKeyring implements Keyring {
     const account = await this.getAccountOrThrow(accountId);
 
     try {
-      const decodedTransactionMessage =
-        await this.#transactionHelper.base64DecodeTransaction(
+      const transactionMessage =
+        await this.#fromBase64EncodedBuilder.buildTransactionMessage(
           base64EncodedTransaction,
-          scope as Network,
+          scope,
         );
 
       if (showConfirmation) {
         const confirmationContext: ConfirmationContext = {
           ...DEFAULT_CONFIRMATION_CONTEXT,
-          scope: scope as Network,
-          method: method as SolMethod,
+          scope,
+          method,
           transaction: base64EncodedTransaction,
           account,
           advanced: {
             shown: false,
-            instructions: parseInstructions(
-              decodedTransactionMessage.instructions,
-            ),
+            instructions: parseInstructions(transactionMessage.instructions),
           },
         };
 
@@ -485,9 +496,9 @@ export class SolanaKeyring implements Keyring {
       );
 
       const signature = await this.#transactionHelper.sendTransaction(
-        decodedTransactionMessage,
+        transactionMessage,
         [signer],
-        scope as Network,
+        scope,
       );
 
       return { signature };

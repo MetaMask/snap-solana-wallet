@@ -1,10 +1,14 @@
 import type {
   CompilableTransactionMessage,
+  GetTransactionApi,
+  Signature,
   TransactionMessageBytesBase64,
+  TransactionMessageWithBlockhashLifetime,
   TransactionSigner,
 } from '@solana/web3.js';
 import {
   addSignersToTransactionMessage,
+  assertIsTransactionMessageWithBlockhashLifetime,
   compileTransaction,
   compileTransactionMessage,
   decompileTransactionMessageFetchingLookupTables,
@@ -25,6 +29,7 @@ import {
 import type { Network } from '../../constants/solana';
 import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
+import { retry } from '../../utils/retry';
 import type { SolanaConnection } from '../connection';
 
 /**
@@ -266,11 +271,14 @@ export class TransactionHelper {
    * @returns The signature of the transaction.
    */
   async sendTransaction(
-    transactionMessage: CompilableTransactionMessage,
+    transactionMessage: CompilableTransactionMessage &
+      TransactionMessageWithBlockhashLifetime,
     signers: TransactionSigner[],
     network: Network,
   ): Promise<string> {
     try {
+      assertIsTransactionMessageWithBlockhashLifetime(transactionMessage);
+
       const rpc = this.#connection.getRpc(network);
 
       const sendTransactionWithoutConfirming =
@@ -295,6 +303,7 @@ export class TransactionHelper {
       await sendTransactionWithoutConfirming(signedTransaction, {
         commitment: 'confirmed',
       });
+
       return signature;
     } catch (error: any) {
       this.#logger.error(error);
