@@ -1,15 +1,8 @@
-import {
-  SignAndSendAllTransactions,
-  SolanaSignAndSendTransaction,
-  SolanaSignIn,
-  SolanaSignMessage,
-  SolanaSignTransaction,
-} from '@solana/wallet-standard-core';
+import { SolMethod } from '@metamask/keyring-api';
 import type { Infer } from 'superstruct';
 import {
   array,
   boolean,
-  define,
   enums,
   number,
   object,
@@ -19,6 +12,9 @@ import {
   union,
 } from 'superstruct';
 
+import { Network } from '../../constants/solana';
+import { SendAndConfirmTransactionParamsStruct } from '../../validation/structs';
+
 /**
  * Defines all structs derived from types defined in the Solana Wallet Standard.
  * Unfortunately the structs cannot be derived automatically from the types, so we need to manually define them.
@@ -27,25 +23,17 @@ import {
  * @see https://github.com/anza-xyz/wallet-standard/tree/master/packages/core/features/src
  */
 
-const IdentifierStringStruct = string();
+const ScopeStringStruct = enums(Object.values(Network));
 
-const IdentifierArrayStruct = array(IdentifierStringStruct);
+const TransactionStruct = string();
 
-const WalletIconStruct = string();
-
-const ReadonlyUint8ArrayStruct = define<Uint8Array>(
-  'ReadonlyUint8Array',
-  (value) => value instanceof Uint8Array,
-);
+const MessageStruct = string();
 
 const WalletAccountStruct = type({
   address: string(),
-  publicKey: ReadonlyUint8ArrayStruct,
-  chains: IdentifierArrayStruct,
-  features: IdentifierArrayStruct,
-  label: optional(string()),
-  icon: optional(WalletIconStruct),
 });
+
+const SolanaSignatureTypeStruct = enums(['ed25519']);
 
 const SolanaSignInInputStruct = type({
   domain: optional(string()),
@@ -64,7 +52,7 @@ const SolanaSignInInputStruct = type({
 
 const SolanaSignMessageInputStruct = type({
   account: WalletAccountStruct,
-  message: ReadonlyUint8ArrayStruct,
+  message: MessageStruct,
 });
 
 const SolanaTransactionCommitmentStruct = enums([
@@ -79,11 +67,8 @@ const SolanaSignTransactionOptionsStruct = type({
 
 const SolanaSignTransactionInputStruct = type({
   account: WalletAccountStruct,
-  transaction: define<Uint8Array>(
-    'Uint8Array',
-    (value) => value instanceof Uint8Array,
-  ),
-  chain: optional(IdentifierStringStruct),
+  transaction: TransactionStruct,
+  scope: ScopeStringStruct,
   options: optional(SolanaSignTransactionOptionsStruct),
 });
 
@@ -96,7 +81,7 @@ const SolanaSignAndSendTransactionOptionsStruct = type({
 
 const SolanaSignAndSendTransactionInputStruct = type({
   ...SolanaSignTransactionInputStruct.schema,
-  chain: IdentifierStringStruct,
+  scope: ScopeStringStruct,
   options: optional(SolanaSignAndSendTransactionOptionsStruct),
 });
 
@@ -105,39 +90,36 @@ const JsonRpcDefaultsStruct = object({
   jsonrpc: string(),
 });
 
-export const SolanaSignAndSendAllTransactionsRequestStruct = object({
+// TODO: Deprecate
+export const SolanaSendAndConfirmTransactionRequestStruct = object({
   ...JsonRpcDefaultsStruct.schema,
-  method: enums([SignAndSendAllTransactions]),
-  params: array(SolanaSignTransactionInputStruct),
+  method: enums([SolMethod.SendAndConfirmTransaction]),
+  params: SendAndConfirmTransactionParamsStruct,
 });
 
 export const SolanaSignAndSendTransactionRequestStruct = object({
   ...JsonRpcDefaultsStruct.schema,
-  method: enums([SolanaSignAndSendTransaction]),
+  method: enums([SolMethod.SignAndSendTransaction]),
   params: SolanaSignAndSendTransactionInputStruct,
 });
 
 export const SolanaSignInRequestStruct = object({
   ...JsonRpcDefaultsStruct.schema,
-  method: enums([SolanaSignIn]),
+  method: enums([SolMethod.SignIn]),
   params: SolanaSignInInputStruct,
 });
 
 export const SolanaSignMessageRequestStruct = object({
   ...JsonRpcDefaultsStruct.schema,
-  method: enums([SolanaSignMessage]),
+  method: enums([SolMethod.SignMessage]),
   params: SolanaSignMessageInputStruct,
 });
 
 export const SolanaSignTransactionRequestStruct = object({
   ...JsonRpcDefaultsStruct.schema,
-  method: enums([SolanaSignTransaction]),
+  method: enums([SolMethod.SignTransaction]),
   params: SolanaSignTransactionInputStruct,
 });
-
-export type SolanaSignAndSendAllTransactionsRequest = Infer<
-  typeof SolanaSignAndSendAllTransactionsRequestStruct
->;
 
 export type SolanaSignAndSendTransactionRequest = Infer<
   typeof SolanaSignAndSendTransactionRequestStruct
@@ -153,12 +135,44 @@ export type SolanaSignTransactionRequest = Infer<
   typeof SolanaSignTransactionRequestStruct
 >;
 
+export const SolanaSignAndSendTransactionResponseStruct = object({
+  signature: TransactionStruct,
+});
+
+export type SolanaSignAndSendTransactionResponse = Infer<
+  typeof SolanaSignAndSendTransactionResponseStruct
+>;
+
+export const SolanaSignTransactionResponseStruct = object({
+  signedTransaction: TransactionStruct,
+});
+
+export type SolanaSignTransactionResponse = Infer<
+  typeof SolanaSignTransactionResponseStruct
+>;
+
+export const SolanaSignMessageResponseStruct = object({
+  signature: MessageStruct,
+  signedMessage: MessageStruct,
+  signatureType: SolanaSignatureTypeStruct,
+});
+
+export type SolanaSignMessageResponse = Infer<
+  typeof SolanaSignMessageResponseStruct
+>;
+
+export const SolanaSignInResponseStruct = object({
+  account: WalletAccountStruct,
+  ...SolanaSignMessageResponseStruct.schema,
+});
+
+export type SolanaSignInResponse = Infer<typeof SolanaSignInResponseStruct>;
+
 /**
  * Validates that a JsonRpcRequest is a valid Solana Wallet Standard request.
  * @see https://github.com/anza-xyz/wallet-standard/tree/master/packages/core/features/src
  */
 export const SolanaWalletStandardRequestStruct = union([
-  SolanaSignAndSendAllTransactionsRequestStruct,
   SolanaSignAndSendTransactionRequestStruct,
   SolanaSignInRequestStruct,
   SolanaSignMessageRequestStruct,

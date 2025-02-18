@@ -428,9 +428,9 @@ export class SolanaKeyring implements Keyring {
   }
 
   async #handleSubmitRequest(request: KeyringRequest): Promise<Json> {
-    const { method } = request.request;
+    assert(request.request.method, SubmitRequestMethodStruct);
 
-    validateRequest(method, SubmitRequestMethodStruct);
+    const { method } = request.request;
 
     const methodToHandler: Record<
       SolMethod,
@@ -438,6 +438,13 @@ export class SolanaKeyring implements Keyring {
     > = {
       [SolMethod.SendAndConfirmTransaction]:
         this.handleSendAndConfirmTransaction.bind(this),
+      [SolMethod.SignAndSendTransaction]:
+        this.#walletStandardService.signAndSendTransaction.bind(this),
+      [SolMethod.SignTransaction]:
+        this.#walletStandardService.signTransaction.bind(this),
+      [SolMethod.SignMessage]:
+        this.#walletStandardService.signMessage.bind(this),
+      [SolMethod.SignIn]: this.#walletStandardService.signIn.bind(this),
     };
 
     if (!(method in methodToHandler)) {

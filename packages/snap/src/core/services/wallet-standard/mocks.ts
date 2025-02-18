@@ -1,65 +1,64 @@
-import {
-  SignAndSendAllTransactions,
-  SolanaSignAndSendTransaction,
-  SolanaSignIn,
-  SolanaSignMessage,
-  SolanaSignTransaction,
-} from '@solana/wallet-standard-core';
+import { SolMethod, type KeyringRequest } from '@metamask/keyring-api';
 
+import { Network } from '../../constants/solana';
 import {
-  MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
   MOCK_SOLANA_KEYRING_ACCOUNT_3,
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
 } from '../../test/mocks/solana-keyring-accounts';
 import type {
-  SolanaSignAndSendAllTransactionsRequest,
   SolanaSignAndSendTransactionRequest,
+  SolanaSignAndSendTransactionResponse,
   SolanaSignInRequest,
+  SolanaSignInResponse,
   SolanaSignMessageRequest,
+  SolanaSignMessageResponse,
   SolanaSignTransactionRequest,
+  SolanaSignTransactionResponse,
 } from './structs';
 
-export const MOCK_SIGN_AND_SEND_ALL_TRANSACTIONS_REQUEST: SolanaSignAndSendAllTransactionsRequest =
-  {
-    id: 1,
-    jsonrpc: '2.0',
-    method: SignAndSendAllTransactions,
-    params: [
-      {
-        account: {
-          address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
-          publicKey: new Uint8Array(),
-          chains: [],
-          features: [],
-        },
-        transaction: new TextEncoder().encode('transaction-0'),
-      },
-    ],
-  } as const;
+export const wrapKeyringRequest = <Request extends KeyringRequest['request']>(
+  request: Request,
+): KeyringRequest =>
+  ({
+    id: '1',
+    request,
+    account: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    scope: Network.Localnet,
+  } as const);
 
 export const MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST: SolanaSignAndSendTransactionRequest =
   {
     id: 1,
     jsonrpc: '2.0',
-    method: SolanaSignAndSendTransaction,
+    method: SolMethod.SignAndSendTransaction,
     params: {
       account: {
         address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
-        publicKey: new TextEncoder().encode('public-key-1'),
-        chains: [],
-        features: [],
       },
-      chain: 'solana:101',
-      transaction: new TextEncoder().encode('transaction-0'),
+      transaction: 'transaction-0',
+      scope: Network.Localnet,
     },
   } as const;
+
+export const MOCK_SIGN_TRANSACTION_REQUEST: SolanaSignTransactionRequest = {
+  id: 1,
+  jsonrpc: '2.0',
+  method: SolMethod.SignTransaction,
+  params: {
+    account: {
+      address: MOCK_SOLANA_KEYRING_ACCOUNT_4.address,
+    },
+    transaction: 'transaction-1',
+    scope: Network.Localnet,
+  },
+};
 
 export const MOCK_SIGN_IN_REQUEST: SolanaSignInRequest = {
   id: 1,
   jsonrpc: '2.0',
-  method: SolanaSignIn,
+  method: SolMethod.SignIn,
   params: {
     address: MOCK_SOLANA_KEYRING_ACCOUNT_2.address,
     domain: 'example.com',
@@ -74,29 +73,37 @@ export const MOCK_SIGN_IN_REQUEST: SolanaSignInRequest = {
 export const MOCK_SIGN_MESSAGE_REQUEST: SolanaSignMessageRequest = {
   id: 1,
   jsonrpc: '2.0',
-  method: SolanaSignMessage,
+  method: SolMethod.SignMessage,
   params: {
     account: {
       address: MOCK_SOLANA_KEYRING_ACCOUNT_3.address,
-      publicKey: new Uint8Array(),
-      chains: [],
-      features: [],
     },
-    message: new TextEncoder().encode('Hello, world!'),
+    message: 'Hello, world!',
   },
 };
 
-export const MOCK_SIGN_TRANSACTION_REQUEST: SolanaSignTransactionRequest = {
-  id: 1,
-  jsonrpc: '2.0',
-  method: SolanaSignTransaction,
-  params: {
-    account: {
-      address: MOCK_SOLANA_KEYRING_ACCOUNT_4.address,
-      publicKey: new TextEncoder().encode('public-key-4'),
-      chains: [],
-      features: [],
-    },
-    transaction: new TextEncoder().encode('transaction-1'),
+export const MOCK_SIGN_TRANSACTION_RESPONSE: SolanaSignTransactionResponse = {
+  signedTransaction: MOCK_SIGN_TRANSACTION_REQUEST.params.transaction,
+} as const;
+
+export const MOCK_SIGN_AND_SEND_TRANSACTION_RESPONSE: SolanaSignAndSendTransactionResponse =
+  {
+    signature: MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST.params.transaction,
+  } as const;
+
+export const MOCK_SIGN_MESSAGE_RESPONSE: SolanaSignMessageResponse = {
+  signature: MOCK_SIGN_MESSAGE_REQUEST.params.message,
+  signedMessage: MOCK_SIGN_MESSAGE_REQUEST.params.message,
+  signatureType: 'ed25519',
+} as const;
+
+const { address, ...params } = MOCK_SIGN_IN_REQUEST.params;
+
+export const MOCK_SIGN_IN_RESPONSE: SolanaSignInResponse = {
+  account: {
+    address: MOCK_SOLANA_KEYRING_ACCOUNT_2.address,
   },
-};
+  signature: 'mock-signature',
+  signedMessage: Object.values(params).join(' | '),
+  signatureType: 'ed25519',
+} as const;

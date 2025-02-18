@@ -13,6 +13,10 @@ const MapMethodToComponent: Record<
   SnapComponent<{ context: ConfirmationContext }>
 > = {
   [SolMethod.SendAndConfirmTransaction]: ConfirmTransaction,
+  [SolMethod.SignAndSendTransaction]: ConfirmTransaction,
+  [SolMethod.SignTransaction]: ConfirmTransaction,
+  [SolMethod.SignMessage]: ConfirmTransaction,
+  [SolMethod.SignIn]: ConfirmTransaction,
 };
 
 /**

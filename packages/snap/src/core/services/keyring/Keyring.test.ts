@@ -121,6 +121,10 @@ describe('SolanaKeyring', () => {
 
     mockWalletStandardService = {
       resolveAccountAddress: jest.fn(),
+      signIn: jest.fn(),
+      signTransaction: jest.fn(),
+      signMessage: jest.fn(),
+      signAndSendTransaction: jest.fn(),
     } as unknown as WalletStandardService;
 
     mockFromBase64EncodedBuilder = {

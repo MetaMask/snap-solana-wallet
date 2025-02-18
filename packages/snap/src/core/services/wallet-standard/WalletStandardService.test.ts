@@ -1,5 +1,5 @@
+import { SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
-import { SolanaSignIn } from '@solana/wallet-standard-core';
 
 import { Network } from '../../constants/solana';
 import {
@@ -12,11 +12,15 @@ import {
 } from '../../test/mocks/solana-keyring-accounts';
 import type { ILogger } from '../../utils/logger';
 import {
-  MOCK_SIGN_AND_SEND_ALL_TRANSACTIONS_REQUEST,
   MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
+  MOCK_SIGN_AND_SEND_TRANSACTION_RESPONSE,
   MOCK_SIGN_IN_REQUEST,
+  MOCK_SIGN_IN_RESPONSE,
   MOCK_SIGN_MESSAGE_REQUEST,
+  MOCK_SIGN_MESSAGE_RESPONSE,
   MOCK_SIGN_TRANSACTION_REQUEST,
+  MOCK_SIGN_TRANSACTION_RESPONSE,
+  wrapKeyringRequest,
 } from './mocks';
 import { WalletStandardService } from './WalletStandardService';
 
@@ -50,54 +54,8 @@ describe('WalletStandardService', () => {
       await expect(
         service.resolveAccountAddress(mockAccounts, scope, request),
       ).rejects.toThrow(
-        'Expected the value to satisfy a union of `object | object | object | object | object`, but received: [object Object]',
+        'Expected the value to satisfy a union of `object | object | object | object`, but received: [object Object]',
       );
-    });
-
-    it('handles SignAndSendAllTransactions with same account', async () => {
-      const request =
-        MOCK_SIGN_AND_SEND_ALL_TRANSACTIONS_REQUEST as unknown as JsonRpcRequest;
-
-      const result = await service.resolveAccountAddress(
-        mockAccounts,
-        scope,
-        request,
-      );
-      expect(result).toBe(`${scope}:${MOCK_SOLANA_KEYRING_ACCOUNT_0.address}`);
-    });
-
-    it('rejects SignAndSendAllTransactions with different accounts', async () => {
-      // Create a request with 2 different accounts
-      const request = {
-        ...MOCK_SIGN_AND_SEND_ALL_TRANSACTIONS_REQUEST,
-        params: [
-          MOCK_SIGN_AND_SEND_ALL_TRANSACTIONS_REQUEST.params[0],
-          {
-            account: {
-              address: 'some-other-address',
-              publicKey: new Uint8Array(),
-              chains: [],
-              features: [],
-            },
-            transaction: new TextEncoder().encode('transaction-1'),
-          },
-        ],
-      } as unknown as JsonRpcRequest;
-
-      await expect(
-        service.resolveAccountAddress(mockAccounts, scope, request),
-      ).rejects.toThrow('All accounts must be the same');
-    });
-
-    it('rejects SignAndSendAllTransactions with empty accounts array', async () => {
-      const request = {
-        ...MOCK_SIGN_AND_SEND_ALL_TRANSACTIONS_REQUEST,
-        params: [],
-      } as unknown as JsonRpcRequest;
-
-      await expect(
-        service.resolveAccountAddress(mockAccounts, scope, request),
-      ).rejects.toThrow('No accounts');
     });
 
     it('handles SolanaSignIn with valid address', async () => {
@@ -115,7 +73,7 @@ describe('WalletStandardService', () => {
       const request: JsonRpcRequest = {
         id: 1,
         jsonrpc: '2.0',
-        method: SolanaSignIn,
+        method: SolMethod.SignIn,
         params: {},
       };
 
@@ -188,6 +146,94 @@ describe('WalletStandardService', () => {
       await expect(
         service.resolveAccountAddress(accounts, scope, request),
       ).rejects.toThrow('No accounts with this scope');
+    });
+  });
+
+  describe('signTransaction', () => {
+    it('returns the signed transaction', async () => {
+      const request = wrapKeyringRequest(
+        MOCK_SIGN_TRANSACTION_REQUEST as unknown as JsonRpcRequest,
+      );
+
+      const result = await service.signTransaction(request);
+
+      expect(result).toStrictEqual(MOCK_SIGN_TRANSACTION_RESPONSE);
+    });
+
+    it('rejects invalid requests', async () => {
+      const request = wrapKeyringRequest({
+        ...MOCK_SIGN_TRANSACTION_REQUEST,
+        params: {},
+      } as unknown as JsonRpcRequest);
+
+      await expect(service.signTransaction(request)).rejects.toThrow(
+        /At path/u,
+      );
+    });
+  });
+
+  describe('signAndSendTransaction', () => {
+    it('returns the signed transaction', async () => {
+      const request = wrapKeyringRequest(
+        MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST as unknown as JsonRpcRequest,
+      );
+
+      const result = await service.signAndSendTransaction(request);
+
+      expect(result).toStrictEqual(MOCK_SIGN_AND_SEND_TRANSACTION_RESPONSE);
+    });
+
+    it('rejects invalid requests', async () => {
+      const request = wrapKeyringRequest({
+        ...MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
+        params: {},
+      } as unknown as JsonRpcRequest);
+
+      await expect(service.signAndSendTransaction(request)).rejects.toThrow(
+        /At path/u,
+      );
+    });
+  });
+
+  describe('signMessage', () => {
+    it('returns the signed message', async () => {
+      const request = wrapKeyringRequest(
+        MOCK_SIGN_MESSAGE_REQUEST as unknown as JsonRpcRequest,
+      );
+
+      const result = await service.signMessage(request);
+
+      expect(result).toStrictEqual(MOCK_SIGN_MESSAGE_RESPONSE);
+    });
+
+    it('rejects invalid requests', async () => {
+      const request = wrapKeyringRequest({
+        ...MOCK_SIGN_MESSAGE_REQUEST,
+        params: {},
+      } as unknown as JsonRpcRequest);
+
+      await expect(service.signMessage(request)).rejects.toThrow(/At path/u);
+    });
+  });
+
+  describe('signIn', () => {
+    it('returns the signed message', async () => {
+      const request = wrapKeyringRequest(
+        MOCK_SIGN_IN_REQUEST as unknown as JsonRpcRequest,
+      );
+
+      const result = await service.signIn(request);
+
+      expect(result).toStrictEqual(MOCK_SIGN_IN_RESPONSE);
+    });
+
+    it('rejects invalid requests', async () => {
+      const request = wrapKeyringRequest({
+        ...MOCK_SIGN_IN_REQUEST,
+        params: {},
+      } as unknown as JsonRpcRequest);
+
+      await expect(service.signIn(request)).rejects.toThrow(/At path/u);
     });
   });
 });

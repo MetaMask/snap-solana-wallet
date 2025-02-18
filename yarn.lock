@@ -4103,27 +4103,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:17.0.0":
-  version: 17.0.0
-  resolution: "@metamask/keyring-api@npm:17.0.0"
+"@metamask/keyring-api@npm:17.1.0, @metamask/keyring-api@npm:^17.1.0":
+  version: 17.1.0
+  resolution: "@metamask/keyring-api@npm:17.1.0"
   dependencies:
-    "@metamask/keyring-utils": ^2.0.0
+    "@metamask/keyring-utils": ^2.1.1
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.1.0
     bech32: ^2.0.0
-  checksum: 72cf0245e4c474d8c2b4c9a1df6e67b2025177c965657b89b28199cd4d2a7cd92019dfcba70a951b474f5233ab3d0500c789d0983a04cef282279fb5425a3442
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-api@npm:^16.1.0":
-  version: 16.1.0
-  resolution: "@metamask/keyring-api@npm:16.1.0"
-  dependencies:
-    "@metamask/keyring-utils": ^2.0.0
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.1.0
-    bech32: ^2.0.0
-  checksum: 4e577b736d25ea5863e83a76629808930dfed0f0321550ac1e3bd3d51538dde13f73b00f8c6f8ccd97bdce439601c26833becc37e3f9b03e92862dc6dbc851f1
+  checksum: 75dfe17239fc2b74b58d2fc104d49bd989f5c807034bf9acbbc6855f713f506232497c49e3635b3d8e359344f7a7f5200d417cbf5ce2a0fdd77c4508b59e703e
   languageName: node
   linkType: hard
 
@@ -4150,6 +4138,18 @@ __metadata:
     "@metamask/utils": ^11.1.0
     bitcoin-address-validation: ^2.2.3
   checksum: 523ce59fc98e3ee329a061e344014e245bfa6554cfdc53cc79c25e0e7e989ccbe8a950f1b247abf5c4963517e45ac42dab64634acba0111faaa2488a91af68ea
+  languageName: node
+  linkType: hard
+
+"@metamask/keyring-utils@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@metamask/keyring-utils@npm:2.1.1"
+  dependencies:
+    "@ethereumjs/tx": ^4.2.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.1.0
+    bitcoin-address-validation: ^2.2.3
+  checksum: a6aa37b6fe3a750240228d4acbd9828bdfc255ed9f7031bc8acf75833aae108d00ea6a85940264d8e2ea45ad0df6abee6f328d80467f92f5457d1025c069c623
   languageName: node
   linkType: hard
 
@@ -4664,7 +4664,7 @@ __metadata:
     "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": 4.0.0
     "@metamask/key-tree": 9.1.2
-    "@metamask/keyring-api": 17.0.0
+    "@metamask/keyring-api": 17.1.0
     "@metamask/keyring-snap-sdk": 3.0.0
     "@metamask/snaps-cli": 6.5.1
     "@metamask/snaps-jest": 8.11.0
@@ -4674,7 +4674,6 @@ __metadata:
     "@solana-program/compute-budget": 0.6.1
     "@solana-program/system": 0.6.2
     "@solana-program/token": 0.4.1
-    "@solana/wallet-standard-core": 1.1.2
     "@solana/web3.js": 2
     "@testing-library/jest-dom": ^6.6.2
     "@types/express": ^5.0.0
@@ -4704,7 +4703,7 @@ __metadata:
     "@chakra-ui/react": ^3.0.2
     "@emotion/react": ^11.13.3
     "@metamask/eslint-config-browser": ^12.1.0
-    "@metamask/keyring-api": ^16.1.0
+    "@metamask/keyring-api": ^17.1.0
     "@metamask/providers": ^18.1.0
     "@svgr/webpack": ^8.1.0
     "@testing-library/dom": ^10.4.0
@@ -4923,15 +4922,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/curves@npm:^1.8.0":
-  version: 1.8.1
-  resolution: "@noble/curves@npm:1.8.1"
-  dependencies:
-    "@noble/hashes": 1.7.1
-  checksum: 4143f1248ed57c1ae46dfef5c692a91383e5830420b9c72d3ff1061aa9ebbf8999297da6d2aed8a9716fef8e6b1f5a45737feeab02abf55ca2a4f514bf9339ec
-  languageName: node
-  linkType: hard
-
 "@noble/ed25519@npm:2.1.0":
   version: 2.1.0
   resolution: "@noble/ed25519@npm:2.1.0"
@@ -4960,7 +4950,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:1.7.1, @noble/hashes@npm:^1.4.0":
+"@noble/hashes@npm:^1.4.0":
   version: 1.7.1
   resolution: "@noble/hashes@npm:1.7.1"
   checksum: 4f1b56428a10323feef17e4f437c9093556cb18db06f94d254043fadb69c3da8475f96eb3f8322d41e8670117d7486475a8875e68265c2839f60fd03edd6a616
@@ -6427,47 +6417,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solana/wallet-standard-chains@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@solana/wallet-standard-chains@npm:1.1.1"
-  dependencies:
-    "@wallet-standard/base": ^1.1.0
-  checksum: 603bfc1b4c83891ecb068ca614d964bb986348382cca90b7797b4da475aa9090347d90491741bad5f69faccfc32799e1ffa6ae2827605f3cd8349407879b4e5a
-  languageName: node
-  linkType: hard
-
-"@solana/wallet-standard-core@npm:1.1.2":
-  version: 1.1.2
-  resolution: "@solana/wallet-standard-core@npm:1.1.2"
-  dependencies:
-    "@solana/wallet-standard-chains": ^1.1.1
-    "@solana/wallet-standard-features": ^1.3.0
-    "@solana/wallet-standard-util": ^1.1.2
-  checksum: 8010a58126bf32c445de6557ce3960c3951f11a3ca42f617fd72ec0d5f872bbca0ec8bfd0a507a3e9a16f5bb466add8bad65be4404b14d0af29bec5f16936948
-  languageName: node
-  linkType: hard
-
-"@solana/wallet-standard-features@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "@solana/wallet-standard-features@npm:1.3.0"
-  dependencies:
-    "@wallet-standard/base": ^1.1.0
-    "@wallet-standard/features": ^1.1.0
-  checksum: ee303ae145a734a0ef4592d3da4bcb888956dbb5dc69759cbec2050b3fa6ffe09ca4ae037d254ba438d687b8d7c70902037276197cfb52b7a2c3851be7d5edeb
-  languageName: node
-  linkType: hard
-
-"@solana/wallet-standard-util@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@solana/wallet-standard-util@npm:1.1.2"
-  dependencies:
-    "@noble/curves": ^1.8.0
-    "@solana/wallet-standard-chains": ^1.1.1
-    "@solana/wallet-standard-features": ^1.3.0
-  checksum: c87661c22a734c479a06c43308172c62331ac206796455f5f37a23a5b9ff01be75bca4b0f2b0b97a80ca8b12700b882a4fb32d71cfe28fa88d6b64b20876254c
-  languageName: node
-  linkType: hard
-
 "@solana/web3.js@npm:2":
   version: 2.0.0
   resolution: "@solana/web3.js@npm:2.0.0"
@@ -7711,15 +7660,6 @@ __metadata:
   version: 1.1.0
   resolution: "@wallet-standard/base@npm:1.1.0"
   checksum: 4057188f615f1deeb0c8a39f04018d4575f87cb387749dab6bc2e8232a95400be51ea4235450829bb256aa21136621f47167383ef1767f0eb3109f1140c74d86
-  languageName: node
-  linkType: hard
-
-"@wallet-standard/features@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@wallet-standard/features@npm:1.1.0"
-  dependencies:
-    "@wallet-standard/base": ^1.1.0
-  checksum: c0c101ee0bd4c55619e39505d15158132bbd619f4dc611880a4b0c001e96806957bed35d7a51efdff0077cf5afb01e0dc46a32b01d9d8c27f807fc2b61e92159
   languageName: node
   linkType: hard
 
