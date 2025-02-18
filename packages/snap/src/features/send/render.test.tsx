@@ -1,19 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { installSnap } from '@metamask/snaps-jest';
 
-import { Send } from '../../../features/send/Send';
-import {
-  type SendContext,
-  SendCurrencyType,
-  SendFormNames,
-} from '../../../features/send/types';
-import { TransactionConfirmationNames } from '../../../features/send/views/TransactionConfirmation/TransactionConfirmation';
 import {
   KnownCaip19Id,
   Network,
   SOL_IMAGE_URL,
   SOL_SYMBOL,
-} from '../../constants/solana';
+} from '../../core/constants/solana';
+import { RpcRequestMethod } from '../../core/handlers/onRpcRequest/types';
 import {
   MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE,
   MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE,
@@ -22,19 +16,21 @@ import {
   MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE,
   MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE,
   MOCK_SOLANA_RPC_SIMULATE_TRANSACTION_RESPONSE,
-} from '../../services/mocks/mockSolanaRpcResponses';
-import { SOL_IMAGE_SVG } from '../../test/mocks/solana-image-svg';
+} from '../../core/services/mocks/mockSolanaRpcResponses';
+import { SOL_IMAGE_SVG } from '../../core/test/mocks/solana-image-svg';
 import {
   MOCK_SEED_PHRASE,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
-} from '../../test/mocks/solana-keyring-accounts';
-import type { MockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
-import { startMockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
-import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../test/mocks/transactions-data/native-sol-transfer';
-import { TEST_ORIGIN } from '../../test/utils';
-import { DEFAULT_SEND_CONTEXT } from './renderSend';
-import { RpcRequestMethod } from './types';
+} from '../../core/test/mocks/solana-keyring-accounts';
+import type { MockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
+import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
+import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../core/test/mocks/transactions-data/native-sol-transfer';
+import { TEST_ORIGIN } from '../../core/test/utils';
+import { DEFAULT_SEND_CONTEXT } from './render';
+import { Send } from './Send';
+import { type SendContext, SendCurrencyType, SendFormNames } from './types';
+import { TransactionConfirmationNames } from './views/TransactionConfirmation/TransactionConfirmation';
 
 const solanaKeyringAccounts = [
   MOCK_SOLANA_KEYRING_ACCOUNT_0,

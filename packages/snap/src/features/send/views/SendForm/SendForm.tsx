@@ -64,6 +64,7 @@ export const SendForm = ({ context }: SendFormProps) => {
         [SendCurrencyType.FIAT]: formatFiat(
           tokenToFiat(tokenBalance, selectedTokenPrice ?? 0),
           currency,
+          locale,
         ),
         [SendCurrencyType.TOKEN]: formatCrypto(
           tokenBalance,
@@ -96,18 +97,6 @@ export const SendForm = ({ context }: SendFormProps) => {
     !buildingTransaction &&
     isTransactionMessageSuccessfullyBuild;
 
-  const balancesToShow = Object.fromEntries(
-    Object.entries(balances).map(([accountId, perAccountBalances]) => [
-      accountId,
-      Object.fromEntries(
-        Object.entries(perAccountBalances).filter(
-          ([_, perAccountTokenBalance]) =>
-            perAccountTokenBalance.amount !== '0',
-        ),
-      ),
-    ]),
-  );
-
   return (
     <Container>
       <Box>
@@ -136,7 +125,7 @@ export const SendForm = ({ context }: SendFormProps) => {
             }
             accounts={accounts}
             selectedAccountId={fromAccountId}
-            balances={balancesToShow}
+            balances={balances}
             price={nativePrice ?? null}
             locale={locale}
             currency={currency}
@@ -162,7 +151,7 @@ export const SendForm = ({ context }: SendFormProps) => {
                   tokenCaipId={tokenCaipId}
                   tokenMetadata={tokenMetadata}
                   selectedAccountId={fromAccountId}
-                  balances={balancesToShow}
+                  balances={balances}
                   locale={locale}
                 />
                 <AmountInput

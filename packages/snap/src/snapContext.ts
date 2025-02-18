@@ -67,7 +67,6 @@ const tokenMetadataService = new TokenMetadataService({
 const transactionsService = new TransactionsService({
   logger,
   connection,
-  configProvider,
   tokenMetadataService,
 });
 

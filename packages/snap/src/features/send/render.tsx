@@ -2,18 +2,19 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from 'superstruct';
 
-import { Send } from '../../../features/send/Send';
-import type { SendContext } from '../../../features/send/types';
-import { SendCurrencyType } from '../../../features/send/types';
-import { StartSendTransactionFlowParamsStruct } from '../../../features/send/views/SendForm/validation';
-import { keyring, state, tokenPricesService } from '../../../snapContext';
-import { KnownCaip19Id, Network, Networks } from '../../constants/solana';
+import { KnownCaip19Id, Network, Networks } from '../../core/constants/solana';
 import {
   createInterface,
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   showDialog,
-} from '../../utils/interface';
+} from '../../core/utils/interface';
+import { keyring, state, tokenPricesService } from '../../snapContext';
+import { Send } from './Send';
+import type { SendContext } from './types';
+import { SendCurrencyType } from './types';
+import { getBalancesInScope } from './utils/getBalancesInScope';
+import { StartSendTransactionFlowParamsStruct } from './views/SendForm/validation';
 
 export const DEFAULT_SEND_CONTEXT: SendContext = {
   scope: Network.Mainnet,
@@ -80,14 +81,17 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     preferencesPromise,
   ]);
 
+  context.balances = getBalancesInScope({
+    scope,
+    balances: currentState.assets,
+  });
+
   const accountBalances = currentState.assets[context.fromAccountId] ?? {};
-  const tokenMetadata = currentState.metadata ?? {};
+  context.assets = Object.keys(accountBalances) as CaipAssetType[];
 
   context.accounts = accounts;
   context.preferences = preferences;
-  context.assets = Object.keys(accountBalances) as CaipAssetType[];
-  context.balances = currentState.assets;
-  context.tokenMetadata = tokenMetadata;
+  context.tokenMetadata = currentState.metadata ?? {};
 
   const tokenPricesPromise = tokenPricesService
     .getMultipleTokenPrices(context.assets, context.preferences.currency)

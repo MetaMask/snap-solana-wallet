@@ -33,7 +33,6 @@ describe('TransactionsService', () => {
     });
 
     service = new TransactionsService({
-      configProvider,
       connection,
       logger: mockLogger,
       tokenMetadataService,

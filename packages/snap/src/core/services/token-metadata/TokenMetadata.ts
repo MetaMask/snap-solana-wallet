@@ -2,6 +2,7 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 import { getImageComponent } from '@metamask/snaps-sdk';
 
 import type { TokenMetadataClient } from '../../clients/token-metadata-client/TokenMetadataClient';
+import QUESTION_MARK_SVG from '../../img/question-mark.svg';
 import type { ILogger } from '../../utils/logger';
 
 export class TokenMetadataService {
@@ -20,7 +21,7 @@ export class TokenMetadataService {
     this.#logger = logger;
   }
 
-  async getMultipleTokenMetadata(tokensCaipIds: CaipAssetType[]) {
+  async getTokensMetadata(tokensCaipIds: CaipAssetType[]) {
     if (tokensCaipIds.length === 0) {
       return {};
     }
@@ -66,11 +67,11 @@ export class TokenMetadataService {
 
   async generateImageComponent(imageUrl?: string, width = 48, height = 48) {
     if (!imageUrl) {
-      return null;
+      return QUESTION_MARK_SVG;
     }
 
     return getImageComponent(imageUrl, { width, height })
       .then((image) => image.value)
-      .catch(() => null);
+      .catch(() => QUESTION_MARK_SVG);
   }
 }

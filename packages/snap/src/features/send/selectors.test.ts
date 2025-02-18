@@ -1,6 +1,6 @@
 import SolanaLogo from '../../../images/coin.svg';
 import { KnownCaip19Id, Network, Networks } from '../../core/constants/solana';
-import { DEFAULT_SEND_CONTEXT } from '../../core/handlers/onRpcRequest/renderSend';
+import { DEFAULT_SEND_CONTEXT } from './render';
 import {
   getNativeTokenPrice,
   getSelectedTokenMetadata,
