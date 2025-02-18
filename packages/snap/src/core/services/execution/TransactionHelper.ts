@@ -3,7 +3,6 @@ import type {
   GetTransactionApi,
   Signature,
   TransactionMessageBytesBase64,
-  TransactionMessageWithBlockhashLifetime,
   TransactionSigner,
 } from '@solana/web3.js';
 import {
@@ -271,8 +270,7 @@ export class TransactionHelper {
    * @returns The signature of the transaction.
    */
   async sendTransaction(
-    transactionMessage: CompilableTransactionMessage &
-      TransactionMessageWithBlockhashLifetime,
+    transactionMessage: CompilableTransactionMessage,
     signers: TransactionSigner[],
     network: Network,
   ): Promise<string> {
