@@ -326,7 +326,7 @@ export class TransactionHelper {
 
     return retry(async () => {
       this.#logger.log(
-        `Checking if transaction ${signature} has reached commitment level ${commitmentLevel}`,
+        `🔎 Checking if transaction ${signature} has reached commitment level ${commitmentLevel}`,
       );
       const transaction = await rpc
         .getTransaction(signature as Signature, {
