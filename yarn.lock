@@ -4674,6 +4674,7 @@ __metadata:
     "@solana-program/compute-budget": 0.6.1
     "@solana-program/system": 0.6.2
     "@solana-program/token": 0.4.1
+    "@solana/subscribable": 2.0.0
     "@solana/wallet-standard-core": 1.1.2
     "@solana/web3.js": 2
     "@testing-library/jest-dom": ^6.6.2

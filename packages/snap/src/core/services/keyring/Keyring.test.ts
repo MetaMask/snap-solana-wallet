@@ -25,6 +25,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../../test/mocks/solana-keyring-accounts';
+import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../test/mocks/transactions-data/native-sol-transfer';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import { AssetsService } from '../assets/AssetsService';
@@ -109,6 +110,7 @@ describe('SolanaKeyring', () => {
       sendTransaction: jest.fn(),
       base64DecodeTransaction: jest.fn(),
       getFeeForMessageInLamports: jest.fn(),
+      waitForTransactionCommitment: jest.fn(),
     } as unknown as TransactionHelper;
 
     mockTokenMetadataService = {
@@ -543,6 +545,12 @@ describe('SolanaKeyring', () => {
         .spyOn(mockTransactionHelper, 'sendTransaction')
         .mockResolvedValue('someSignature');
 
+      jest
+        .spyOn(mockTransactionHelper, 'waitForTransactionCommitment')
+        .mockResolvedValue(EXPECTED_NATIVE_SOL_TRANSFER_DATA as any);
+
+      const emitEventSpy = jest.spyOn(keyring, 'emitEvent');
+
       const request = {
         id: 'some-id',
         scope: Network.Devnet,
@@ -564,6 +572,8 @@ describe('SolanaKeyring', () => {
       expect(response).toStrictEqual({
         signature: 'someSignature',
       });
+
+      expect(emitEventSpy).toHaveBeenCalledTimes(1);
     });
   });
 

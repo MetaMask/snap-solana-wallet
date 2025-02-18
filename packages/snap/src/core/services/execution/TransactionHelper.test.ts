@@ -42,20 +42,8 @@ jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
   }),
 }));
 
-// Note the ".each" here
-describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
-  const {
-    name,
-    scope,
-    fromAccountPrivateKeyBytes,
-    transactionMessage,
-    transactionMessageBase64Encoded,
-    signedTransaction,
-    signature,
-    getMultipleAccountsResponse,
-  } = scenario;
-
-  let mockSigner: KeyPairSigner;
+describe('TransactionHelper', () => {
+  const mockScope = Network.Mainnet;
 
   const mockRpcResponse = {
     send: jest.fn(),
@@ -66,7 +54,7 @@ describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
       getLatestBlockhash: () => mockRpcResponse,
       getFeeForMessage: () => mockRpcResponse,
       getMultipleAccounts: jest.fn().mockReturnValue({
-        send: jest.fn().mockResolvedValue(getMultipleAccountsResponse?.result),
+        send: jest.fn(),
       }),
     }),
   } as unknown as SolanaConnection;
@@ -76,13 +64,10 @@ describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
   beforeEach(async () => {
     jest.clearAllMocks();
     transactionHelper = new TransactionHelper(mockConnection, logger);
-    mockSigner = await createKeyPairSignerFromPrivateKeyBytes(
-      fromAccountPrivateKeyBytes,
-    );
   });
 
   describe('getLatestBlockhash', () => {
-    it(`Scenario ${name}: fetches and returns the latest blockhash`, async () => {
+    it('fetches and returns the latest blockhash', async () => {
       const expectedResponse = {
         blockhash: 'mockBlockhash',
         lastValidBlockHeight: BigInt(100),
@@ -90,77 +75,35 @@ describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
 
       mockRpcResponse.send.mockResolvedValueOnce({ value: expectedResponse });
 
-      const result = await transactionHelper.getLatestBlockhash(scope);
+      const result = await transactionHelper.getLatestBlockhash(mockScope);
 
       expect(result).toStrictEqual(expectedResponse);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(scope);
+      expect(mockConnection.getRpc).toHaveBeenCalledWith(mockScope);
       expect(mockRpcResponse.send).toHaveBeenCalled();
     });
 
-    it(`Scenario ${name}: throws and logs error when fetching blockhash fails`, async () => {
+    it('throws and logs error when fetching blockhash fails', async () => {
       const error = new Error('Network error');
       mockRpcResponse.send.mockRejectedValueOnce(error);
 
-      await expect(transactionHelper.getLatestBlockhash(scope)).rejects.toThrow(
-        'Network error',
-      );
+      await expect(
+        transactionHelper.getLatestBlockhash(mockScope),
+      ).rejects.toThrow('Network error');
     });
   });
 
   describe('getComputeUnitEstimate', () => {
-    it(`Scenario ${name}: returns compute unit estimate successfully`, async () => {
+    it('returns compute unit estimate successfully', async () => {
       const mockTransactionMessage = {} as any;
       const expectedEstimate = 200000;
 
       const result = await transactionHelper.getComputeUnitEstimate(
         mockTransactionMessage,
-        scope,
+        mockScope,
       );
 
       expect(result).toBe(expectedEstimate);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(scope);
-    });
-  });
-
-  describe('sendTransaction', () => {
-    it(`Scenario ${name}: successfully sends a transaction and returns signature`, async () => {
-      const getSignatureFromTransactionSpy = jest.spyOn(
-        require('@solana/web3.js'),
-        'getSignatureFromTransaction',
-      );
-
-      const result = await transactionHelper.sendTransaction(
-        transactionMessage,
-        [mockSigner],
-        scope,
-      );
-
-      expect(getSignatureFromTransactionSpy).toHaveBeenCalledWith(
-        signedTransaction,
-      );
-
-      expect(result).toBe(signature);
-    });
-  });
-
-  describe('base64EncodeTransaction', () => {
-    it(`Scenario ${name}: encodes a transaction successfully`, async () => {
-      const result = await transactionHelper.base64EncodeTransaction(
-        transactionMessage,
-      );
-
-      expect(result).toBe(transactionMessageBase64Encoded);
-    });
-  });
-
-  describe('base64DecodeTransaction', () => {
-    it(`Scenario ${name}: decodes a transaction successfully`, async () => {
-      const result = await transactionHelper.base64DecodeTransaction(
-        transactionMessageBase64Encoded,
-        scope,
-      );
-
-      expect(result).toStrictEqual(transactionMessage);
+      expect(mockConnection.getRpc).toHaveBeenCalledWith(mockScope);
     });
   });
 
@@ -170,7 +113,7 @@ describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
 
       const result = await transactionHelper.getFeeForMessageInLamports(
         'mockMessage',
-        Network.Mainnet,
+        mockScope,
       );
 
       expect(result).toBe(100000);
@@ -181,10 +124,133 @@ describe.each(MOCK_EXECUTION_SCENARIOS)('TransactionHelper', (scenario) => {
 
       const result = await transactionHelper.getFeeForMessageInLamports(
         'mockMessage',
-        Network.Mainnet,
+        mockScope,
       );
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('waitForTransactionCommitment', () => {
+    it('successfully waits for transaction commitment', async () => {
+      const mockTransaction = { blockTime: 123 };
+      const mockGetTransactionResponse = {
+        send: jest.fn().mockResolvedValue(mockTransaction),
+      };
+
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getTransaction: () => mockGetTransactionResponse,
+      } as any);
+
+      const result = await transactionHelper.waitForTransactionCommitment(
+        'mockSignature',
+        'confirmed',
+        mockScope,
+      );
+
+      expect(result).toBe(mockTransaction);
+      expect(mockConnection.getRpc).toHaveBeenCalledWith(mockScope);
+      expect(mockGetTransactionResponse.send).toHaveBeenCalled();
+    });
+
+    it('retries on failure before succeeding', async () => {
+      const mockTransaction = { blockTime: 123 };
+      const mockGetTransactionResponse = {
+        send: jest
+          .fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(mockTransaction),
+      };
+
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getTransaction: () => mockGetTransactionResponse,
+      } as any);
+
+      const result = await transactionHelper.waitForTransactionCommitment(
+        'mockSignature',
+        'confirmed',
+        mockScope,
+      );
+
+      expect(result).toBe(mockTransaction);
+      expect(mockGetTransactionResponse.send).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  // Note the ".each" here
+  describe.each(MOCK_EXECUTION_SCENARIOS)('scenarios', (scenario) => {
+    const {
+      name,
+      scope,
+      fromAccountPrivateKeyBytes,
+      transactionMessage,
+      transactionMessageBase64Encoded,
+      signedTransaction,
+      signature,
+      getMultipleAccountsResponse,
+    } = scenario;
+
+    let mockSigner: KeyPairSigner;
+
+    beforeEach(async () => {
+      jest.clearAllMocks();
+      transactionHelper = new TransactionHelper(mockConnection, logger);
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        ...mockConnection.getRpc(mockScope),
+        getLatestBlockhash: () => mockRpcResponse,
+        getFeeForMessage: () => mockRpcResponse,
+        getMultipleAccounts: jest.fn().mockReturnValue({
+          send: jest
+            .fn()
+            .mockResolvedValue(getMultipleAccountsResponse?.result),
+        }),
+      });
+      mockSigner = await createKeyPairSignerFromPrivateKeyBytes(
+        fromAccountPrivateKeyBytes,
+      );
+    });
+
+    describe('sendTransaction', () => {
+      it(`Scenario ${name}: successfully sends a transaction and returns signature`, async () => {
+        const getSignatureFromTransactionSpy = jest.spyOn(
+          require('@solana/web3.js'),
+          'getSignatureFromTransaction',
+        );
+
+        const result = await transactionHelper.sendTransaction(
+          transactionMessage,
+          [mockSigner],
+          scope,
+        );
+
+        expect(getSignatureFromTransactionSpy).toHaveBeenCalledWith(
+          signedTransaction,
+        );
+
+        expect(result).toBe(signature);
+      });
+    });
+
+    describe('base64EncodeTransaction', () => {
+      it(`Scenario ${name}: encodes a transaction successfully`, async () => {
+        const result = await transactionHelper.base64EncodeTransaction(
+          transactionMessage,
+        );
+
+        expect(result).toBe(transactionMessageBase64Encoded);
+      });
+    });
+
+    describe('base64DecodeTransaction', () => {
+      it(`Scenario ${name}: decodes a transaction successfully`, async () => {
+        const result = await transactionHelper.base64DecodeTransaction(
+          transactionMessageBase64Encoded,
+          scope,
+        );
+
+        expect(result).toStrictEqual(transactionMessage);
+      });
     });
   });
 });

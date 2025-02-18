@@ -501,6 +501,30 @@ export class SolanaKeyring implements Keyring {
         scope,
       );
 
+      const transaction =
+        await this.#transactionHelper.waitForTransactionCommitment(
+          signature,
+          'confirmed',
+          scope,
+        );
+
+      const mappedTransaction = mapRpcTransaction({
+        scope,
+        address: asAddress(account.address),
+        transactionData: transaction,
+      });
+
+      const mappedTransactionWithAccountId = {
+        ...mappedTransaction,
+        account: accountId,
+      };
+
+      await this.emitEvent(KeyringEvent.AccountTransactionsUpdated, {
+        transactions: {
+          [accountId]: [mappedTransactionWithAccountId],
+        },
+      });
+
       return { signature };
     } catch (error: any) {
       this.#logger.error({ error }, 'Error sending and confirming transaction');

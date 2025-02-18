@@ -310,4 +310,43 @@ export class TransactionHelper {
       throw error;
     }
   }
+
+  /**
+   * Waits for a transaction to reach a given commitment level by polling the RPC.
+   *
+   * @param signature - The signature of the transaction to wait for.
+   * @param commitmentLevel - The commitment level to wait for.
+   * @param network - The network on which the transaction is being sent.
+   * @returns The transaction.
+   */
+  async waitForTransactionCommitment(
+    signature: string,
+    commitmentLevel: 'confirmed' | 'finalized',
+    network: Network,
+  ): Promise<ReturnType<GetTransactionApi['getTransaction']>> {
+    const rpc = this.#connection.getRpc(network);
+
+    return retry(async () => {
+      this.#logger.log(
+        `Checking if transaction ${signature} has reached commitment level ${commitmentLevel}`,
+      );
+      const transaction = await rpc
+        .getTransaction(signature as Signature, {
+          commitment: commitmentLevel,
+          maxSupportedTransactionVersion: 0,
+        })
+        .send();
+
+      if (transaction) {
+        this.#logger.log(
+          `🎉 Transaction ${signature} has reached commitment level ${commitmentLevel}`,
+        );
+        return transaction;
+      }
+
+      const errorMessage = `⚠️ Transaction with signature ${signature} not found or has not yet reached requested commitment level: ${commitmentLevel}`;
+      this.#logger.warn(errorMessage);
+      throw new Error(errorMessage);
+    });
+  }
 }
