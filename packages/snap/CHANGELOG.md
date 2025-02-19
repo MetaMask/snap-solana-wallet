@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0]
+
+### Uncategorized
+
+- feat: implement SIP-26 onProtocolRequest ([#205](https://github.com/MetaMask/snap-solana-wallet/pull/205))
+- feat: mock `wallet-standard` methods ([#204](https://github.com/MetaMask/snap-solana-wallet/pull/204))
+- Sol 150 emit keyring event account transactions updated event after sending a transaction ([#203](https://github.com/MetaMask/snap-solana-wallet/pull/203))
+- chore: update devnet url ([#202](https://github.com/MetaMask/snap-solana-wallet/pull/202))
+- feat: `getFeeForTransaction` ([#201](https://github.com/MetaMask/snap-solana-wallet/pull/201))
+- test: improve unit tests for execution ([#199](https://github.com/MetaMask/snap-solana-wallet/pull/199))
+- feat: add `sendAndConfirmTransaction` confirmation ([#183](https://github.com/MetaMask/snap-solana-wallet/pull/183))
+
 ## [1.6.0]
 
 ### Added
@@ -204,7 +216,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.3.0...v1.4.0
