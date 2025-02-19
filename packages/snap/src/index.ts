@@ -5,6 +5,7 @@ import type {
   OnAssetsLookupHandler,
   OnCronjobHandler,
   OnKeyringRequestHandler,
+  OnProtocolRequestHandler,
   OnUserInputHandler,
 } from '@metamask/snaps-sdk';
 import {
@@ -20,6 +21,7 @@ import {
   CronjobMethod,
   handlers as onCronjobHandlers,
 } from './core/handlers/onCronjob';
+import { onProtocolRequest as onProtocolRequestHandler } from './core/handlers/onProtocolRequest/onProtocolRequest';
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { install as installPolyfills } from './core/polyfills';
@@ -182,3 +184,6 @@ export const onAssetsLookup: OnAssetsLookupHandler = onAssetsLookupHandler;
 
 export const onAssetsConversion: OnAssetsConversionHandler =
   onAssetsConversionHandler;
+
+export const onProtocolRequest: OnProtocolRequestHandler =
+  onProtocolRequestHandler;
