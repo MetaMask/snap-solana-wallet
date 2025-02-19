@@ -9,15 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.7.0]
 
-### Uncategorized
+### Added
 
-- feat: implement SIP-26 onProtocolRequest ([#205](https://github.com/MetaMask/snap-solana-wallet/pull/205))
-- feat: mock `wallet-standard` methods ([#204](https://github.com/MetaMask/snap-solana-wallet/pull/204))
-- Sol 150 emit keyring event account transactions updated event after sending a transaction ([#203](https://github.com/MetaMask/snap-solana-wallet/pull/203))
-- chore: update devnet url ([#202](https://github.com/MetaMask/snap-solana-wallet/pull/202))
-- feat: `getFeeForTransaction` ([#201](https://github.com/MetaMask/snap-solana-wallet/pull/201))
-- test: improve unit tests for execution ([#199](https://github.com/MetaMask/snap-solana-wallet/pull/199))
-- feat: add `sendAndConfirmTransaction` confirmation ([#183](https://github.com/MetaMask/snap-solana-wallet/pull/183))
+- Enable SIP-26 `onProtocolRequest` ([#205](https://github.com/MetaMask/snap-solana-wallet/pull/205))
+- Mock `wallet-standard` methods ([#204](https://github.com/MetaMask/snap-solana-wallet/pull/204))
+- Emit keyring event after sending a transaction ([#203](https://github.com/MetaMask/snap-solana-wallet/pull/203))
+- Implement `getFeeForTransaction` RPC request ([#201](https://github.com/MetaMask/snap-solana-wallet/pull/201))
+- Added `sendAndConfirmTransaction` confirmation ([#183](https://github.com/MetaMask/snap-solana-wallet/pull/183))
+
+### Changed
+
+- Update devnet url ([#202](https://github.com/MetaMask/snap-solana-wallet/pull/202))
+- Improve unit tests for execution ([#199](https://github.com/MetaMask/snap-solana-wallet/pull/199))
 
 ## [1.6.0]
 
