@@ -164,6 +164,14 @@ describe('Send', () => {
       result: { locale: 'en', currency: 'usd' },
     });
 
+    mockJsonRpc({
+      method: 'snap_manageAccounts',
+      result: {
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
+      },
+    });
+
     mockResolvedResult({
       method: 'getLatestBlockhash',
       result: MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result,
