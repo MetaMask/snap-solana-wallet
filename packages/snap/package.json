@@ -45,7 +45,7 @@
     "@metamask/keyring-snap-sdk": "3.0.0",
     "@metamask/snaps-cli": "6.5.1",
     "@metamask/snaps-jest": "8.12.0",
-    "@metamask/snaps-sdk": "6.17.1",
+    "@metamask/snaps-sdk": "6.18.0",
     "@metamask/utils": "11.0.0",
     "@noble/ed25519": "2.1.0",
     "@solana-program/compute-budget": "0.6.1",

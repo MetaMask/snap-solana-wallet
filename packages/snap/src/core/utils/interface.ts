@@ -13,6 +13,7 @@ import type { Preferences } from '../types/snap';
 import type { Locale } from './i18n';
 
 export const SEND_FORM_INTERFACE_NAME = 'send-form';
+export const CONFIRMATION_INTERFACE_NAME = 'confirmation';
 
 /**
  * Creates an interface using the provided UI component and context.

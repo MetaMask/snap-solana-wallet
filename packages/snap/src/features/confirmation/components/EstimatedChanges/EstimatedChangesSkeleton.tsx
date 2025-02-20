@@ -18,7 +18,7 @@ export const EstimatedChangesSkeleton: SnapComponent<{
           {translate('confirmation.estimatedChanges.send')}
         </Text>
         <Box>
-          <Box direction="vertical" alignment="start">
+          <Box direction="vertical" crossAlignment="end">
             <Skeleton width={100} height={20} />
             <Skeleton width={40} height={20} />
           </Box>
@@ -29,7 +29,7 @@ export const EstimatedChangesSkeleton: SnapComponent<{
           {translate('confirmation.estimatedChanges.receive')}
         </Text>
         <Box>
-          <Box direction="vertical" alignment="start">
+          <Box direction="vertical" crossAlignment="end">
             <Skeleton width={100} height={20} />
             <Skeleton width={40} height={20} />
           </Box>

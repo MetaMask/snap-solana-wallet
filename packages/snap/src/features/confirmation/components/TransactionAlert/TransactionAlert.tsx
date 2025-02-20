@@ -100,7 +100,7 @@ export const TransactionAlert: SnapComponent<TransactionAlertProps> = ({
       >
         <Text>{translate('confirmation.validationErrorSubtitle')}</Text>
         <Text size="sm">
-          <Link href="https://metamask.io/security">
+          <Link href="https://support.metamask.io/configure/wallet/how-to-turn-on-security-alerts/">
             {translate('confirmation.validationErrorLearnMore')}
           </Link>
         </Text>

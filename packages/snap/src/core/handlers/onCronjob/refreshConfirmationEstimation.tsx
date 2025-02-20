@@ -1,81 +1,121 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import { Send } from '../../../features/send/Send';
-import type { SendContext } from '../../../features/send/types';
-import { state, tokenPricesService } from '../../../snapContext';
+import { CronjobMethod } from '.';
+import { Confirmation } from '../../../features/confirmation/Confirmation';
+import type { ConfirmationContext } from '../../../features/confirmation/types';
+import { state, transactionScanService } from '../../../snapContext';
 import {
+  CONFIRMATION_INTERFACE_NAME,
   getInterfaceContext,
-  SEND_FORM_INTERFACE_NAME,
   updateInterface,
 } from '../../utils/interface';
 import logger from '../../utils/logger';
 
 export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
   try {
-    logger.info('[refreshConfirmationEstimation] Cronjob triggered');
+    logger.info(
+      `[${CronjobMethod.RefreshConfirmationEstimation}] Cronjob triggered`,
+    );
 
     const stateValue = await state.get();
-    const sendFormInterfaceId =
-      stateValue?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
+    const confirmationInterfaceId =
+      stateValue?.mapInterfaceNameToId?.[CONFIRMATION_INTERFACE_NAME];
 
     // Update the interface context with the new rates.
     try {
-      if (sendFormInterfaceId) {
+      if (confirmationInterfaceId) {
         // Get the current context
         const interfaceContext = (await getInterfaceContext(
-          sendFormInterfaceId,
-        )) as SendContext;
+          confirmationInterfaceId,
+        )) as ConfirmationContext;
 
         if (!interfaceContext) {
-          logger.info('[refreshUiTokenPrices] No interface context found');
-          return;
-        }
-
-        // we only want to refresh the token prices when the user is in the transaction confirmation stage
-        if (interfaceContext.stage !== 'transaction-confirmation') {
           logger.info(
-            '[refreshUiTokenPrices] Not in transaction confirmation stage',
+            `[${CronjobMethod.RefreshConfirmationEstimation}] No interface context found`,
           );
           return;
         }
 
-        if (!interfaceContext.assets) {
-          logger.info('[refreshUiTokenPrices] No assets found');
+        if (
+          !interfaceContext.account?.address ||
+          !interfaceContext.transaction ||
+          !interfaceContext.scope ||
+          !interfaceContext.method
+        ) {
+          logger.info(
+            `[${CronjobMethod.RefreshConfirmationEstimation}] Context is missing required fields`,
+          );
           return;
         }
 
-        const tokenPrices = await tokenPricesService.getMultipleTokenPrices(
-          interfaceContext.assets,
-          interfaceContext.preferences.currency,
+        const fetchingConfirmationContext = {
+          ...interfaceContext,
+          scanFetchStatus: 'fetching',
+        } as ConfirmationContext;
+
+        await updateInterface(
+          confirmationInterfaceId,
+          <Confirmation context={fetchingConfirmationContext} />,
+          fetchingConfirmationContext,
         );
 
+        const scan = await transactionScanService.scanTransaction({
+          method: interfaceContext.method,
+          accountAddress: interfaceContext.account.address,
+          transaction: interfaceContext.transaction,
+          scope: interfaceContext.scope,
+        });
+
         const updatedInterfaceContextFinal = (await getInterfaceContext(
-          sendFormInterfaceId,
-        )) as SendContext;
+          confirmationInterfaceId,
+        )) as ConfirmationContext;
 
         // Update the current context with the new rates
         const updatedInterfaceContext = {
           ...updatedInterfaceContextFinal,
-          tokenPrices: {
-            ...updatedInterfaceContextFinal.tokenPrices,
-            ...tokenPrices,
-          },
+          scan,
         };
 
         await updateInterface(
-          sendFormInterfaceId,
-          <Send context={updatedInterfaceContext} />,
+          confirmationInterfaceId,
+          <Confirmation context={updatedInterfaceContext} />,
           updatedInterfaceContext,
         );
       }
     } catch (error) {
+      if (!confirmationInterfaceId) {
+        logger.info(
+          `[${CronjobMethod.RefreshConfirmationEstimation}] No interface context found`,
+        );
+        return;
+      }
+
+      const fetchedInterfaceContext = (await getInterfaceContext(
+        confirmationInterfaceId,
+      )) as ConfirmationContext;
+      const fetchingConfirmationContext = {
+        ...fetchedInterfaceContext,
+        scanFetchStatus: 'fetched',
+      } as ConfirmationContext;
+
+      await updateInterface(
+        confirmationInterfaceId,
+        <Confirmation context={fetchingConfirmationContext} />,
+        fetchingConfirmationContext,
+      );
+
       logger.info(
         { error },
-        '[refreshSendTokenPrices] Could not update the interface, but token prices were properly refreshed and saved in the state.',
+        `[${CronjobMethod.RefreshConfirmationEstimation}] Could not update the interface. But rolled back status to fetched.`,
       );
     }
-    logger.info('[refreshSendTokenPrices] Cronjob suceeded');
+    logger.info(
+      `[${CronjobMethod.RefreshConfirmationEstimation}] Cronjob suceeded`,
+    );
   } catch (error) {
-    logger.info({ error }, '[refreshSendTokenPrices] Cronjob failed');
+    logger.info(
+      { error },
+      `[${CronjobMethod.RefreshConfirmationEstimation}] Cronjob failed`,
+    );
   }
 };

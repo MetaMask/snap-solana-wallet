@@ -51,7 +51,14 @@
         {
           "expression": "* * * * *",
           "request": {
-            "method": "refreshTokenPrices",
+            "method": "refreshSendTokenPrices",
+            "params": {}
+          }
+        },
+        {
+          "expression": "* * * * *",
+          "request": {
+            "method": "refreshConfirmationEstimation",
             "params": {}
           }
         },

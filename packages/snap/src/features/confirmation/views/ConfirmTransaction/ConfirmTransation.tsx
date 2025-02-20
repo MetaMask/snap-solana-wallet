@@ -5,7 +5,6 @@ import {
   Container,
   Footer,
   Heading,
-  Text,
 } from '@metamask/snaps-sdk/jsx';
 
 import { Networks } from '../../../../core/constants/solana';
@@ -24,21 +23,22 @@ export const ConfirmTransaction: SnapComponent<{
   const feeInSol = context.feeEstimatedInSol;
   const { nativeToken } = Networks[context.scope];
   const nativePrice = context.tokenPrices[nativeToken.caip19Id]?.price ?? null;
+  const scanIsFetching = context.scanFetchStatus === 'fetching';
 
   return (
     <Container>
       <Box>
-        <Box alignment="center" center>
-          <Box>{null}</Box>
-          <Heading size="lg">{translate('confirmation.title')}</Heading>
-          <Box>{null}</Box>
-        </Box>
         <TransactionAlert
           scanFetchStatus={context.scanFetchStatus}
           validation={context.scan?.validation ?? null}
           error={context.scan?.error ?? null}
           preferences={context.preferences}
         />
+        <Box alignment="center" center>
+          <Box>{null}</Box>
+          <Heading size="lg">{translate('confirmation.title')}</Heading>
+          <Box>{null}</Box>
+        </Box>
         <EstimatedChanges
           scanStatus={context.scan?.status ?? null}
           scanFetchStatus={context.scanFetchStatus}
@@ -65,7 +65,7 @@ export const ConfirmTransaction: SnapComponent<{
         <Button name={ConfirmationFormNames.Cancel}>
           {translate('confirmation.cancelButton')}
         </Button>
-        <Button name={ConfirmationFormNames.Confirm}>
+        <Button name={ConfirmationFormNames.Confirm} disabled={scanIsFetching}>
           {translate('confirmation.confirmButton')}
         </Button>
       </Footer>

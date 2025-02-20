@@ -13,8 +13,8 @@ export const AssetChange: SnapComponent<{
   const changeType = asset.type;
 
   return (
-    <Box direction="vertical">
-      <Box direction="horizontal" alignment="start">
+    <Box direction="vertical" crossAlignment="end">
+      <Box direction="horizontal" alignment="center">
         <Text color={changeType === 'in' ? 'success' : 'error'}>
           {changeType === 'in' ? '+' : '-'}
           {formatTokens(asset.value ?? 0, '', preferences.locale)}

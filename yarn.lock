@@ -4291,27 +4291,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/providers@npm:^18.3.1":
-  version: 18.3.1
-  resolution: "@metamask/providers@npm:18.3.1"
-  dependencies:
-    "@metamask/json-rpc-engine": ^10.0.2
-    "@metamask/json-rpc-middleware-stream": ^8.0.6
-    "@metamask/object-multiplex": ^2.0.0
-    "@metamask/rpc-errors": ^7.0.2
-    "@metamask/safe-event-emitter": ^3.1.1
-    "@metamask/utils": ^11.0.1
-    detect-browser: ^5.2.0
-    extension-port-stream: ^4.1.0
-    fast-deep-equal: ^3.1.3
-    is-stream: ^2.0.0
-    readable-stream: ^3.6.2
-  peerDependencies:
-    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 626112e3bdaa3b63c041ac0d280777419109a1ed2a6cdd50c1b3c7700c53d2e342f93748244a58a74d2e94357fe9eed1137317acff4df9ee0586798e02cfe00d
-  languageName: node
-  linkType: hard
-
 "@metamask/providers@npm:^20.0.0":
   version: 20.0.0
   resolution: "@metamask/providers@npm:20.0.0"
@@ -4575,33 +4554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-sdk@npm:6.17.1":
-  version: 6.17.1
-  resolution: "@metamask/snaps-sdk@npm:6.17.1"
-  dependencies:
-    "@metamask/key-tree": ^10.0.2
-    "@metamask/providers": ^18.3.1
-    "@metamask/rpc-errors": ^7.0.2
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.0.1
-  checksum: f1409c777eb51e69ca1a9b88bd61002ad1bf6006712eaebe2e8e6aa192127320ec0e233b4db364ed8048750314e6109b733f024b4699f04c77898a0511dd3983
-  languageName: node
-  linkType: hard
-
-"@metamask/snaps-sdk@npm:^6.16.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.9.0":
-  version: 6.16.0
-  resolution: "@metamask/snaps-sdk@npm:6.16.0"
-  dependencies:
-    "@metamask/key-tree": ^10.0.2
-    "@metamask/providers": ^18.3.1
-    "@metamask/rpc-errors": ^7.0.2
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.0.1
-  checksum: 59277b113a04e0eadbf98928f9a467ac15ce31b6c4396feb795bdb7e31a5435158af16ece93309b3eb2c87a9f0f1c7c91587ce123744f16415e10d6a8f54a70b
-  languageName: node
-  linkType: hard
-
-"@metamask/snaps-sdk@npm:^6.18.0":
+"@metamask/snaps-sdk@npm:6.18.0, @metamask/snaps-sdk@npm:^6.16.0, @metamask/snaps-sdk@npm:^6.18.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.9.0":
   version: 6.18.0
   resolution: "@metamask/snaps-sdk@npm:6.18.0"
   dependencies:
@@ -4726,7 +4679,7 @@ __metadata:
     "@metamask/keyring-snap-sdk": 3.0.0
     "@metamask/snaps-cli": 6.5.1
     "@metamask/snaps-jest": 8.12.0
-    "@metamask/snaps-sdk": 6.17.1
+    "@metamask/snaps-sdk": 6.18.0
     "@metamask/utils": 11.0.0
     "@noble/ed25519": 2.1.0
     "@solana-program/compute-budget": 0.6.1

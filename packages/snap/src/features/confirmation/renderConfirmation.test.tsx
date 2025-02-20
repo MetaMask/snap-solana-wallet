@@ -101,7 +101,7 @@ describe('Confirmation', () => {
       },
     });
 
-    const screen1BeforeUpdate = await (response as any).getInterface();
+    const screen1BeforeUpdate = await response.getInterface();
 
     expect(screen1BeforeUpdate).toRender(
       <Confirmation context={mockConfirmationContext} />,
