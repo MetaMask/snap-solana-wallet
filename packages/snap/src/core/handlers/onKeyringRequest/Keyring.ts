@@ -164,6 +164,7 @@ export class SolanaKeyring implements Keyring {
     importedAccount?: boolean;
     index?: number;
     [key: string]: Json | undefined;
+    accountNameSuggestion?: string;
   }): Promise<KeyringAccount> {
     try {
       // eslint-disable-next-line no-restricted-globals
@@ -186,7 +187,12 @@ export class SolanaKeyring implements Keyring {
       );
 
       // Filter out our special properties from options
-      const { importedAccount, index: _, ...remainingOptions } = options ?? {};
+      const {
+        importedAccount,
+        index: _,
+        accountNameSuggestion,
+        ...remainingOptions
+      } = options ?? {};
 
       const solanaKeyringAccount: SolanaKeyringAccount = {
         id,
@@ -224,7 +230,8 @@ export class SolanaKeyring implements Keyring {
          * and the snaps sdk does not allow extra properties.
          */
         account: keyringAccount,
-        accountNameSuggestion: `Solana Account ${index + 1}`,
+        accountNameSuggestion:
+          accountNameSuggestion ?? `Solana Account ${index + 1}`,
       });
 
       return keyringAccount;
