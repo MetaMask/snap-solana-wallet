@@ -29,23 +29,15 @@ import {
   DEFAULT_CONFIRMATION_CONTEXT,
   renderConfirmation,
 } from '../../../features/confirmation/renderConfirmation';
-import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
-import type { Network } from '../../constants/solana';
-import { SOL_SYMBOL, SolanaCaip19Tokens } from '../../constants/solana';
 import type { AssetsService } from '../../services/assets/AssetsService';
+import type { BalancesService } from '../../services/balances/BalancesService';
 import type { ConfigProvider } from '../../services/config';
 import type { EncryptedState } from '../../services/encrypted-state/EncryptedState';
-import type { FromBase64EncodedBuilder } from '../../services/execution/builders/FromBase64EncodedBuilder';
-import type { TransactionHelper } from '../../services/execution/TransactionHelper';
-import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
 import type { TransactionsService } from '../../services/transactions/Transactions';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
-import { lamportsToSol } from '../../utils/conversion';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
-import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
-import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
 import {
   DeleteAccountStruct,
@@ -79,44 +71,34 @@ export class SolanaKeyring implements Keyring {
 
   readonly #assetsService: AssetsService;
 
-  readonly #tokenMetadataService: TokenMetadataService;
-
-  readonly #transactionHelper: TransactionHelper;
+  readonly #balancesService: BalancesService;
 
   readonly #walletService: WalletService;
-
-  readonly #fromBase64EncodedBuilder: FromBase64EncodedBuilder;
 
   constructor({
     state,
     configProvider,
     logger,
     transactionsService,
-    transactionHelper,
     assetsService,
-    tokenMetadataService,
+    balancesService,
     walletService,
-    fromBase64EncodedBuilder,
   }: {
     state: EncryptedState;
     configProvider: ConfigProvider;
     logger: ILogger;
     transactionsService: TransactionsService;
-    transactionHelper: TransactionHelper;
     assetsService: AssetsService;
-    tokenMetadataService: TokenMetadataService;
+    balancesService: BalancesService;
     walletService: WalletService;
-    fromBase64EncodedBuilder: FromBase64EncodedBuilder;
   }) {
     this.#state = state;
     this.#configProvider = configProvider;
     this.#logger = logger;
     this.#transactionsService = transactionsService;
-    this.#transactionHelper = transactionHelper;
     this.#assetsService = assetsService;
-    this.#tokenMetadataService = tokenMetadataService;
+    this.#balancesService = balancesService;
     this.#walletService = walletService;
-    this.#fromBase64EncodedBuilder = fromBase64EncodedBuilder;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -323,89 +305,13 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId, assets }, GetAccountBalancesStruct);
 
-      const account = await this.getAccount(accountId);
-      const balances = new Map<CaipAssetType, Balance>();
-      const metadata = new Map<CaipAssetType, SolanaTokenMetadata>();
-
-      if (!account) {
-        throw new Error('Account not found');
-      }
-
-      const assetsByNetwork = assets.reduce<Record<Network, CaipAssetType[]>>(
-        (groups, asset) => {
-          const network = getNetworkFromToken(asset);
-
-          if (!groups[network]) {
-            groups[network] = [];
-          }
-
-          groups[network].push(asset);
-          return groups;
-        },
-        {} as Record<Network, CaipAssetType[]>,
+      const account = await this.getAccountOrThrow(accountId);
+      const result = await this.#balancesService.getAccountBalances(
+        account,
+        assets,
       );
 
-      for (const network of Object.keys(assetsByNetwork)) {
-        const currentNetwork = network as Network;
-        const networkAssets = assetsByNetwork[currentNetwork];
-
-        const [nativeAsset, tokenAssets] = await Promise.all([
-          this.#assetsService.getNativeAsset(account.address, currentNetwork),
-          this.#assetsService.discoverTokens(account.address, currentNetwork),
-        ]);
-
-        const tokenMetadata =
-          await this.#tokenMetadataService.getTokensMetadata([
-            nativeAsset.address,
-            ...tokenAssets.map((token) => token.address),
-          ]);
-
-        for (const asset of networkAssets) {
-          // update token metadata if exist
-          if (tokenMetadata[asset]) {
-            metadata.set(asset, tokenMetadata[asset]);
-          }
-
-          if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
-            // update native asset balance
-            balances.set(asset, {
-              amount: lamportsToSol(nativeAsset.balance).toString(),
-              unit: SOL_SYMBOL,
-            });
-          } else {
-            const splToken = tokenAssets.find(
-              (token) => token.address === asset,
-            );
-
-            // update spl token balance if exist
-            if (splToken) {
-              balances.set(asset, {
-                amount: fromTokenUnits(splToken.balance, splToken.decimals),
-                unit: tokenMetadata[splToken.address]?.symbol ?? 'UNKNOWN',
-              });
-            }
-          }
-        }
-      }
-
-      const result = Object.fromEntries(balances.entries());
-
       validateResponse(result, GetAccounBalancesResponseStruct);
-
-      await this.#state.update((state) => {
-        return {
-          ...state,
-          assets: {
-            ...(state?.assets ?? {}),
-            [account.id]: result,
-          },
-          metadata: {
-            ...(state?.metadata ?? {}),
-            ...Object.fromEntries(metadata.entries()),
-          },
-        };
-      });
-
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account balances');
