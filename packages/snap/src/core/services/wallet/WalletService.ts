@@ -5,26 +5,26 @@ import {
   SolMethod,
 } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import type { JsonRpcRequest } from '@metamask/snaps-sdk';
-import type { CaipChainId } from '@metamask/utils';
+import { assert } from '@metamask/superstruct';
 import {
   address as asAddress,
   createKeyPairSignerFromPrivateKeyBytes,
 } from '@solana/web3.js';
-import { assert } from 'superstruct';
 
-import type { Caip10Address } from '../../constants/solana';
+import type { Caip10Address, Network } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { NetworkStruct } from '../../validation/structs';
-import { validateRequest } from '../../validation/validators';
 import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
-import type { SolanaSignAndSendTransactionResponse } from './structs';
+import type {
+  SolanaSignAndSendTransactionResponse,
+  SolanaWalletRequest,
+} from './structs';
 import {
   SolanaSignAndSendTransactionRequestStruct,
   SolanaSignAndSendTransactionResponseStruct,
@@ -37,7 +37,6 @@ import {
   SolanaSignTransactionRequestStruct,
   type SolanaSignTransactionResponse,
   SolanaSignTransactionResponseStruct,
-  SolanaWalletStandardRequestStruct,
 } from './structs';
 
 export class WalletService {
@@ -73,12 +72,9 @@ export class WalletService {
    */
   async resolveAccountAddress(
     keyringAccounts: SolanaKeyringAccount[],
-    scope: CaipChainId,
-    request: JsonRpcRequest,
+    scope: Network,
+    request: SolanaWalletRequest,
   ): Promise<Caip10Address> {
-    validateRequest(request, SolanaWalletStandardRequestStruct);
-    assert(scope, NetworkStruct);
-
     const { method, params } = request;
 
     const accountsWithThisScope = keyringAccounts.filter((account) =>

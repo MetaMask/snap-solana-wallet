@@ -1,5 +1,5 @@
 import { SolMethod } from '@metamask/keyring-api';
-import type { Infer } from 'superstruct';
+import type { Infer } from '@metamask/superstruct';
 import {
   array,
   enums,
@@ -12,7 +12,7 @@ import {
   record,
   refine,
   string,
-} from 'superstruct';
+} from '@metamask/superstruct';
 
 import { Network } from '../constants/solana';
 

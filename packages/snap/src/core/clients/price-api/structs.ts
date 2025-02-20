@@ -1,4 +1,4 @@
-import { enums, nullable, record, string } from 'superstruct';
+import { enums, nullable, record, string } from '@metamask/superstruct';
 
 import { Caip19Struct, PositiveNumberStruct } from '../../validation/structs';
 

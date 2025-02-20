@@ -1,7 +1,7 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import type { AssetConversion } from '@metamask/snaps-sdk';
+import { array, assert } from '@metamask/superstruct';
 import BigNumber from 'bignumber.js';
-import { array, assert } from 'superstruct';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import { VsCurrencyParamStruct } from '../../clients/price-api/structs';

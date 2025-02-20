@@ -1,5 +1,5 @@
 import { SolMethod } from '@metamask/keyring-api';
-import type { Infer } from 'superstruct';
+import type { Infer } from '@metamask/superstruct';
 import {
   array,
   boolean,
@@ -10,10 +10,9 @@ import {
   string,
   type,
   union,
-} from 'superstruct';
+} from '@metamask/superstruct';
 
 import { Network } from '../../constants/solana';
-import { SendAndConfirmTransactionParamsStruct } from '../../validation/structs';
 
 /**
  * Defines all structs derived from types defined in the Solana Wallet Standard.
@@ -85,38 +84,22 @@ const SolanaSignAndSendTransactionInputStruct = type({
   options: optional(SolanaSignAndSendTransactionOptionsStruct),
 });
 
-// const JsonRpcDefaultsStruct = object({
-//   id: number(),
-//   jsonrpc: string(),
-// });
-
-// TODO: Deprecate
-export const SolanaSendAndConfirmTransactionRequestStruct = object({
-  //   ...JsonRpcDefaultsStruct.schema,
-  method: enums([SolMethod.SendAndConfirmTransaction]),
-  params: SendAndConfirmTransactionParamsStruct,
-});
-
 export const SolanaSignAndSendTransactionRequestStruct = object({
-  //   ...JsonRpcDefaultsStruct.schema,
   method: enums([SolMethod.SignAndSendTransaction]),
   params: SolanaSignAndSendTransactionInputStruct,
 });
 
 export const SolanaSignInRequestStruct = object({
-  //   ...JsonRpcDefaultsStruct.schema,
   method: enums([SolMethod.SignIn]),
   params: SolanaSignInInputStruct,
 });
 
 export const SolanaSignMessageRequestStruct = object({
-  //   ...JsonRpcDefaultsStruct.schema,
   method: enums([SolMethod.SignMessage]),
   params: SolanaSignMessageInputStruct,
 });
 
 export const SolanaSignTransactionRequestStruct = object({
-  //   ...JsonRpcDefaultsStruct.schema,
   method: enums([SolMethod.SignTransaction]),
   params: SolanaSignTransactionInputStruct,
 });
@@ -172,13 +155,11 @@ export type SolanaSignInResponse = Infer<typeof SolanaSignInResponseStruct>;
  * Validates that a JsonRpcRequest is a valid Solana request.
  * @see https://github.com/MetaMask/accounts/blob/main/packages/keyring-api/docs/sol-methods.md
  */
-export const SolanaWalletStandardRequestStruct = union([
+export const SolanaWalletRequestStruct = union([
   SolanaSignAndSendTransactionRequestStruct,
   SolanaSignInRequestStruct,
   SolanaSignMessageRequestStruct,
   SolanaSignTransactionRequestStruct,
 ]);
 
-export type SolanaWalletStandardRequest = Infer<
-  typeof SolanaWalletStandardRequestStruct
->;
+export type SolanaWalletRequest = Infer<typeof SolanaWalletRequestStruct>;

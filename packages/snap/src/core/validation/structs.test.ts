@@ -1,5 +1,5 @@
 /* eslint-disable jest/require-to-throw-message */
-import { assert, is } from 'superstruct';
+import { assert, is } from '@metamask/superstruct';
 
 import { KnownCaip19Id } from '../constants/solana';
 import { Caip19Struct, UrlStruct, UuidStruct } from './structs';

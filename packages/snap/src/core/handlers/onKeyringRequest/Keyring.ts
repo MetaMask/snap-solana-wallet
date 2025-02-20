@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
 import {
   KeyringEvent,
+  ResolveAccountAddressRequestStruct,
   SolAccountType,
   SolMethod,
   SolScope,
@@ -19,6 +20,7 @@ import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { Json } from '@metamask/snaps-controllers';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { MethodNotFoundError } from '@metamask/snaps-sdk';
+import { assert, enums } from '@metamask/superstruct';
 import type { CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/web3.js';
 import {
@@ -26,7 +28,6 @@ import {
   createKeyPairSignerFromPrivateKeyBytes,
   getAddressDecoder,
 } from '@solana/web3.js';
-import { assert, enums } from 'superstruct';
 
 import {
   DEFAULT_CONFIRMATION_CONTEXT,
@@ -43,6 +44,7 @@ import type { TransactionHelper } from '../../services/execution/TransactionHelp
 import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
 import type { TransactionsService } from '../../services/transactions/Transactions';
 import { mapRpcTransaction } from '../../services/transactions/utils/mapRpcTransaction';
+import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { lamportsToSol } from '../../utils/conversion';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
@@ -451,7 +453,6 @@ export class SolanaKeyring implements Keyring {
     }
 
     switch (method) {
-      //   case SolMethod.SendAndConfirmTransaction:
       case SolMethod.SignAndSendTransaction:
         return this.#walletService.signAndSendTransaction(account, request);
       default:
@@ -637,16 +638,24 @@ export class SolanaKeyring implements Keyring {
     request: JsonRpcRequest,
   ): Promise<ResolvedAccountAddress | null> {
     try {
+      assert(scope, NetworkStruct);
+      assert(request, ResolveAccountAddressRequestStruct);
+      const { method, params } = request.params.request;
+
+      const requestWithoutCommonHeader = { method, params };
+      assert(requestWithoutCommonHeader, SolanaWalletRequestStruct);
+
       const allAccounts = await this.listAccounts();
 
       const caip10Address = await this.#walletService.resolveAccountAddress(
         allAccounts,
         scope,
-        request,
+        requestWithoutCommonHeader,
       );
 
       return { address: caip10Address };
     } catch (error: any) {
+      console.error(error);
       this.#logger.error({ error }, 'Error resolving account address');
       return null;
     }

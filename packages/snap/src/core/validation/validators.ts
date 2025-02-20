@@ -4,8 +4,8 @@ import {
   SnapError,
   UnauthorizedError,
 } from '@metamask/snaps-sdk';
-import type { Infer, Struct } from 'superstruct';
-import { assert } from 'superstruct';
+import type { Infer, Struct } from '@metamask/superstruct';
+import { assert } from '@metamask/superstruct';
 
 import { originPermissions } from '../../permissions';
 

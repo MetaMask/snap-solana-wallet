@@ -1,7 +1,8 @@
 /* eslint-disable jest/prefer-strict-equal */
 import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
 import { SLIP10Node } from '@metamask/key-tree';
-import { SolMethod } from '@metamask/keyring-api';
+import type { ResolveAccountAddressRequest } from '@metamask/keyring-api';
+import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
 
@@ -21,6 +22,7 @@ import type { TransactionHelper } from '../../services/execution/TransactionHelp
 import { createMockConnection } from '../../services/mocks/mockConnection';
 import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
 import { TransactionsService } from '../../services/transactions/Transactions';
+import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
 import type { WalletService } from '../../services/wallet/WalletService';
 import {
   SOLANA_MOCK_SPL_TOKENS,
@@ -534,7 +536,7 @@ describe('SolanaKeyring', () => {
       };
 
       await expect(
-        keyring.handleSendAndConfirmTransaction(request, false),
+        keyring.handleSendAndConfirmTransaction(request),
       ).rejects.toThrow(
         'At path: base64EncodedTransactionMessage -- Expected a string, but received: undefined',
       );
@@ -568,10 +570,7 @@ describe('SolanaKeyring', () => {
         },
       };
 
-      const response = await keyring.handleSendAndConfirmTransaction(
-        request,
-        false,
-      );
+      const response = await keyring.handleSendAndConfirmTransaction(request);
 
       expect(response).toStrictEqual({
         signature: 'someSignature',
@@ -588,13 +587,16 @@ describe('SolanaKeyring', () => {
       account: MOCK_SOLANA_KEYRING_ACCOUNT_3.id,
       request: {
         method: 'unsupportedMethod' as SolMethod,
-        params: {},
+        params: {
+          base64EncodedTransactionMessage:
+            'someBase64EncodedTransactionMessage',
+        },
       },
     };
 
-    await expect(keyring.submitRequest(request)).rejects.toThrow(
-      /but received: "unsupportedMethod"/u,
-    );
+    await expect(
+      keyring.handleSendAndConfirmTransaction(request),
+    ).rejects.toThrow(/but received: "unsupportedMethod"/u);
   });
 
   it('throws error when account is not found', async () => {
@@ -613,18 +615,27 @@ describe('SolanaKeyring', () => {
       },
     };
 
-    await expect(keyring.submitRequest(request)).rejects.toThrow(
-      `Account "${NON_EXISTENT_ACCOUNT_ID}" not found`,
-    );
+    await expect(
+      keyring.handleSendAndConfirmTransaction(request),
+    ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
   });
 
   describe('resolveAccountAddress', () => {
     it('returns resolved address when wallet standard service resolves successfully', async () => {
       const mockScope = Network.Testnet;
-      const mockRequest = {
-        method: 'someMethod',
-        params: [],
-      } as unknown as JsonRpcRequest;
+      const mockRequest: ResolveAccountAddressRequest = {
+        id: 1,
+        jsonrpc: '2.0',
+        method: KeyringRpcMethod.ResolveAccountAddress,
+        params: {
+          request: {
+            id: 1,
+            jsonrpc: '2.0',
+            ...MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
+          } as unknown as JsonRpcRequest,
+          scope: mockScope,
+        },
+      };
       const mockResolvedAddress = `${mockScope}:resolved-address`;
 
       jest
@@ -640,7 +651,7 @@ describe('SolanaKeyring', () => {
       expect(mockWalletService.resolveAccountAddress).toHaveBeenCalledWith(
         MOCK_SOLANA_KEYRING_ACCOUNTS,
         mockScope,
-        mockRequest,
+        MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
       );
     });
 

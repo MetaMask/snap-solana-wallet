@@ -5,7 +5,7 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
-import { type SnapExecutionContext } from '../../../../snapContext';
+import { keyring } from '../../../../snapContext';
 import { Send } from '../../Send';
 import type { SendContext } from '../../types';
 import { TransactionConfirmationNames } from './TransactionConfirmation';
@@ -50,19 +50,17 @@ async function onCancelButtonClick({ id }: { id: string }) {
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  * @param params.context - The send context.
- * @param params.snapContext - The snap execution context.
  * @returns A promise that resolves when the operation is complete.
  */
 async function onConfirmButtonClick({
   id,
   context,
-  snapContext,
 }: {
   id: string;
   context: SendContext;
-  snapContext: SnapExecutionContext;
 }) {
-  const { feeEstimatedInSol, transactionMessage } = context;
+  const { scope, fromAccountId, feeEstimatedInSol, transactionMessage } =
+    context;
 
   context.error = null;
 
@@ -90,10 +88,10 @@ async function onConfirmButtonClick({
     // It will be decoded on the other side, then signed and sent to the network.
     // It MUST be signed on the other side, because the transaction message is stripped of its private keys during encoding, for security reasons.
     // Fees can also be calculated on the other side from the decoded transaction message.
-    const response = await snapContext.keyring.handleSendAndConfirmTransaction({
-      id,
-      scope: context.scope,
-      account: context.fromAccountId, // Will be used to sign the transaction
+    const response = await keyring.handleSendAndConfirmTransaction({
+      id: globalThis.crypto.randomUUID(),
+      scope,
+      account: fromAccountId, // Will be used to sign the transaction
       request: {
         method: SolMethod.SendAndConfirmTransaction,
         params: {
@@ -102,7 +100,11 @@ async function onConfirmButtonClick({
       },
     });
 
-    signature = response?.signature ?? null;
+    if (!response) {
+      throw new Error('No response');
+    }
+
+    signature = response.signature;
   } catch (error) {
     logger.error({ error }, 'Error submitting request');
   }

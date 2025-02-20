@@ -1,5 +1,5 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
-import { array, assert } from 'superstruct';
+import { array, assert } from '@metamask/superstruct';
 
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';

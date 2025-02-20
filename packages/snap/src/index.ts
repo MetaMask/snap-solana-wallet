@@ -12,7 +12,7 @@ import {
   SnapError,
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
-import { assert, enums } from 'superstruct';
+import { assert, enums } from '@metamask/superstruct';
 
 import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
 import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';

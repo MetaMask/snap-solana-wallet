@@ -1,6 +1,13 @@
 /* eslint-disable no-restricted-globals */
-import type { Infer } from 'superstruct';
-import { array, coerce, create, enums, object, string } from 'superstruct';
+import type { Infer } from '@metamask/superstruct';
+import {
+  array,
+  coerce,
+  create,
+  enums,
+  object,
+  string,
+} from '@metamask/superstruct';
 
 import { Network, Networks } from '../../constants/solana';
 import { UrlStruct } from '../../validation/structs';

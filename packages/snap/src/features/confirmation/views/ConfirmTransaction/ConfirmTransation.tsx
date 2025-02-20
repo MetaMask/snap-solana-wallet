@@ -1,17 +1,15 @@
 import {
-  type SnapComponent,
   Box,
   Button,
   Container,
   Footer,
   Heading,
-  Text,
+  type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
 import { Networks } from '../../../../core/constants/solana';
 import { i18n } from '../../../../core/utils/i18n';
 import { Advanced } from '../../components/Advanced/Advanced';
-import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
 import { ConfirmationFormNames, type ConfirmationContext } from '../../types';
 

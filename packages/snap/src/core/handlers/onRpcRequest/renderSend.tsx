@@ -1,6 +1,6 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
-import { assert } from 'superstruct';
+import { assert } from '@metamask/superstruct';
 
 import { Send } from '../../../features/send/Send';
 import type { SendContext } from '../../../features/send/types';

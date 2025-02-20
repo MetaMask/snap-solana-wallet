@@ -1,4 +1,10 @@
-import { SolMethod, type KeyringRequest } from '@metamask/keyring-api';
+import type { ResolveAccountAddressRequest } from '@metamask/keyring-api';
+import {
+  KeyringRpcMethod,
+  SolMethod,
+  type KeyringRequest,
+} from '@metamask/keyring-api';
+import type { JsonRpcRequest } from '@metamask/utils';
 
 import { Network } from '../../constants/solana';
 import {
@@ -30,8 +36,6 @@ export const wrapKeyringRequest = <Request extends KeyringRequest['request']>(
 
 export const MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST: SolanaSignAndSendTransactionRequest =
   {
-    id: 1,
-    jsonrpc: '2.0',
     method: SolMethod.SignAndSendTransaction,
     params: {
       account: {
@@ -43,8 +47,6 @@ export const MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST: SolanaSignAndSendTransactio
   } as const;
 
 export const MOCK_SIGN_TRANSACTION_REQUEST: SolanaSignTransactionRequest = {
-  id: 1,
-  jsonrpc: '2.0',
   method: SolMethod.SignTransaction,
   params: {
     account: {
@@ -56,8 +58,6 @@ export const MOCK_SIGN_TRANSACTION_REQUEST: SolanaSignTransactionRequest = {
 };
 
 export const MOCK_SIGN_IN_REQUEST: SolanaSignInRequest = {
-  id: 1,
-  jsonrpc: '2.0',
   method: SolMethod.SignIn,
   params: {
     address: MOCK_SOLANA_KEYRING_ACCOUNT_2.address,
@@ -71,8 +71,6 @@ export const MOCK_SIGN_IN_REQUEST: SolanaSignInRequest = {
 } as const;
 
 export const MOCK_SIGN_MESSAGE_REQUEST: SolanaSignMessageRequest = {
-  id: 1,
-  jsonrpc: '2.0',
   method: SolMethod.SignMessage,
   params: {
     account: {
@@ -107,3 +105,18 @@ export const MOCK_SIGN_IN_RESPONSE: SolanaSignInResponse = {
   signedMessage: Object.values(params).join(' | '),
   signatureType: 'ed25519',
 } as const;
+
+export const MOCK_RESOLVE_ACCOUNT_ADDRESS_REQUEST: ResolveAccountAddressRequest =
+  {
+    id: 1,
+    jsonrpc: '2.0',
+    method: KeyringRpcMethod.ResolveAccountAddress,
+    params: {
+      request: {
+        id: 1,
+        jsonrpc: '2.0',
+        ...MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
+      } as unknown as JsonRpcRequest,
+      scope: Network.Testnet,
+    },
+  };

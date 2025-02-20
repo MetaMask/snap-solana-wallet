@@ -1,5 +1,5 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
-import { type Infer } from 'superstruct';
+import { type Infer } from '@metamask/superstruct';
 
 import type {
   SpotPricesFromPriceApiWithoutMarketDataStruct,

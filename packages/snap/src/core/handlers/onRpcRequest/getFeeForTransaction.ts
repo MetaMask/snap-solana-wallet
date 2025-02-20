@@ -1,5 +1,5 @@
 import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
-import { assert } from 'superstruct';
+import { assert } from '@metamask/superstruct';
 
 import { transactionHelper } from '../../../snapContext';
 import logger from '../../utils/logger';

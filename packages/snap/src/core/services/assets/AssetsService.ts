@@ -1,8 +1,8 @@
+import { assert } from '@metamask/superstruct';
 import {
   address as asAddress,
   type JsonParsedTokenAccount,
 } from '@solana/web3.js';
-import { assert } from 'superstruct';
 
 import type { Network } from '../../constants/solana';
 import { SolanaCaip19Tokens, TOKEN_PROGRAM_ID } from '../../constants/solana';

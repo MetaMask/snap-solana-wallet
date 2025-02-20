@@ -1,4 +1,11 @@
-import { array, bigint, boolean, number, string, type } from 'superstruct';
+import {
+  array,
+  bigint,
+  boolean,
+  number,
+  string,
+  type,
+} from '@metamask/superstruct';
 
 export const GetBalanceResponseStruct = type({
   context: type({

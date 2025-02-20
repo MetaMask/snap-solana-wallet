@@ -1,4 +1,10 @@
-import { array, integer, object, optional, string } from 'superstruct';
+import {
+  array,
+  integer,
+  object,
+  optional,
+  string,
+} from '@metamask/superstruct';
 
 import { Caip19Struct, UrlStruct } from '../../validation/structs';
 

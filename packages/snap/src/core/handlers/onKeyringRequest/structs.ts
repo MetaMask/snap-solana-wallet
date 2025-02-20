@@ -1,7 +1,7 @@
-import type { Infer } from 'superstruct';
-import { object } from 'superstruct';
+import type { Infer } from '@metamask/superstruct';
+import { object } from '@metamask/superstruct';
 
-import { SolanaWalletStandardRequestStruct } from '../../services/wallet/structs';
+import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import { NetworkStruct, UuidStruct } from '../../validation/structs';
 
 /**
@@ -11,7 +11,7 @@ export const SolanaKeyringRequestStruct = object({
   id: UuidStruct,
   scope: NetworkStruct,
   account: UuidStruct,
-  request: SolanaWalletStandardRequestStruct,
+  request: SolanaWalletRequestStruct,
 });
 
 export type SolanaKeyringRequest = Infer<typeof SolanaKeyringRequestStruct>;

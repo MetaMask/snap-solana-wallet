@@ -1,4 +1,4 @@
-import { enums, object } from 'superstruct';
+import { enums, object } from '@metamask/superstruct';
 
 import { Network } from '../../../../core/constants/solana';
 import type { FieldValidationFunction } from '../../../../core/types/form';

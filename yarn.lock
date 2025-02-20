@@ -4669,6 +4669,7 @@ __metadata:
     "@metamask/snaps-cli": 6.5.1
     "@metamask/snaps-jest": 8.11.0
     "@metamask/snaps-sdk": 6.17.1
+    "@metamask/superstruct": ^3.1.0
     "@metamask/utils": 11.0.0
     "@noble/ed25519": 2.1.0
     "@solana-program/compute-budget": 0.6.1
@@ -4690,7 +4691,6 @@ __metadata:
     jest-transform-stub: ^2.0.0
     lodash: ^4.17.21
     rimraf: ^6.0.1
-    superstruct: 2.0.2
     ts-jest: ^29.2.0
   languageName: unknown
   linkType: soft
@@ -23712,13 +23712,6 @@ __metadata:
   version: 8.2.5
   resolution: "sudo-prompt@npm:8.2.5"
   checksum: bacff1f18a8ab8dba345cc1f3cf3a02b4cc571f71585df79af95af31278f56107f7c29402f5347b07c489888c63f2deb78d544b93a6347e83d0ed0847f4bc163
-  languageName: node
-  linkType: hard
-
-"superstruct@npm:2.0.2":
-  version: 2.0.2
-  resolution: "superstruct@npm:2.0.2"
-  checksum: a5f75b72cb8b14b86f4f7f750dae8c5ab0e4e1d92414b55e7625bae07bbcafad81c92486e7e32ccacd6ae1f553caff2b92a50ff42ad5093fd35b9cb7f4e5ec86
   languageName: node
   linkType: hard
 
