@@ -1,6 +1,7 @@
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
+import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
@@ -9,12 +10,11 @@ import { FromBase64EncodedBuilder } from './core/services/execution/builders/Fro
 import { SendSolBuilder } from './core/services/execution/builders/SendSolBuilder';
 import { SendSplTokenBuilder } from './core/services/execution/builders/SendSplTokenBuilder';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
-import { SolanaKeyring } from './core/services/keyring/Keyring';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
 import { TransactionsService } from './core/services/transactions/Transactions';
-import { WalletStandardService } from './core/services/wallet-standard/WalletStandardService';
+import { WalletService } from './core/services/wallet/WalletService';
 import logger from './core/utils/logger';
 
 /**
@@ -34,7 +34,7 @@ export type SnapExecutionContext = {
   sendSolBuilder: SendSolBuilder;
   sendSplTokenBuilder: SendSplTokenBuilder;
   fromBase64EncodedBuilder: FromBase64EncodedBuilder;
-  walletStandardService: WalletStandardService;
+  walletService: WalletService;
   transactionScanService: TransactionScanService;
 };
 
@@ -71,7 +71,12 @@ const transactionsService = new TransactionsService({
   tokenMetadataService,
 });
 
-const walletStandardService = new WalletStandardService(logger);
+const walletService = new WalletService(
+  fromBase64EncodedBuilder,
+  transactionHelper,
+  logger,
+);
+
 const transactionScanService = new TransactionScanService(
   new SecurityAlertsApiClient(configProvider),
   logger,
@@ -85,7 +90,7 @@ const keyring = new SolanaKeyring({
   logger,
   assetsService,
   tokenMetadataService,
-  walletStandardService,
+  walletService,
   fromBase64EncodedBuilder,
 });
 
@@ -105,7 +110,7 @@ const snapContext: SnapExecutionContext = {
   sendSolBuilder,
   sendSplTokenBuilder,
   fromBase64EncodedBuilder,
-  walletStandardService,
+  walletService,
   transactionScanService,
 };
 
@@ -125,7 +130,7 @@ export {
   transactionHelper,
   transactionScanService,
   transactionsService,
-  walletStandardService,
+  walletService,
 };
 
 export default snapContext;

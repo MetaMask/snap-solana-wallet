@@ -10,6 +10,18 @@ import {
   Network,
   SolanaCaip19Tokens,
 } from '../../constants/solana';
+import { AssetsService } from '../../services/assets/AssetsService';
+import type { ConfigProvider } from '../../services/config';
+import type { Config } from '../../services/config/ConfigProvider';
+import type { SolanaConnection } from '../../services/connection/SolanaConnection';
+import type { EncryptedStateValue } from '../../services/encrypted-state/EncryptedState';
+import { EncryptedState } from '../../services/encrypted-state/EncryptedState';
+import type { FromBase64EncodedBuilder } from '../../services/execution/builders/FromBase64EncodedBuilder';
+import type { TransactionHelper } from '../../services/execution/TransactionHelper';
+import { createMockConnection } from '../../services/mocks/mockConnection';
+import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
+import { TransactionsService } from '../../services/transactions/Transactions';
+import type { WalletService } from '../../services/wallet/WalletService';
 import {
   SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN,
@@ -28,18 +40,6 @@ import {
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../test/mocks/transactions-data/native-sol-transfer';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
-import { AssetsService } from '../assets/AssetsService';
-import type { ConfigProvider } from '../config';
-import type { Config } from '../config/ConfigProvider';
-import type { SolanaConnection } from '../connection/SolanaConnection';
-import type { EncryptedStateValue } from '../encrypted-state/EncryptedState';
-import { EncryptedState } from '../encrypted-state/EncryptedState';
-import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
-import type { TransactionHelper } from '../execution/TransactionHelper';
-import { createMockConnection } from '../mocks/mockConnection';
-import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
-import { TransactionsService } from '../transactions/Transactions';
-import type { WalletStandardService } from '../wallet-standard/WalletStandardService';
 import { SolanaKeyring } from './Keyring';
 
 jest.mock('../../../features/confirmation/renderConfirmation');
@@ -72,7 +72,7 @@ describe('SolanaKeyring', () => {
   let mockConnection: SolanaConnection;
   let mockTransactionHelper: TransactionHelper;
   let mockTokenMetadataService: TokenMetadataService;
-  let mockWalletStandardService: WalletStandardService;
+  let mockWalletService: WalletService;
   let mockFromBase64EncodedBuilder: FromBase64EncodedBuilder;
 
   beforeEach(() => {
@@ -119,13 +119,13 @@ describe('SolanaKeyring', () => {
         .mockResolvedValue(SOLANA_MOCK_TOKEN_METADATA),
     } as unknown as TokenMetadataService;
 
-    mockWalletStandardService = {
+    mockWalletService = {
       resolveAccountAddress: jest.fn(),
       signIn: jest.fn(),
       signTransaction: jest.fn(),
       signMessage: jest.fn(),
       signAndSendTransaction: jest.fn(),
-    } as unknown as WalletStandardService;
+    } as unknown as WalletService;
 
     mockFromBase64EncodedBuilder = {
       buildTransactionMessage: jest.fn(),
@@ -139,7 +139,7 @@ describe('SolanaKeyring', () => {
       assetsService,
       tokenMetadataService: mockTokenMetadataService,
       transactionHelper: mockTransactionHelper,
-      walletStandardService: mockWalletStandardService,
+      walletService: mockWalletService,
       fromBase64EncodedBuilder: mockFromBase64EncodedBuilder,
     });
 
@@ -628,7 +628,7 @@ describe('SolanaKeyring', () => {
       const mockResolvedAddress = `${mockScope}:resolved-address`;
 
       jest
-        .spyOn(mockWalletStandardService, 'resolveAccountAddress')
+        .spyOn(mockWalletService, 'resolveAccountAddress')
         .mockResolvedValue(mockResolvedAddress);
 
       const result = await keyring.resolveAccountAddress(
@@ -637,9 +637,7 @@ describe('SolanaKeyring', () => {
       );
 
       expect(result).toStrictEqual({ address: mockResolvedAddress });
-      expect(
-        mockWalletStandardService.resolveAccountAddress,
-      ).toHaveBeenCalledWith(
+      expect(mockWalletService.resolveAccountAddress).toHaveBeenCalledWith(
         MOCK_SOLANA_KEYRING_ACCOUNTS,
         mockScope,
         mockRequest,
@@ -654,7 +652,7 @@ describe('SolanaKeyring', () => {
       } as unknown as JsonRpcRequest;
 
       jest
-        .spyOn(mockWalletStandardService, 'resolveAccountAddress')
+        .spyOn(mockWalletService, 'resolveAccountAddress')
         .mockRejectedValue(new Error('Something went wrong'));
 
       const result = await keyring.resolveAccountAddress(

@@ -7,6 +7,8 @@ import {
 import { useEffect, useState } from 'react';
 
 import { Network } from '../../../../snap/src/core/constants/solana';
+import type { SolanaKeyringRequest } from '../../../../snap/src/core/handlers/onKeyringRequest/structs';
+import { buildUrl } from '../../../../snap/src/core/utils/buildUrl';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 import { AccountRow } from './AccountRow';
 
@@ -39,23 +41,43 @@ export const Accounts = () => {
   };
 
   const handleSendAndConfirmTransaction = async () => {
-    const lifiQuote = await fetch(
-      'https://li.quest/v1/quote?fromChain=SOL&toChain=SOL&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&fromAmount=1000000',
-    ).then(async (quote) => quote.json());
+    const address = 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa';
+    const fromToken = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+    const toToken = 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263';
+
+    const url = buildUrl({
+      baseUrl: 'https://li.quest/v1/quote',
+      path: '',
+      queryParams: {
+        fromChain: 'SOL',
+        toChain: 'SOL',
+        fromToken,
+        toToken,
+        fromAddress: address,
+        toAddress: address,
+        fromAmount: '1000000',
+      },
+    });
+
+    const lifiQuote = await fetch(url).then(async (quote) => quote.json());
+
+    const request: SolanaKeyringRequest = {
+      id: crypto.randomUUID(),
+      scope: Network.Mainnet,
+      account: accounts?.[0]?.id ?? '',
+      request: {
+        method: SolMethod.SignAndSendTransaction,
+        params: {
+          transaction: lifiQuote.transactionRequest.data,
+          scope: Network.Mainnet,
+          account: { address },
+        },
+      },
+    };
 
     await invokeKeyring({
       method: KeyringRpcMethod.SubmitRequest,
-      params: {
-        id: accounts?.[0]?.id,
-        scope: Network.Mainnet,
-        account: accounts?.[0]?.id,
-        request: {
-          method: SolMethod.SendAndConfirmTransaction,
-          params: {
-            base64EncodedTransactionMessage: lifiQuote.transactionRequest.data,
-          },
-        },
-      },
+      params: request,
     });
   };
   useEffect(() => {

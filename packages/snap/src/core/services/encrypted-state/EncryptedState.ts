@@ -7,8 +7,8 @@ import type {
 import type { Json } from '@metamask/snaps-sdk';
 
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
+import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { safeMerge } from '../../utils/safeMerge';
-import type { SolanaKeyringAccount } from '../keyring/Keyring';
 
 export type AccountId = string;
 

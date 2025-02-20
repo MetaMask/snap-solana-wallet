@@ -1,6 +1,6 @@
 import { enums, nullable, record, string } from 'superstruct';
 
-import { Caip19Struct, PositiveNumber } from '../../validation/structs';
+import { Caip19Struct, PositiveNumberStruct } from '../../validation/structs';
 
 /**
  * When includeMarketData=false, the price api returns the following format,
@@ -16,7 +16,7 @@ import { Caip19Struct, PositiveNumber } from '../../validation/structs';
  */
 export const SpotPricesFromPriceApiWithoutMarketDataStruct = record(
   Caip19Struct,
-  nullable(record(string(), PositiveNumber)),
+  nullable(record(string(), PositiveNumberStruct)),
 );
 
 export const VsCurrencyParamStruct = enums([

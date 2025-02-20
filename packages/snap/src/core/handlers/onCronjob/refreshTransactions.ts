@@ -9,9 +9,9 @@ import {
   transactionsService,
 } from '../../../snapContext';
 import { Network } from '../../constants/solana';
-import type { SolanaKeyringAccount } from '../../services/keyring/Keyring';
 import { mapRpcTransaction } from '../../services/transactions/utils/mapRpcTransaction';
 import logger from '../../utils/logger';
+import type { SolanaKeyringAccount } from '../onKeyringRequest/Keyring';
 
 type SignatureMapping = {
   // For bulk fetching: All signatures for a network

@@ -85,38 +85,38 @@ const SolanaSignAndSendTransactionInputStruct = type({
   options: optional(SolanaSignAndSendTransactionOptionsStruct),
 });
 
-const JsonRpcDefaultsStruct = object({
-  id: number(),
-  jsonrpc: string(),
-});
+// const JsonRpcDefaultsStruct = object({
+//   id: number(),
+//   jsonrpc: string(),
+// });
 
 // TODO: Deprecate
 export const SolanaSendAndConfirmTransactionRequestStruct = object({
-  ...JsonRpcDefaultsStruct.schema,
+  //   ...JsonRpcDefaultsStruct.schema,
   method: enums([SolMethod.SendAndConfirmTransaction]),
   params: SendAndConfirmTransactionParamsStruct,
 });
 
 export const SolanaSignAndSendTransactionRequestStruct = object({
-  ...JsonRpcDefaultsStruct.schema,
+  //   ...JsonRpcDefaultsStruct.schema,
   method: enums([SolMethod.SignAndSendTransaction]),
   params: SolanaSignAndSendTransactionInputStruct,
 });
 
 export const SolanaSignInRequestStruct = object({
-  ...JsonRpcDefaultsStruct.schema,
+  //   ...JsonRpcDefaultsStruct.schema,
   method: enums([SolMethod.SignIn]),
   params: SolanaSignInInputStruct,
 });
 
 export const SolanaSignMessageRequestStruct = object({
-  ...JsonRpcDefaultsStruct.schema,
+  //   ...JsonRpcDefaultsStruct.schema,
   method: enums([SolMethod.SignMessage]),
   params: SolanaSignMessageInputStruct,
 });
 
 export const SolanaSignTransactionRequestStruct = object({
-  ...JsonRpcDefaultsStruct.schema,
+  //   ...JsonRpcDefaultsStruct.schema,
   method: enums([SolMethod.SignTransaction]),
   params: SolanaSignTransactionInputStruct,
 });
@@ -169,8 +169,8 @@ export const SolanaSignInResponseStruct = object({
 export type SolanaSignInResponse = Infer<typeof SolanaSignInResponseStruct>;
 
 /**
- * Validates that a JsonRpcRequest is a valid Solana Wallet Standard request.
- * @see https://github.com/anza-xyz/wallet-standard/tree/master/packages/core/features/src
+ * Validates that a JsonRpcRequest is a valid Solana request.
+ * @see https://github.com/MetaMask/accounts/blob/main/packages/keyring-api/docs/sol-methods.md
  */
 export const SolanaWalletStandardRequestStruct = union([
   SolanaSignAndSendTransactionRequestStruct,

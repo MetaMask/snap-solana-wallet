@@ -1,19 +1,32 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { SolMethod, type KeyringRequest } from '@metamask/keyring-api';
+import {
+  KeyringEvent,
+  type KeyringRequest,
+  SolMethod,
+} from '@metamask/keyring-api';
+import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import type { CaipChainId } from '@metamask/utils';
+import {
+  address as asAddress,
+  createKeyPairSignerFromPrivateKeyBytes,
+} from '@solana/web3.js';
 import { assert } from 'superstruct';
 
 import type { Caip10Address } from '../../constants/solana';
+import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
+import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { NetworkStruct } from '../../validation/structs';
 import { validateRequest } from '../../validation/validators';
-import type { SolanaKeyringAccount } from '../keyring/Keyring';
+import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
+import type { TransactionHelper } from '../execution/TransactionHelper';
+import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
+import type { SolanaSignAndSendTransactionResponse } from './structs';
 import {
   SolanaSignAndSendTransactionRequestStruct,
-  type SolanaSignAndSendTransactionResponse,
   SolanaSignAndSendTransactionResponseStruct,
   SolanaSignInRequestStruct,
   type SolanaSignInResponse,
@@ -27,10 +40,20 @@ import {
   SolanaWalletStandardRequestStruct,
 } from './structs';
 
-export class WalletStandardService {
+export class WalletService {
+  readonly #fromBase64EncodedBuilder: FromBase64EncodedBuilder;
+
+  readonly #transactionHelper: TransactionHelper;
+
   readonly #logger: ILogger;
 
-  constructor(_logger = logger) {
+  constructor(
+    fromBase64EncodedBuilder: FromBase64EncodedBuilder,
+    transactionHelper: TransactionHelper,
+    _logger = logger,
+  ) {
+    this.#fromBase64EncodedBuilder = fromBase64EncodedBuilder;
+    this.#transactionHelper = transactionHelper;
     this.#logger = _logger;
   }
 
@@ -101,11 +124,13 @@ export class WalletStandardService {
 
   /**
    * Signs a transaction.
+   * @param account - The account to sign the transaction.
    * @param request - The request to sign a transaction.
    * @returns A Promise that resolves to the signed transaction.
    * @throws If the request is invalid.
    */
   async signTransaction(
+    account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignTransactionResponse> {
     assert(request.request, SolanaSignTransactionRequestStruct);
@@ -124,34 +149,92 @@ export class WalletStandardService {
 
   /**
    * Signs and sends a transaction.
+   * @param account - The account to sign and send the transaction.
    * @param request - The request to sign and send a transaction.
-   * @returns A Promise that resolves to the signed transaction.
-   * @throws If the request is invalid.
+   * @returns A Promise that resolves to the signed transaction, or null if the user cancels the confirmation.
    */
   async signAndSendTransaction(
+    account: SolanaKeyringAccount,
     request: KeyringRequest,
-  ): Promise<SolanaSignAndSendTransactionResponse> {
+  ): Promise<SolanaSignAndSendTransactionResponse | null> {
     assert(request.request, SolanaSignAndSendTransactionRequestStruct);
+    assert(request.scope, NetworkStruct);
 
-    const { transaction } = request.request.params;
+    const {
+      request: { params },
+      scope,
+    } = request;
+    const base64EncodedTransaction = (params as any).transaction ?? '';
 
-    // TODO: Implement the actual confirmation + signing logic.
-    const result = {
-      signature: transaction,
-    };
+    try {
+      const transactionMessage =
+        await this.#fromBase64EncodedBuilder.buildTransactionMessage(
+          base64EncodedTransaction,
+          scope,
+        );
 
-    assert(result, SolanaSignAndSendTransactionResponseStruct);
+      const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+      const signer = await createKeyPairSignerFromPrivateKeyBytes(
+        privateKeyBytes,
+      );
 
-    return result;
+      const signature = await this.#transactionHelper.sendTransaction(
+        transactionMessage,
+        [signer],
+        scope,
+      );
+
+      const result = {
+        signature,
+      };
+
+      assert(result, SolanaSignAndSendTransactionResponseStruct);
+
+      const transaction =
+        await this.#transactionHelper.waitForTransactionCommitment(
+          signature,
+          'confirmed',
+          scope,
+        );
+
+      const mappedTransaction = mapRpcTransaction({
+        scope,
+        address: asAddress(account.address),
+        transactionData: transaction,
+      });
+
+      const mappedTransactionWithAccountId = {
+        ...mappedTransaction,
+        account: account.id,
+      };
+
+      await emitSnapKeyringEvent(
+        snap,
+        KeyringEvent.AccountTransactionsUpdated,
+        {
+          transactions: {
+            [account.id]: [mappedTransactionWithAccountId],
+          },
+        },
+      );
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      this.#logger.error(error);
+      throw error;
+    }
   }
 
   /**
    * Signs a message.
+   * @param account - The account to sign the message.
    * @param request - The request to sign a message.
    * @returns A Promise that resolves to the signed message.
    * @throws If the request is invalid.
    */
   async signMessage(
+    account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignMessageResponse> {
     assert(request.request, SolanaSignMessageRequestStruct);
@@ -170,7 +253,10 @@ export class WalletStandardService {
     return result;
   }
 
-  async signIn(request: KeyringRequest): Promise<SolanaSignInResponse> {
+  async signIn(
+    account: SolanaKeyringAccount,
+    request: KeyringRequest,
+  ): Promise<SolanaSignInResponse> {
     assert(request.request, SolanaSignInRequestStruct);
 
     const { address, ...params } = request.request.params;

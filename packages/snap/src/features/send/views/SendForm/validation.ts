@@ -8,12 +8,12 @@ import {
   greatherThanZero,
   required,
 } from '../../../../core/validation/form';
-import { Uuid } from '../../../../core/validation/structs';
+import { UuidStruct } from '../../../../core/validation/structs';
 import { SendFormNames } from '../../types';
 
 export const StartSendTransactionFlowParamsStruct = object({
   scope: enums([...Object.values(Network)]),
-  account: Uuid,
+  account: UuidStruct,
 });
 
 export const validation: (

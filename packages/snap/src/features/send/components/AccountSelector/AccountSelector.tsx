@@ -12,7 +12,7 @@ import {
   SolanaCaip19Tokens,
   type Network,
 } from '../../../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../../../core/services/keyring/Keyring';
+import type { SolanaKeyringAccount } from '../../../../core/handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCurrency } from '../../../../core/utils/formatCurrency';
 import { formatTokens } from '../../../../core/utils/formatTokens';

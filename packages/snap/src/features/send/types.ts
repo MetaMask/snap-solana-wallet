@@ -3,7 +3,7 @@ import type { Balance, CaipAssetType } from '@metamask/keyring-api';
 import type { SpotPrices } from '../../core/clients/price-api/types';
 import type { SolanaTokenMetadata } from '../../core/clients/token-metadata-client/types';
 import type { Network } from '../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../core/services/keyring/Keyring';
+import type { SolanaKeyringAccount } from '../../core/handlers/onKeyringRequest/Keyring';
 import type { FormFieldError } from '../../core/types/error';
 import type { FetchStatus, Preferences } from '../../core/types/snap';
 import type { LocalizedMessage } from '../../core/utils/i18n';

@@ -22,11 +22,11 @@ import {
   MOCK_SIGN_TRANSACTION_RESPONSE,
   wrapKeyringRequest,
 } from './mocks';
-import { WalletStandardService } from './WalletStandardService';
+import { WalletService } from './WalletService';
 
 describe('WalletStandardService', () => {
   let mockLogger: ILogger;
-  let service: WalletStandardService;
+  let service: WalletService;
   const scope = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z';
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
 
@@ -39,7 +39,7 @@ describe('WalletStandardService', () => {
       log: jest.fn(),
     } as unknown as ILogger;
 
-    service = new WalletStandardService(mockLogger);
+    service = new WalletService(mockLogger);
   });
 
   describe('resolveAccountAddress', () => {

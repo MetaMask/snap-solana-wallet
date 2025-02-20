@@ -17,12 +17,12 @@ import {
 import { Network } from '../constants/solana';
 
 // create a uuid validation
-export const Uuid = pattern(
+export const UuidStruct = pattern(
   string(),
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
 );
 
-export const PositiveNumber = refine(number(), 'positive', (value) => {
+export const PositiveNumberStruct = refine(number(), 'positive', (value) => {
   if (value < 0) {
     return `Expected a positive number but received a negative number ${value}`;
   }
@@ -169,20 +169,20 @@ export const Caip19Struct = pattern(
  * Keyring validations
  */
 export const GetAccountStruct = object({
-  accountId: Uuid,
+  accountId: UuidStruct,
 });
 export const DeleteAccountStruct = object({
-  accountId: Uuid,
+  accountId: UuidStruct,
 });
 export const ListAccountAssetsStruct = object({
-  accountId: Uuid,
+  accountId: UuidStruct,
 });
 export const GetAccountBalancesStruct = object({
-  accountId: Uuid,
+  accountId: UuidStruct,
   assets: array(Caip19Struct),
 });
 export const ListAccountTransactionsStruct = object({
-  accountId: Uuid,
+  accountId: UuidStruct,
   pagination: object({
     limit: integer(),
     next: optional(nullable(string())),

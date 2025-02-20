@@ -4680,7 +4680,6 @@ __metadata:
     "@types/lodash": ^4.17.15
     "@types/react": 18.2.4
     "@types/react-dom": 18.2.4
-    "@wallet-standard/base": ^1.1.0
     bignumber.js: ^9.1.2
     bs58: ^6.0.0
     buffer: ^6.0.3
@@ -7653,13 +7652,6 @@ __metadata:
   dependencies:
     resolve: "npm:^1.10.0"
   checksum: e4d761e82f5f389206b7261874cc232382984c84f9476fb1c90759507782f8cc8a414ec910e24e63075d28ca5999bdf9d8f3ef2b2e41ea05e477188e8b9669d6
-  languageName: node
-  linkType: hard
-
-"@wallet-standard/base@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@wallet-standard/base@npm:1.1.0"
-  checksum: 4057188f615f1deeb0c8a39f04018d4575f87cb387749dab6bc2e8232a95400be51ea4235450829bb256aa21136621f47167383ef1767f0eb3109f1140c74d86
   languageName: node
   linkType: hard
 

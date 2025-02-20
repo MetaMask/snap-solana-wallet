@@ -25,12 +25,12 @@ import {
 import type BigNumber from 'bignumber.js';
 
 import type { Network } from '../../../constants/solana';
+import type { SolanaKeyringAccount } from '../../../handlers/onKeyringRequest/Keyring';
 import { deriveSolanaPrivateKey } from '../../../utils/deriveSolanaPrivateKey';
 import type { ILogger } from '../../../utils/logger';
 import { retry } from '../../../utils/retry';
 import { toTokenUnits } from '../../../utils/toTokenUnit';
 import type { SolanaConnection } from '../../connection';
-import type { SolanaKeyringAccount } from '../../keyring/Keyring';
 import type { TransactionHelper } from '../TransactionHelper';
 import type { ITransactionMessageBuilder } from './ITransactionMessageBuilder';
 
