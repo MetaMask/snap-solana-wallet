@@ -3,8 +3,8 @@ import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 
 import type { TransactionScanAssetChange } from '../../../../core/services/transaction-scan/types';
 import type { Preferences } from '../../../../core/types/snap';
-import { formatCurrency } from '../../../../core/utils/formatCurrency';
-import { formatTokens } from '../../../../core/utils/formatTokens';
+import { formatCryptoBalance } from '../../../../core/utils/formatCryptoBalance';
+import { formatFiat } from '../../../../core/utils/formatFiat';
 
 export const AssetChange: SnapComponent<{
   asset: TransactionScanAssetChange;
@@ -17,7 +17,7 @@ export const AssetChange: SnapComponent<{
       <Box direction="horizontal" alignment="center">
         <Text color={changeType === 'in' ? 'success' : 'error'}>
           {changeType === 'in' ? '+' : '-'}
-          {formatTokens(asset.value ?? 0, '', preferences.locale)}
+          {formatCryptoBalance(asset.value ?? 0, preferences.locale)}
         </Text>
         {asset.imageSvg ? (
           <Box alignment="center" center>
@@ -28,7 +28,11 @@ export const AssetChange: SnapComponent<{
       </Box>
       {asset.price ? (
         <Text color="muted">
-          {formatCurrency(asset.price.toString(), preferences.currency)}
+          {formatFiat(
+            asset.price.toString(),
+            preferences.currency,
+            preferences.locale,
+          )}
         </Text>
       ) : null}
     </Box>
