@@ -44,7 +44,7 @@ jest.mock('../../utils/getBip32Entropy', () => ({
     }),
 }));
 
-describe('WalletStandardService', () => {
+describe('WalletService', () => {
   let mockLogger: ILogger;
   let mockTransactionHelper: TransactionHelper;
   let mockFromBase64EncodedBuilder: FromBase64EncodedBuilder;
