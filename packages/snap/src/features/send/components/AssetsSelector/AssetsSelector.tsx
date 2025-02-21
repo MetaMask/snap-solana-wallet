@@ -8,6 +8,7 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 
 import type { SolanaTokenMetadata } from '../../../../core/clients/token-metadata-client/types';
+import QUESTION_MARK_SVG from '../../../../core/img/question-mark.svg';
 import { i18n, type Locale } from '../../../../core/utils/i18n';
 import { SendFormNames } from '../../types';
 
@@ -36,16 +37,16 @@ export const AssetSelector: SnapComponent<AssetsSelectorProps> = ({
         title={translate('send.assetField')}
         value={tokenCaipId}
       >
-        {Object.keys(accountAssets).map((assetCaipId) => {
+        {Object.keys(accountAssets).map((assetCaipId, index) => {
           const asset = accountAssets[assetCaipId] as Balance;
           const metadata = tokenMetadata[assetCaipId];
 
           return (
-            <SelectorOption key={asset.unit} value={assetCaipId}>
+            <SelectorOption key={index} value={assetCaipId}>
               <Card
-                image={metadata?.imageSvg ?? ''}
+                image={metadata?.imageSvg ?? QUESTION_MARK_SVG}
                 title=""
-                value={asset.unit}
+                value={asset.unit ?? 'UNKNOWN'}
               />
             </SelectorOption>
           );

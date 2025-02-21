@@ -15,8 +15,8 @@ import type { Network } from '../../../../core/constants/solana';
 import { Networks } from '../../../../core/constants/solana';
 import type { FetchStatus, Preferences } from '../../../../core/types/snap';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
-import { formatCurrency } from '../../../../core/utils/formatCurrency';
-import { formatTokens } from '../../../../core/utils/formatTokens';
+import { formatCrypto } from '../../../../core/utils/formatCrypto';
+import { formatFiat } from '../../../../core/utils/formatFiat';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 
@@ -39,14 +39,15 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   preferences,
   assetsImages,
 }) => {
-  const translate = i18n(preferences.locale);
+  const { currency, locale } = preferences;
+  const translate = i18n(locale);
 
   const pricesFetching = fetchingPricesStatus === 'fetching';
   const pricesError = fetchingPricesStatus === 'error';
 
   const feeInFiat =
     feeInSol && nativePrice && !pricesError
-      ? formatCurrency(tokenToFiat(feeInSol, nativePrice), preferences.currency)
+      ? formatFiat(tokenToFiat(feeInSol, nativePrice), currency, locale)
       : '';
 
   return (
@@ -88,10 +89,10 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
               <Text color="muted">{feeInFiat}</Text>
             )}
             <Text>
-              {formatTokens(
+              {formatCrypto(
                 feeInSol,
                 Networks[scope].nativeToken.symbol,
-                preferences.locale,
+                locale,
               )}
             </Text>
           </Box>

@@ -305,10 +305,10 @@ export class SolanaKeyring implements Keyring {
   }
 
   /**
-   * Returns the balances of the given account for the given assets.
+   * Returns the balances and metadata of the given account for the given assets.
    * @param accountId - The id of the account.
    * @param assets - The assets to get the balances for (CAIP-19 ids).
-   * @returns The balances of the account for the given assets.
+   * @returns The balances and metadata of the account for the given assets.
    */
   async getAccountBalances(
     accountId: string,
@@ -349,9 +349,10 @@ export class SolanaKeyring implements Keyring {
         ]);
 
         const tokenMetadata =
-          await this.#tokenMetadataService.getMultipleTokenMetadata(
-            tokenAssets.map((token) => token.address),
-          );
+          await this.#tokenMetadataService.getTokensMetadata([
+            nativeAsset.address,
+            ...tokenAssets.map((token) => token.address),
+          ]);
 
         for (const asset of networkAssets) {
           // update token metadata if exist
@@ -374,7 +375,7 @@ export class SolanaKeyring implements Keyring {
             if (splToken) {
               balances.set(asset, {
                 amount: fromTokenUnits(splToken.balance, splToken.decimals),
-                unit: tokenMetadata[splToken.address]?.symbol ?? '',
+                unit: tokenMetadata[splToken.address]?.symbol ?? 'UNKNOWN',
               });
             }
           }

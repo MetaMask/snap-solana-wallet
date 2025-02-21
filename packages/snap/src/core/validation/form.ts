@@ -2,7 +2,7 @@ import { address as addressValidator } from '@solana/web3.js';
 
 import type { SendContext } from '../../features/send/types';
 import { SendFormNames } from '../../features/send/types';
-import { validateBalance } from '../../features/send/utils/balance';
+import { validateBalance } from '../../features/send/utils/validateBalance';
 import { validation } from '../../features/send/views/SendForm/validation';
 import type {
   FieldValidationFunction,

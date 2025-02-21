@@ -8,7 +8,7 @@ import {
 
 import type { TransactionScanEstimatedChanges } from '../../../../core/services/transaction-scan/types';
 import type { FetchStatus } from '../../../../core/types/snap';
-import { formatTokens } from '../../../../core/utils/formatTokens';
+import { formatCryptoBalance } from '../../../../core/utils/formatCryptoBalance';
 import { i18n, type Locale } from '../../../../core/utils/i18n';
 
 type EstimatedChangesProps = {
@@ -52,7 +52,7 @@ export const EstimatedChanges: SnapComponent<EstimatedChangesProps> = ({
               {send?.map((asset) => (
                 <Box direction="vertical" alignment="start">
                   <Box direction="horizontal">
-                    <Text>{formatTokens(asset.value ?? 0, '', locale)}</Text>
+                    <Text>{formatCryptoBalance(asset.value ?? 0, locale)}</Text>
                     <Text>{asset.symbol ?? ''}</Text>
                   </Box>
                 </Box>
@@ -76,7 +76,7 @@ export const EstimatedChanges: SnapComponent<EstimatedChangesProps> = ({
             <Box>
               {receive?.map((asset) => (
                 <Box direction="vertical" alignment="start">
-                  <Text>{formatTokens(asset.value ?? 0, '', locale)}</Text>
+                  <Text>{formatCryptoBalance(asset.value ?? 0, locale)}</Text>
                   <Text>{asset.symbol ?? ''}</Text>
                 </Box>
               ))}

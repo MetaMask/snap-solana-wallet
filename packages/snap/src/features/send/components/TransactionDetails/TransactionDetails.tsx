@@ -11,8 +11,8 @@ import {
 
 import { Networks } from '../../../../core/constants/solana';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
-import { formatCurrency } from '../../../../core/utils/formatCurrency';
-import { formatTokens } from '../../../../core/utils/formatTokens';
+import { formatCrypto } from '../../../../core/utils/formatCrypto';
+import { formatFiat } from '../../../../core/utils/formatFiat';
 import { getSolanaExplorerUrl } from '../../../../core/utils/getSolanaExplorerUrl';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
@@ -51,11 +51,12 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 
   const transactionSpeed = '<1s';
 
-  const feeToDisplay = transaction ? feePaidInSol : feeEstimatedInSol;
+  const fee = transaction ? feePaidInSol : feeEstimatedInSol;
+  const feeToDisplay = fee ? formatCrypto(fee, networkSymbol, locale) : '';
   const feeInUserCurrency =
     tokenPrice === undefined || feeToDisplay === null
       ? ''
-      : formatCurrency(tokenToFiat(feeToDisplay, tokenPrice), currency);
+      : formatFiat(tokenToFiat(feeToDisplay, tokenPrice), currency, locale);
 
   return (
     <Box>
@@ -83,14 +84,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
         </Row>
 
         <Row label={translate('send.confirmation.fee')}>
-          <Value
-            extra={feeInUserCurrency}
-            value={
-              feeToDisplay
-                ? formatTokens(feeToDisplay, networkSymbol, locale)
-                : ''
-            }
-          />
+          <Value extra={feeInUserCurrency} value={feeToDisplay} />
         </Row>
       </Section>
     </Box>

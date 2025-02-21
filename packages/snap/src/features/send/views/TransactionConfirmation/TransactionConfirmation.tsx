@@ -2,8 +2,8 @@ import { Box, Button, Container, Footer } from '@metamask/snaps-sdk/jsx';
 
 import { ActionHeader } from '../../../../core/components/ActionHeader/ActionHeader';
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
-import { formatCurrency } from '../../../../core/utils/formatCurrency';
-import { formatTokens } from '../../../../core/utils/formatTokens';
+import { formatCrypto } from '../../../../core/utils/formatCrypto';
+import { formatFiat } from '../../../../core/utils/formatFiat';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
@@ -27,8 +27,10 @@ type TransactionConfirmationProps = {
 export const TransactionConfirmation = ({
   context,
 }: TransactionConfirmationProps) => {
-  const { preferences } = context;
-  const translate = i18n(preferences.locale);
+  const {
+    preferences: { currency, locale },
+  } = context;
+  const translate = i18n(locale);
 
   const { tokenImage, tokenSymbol } = getSelectedTokenMetadata(context);
   const tokenAmount = getTokenAmount(context);
@@ -36,9 +38,10 @@ export const TransactionConfirmation = ({
   const amountInUserCurrency =
     selectedTokenPrice === undefined
       ? ''
-      : formatCurrency(
+      : formatFiat(
           tokenToFiat(tokenAmount, selectedTokenPrice),
-          preferences.currency,
+          currency,
+          locale,
         );
 
   return (
@@ -49,7 +52,7 @@ export const TransactionConfirmation = ({
           backButtonName={TransactionConfirmationNames.BackButton}
         />
         <ActionHeader
-          title={formatTokens(tokenAmount, tokenSymbol, preferences.locale)}
+          title={formatCrypto(tokenAmount, tokenSymbol, locale)}
           subtitle={amountInUserCurrency}
           iconSrc={tokenImage}
         />

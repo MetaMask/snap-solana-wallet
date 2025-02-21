@@ -14,8 +14,8 @@ import {
 } from '../../../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../../../core/handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
-import { formatCurrency } from '../../../../core/utils/formatCurrency';
-import { formatTokens } from '../../../../core/utils/formatTokens';
+import { formatCrypto } from '../../../../core/utils/formatCrypto';
+import { formatFiat } from '../../../../core/utils/formatFiat';
 import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
@@ -57,12 +57,12 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
 
           const value =
             amount !== undefined && unit
-              ? formatTokens(amount, unit, locale)
+              ? formatCrypto(amount, unit, locale)
               : '';
 
           const extra =
             amount !== undefined && price !== null && currency
-              ? formatCurrency(tokenToFiat(amount, price), currency)
+              ? formatFiat(tokenToFiat(amount, price), currency, locale)
               : '';
 
           return (

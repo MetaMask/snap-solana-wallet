@@ -5,13 +5,18 @@ import BigNumber from 'bignumber.js';
  *
  * @param amount - The amount of money.
  * @param currency - The currency to format the amount as.
+ * @param locale - The locale to use for number formatting.
  * @returns The formatted currency string.
  */
-export function formatCurrency(amount: string, currency: string): string {
+export function formatFiat(
+  amount: string,
+  currency: string,
+  locale: string,
+): string {
   const bigAmount = new BigNumber(amount);
   const amountNumber = bigAmount.toNumber();
 
-  return amountNumber.toLocaleString('en-US', {
+  return amountNumber.toLocaleString(locale, {
     style: 'currency',
     currency,
     maximumFractionDigits: 2,

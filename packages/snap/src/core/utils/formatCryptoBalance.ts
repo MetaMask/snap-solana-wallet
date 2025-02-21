@@ -34,36 +34,34 @@ function formatAmountMaxPrecision(
  * Formats a token amount with commas and a specified symbol.
  *
  * @param amount - The amount of tokens as a BigNumber.
- * @param symbol - The symbol of the token.
  * @param locale - The locale to use for number formatting.
  * @returns The formatted token amount with symbol.
  */
-export function formatTokens(
+export function formatCryptoBalance(
   amount: number | string | BigNumber,
-  symbol: string,
   locale: string,
 ) {
   try {
     const bignumberAmount = new BigNumber(amount);
 
     if (bignumberAmount.isNaN()) {
-      return `${ZERO_DISPLAY} ${symbol}`;
+      return ZERO_DISPLAY;
     }
 
     if (bignumberAmount.isZero()) {
-      return `${ZERO_DISPLAY} ${symbol}`;
+      return ZERO_DISPLAY;
     }
 
     if (bignumberAmount.abs().lt(MIN_AMOUNT)) {
-      return `<${formatAmountMaxPrecision(locale, MIN_AMOUNT)} ${symbol}`;
+      return `<${formatAmountMaxPrecision(locale, MIN_AMOUNT)}`;
     }
 
     if (bignumberAmount.abs().lt(1)) {
-      return `${new Intl.NumberFormat(locale, {
+      return new Intl.NumberFormat(locale, {
         maximumSignificantDigits: MAX_SIGNIFICANT_DECIMAL_PLACES,
       } as Intl.NumberFormatOptions).format(
         Number(bignumberAmount.toFixed(DEFAULT_PRECISION ?? 0)),
-      )} ${symbol}`;
+      );
     }
 
     // Preserve all digits left of the decimal point.
@@ -88,9 +86,9 @@ export function formatTokens(
       bignumberAmount.toFixed(maximumFractionDigits) as unknown as number,
     );
 
-    return `${formattedAmount} ${symbol}`;
+    return formattedAmount;
   } catch (error) {
     console.error(error);
-    return `${amount} ${symbol}`;
+    return ZERO_DISPLAY;
   }
 }

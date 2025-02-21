@@ -2,6 +2,7 @@ import { Box, Container, Link } from '@metamask/snaps-sdk/jsx';
 
 import CheckIcon from '../../../../../images/check.svg';
 import { ActionHeader } from '../../../../core/components/ActionHeader/ActionHeader';
+import { formatCryptoBalance } from '../../../../core/utils/formatCryptoBalance';
 import { getSolanaExplorerUrl } from '../../../../core/utils/getSolanaExplorerUrl';
 import { i18n } from '../../../../core/utils/i18n';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
@@ -27,7 +28,7 @@ export const TransactionSuccess = ({ context }: TransactionSuccessProps) => {
         <ActionHeader
           title={translate('send.transaction-success.title')}
           subtitle={translate('send.transaction-success.subtitle', {
-            amount: tokenAmount,
+            amount: formatCryptoBalance(tokenAmount, preferences.locale),
             tokenSymbol,
           })}
           iconSrc={CheckIcon}

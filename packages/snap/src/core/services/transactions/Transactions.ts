@@ -3,15 +3,12 @@ import type { Address, Signature } from '@solana/web3.js';
 
 import { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
-import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { MappedTransaction } from './types';
 import { mapRpcTransaction } from './utils/mapRpcTransaction';
 
 export class TransactionsService {
-  readonly #configProvider: ConfigProvider;
-
   readonly #connection: SolanaConnection;
 
   readonly #logger: ILogger;
@@ -21,15 +18,12 @@ export class TransactionsService {
   constructor({
     logger,
     connection,
-    configProvider,
     tokenMetadataService,
   }: {
     logger: ILogger;
-    configProvider: ConfigProvider;
     connection: SolanaConnection;
     tokenMetadataService: TokenMetadataService;
   }) {
-    this.#configProvider = configProvider;
     this.#connection = connection;
     this.#tokenMetadataService = tokenMetadataService;
     this.#logger = logger;
@@ -128,8 +122,9 @@ export class TransactionsService {
         ]),
       ),
     ];
-    const tokenMetadata =
-      await this.#tokenMetadataService.getMultipleTokenMetadata(caip19Ids);
+    const tokenMetadata = await this.#tokenMetadataService.getTokensMetadata(
+      caip19Ids,
+    );
     mappedTransactionsData.forEach((transaction) => {
       transaction.from.forEach((from) => {
         if (from.asset?.fungible && tokenMetadata[from.asset.type]) {

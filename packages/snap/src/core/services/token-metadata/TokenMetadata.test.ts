@@ -26,9 +26,9 @@ describe('TokenMetadataService', () => {
     });
   });
 
-  describe('getMultipleTokenMetadata', () => {
+  describe('getTokensMetadata', () => {
     it('returns an empty object if no tokens are provided', async () => {
-      const result = await tokenMetadataService.getMultipleTokenMetadata([]);
+      const result = await tokenMetadataService.getTokensMetadata([]);
       expect(result).toStrictEqual({});
     });
 
@@ -40,7 +40,7 @@ describe('TokenMetadataService', () => {
         .spyOn(tokenMetadataClient, 'getTokenMetadataFromAddresses')
         .mockResolvedValue(mockMetadata);
 
-      const result = await tokenMetadataService.getMultipleTokenMetadata(
+      const result = await tokenMetadataService.getTokensMetadata(
         tokens.map((token) => token.address),
       );
 
@@ -56,7 +56,7 @@ describe('TokenMetadataService', () => {
         .mockRejectedValue(error);
 
       await expect(
-        tokenMetadataService.getMultipleTokenMetadata(
+        tokenMetadataService.getTokensMetadata(
           tokens.map((token) => token.address),
         ),
       ).rejects.toThrow('Error fetching token metadata');

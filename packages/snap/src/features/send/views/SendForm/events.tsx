@@ -19,8 +19,8 @@ import { validateField } from '../../../../core/validation/form';
 import type { SnapExecutionContext } from '../../../../snapContext';
 import { Send } from '../../Send';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
-import { validateBalance } from '../../utils/balance';
 import { buildTxIfValid } from '../../utils/buildTxIfValid';
+import { validateBalance } from '../../utils/validateBalance';
 import { validation } from './validation';
 
 /**

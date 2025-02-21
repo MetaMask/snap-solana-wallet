@@ -10,8 +10,8 @@ import {
 import { isNullOrUndefined } from '@metamask/utils';
 
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
-import { formatCurrency } from '../../../../core/utils/formatCurrency';
-import { formatTokens } from '../../../../core/utils/formatTokens';
+import { formatCrypto } from '../../../../core/utils/formatCrypto';
+import { formatFiat } from '../../../../core/utils/formatFiat';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
@@ -42,6 +42,7 @@ export const SendForm = ({ context }: SendFormProps) => {
     error,
     preferences: { locale, currency },
   } = context;
+
   const translate = i18n(locale);
   const selectedToken = balances[fromAccountId]?.[tokenCaipId];
   const tokenBalance = selectedToken?.amount;
@@ -60,11 +61,12 @@ export const SendForm = ({ context }: SendFormProps) => {
 
   const currencyToBalance: Record<SendCurrencyType, string> = isBalanceDefined
     ? {
-        [SendCurrencyType.FIAT]: formatCurrency(
+        [SendCurrencyType.FIAT]: formatFiat(
           tokenToFiat(tokenBalance, selectedTokenPrice ?? 0),
           currency,
+          locale,
         ),
-        [SendCurrencyType.TOKEN]: formatTokens(
+        [SendCurrencyType.TOKEN]: formatCrypto(
           tokenBalance,
           tokenSymbol,
           locale,
@@ -176,9 +178,7 @@ export const SendForm = ({ context }: SendFormProps) => {
                 <Button
                   size="sm"
                   name={SendFormNames.MaxAmountButton}
-                  disabled={
-                    selectedTokenPriceUnavailable || balanceUndefinedOrZero
-                  }
+                  disabled={balanceUndefinedOrZero}
                 >
                   {translate('send.maxButton')}
                 </Button>
