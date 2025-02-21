@@ -160,7 +160,7 @@ export class WalletService {
       request: { params },
       scope,
     } = request;
-    const base64EncodedTransaction = (params as any).transaction ?? '';
+    const base64EncodedTransaction = params.transaction ?? '';
 
     try {
       const transactionMessage =
