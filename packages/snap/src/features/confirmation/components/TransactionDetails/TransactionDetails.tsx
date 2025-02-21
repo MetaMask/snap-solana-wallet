@@ -1,4 +1,3 @@
-import type { CaipAssetType } from '@metamask/keyring-api';
 import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 import {
   Address,
@@ -27,7 +26,7 @@ type TransactionDetailsProps = {
   nativePrice: number | null;
   fetchingPricesStatus: FetchStatus;
   preferences: Preferences;
-  assetsImages: Record<CaipAssetType, string>;
+  networkImage: string | null;
 };
 
 export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
@@ -37,7 +36,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   nativePrice,
   fetchingPricesStatus,
   preferences,
-  assetsImages,
+  networkImage,
 }) => {
   const { currency, locale } = preferences;
   const translate = i18n(locale);
@@ -69,10 +68,9 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
           {translate('confirmation.network')}
         </Text>
         <Box direction="horizontal" alignment="center">
-          <Image
-            borderRadius="medium"
-            src={assetsImages[Networks[scope].nativeToken.caip19Id] ?? ''}
-          />
+          <Box alignment="center" center>
+            <Image borderRadius="medium" src={networkImage ?? ''} />
+          </Box>
           <Text>{Networks[scope].name}</Text>
         </Box>
       </Box>

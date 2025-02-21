@@ -38,6 +38,9 @@
   "confirmation.estimatedChanges": "Estimated changes",
   "confirmation.estimatedChanges.send": "You send",
   "confirmation.estimatedChanges.receive": "You receive",
+  "confirmation.estimatedChanges.notAvailable": "Not available",
+  "confirmation.estimatedChanges.noChanges": "No changes",
+  "confirmation.estimatedChanges.tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
   "confirmation.advanced.show": "Show advanced",
   "confirmation.advanced.hide": "Hide advanced",
   "confirmation.cancelButton": "Cancel",
@@ -47,5 +50,11 @@
   "confirmation.advanced.programId": "Program ID",
   "confirmation.advanced.data": "Data",
   "confirmation.fee": "Network fee",
-  "confirmation.feeError": "Unable to estimate fee"
+  "confirmation.feeError": "Unable to estimate fee",
+  "confirmation.simulationErrorTitle": "This transaction was reverted during simulation.",
+  "confirmation.simulationErrorSubtitle": "Reason: {reason}",
+  "confirmation.validationErrorTitle": "This is a deceptive request",
+  "confirmation.validationErrorSubtitle": "If you approve this request, a third party known for scams will take all your assets.",
+  "confirmation.validationErrorLearnMore": "Learn more",
+  "confirmation.validationErrorSecurityAdviced": "Security advice by"
 }

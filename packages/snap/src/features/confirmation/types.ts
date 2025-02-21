@@ -20,6 +20,7 @@ export type SolanaInstruction = {
 export type ConfirmationContext = {
   method: SolMethod;
   scope: Network;
+  networkImage: string | null;
   account: SolanaKeyringAccount | null;
   preferences: Preferences;
   transaction: string;
@@ -28,7 +29,6 @@ export type ConfirmationContext = {
   tokenPricesFetchStatus: FetchStatus;
   scan: TransactionScanResult | null;
   scanFetchStatus: FetchStatus;
-  assetsImages: Record<CaipAssetType, string>;
   advanced: {
     shown: boolean;
     instructions: SolanaInstruction[];

@@ -153,7 +153,10 @@ export class ConfigProvider {
         storageLimit: 20,
       },
       securityAlertsApi: {
-        baseUrl: environment.SECURITY_ALERTS_API_BASE_URL,
+        baseUrl:
+          environment.ENVIRONMENT === 'test'
+            ? environment.LOCAL_API_BASE_URL
+            : environment.SECURITY_ALERTS_API_BASE_URL,
       },
     };
   }

@@ -7,8 +7,7 @@ import {
 import { useEffect, useState } from 'react';
 
 import { Network } from '../../../../snap/src/core/constants/solana';
-import type { SolanaKeyringRequest } from '../../../../snap/src/core/handlers/onKeyringRequest/structs';
-import { buildUrl } from '../../../../snap/src/core/utils/buildUrl';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../snap/src/core/test/mocks/solana-keyring-accounts';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 import { AccountRow } from './AccountRow';
 
@@ -41,43 +40,28 @@ export const Accounts = () => {
   };
 
   const handleSendAndConfirmTransaction = async () => {
-    const address = 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa';
-    const fromToken = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-    const toToken = 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263';
-
-    const url = buildUrl({
-      baseUrl: 'https://li.quest/v1/quote',
-      path: '',
-      queryParams: {
-        fromChain: 'SOL',
-        toChain: 'SOL',
-        fromToken,
-        toToken,
-        fromAddress: address,
-        toAddress: address,
-        fromAmount: '1000000',
-      },
-    });
-
-    const lifiQuote = await fetch(url).then(async (quote) => quote.json());
-
-    const request: SolanaKeyringRequest = {
-      id: crypto.randomUUID(),
-      scope: Network.Mainnet,
-      account: accounts?.[0]?.id ?? '',
-      request: {
-        method: SolMethod.SignAndSendTransaction,
-        params: {
-          transaction: lifiQuote.transactionRequest.data,
-          scope: Network.Mainnet,
-          account: { address },
-        },
-      },
-    };
+    const lifiQuote = await fetch(
+      // 'https://li.quest/v1/quote?fromChain=SOL&toChain=ARB&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=0xaf88d065e77c8cC2239327C5EDb3A432268e5831&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=0x2d757E532bE32766A64088e9200f0979c42372DC&fromAmount=100000',
+      'https://li.quest/v1/quote?fromChain=SOL&toChain=SOL&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=HaMv3cdfDW6357yjpDur6kb6w52BUPJrMJpR76tjpump&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&fromAmount=1000000',
+    ).then(async (quote) => quote.json());
 
     await invokeKeyring({
       method: KeyringRpcMethod.SubmitRequest,
-      params: request,
+      params: {
+        id: crypto.randomUUID(),
+        scope: Network.Mainnet,
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        request: {
+          method: SolMethod.SignAndSendTransaction,
+          params: {
+            transaction: lifiQuote.transactionRequest.data,
+            scope: Network.Mainnet,
+            account: {
+              address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+            },
+          },
+        },
+      },
     });
   };
   useEffect(() => {
@@ -94,7 +78,6 @@ export const Accounts = () => {
           <Button
             colorPalette="purple"
             onClick={handleSendAndConfirmTransaction}
-            marginRight="3"
           >
             Send and confirm transaction
           </Button>

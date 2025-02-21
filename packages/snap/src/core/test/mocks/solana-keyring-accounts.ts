@@ -22,7 +22,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
   address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
   index: 0,
   type: 'solana:data-account',
-  id: '123e4567-e89b-12d3-a456-426614174000',
+  id: '4b445722-6766-4f99-ade5-c2c9295f21d0',
   options: {
     imported: false,
   },

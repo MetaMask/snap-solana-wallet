@@ -66,13 +66,13 @@ describe('onCronjob', () => {
         },
       }),
     ).rejects.toThrow(
-      'Expected one of `"refreshTokenPrices","refreshTransactions","refreshAssets"`, but received: "foo"',
+      'Expected one of `"refreshSendTokenPrices","refreshConfirmationEstimation","refreshTransactions","refreshAssets"`, but received: "foo"',
     );
   });
 
   it('calls the correct handler when the method is valid and snap is not locked', async () => {
     const handler = jest.fn();
-    handlers[CronjobMethod.RefreshTokenPrices] = handler;
+    handlers[CronjobMethod.RefreshSendTokenPrices] = handler;
 
     const snap = {
       request: jest.fn().mockResolvedValue({ locked: false }),
@@ -84,7 +84,7 @@ describe('onCronjob', () => {
       request: {
         id: '1',
         jsonrpc: '2.0',
-        method: CronjobMethod.RefreshTokenPrices,
+        method: CronjobMethod.RefreshSendTokenPrices,
       },
     });
 
@@ -93,7 +93,7 @@ describe('onCronjob', () => {
 
   it('does not call the handler when the snap is locked', async () => {
     const handler = jest.fn();
-    handlers[CronjobMethod.RefreshTokenPrices] = handler;
+    handlers[CronjobMethod.RefreshSendTokenPrices] = handler;
 
     const snap = {
       request: jest.fn().mockResolvedValue({ locked: true }),
@@ -105,7 +105,7 @@ describe('onCronjob', () => {
       request: {
         id: '1',
         jsonrpc: '2.0',
-        method: CronjobMethod.RefreshTokenPrices,
+        method: CronjobMethod.RefreshSendTokenPrices,
       },
     });
 
