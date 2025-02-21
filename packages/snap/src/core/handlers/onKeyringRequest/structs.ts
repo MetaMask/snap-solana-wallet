@@ -5,7 +5,7 @@ import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import { NetworkStruct, UuidStruct } from '../../validation/structs';
 
 /**
- * A narrower type of the `KeyringRequestStruct` struct that is specific to the Solana snap.
+ * A narrower type of the `KeyringRequestStruct` struct (think of it as `SolanaKeyringRequestStruct extends KeyringRequestStruct`) that is specific to the Solana snap.
  */
 export const SolanaKeyringRequestStruct = object({
   id: UuidStruct,
