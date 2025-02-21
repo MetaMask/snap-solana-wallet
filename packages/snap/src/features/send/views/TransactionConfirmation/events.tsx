@@ -5,7 +5,7 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
-import { keyring } from '../../../../snapContext';
+import { keyring, walletService } from '../../../../snapContext';
 import { Send } from '../../Send';
 import { type SendContext } from '../../types';
 import { TransactionConfirmationNames } from './TransactionConfirmation';
@@ -84,25 +84,27 @@ async function onConfirmButtonClick({
   let signature: string | null = null;
 
   try {
-    // Send the transaction message to the keyring over RPC.
+    const account = await keyring.getAccountOrThrow(fromAccountId);
+
+    // Send the transaction message.
     // It will be decoded on the other side, then signed and sent to the network.
     // It MUST be signed on the other side, because the transaction message is stripped of its private keys during encoding, for security reasons.
     // Fees can also be calculated on the other side from the decoded transaction message.
-    const response = await keyring.handleSendAndConfirmTransaction({
+    const response = await walletService.signAndSendTransaction(account, {
       id: globalThis.crypto.randomUUID(),
       scope,
-      account: fromAccountId, // Will be used to sign the transaction
+      account: fromAccountId,
       request: {
-        method: SolMethod.SendAndConfirmTransaction,
+        method: SolMethod.SignAndSendTransaction,
         params: {
-          base64EncodedTransactionMessage: transactionMessage,
+          transaction: transactionMessage,
+          scope,
+          account: {
+            address: '', // Is unused
+          },
         },
       },
     });
-
-    if (!response) {
-      throw new Error('No response');
-    }
 
     signature = response.signature;
   } catch (error) {

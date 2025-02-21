@@ -20,14 +20,10 @@ import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { Json } from '@metamask/snaps-controllers';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { MethodNotFoundError } from '@metamask/snaps-sdk';
-import { assert, enums } from '@metamask/superstruct';
+import { assert } from '@metamask/superstruct';
 import type { CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/web3.js';
-import {
-  address as asAddress,
-  createKeyPairSignerFromPrivateKeyBytes,
-  getAddressDecoder,
-} from '@solana/web3.js';
+import { address as asAddress, getAddressDecoder } from '@solana/web3.js';
 
 import {
   DEFAULT_CONFIRMATION_CONTEXT,
@@ -43,7 +39,6 @@ import type { FromBase64EncodedBuilder } from '../../services/execution/builders
 import type { TransactionHelper } from '../../services/execution/TransactionHelper';
 import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
 import type { TransactionsService } from '../../services/transactions/Transactions';
-import { mapRpcTransaction } from '../../services/transactions/utils/mapRpcTransaction';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { lamportsToSol } from '../../utils/conversion';
@@ -61,8 +56,6 @@ import {
   ListAccountAssetsStruct,
   ListAccountTransactionsStruct,
   NetworkStruct,
-  SendAndConfirmTransactionParamsStruct,
-  UuidStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
 import { SolanaKeyringRequestStruct } from './structs';
@@ -460,71 +453,6 @@ export class SolanaKeyring implements Keyring {
         throw new MethodNotFoundError(
           `Unsupported method: ${method}`,
         ) as unknown as Error;
-    }
-  }
-
-  async handleSendAndConfirmTransaction(
-    request: KeyringRequest,
-  ): Promise<{ signature: string } | null> {
-    const { scope, account: accountId } = request;
-    assert(scope, NetworkStruct);
-    assert(accountId, UuidStruct);
-
-    const { params, method } = request.request;
-    validateRequest(params, SendAndConfirmTransactionParamsStruct);
-    assert(method, enums(Object.values(SolMethod)));
-
-    const { base64EncodedTransactionMessage: base64EncodedTransaction } =
-      params;
-
-    const account = await this.getAccountOrThrow(accountId);
-
-    try {
-      const transactionMessage =
-        await this.#fromBase64EncodedBuilder.buildTransactionMessage(
-          base64EncodedTransaction,
-          scope,
-        );
-
-      const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
-      const signer = await createKeyPairSignerFromPrivateKeyBytes(
-        privateKeyBytes,
-      );
-
-      const signature = await this.#transactionHelper.sendTransaction(
-        transactionMessage,
-        [signer],
-        scope,
-      );
-
-      const transaction =
-        await this.#transactionHelper.waitForTransactionCommitment(
-          signature,
-          'confirmed',
-          scope,
-        );
-
-      const mappedTransaction = mapRpcTransaction({
-        scope,
-        address: asAddress(account.address),
-        transactionData: transaction,
-      });
-
-      const mappedTransactionWithAccountId = {
-        ...mappedTransaction,
-        account: accountId,
-      };
-
-      await this.emitEvent(KeyringEvent.AccountTransactionsUpdated, {
-        transactions: {
-          [accountId]: [mappedTransactionWithAccountId],
-        },
-      });
-
-      return { signature };
-    } catch (error: any) {
-      this.#logger.error({ error }, 'Error sending and confirming transaction');
-      throw error;
     }
   }
 

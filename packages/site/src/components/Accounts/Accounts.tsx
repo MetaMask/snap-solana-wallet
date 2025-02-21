@@ -77,6 +77,7 @@ export const Accounts = () => {
           <Button
             colorPalette="purple"
             onClick={handleSendAndConfirmTransaction}
+            marginRight="3"
           >
             Send and confirm transaction
           </Button>

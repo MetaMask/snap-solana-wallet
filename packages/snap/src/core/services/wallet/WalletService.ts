@@ -147,12 +147,12 @@ export class WalletService {
    * Signs and sends a transaction.
    * @param account - The account to sign and send the transaction.
    * @param request - The request to sign and send a transaction.
-   * @returns A Promise that resolves to the signed transaction, or null if the user cancels the confirmation.
+   * @returns A Promise that resolves to the signed transaction.
    */
   async signAndSendTransaction(
     account: SolanaKeyringAccount,
     request: KeyringRequest,
-  ): Promise<SolanaSignAndSendTransactionResponse | null> {
+  ): Promise<SolanaSignAndSendTransactionResponse> {
     assert(request.request, SolanaSignAndSendTransactionRequestStruct);
     assert(request.scope, NetworkStruct);
 

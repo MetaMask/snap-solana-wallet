@@ -1,5 +1,5 @@
-import { Box, Image, Text } from '@metamask/snaps-sdk/jsx';
 import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
+import { Box, Image, Text } from '@metamask/snaps-sdk/jsx';
 
 import type { TransactionScanAssetChange } from '../../../../core/services/transaction-scan/types';
 import type { Preferences } from '../../../../core/types/snap';
@@ -13,7 +13,7 @@ export const AssetChange: SnapComponent<{
   const changeType = asset.type;
 
   return (
-    <Box direction="vertical" crossAlignment="end">
+    <Box direction="vertical">
       <Box direction="horizontal" alignment="center">
         <Text color={changeType === 'in' ? 'success' : 'error'}>
           {changeType === 'in' ? '+' : '-'}

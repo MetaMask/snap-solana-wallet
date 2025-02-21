@@ -2,7 +2,7 @@
 import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
 import { SLIP10Node } from '@metamask/key-tree';
 import type { ResolveAccountAddressRequest } from '@metamask/keyring-api';
-import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
+import { KeyringRpcMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
 
@@ -39,7 +39,6 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../../test/mocks/solana-keyring-accounts';
-import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../test/mocks/transactions-data/native-sol-transfer';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import { SolanaKeyring } from './Keyring';
@@ -518,105 +517,6 @@ describe('SolanaKeyring', () => {
         ]),
       ).rejects.toThrow('Error getting assets');
     });
-  });
-
-  describe('handleSendAndConfirmTransaction', () => {
-    it('throws error when params are invalid', async () => {
-      const request = {
-        id: 'some-id',
-        scope: Network.Devnet,
-        account: MOCK_SOLANA_KEYRING_ACCOUNT_4.id,
-        request: {
-          method: SolMethod.SendAndConfirmTransaction,
-          params: {
-            base64EncodedTransactionMessage: undefined as unknown as string,
-          },
-        },
-      };
-
-      await expect(
-        keyring.handleSendAndConfirmTransaction(request),
-      ).rejects.toThrow(
-        'At path: base64EncodedTransactionMessage -- Expected a string, but received: undefined',
-      );
-    });
-
-    it('calls the transaction helper to send and confirm a transaction', async () => {
-      jest
-        .spyOn(keyring, 'getAccount')
-        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_4);
-
-      jest
-        .spyOn(mockTransactionHelper, 'sendTransaction')
-        .mockResolvedValue('someSignature');
-
-      jest
-        .spyOn(mockTransactionHelper, 'waitForTransactionCommitment')
-        .mockResolvedValue(EXPECTED_NATIVE_SOL_TRANSFER_DATA as any);
-
-      const emitEventSpy = jest.spyOn(keyring, 'emitEvent');
-
-      const request = {
-        id: 'some-id',
-        scope: Network.Devnet,
-        account: MOCK_SOLANA_KEYRING_ACCOUNT_4.id,
-        request: {
-          method: SolMethod.SendAndConfirmTransaction,
-          params: {
-            base64EncodedTransactionMessage:
-              'someBase64EncodedTransactionMessage',
-          },
-        },
-      };
-
-      const response = await keyring.handleSendAndConfirmTransaction(request);
-
-      expect(response).toStrictEqual({
-        signature: 'someSignature',
-      });
-
-      expect(emitEventSpy).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('throws an error if the method is not supported', async () => {
-    const request = {
-      id: 'some-id',
-      scope: Network.Devnet,
-      account: MOCK_SOLANA_KEYRING_ACCOUNT_3.id,
-      request: {
-        method: 'unsupportedMethod' as SolMethod,
-        params: {
-          base64EncodedTransactionMessage:
-            'someBase64EncodedTransactionMessage',
-        },
-      },
-    };
-
-    await expect(
-      keyring.handleSendAndConfirmTransaction(request),
-    ).rejects.toThrow(/but received: "unsupportedMethod"/u);
-  });
-
-  it('throws error when account is not found', async () => {
-    jest.spyOn(keyring as any, 'getAccount').mockResolvedValue(undefined);
-
-    const request = {
-      id: 'some-id',
-      scope: Network.Devnet,
-      account: NON_EXISTENT_ACCOUNT_ID,
-      request: {
-        method: SolMethod.SendAndConfirmTransaction,
-        params: {
-          base64EncodedTransactionMessage:
-            'someBase64EncodedTransactionMessage',
-        },
-      },
-    };
-
-    await expect(
-      keyring.handleSendAndConfirmTransaction(request),
-    ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
   });
 
   describe('resolveAccountAddress', () => {
