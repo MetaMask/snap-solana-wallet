@@ -7,7 +7,6 @@ import {
 import { useEffect, useState } from 'react';
 
 import { Network } from '../../../../snap/src/core/constants/solana';
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../snap/src/core/test/mocks/solana-keyring-accounts';
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';
 import { AccountRow } from './AccountRow';
 
@@ -50,7 +49,7 @@ export const Accounts = () => {
       params: {
         id: crypto.randomUUID(),
         scope: Network.Mainnet,
-        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        account: accounts?.[0]?.id,
         request: {
           method: SolMethod.SignAndSendTransaction,
           params: {
