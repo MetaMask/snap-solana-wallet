@@ -1,15 +1,17 @@
 import { SolMethod } from '@metamask/keyring-api';
 
-import { Network, Networks, SOL_IMAGE_URL } from '../../core/constants/solana';
+import { Network, Networks } from '../../core/constants/solana';
 import { SOL_IMAGE_SVG } from '../../core/test/mocks/solana-image-svg';
 import { lamportsToSol } from '../../core/utils/conversion';
 import {
+  CONFIRMATION_INTERFACE_NAME,
   createInterface,
   getPreferences,
   showDialog,
   updateInterface,
 } from '../../core/utils/interface';
 import {
+  state,
   tokenMetadataService,
   tokenPricesService,
   transactionHelper,
@@ -179,6 +181,16 @@ export async function renderConfirmation(incomingContext: ConfirmationContext) {
     <Confirmation context={updatedContext2} />,
     updatedContext2,
   );
+
+  await state.update((_state) => {
+    return {
+      ..._state,
+      mapInterfaceNameToId: {
+        ...(_state?.mapInterfaceNameToId ?? {}),
+        [CONFIRMATION_INTERFACE_NAME]: id,
+      },
+    };
+  });
 
   return dialogPromise;
 }
