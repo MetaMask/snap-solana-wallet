@@ -232,6 +232,7 @@ export class SolanaKeyring implements Keyring {
         account: keyringAccount,
         accountNameSuggestion:
           accountNameSuggestion ?? `Solana Account ${index + 1}`,
+        displayAccountNameSuggestion: !accountNameSuggestion,
       });
 
       return keyringAccount;

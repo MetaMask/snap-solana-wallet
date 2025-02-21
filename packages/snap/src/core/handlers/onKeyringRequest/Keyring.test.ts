@@ -400,13 +400,14 @@ describe('SolanaKeyring', () => {
       });
     });
 
-    it('uses accountNameSuggestion if it is provided', async () => {
+    it('uses accountNameSuggestion if it is provided, and tells the client not to display the suggestion dialog', async () => {
       const emitEventSpy = jest.spyOn(keyring, 'emitEvent');
       const account = await keyring.createAccount({
         accountNameSuggestion: 'My Cool Account Name',
       });
       expect(emitEventSpy).toHaveBeenCalledWith('notify:accountCreated', {
         accountNameSuggestion: 'My Cool Account Name',
+        displayAccountNameSuggestion: false,
         account,
       });
     });
