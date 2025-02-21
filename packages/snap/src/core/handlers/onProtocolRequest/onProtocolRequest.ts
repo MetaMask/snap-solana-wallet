@@ -1,6 +1,7 @@
 /* eslint-disable no-case-declarations */
+
 import type { OnProtocolRequestHandler } from '@metamask/snaps-sdk';
-import { assert } from 'superstruct';
+import { assert } from '@metamask/superstruct';
 
 import { connection } from '../../../snapContext';
 import { NetworkStruct } from '../../validation/structs';

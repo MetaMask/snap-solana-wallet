@@ -1,4 +1,4 @@
-import { enums, object } from 'superstruct';
+import { enums, object } from '@metamask/superstruct';
 
 export enum SolanaProtocolRequestMethod {
   GetGenesisHash = 'getGenesisHash',
