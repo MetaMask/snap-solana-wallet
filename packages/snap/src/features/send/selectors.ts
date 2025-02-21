@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 
-import SolanaLogo from '../../../images/coin.svg';
 import { Networks } from '../../core/constants/solana';
+import QUESTION_MARK_SVG from '../../core/img/question-mark.svg';
 import { SendCurrencyType, type SendContext } from './types';
 
 /**
@@ -30,8 +30,8 @@ export const getSelectedTokenMetadata = (context: SendContext) => {
 
   return {
     ...(metadata ?? {}),
-    tokenSymbol: metadata?.symbol ?? '',
-    tokenImage: metadata?.imageSvg ?? SolanaLogo,
+    tokenSymbol: metadata?.symbol ?? 'UNKNOWN',
+    tokenImage: metadata?.imageSvg ?? QUESTION_MARK_SVG,
   };
 };
 
