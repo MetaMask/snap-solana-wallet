@@ -1,5 +1,5 @@
-import SolanaLogo from '../../../images/coin.svg';
 import { KnownCaip19Id, Network, Networks } from '../../core/constants/solana';
+import QUESTION_MARK_SVG from '../../core/img/question-mark.svg';
 import { DEFAULT_SEND_CONTEXT } from './render';
 import {
   getNativeTokenPrice,
@@ -79,8 +79,8 @@ describe('Send selectors', () => {
       };
       const result = getSelectedTokenMetadata(noMetadataContext);
       expect(result).toStrictEqual({
-        tokenSymbol: '',
-        tokenImage: SolanaLogo,
+        tokenSymbol: 'UNKNOWN',
+        tokenImage: QUESTION_MARK_SVG,
       });
     });
   });
