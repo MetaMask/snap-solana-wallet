@@ -54,9 +54,9 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   const fee = transaction ? feePaidInSol : feeEstimatedInSol;
   const feeToDisplay = fee ? formatCrypto(fee, networkSymbol, locale) : '';
   const feeInUserCurrency =
-    tokenPrice === undefined || feeToDisplay === null
+    tokenPrice === undefined || fee === null
       ? ''
-      : formatFiat(tokenToFiat(feeToDisplay, tokenPrice), currency, locale);
+      : formatFiat(tokenToFiat(fee, tokenPrice), currency, locale);
 
   return (
     <Box>
