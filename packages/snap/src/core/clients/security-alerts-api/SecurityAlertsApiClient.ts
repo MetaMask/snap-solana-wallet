@@ -51,16 +51,7 @@ export class SecurityAlertsApiClient {
       bs58.decode(accountAddress),
     ).toString('base64');
 
-    this.#logger.info(
-      {
-        method,
-        accountAddress,
-        transactions,
-        scope,
-        options,
-      },
-      'Scanning transactions',
-    );
+    this.#logger.info('Scanning transaction');
 
     const response = await this.#fetch(`${this.#baseUrl}/solana/message/scan`, {
       headers: {

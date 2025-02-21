@@ -23,7 +23,7 @@ import type { ConfirmationContext } from './types';
 const ICON_SIZE = 16;
 
 export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmationContext = {
-  method: SolMethod.SendAndConfirmTransaction,
+  method: SolMethod.SignAndSendTransaction,
   scope: Network.Mainnet,
   networkImage: SOL_IMAGE_SVG,
   account: null,
@@ -128,7 +128,7 @@ export async function renderConfirmation(incomingContext: ConfirmationContext) {
 
   const transactionScanPromise = transactionScanService
     .scanTransaction({
-      method: 'signAndSendTransaction',
+      method: updatedContext2.method,
       accountAddress: updatedContext2.account?.address ?? '',
       transaction: updatedContext2.transaction,
       scope: updatedContext2.scope,
