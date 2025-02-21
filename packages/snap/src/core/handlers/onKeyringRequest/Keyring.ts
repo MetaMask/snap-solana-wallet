@@ -656,7 +656,6 @@ export class SolanaKeyring implements Keyring {
 
       return { address: caip10Address };
     } catch (error: any) {
-      console.error(error);
       this.#logger.error({ error }, 'Error resolving account address');
       return null;
     }
