@@ -10,7 +10,9 @@ describe('formatFiat', () => {
   });
 
   it('formats large amounts correctly', () => {
-    expect(formatFiat('1234567890.12', 'usd', 'en-US')).toBe('$1,234,567,890.12');
+    expect(formatFiat('1234567890.12', 'usd', 'en-US')).toBe(
+      '$1,234,567,890.12',
+    );
   });
 
   it('formats small amounts correctly', () => {
