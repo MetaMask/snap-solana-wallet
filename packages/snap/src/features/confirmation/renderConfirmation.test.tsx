@@ -1,7 +1,9 @@
+import type { KeyringRequest } from '@metamask/keyring-api';
 import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
 import { installSnap } from '@metamask/snaps-jest';
 
 import { KnownCaip19Id, Network } from '../../core/constants/solana';
+import type { SolanaKeyringRequest } from '../../core/handlers/onKeyringRequest/structs';
 import {
   MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE,
   MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE,
@@ -100,22 +102,26 @@ describe('Confirmation', () => {
       result: MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_SWAP_RESPONSE.result,
     });
 
-    const response = onKeyringRequest({
-      origin: TEST_ORIGIN,
-      method: KeyringRpcMethod.SubmitRequest,
-      id: '4b445722-6766-4f99-ade5-c2c9295f21d0', // uuidv4
-      params: {
-        id: '4b445722-6766-4f99-ade5-c2c9295f21d0', // uuidv4
-        scope: Network.Localnet,
-        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        request: {
-          method: SolMethod.SendAndConfirmTransaction,
-          params: {
-            base64EncodedTransactionMessage:
-              mockConfirmationContext.transaction,
+    const request: SolanaKeyringRequest = {
+      id: globalThis.crypto.randomUUID(),
+      scope: Network.Localnet,
+      account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      request: {
+        method: SolMethod.SignAndSendTransaction,
+        params: {
+          transaction: mockConfirmationContext.transaction,
+          scope: Network.Localnet,
+          account: {
+            address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
           },
         },
       },
+    };
+
+    const response = onKeyringRequest({
+      origin: TEST_ORIGIN,
+      method: KeyringRpcMethod.SubmitRequest,
+      params: request as unknown as KeyringRequest,
     });
 
     const screen1BeforeUpdate = await (response as any).getInterface();
