@@ -4680,6 +4680,7 @@ __metadata:
     "@metamask/snaps-cli": 6.5.1
     "@metamask/snaps-jest": 8.12.0
     "@metamask/snaps-sdk": 6.18.0
+    "@metamask/superstruct": ^3.1.0
     "@metamask/utils": 11.0.0
     "@noble/ed25519": 2.1.0
     "@solana-program/compute-budget": 0.6.1
@@ -4691,7 +4692,6 @@ __metadata:
     "@types/lodash": ^4.17.15
     "@types/react": 18.2.4
     "@types/react-dom": 18.2.4
-    "@wallet-standard/base": ^1.1.0
     bignumber.js: ^9.1.2
     bs58: ^6.0.0
     buffer: ^6.0.3
@@ -4702,7 +4702,6 @@ __metadata:
     jest-transform-stub: ^2.0.0
     lodash: ^4.17.21
     rimraf: ^6.0.1
-    superstruct: 2.0.2
     ts-jest: ^29.2.0
   languageName: unknown
   linkType: soft
@@ -7681,13 +7680,6 @@ __metadata:
   dependencies:
     resolve: "npm:^1.10.0"
   checksum: e4d761e82f5f389206b7261874cc232382984c84f9476fb1c90759507782f8cc8a414ec910e24e63075d28ca5999bdf9d8f3ef2b2e41ea05e477188e8b9669d6
-  languageName: node
-  linkType: hard
-
-"@wallet-standard/base@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@wallet-standard/base@npm:1.1.0"
-  checksum: 4057188f615f1deeb0c8a39f04018d4575f87cb387749dab6bc2e8232a95400be51ea4235450829bb256aa21136621f47167383ef1767f0eb3109f1140c74d86
   languageName: node
   linkType: hard
 
@@ -23755,13 +23747,6 @@ __metadata:
   version: 8.2.5
   resolution: "sudo-prompt@npm:8.2.5"
   checksum: bacff1f18a8ab8dba345cc1f3cf3a02b4cc571f71585df79af95af31278f56107f7c29402f5347b07c489888c63f2deb78d544b93a6347e83d0ed0847f4bc163
-  languageName: node
-  linkType: hard
-
-"superstruct@npm:2.0.2":
-  version: 2.0.2
-  resolution: "superstruct@npm:2.0.2"
-  checksum: a5f75b72cb8b14b86f4f7f750dae8c5ab0e4e1d92414b55e7625bae07bbcafad81c92486e7e32ccacd6ae1f553caff2b92a50ff42ad5093fd35b9cb7f4e5ec86
   languageName: node
   linkType: hard
 
