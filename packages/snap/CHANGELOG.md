@@ -9,13 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.8.0]
 
-### Uncategorized
+### Added
 
-- Pulg send flow to sign and send transaction ([#212](https://github.com/MetaMask/snap-solana-wallet/pull/212))
-- Sol 169 snap add confirmation before submit request ([#209](https://github.com/MetaMask/snap-solana-wallet/pull/209))
-- fix: fiat fee in send confirmation ([#211](https://github.com/MetaMask/snap-solana-wallet/pull/211))
-- Sol 159 snap add estimated changes to confirm transaction ([#210](https://github.com/MetaMask/snap-solana-wallet/pull/210))
-- Multiple bug fixes ([#200](https://github.com/MetaMask/snap-solana-wallet/pull/200))
+- Pulg send flow to `signAndSendTransaction` ([#212](https://github.com/MetaMask/snap-solana-wallet/pull/212))
+- Add confirmation before submit request ([#209](https://github.com/MetaMask/snap-solana-wallet/pull/209))
+- Add estimated changes to confirmation ([#210](https://github.com/MetaMask/snap-solana-wallet/pull/210))
+
+### Fixed
+
+- Fiat fee in send confirmation ([#211](https://github.com/MetaMask/snap-solana-wallet/pull/211))
+- Multiple send bug fixes ([#200](https://github.com/MetaMask/snap-solana-wallet/pull/200))
 
 ## [1.7.0]
 
