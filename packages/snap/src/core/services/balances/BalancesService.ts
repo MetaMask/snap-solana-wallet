@@ -1,14 +1,19 @@
 import type { CaipAssetType, Transaction } from '@metamask/keyring-api';
-import { KeyringEvent, type Balance } from '@metamask/keyring-api';
-import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import BigNumber from 'bignumber.js';
+import { type Balance } from '@metamask/keyring-api';
+import type { GetTransactionApi } from '@solana/web3.js';
 
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { Network } from '../../constants/solana';
-import { SOL_SYMBOL, SolanaCaip19Tokens } from '../../constants/solana';
+import {
+  Networks,
+  SOL_SYMBOL,
+  SolanaCaip19Tokens,
+} from '../../constants/solana';
+import { refreshAssets } from '../../handlers/onCronjob/refreshAssets';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { lamportsToSol } from '../../utils/conversion';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
+import { getAccountIdFromAddress } from '../../utils/getAccountIdFromAddress';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { AssetsService } from '../assets/AssetsService';
 import type { EncryptedState } from '../encrypted-state/EncryptedState';
@@ -119,122 +124,94 @@ export class BalancesService {
   }
 
   /**
-   * Updates the balances of the accounts after a set of transactions have been executed.
-   * @param transactions - The transactions to update the balances for.
-   * @returns A Promise that resolves to the updated balances.
+   * Updates native token balances for accounts based on transaction data.
+   * @param scope - The network scope.
+   * @param transactionData - The transaction data containing balance information.
+   * @param currentAccounts - The current accounts in the keyring.
+   * @param currentBalances - The current balances to update (modified in-place).
+   * @returns The updated balances (same reference as currentBalances).
    */
-  async updateBalancesPostTransactions(
-    transactions: Transaction[],
-  ): Promise<Record<string, Record<string, Balance>>> {
-    const currentState = await this.#state.get();
-    const currentAccounts = Object.values(currentState.keyringAccounts);
-    const currentBalances = currentState.assets;
+  #updateNativeTokenBalances(
+    scope: Network,
+    transactionData: ReturnType<GetTransactionApi['getTransaction']>,
+    currentAccounts: SolanaKeyringAccount[],
+    currentBalances: Record<string, Record<CaipAssetType, Balance>>,
+  ): Record<string, Record<CaipAssetType, Balance>> {
+    if (!transactionData?.meta) {
+      return currentBalances;
+    }
 
-    const updatedAccountBalances: Record<string, Record<string, Balance>> = {};
+    const allAccountAddresses = [
+      ...transactionData.transaction.message.accountKeys,
+      ...(transactionData.meta?.loadedAddresses?.writable ?? []),
+      ...(transactionData.meta?.loadedAddresses?.readonly ?? []),
+    ];
 
-    const sourceTransactions = transactions.filter(
-      (transaction) => transaction.type === 'send',
-    );
-    const destinationTransactions = transactions.filter(
-      (transaction) => transaction.type === 'receive',
-    );
+    const { postBalances, preBalances } = transactionData.meta;
 
+    for (let i = 0; i < postBalances.length; i++) {
+      const address = allAccountAddresses[i];
+      const preBalance = BigInt(preBalances[i] ?? 0);
+      const postBalance = BigInt(postBalances[i] ?? 0);
+
+      if (preBalance === postBalance) {
+        continue;
+      }
+
+      const accountId = getAccountIdFromAddress(
+        currentAccounts,
+        address as string,
+      );
+
+      if (!accountId) {
+        continue;
+      }
+
+      const newBalance = lamportsToSol(Number(postBalance)).toString();
+
+      if (!currentBalances[accountId]) {
+        currentBalances[accountId] = {};
+      }
+
+      currentBalances[accountId] = {
+        ...currentBalances[accountId],
+        [Networks[scope].nativeToken.caip19Id]: {
+          amount: newBalance,
+          unit: Networks[scope].nativeToken.symbol,
+        },
+      };
+    }
+
+    return currentBalances;
+  }
+
+  async updateBalancesPostTransaction(transaction: Transaction): Promise<void> {
     /**
-     * For each source transaction:
-     * 1. Get the asset and source address
-     * 2. Using the address, get the keyring account
-     * 3. Update the balance of the asset by removing the amount from the source address
+     * For all transactions, find which accounts are involved and add them to a list
+     * They can be either the sender or the receiver of a transaction.
+     * Then, for each account, trigger the `refreshAssets` method.
      */
-    for (const sourceTransaction of sourceTransactions) {
-      const { asset, address } = sourceTransaction;
 
-      const keyringAccount = currentAccounts.find(
-        (currentAccount) => currentAccount.address === address,
-      );
+    const currentState = await this.#state.get();
+    const keyringAccounts = Object.values(currentState.keyringAccounts);
 
-      if (!keyringAccount) {
-        continue;
-      }
+    const addresses = [
+      ...transaction.from.map((from) => from.address),
+      ...transaction.to.map((to) => to.address),
+    ];
 
-      if (!asset?.fungible) {
-        continue;
-      }
+    const accountsChanged = keyringAccounts.filter((account) =>
+      addresses.includes(account.address),
+    );
 
-      const assetId = asset.type;
-      const currentBalance =
-        currentBalances[keyringAccount.id]?.[assetId]?.amount;
-
-      if (!currentBalance) {
-        continue;
-      }
-
-      const fee = transactions?.fees.map((fee) =>
-        fee.asset.type === assetId ? fee.amount : 0,
-      );
-      const sentAmount = asset.amount - fee;
-      const newBalance = BigNumber(currentBalance)
-        .minus(sentAmount)
-        .minus(fee)
-        .toString();
-
-      updatedAccountBalances[keyringAccount.id] = {
-        ...updatedAccountBalances[keyringAccount.id],
-        [assetId]: {
-          amount: newBalance,
-          unit: asset.unit,
+    for (const account of accountsChanged) {
+      await refreshAssets({
+        request: {
+          params: {
+            accountId: account.id,
+          },
         },
-      };
+      });
     }
-
-    for (const destinationTransaction of destinationTransactions) {
-      const { asset, address } = destinationTransaction;
-
-      const keyringAccount = currentAccounts.find(
-        (currentAccount) => currentAccount.address === address,
-      );
-
-      if (!keyringAccount) {
-        continue;
-      }
-
-      if (!asset?.fungible) {
-        continue;
-      }
-
-      const assetId = asset.type;
-      const currentBalance =
-        currentBalances[keyringAccount.id]?.[assetId]?.amount;
-
-      if (!currentBalance) {
-        continue;
-      }
-
-      const receivedAmount = asset.amount;
-      const newBalance = BigNumber(currentBalance)
-        .plus(receivedAmount)
-        .toString();
-
-      updatedAccountBalances[keyringAccount.id] = {
-        ...updatedAccountBalances[keyringAccount.id],
-        [assetId]: {
-          amount: newBalance,
-          unit: asset.unit,
-        },
-      };
-    }
-
-    await this.#state.update((state) => ({
-      ...state,
-      assets: {
-        ...state?.assets,
-        ...updatedAccountBalances,
-      },
-    }));
-
-    await emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
-      balances: updatedAccountBalances,
-    });
-
-    return updatedAccountBalances;
   }
 }

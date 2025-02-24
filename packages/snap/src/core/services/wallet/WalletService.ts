@@ -220,9 +220,9 @@ export class WalletService {
         },
       );
 
-      //   await this.#balancesService.updateBalancesPostTransactions([
-      //     mappedTransactionWithAccountId,
-      //   ]);
+      await this.#balancesService.updateBalancesPostTransaction(
+        mappedTransactionWithAccountId,
+      );
 
       return result;
     } catch (error) {
