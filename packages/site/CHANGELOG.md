@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0]
+
+### Uncategorized
+
+- Pulg send flow to sign and send transaction ([#212](https://github.com/MetaMask/snap-solana-wallet/pull/212))
+- Sol 169 snap add confirmation before submit request ([#209](https://github.com/MetaMask/snap-solana-wallet/pull/209))
+- Sol 159 snap add estimated changes to confirm transaction ([#210](https://github.com/MetaMask/snap-solana-wallet/pull/210))
+
 ## [1.7.0]
 
 ### Added
@@ -90,7 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.4.0...v1.7.0
 [1.4.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.2.0...v1.3.0
