@@ -9,6 +9,7 @@ import type {
   UpdateInterfaceResult,
 } from '@metamask/snaps-sdk';
 
+import type { CronjobMethod } from '../handlers/onCronjob';
 import type { Preferences } from '../types/snap';
 import type { Locale } from './i18n';
 
@@ -149,5 +150,35 @@ export async function getInterfaceContext(
 export async function getClientStatus(): Promise<GetClientStatusResult> {
   return await snap.request({
     method: 'snap_getClientStatus',
+  });
+}
+
+/**
+ * Schedules a background event.
+ *
+ * @param options - The options for the background event.
+ * @param options.method - The method to call.
+ * @param options.params - The params to pass to the method.
+ * @param options.duration - The duration to wait before the event is scheduled.
+ * @returns A promise that resolves to a string.
+ */
+export async function scheduleBackgroundEvent({
+  method,
+  params = {},
+  duration,
+}: {
+  method: CronjobMethod;
+  params?: Record<string, Json>;
+  duration: string;
+}) {
+  return await snap.request({
+    method: 'snap_scheduleBackgroundEvent',
+    params: {
+      duration,
+      request: {
+        method,
+        params,
+      },
+    },
   });
 }

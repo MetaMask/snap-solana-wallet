@@ -42,7 +42,11 @@ describe('refreshAssets', () => {
       assets: {},
     });
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: {},
+      },
+    });
 
     expect(snapContext.state.set).not.toHaveBeenCalled();
   });
@@ -56,7 +60,11 @@ describe('refreshAssets', () => {
       .mocked(snapContext.keyring.listAccounts as jest.Mock)
       .mockResolvedValueOnce([]);
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: {},
+      },
+    });
 
     expect(snapContext.state.set).not.toHaveBeenCalled();
   });
@@ -93,7 +101,11 @@ describe('refreshAssets', () => {
         [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
       });
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: {},
+      },
+    });
 
     expect(jest.mocked(snapContext.keyring.emitEvent).mock.calls).toStrictEqual(
       [
@@ -154,7 +166,11 @@ describe('refreshAssets', () => {
         [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
       });
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: {},
+      },
+    });
 
     // Verify balance update event was emitted
     expect(jest.mocked(snapContext.keyring.emitEvent).mock.calls).toStrictEqual(
@@ -212,7 +228,11 @@ describe('refreshAssets', () => {
         [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
       });
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: {},
+      },
+    });
 
     // Verify final state update
     expect(snapContext.state.set).toHaveBeenCalledWith(
