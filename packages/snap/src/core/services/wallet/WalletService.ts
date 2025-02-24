@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import type { Transaction } from '@metamask/keyring-api';
 import {
   KeyringEvent,
   type KeyringRequest,
@@ -18,6 +19,7 @@ import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { NetworkStruct } from '../../validation/structs';
+import type { BalancesService } from '../balances/BalancesService';
 import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
@@ -44,15 +46,19 @@ export class WalletService {
 
   readonly #transactionHelper: TransactionHelper;
 
+  readonly #balancesService: BalancesService;
+
   readonly #logger: ILogger;
 
   constructor(
     fromBase64EncodedBuilder: FromBase64EncodedBuilder,
     transactionHelper: TransactionHelper,
+    balancesService: BalancesService,
     _logger = logger,
   ) {
     this.#fromBase64EncodedBuilder = fromBase64EncodedBuilder;
     this.#transactionHelper = transactionHelper;
+    this.#balancesService = balancesService;
     this.#logger = _logger;
   }
 
@@ -199,10 +205,10 @@ export class WalletService {
         transactionData: transaction,
       });
 
-      const mappedTransactionWithAccountId = {
+      const mappedTransactionWithAccountId: Transaction = {
         ...mappedTransaction,
         account: account.id,
-      };
+      } as Transaction;
 
       await emitSnapKeyringEvent(
         snap,
@@ -213,6 +219,10 @@ export class WalletService {
           },
         },
       );
+
+      //   await this.#balancesService.updateBalancesPostTransactions([
+      //     mappedTransactionWithAccountId,
+      //   ]);
 
       return result;
     } catch (error) {

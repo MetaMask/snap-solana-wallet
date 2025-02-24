@@ -4,22 +4,17 @@ import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
 import { SLIP10Node } from '@metamask/key-tree';
 import type { ResolveAccountAddressRequest } from '@metamask/keyring-api';
 import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
-import type { JsonRpcRequest } from '@metamask/snaps-sdk';
+import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
 
-import {
-  KnownCaip19Id,
-  Network,
-  SolanaCaip19Tokens,
-} from '../../constants/solana';
+import { KnownCaip19Id, Network } from '../../constants/solana';
 import { AssetsService } from '../../services/assets/AssetsService';
+import type { BalancesService } from '../../services/balances/BalancesService';
 import type { ConfigProvider } from '../../services/config';
 import type { Config } from '../../services/config/ConfigProvider';
 import type { SolanaConnection } from '../../services/connection/SolanaConnection';
 import type { EncryptedStateValue } from '../../services/encrypted-state/EncryptedState';
 import { EncryptedState } from '../../services/encrypted-state/EncryptedState';
-import type { FromBase64EncodedBuilder } from '../../services/execution/builders/FromBase64EncodedBuilder';
-import type { TransactionHelper } from '../../services/execution/TransactionHelper';
 import { createMockConnection } from '../../services/mocks/mockConnection';
 import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
 import { TransactionsService } from '../../services/transactions/Transactions';
@@ -72,10 +67,9 @@ describe('SolanaKeyring', () => {
   let mockStateValue: EncryptedStateValue;
   let mockConfigProvider: ConfigProvider;
   let mockConnection: SolanaConnection;
-  let mockTransactionHelper: TransactionHelper;
   let mockTokenMetadataService: TokenMetadataService;
   let mockWalletService: WalletService;
-  let mockFromBase64EncodedBuilder: FromBase64EncodedBuilder;
+  let mockBalancesService: BalancesService;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -105,15 +99,6 @@ describe('SolanaKeyring', () => {
       logger,
     });
 
-    mockTransactionHelper = {
-      getLatestBlockhash: jest.fn(),
-      getComputeUnitEstimate: jest.fn(),
-      sendTransaction: jest.fn(),
-      base64DecodeTransaction: jest.fn(),
-      getFeeForMessageInLamports: jest.fn(),
-      waitForTransactionCommitment: jest.fn(),
-    } as unknown as TransactionHelper;
-
     mockTokenMetadataService = {
       getTokensMetadata: jest
         .fn()
@@ -128,9 +113,9 @@ describe('SolanaKeyring', () => {
       signAndSendTransaction: jest.fn(),
     } as unknown as WalletService;
 
-    mockFromBase64EncodedBuilder = {
-      buildTransactionMessage: jest.fn(),
-    } as unknown as FromBase64EncodedBuilder;
+    mockBalancesService = {
+      getAccountBalances: jest.fn(),
+    } as unknown as BalancesService;
 
     keyring = new SolanaKeyring({
       state,
@@ -138,10 +123,8 @@ describe('SolanaKeyring', () => {
       configProvider: mockConfigProvider,
       transactionsService,
       assetsService,
-      tokenMetadataService: mockTokenMetadataService,
-      transactionHelper: mockTransactionHelper,
       walletService: mockWalletService,
-      fromBase64EncodedBuilder: mockFromBase64EncodedBuilder,
+      balancesService: mockBalancesService,
     });
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
@@ -476,59 +459,39 @@ describe('SolanaKeyring', () => {
   });
 
   describe('getAccountBalances', () => {
-    it('gets account balance', async () => {
-      const accountBalance = await keyring.getAccountBalances(
-        MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
-        [KnownCaip19Id.SolLocalnet],
-      );
-      expect(accountBalance).toStrictEqual({
-        [KnownCaip19Id.SolLocalnet]: {
+    it('rejects invalid params', async () => {
+      await expect(
+        keyring.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_1.id, [
+          KnownCaip19Id.SolMainnet,
+          'Bob' as unknown as CaipAssetType,
+        ]),
+      ).rejects.toThrow(/At path: assets.1 -- Expected a string matching/u);
+    });
+
+    it('throws an error if account is not found', async () => {
+      await expect(
+        keyring.getAccountBalances(NON_EXISTENT_ACCOUNT_ID, [
+          KnownCaip19Id.SolMainnet,
+        ]),
+      ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
+    });
+
+    it('rejects invalid responses', async () => {
+      const invalidResponse = {
+        Bob: {
           amount: '0.123456789',
           unit: 'SOL',
         },
-      });
-    });
-
-    it('gets account and token balances', async () => {
-      const accountBalance = await keyring.getAccountBalances(
-        MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
-        [
-          `${Network.Localnet}/${SolanaCaip19Tokens.SOL}`,
-          `${Network.Localnet}/token:address1`,
-          `${Network.Localnet}/token:address2`,
-        ],
-      );
-      expect(accountBalance).toStrictEqual({
-        [`${Network.Localnet}/${SolanaCaip19Tokens.SOL}`]: {
-          amount: '0.123456789',
-          unit: 'SOL',
-        },
-        [`${Network.Localnet}/token:address1`]: {
-          amount: '0.123456789',
-          unit: 'MOCK1',
-        },
-        [`${Network.Localnet}/token:address2`]: {
-          amount: '0.987654321',
-          unit: 'MOCK2',
-        },
-      });
-    });
-
-    it('throws an error if balance fails to be retrieved', async () => {
-      const mockSend = jest
-        .fn()
-        .mockRejectedValueOnce(new Error('Error getting assets'));
-      const mockGetBalance = jest.fn().mockReturnValue({ send: mockSend });
-      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
-        getBalance: mockGetBalance,
-        getTokenAccountsByOwner: mockGetBalance,
-      } as any);
+      };
+      jest
+        .spyOn(mockBalancesService, 'getAccountBalances')
+        .mockResolvedValue(invalidResponse);
 
       await expect(
         keyring.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_1.id, [
           KnownCaip19Id.SolMainnet,
         ]),
-      ).rejects.toThrow('Error getting assets');
+      ).rejects.toThrow('Invalid Response');
     });
   });
 
