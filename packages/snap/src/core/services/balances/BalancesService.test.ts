@@ -101,4 +101,10 @@ describe('BalancesService', () => {
       ).rejects.toThrow('Error getting assets');
     });
   });
+
+  describe('updateBalancesPostTransactions', () => {
+    it.todo(
+      'updates the balances of the accounts after a set of transactions have been executed',
+    );
+  });
 });
