@@ -54,13 +54,24 @@ export function mapRpcTransaction({
   const to = [...nativeTo, ...splTo];
 
   /**
-   * If any of the transfers sources (native or SPL) include our account's address,
-   * we'll consider this a send, since it means we initiated the transfer.
-   * Otherwise, it's a receive.
+   * Evaluate the type of transaction
    */
-  const type = from.some(({ address: fromAddress }) => fromAddress === address)
-    ? 'send'
-    : 'receive';
+  const isAddressSender = from.some(
+    ({ address: fromAddress }) => fromAddress === address,
+  );
+  const isAddressReceiver = to.some(
+    ({ address: toAddress }) => toAddress === address,
+  );
+
+  let type: MappedTransaction['type'];
+
+  if (isAddressSender && isAddressReceiver) {
+    type = 'swap';
+  } else if (isAddressSender) {
+    type = 'send';
+  } else {
+    type = 'receive';
+  }
 
   return {
     id,

@@ -73,8 +73,13 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
         // Update the current context with the new rates
         const updatedInterfaceContext = {
           ...updatedInterfaceContextFinal,
+          scanFetchStatus: 'fetched' as const,
           scan,
         };
+
+        logger.info(
+          `[${CronjobMethod.RefreshConfirmationEstimation}] New scan fetched`,
+        );
 
         await updateInterface(
           confirmationInterfaceId,
@@ -82,6 +87,10 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
           updatedInterfaceContext,
         );
       }
+
+      logger.info(
+        `[${CronjobMethod.RefreshConfirmationEstimation}] Cronjob suceeded`,
+      );
     } catch (error) {
       if (!confirmationInterfaceId) {
         logger.info(
@@ -109,9 +118,6 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
         `[${CronjobMethod.RefreshConfirmationEstimation}] Could not update the interface. But rolled back status to fetched.`,
       );
     }
-    logger.info(
-      `[${CronjobMethod.RefreshConfirmationEstimation}] Cronjob suceeded`,
-    );
   } catch (error) {
     logger.info(
       { error },
