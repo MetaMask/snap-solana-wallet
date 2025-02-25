@@ -14,6 +14,7 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 import { assert, enums } from '@metamask/superstruct';
+import { Analytics } from '@segment/analytics-node';
 
 import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
 import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';
@@ -35,6 +36,10 @@ import { eventHandlers as transactionConfirmationEvents } from './features/send/
 import snapContext, { keyring } from './snapContext';
 
 installPolyfills();
+
+const analytics = new Analytics({
+  writeKey: 'WROhWEdkZCAUl9fbWrGL8pzwvncIthps',
+});
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -95,10 +100,15 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
 }): Promise<Json> => {
   try {
     validateOrigin(origin, request.method);
-    return (await handleKeyringRequest(
-      keyring,
-      request,
-    )) as unknown as Promise<Json>;
+
+    const keyringResponse = await handleKeyringRequest(keyring, request);
+
+    await analytics.track({
+      event: 'On keyring request',
+      anonymousId: '123',
+    });
+
+    return keyringResponse as unknown as Promise<Json>;
   } catch (error: any) {
     let snapError = error;
 

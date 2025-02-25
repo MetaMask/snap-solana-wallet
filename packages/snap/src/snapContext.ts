@@ -25,8 +25,10 @@ export type SnapExecutionContext = {
   configProvider: ConfigProvider;
   connection: SolanaConnection;
   keyring: SolanaKeyring;
-  priceApiClient: PriceApiClient;
   state: EncryptedState;
+  /* Clients */
+  priceApiClient: PriceApiClient;
+  /* Services */
   assetsService: AssetsService;
   tokenPricesService: TokenPricesService;
   transactionHelper: TransactionHelper;
@@ -99,8 +101,9 @@ const snapContext: SnapExecutionContext = {
   configProvider,
   connection,
   keyring,
-  priceApiClient,
   state,
+  /* Clients */
+  priceApiClient,
   /* Services */
   assetsService,
   tokenPricesService,
