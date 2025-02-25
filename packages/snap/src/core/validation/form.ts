@@ -4,7 +4,7 @@ import type { SendContext } from '../../features/send/types';
 import { SendFormNames } from '../../features/send/types';
 import { validateBalance } from '../../features/send/utils/validateBalance';
 import { validation } from '../../features/send/views/SendForm/validation';
-import { KnownCaip19Id } from '../constants/solana';
+import { Networks } from '../constants/solana';
 import type {
   FieldValidationFunction,
   ValidationFunction,
@@ -130,6 +130,7 @@ export const amountInput = (context: SendContext) => {
     minimumBalanceForRentExemptionSol,
     preferences: { locale },
     tokenCaipId,
+    scope,
   } = context;
   const translate = i18n(locale);
 
@@ -142,7 +143,9 @@ export const amountInput = (context: SendContext) => {
     const valueLowerThanMinimum =
       parseFloat(value) < parseFloat(minimumBalanceForRentExemptionSol);
 
-    if (valueLowerThanMinimum && tokenCaipId === KnownCaip19Id.SolMainnet) {
+    const isNativeSol = tokenCaipId === Networks[scope].nativeToken.caip19Id;
+
+    if (valueLowerThanMinimum && isNativeSol) {
       return {
         message: translate(
           'send.amountGreatherThanMinimumBalanceForRentExemptionError',

@@ -1,6 +1,6 @@
 import type { SendContext } from '../../features/send/types';
 import { SendCurrencyType } from '../../features/send/types';
-import { KnownCaip19Id } from '../constants/solana';
+import { KnownCaip19Id, Network } from '../constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -56,6 +56,7 @@ describe('sendFieldsAreValid', () => {
       },
       currencyType: SendCurrencyType.TOKEN,
       minimumBalanceForRentExemptionSol: '0.002',
+      scope: Network.Testnet,
     } as unknown as SendContext;
 
     const result = sendFieldsAreValid(context);
@@ -80,6 +81,7 @@ describe('sendFieldsAreValid', () => {
       },
       currencyType: SendCurrencyType.TOKEN,
       minimumBalanceForRentExemptionSol: '0.002',
+      scope: Network.Testnet,
     } as unknown as SendContext;
 
     const result = sendFieldsAreValid(context);
@@ -104,6 +106,7 @@ describe('sendFieldsAreValid', () => {
       },
       currencyType: SendCurrencyType.TOKEN,
       minimumBalanceForRentExemptionSol: '0.002',
+      scope: Network.Testnet,
     } as unknown as SendContext;
 
     const result = sendFieldsAreValid(contextWithInvalidBalance);
@@ -116,7 +119,9 @@ describe('sendFieldsAreValid', () => {
         preferences: {
           locale: 'en',
         },
+        tokenCaipId: KnownCaip19Id.SolTestnet,
         minimumBalanceForRentExemptionSol: '0.002',
+        scope: Network.Testnet,
       } as unknown as SendContext;
 
       const validator = amountInput(context);
@@ -128,7 +133,9 @@ describe('sendFieldsAreValid', () => {
         preferences: {
           locale: 'en',
         },
+        tokenCaipId: KnownCaip19Id.SolTestnet,
         minimumBalanceForRentExemptionSol: '0.002',
+        scope: Network.Testnet,
       } as unknown as SendContext;
 
       const validator = amountInput(context);
@@ -143,8 +150,9 @@ describe('sendFieldsAreValid', () => {
         preferences: {
           locale: 'en',
         },
+        tokenCaipId: KnownCaip19Id.SolTestnet,
         minimumBalanceForRentExemptionSol: '0.002',
-        tokenCaipId: KnownCaip19Id.SolMainnet,
+        scope: Network.Testnet,
       } as unknown as SendContext;
 
       const validator = amountInput(context);
@@ -154,19 +162,17 @@ describe('sendFieldsAreValid', () => {
       });
     });
 
-    it('returns null when sending a token, even a very small amount', () => {
+    it('does not compare the amount to the minimum balance for rent exemption when sending a SPL token', () => {
       const context = {
         preferences: {
           locale: 'en',
         },
         minimumBalanceForRentExemptionSol: '0.002',
-        tokenCaipId: KnownCaip19Id.UsdcDevnet,
+        tokenCaipId: KnownCaip19Id.EurcDevnet,
+        scope: Network.Testnet,
       } as unknown as SendContext;
 
       const validator = amountInput(context);
-      /**
-       * We don't compare the amount of USDC to the minimum balance for rent exemption, because the minimum balance for rent exemption is only applicable to SOL
-       */
       expect(validator('0.001')).toBeNull();
     });
   });
