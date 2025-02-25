@@ -1,8 +1,9 @@
+/* eslint-disable no-restricted-globals */
 /* eslint-disable jest/prefer-strict-equal */
 import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
 import { SLIP10Node } from '@metamask/key-tree';
 import type { ResolveAccountAddressRequest } from '@metamask/keyring-api';
-import { KeyringRpcMethod } from '@metamask/keyring-api';
+import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
 
@@ -583,6 +584,101 @@ describe('SolanaKeyring', () => {
       );
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('submitRequest', () => {
+    it('throws an error if the account does not have the method', async () => {
+      const snap = {
+        request: jest.fn().mockResolvedValue({
+          keyringAccounts: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+              methods: [],
+              scopes: [Network.Localnet],
+            },
+          },
+        }),
+      };
+
+      (globalThis as any).snap = snap;
+
+      await expect(
+        keyring.submitRequest({
+          account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          id: crypto.randomUUID(),
+          request: {
+            method: SolMethod.SignAndSendTransaction,
+            params: {
+              account: {
+                address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+              },
+              transaction: '1234567890',
+              scope: Network.Localnet,
+            },
+          },
+          scope: Network.Localnet,
+        }),
+      ).rejects.toThrow(
+        `Method "${SolMethod.SignAndSendTransaction}" is not allowed for this account`,
+      );
+    });
+
+    it('throws an error if the account does not have the scope', async () => {
+      const snap = {
+        request: jest.fn().mockResolvedValue({
+          keyringAccounts: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+              scopes: [],
+            },
+          },
+        }),
+      };
+
+      (globalThis as any).snap = snap;
+
+      await expect(
+        keyring.submitRequest({
+          account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          id: crypto.randomUUID(),
+          request: {
+            method: SolMethod.SignAndSendTransaction,
+            params: {
+              account: {
+                address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+              },
+              transaction: '1234567890',
+              scope: Network.Devnet,
+            },
+          },
+          scope: Network.Devnet,
+        }),
+      ).rejects.toThrow(
+        `Scope "${Network.Devnet}" is not allowed for this account`,
+      );
+    });
+
+    it('throws an error if the scope does not match the request', async () => {
+      await expect(
+        keyring.submitRequest({
+          account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          id: crypto.randomUUID(),
+          request: {
+            method: SolMethod.SignAndSendTransaction,
+            params: {
+              account: {
+                address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+              },
+              transaction: '1234567890',
+              scope: Network.Devnet,
+            },
+          },
+          scope: Network.Mainnet,
+        }),
+      ).rejects.toThrow(
+        `Scope "${Network.Mainnet}" does not match "${Network.Devnet}" in request.params`,
+      );
     });
   });
 });

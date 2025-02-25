@@ -26,7 +26,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
   options: {
     imported: false,
   },
-  methods: [SolMethod.SendAndConfirmTransaction],
+  methods: [
+    SolMethod.SignAndSendTransaction,
+    SolMethod.SignTransaction,
+    SolMethod.SignMessage,
+    SolMethod.SignIn,
+  ],
   scopes: ALL_SCOPES,
 };
 
@@ -48,7 +53,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   options: {
     imported: false,
   },
-  methods: [SolMethod.SendAndConfirmTransaction],
+  methods: [
+    SolMethod.SignAndSendTransaction,
+    SolMethod.SignTransaction,
+    SolMethod.SignMessage,
+    SolMethod.SignIn,
+  ],
   scopes: ALL_SCOPES,
 };
 
@@ -65,7 +75,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
   options: {
     imported: false,
   },
-  methods: [SolMethod.SendAndConfirmTransaction],
+  methods: [
+    SolMethod.SignAndSendTransaction,
+    SolMethod.SignTransaction,
+    SolMethod.SignMessage,
+    SolMethod.SignIn,
+  ],
   scopes: ALL_SCOPES,
 };
 
@@ -82,7 +97,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   options: {
     imported: false,
   },
-  methods: [SolMethod.SendAndConfirmTransaction],
+  methods: [
+    SolMethod.SignAndSendTransaction,
+    SolMethod.SignTransaction,
+    SolMethod.SignMessage,
+    SolMethod.SignIn,
+  ],
   scopes: ALL_SCOPES,
 };
 
@@ -99,7 +119,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
   options: {
     imported: false,
   },
-  methods: [SolMethod.SendAndConfirmTransaction],
+  methods: [
+    SolMethod.SignAndSendTransaction,
+    SolMethod.SignTransaction,
+    SolMethod.SignMessage,
+    SolMethod.SignIn,
+  ],
   scopes: ALL_SCOPES,
 };
 
@@ -116,7 +141,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
   options: {
     imported: false,
   },
-  methods: [SolMethod.SendAndConfirmTransaction],
+  methods: [
+    SolMethod.SignAndSendTransaction,
+    SolMethod.SignTransaction,
+    SolMethod.SignMessage,
+    SolMethod.SignIn,
+  ],
   scopes: ALL_SCOPES,
 };
 

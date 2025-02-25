@@ -204,7 +204,12 @@ export class SolanaKeyring implements Keyring {
           ...remainingOptions,
           imported: importedAccount ?? false,
         },
-        methods: [SolMethod.SendAndConfirmTransaction],
+        methods: [
+          SolMethod.SignAndSendTransaction,
+          SolMethod.SignTransaction,
+          SolMethod.SignMessage,
+          SolMethod.SignIn,
+        ],
       };
 
       await this.#state.update((state) => ({
@@ -441,6 +446,20 @@ export class SolanaKeyring implements Keyring {
     const base64EncodedTransaction = (params as any).transaction ?? '';
 
     const account = await this.getAccountOrThrow(accountId);
+
+    if (!account.scopes.includes(scope)) {
+      throw new Error(`Scope "${scope}" is not allowed for this account`);
+    }
+
+    if (!account.methods.includes(method)) {
+      throw new Error(`Method "${method}" is not allowed for this account`);
+    }
+
+    if ('scope' in params && scope !== params.scope) {
+      throw new Error(
+        `Scope "${scope}" does not match "${params.scope}" in request.params`,
+      );
+    }
 
     const isConfirmed = await renderConfirmation({
       ...DEFAULT_CONFIRMATION_CONTEXT,
