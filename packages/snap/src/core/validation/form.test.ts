@@ -138,12 +138,13 @@ describe('sendFieldsAreValid', () => {
       });
     });
 
-    it('returns an error when the amount is less than the minimum balance for rent exemption', () => {
+    it('returns an error when sending SOL and the amount is less than the minimum balance for rent exemption', () => {
       const context = {
         preferences: {
           locale: 'en',
         },
         minimumBalanceForRentExemptionSol: '0.002',
+        tokenCaipId: KnownCaip19Id.SolMainnet,
       } as unknown as SendContext;
 
       const validator = amountInput(context);
@@ -151,6 +152,22 @@ describe('sendFieldsAreValid', () => {
         message: 'Amount must be greater than 0.002',
         value: '0.001',
       });
+    });
+
+    it('returns null when sending a token, even a very small amount', () => {
+      const context = {
+        preferences: {
+          locale: 'en',
+        },
+        minimumBalanceForRentExemptionSol: '0.002',
+        tokenCaipId: KnownCaip19Id.UsdcDevnet,
+      } as unknown as SendContext;
+
+      const validator = amountInput(context);
+      /**
+       * We don't compare the amount of USDC to the minimum balance for rent exemption, because the minimum balance for rent exemption is only applicable to SOL
+       */
+      expect(validator('0.001')).toBeNull();
     });
   });
 });

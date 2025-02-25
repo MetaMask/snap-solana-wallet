@@ -4,6 +4,7 @@ import type { SendContext } from '../../features/send/types';
 import { SendFormNames } from '../../features/send/types';
 import { validateBalance } from '../../features/send/utils/validateBalance';
 import { validation } from '../../features/send/views/SendForm/validation';
+import { KnownCaip19Id } from '../constants/solana';
 import type {
   FieldValidationFunction,
   ValidationFunction,
@@ -118,8 +119,8 @@ export const address: ValidationFunction = (
  * Custom validation logic for the amount input field.
  *
  * It's invalid when:
- * - The value parses to 0
- * - The value is lower than the minimum balance for rent exemption.
+ * - The value parses to 0.
+ * - The user is sending SOL, and the amount is lower than the minimum balance for rent exemption.
  *
  * @param context - The send context, where values are read from.
  * @returns True if the value is valid, otherwise an object with the error message.
@@ -128,6 +129,7 @@ export const amountInput = (context: SendContext) => {
   const {
     minimumBalanceForRentExemptionSol,
     preferences: { locale },
+    tokenCaipId,
   } = context;
   const translate = i18n(locale);
 
@@ -140,7 +142,7 @@ export const amountInput = (context: SendContext) => {
     const valueLowerThanMinimum =
       parseFloat(value) < parseFloat(minimumBalanceForRentExemptionSol);
 
-    if (valueLowerThanMinimum) {
+    if (valueLowerThanMinimum && tokenCaipId === KnownCaip19Id.SolMainnet) {
       return {
         message: translate(
           'send.amountGreatherThanMinimumBalanceForRentExemptionError',
