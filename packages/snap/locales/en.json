@@ -37,8 +37,8 @@
     "send.amountRequiredError": {
       "message": "Amount is required"
     },
-    "send.amountGreatherThanZeroError": {
-      "message": "Amount must be greater than 0"
+    "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
+      "message": "Amount must be greater than {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "To address is required"

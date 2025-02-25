@@ -3,13 +3,19 @@ import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
 import { KnownCaip19Id, Network, Networks } from '../../core/constants/solana';
+import { lamportsToSol } from '../../core/utils/conversion';
 import {
   createInterface,
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   showDialog,
 } from '../../core/utils/interface';
-import { keyring, state, tokenPricesService } from '../../snapContext';
+import {
+  keyring,
+  state,
+  tokenPricesService,
+  transactionHelper,
+} from '../../snapContext';
 import { Send } from './Send';
 import type { SendContext } from './types';
 import { SendCurrencyType } from './types';
@@ -41,6 +47,7 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   transactionMessage: null,
   transaction: null,
   stage: 'send-form',
+  minimumBalanceForRentExemptionSol: '0.002', // Pessimistic default value. Will only be used if we cannot fetch the actual minimum balance for rent exemption.
 };
 
 /**
@@ -103,10 +110,20 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
       context.tokenPricesFetchStatus = 'error';
     });
 
+  const minimumBalanceForRentExemptionPromise = transactionHelper
+    .getMinimumBalanceForRentExemption(scope)
+    .then((balance) => {
+      context.minimumBalanceForRentExemptionSol =
+        lamportsToSol(balance).toString();
+    });
+
   /**
    * 5. Get the token prices (from api)
    */
-  await Promise.all([tokenPricesPromise]);
+  await Promise.all([
+    tokenPricesPromise,
+    minimumBalanceForRentExemptionPromise,
+  ]);
 
   const id = await createInterface(<Send context={context} />, context);
 

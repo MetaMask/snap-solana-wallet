@@ -58,6 +58,7 @@ describe('SendForm events', () => {
     buildingTransaction: false,
     transactionMessage: null,
     error: null,
+    minimumBalanceForRentExemptionSol: '0.002',
   };
 
   describe('onSwapCurrencyButtonClick', () => {

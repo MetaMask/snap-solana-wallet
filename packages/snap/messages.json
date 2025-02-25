@@ -11,7 +11,7 @@
   "send.toPlaceholder": "Enter public address",
   "send.fromRequiredError": "Account is required",
   "send.amountRequiredError": "Amount is required",
-  "send.amountGreatherThanZeroError": "Amount must be greater than 0",
+  "send.amountGreatherThanMinimumBalanceForRentExemptionError": "Amount must be greater than {minimumValue}",
   "send.toRequiredError": "To address is required",
   "send.toInvalidError": "Invalid Solana address",
   "send.insufficientBalance": "Insufficient balance",

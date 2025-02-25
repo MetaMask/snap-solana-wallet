@@ -210,6 +210,11 @@ describe('Send', () => {
       } as any,
     });
 
+    mockResolvedResult({
+      method: 'getMinimumBalanceForRentExemption',
+      result: 890880, // 890880 lamports = 0.00089088 SOL
+    });
+
     const response = request({
       origin: TEST_ORIGIN,
       method: RpcRequestMethod.StartSendTransactionFlow,

@@ -5,7 +5,10 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../../core/test/mocks/solana-keyring-accounts';
-import { updateInterface } from '../../../core/utils/interface';
+import {
+  getInterfaceContext,
+  updateInterface,
+} from '../../../core/utils/interface';
 import { sendFieldsAreValid } from '../../../core/validation/form';
 import {
   keyring,
@@ -67,6 +70,8 @@ describe('buildTxIfValid', () => {
     (transactionHelper.base64EncodeTransaction as jest.Mock).mockResolvedValue(
       'base64-encoded',
     );
+
+    (getInterfaceContext as jest.Mock).mockResolvedValue(mockContext);
   });
 
   it('does not build transaction if fields are invalid', async () => {

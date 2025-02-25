@@ -51,6 +51,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   request,
 }) => {
   try {
+    logger.log('[🔄 onRpcRequest]', request.method, request);
     const { method } = request;
 
     validateOrigin(origin, method);
@@ -94,6 +95,7 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
   request,
 }): Promise<Json> => {
   try {
+    logger.log('[🔑 onKeyringRequest]', request.method, request);
     validateOrigin(origin, request.method);
     return (await handleKeyringRequest(
       keyring,
@@ -165,6 +167,7 @@ export const onUserInput: OnUserInputHandler = async ({
  * @see https://docs.metamask.io/snaps/reference/entry-points/#oncronjob
  */
 export const onCronjob: OnCronjobHandler = async ({ request }) => {
+  logger.log('[⏱️ onCronjob]', request.method, request);
   const { method } = request;
   assert(method, enums(Object.values(CronjobMethod)));
 

@@ -66,4 +66,5 @@ export type SendContext = {
     message: LocalizedMessage;
     link?: string;
   } | null;
+  minimumBalanceForRentExemptionSol: string;
 };

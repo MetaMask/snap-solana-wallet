@@ -1,6 +1,8 @@
 import type {
+  Commitment,
   CompilableTransactionMessage,
   GetTransactionApi,
+  Lamports,
   Signature,
   TransactionMessageBytesBase64,
   TransactionSigner,
@@ -346,5 +348,27 @@ export class TransactionHelper {
       this.#logger.warn(errorMessage);
       throw new Error(errorMessage);
     });
+  }
+
+  /**
+   * Returns minimum balance required to make account rent exempt.
+   * @param network - The network on which the transaction is being sent.
+   * @param accountSize - The Account's data length.
+   * @param config - The configuration for the request.
+   * @param config.commitment - The commitment level to use.
+   * @returns The minimum balance in lamports required to make account rent exempt.
+   */
+  async getMinimumBalanceForRentExemption(
+    network: Network,
+    accountSize = BigInt(0),
+    config?: {
+      commitment?: Commitment;
+    },
+  ): Promise<Lamports> {
+    const rpc = this.#connection.getRpc(network);
+    const minimumBalance = await rpc
+      .getMinimumBalanceForRentExemption(accountSize, config)
+      .send();
+    return minimumBalance;
   }
 }

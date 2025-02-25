@@ -38,6 +38,7 @@ import { getBip32Entropy } from './getBip32Entropy';
  * #2 - 27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD
  * #3 - 3SYHDFbhoxuTCYCGRw7KSL8GbwUoByjtvyy7pUZeAhh8
  * #4 - FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK
+ * #5 - GN1DST49kafBmRDnKKwUbR6nJWoqzSJBPoHwcTXzgmkH
  *
  * And the private keys you see in the first test case below.
  */

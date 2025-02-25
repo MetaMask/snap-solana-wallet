@@ -4,7 +4,10 @@ import { debounce } from 'lodash';
 import { Networks } from '../../../core/constants/solana';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import { getCaip19Address } from '../../../core/utils/getCaip19Address';
-import { updateInterface } from '../../../core/utils/interface';
+import {
+  getInterfaceContext,
+  updateInterface,
+} from '../../../core/utils/interface';
 import logger from '../../../core/utils/logger';
 import { sendFieldsAreValid } from '../../../core/validation/form';
 import {
@@ -21,9 +24,7 @@ const buildTransactionMessageAndStoreInContext = async (
   id: string,
   context: SendContext,
 ) => {
-  const updatedContext: SendContext = {
-    ...context,
-  };
+  const contextUpdates: Partial<SendContext> = {};
 
   try {
     const { fromAccountId, tokenCaipId, scope, toAddress } = context;
@@ -61,31 +62,37 @@ const buildTransactionMessageAndStoreInContext = async (
         scope,
       );
 
-    updatedContext.transactionMessage =
+    contextUpdates.transactionMessage =
       await transactionHelper.base64EncodeTransaction(transactionMessage);
-    updatedContext.feeEstimatedInSol = feeInLamports
+
+    contextUpdates.feeEstimatedInSol = feeInLamports
       ? lamportsToSol(feeInLamports).toString()
       : null;
   } catch (error) {
     logger.error('Error generating transaction message', error);
 
-    updatedContext.error = {
+    contextUpdates.error = {
       title: 'send.simulationTitleError',
       message: 'send.simulationMessageError',
     };
 
-    updatedContext.transactionMessage = null;
+    contextUpdates.transactionMessage = null;
   }
 
-  updatedContext.buildingTransaction = false;
+  contextUpdates.buildingTransaction = false;
 
-  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
+  const currentContext = (await getInterfaceContext(id)) as SendContext;
+  const newContext = {
+    ...currentContext,
+    ...contextUpdates,
+  };
+  await updateInterface(id, <Send context={newContext} />, newContext);
 };
 
 /**
- * A thottled version to avoid too many successive calls to the function since it's potentially called on every keystroke.
+ * A debounced version to avoid too many successive calls to the function since it's potentially called on every keystroke.
  */
-const throttledBuildTransactionMessageAndStoreInContext = debounce(
+const debouncedBuildTransactionMessageAndStoreInContext = debounce(
   buildTransactionMessageAndStoreInContext,
   500,
 );
@@ -121,6 +128,6 @@ export const buildTxIfValid = async (id: string, context: SendContext) => {
       updatedContext,
     );
 
-    await throttledBuildTransactionMessageAndStoreInContext(id, context);
+    await debouncedBuildTransactionMessageAndStoreInContext(id, context);
   }
 };

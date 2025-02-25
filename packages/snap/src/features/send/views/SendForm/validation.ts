@@ -2,13 +2,13 @@ import { enums, object } from '@metamask/superstruct';
 
 import { Network } from '../../../../core/constants/solana';
 import type { FieldValidationFunction } from '../../../../core/types/form';
-import type { Locale } from '../../../../core/utils/i18n';
 import {
   address,
-  greatherThanZero,
+  amountInput,
   required,
 } from '../../../../core/validation/form';
 import { UuidStruct } from '../../../../core/validation/structs';
+import type { SendContext } from '../../types';
 import { SendFormNames } from '../../types';
 
 export const StartSendTransactionFlowParamsStruct = object({
@@ -17,17 +17,17 @@ export const StartSendTransactionFlowParamsStruct = object({
 });
 
 export const validation: (
-  locale: Locale,
-) => Partial<Record<SendFormNames, FieldValidationFunction[]>> = (locale) => ({
+  context: SendContext,
+) => Partial<Record<SendFormNames, FieldValidationFunction[]>> = (context) => ({
   [SendFormNames.SourceAccountSelector]: [
-    required('send.fromRequiredError', locale),
+    required('send.fromRequiredError', context.preferences.locale),
   ],
   [SendFormNames.AmountInput]: [
-    required('send.amountRequiredError', locale),
-    greatherThanZero('send.amountGreatherThanZeroError', locale),
+    amountInput(context),
+    required('send.amountRequiredError', context.preferences.locale),
   ],
   [SendFormNames.DestinationAccountInput]: [
-    required('send.toRequiredError', locale),
-    address('send.toInvalidError', locale),
+    required('send.toRequiredError', context.preferences.locale),
+    address('send.toInvalidError', context.preferences.locale),
   ],
 });
