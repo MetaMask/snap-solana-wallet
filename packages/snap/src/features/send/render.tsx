@@ -115,6 +115,9 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     .then((balance) => {
       context.minimumBalanceForRentExemptionSol =
         lamportsToSol(balance).toString();
+    })
+    .catch(() => {
+      // Do nothing, the value set on default context will be used.
     });
 
   /**
