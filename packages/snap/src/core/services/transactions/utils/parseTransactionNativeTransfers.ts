@@ -53,6 +53,16 @@ export function parseTransactionNativeTransfers({
   );
 
   /**
+   * The indexes of accounts can be higher than account keys. Don't forget `loadedAddresses`!
+   * https://solana.stackexchange.com/questions/11981/the-account-index-does-not-exist-in-accountkeys
+   */
+  const allAccountAddresses = [
+    ...transactionData.transaction.message.accountKeys,
+    ...(transactionData.meta?.loadedAddresses?.writable ?? []),
+    ...(transactionData.meta?.loadedAddresses?.readonly ?? []),
+  ];
+
+  /**
    * Track all accounts that had SOL balance changes
    */
   const allAccountIndexes = new Set([
@@ -65,8 +75,12 @@ export function parseTransactionNativeTransfers({
     const postBalance = postBalances.get(accountIndex) ?? BigInt(0);
     let balanceDiff = postBalance - preBalance;
 
-    const accountAddress =
-      transactionData.transaction.message.accountKeys[accountIndex];
+    const accountAddress = allAccountAddresses[accountIndex];
+
+    // TODO: Investigate, how can this be undefined? Link to documentation
+    if (!accountAddress) {
+      continue;
+    }
 
     // Adjust balance difference for fee payer to exclude the transaction fee
     if (accountAddress === feePayer) {
@@ -81,7 +95,7 @@ export function parseTransactionNativeTransfers({
 
     if (balanceDiff < BigInt(0)) {
       from.push({
-        address: (accountAddress as string).toString(),
+        address: accountAddress.toString(),
         asset: {
           fungible: true,
           type: Networks[scope].nativeToken.caip19Id,
@@ -93,7 +107,7 @@ export function parseTransactionNativeTransfers({
 
     if (balanceDiff > BigInt(0)) {
       to.push({
-        address: (accountAddress as string).toString(),
+        address: accountAddress.toString(),
         asset: {
           fungible: true,
           type: Networks[scope].nativeToken.caip19Id,

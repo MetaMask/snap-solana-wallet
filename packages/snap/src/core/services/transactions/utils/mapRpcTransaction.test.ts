@@ -3,6 +3,7 @@ import { address as asAddress } from '@solana/web3.js';
 import { Network, Networks } from '../../../constants/solana';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
+import { EXPECTED_SWAP_TRANSFER_DATA } from '../../../test/mocks/transactions-data/swap-transfer';
 import { mapRpcTransaction } from './mapRpcTransaction';
 
 describe('mapRpcTransaction', () => {
@@ -250,5 +251,137 @@ describe('mapRpcTransaction', () => {
     });
 
     expect(result).toBeNull();
+  });
+
+  it('maps a swap transaction', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Localnet,
+      address: asAddress('DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa'),
+      transactionData: EXPECTED_SWAP_TRANSFER_DATA,
+    });
+
+    /**
+     * Mainnet - Swap
+     * Transaction: 2pfnv4drhnitfzCFKxiRoJMzFQpG7wZ9mpRQVk7xm5TQ27g6FZH95HVF6KgwQBS872yGtyhuq57jXXS1y29ub11
+     *
+     * Senders:
+     * TODO: Investigate why we are getting 0.000000008 SOL back
+     * Theory is that we paid an "estimated fee" and the blockchain returned the difference.
+     * 8kR2HTHzPtTJuzpFZ8jtGCQ9TpahPaWbZfTNRs2GJdxq sends 0.000073111 SOL (0.000073111 - 0.000074798 = 0.000000008 SOL) - MISSING
+     * DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa sends 0.01 USDC - OK
+     * HUCjBnmd4FoUjCCMYQ9xFz1ce1r8vWAd8uMhUQakE2FR sends 2583.728601 Cobie - OK
+     * 3msVd34R5KxonDzyNSV5nT19UtUeJ2RF1NaQhvVPNLxL sends 0.000073111 WSOL - OK
+     *
+     * Receivers:
+     * DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa gets 0.000000008 SOL - MISSING
+     * CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM gets 0.000000723 SOL - OK
+     * HUCjBnmd4FoUjCCMYQ9xFz1ce1r8vWAd8uMhUQakE2FR gets 0.00007238 SOL - OK
+     * DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa gets 2583.728601 Cobie - OK
+     * 3msVd34R5KxonDzyNSV5nT19UtUeJ2RF1NaQhvVPNLxL gets 0.01 USDC - OK
+     */
+    expect(result).toStrictEqual({
+      id: '2pfnv4drhnitfzCFKxiRoJMzFQpG7wZ9mpRQVk7xm5TQ27g6FZH95HVF6KgwQBS872yGtyhuq57jXXS1y29ub11',
+      timestamp: 1740480781,
+      chain: 'solana:123456789abcdef',
+      status: 'confirmed',
+      type: 'swap',
+      from: [
+        {
+          address: '8kR2HTHzPtTJuzpFZ8jtGCQ9TpahPaWbZfTNRs2GJdxq',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/slip44:501',
+            unit: 'SOL',
+            amount: '0.000073111',
+          },
+        },
+        {
+          address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            unit: '',
+            amount: '0.01',
+          },
+        },
+        {
+          address: 'HUCjBnmd4FoUjCCMYQ9xFz1ce1r8vWAd8uMhUQakE2FR',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/token:HaMv3cdfDW6357yjpDur6kb6w52BUPJrMJpR76tjpump',
+            unit: '',
+            amount: '2583.728601',
+          },
+        },
+        {
+          address: '3msVd34R5KxonDzyNSV5nT19UtUeJ2RF1NaQhvVPNLxL',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/token:So11111111111111111111111111111111111111112',
+            unit: '',
+            amount: '0.000073111',
+          },
+        },
+      ],
+      to: [
+        {
+          address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/slip44:501',
+            unit: 'SOL',
+            amount: '8e-9',
+          },
+        },
+        {
+          address: 'CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/slip44:501',
+            unit: 'SOL',
+            amount: '7.23e-7',
+          },
+        },
+        {
+          address: 'HUCjBnmd4FoUjCCMYQ9xFz1ce1r8vWAd8uMhUQakE2FR',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/slip44:501',
+            unit: 'SOL',
+            amount: '0.00007238',
+          },
+        },
+        {
+          address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/token:HaMv3cdfDW6357yjpDur6kb6w52BUPJrMJpR76tjpump',
+            unit: '',
+            amount: '2583.728601',
+          },
+        },
+        {
+          address: '3msVd34R5KxonDzyNSV5nT19UtUeJ2RF1NaQhvVPNLxL',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            unit: '',
+            amount: '0.01',
+          },
+        },
+      ],
+      fees: [
+        {
+          type: 'base',
+          asset: {
+            fungible: true,
+            type: 'solana:123456789abcdef/slip44:501',
+            unit: 'SOL',
+            amount: '0.000074798',
+          },
+        },
+      ],
+      events: [{ status: 'confirmed', timestamp: 1740480781 }],
+    });
   });
 });
