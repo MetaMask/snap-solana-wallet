@@ -29,6 +29,7 @@ import {
   DEFAULT_CONFIRMATION_CONTEXT,
   renderConfirmation,
 } from '../../../features/confirmation/renderConfirmation';
+import type { SegmentApiClient } from '../../clients/segment-api/SegmentApiClient';
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { Network } from '../../constants/solana';
 import { SOL_SYMBOL, SolanaCaip19Tokens } from '../../constants/solana';
@@ -59,7 +60,6 @@ import {
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
 import { SolanaKeyringRequestStruct } from './structs';
-
 /**
  * We need to store the index of the KeyringAccount in the state because
  * we want to be able to restore any account with a previously used index.
@@ -87,6 +87,8 @@ export class SolanaKeyring implements Keyring {
 
   readonly #fromBase64EncodedBuilder: FromBase64EncodedBuilder;
 
+  readonly #segmentApiClient: SegmentApiClient;
+
   constructor({
     state,
     configProvider,
@@ -97,6 +99,7 @@ export class SolanaKeyring implements Keyring {
     tokenMetadataService,
     walletService,
     fromBase64EncodedBuilder,
+    segmentApiClient,
   }: {
     state: EncryptedState;
     configProvider: ConfigProvider;
@@ -107,6 +110,7 @@ export class SolanaKeyring implements Keyring {
     tokenMetadataService: TokenMetadataService;
     walletService: WalletService;
     fromBase64EncodedBuilder: FromBase64EncodedBuilder;
+    segmentApiClient: SegmentApiClient;
   }) {
     this.#state = state;
     this.#configProvider = configProvider;
@@ -117,12 +121,18 @@ export class SolanaKeyring implements Keyring {
     this.#tokenMetadataService = tokenMetadataService;
     this.#walletService = walletService;
     this.#fromBase64EncodedBuilder = fromBase64EncodedBuilder;
+    this.#segmentApiClient = segmentApiClient;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
       const currentState = await this.#state.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
+
+      await this.#segmentApiClient.track({
+        anonymousId: 'test-id',
+        event: 'snap_keyring_request',
+      });
 
       return Object.values(keyringAccounts).sort((a, b) => a.index - b.index);
     } catch (error: any) {

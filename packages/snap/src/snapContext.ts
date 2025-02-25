@@ -1,5 +1,6 @@
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
+import { SegmentApiClient } from './core/clients/segment-api/SegmentApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import { AssetsService } from './core/services/assets/AssetsService';
@@ -25,8 +26,11 @@ export type SnapExecutionContext = {
   configProvider: ConfigProvider;
   connection: SolanaConnection;
   keyring: SolanaKeyring;
-  priceApiClient: PriceApiClient;
   state: EncryptedState;
+  /* Clients */
+  priceApiClient: PriceApiClient;
+  segmentApiClient: SegmentApiClient;
+  /* Services */
   assetsService: AssetsService;
   tokenPricesService: TokenPricesService;
   transactionHelper: TransactionHelper;
@@ -53,6 +57,7 @@ const fromBase64EncodedBuilder = new FromBase64EncodedBuilder(
 );
 const tokenMetadataClient = new TokenMetadataClient(configProvider);
 const priceApiClient = new PriceApiClient(configProvider);
+const segmentApiClient = new SegmentApiClient(configProvider);
 
 const assetsService = new AssetsService({
   connection,
@@ -91,6 +96,7 @@ const keyring = new SolanaKeyring({
   tokenMetadataService,
   walletService,
   fromBase64EncodedBuilder,
+  segmentApiClient,
 });
 
 const tokenPricesService = new TokenPricesService(priceApiClient);
@@ -99,8 +105,10 @@ const snapContext: SnapExecutionContext = {
   configProvider,
   connection,
   keyring,
-  priceApiClient,
   state,
+  /* Clients */
+  priceApiClient,
+  segmentApiClient,
   /* Services */
   assetsService,
   tokenPricesService,

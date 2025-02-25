@@ -35,6 +35,8 @@ const EnvStruct = object({
   STATIC_API_BASE_URL: UrlStruct,
   SECURITY_ALERTS_API_BASE_URL: UrlStruct,
   LOCAL_API_BASE_URL: string(),
+  SEGMENT_API_BASE_URL: UrlStruct,
+  SEGMENT_API_WRITE_KEY: string(),
 });
 
 export type Env = Infer<typeof EnvStruct>;
@@ -63,6 +65,10 @@ export type Config = {
   };
   securityAlertsApi: {
     baseUrl: string;
+  };
+  segmentApi: {
+    baseUrl: string;
+    writeKey: string;
   };
 };
 
@@ -101,6 +107,9 @@ export class ConfigProvider {
       SECURITY_ALERTS_API_BASE_URL: process.env.SECURITY_ALERTS_API_BASE_URL,
       // Local API
       LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL,
+      // Segment API
+      SEGMENT_API_BASE_URL: process.env.SEGMENT_API_BASE_URL,
+      SEGMENT_API_WRITE_KEY: process.env.SEGMENT_API_WRITE_KEY,
     };
 
     // Validate and parse them before returning
@@ -157,6 +166,14 @@ export class ConfigProvider {
           environment.ENVIRONMENT === 'test'
             ? environment.LOCAL_API_BASE_URL
             : environment.SECURITY_ALERTS_API_BASE_URL,
+      },
+      segmentApi: {
+        baseUrl:
+          environment.ENVIRONMENT === 'test' ||
+          environment.ENVIRONMENT === 'local'
+            ? environment.LOCAL_API_BASE_URL
+            : environment.SEGMENT_API_BASE_URL,
+        writeKey: environment.SEGMENT_API_WRITE_KEY,
       },
     };
   }
