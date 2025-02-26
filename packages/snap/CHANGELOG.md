@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0]
+
+### Uncategorized
+
+- New Crowdin translations by Github Action ([#126](https://github.com/MetaMask/snap-solana-wallet/pull/126))
+- fix: allowing accounts to request submit request methods ([#218](https://github.com/MetaMask/snap-solana-wallet/pull/218))
+- chore: support explicit accountNameSuggestion ([#207](https://github.com/MetaMask/snap-solana-wallet/pull/207))
+- Use minimumBalanceForRentExemption to send SOL ([#215](https://github.com/MetaMask/snap-solana-wallet/pull/215))
+- feat: add swap transactions ([#214](https://github.com/MetaMask/snap-solana-wallet/pull/214))
+
 ## [1.8.0]
 
 ### Added
@@ -232,7 +242,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.5.0...v1.6.0
