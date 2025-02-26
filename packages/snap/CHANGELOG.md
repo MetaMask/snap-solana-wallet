@@ -9,13 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.9.0]
 
-### Uncategorized
+### Added
 
-- New Crowdin translations by Github Action ([#126](https://github.com/MetaMask/snap-solana-wallet/pull/126))
-- fix: allowing accounts to request submit request methods ([#218](https://github.com/MetaMask/snap-solana-wallet/pull/218))
-- chore: support explicit accountNameSuggestion ([#207](https://github.com/MetaMask/snap-solana-wallet/pull/207))
-- Use minimumBalanceForRentExemption to send SOL ([#215](https://github.com/MetaMask/snap-solana-wallet/pull/215))
-- feat: add swap transactions ([#214](https://github.com/MetaMask/snap-solana-wallet/pull/214))
+- New translations languages ([#126](https://github.com/MetaMask/snap-solana-wallet/pull/126))
+- Support for `swap` transactions ([#214](https://github.com/MetaMask/snap-solana-wallet/pull/214))
+
+### Fixed
+
+- Allowing accounts to request `submitRequest` methods ([#218](https://github.com/MetaMask/snap-solana-wallet/pull/218))
+
+### Added
+
+- Support explicit `accountNameSuggestion` on `createAccount` ([#207](https://github.com/MetaMask/snap-solana-wallet/pull/207))
+- Use `minimumBalanceForRentExemption` to send SOL ([#215](https://github.com/MetaMask/snap-solana-wallet/pull/215))
 
 ## [1.8.0]
 

@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.9.0]
 
-### Uncategorized
+### Added
 
-- feat: add swap transactions ([#214](https://github.com/MetaMask/snap-solana-wallet/pull/214))
+- Support for `swap` transactions ([#214](https://github.com/MetaMask/snap-solana-wallet/pull/214))
 
 ## [1.8.0]
 
