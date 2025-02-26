@@ -19,7 +19,7 @@ import { validateField } from '../../../../core/validation/form';
 import { tokenPricesService } from '../../../../snapContext';
 import { Send } from '../../Send';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
-import { buildTransactionMessageAndUpdateInterface } from '../../utils/createBuildTransactionAndStoreInContext';
+import { buildTransactionMessageAndUpdateInterface } from '../../utils/buildTransactionMessageAndUpdateInterface';
 import { validateBalance } from '../../utils/validateBalance';
 import { validation } from './validation';
 
