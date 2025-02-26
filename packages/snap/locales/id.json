@@ -1,179 +1,179 @@
 {
-  "locale": "es",
+  "locale": "id",
   "messages": {
     "send.title": {
-      "message": "Enviar"
+      "message": "Kirim"
     },
     "send.balance": {
       "message": "Saldo"
     },
     "send.maxButton": {
-      "message": "Máx."
+      "message": "Maks"
     },
     "send.cancelButton": {
-      "message": "Cancelar"
+      "message": "Batal"
     },
     "send.continueButton": {
-      "message": "Continuar"
+      "message": "Lanjutkan"
     },
     "send.fromField": {
-      "message": "De"
+      "message": "Dari"
     },
     "send.toField": {
-      "message": "Para"
+      "message": "Ke"
     },
     "send.amountField": {
-      "message": "Monto"
+      "message": "Jumlah"
     },
     "send.assetField": {
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Introduzca la dirección pública"
+      "message": "Masukkan alamat publik"
     },
     "send.fromRequiredError": {
-      "message": "La cuenta es obligatoria"
+      "message": "Akun diperlukan"
     },
     "send.amountRequiredError": {
-      "message": "El monto es obligatorio"
+      "message": "Jumlah diperlukan"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "Amount must be greater than {minimumValue}"
     },
     "send.toRequiredError": {
-      "message": "La dirección del destinatario es obligatoria"
+      "message": "Alamat kirim diperlukan"
     },
     "send.toInvalidError": {
-      "message": "Dirección de Solana no válida"
+      "message": "Alamat Solana tidak valid"
     },
     "send.insufficientBalance": {
-      "message": "Saldo insuficiente"
+      "message": "Saldo tidak cukup"
     },
     "send.simulationTitleError": {
-      "message": "Simulación de transacción fallida"
+      "message": "Simulasi transaksi gagal"
     },
     "send.simulationMessageError": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "Transaksi ini dikembalikan selama simulasi."
     },
     "send.selectedTokenPriceNotAvailable": {
-      "message": "Los precios de los tokens en {currency} no están disponibles actualmente. Aún puede enviar tokens."
+      "message": "Harga token dalam {currency} tidak tersedia untuk saat ini. Anda masih dapat mengirim token."
     },
     "send.confirmation.title": {
-      "message": "Revisar"
+      "message": "Tinjau"
     },
     "send.confirmation.from": {
-      "message": "De"
+      "message": "Dari"
     },
     "send.confirmation.recipient": {
-      "message": "Destinatario"
+      "message": "Penerima"
     },
     "send.confirmation.network": {
-      "message": "Red"
+      "message": "Jaringan"
     },
     "send.confirmation.transactionSpeed": {
-      "message": "Velocidad de la transacción"
+      "message": "Kecepatan transaksi"
     },
     "send.confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "Biaya jaringan"
     },
     "send.confirmation.sendButton": {
-      "message": "Enviar"
+      "message": "Kirim"
     },
     "send.confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "Batal"
     },
     "send.confirmation.viewTransaction": {
-      "message": "Ver transacción"
+      "message": "Lihat transaksi"
     },
     "send.send-pending.title": {
-      "message": "Enviando..."
+      "message": "Mengirim..."
     },
     "send.send-pending.subtitle": {
-      "message": "Se envió su transacción."
+      "message": "Transaksi Anda telah dikirimkan."
     },
     "send.transaction-success.title": {
-      "message": "Enviado"
+      "message": "Terkirim"
     },
     "send.transaction-success.subtitle": {
-      "message": "El envío de {amount} {tokenSymbol} se realizó correctamente"
+      "message": "{amount} {tokenSymbol} berhasil dikirim"
     },
     "send.transaction-failure.title": {
-      "message": "Transacción fallida"
+      "message": "Transaksi gagal"
     },
     "send.transaction-failure.subtitle": {
-      "message": "Error al enviar {amount} {tokenSymbol}"
+      "message": "Tidak dapat mengirim {amount} {tokenSymbol}"
     },
     "confirmation.account": {
-      "message": "Cuenta"
+      "message": "Akun"
     },
     "confirmation.network": {
-      "message": "Red"
+      "message": "Jaringan"
     },
     "confirmation.estimatedChanges": {
-      "message": "Cambios estimados"
+      "message": "Estimasi perubahan"
     },
     "confirmation.estimatedChanges.send": {
-      "message": "Usted envía"
+      "message": "Anda mengirim"
     },
     "confirmation.estimatedChanges.receive": {
-      "message": "Usted recibe"
+      "message": "Anda menerima"
     },
     "confirmation.estimatedChanges.notAvailable": {
-      "message": "No disponible"
+      "message": "Tidak tersedia"
     },
     "confirmation.estimatedChanges.noChanges": {
-      "message": "Sin cambios"
+      "message": "Tidak ada perubahan"
     },
     "confirmation.estimatedChanges.tooltip": {
-      "message": "Los cambios estimados son los que podrían producirse si sigue adelante con esta transacción. Esto es solo una predicción, no una garantía."
+      "message": "Estimasi perubahan merupakan hal yang mungkin terjadi jika Anda melakukan transaksi ini. Ini hanyalah prediksi, bukan jaminan."
     },
     "confirmation.advanced.show": {
-      "message": "Mostrar avanzadas"
+      "message": "Tampilkan lanjutan"
     },
     "confirmation.advanced.hide": {
-      "message": "Ocultar avanzadas"
+      "message": "Sembunyikan lanjutan"
     },
     "confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "Batal"
     },
     "confirmation.confirmButton": {
-      "message": "Confirmar"
+      "message": "Konfirmasikan"
     },
     "confirmation.title": {
-      "message": "Solicitud de transacción"
+      "message": "Permintaan transaksi"
     },
     "confirmation.advanced.unknownInstruction": {
-      "message": "Desconocida"
+      "message": "Tidak dikenal"
     },
     "confirmation.advanced.programId": {
-      "message": "ID del programa"
+      "message": "ID Program"
     },
     "confirmation.advanced.data": {
-      "message": "Datos"
+      "message": "Data"
     },
     "confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "Biaya jaringan"
     },
     "confirmation.feeError": {
-      "message": "No se puede calcular la tarifa"
+      "message": "Tidak dapat memperkirakan biaya"
     },
     "confirmation.simulationErrorTitle": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "Transaksi ini dikembalikan selama simulasi."
     },
     "confirmation.simulationErrorSubtitle": {
-      "message": "Motivo: {reason}"
+      "message": "Alasan: {reason}"
     },
     "confirmation.validationErrorTitle": {
-      "message": "Esta es una solicitud engañosa"
+      "message": "Ini adalah permintaan tipuan"
     },
     "confirmation.validationErrorSubtitle": {
-      "message": "Si aprueba esta solicitud, un tercero conocido por sus estafas se quedará con todos sus activos."
+      "message": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda."
     },
     "confirmation.validationErrorLearnMore": {
-      "message": "Conozca más"
+      "message": "Pelajari selengkapnya"
     },
     "confirmation.validationErrorSecurityAdviced": {
-      "message": "Asesoramiento de seguridad por"
+      "message": "Saran keamanan dari"
     }
   }
 }

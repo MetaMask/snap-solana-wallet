@@ -1,179 +1,179 @@
 {
-  "locale": "es",
+  "locale": "en",
   "messages": {
     "send.title": {
-      "message": "Enviar"
+      "message": "发送"
     },
     "send.balance": {
-      "message": "Saldo"
+      "message": "余额"
     },
     "send.maxButton": {
-      "message": "Máx."
+      "message": "最大值"
     },
     "send.cancelButton": {
-      "message": "Cancelar"
+      "message": "取消"
     },
     "send.continueButton": {
-      "message": "Continuar"
+      "message": "继续"
     },
     "send.fromField": {
-      "message": "De"
+      "message": "从"
     },
     "send.toField": {
-      "message": "Para"
+      "message": "至"
     },
     "send.amountField": {
-      "message": "Monto"
+      "message": "金额"
     },
     "send.assetField": {
-      "message": "Token"
+      "message": "代币"
     },
     "send.toPlaceholder": {
-      "message": "Introduzca la dirección pública"
+      "message": "输入公共地址"
     },
     "send.fromRequiredError": {
-      "message": "La cuenta es obligatoria"
+      "message": "账户为必填项"
     },
     "send.amountRequiredError": {
-      "message": "El monto es obligatorio"
+      "message": "金额为必填项"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "Amount must be greater than {minimumValue}"
     },
     "send.toRequiredError": {
-      "message": "La dirección del destinatario es obligatoria"
+      "message": "接收者地址为必填项"
     },
     "send.toInvalidError": {
-      "message": "Dirección de Solana no válida"
+      "message": "Solana 地址无效"
     },
     "send.insufficientBalance": {
-      "message": "Saldo insuficiente"
+      "message": "余额不足"
     },
     "send.simulationTitleError": {
-      "message": "Simulación de transacción fallida"
+      "message": "交易模拟失败"
     },
     "send.simulationMessageError": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "此交易在模拟期间被撤销。"
     },
     "send.selectedTokenPriceNotAvailable": {
-      "message": "Los precios de los tokens en {currency} no están disponibles actualmente. Aún puede enviar tokens."
+      "message": "目前无法获取以 {currency} 计价的代币价格。您仍然可以发送代币。"
     },
     "send.confirmation.title": {
-      "message": "Revisar"
+      "message": "查看"
     },
     "send.confirmation.from": {
-      "message": "De"
+      "message": "从"
     },
     "send.confirmation.recipient": {
-      "message": "Destinatario"
+      "message": "接收者"
     },
     "send.confirmation.network": {
-      "message": "Red"
+      "message": "网络"
     },
     "send.confirmation.transactionSpeed": {
-      "message": "Velocidad de la transacción"
+      "message": "交易速度"
     },
     "send.confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "网络费"
     },
     "send.confirmation.sendButton": {
-      "message": "Enviar"
+      "message": "发送"
     },
     "send.confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "取消"
     },
     "send.confirmation.viewTransaction": {
-      "message": "Ver transacción"
+      "message": "查看交易"
     },
     "send.send-pending.title": {
-      "message": "Enviando..."
+      "message": "正在发送......"
     },
     "send.send-pending.subtitle": {
-      "message": "Se envió su transacción."
+      "message": "您的交易已提交。"
     },
     "send.transaction-success.title": {
-      "message": "Enviado"
+      "message": "已发送"
     },
     "send.transaction-success.subtitle": {
-      "message": "El envío de {amount} {tokenSymbol} se realizó correctamente"
+      "message": "{amount} {tokenSymbol} 已成功发送"
     },
     "send.transaction-failure.title": {
-      "message": "Transacción fallida"
+      "message": "交易失败"
     },
     "send.transaction-failure.subtitle": {
-      "message": "Error al enviar {amount} {tokenSymbol}"
+      "message": "无法发送 {amount} {tokenSymbol}"
     },
     "confirmation.account": {
-      "message": "Cuenta"
+      "message": "账户"
     },
     "confirmation.network": {
-      "message": "Red"
+      "message": "网络"
     },
     "confirmation.estimatedChanges": {
-      "message": "Cambios estimados"
+      "message": "预计变化"
     },
     "confirmation.estimatedChanges.send": {
-      "message": "Usted envía"
+      "message": "您发送"
     },
     "confirmation.estimatedChanges.receive": {
-      "message": "Usted recibe"
+      "message": "您收到"
     },
     "confirmation.estimatedChanges.notAvailable": {
-      "message": "No disponible"
+      "message": "不可用"
     },
     "confirmation.estimatedChanges.noChanges": {
-      "message": "Sin cambios"
+      "message": "无变化"
     },
     "confirmation.estimatedChanges.tooltip": {
-      "message": "Los cambios estimados son los que podrían producirse si sigue adelante con esta transacción. Esto es solo una predicción, no una garantía."
+      "message": "预期变化是指您完成该交易可能发生的变化。这只是预测，而不是保证。"
     },
     "confirmation.advanced.show": {
-      "message": "Mostrar avanzadas"
+      "message": "显示高级选项"
     },
     "confirmation.advanced.hide": {
-      "message": "Ocultar avanzadas"
+      "message": "隐藏高级选项"
     },
     "confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "取消"
     },
     "confirmation.confirmButton": {
-      "message": "Confirmar"
+      "message": "确认"
     },
     "confirmation.title": {
-      "message": "Solicitud de transacción"
+      "message": "交易请求"
     },
     "confirmation.advanced.unknownInstruction": {
-      "message": "Desconocida"
+      "message": "未知"
     },
     "confirmation.advanced.programId": {
-      "message": "ID del programa"
+      "message": "程序 ID"
     },
     "confirmation.advanced.data": {
-      "message": "Datos"
+      "message": "数据"
     },
     "confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "网络费"
     },
     "confirmation.feeError": {
-      "message": "No se puede calcular la tarifa"
+      "message": "无法估算费用"
     },
     "confirmation.simulationErrorTitle": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "此交易在模拟期间被撤销。"
     },
     "confirmation.simulationErrorSubtitle": {
-      "message": "Motivo: {reason}"
+      "message": "原因：{reason}"
     },
     "confirmation.validationErrorTitle": {
-      "message": "Esta es una solicitud engañosa"
+      "message": "此请求属欺骗性质"
     },
     "confirmation.validationErrorSubtitle": {
-      "message": "Si aprueba esta solicitud, un tercero conocido por sus estafas se quedará con todos sus activos."
+      "message": "如果您批准此请求，因欺诈而恶名昭彰的第三方会拿走您的所有资产。"
     },
     "confirmation.validationErrorLearnMore": {
-      "message": "Conozca más"
+      "message": "了解详情"
     },
     "confirmation.validationErrorSecurityAdviced": {
-      "message": "Asesoramiento de seguridad por"
+      "message": "安全建议提供商："
     }
   }
 }

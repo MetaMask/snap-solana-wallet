@@ -1,0 +1,179 @@
+{
+  "locale": "fr",
+  "messages": {
+    "send.title": {
+      "message": "Envoyer"
+    },
+    "send.balance": {
+      "message": "Solde"
+    },
+    "send.maxButton": {
+      "message": "Maximum"
+    },
+    "send.cancelButton": {
+      "message": "Annuler"
+    },
+    "send.continueButton": {
+      "message": "Continuer"
+    },
+    "send.fromField": {
+      "message": "Expéditeur"
+    },
+    "send.toField": {
+      "message": "Destinataire"
+    },
+    "send.amountField": {
+      "message": "Montant"
+    },
+    "send.assetField": {
+      "message": "Jeton"
+    },
+    "send.toPlaceholder": {
+      "message": "Saisissez l’adresse publique"
+    },
+    "send.fromRequiredError": {
+      "message": "Le champ « Compte » ne peut pas être vide"
+    },
+    "send.amountRequiredError": {
+      "message": "Le champ « Montant » ne peut pas être vide"
+    },
+    "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
+      "message": "Amount must be greater than {minimumValue}"
+    },
+    "send.toRequiredError": {
+      "message": "L’adresse du destinataire est requise"
+    },
+    "send.toInvalidError": {
+      "message": "Adresse Solana non valide"
+    },
+    "send.insufficientBalance": {
+      "message": "Solde insuffisant"
+    },
+    "send.simulationTitleError": {
+      "message": "La simulation de la transaction a échoué"
+    },
+    "send.simulationMessageError": {
+      "message": "Cette transaction a été annulée pendant la simulation."
+    },
+    "send.selectedTokenPriceNotAvailable": {
+      "message": "Le prix des jetons en {currency} n’est pas disponible pour le moment. Vous pouvez toujours envoyer des jetons."
+    },
+    "send.confirmation.title": {
+      "message": "Examiner"
+    },
+    "send.confirmation.from": {
+      "message": "Expéditeur"
+    },
+    "send.confirmation.recipient": {
+      "message": "Destinataire"
+    },
+    "send.confirmation.network": {
+      "message": "Réseau"
+    },
+    "send.confirmation.transactionSpeed": {
+      "message": "Vitesse de transaction"
+    },
+    "send.confirmation.fee": {
+      "message": "Frais de réseau"
+    },
+    "send.confirmation.sendButton": {
+      "message": "Envoyer"
+    },
+    "send.confirmation.cancelButton": {
+      "message": "Annuler"
+    },
+    "send.confirmation.viewTransaction": {
+      "message": "Voir la transaction"
+    },
+    "send.send-pending.title": {
+      "message": "En cours d’envoi…"
+    },
+    "send.send-pending.subtitle": {
+      "message": "Votre transaction a été soumise."
+    },
+    "send.transaction-success.title": {
+      "message": "Envoyé"
+    },
+    "send.transaction-success.subtitle": {
+      "message": "{amount} {tokenSymbol} a été envoyé avec succès"
+    },
+    "send.transaction-failure.title": {
+      "message": "La transaction a échoué "
+    },
+    "send.transaction-failure.subtitle": {
+      "message": "Impossible d’envoyer {amount} {tokenSymbol}"
+    },
+    "confirmation.account": {
+      "message": "Compte"
+    },
+    "confirmation.network": {
+      "message": "Réseau"
+    },
+    "confirmation.estimatedChanges": {
+      "message": "Changements estimés"
+    },
+    "confirmation.estimatedChanges.send": {
+      "message": "Vous envoyez"
+    },
+    "confirmation.estimatedChanges.receive": {
+      "message": "Vous recevez"
+    },
+    "confirmation.estimatedChanges.notAvailable": {
+      "message": "Non disponible"
+    },
+    "confirmation.estimatedChanges.noChanges": {
+      "message": "Aucun changement"
+    },
+    "confirmation.estimatedChanges.tooltip": {
+      "message": "Les changements estimés représentent ce qui pourrait se produire si vous effectuez cette transaction. Il s’agit juste d’une estimation fournie à titre d’information."
+    },
+    "confirmation.advanced.show": {
+      "message": "Afficher les options avancées"
+    },
+    "confirmation.advanced.hide": {
+      "message": "Masquer les options avancées"
+    },
+    "confirmation.cancelButton": {
+      "message": "Annuler"
+    },
+    "confirmation.confirmButton": {
+      "message": "Confirmer"
+    },
+    "confirmation.title": {
+      "message": "Demande de transaction"
+    },
+    "confirmation.advanced.unknownInstruction": {
+      "message": "Inconnu"
+    },
+    "confirmation.advanced.programId": {
+      "message": "Identifiant du programme"
+    },
+    "confirmation.advanced.data": {
+      "message": "Données"
+    },
+    "confirmation.fee": {
+      "message": "Frais de réseau"
+    },
+    "confirmation.feeError": {
+      "message": "Impossible d’estimer les frais"
+    },
+    "confirmation.simulationErrorTitle": {
+      "message": "Cette transaction a été annulée pendant la simulation."
+    },
+    "confirmation.simulationErrorSubtitle": {
+      "message": "Motif : {reason}"
+    },
+    "confirmation.validationErrorTitle": {
+      "message": "Cette demande est trompeuse"
+    },
+    "confirmation.validationErrorSubtitle": {
+      "message": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs."
+    },
+    "confirmation.validationErrorLearnMore": {
+      "message": "En savoir plus"
+    },
+    "confirmation.validationErrorSecurityAdviced": {
+      "message": "Conseils de sécurité fournis par"
+    }
+  }
+}

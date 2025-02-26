@@ -1,179 +1,179 @@
 {
-  "locale": "es",
+  "locale": "tr",
   "messages": {
     "send.title": {
-      "message": "Enviar"
+      "message": "Gönder"
     },
     "send.balance": {
-      "message": "Saldo"
+      "message": "Bakiye"
     },
     "send.maxButton": {
-      "message": "Máx."
+      "message": "Maksimum"
     },
     "send.cancelButton": {
-      "message": "Cancelar"
+      "message": "İptal"
     },
     "send.continueButton": {
-      "message": "Continuar"
+      "message": "Devam"
     },
     "send.fromField": {
-      "message": "De"
+      "message": "Kimden"
     },
     "send.toField": {
-      "message": "Para"
+      "message": "Alıcı"
     },
     "send.amountField": {
-      "message": "Monto"
+      "message": "Tutar"
     },
     "send.assetField": {
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Introduzca la dirección pública"
+      "message": "Genel adres girin"
     },
     "send.fromRequiredError": {
-      "message": "La cuenta es obligatoria"
+      "message": "Hesap gereklidir"
     },
     "send.amountRequiredError": {
-      "message": "El monto es obligatorio"
+      "message": "Tutar gereklidir"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "Amount must be greater than {minimumValue}"
     },
     "send.toRequiredError": {
-      "message": "La dirección del destinatario es obligatoria"
+      "message": "Alıcı adres gereklidir"
     },
     "send.toInvalidError": {
-      "message": "Dirección de Solana no válida"
+      "message": "Solana adresi geçersiz"
     },
     "send.insufficientBalance": {
-      "message": "Saldo insuficiente"
+      "message": "Bakiye yetersiz"
     },
     "send.simulationTitleError": {
-      "message": "Simulación de transacción fallida"
+      "message": "İşlem simülasyonu başarısız oldu"
     },
     "send.simulationMessageError": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "Bu işlem simülasyon sırasında geri döndürüldü."
     },
     "send.selectedTokenPriceNotAvailable": {
-      "message": "Los precios de los tokens en {currency} no están disponibles actualmente. Aún puede enviar tokens."
+      "message": "Token fiyatları şu anda {currency} para biriminde mevcut değildir. Yine de token gönderebilirsiniz."
     },
     "send.confirmation.title": {
-      "message": "Revisar"
+      "message": "İncele"
     },
     "send.confirmation.from": {
-      "message": "De"
+      "message": "Kimden"
     },
     "send.confirmation.recipient": {
-      "message": "Destinatario"
+      "message": "Alıcı"
     },
     "send.confirmation.network": {
-      "message": "Red"
+      "message": "Ağ"
     },
     "send.confirmation.transactionSpeed": {
-      "message": "Velocidad de la transacción"
+      "message": "İşlem hızı"
     },
     "send.confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "Ağ ücreti"
     },
     "send.confirmation.sendButton": {
-      "message": "Enviar"
+      "message": "Gönder"
     },
     "send.confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "İptal"
     },
     "send.confirmation.viewTransaction": {
-      "message": "Ver transacción"
+      "message": "İşlemi görüntüle"
     },
     "send.send-pending.title": {
-      "message": "Enviando..."
+      "message": "Gönderiliyor..."
     },
     "send.send-pending.subtitle": {
-      "message": "Se envió su transacción."
+      "message": "İşleminiz gönderildi."
     },
     "send.transaction-success.title": {
-      "message": "Enviado"
+      "message": "Gönderildi"
     },
     "send.transaction-success.subtitle": {
-      "message": "El envío de {amount} {tokenSymbol} se realizó correctamente"
+      "message": "{amount} {tokenSymbol} başarılı bir şekilde gönderildi"
     },
     "send.transaction-failure.title": {
-      "message": "Transacción fallida"
+      "message": "İşlem başarısız oldu"
     },
     "send.transaction-failure.subtitle": {
-      "message": "Error al enviar {amount} {tokenSymbol}"
+      "message": "{amount} {tokenSymbol} gönderilemiyor"
     },
     "confirmation.account": {
-      "message": "Cuenta"
+      "message": "Hesap"
     },
     "confirmation.network": {
-      "message": "Red"
+      "message": "Ağ"
     },
     "confirmation.estimatedChanges": {
-      "message": "Cambios estimados"
+      "message": "Tahmini değişiklikler"
     },
     "confirmation.estimatedChanges.send": {
-      "message": "Usted envía"
+      "message": "Gönderdiğiniz"
     },
     "confirmation.estimatedChanges.receive": {
-      "message": "Usted recibe"
+      "message": "Aldığınız"
     },
     "confirmation.estimatedChanges.notAvailable": {
-      "message": "No disponible"
+      "message": "Mevcut değil"
     },
     "confirmation.estimatedChanges.noChanges": {
-      "message": "Sin cambios"
+      "message": "Değişiklik yok"
     },
     "confirmation.estimatedChanges.tooltip": {
-      "message": "Los cambios estimados son los que podrían producirse si sigue adelante con esta transacción. Esto es solo una predicción, no una garantía."
+      "message": "Tahmini değişiklikler bu işlemi gerçekleştirirseniz meydana gelebilecek değişikliklerdir. Bu bir garanti değil, sadece bir tahmindir."
     },
     "confirmation.advanced.show": {
-      "message": "Mostrar avanzadas"
+      "message": "Gelişmişi göster"
     },
     "confirmation.advanced.hide": {
-      "message": "Ocultar avanzadas"
+      "message": "Gelişmişi gizle"
     },
     "confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "İptal"
     },
     "confirmation.confirmButton": {
-      "message": "Confirmar"
+      "message": "Onayla"
     },
     "confirmation.title": {
-      "message": "Solicitud de transacción"
+      "message": "İşlem talebi"
     },
     "confirmation.advanced.unknownInstruction": {
-      "message": "Desconocida"
+      "message": "Bilinmeyen"
     },
     "confirmation.advanced.programId": {
-      "message": "ID del programa"
+      "message": "Program Kimliği"
     },
     "confirmation.advanced.data": {
-      "message": "Datos"
+      "message": "Veriler"
     },
     "confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "Ağ ücreti"
     },
     "confirmation.feeError": {
-      "message": "No se puede calcular la tarifa"
+      "message": "Ücret tahmin edilemiyor"
     },
     "confirmation.simulationErrorTitle": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "Bu işlem simülasyon sırasında geri döndürüldü."
     },
     "confirmation.simulationErrorSubtitle": {
-      "message": "Motivo: {reason}"
+      "message": "Sebebi: {reason}"
     },
     "confirmation.validationErrorTitle": {
-      "message": "Esta es una solicitud engañosa"
+      "message": "Bu, aldatıcı bir taleptir"
     },
     "confirmation.validationErrorSubtitle": {
-      "message": "Si aprueba esta solicitud, un tercero conocido por sus estafas se quedará con todos sus activos."
+      "message": "Bu talebi onaylarsanız dolandırıcılıkla ünlü üçüncü bir taraf tüm varlıklarınızı çalar."
     },
     "confirmation.validationErrorLearnMore": {
-      "message": "Conozca más"
+      "message": "Daha fazla bilgi"
     },
     "confirmation.validationErrorSecurityAdviced": {
-      "message": "Asesoramiento de seguridad por"
+      "message": "Güvenlik önerisi:"
     }
   }
 }

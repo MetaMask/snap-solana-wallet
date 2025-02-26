@@ -1,0 +1,179 @@
+{
+  "locale": "el",
+  "messages": {
+    "send.title": {
+      "message": "Αποστολή"
+    },
+    "send.balance": {
+      "message": "Υπόλοιπο"
+    },
+    "send.maxButton": {
+      "message": "Μεγ"
+    },
+    "send.cancelButton": {
+      "message": "Άκυρο"
+    },
+    "send.continueButton": {
+      "message": "Συνέχεια"
+    },
+    "send.fromField": {
+      "message": "Από"
+    },
+    "send.toField": {
+      "message": "Προς"
+    },
+    "send.amountField": {
+      "message": "Ποσό"
+    },
+    "send.assetField": {
+      "message": "Token"
+    },
+    "send.toPlaceholder": {
+      "message": "Εισάγετε τη δημόσια διεύθυνση"
+    },
+    "send.fromRequiredError": {
+      "message": "Απαιτείται ο λογαριασμός"
+    },
+    "send.amountRequiredError": {
+      "message": "Απαιτείται το ποσό"
+    },
+    "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
+      "message": "Amount must be greater than {minimumValue}"
+    },
+    "send.toRequiredError": {
+      "message": "Απαιτείται η διεύθυνση"
+    },
+    "send.toInvalidError": {
+      "message": "Μη έγκυρη διεύθυνση Solana"
+    },
+    "send.insufficientBalance": {
+      "message": "Ανεπαρκές υπόλοιπο"
+    },
+    "send.simulationTitleError": {
+      "message": "Η προσομοίωση της συναλλαγής απέτυχε"
+    },
+    "send.simulationMessageError": {
+      "message": "Η συναλλαγή αυτή ακυρώθηκε κατά τη διάρκεια της προσομοίωσης."
+    },
+    "send.selectedTokenPriceNotAvailable": {
+      "message": "Οι τιμές των tokens σε {currency} δεν είναι προς το παρόν διαθέσιμες. Μπορείτε ακόμα να στείλετε tokens."
+    },
+    "send.confirmation.title": {
+      "message": "Επανέλεγχος"
+    },
+    "send.confirmation.from": {
+      "message": "Από"
+    },
+    "send.confirmation.recipient": {
+      "message": "Παραλήπτης"
+    },
+    "send.confirmation.network": {
+      "message": "Δίκτυο"
+    },
+    "send.confirmation.transactionSpeed": {
+      "message": "Ταχύτητα συναλλαγών"
+    },
+    "send.confirmation.fee": {
+      "message": "Τέλη δικτύου"
+    },
+    "send.confirmation.sendButton": {
+      "message": "Αποστολή"
+    },
+    "send.confirmation.cancelButton": {
+      "message": "Άκυρο"
+    },
+    "send.confirmation.viewTransaction": {
+      "message": "Προβολή συναλλαγών"
+    },
+    "send.send-pending.title": {
+      "message": "Αποστολή..."
+    },
+    "send.send-pending.subtitle": {
+      "message": "Η συναλλαγή σας υποβλήθηκε."
+    },
+    "send.transaction-success.title": {
+      "message": "Εστάλη"
+    },
+    "send.transaction-success.subtitle": {
+      "message": "{amount} {tokenSymbol} εστάλη με επιτυχία"
+    },
+    "send.transaction-failure.title": {
+      "message": "Η συναλλαγή απέτυχε"
+    },
+    "send.transaction-failure.subtitle": {
+      "message": "Δεν είναι δυνατή η αποστολή {amount} {tokenSymbol}"
+    },
+    "confirmation.account": {
+      "message": "Λογαριασμός"
+    },
+    "confirmation.network": {
+      "message": "Δίκτυο"
+    },
+    "confirmation.estimatedChanges": {
+      "message": "Εκτιμώμενες αλλαγές"
+    },
+    "confirmation.estimatedChanges.send": {
+      "message": "Θα στείλετε"
+    },
+    "confirmation.estimatedChanges.receive": {
+      "message": "Θα λάβετε"
+    },
+    "confirmation.estimatedChanges.notAvailable": {
+      "message": "Μη διαθέσιμο"
+    },
+    "confirmation.estimatedChanges.noChanges": {
+      "message": "Δεν υπάρχουν αλλαγές"
+    },
+    "confirmation.estimatedChanges.tooltip": {
+      "message": "Οι εκτιμώμενες αλλαγές είναι αυτές που μπορεί να συμβούν αν προχωρήσετε σε αυτή τη συναλλαγή. Πρόκειται απλώς για μια πρόβλεψη, δεν αποτελεί εγγύηση."
+    },
+    "confirmation.advanced.show": {
+      "message": "Εμφάνιση προηγμένων"
+    },
+    "confirmation.advanced.hide": {
+      "message": "Απόκρυψη προηγμένων"
+    },
+    "confirmation.cancelButton": {
+      "message": "Άκυρο"
+    },
+    "confirmation.confirmButton": {
+      "message": "Επιβεβαίωση"
+    },
+    "confirmation.title": {
+      "message": "Αίτημα συναλλαγής"
+    },
+    "confirmation.advanced.unknownInstruction": {
+      "message": "Άγνωστο"
+    },
+    "confirmation.advanced.programId": {
+      "message": "Αναγνωριστικό προγράμματος"
+    },
+    "confirmation.advanced.data": {
+      "message": "Δεδομένα"
+    },
+    "confirmation.fee": {
+      "message": "Τέλη δικτύου"
+    },
+    "confirmation.feeError": {
+      "message": "Δεν είναι δυνατή η εκτίμηση των τελών"
+    },
+    "confirmation.simulationErrorTitle": {
+      "message": "Η συναλλαγή αυτή ακυρώθηκε κατά τη διάρκεια της προσομοίωσης."
+    },
+    "confirmation.simulationErrorSubtitle": {
+      "message": "Αιτία: {reason}"
+    },
+    "confirmation.validationErrorTitle": {
+      "message": "Πρόκειται για παραπλανητικό αίτημα"
+    },
+    "confirmation.validationErrorSubtitle": {
+      "message": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες θα πάρει όλα τα περιουσιακά σας στοιχεία."
+    },
+    "confirmation.validationErrorLearnMore": {
+      "message": "Μάθετε περισσότερα"
+    },
+    "confirmation.validationErrorSecurityAdviced": {
+      "message": "Συμβουλές ασφαλείας από"
+    }
+  }
+}

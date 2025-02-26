@@ -1,179 +1,179 @@
 {
-  "locale": "es",
+  "locale": "en",
   "messages": {
     "send.title": {
-      "message": "Enviar"
+      "message": "Senden"
     },
     "send.balance": {
-      "message": "Saldo"
+      "message": "Guthaben"
     },
     "send.maxButton": {
-      "message": "Máx."
+      "message": "Max."
     },
     "send.cancelButton": {
-      "message": "Cancelar"
+      "message": "Stornieren"
     },
     "send.continueButton": {
-      "message": "Continuar"
+      "message": "Fortfahren"
     },
     "send.fromField": {
-      "message": "De"
+      "message": "Von"
     },
     "send.toField": {
-      "message": "Para"
+      "message": "An"
     },
     "send.amountField": {
-      "message": "Monto"
+      "message": "Betrag"
     },
     "send.assetField": {
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Introduzca la dirección pública"
+      "message": "Öffentliche Adresse eingeben"
     },
     "send.fromRequiredError": {
-      "message": "La cuenta es obligatoria"
+      "message": "Konto erforderlich"
     },
     "send.amountRequiredError": {
-      "message": "El monto es obligatorio"
+      "message": "Betrag erforderlich"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "Amount must be greater than {minimumValue}"
     },
     "send.toRequiredError": {
-      "message": "La dirección del destinatario es obligatoria"
+      "message": "Adresse des Empfängers ist erforderlich"
     },
     "send.toInvalidError": {
-      "message": "Dirección de Solana no válida"
+      "message": "Ungültige Solana-Adresse"
     },
     "send.insufficientBalance": {
-      "message": "Saldo insuficiente"
+      "message": "Unzureichendes Guthaben"
     },
     "send.simulationTitleError": {
-      "message": "Simulación de transacción fallida"
+      "message": "Transaktionssimulation fehlgeschlagen"
     },
     "send.simulationMessageError": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "Diese Transaktion wurde während der Simulation zurückgesetzt."
     },
     "send.selectedTokenPriceNotAvailable": {
-      "message": "Los precios de los tokens en {currency} no están disponibles actualmente. Aún puede enviar tokens."
+      "message": "Preisangaben für Token in {currency} sind derzeit nicht verfügbar. Sie können dennoch Token versenden."
     },
     "send.confirmation.title": {
-      "message": "Revisar"
+      "message": "Überprüfen"
     },
     "send.confirmation.from": {
-      "message": "De"
+      "message": "Von"
     },
     "send.confirmation.recipient": {
-      "message": "Destinatario"
+      "message": "Empfänger"
     },
     "send.confirmation.network": {
-      "message": "Red"
+      "message": "Netzwerk"
     },
     "send.confirmation.transactionSpeed": {
-      "message": "Velocidad de la transacción"
+      "message": "Transaktionsgeschwindigkeit"
     },
     "send.confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "Netzwerk-Gebühr"
     },
     "send.confirmation.sendButton": {
-      "message": "Enviar"
+      "message": "Senden"
     },
     "send.confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "Stornieren"
     },
     "send.confirmation.viewTransaction": {
-      "message": "Ver transacción"
+      "message": "Transaktion einsehen"
     },
     "send.send-pending.title": {
-      "message": "Enviando..."
+      "message": "Wird gesendet ..."
     },
     "send.send-pending.subtitle": {
-      "message": "Se envió su transacción."
+      "message": "Übermittlung Ihrer Transaktion."
     },
     "send.transaction-success.title": {
-      "message": "Enviado"
+      "message": "Versendet"
     },
     "send.transaction-success.subtitle": {
-      "message": "El envío de {amount} {tokenSymbol} se realizó correctamente"
+      "message": "{amount} {tokenSymbol} wurde erfolgreich gesendet"
     },
     "send.transaction-failure.title": {
-      "message": "Transacción fallida"
+      "message": "Transaktion fehlgeschlagen"
     },
     "send.transaction-failure.subtitle": {
-      "message": "Error al enviar {amount} {tokenSymbol}"
+      "message": "{amount} {tokenSymbol} konnte nicht gesendet werden"
     },
     "confirmation.account": {
-      "message": "Cuenta"
+      "message": "Konto"
     },
     "confirmation.network": {
-      "message": "Red"
+      "message": "Netzwerk"
     },
     "confirmation.estimatedChanges": {
-      "message": "Cambios estimados"
+      "message": "Geschätzte Änderungen"
     },
     "confirmation.estimatedChanges.send": {
-      "message": "Usted envía"
+      "message": "Sie senden"
     },
     "confirmation.estimatedChanges.receive": {
-      "message": "Usted recibe"
+      "message": "Sie empfangen"
     },
     "confirmation.estimatedChanges.notAvailable": {
-      "message": "No disponible"
+      "message": "Nicht verfügbar"
     },
     "confirmation.estimatedChanges.noChanges": {
-      "message": "Sin cambios"
+      "message": "Keine Änderungen"
     },
     "confirmation.estimatedChanges.tooltip": {
-      "message": "Los cambios estimados son los que podrían producirse si sigue adelante con esta transacción. Esto es solo una predicción, no una garantía."
+      "message": "Die geschätzten Änderungen beziehen sich auf das, was passieren könnte, wenn Sie diese Transaktion durchführen. Es handelt sich hierbei lediglich um eine Prognose, nicht um eine Garantie."
     },
     "confirmation.advanced.show": {
-      "message": "Mostrar avanzadas"
+      "message": "Erweiterte Einstellungen anzeigen"
     },
     "confirmation.advanced.hide": {
-      "message": "Ocultar avanzadas"
+      "message": "Erweiterte Einstellungen verbergen"
     },
     "confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "Stornieren"
     },
     "confirmation.confirmButton": {
-      "message": "Confirmar"
+      "message": "Bestätigen"
     },
     "confirmation.title": {
-      "message": "Solicitud de transacción"
+      "message": "Transaktionsanfrage"
     },
     "confirmation.advanced.unknownInstruction": {
-      "message": "Desconocida"
+      "message": "Unbekannt"
     },
     "confirmation.advanced.programId": {
-      "message": "ID del programa"
+      "message": "Programm-ID"
     },
     "confirmation.advanced.data": {
-      "message": "Datos"
+      "message": "Daten"
     },
     "confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "Netzwerk-Gebühr"
     },
     "confirmation.feeError": {
-      "message": "No se puede calcular la tarifa"
+      "message": "Gebühr kann nicht geschätzt werden"
     },
     "confirmation.simulationErrorTitle": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "Diese Transaktion wurde während der Simulation zurückgesetzt."
     },
     "confirmation.simulationErrorSubtitle": {
-      "message": "Motivo: {reason}"
+      "message": "Grund: {reason}"
     },
     "confirmation.validationErrorTitle": {
-      "message": "Esta es una solicitud engañosa"
+      "message": "Dies ist eine betrügerische Anfrage"
     },
     "confirmation.validationErrorSubtitle": {
-      "message": "Si aprueba esta solicitud, un tercero conocido por sus estafas se quedará con todos sus activos."
+      "message": "Wenn Sie diese Anfrage genehmigen, wird eine für Betrügereien bekannte Drittpartei Ihre gesamten Assets an sich reißen."
     },
     "confirmation.validationErrorLearnMore": {
-      "message": "Conozca más"
+      "message": "Mehr erfahren"
     },
     "confirmation.validationErrorSecurityAdviced": {
-      "message": "Asesoramiento de seguridad por"
+      "message": "Sicherheitshinweis von"
     }
   }
 }

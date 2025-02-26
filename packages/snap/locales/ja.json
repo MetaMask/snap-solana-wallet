@@ -1,0 +1,179 @@
+{
+  "locale": "en",
+  "messages": {
+    "send.title": {
+      "message": "送金"
+    },
+    "send.balance": {
+      "message": "残高"
+    },
+    "send.maxButton": {
+      "message": "最大"
+    },
+    "send.cancelButton": {
+      "message": "キャンセル"
+    },
+    "send.continueButton": {
+      "message": "続行"
+    },
+    "send.fromField": {
+      "message": "送り元"
+    },
+    "send.toField": {
+      "message": "送り先"
+    },
+    "send.amountField": {
+      "message": "金額"
+    },
+    "send.assetField": {
+      "message": "トークン"
+    },
+    "send.toPlaceholder": {
+      "message": "パブリックアドレスを入力してください"
+    },
+    "send.fromRequiredError": {
+      "message": "アカウントが必要です"
+    },
+    "send.amountRequiredError": {
+      "message": "金額が必要です"
+    },
+    "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
+      "message": "Amount must be greater than {minimumValue}"
+    },
+    "send.toRequiredError": {
+      "message": "送り先のアドレスが必要です"
+    },
+    "send.toInvalidError": {
+      "message": "Solanaアドレスが無効です"
+    },
+    "send.insufficientBalance": {
+      "message": "残高が不十分です"
+    },
+    "send.simulationTitleError": {
+      "message": "トランザクションのシミュレーションに失敗しました"
+    },
+    "send.simulationMessageError": {
+      "message": "このトランザクションはシミュレーション中に取り消されました。"
+    },
+    "send.selectedTokenPriceNotAvailable": {
+      "message": "{currency}でのトークンの価格は現在利用できません。トークンの送金は可能です。"
+    },
+    "send.confirmation.title": {
+      "message": "確認"
+    },
+    "send.confirmation.from": {
+      "message": "送り元"
+    },
+    "send.confirmation.recipient": {
+      "message": "受取人"
+    },
+    "send.confirmation.network": {
+      "message": "ネットワーク"
+    },
+    "send.confirmation.transactionSpeed": {
+      "message": "トランザクションの速度"
+    },
+    "send.confirmation.fee": {
+      "message": "ネットワーク手数料"
+    },
+    "send.confirmation.sendButton": {
+      "message": "送金"
+    },
+    "send.confirmation.cancelButton": {
+      "message": "キャンセル"
+    },
+    "send.confirmation.viewTransaction": {
+      "message": "トランザクションを表示"
+    },
+    "send.send-pending.title": {
+      "message": "送信中..."
+    },
+    "send.send-pending.subtitle": {
+      "message": "トランザクションが送信されました。"
+    },
+    "send.transaction-success.title": {
+      "message": "送信完了"
+    },
+    "send.transaction-success.subtitle": {
+      "message": "{amount} {tokenSymbol}が送金されました"
+    },
+    "send.transaction-failure.title": {
+      "message": "トランザクションに失敗しました"
+    },
+    "send.transaction-failure.subtitle": {
+      "message": "{amount} {tokenSymbol}を送金できません"
+    },
+    "confirmation.account": {
+      "message": "アカウント"
+    },
+    "confirmation.network": {
+      "message": "ネットワーク"
+    },
+    "confirmation.estimatedChanges": {
+      "message": "予測される増減額"
+    },
+    "confirmation.estimatedChanges.send": {
+      "message": "送金額"
+    },
+    "confirmation.estimatedChanges.receive": {
+      "message": "受取額"
+    },
+    "confirmation.estimatedChanges.notAvailable": {
+      "message": "利用できません"
+    },
+    "confirmation.estimatedChanges.noChanges": {
+      "message": "変化はありません"
+    },
+    "confirmation.estimatedChanges.tooltip": {
+      "message": "予測される増減額は、このトランザクションを実行すると発生する可能性がある増減額です。これは単に予測に過ぎず、保証されたものではありません。"
+    },
+    "confirmation.advanced.show": {
+      "message": "高度な設定を表示"
+    },
+    "confirmation.advanced.hide": {
+      "message": "高度な設定を非表示"
+    },
+    "confirmation.cancelButton": {
+      "message": "キャンセル"
+    },
+    "confirmation.confirmButton": {
+      "message": "確定"
+    },
+    "confirmation.title": {
+      "message": "トランザクションリクエスト"
+    },
+    "confirmation.advanced.unknownInstruction": {
+      "message": "不明"
+    },
+    "confirmation.advanced.programId": {
+      "message": "プログラムID"
+    },
+    "confirmation.advanced.data": {
+      "message": "データ"
+    },
+    "confirmation.fee": {
+      "message": "ネットワーク手数料"
+    },
+    "confirmation.feeError": {
+      "message": "手数料を見積もれません"
+    },
+    "confirmation.simulationErrorTitle": {
+      "message": "このトランザクションはシミュレーション中に取り消されました。"
+    },
+    "confirmation.simulationErrorSubtitle": {
+      "message": "理由: {reason}"
+    },
+    "confirmation.validationErrorTitle": {
+      "message": "これは虚偽のリクエストです"
+    },
+    "confirmation.validationErrorSubtitle": {
+      "message": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。"
+    },
+    "confirmation.validationErrorLearnMore": {
+      "message": "詳細"
+    },
+    "confirmation.validationErrorSecurityAdviced": {
+      "message": "セキュリティアドバイスの提供元:"
+    }
+  }
+}

@@ -1,179 +1,179 @@
 {
-  "locale": "es",
+  "locale": "영어",
   "messages": {
     "send.title": {
-      "message": "Enviar"
+      "message": "전송"
     },
     "send.balance": {
-      "message": "Saldo"
+      "message": "잔액"
     },
     "send.maxButton": {
-      "message": "Máx."
+      "message": "최대"
     },
     "send.cancelButton": {
-      "message": "Cancelar"
+      "message": "취소"
     },
     "send.continueButton": {
-      "message": "Continuar"
+      "message": "계속"
     },
     "send.fromField": {
-      "message": "De"
+      "message": "발신:"
     },
     "send.toField": {
-      "message": "Para"
+      "message": "수신:"
     },
     "send.amountField": {
-      "message": "Monto"
+      "message": "금액"
     },
     "send.assetField": {
-      "message": "Token"
+      "message": "토큰"
     },
     "send.toPlaceholder": {
-      "message": "Introduzca la dirección pública"
+      "message": "공개 주소 입력"
     },
     "send.fromRequiredError": {
-      "message": "La cuenta es obligatoria"
+      "message": "계정은 필수입니다"
     },
     "send.amountRequiredError": {
-      "message": "El monto es obligatorio"
+      "message": "금액은 필수입니다"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "Amount must be greater than {minimumValue}"
     },
     "send.toRequiredError": {
-      "message": "La dirección del destinatario es obligatoria"
+      "message": "수신 주소는 필수입니다"
     },
     "send.toInvalidError": {
-      "message": "Dirección de Solana no válida"
+      "message": "잘못된 Solana 주소"
     },
     "send.insufficientBalance": {
-      "message": "Saldo insuficiente"
+      "message": "잔액 부족"
     },
     "send.simulationTitleError": {
-      "message": "Simulación de transacción fallida"
+      "message": "트랜잭션 시뮬레이션 실패"
     },
     "send.simulationMessageError": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "이 트랜잭션은 시뮬레이션 중에 이전 상태로 되돌아 갔습니다."
     },
     "send.selectedTokenPriceNotAvailable": {
-      "message": "Los precios de los tokens en {currency} no están disponibles actualmente. Aún puede enviar tokens."
+      "message": "현재 토큰 가격을 {currency}(으)로 제공할 수는 없지만, 토큰 전송은 여전히 가능합니다."
     },
     "send.confirmation.title": {
-      "message": "Revisar"
+      "message": "검토"
     },
     "send.confirmation.from": {
-      "message": "De"
+      "message": "발신:"
     },
     "send.confirmation.recipient": {
-      "message": "Destinatario"
+      "message": "수신자"
     },
     "send.confirmation.network": {
-      "message": "Red"
+      "message": "네트워크"
     },
     "send.confirmation.transactionSpeed": {
-      "message": "Velocidad de la transacción"
+      "message": "트랜잭션 속도"
     },
     "send.confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "네트워크 수수료"
     },
     "send.confirmation.sendButton": {
-      "message": "Enviar"
+      "message": "전송"
     },
     "send.confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "취소"
     },
     "send.confirmation.viewTransaction": {
-      "message": "Ver transacción"
+      "message": "트랜잭션 보기"
     },
     "send.send-pending.title": {
-      "message": "Enviando..."
+      "message": "전송 중..."
     },
     "send.send-pending.subtitle": {
-      "message": "Se envió su transacción."
+      "message": "트랜잭션이 제출되었습니다."
     },
     "send.transaction-success.title": {
-      "message": "Enviado"
+      "message": "전송 완료"
     },
     "send.transaction-success.subtitle": {
-      "message": "El envío de {amount} {tokenSymbol} se realizó correctamente"
+      "message": "{amount}의 {tokenSymbol} 토큰을 성공적으로 전송했습니다"
     },
     "send.transaction-failure.title": {
-      "message": "Transacción fallida"
+      "message": "트랜잭션 실패"
     },
     "send.transaction-failure.subtitle": {
-      "message": "Error al enviar {amount} {tokenSymbol}"
+      "message": "{amount}의 {tokenSymbol} 토큰을 전송할 수 없습니다"
     },
     "confirmation.account": {
-      "message": "Cuenta"
+      "message": "계정"
     },
     "confirmation.network": {
-      "message": "Red"
+      "message": "네트워크"
     },
     "confirmation.estimatedChanges": {
-      "message": "Cambios estimados"
+      "message": "예상 변동 사항"
     },
     "confirmation.estimatedChanges.send": {
-      "message": "Usted envía"
+      "message": "전송:"
     },
     "confirmation.estimatedChanges.receive": {
-      "message": "Usted recibe"
+      "message": "받음:"
     },
     "confirmation.estimatedChanges.notAvailable": {
-      "message": "No disponible"
+      "message": "이용할 수 없음"
     },
     "confirmation.estimatedChanges.noChanges": {
-      "message": "Sin cambios"
+      "message": "변경 사항 없음"
     },
     "confirmation.estimatedChanges.tooltip": {
-      "message": "Los cambios estimados son los que podrían producirse si sigue adelante con esta transacción. Esto es solo una predicción, no una garantía."
+      "message": "예상 변동 사항은 이 트랜잭션을 진행할 경우 발생하는 결과를 예측한 것입니다. 이는 예측일 뿐 결과를 보장하지는 않습니다."
     },
     "confirmation.advanced.show": {
-      "message": "Mostrar avanzadas"
+      "message": "고급 기능 표시"
     },
     "confirmation.advanced.hide": {
-      "message": "Ocultar avanzadas"
+      "message": "고급 기능 숨기기"
     },
     "confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "취소"
     },
     "confirmation.confirmButton": {
-      "message": "Confirmar"
+      "message": "컨펌"
     },
     "confirmation.title": {
-      "message": "Solicitud de transacción"
+      "message": "트랜젝션 요청"
     },
     "confirmation.advanced.unknownInstruction": {
-      "message": "Desconocida"
+      "message": "알 수 없음"
     },
     "confirmation.advanced.programId": {
-      "message": "ID del programa"
+      "message": "프로그램 ID"
     },
     "confirmation.advanced.data": {
-      "message": "Datos"
+      "message": "데이터"
     },
     "confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "네트워크 수수료"
     },
     "confirmation.feeError": {
-      "message": "No se puede calcular la tarifa"
+      "message": "수수료 예상 불가능"
     },
     "confirmation.simulationErrorTitle": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "이 트랜잭션은 시뮬레이션 중에 이전 상태로 되돌아 갔습니다."
     },
     "confirmation.simulationErrorSubtitle": {
-      "message": "Motivo: {reason}"
+      "message": "이유: {reason}"
     },
     "confirmation.validationErrorTitle": {
-      "message": "Esta es una solicitud engañosa"
+      "message": "사기성 요청입니다"
     },
     "confirmation.validationErrorSubtitle": {
-      "message": "Si aprueba esta solicitud, un tercero conocido por sus estafas se quedará con todos sus activos."
+      "message": "이 요청을 승인하면 스캠을 목적으로 하는 타사가 회원님의 자산을 모두 가져가게 됩니다."
     },
     "confirmation.validationErrorLearnMore": {
-      "message": "Conozca más"
+      "message": "자세히 알아보기"
     },
     "confirmation.validationErrorSecurityAdviced": {
-      "message": "Asesoramiento de seguridad por"
+      "message": "보안 권고 제공:"
     }
   }
 }

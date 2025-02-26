@@ -1,0 +1,179 @@
+{
+  "locale": "ru",
+  "messages": {
+    "send.title": {
+      "message": "Отправить"
+    },
+    "send.balance": {
+      "message": "Баланс"
+    },
+    "send.maxButton": {
+      "message": "Макс."
+    },
+    "send.cancelButton": {
+      "message": "Отмена"
+    },
+    "send.continueButton": {
+      "message": "Продолжить"
+    },
+    "send.fromField": {
+      "message": "С"
+    },
+    "send.toField": {
+      "message": "На"
+    },
+    "send.amountField": {
+      "message": "Сумма"
+    },
+    "send.assetField": {
+      "message": "Токен"
+    },
+    "send.toPlaceholder": {
+      "message": "Введите публичный адрес"
+    },
+    "send.fromRequiredError": {
+      "message": "Требуется счет"
+    },
+    "send.amountRequiredError": {
+      "message": "Требуется сумма"
+    },
+    "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
+      "message": "Amount must be greater than {minimumValue}"
+    },
+    "send.toRequiredError": {
+      "message": "Требуется адрес получателя"
+    },
+    "send.toInvalidError": {
+      "message": "Неверный адрес Solana"
+    },
+    "send.insufficientBalance": {
+      "message": "Недостаточный баланс"
+    },
+    "send.simulationTitleError": {
+      "message": "Моделирование транзакции не удалось"
+    },
+    "send.simulationMessageError": {
+      "message": "Эта транзакция была отменена во время моделирования."
+    },
+    "send.selectedTokenPriceNotAvailable": {
+      "message": "Цены на токены в {currency} в настоящее время недоступны. Вы все еще можете отправлять токены."
+    },
+    "send.confirmation.title": {
+      "message": "Проверить"
+    },
+    "send.confirmation.from": {
+      "message": "От"
+    },
+    "send.confirmation.recipient": {
+      "message": "Получатель"
+    },
+    "send.confirmation.network": {
+      "message": "Сеть"
+    },
+    "send.confirmation.transactionSpeed": {
+      "message": "Скорость транзакции"
+    },
+    "send.confirmation.fee": {
+      "message": "Комиссия сети"
+    },
+    "send.confirmation.sendButton": {
+      "message": "Отправить"
+    },
+    "send.confirmation.cancelButton": {
+      "message": "Отмена"
+    },
+    "send.confirmation.viewTransaction": {
+      "message": "Смотреть транзакцию"
+    },
+    "send.send-pending.title": {
+      "message": "Отправка..."
+    },
+    "send.send-pending.subtitle": {
+      "message": "Ваша транзакция отправлена."
+    },
+    "send.transaction-success.title": {
+      "message": "Отправлена"
+    },
+    "send.transaction-success.subtitle": {
+      "message": "{amount} {tokenSymbol} успешно отправлено"
+    },
+    "send.transaction-failure.title": {
+      "message": "Транзакция не удалась"
+    },
+    "send.transaction-failure.subtitle": {
+      "message": "Невозможно отправить {amount} {tokenSymbol}"
+    },
+    "confirmation.account": {
+      "message": "Счет"
+    },
+    "confirmation.network": {
+      "message": "Сеть"
+    },
+    "confirmation.estimatedChanges": {
+      "message": "Прогнозируемые изменения"
+    },
+    "confirmation.estimatedChanges.send": {
+      "message": "Вы отправляете"
+    },
+    "confirmation.estimatedChanges.receive": {
+      "message": "Вы получаете"
+    },
+    "confirmation.estimatedChanges.notAvailable": {
+      "message": "Недоступно"
+    },
+    "confirmation.estimatedChanges.noChanges": {
+      "message": "Изменений нет"
+    },
+    "confirmation.estimatedChanges.tooltip": {
+      "message": "Прогнозируемые изменения — это то, что может произойти, если вы завершите эту транзакцию. Это всего лишь прогноз, а не гарантия."
+    },
+    "confirmation.advanced.show": {
+      "message": "Показать дополнительные"
+    },
+    "confirmation.advanced.hide": {
+      "message": "Скрыть дополнительные"
+    },
+    "confirmation.cancelButton": {
+      "message": "Отмена"
+    },
+    "confirmation.confirmButton": {
+      "message": "Подтвердить"
+    },
+    "confirmation.title": {
+      "message": "Запрос транзакции"
+    },
+    "confirmation.advanced.unknownInstruction": {
+      "message": "Неизвестно"
+    },
+    "confirmation.advanced.programId": {
+      "message": "Ид. программы"
+    },
+    "confirmation.advanced.data": {
+      "message": "Данные"
+    },
+    "confirmation.fee": {
+      "message": "Комиссия сети"
+    },
+    "confirmation.feeError": {
+      "message": "Невозможно оценить комиссию"
+    },
+    "confirmation.simulationErrorTitle": {
+      "message": "Эта транзакция была отменена во время моделирования."
+    },
+    "confirmation.simulationErrorSubtitle": {
+      "message": "Причина: {reason}"
+    },
+    "confirmation.validationErrorTitle": {
+      "message": "Это запрос с целью обмана"
+    },
+    "confirmation.validationErrorSubtitle": {
+      "message": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, похитит все ваши активы."
+    },
+    "confirmation.validationErrorLearnMore": {
+      "message": "Подробнее"
+    },
+    "confirmation.validationErrorSecurityAdviced": {
+      "message": "Совет по безопасности от"
+    }
+  }
+}

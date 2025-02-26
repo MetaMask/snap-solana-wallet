@@ -1,179 +1,179 @@
 {
-  "locale": "es",
+  "locale": "tl",
   "messages": {
     "send.title": {
-      "message": "Enviar"
+      "message": "Ipadala"
     },
     "send.balance": {
-      "message": "Saldo"
+      "message": "Balanse"
     },
     "send.maxButton": {
-      "message": "Máx."
+      "message": "Max"
     },
     "send.cancelButton": {
-      "message": "Cancelar"
+      "message": "Kanselahin"
     },
     "send.continueButton": {
-      "message": "Continuar"
+      "message": "Magpatuloy"
     },
     "send.fromField": {
-      "message": "De"
+      "message": "Mula sa/kay"
     },
     "send.toField": {
-      "message": "Para"
+      "message": "Para kay/sa"
     },
     "send.amountField": {
-      "message": "Monto"
+      "message": "Halaga"
     },
     "send.assetField": {
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Introduzca la dirección pública"
+      "message": "Ilagay ang pampublikong address"
     },
     "send.fromRequiredError": {
-      "message": "La cuenta es obligatoria"
+      "message": "Kinakailangan ang account"
     },
     "send.amountRequiredError": {
-      "message": "El monto es obligatorio"
+      "message": "Kinakailangan ang halaga"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "Amount must be greater than {minimumValue}"
     },
     "send.toRequiredError": {
-      "message": "La dirección del destinatario es obligatoria"
+      "message": "Kinakailangan ang address na pupuntahan"
     },
     "send.toInvalidError": {
-      "message": "Dirección de Solana no válida"
+      "message": "Hindi valid na address ng Solana"
     },
     "send.insufficientBalance": {
-      "message": "Saldo insuficiente"
+      "message": "Hindi sapat ang balanse"
     },
     "send.simulationTitleError": {
-      "message": "Simulación de transacción fallida"
+      "message": "Pumalya ang pag-simulate ng transaksyon"
     },
     "send.simulationMessageError": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "Binawi ang transaksyong ito habang nagsa-simulate."
     },
     "send.selectedTokenPriceNotAvailable": {
-      "message": "Los precios de los tokens en {currency} no están disponibles actualmente. Aún puede enviar tokens."
+      "message": "Kasalukuyang hindi available ang mga presyo para sa mga token sa {currency}. Makakapagpadala ka pa rin ng mga token."
     },
     "send.confirmation.title": {
-      "message": "Revisar"
+      "message": "Suriin"
     },
     "send.confirmation.from": {
-      "message": "De"
+      "message": "Mula sa/kay"
     },
     "send.confirmation.recipient": {
-      "message": "Destinatario"
+      "message": "Tatanggap"
     },
     "send.confirmation.network": {
-      "message": "Red"
+      "message": "Network"
     },
     "send.confirmation.transactionSpeed": {
-      "message": "Velocidad de la transacción"
+      "message": "Bilis ng transaksyon"
     },
     "send.confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "Bayad sa network"
     },
     "send.confirmation.sendButton": {
-      "message": "Enviar"
+      "message": "Ipadala"
     },
     "send.confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "Kanselahin"
     },
     "send.confirmation.viewTransaction": {
-      "message": "Ver transacción"
+      "message": "Tingnan ang transaksyon"
     },
     "send.send-pending.title": {
-      "message": "Enviando..."
+      "message": "Ipinapadala..."
     },
     "send.send-pending.subtitle": {
-      "message": "Se envió su transacción."
+      "message": "Isinumite ang iyong transaksyon."
     },
     "send.transaction-success.title": {
-      "message": "Enviado"
+      "message": "Ipinadala"
     },
     "send.transaction-success.subtitle": {
-      "message": "El envío de {amount} {tokenSymbol} se realizó correctamente"
+      "message": "Matagumpay na naipadala ang {amount} {tokenSymbol}"
     },
     "send.transaction-failure.title": {
-      "message": "Transacción fallida"
+      "message": "Pumalya ang transaksyon"
     },
     "send.transaction-failure.subtitle": {
-      "message": "Error al enviar {amount} {tokenSymbol}"
+      "message": "Hindi naipadala ang {amount} {tokenSymbol}"
     },
     "confirmation.account": {
-      "message": "Cuenta"
+      "message": "Account"
     },
     "confirmation.network": {
-      "message": "Red"
+      "message": "Network"
     },
     "confirmation.estimatedChanges": {
-      "message": "Cambios estimados"
+      "message": "Tinatayang mga pagbabago"
     },
     "confirmation.estimatedChanges.send": {
-      "message": "Usted envía"
+      "message": "Nagpadala ka ng"
     },
     "confirmation.estimatedChanges.receive": {
-      "message": "Usted recibe"
+      "message": "Nakatanggap ka ng"
     },
     "confirmation.estimatedChanges.notAvailable": {
-      "message": "No disponible"
+      "message": "Hindi available"
     },
     "confirmation.estimatedChanges.noChanges": {
-      "message": "Sin cambios"
+      "message": "Walang pagbabago"
     },
     "confirmation.estimatedChanges.tooltip": {
-      "message": "Los cambios estimados son los que podrían producirse si sigue adelante con esta transacción. Esto es solo una predicción, no una garantía."
+      "message": "Ang tinatayang mga pagbabago ay ang maaaring mangyari kung magpapatuloy ka sa transaksyong ito. Ito ay isang hula lang, hindi isang garantiya."
     },
     "confirmation.advanced.show": {
-      "message": "Mostrar avanzadas"
+      "message": "Ipakita ang advanced"
     },
     "confirmation.advanced.hide": {
-      "message": "Ocultar avanzadas"
+      "message": "Itago ang advanced"
     },
     "confirmation.cancelButton": {
-      "message": "Cancelar"
+      "message": "Kanselahin"
     },
     "confirmation.confirmButton": {
-      "message": "Confirmar"
+      "message": "Kumpirmahin"
     },
     "confirmation.title": {
-      "message": "Solicitud de transacción"
+      "message": "Hiling na transaksyon"
     },
     "confirmation.advanced.unknownInstruction": {
-      "message": "Desconocida"
+      "message": "Hindi alam"
     },
     "confirmation.advanced.programId": {
-      "message": "ID del programa"
+      "message": "ID ng Programa"
     },
     "confirmation.advanced.data": {
-      "message": "Datos"
+      "message": "Data"
     },
     "confirmation.fee": {
-      "message": "Tarifa de red"
+      "message": "Bayad sa network"
     },
     "confirmation.feeError": {
-      "message": "No se puede calcular la tarifa"
+      "message": "Hindi matantya ang bayad"
     },
     "confirmation.simulationErrorTitle": {
-      "message": "Esta operación se revirtió durante la simulación."
+      "message": "Binawi ang transaksyong ito habang nagsa-simulate."
     },
     "confirmation.simulationErrorSubtitle": {
-      "message": "Motivo: {reason}"
+      "message": "Dahilan: {reason}"
     },
     "confirmation.validationErrorTitle": {
-      "message": "Esta es una solicitud engañosa"
+      "message": "Isa itong mapanlinlang na kahilingan"
     },
     "confirmation.validationErrorSubtitle": {
-      "message": "Si aprueba esta solicitud, un tercero conocido por sus estafas se quedará con todos sus activos."
+      "message": "Kung aaprubahan mo ang kahilingang ito, kukunin ng third party na kilala sa mga panloloko ang lahat ng asset mo."
     },
     "confirmation.validationErrorLearnMore": {
-      "message": "Conozca más"
+      "message": "Matuto pa"
     },
     "confirmation.validationErrorSecurityAdviced": {
-      "message": "Asesoramiento de seguridad por"
+      "message": "Abiso sa seguridad ng"
     }
   }
 }
