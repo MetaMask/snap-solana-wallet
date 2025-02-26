@@ -76,7 +76,10 @@ describe('Confirmation', () => {
       method: 'snap_manageState',
       result: {
         keyringAccounts: {
-          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+            ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+            scopes: [Network.Localnet],
+          },
           [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
         },
       },
