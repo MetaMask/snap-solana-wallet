@@ -5,7 +5,7 @@ import { lamportsToSol, solToLamports } from './conversion';
 describe('Solana conversion utils', () => {
   describe('lamportsToSol', () => {
     it('correctly converts lamports to SOL', () => {
-      expect(lamportsToSol(1).toString()).toBe('1e-9');
+      expect(lamportsToSol(1).toString()).toBe('0.000000001');
       expect(lamportsToSol(1).toFixed()).toBe('0.000000001');
       expect(lamportsToSol(1000000000).toString()).toBe('1');
       expect(lamportsToSol(500000000).toString()).toBe('0.5');

@@ -14,6 +14,7 @@ import {
   type OnRpcRequestHandler,
 } from '@metamask/snaps-sdk';
 import { assert, enums } from '@metamask/superstruct';
+import BigNumber from 'bignumber.js';
 
 import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
 import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';
@@ -35,6 +36,9 @@ import { eventHandlers as transactionConfirmationEvents } from './features/send/
 import snapContext, { keyring } from './snapContext';
 
 installPolyfills();
+
+// Lowest precision we ever go for: MicroLamports represented in Sol amount
+BigNumber.config({ EXPONENTIAL_AT: 16 });
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.

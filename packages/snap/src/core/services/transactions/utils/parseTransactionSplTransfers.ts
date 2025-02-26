@@ -1,4 +1,5 @@
 import type { Transaction } from '@metamask/keyring-api';
+import BigNumber from 'bignumber.js';
 
 import type { Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
@@ -27,14 +28,14 @@ export function parseTransactionSplTransfers({
   const preBalances = new Map(
     transactionData.meta?.preTokenBalances?.map((balance) => [
       balance.accountIndex,
-      BigInt(balance.uiTokenAmount.amount),
+      new BigNumber(balance.uiTokenAmount.amount),
     ]) ?? [],
   );
 
   const postBalances = new Map(
     transactionData.meta?.postTokenBalances?.map((balance) => [
       balance.accountIndex,
-      BigInt(balance.uiTokenAmount.amount),
+      new BigNumber(balance.uiTokenAmount.amount),
     ]) ?? [],
   );
 
@@ -47,11 +48,11 @@ export function parseTransactionSplTransfers({
   ]);
 
   for (const accountIndex of allAccountIndexes) {
-    const preBalance = preBalances.get(accountIndex) ?? BigInt(0);
-    const postBalance = postBalances.get(accountIndex) ?? BigInt(0);
-    const balanceDiff = postBalance - preBalance;
+    const preBalance = preBalances.get(accountIndex) ?? new BigNumber(0);
+    const postBalance = postBalances.get(accountIndex) ?? new BigNumber(0);
+    const balanceDiff = postBalance.minus(preBalance);
 
-    if (balanceDiff === BigInt(0)) {
+    if (balanceDiff.isEqualTo(0)) {
       continue;
     }
 
@@ -79,29 +80,31 @@ export function parseTransactionSplTransfers({
       continue;
     }
 
-    const amount =
-      Number(Math.abs(Number(balanceDiff))) / Math.pow(10, decimals);
+    const amount = balanceDiff
+      .absoluteValue()
+      .dividedBy(new BigNumber(10).pow(decimals))
+      .toString();
 
-    if (balanceDiff < BigInt(0)) {
+    if (balanceDiff.isNegative()) {
       from.push({
         address: owner,
         asset: {
           fungible: true,
           type: caip19Id,
           unit: '', // This will get overwritten by the token metadata when we fetch it
-          amount: amount.toString(),
+          amount,
         },
       });
     }
 
-    if (balanceDiff > BigInt(0)) {
+    if (balanceDiff.isPositive()) {
       to.push({
         address: owner,
         asset: {
           fungible: true,
           type: caip19Id,
           unit: '', // This will get overwritten by the token metadata when we fetch it
-          amount: amount.toString(),
+          amount,
         },
       });
     }

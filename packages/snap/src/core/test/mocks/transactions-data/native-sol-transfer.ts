@@ -9,6 +9,16 @@ import { address as asAddress } from '@solana/web3.js';
 
 import type { SolanaTransaction } from '../../../types/solana';
 
+/**
+ * Devnet - Native SOL Transfer
+ * Transaction: 3Zj5XkvE1Uec1frjue6SK2ND2cqhKPvPkZ1ZFPwo2v9iL4NX4b4WWG1wPNEQdnJJU8sVx7MMHjSH1HxoR21vEjoV
+ *
+ * Senders:
+ * BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP sends 0.1 SOL - OK
+ *
+ * Receivers:
+ * FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK gets 0.1 SOL - OK
+ */
 export const EXPECTED_NATIVE_SOL_TRANSFER_DATA: SolanaTransaction = {
   blockTime: 1736500242n as UnixTimestamp,
   meta: {

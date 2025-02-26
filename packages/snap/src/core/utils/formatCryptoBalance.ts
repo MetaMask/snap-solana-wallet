@@ -12,10 +12,7 @@ const DEFAULT_PRECISION = new BigNumber(MIN_AMOUNT).decimalPlaces();
  * @param value - The numeric value to format.
  * @returns The formatted number as a string.
  */
-function formatAmountMaxPrecision(
-  locale: string,
-  value: number | BigNumber,
-): string {
+function formatAmount(locale: string, value: number | BigNumber): string {
   const bigNumberValue = new BigNumber(value);
   const numberOfDecimals = bigNumberValue.decimalPlaces();
   const formattedValue = bigNumberValue.toFixed(numberOfDecimals ?? 0);
@@ -53,7 +50,7 @@ export function formatCryptoBalance(
     }
 
     if (bignumberAmount.abs().lt(MIN_AMOUNT)) {
-      return `<${formatAmountMaxPrecision(locale, MIN_AMOUNT)}`;
+      return `<${formatAmount(locale, MIN_AMOUNT)}`;
     }
 
     if (bignumberAmount.abs().lt(1)) {

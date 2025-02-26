@@ -1,10 +1,11 @@
-import { KnownCaip19Id, Network } from '../../../constants/solana';
+import { KnownCaip19Id, Network, Networks } from '../../../constants/solana';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
+import { EXPECTED_SWAP_TRANSFER_DATA } from '../../../test/mocks/transactions-data/swap-transfer';
 import { parseTransactionFees } from './parseTransactionFees';
 
 describe('parseTransactionFees', () => {
-  it('should parse transaction fees on native solana transfers', () => {
+  it('parses transaction fees on native solana transfers', () => {
     const result = parseTransactionFees({
       scope: Network.Localnet,
       transactionData: EXPECTED_NATIVE_SOL_TRANSFER_DATA,
@@ -23,7 +24,7 @@ describe('parseTransactionFees', () => {
     ]);
   });
 
-  it('should parse transaction fees on SPL transfers', () => {
+  it('parses transaction fees on SPL transfers', () => {
     const result = parseTransactionFees({
       scope: Network.Localnet,
       transactionData: EXPECTED_SEND_USDC_TRANSFER_DATA,
@@ -38,6 +39,34 @@ describe('parseTransactionFees', () => {
           unit: 'SOL',
         },
         type: 'base',
+      },
+    ]);
+  });
+
+  it('parses transaction fees on swap transactions', () => {
+    const result = parseTransactionFees({
+      scope: Network.Mainnet,
+      transactionData: EXPECTED_SWAP_TRANSFER_DATA,
+    });
+
+    expect(result).toStrictEqual([
+      {
+        type: 'base',
+        asset: {
+          fungible: true,
+          type: Networks[Network.Mainnet].nativeToken.caip19Id,
+          unit: Networks[Network.Mainnet].nativeToken.symbol,
+          amount: '0.000005',
+        },
+      },
+      {
+        type: 'priority',
+        asset: {
+          fungible: true,
+          type: Networks[Network.Mainnet].nativeToken.caip19Id,
+          unit: Networks[Network.Mainnet].nativeToken.symbol,
+          amount: '0.000069798',
+        },
       },
     ]);
   });

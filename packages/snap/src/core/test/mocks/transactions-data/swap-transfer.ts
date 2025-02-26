@@ -12,6 +12,25 @@ import { address as asAddress } from '@solana/web3.js';
 
 import type { SolanaTransaction } from '../../../types/solana';
 
+/**
+ * Mainnet - Swap
+ * Transaction: 2pfnv4drhnitfzCFKxiRoJMzFQpG7wZ9mpRQVk7xm5TQ27g6FZH95HVF6KgwQBS872yGtyhuq57jXXS1y29ub11
+ *
+ * Fee Payer:
+ * DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa pays 0.000074798 SOL
+ *
+ * Senders:
+ * 8kR2HTHzPtTJuzpFZ8jtGCQ9TpahPaWbZfTNRs2GJdxq sends 0.000073111 SOL - OK
+ * DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa sends 0.01 USDC - OK
+ * HUCjBnmd4FoUjCCMYQ9xFz1ce1r8vWAd8uMhUQakE2FR sends 2583.728601 Cobie - OK
+ * 3msVd34R5KxonDzyNSV5nT19UtUeJ2RF1NaQhvVPNLxL sends 0.000073111 WSOL - OK
+ *
+ * Receivers:
+ * CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM gets 0.000000723 SOL - OK
+ * HUCjBnmd4FoUjCCMYQ9xFz1ce1r8vWAd8uMhUQakE2FR gets 0.00007238 SOL - OK
+ * DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa gets 2583.728601 Cobie - OK
+ * 3msVd34R5KxonDzyNSV5nT19UtUeJ2RF1NaQhvVPNLxL gets 0.01 USDC - OK
+ */
 export const EXPECTED_SWAP_TRANSFER_DATA: SolanaTransaction = {
   blockTime: 1740480781n as UnixTimestamp,
   meta: {

@@ -12,6 +12,16 @@ import { address as asAddress } from '@solana/web3.js';
 
 import type { SolanaTransaction } from '../../../types/solana';
 
+/**
+ * Devnet - Send USDC
+ * Transaction: 3Zj5XkvE1Uec1frjue6SK2ND2cqhKPvPkZ1ZFPwo2v9iL4NX4b4WWG1wPNEQdnJJU8sVx7MMHjSH1HxoR21vEjoV
+ *
+ * Senders:
+ * BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP sends 0.01 USDC
+ *
+ * Receivers:
+ * BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe gets 0.01 USDC
+ */
 export const EXPECTED_SEND_USDC_TRANSFER_DATA: SolanaTransaction = {
   blockTime: 1736502537n as UnixTimestamp,
   meta: {

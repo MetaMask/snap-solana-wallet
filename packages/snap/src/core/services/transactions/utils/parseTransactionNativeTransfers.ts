@@ -1,4 +1,5 @@
 import type { Transaction } from '@metamask/keyring-api';
+import BigNumber from 'bignumber.js';
 
 import {
   LAMPORTS_PER_SOL,
@@ -34,21 +35,17 @@ export function parseTransactionNativeTransfers({
   const from: Transaction['from'] = [];
   const to: Transaction['to'] = [];
 
-  // Get the fee payer (first account in accountKeys)
-  const feePayer = transactionData.transaction.message.accountKeys[0];
-  const feeAmount = BigInt(transactionData.meta?.fee ?? 0);
-
   const preBalances = new Map(
     transactionData.meta?.preBalances.map((balance, index) => [
       index,
-      BigInt(balance),
+      new BigNumber(balance.toString()),
     ]) ?? [],
   );
 
   const postBalances = new Map(
     transactionData.meta?.postBalances.map((balance, index) => [
       index,
-      BigInt(balance),
+      new BigNumber(balance.toString()),
     ]) ?? [],
   );
 
@@ -71,48 +68,75 @@ export function parseTransactionNativeTransfers({
   ]);
 
   for (const accountIndex of allAccountIndexes) {
-    const preBalance = preBalances.get(accountIndex) ?? BigInt(0);
-    const postBalance = postBalances.get(accountIndex) ?? BigInt(0);
-    let balanceDiff = postBalance - preBalance;
+    const address = allAccountAddresses[accountIndex]?.toString();
 
-    const accountAddress = allAccountAddresses[accountIndex];
-
-    // TODO: Investigate, how can this be undefined? Link to documentation
-    if (!accountAddress) {
+    if (!address) {
       continue;
     }
 
-    // Adjust balance difference for fee payer to exclude the transaction fee
-    if (accountAddress === feePayer) {
-      balanceDiff += feeAmount;
+    const preBalance = preBalances.get(accountIndex) ?? new BigNumber(0);
+    const postBalance = postBalances.get(accountIndex) ?? new BigNumber(0);
+
+    /**
+     * Calculate the delta between the balances and convert from lamports to SOL.
+     */
+    let balanceDiff = postBalance
+      .minus(preBalance)
+      .absoluteValue()
+      .dividedBy(new BigNumber(LAMPORTS_PER_SOL));
+
+    /**
+     * For the fee payer, subtract the fees from the balance difference
+     * since we are counting them separately.
+     */
+    if (accountIndex === 0) {
+      const totalFees = fees
+        .reduce((acc, currentFee) => {
+          if (currentFee.asset.fungible) {
+            return acc.plus(currentFee.asset.amount);
+          }
+
+          return acc;
+        }, new BigNumber(0))
+        .decimalPlaces(8, BigNumber.ROUND_DOWN);
+
+      balanceDiff = balanceDiff.minus(totalFees);
     }
 
-    if (balanceDiff === BigInt(0)) {
+    if (balanceDiff.isZero()) {
       continue;
     }
 
-    const amount = Number(Math.abs(Number(balanceDiff))) / LAMPORTS_PER_SOL;
+    const amount = balanceDiff.toString();
 
-    if (balanceDiff < BigInt(0)) {
+    /**
+     * If the pre-balance is greater than the post-balance, it means that the account
+     * has lost SOL, so it's a sender.
+     */
+    if (preBalance.isGreaterThan(postBalance)) {
       from.push({
-        address: accountAddress.toString(),
+        address,
         asset: {
           fungible: true,
           type: Networks[scope].nativeToken.caip19Id,
           unit: Networks[scope].nativeToken.symbol,
-          amount: amount.toString(),
+          amount,
         },
       });
     }
 
-    if (balanceDiff > BigInt(0)) {
+    /**
+     * If the pre-balance is less than the post-balance, it means that the account
+     * has gained SOL, so it's a receiver.
+     */
+    if (preBalance.isLessThan(postBalance)) {
       to.push({
-        address: accountAddress.toString(),
+        address,
         asset: {
           fungible: true,
           type: Networks[scope].nativeToken.caip19Id,
           unit: Networks[scope].nativeToken.symbol,
-          amount: amount.toString(),
+          amount,
         },
       });
     }
