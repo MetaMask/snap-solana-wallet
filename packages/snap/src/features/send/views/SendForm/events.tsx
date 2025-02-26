@@ -16,10 +16,10 @@ import {
 } from '../../../../core/utils/interface';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { validateField } from '../../../../core/validation/form';
-import type { SnapExecutionContext } from '../../../../snapContext';
+import { tokenPricesService } from '../../../../snapContext';
 import { Send } from '../../Send';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
-import { buildTxIfValid } from '../../utils/buildTxIfValid';
+import { buildTransactionMessageAndUpdateInterface } from '../../utils/createBuildTransactionAndStoreInContext';
 import { validateBalance } from '../../utils/validateBalance';
 import { validation } from './validation';
 
@@ -68,7 +68,7 @@ async function onSourceAccountSelectorValueChange({
 
   await updateInterface(id, <Send context={context} />, context);
 
-  await buildTxIfValid(id, context);
+  await buildTransactionMessageAndUpdateInterface(id, context);
 }
 
 /**
@@ -100,7 +100,8 @@ async function onAmountInputChange({
     validateBalance(context.amount, context);
 
   await updateInterface(id, <Send context={context} />, context);
-  await buildTxIfValid(id, context);
+
+  await buildTransactionMessageAndUpdateInterface(id, context);
 }
 
 /**
@@ -127,7 +128,7 @@ async function onAssetSelectorValueChange({
 
   await updateInterface(id, <Send context={context} />, context);
 
-  await buildTxIfValid(id, context);
+  await buildTransactionMessageAndUpdateInterface(id, context);
 }
 
 /**
@@ -218,7 +219,7 @@ async function onMaxAmountButtonClick({
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
-  await buildTxIfValid(id, updatedContext);
+  await buildTransactionMessageAndUpdateInterface(id, updatedContext);
 }
 
 /**
@@ -248,7 +249,7 @@ async function onDestinationAccountInputValueChange({
 
   await updateInterface(id, <Send context={context} />, context);
 
-  await buildTxIfValid(id, context);
+  await buildTransactionMessageAndUpdateInterface(id, context);
 }
 
 /**
@@ -284,24 +285,21 @@ async function onCancelButtonClick({ id }: { id: string }) {
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  * @param params.context - The send context.
- * @param params.snapContext - The snap context.
  * @returns A promise that resolves when the operation is complete.
  */
 async function onSendButtonClick({
   id,
   context,
-  snapContext,
 }: {
   id: string;
   context: SendContext;
-  snapContext: SnapExecutionContext;
 }) {
   const updatedContext: SendContext = { ...context };
   updatedContext.stage = 'transaction-confirmation';
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
-  const tokenPrices = await snapContext.tokenPricesService
+  const tokenPrices = await tokenPricesService
     .getMultipleTokenPrices(context.assets, context.preferences.currency)
     .then((prices) => prices)
     .catch(() => null);

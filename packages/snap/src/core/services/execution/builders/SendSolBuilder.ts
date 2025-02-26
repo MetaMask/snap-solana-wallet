@@ -52,6 +52,7 @@ export class SendSolBuilder implements ITransactionMessageBuilder {
       const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
         network,
       );
+
       const transactionMessage = pipe(
         createTransactionMessage({ version: 0 }),
         // Every transaction must state from which account the transaction fee should be debited from,

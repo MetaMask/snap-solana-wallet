@@ -18,7 +18,7 @@ import {
 } from '../../../snapContext';
 import { DEFAULT_SEND_CONTEXT } from '../render';
 import { SendCurrencyType, type SendContext } from '../types';
-import { buildTxIfValid } from './buildTxIfValid';
+import { createBuildTransactionAndStoreInContext } from './createBuildTransactionAndStoreInContext';
 
 // Mock dependencies
 jest.mock('../../../core/utils/interface');
@@ -77,14 +77,14 @@ describe('buildTxIfValid', () => {
   it('does not build transaction if fields are invalid', async () => {
     (sendFieldsAreValid as jest.Mock).mockReturnValue(false);
 
-    await buildTxIfValid(mockId, mockContext);
+    await createBuildTransactionAndStoreInContext(mockId, mockContext);
 
     expect(updateInterface).not.toHaveBeenCalled();
     expect(keyring.getAccountOrThrow).not.toHaveBeenCalled();
   });
 
   it('builds SOL transfer transaction when tokenCaipId is native token', async () => {
-    await buildTxIfValid(mockId, mockContext);
+    await createBuildTransactionAndStoreInContext(mockId, mockContext);
 
     expect(sendSolBuilder.buildTransactionMessage).toHaveBeenCalledWith(
       address(MOCK_SOLANA_KEYRING_ACCOUNT_0.address),
@@ -101,7 +101,7 @@ describe('buildTxIfValid', () => {
       tokenCaipId: KnownCaip19Id.UsdcLocalnet,
     } as unknown as SendContext;
 
-    await buildTxIfValid(mockId, splContext);
+    await createBuildTransactionAndStoreInContext(mockId, splContext);
 
     expect(sendSplTokenBuilder.buildTransactionMessage).toHaveBeenCalled();
     expect(updateInterface).toHaveBeenCalledTimes(2);
@@ -112,7 +112,7 @@ describe('buildTxIfValid', () => {
       new Error('Build failed'),
     );
 
-    await buildTxIfValid(mockId, mockContext);
+    await createBuildTransactionAndStoreInContext(mockId, mockContext);
 
     expect(updateInterface).toHaveBeenCalledWith(
       mockId,
@@ -128,7 +128,7 @@ describe('buildTxIfValid', () => {
   });
 
   it('updates interface with fee estimation', async () => {
-    await buildTxIfValid(mockId, mockContext);
+    await createBuildTransactionAndStoreInContext(mockId, mockContext);
 
     expect(updateInterface).toHaveBeenLastCalledWith(
       mockId,

@@ -26,7 +26,7 @@ import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
-import { getClientStatus } from './core/utils/interface';
+import { getClientStatus, getInterfaceContext } from './core/utils/interface';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { eventHandlers as confirmationEvents } from './features/confirmation/views/ConfirmTransaction/events';
@@ -52,6 +52,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 }) => {
   try {
     logger.log('[🔄 onRpcRequest]', request.method, request);
+
     const { method } = request;
 
     validateOrigin(origin, method);
@@ -96,6 +97,7 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
 }): Promise<Json> => {
   try {
     logger.log('[🔑 onKeyringRequest]', request.method, request);
+
     validateOrigin(origin, request.method);
     return (await handleKeyringRequest(
       keyring,
@@ -126,18 +128,13 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
  * @param args - The request handler args as object.
  * @param args.id - The interface id associated with the event.
  * @param args.event - The event object.
- * @param args.context - The context object.
  * @returns A promise that resolves to a JSON object.
  * @throws If the request method is not valid for this snap.
  */
-export const onUserInput: OnUserInputHandler = async ({
-  id,
-  event,
-  context,
-}) => {
-  /**
-   * Using the name of the component, route it to the correct handler
-   */
+export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
+  logger.log('[👇 onUserInput]', id, event);
+
+  // Using the name of the component, route it to the correct handler
   if (!event.name) {
     return;
   }
@@ -154,6 +151,8 @@ export const onUserInput: OnUserInputHandler = async ({
     return;
   }
 
+  const context = await getInterfaceContext(id);
+
   await handler({ id, event, context, snapContext });
 };
 
@@ -168,6 +167,7 @@ export const onUserInput: OnUserInputHandler = async ({
  */
 export const onCronjob: OnCronjobHandler = async ({ request }) => {
   logger.log('[⏱️ onCronjob]', request.method, request);
+
   const { method } = request;
   assert(method, enums(Object.values(CronjobMethod)));
 
