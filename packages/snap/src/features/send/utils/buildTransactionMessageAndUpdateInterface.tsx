@@ -1,6 +1,12 @@
 import { address, type CompilableTransactionMessage } from '@solana/web3.js';
+import debounce from 'lodash/fp/debounce';
+import pipe from 'lodash/fp/pipe';
 
 import { Networks } from '../../../core/constants/solana';
+import {
+  withCancellable,
+  withoutConcurrency,
+} from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import { getCaip19Address } from '../../../core/utils/getCaip19Address';
 import {
@@ -17,7 +23,6 @@ import {
 import { getTokenAmount } from '../selectors';
 import { Send } from '../Send';
 import { type SendContext } from '../types';
-import { withCancellable, withoutConcurrency } from './concurrency';
 
 /**
  * Builds a transaction message for the send form.
@@ -69,7 +74,17 @@ const buildTransactionMessage = async (context: SendContext) => {
   };
 };
 
-const _buildTransactionMessageAndUpdateInterface = async (
+/**
+ * Builds a transaction message and performs the various interface updates along with it.
+ *
+ * WARNING: Do not use this function directly. Use `buildTransactionMessageAndUpdateInterface` instead.
+ *
+ * @param interfaceId - The interface ID.
+ * @param context - The send context.
+ * @returns A promise that resolves to the transaction message.
+ */
+// eslint-disable-next-line camelcase, @typescript-eslint/naming-convention
+export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
   interfaceId: string,
   context: SendContext,
 ) => {
@@ -133,6 +148,9 @@ const _buildTransactionMessageAndUpdateInterface = async (
   }
 };
 
-export const buildTransactionMessageAndUpdateInterface = withoutConcurrency(
-  withCancellable(_buildTransactionMessageAndUpdateInterface),
+export const buildTransactionMessageAndUpdateInterface = pipe(
+  buildTransactionMessageAndUpdateInterface_INTERNAL,
+  withCancellable, // Make the function cancellable
+  withoutConcurrency, // Prevent concurrent executions (a new execution cancels the previous)
+  debounce(500), // Debounce the function to prevent spamming
 );

@@ -18,7 +18,8 @@ import {
 } from '../../../snapContext';
 import { DEFAULT_SEND_CONTEXT } from '../render';
 import { SendCurrencyType, type SendContext } from '../types';
-import { buildTransactionMessageAndUpdateInterface } from './buildTransactionMessageAndUpdateInterface';
+// eslint-disable-next-line camelcase
+import { buildTransactionMessageAndUpdateInterface_INTERNAL } from './buildTransactionMessageAndUpdateInterface';
 
 // Mock dependencies
 jest.mock('../../../core/utils/interface');
@@ -28,7 +29,7 @@ jest.mock('lodash', () => ({
   debounce: (fn: any) => fn, // Make debounce synchronous for testing
 }));
 
-describe('buildTxIfValid', () => {
+describe('buildTransactionMessageAndUpdateInterface', () => {
   const mockId = 'test-id';
   const mockContext = {
     ...DEFAULT_SEND_CONTEXT,
@@ -74,70 +75,87 @@ describe('buildTxIfValid', () => {
     (getInterfaceContext as jest.Mock).mockResolvedValue(mockContext);
   });
 
-  it('does not build transaction if fields are invalid', async () => {
-    (sendFieldsAreValid as jest.Mock).mockReturnValue(false);
+  describe('buildTransactionMessageAndUpdateInterface_INTERNAL', () => {
+    it('does not build transaction if fields are invalid', async () => {
+      (sendFieldsAreValid as jest.Mock).mockReturnValue(false);
 
-    await buildTransactionMessageAndUpdateInterface(mockId, mockContext);
+      await buildTransactionMessageAndUpdateInterface_INTERNAL(
+        mockId,
+        mockContext,
+      );
 
-    expect(updateInterface).not.toHaveBeenCalled();
-    expect(keyring.getAccountOrThrow).not.toHaveBeenCalled();
-  });
+      expect(updateInterface).not.toHaveBeenCalled();
+      expect(keyring.getAccountOrThrow).not.toHaveBeenCalled();
+    });
 
-  it('builds SOL transfer transaction when tokenCaipId is native token', async () => {
-    await buildTransactionMessageAndUpdateInterface(mockId, mockContext);
+    it('builds SOL transfer transaction when tokenCaipId is native token', async () => {
+      await buildTransactionMessageAndUpdateInterface_INTERNAL(
+        mockId,
+        mockContext,
+      );
 
-    expect(sendSolBuilder.buildTransactionMessage).toHaveBeenCalledWith(
-      address(MOCK_SOLANA_KEYRING_ACCOUNT_0.address),
-      address(MOCK_SOLANA_KEYRING_ACCOUNT_1.address),
-      '1.0',
-      Network.Testnet,
-    );
-    expect(updateInterface).toHaveBeenCalledTimes(2);
-  });
+      expect(sendSolBuilder.buildTransactionMessage).toHaveBeenCalledWith(
+        address(MOCK_SOLANA_KEYRING_ACCOUNT_0.address),
+        address(MOCK_SOLANA_KEYRING_ACCOUNT_1.address),
+        '1.0',
+        Network.Testnet,
+      );
+      expect(updateInterface).toHaveBeenCalledTimes(2);
+    });
 
-  it('builds SPL token transaction when tokenCaipId is not native token', async () => {
-    const splContext = {
-      ...mockContext,
-      tokenCaipId: KnownCaip19Id.UsdcLocalnet,
-    } as unknown as SendContext;
+    it('builds SPL token transaction when tokenCaipId is not native token', async () => {
+      const splContext = {
+        ...mockContext,
+        tokenCaipId: KnownCaip19Id.UsdcLocalnet,
+      } as unknown as SendContext;
 
-    await buildTransactionMessageAndUpdateInterface(mockId, splContext);
+      await buildTransactionMessageAndUpdateInterface_INTERNAL(
+        mockId,
+        splContext,
+      );
 
-    expect(sendSplTokenBuilder.buildTransactionMessage).toHaveBeenCalled();
-    expect(updateInterface).toHaveBeenCalledTimes(2);
-  });
+      expect(sendSplTokenBuilder.buildTransactionMessage).toHaveBeenCalled();
+      expect(updateInterface).toHaveBeenCalledTimes(2);
+    });
 
-  it('handles transaction build errors', async () => {
-    (sendSolBuilder.buildTransactionMessage as jest.Mock).mockRejectedValue(
-      new Error('Build failed'),
-    );
+    it('handles transaction build errors', async () => {
+      (sendSolBuilder.buildTransactionMessage as jest.Mock).mockRejectedValue(
+        new Error('Build failed'),
+      );
 
-    await buildTransactionMessageAndUpdateInterface(mockId, mockContext);
+      await buildTransactionMessageAndUpdateInterface_INTERNAL(
+        mockId,
+        mockContext,
+      );
 
-    expect(updateInterface).toHaveBeenCalledWith(
-      mockId,
-      expect.anything(),
-      expect.objectContaining({
-        error: {
-          title: 'send.simulationTitleError',
-          message: 'send.simulationMessageError',
-        },
-        buildingTransaction: false,
-      }),
-    );
-  });
+      expect(updateInterface).toHaveBeenCalledWith(
+        mockId,
+        expect.anything(),
+        expect.objectContaining({
+          error: {
+            title: 'send.simulationTitleError',
+            message: 'send.simulationMessageError',
+          },
+          buildingTransaction: false,
+        }),
+      );
+    });
 
-  it('updates interface with fee estimation', async () => {
-    await buildTransactionMessageAndUpdateInterface(mockId, mockContext);
+    it('updates interface with fee estimation', async () => {
+      await buildTransactionMessageAndUpdateInterface_INTERNAL(
+        mockId,
+        mockContext,
+      );
 
-    expect(updateInterface).toHaveBeenLastCalledWith(
-      mockId,
-      expect.anything(),
-      expect.objectContaining({
-        feeEstimatedInSol: '0.000005',
-        transactionMessage: 'base64-encoded',
-        buildingTransaction: false,
-      }),
-    );
+      expect(updateInterface).toHaveBeenLastCalledWith(
+        mockId,
+        expect.anything(),
+        expect.objectContaining({
+          feeEstimatedInSol: '0.000005',
+          transactionMessage: 'base64-encoded',
+          buildingTransaction: false,
+        }),
+      );
+    });
   });
 });
