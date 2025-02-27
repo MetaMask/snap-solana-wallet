@@ -3,10 +3,7 @@ import debounce from 'lodash/fp/debounce';
 import pipe from 'lodash/fp/pipe';
 
 import { Networks } from '../../../core/constants/solana';
-import {
-  withCancellable,
-  withoutConcurrency,
-} from '../../../core/utils/concurrency';
+import { withoutConcurrency } from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import { getCaip19Address } from '../../../core/utils/getCaip19Address';
 import {
@@ -150,7 +147,6 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
 
 export const buildTransactionMessageAndUpdateInterface = pipe(
   buildTransactionMessageAndUpdateInterface_INTERNAL,
-  withCancellable, // Make the function cancellable
   withoutConcurrency, // Prevent concurrent executions (a new execution cancels the previous)
   debounce(500), // Debounce the function to prevent spamming
 );
