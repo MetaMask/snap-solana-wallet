@@ -148,10 +148,10 @@ export class SolanaKeyring implements Keyring {
     [key: string]: Json | undefined;
     accountNameSuggestion?: string;
   }): Promise<KeyringAccount> {
-    try {
-      // eslint-disable-next-line no-restricted-globals
-      const id = crypto.randomUUID();
+    // eslint-disable-next-line no-restricted-globals
+    const id = crypto.randomUUID();
 
+    try {
       // Find the account index
       let index: number;
       if (options?.importedAccount && typeof options.index === 'number') {
@@ -225,20 +225,29 @@ export class SolanaKeyring implements Keyring {
       return keyringAccount;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating account');
+      await this.#deleteAccountFromState(id);
+
       throw new Error('Error creating account');
     }
+  }
+
+  async #deleteAccountFromState(accountId: string): Promise<void> {
+    await this.#state.update((state) => {
+      if (state?.keyringAccounts?.[accountId]) {
+        delete state?.keyringAccounts?.[accountId];
+        delete state?.assets?.[accountId];
+        delete state?.transactions?.[accountId];
+      }
+
+      return state;
+    });
   }
 
   async deleteAccount(accountId: string): Promise<void> {
     try {
       validateRequest({ accountId }, DeleteAccountStruct);
 
-      await this.#state.update((state) => {
-        delete state?.keyringAccounts?.[accountId];
-        delete state?.assets?.[accountId];
-        delete state?.transactions?.[accountId];
-        return state;
-      });
+      await this.#deleteAccountFromState(accountId);
 
       await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
     } catch (error: any) {
