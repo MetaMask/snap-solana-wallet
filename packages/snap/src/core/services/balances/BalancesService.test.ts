@@ -411,7 +411,7 @@ describe('BalancesService', () => {
       );
 
       await Promise.all(
-        mockTransactions.map((transaction) =>
+        mockTransactions.map(async (transaction) =>
           testBalancesService.updateBalancesPostTransaction(transaction),
         ),
       );

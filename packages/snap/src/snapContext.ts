@@ -1,6 +1,7 @@
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
+import { refreshAssets as refreshAssetsHandler } from './core/handlers/onCronjob/refreshAssets';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { BalancesService } from './core/services/balances/BalancesService';
@@ -17,7 +18,6 @@ import { TransactionScanService } from './core/services/transaction-scan/Transac
 import { TransactionsService } from './core/services/transactions/Transactions';
 import { WalletService } from './core/services/wallet/WalletService';
 import logger from './core/utils/logger';
-import { refreshAssets as refreshAssetsHandler } from './core/handlers/onCronjob/refreshAssets';
 
 /**
  * Initializes all the services using dependency injection.
