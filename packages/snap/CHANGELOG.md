@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.10.0]
 
-### Uncategorized
+### Added
 
-- fix: update balances post transaction ([#208](https://github.com/MetaMask/snap-solana-wallet/pull/208))
-- fix: account keeps incrementing after rejecting add account ([#222](https://github.com/MetaMask/snap-solana-wallet/pull/222))
-- fix: loss of precision on transfer amounts ([#219](https://github.com/MetaMask/snap-solana-wallet/pull/219))
-- fix: solve race condition when simulating transaction in send form ([#221](https://github.com/MetaMask/snap-solana-wallet/pull/221))
+- Update balances post transaction ([#208](https://github.com/MetaMask/snap-solana-wallet/pull/208))
+
+### Fixed
+
+- Account keeps incrementing after rejecting add account ([#222](https://github.com/MetaMask/snap-solana-wallet/pull/222))
+- Loss of precision on transfer amounts ([#219](https://github.com/MetaMask/snap-solana-wallet/pull/219))
+- Solve race condition when simulating transaction in send form ([#221](https://github.com/MetaMask/snap-solana-wallet/pull/221))
 
 ## [1.9.0]
 
