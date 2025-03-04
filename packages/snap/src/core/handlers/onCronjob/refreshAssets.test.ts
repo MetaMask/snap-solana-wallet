@@ -44,7 +44,6 @@ describe('refreshAssets', () => {
 
     await refreshAssets({
       request: {
-        params: { accountId: '' },
         id: '1',
         method: 'cronjob',
         jsonrpc: '2.0',
@@ -65,7 +64,6 @@ describe('refreshAssets', () => {
 
     await refreshAssets({
       request: {
-        params: { accountId: '' },
         id: '1',
         method: 'cronjob',
         jsonrpc: '2.0',
@@ -121,7 +119,6 @@ describe('refreshAssets', () => {
 
     await refreshAssets({
       request: {
-        params: { accountId: '' },
         id: '1',
         method: 'cronjob',
         jsonrpc: '2.0',
@@ -224,7 +221,6 @@ describe('refreshAssets', () => {
 
     await refreshAssets({
       request: {
-        params: { accountId: '' },
         id: '1',
         method: 'cronjob',
         jsonrpc: '2.0',
@@ -312,7 +308,6 @@ describe('refreshAssets', () => {
 
     await refreshAssets({
       request: {
-        params: { accountId: '' },
         id: '1',
         method: 'cronjob',
         jsonrpc: '2.0',
