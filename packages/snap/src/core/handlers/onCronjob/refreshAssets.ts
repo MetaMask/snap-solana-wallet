@@ -10,9 +10,8 @@ import logger from '../../utils/logger';
  * Refreshes assets for all accounts in the keyring.
  * Fetches current balances and emits events for any changes.
  * @param args - The cronjob handler arguments.
- * @param args.request - The request object.
  */
-export const refreshAssets: OnCronjobHandler = async ({ request }) => {
+export const refreshAssets: OnCronjobHandler = async (args) => {
   logger.info('[refreshAssets] Cronjob triggered');
 
   try {
@@ -22,11 +21,11 @@ export const refreshAssets: OnCronjobHandler = async ({ request }) => {
      * If we receive a specific accountId, we only refresh the assets for that account.
      */
     const requestedAccountId =
-      request?.params &&
-      typeof request.params === 'object' &&
-      !Array.isArray(request.params) &&
-      'accountId' in request.params
-        ? (request.params.accountId as string)
+      args?.request?.params &&
+      typeof args.request.params === 'object' &&
+      !Array.isArray(args.request.params) &&
+      'accountId' in args.request.params
+        ? (args.request.params.accountId as string)
         : undefined;
     const requestedAccount =
       requestedAccountId && currentState?.keyringAccounts[requestedAccountId];
