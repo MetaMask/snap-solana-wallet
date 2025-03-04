@@ -7,21 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0]
+
+### Uncategorized
+
+- fix: update balances post transaction ([#208](https://github.com/MetaMask/snap-solana-wallet/pull/208))
+- fix: account keeps incrementing after rejecting add account ([#222](https://github.com/MetaMask/snap-solana-wallet/pull/222))
+- fix: loss of precision on transfer amounts ([#219](https://github.com/MetaMask/snap-solana-wallet/pull/219))
+- fix: solve race condition when simulating transaction in send form ([#221](https://github.com/MetaMask/snap-solana-wallet/pull/221))
+
 ## [1.9.0]
 
 ### Added
 
 - New translations languages ([#126](https://github.com/MetaMask/snap-solana-wallet/pull/126))
 - Support for `swap` transactions ([#214](https://github.com/MetaMask/snap-solana-wallet/pull/214))
+- Support explicit `accountNameSuggestion` on `createAccount` ([#207](https://github.com/MetaMask/snap-solana-wallet/pull/207))
+- Use `minimumBalanceForRentExemption` to send SOL ([#215](https://github.com/MetaMask/snap-solana-wallet/pull/215))
 
 ### Fixed
 
 - Allowing accounts to request `submitRequest` methods ([#218](https://github.com/MetaMask/snap-solana-wallet/pull/218))
-
-### Added
-
-- Support explicit `accountNameSuggestion` on `createAccount` ([#207](https://github.com/MetaMask/snap-solana-wallet/pull/207))
-- Use `minimumBalanceForRentExemption` to send SOL ([#215](https://github.com/MetaMask/snap-solana-wallet/pull/215))
 
 ## [1.8.0]
 
@@ -248,7 +254,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.6.0...v1.7.0
