@@ -1,4 +1,5 @@
 import { KeyringEvent, type Balance } from '@metamask/keyring-api';
+import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
 import { keyring, state } from '../../../snapContext';
 import { diffArrays } from '../../utils/diffArrays';
@@ -8,20 +9,10 @@ import logger from '../../utils/logger';
 /**
  * Refreshes assets for all accounts in the keyring.
  * Fetches current balances and emits events for any changes.
- * @param params - The options object.
- * @param params.request - The request object.
- * @param params.request.params - The parameters object.
- * @param params.request.params.accountId - The accountId to refresh the assets for.
+ * @param args - The cronjob handler arguments.
+ * @param args.request - The request object.
  */
-export async function refreshAssets({
-  request,
-}: {
-  request: {
-    params: {
-      accountId: string;
-    };
-  };
-}) {
+export const refreshAssets: OnCronjobHandler = async ({ request }) => {
   logger.info('[refreshAssets] Cronjob triggered');
 
   try {
@@ -30,7 +21,13 @@ export async function refreshAssets({
     /**
      * If we receive a specific accountId, we only refresh the assets for that account.
      */
-    const requestedAccountId = request?.params?.accountId;
+    const requestedAccountId =
+      request?.params &&
+      typeof request.params === 'object' &&
+      !Array.isArray(request.params) &&
+      'accountId' in request.params
+        ? (request.params.accountId as string)
+        : undefined;
     const requestedAccount =
       requestedAccountId && currentState?.keyringAccounts[requestedAccountId];
 
@@ -126,4 +123,4 @@ export async function refreshAssets({
   } catch (error) {
     logger.error({ error }, '[refreshAssets] Error refreshing assets');
   }
-}
+};

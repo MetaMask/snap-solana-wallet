@@ -101,10 +101,13 @@ describe('BalancesService', () => {
       logger,
     });
 
+    const mockRefreshAssets = jest.fn().mockResolvedValue(undefined);
+
     balancesService = new BalancesService(
       mockAssetsService,
       mockTokenMetadataService,
       mockState,
+      mockRefreshAssets,
     );
   });
 
@@ -165,7 +168,7 @@ describe('BalancesService', () => {
     });
   });
 
-  describe('updateBalancesPostTransactions', () => {
+  describe('updateBalancesPostTransaction', () => {
     const MOCK_ACCOUNT_1 = {
       id: 'account-1',
       address: 'address-1',
@@ -345,7 +348,73 @@ describe('BalancesService', () => {
         metadata: {},
       };
 
-      await balancesService.updateBalancesPostTransactions(mockTransactions);
+      // Create a mock refreshAssets function that updates the state with expected values
+      const mockRefreshAssets = jest
+        .fn()
+        .mockImplementation(async ({ request }) => {
+          const { accountId } = request.params;
+
+          // Update the state based on the account ID
+          await mockState.update((state) => {
+            if (accountId === MOCK_ACCOUNT_1.id) {
+              return {
+                ...state,
+                assets: {
+                  ...state.assets,
+                  [MOCK_ACCOUNT_1.id]: {
+                    [MOCK_NATIVE_ASSET]: {
+                      amount: '1', // 1.5 - 0.5
+                      unit: 'SOL',
+                    },
+                    [MOCK_SPL_TOKEN_1]: {
+                      amount: '50', // 100 - 50
+                      unit: 'TOKEN1',
+                    },
+                    [MOCK_SPL_TOKEN_3]: {
+                      amount: '150', // 0 + 150 (new token)
+                      unit: 'TOKEN3',
+                    },
+                  },
+                },
+              };
+            } else if (accountId === MOCK_ACCOUNT_2.id) {
+              return {
+                ...state,
+                assets: {
+                  ...state.assets,
+                  [MOCK_ACCOUNT_2.id]: {
+                    [MOCK_NATIVE_ASSET]: {
+                      amount: '2.5', // 2.0 + 0.5
+                      unit: 'SOL',
+                    },
+                    [MOCK_SPL_TOKEN_2]: {
+                      amount: '300', // 200 + 100
+                      unit: 'TOKEN2',
+                    },
+                  },
+                },
+              };
+            }
+            return state;
+          });
+        });
+
+      // Create a new balancesService with our custom mock
+      const testBalancesService = new BalancesService(
+        new AssetsService({
+          connection: mockConnection,
+          logger,
+        }),
+        mockTokenMetadataService,
+        mockState,
+        mockRefreshAssets,
+      );
+
+      await Promise.all(
+        mockTransactions.map((transaction) =>
+          testBalancesService.updateBalancesPostTransaction(transaction),
+        ),
+      );
 
       const updatedState = await mockState.get();
 

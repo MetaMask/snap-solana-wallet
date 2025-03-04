@@ -81,7 +81,7 @@ describe('WalletService', () => {
     } as unknown as FromBase64EncodedBuilder;
 
     mockBalancesService = {
-      updateBalancesPostTransactions: jest.fn(),
+      updateBalancesPostTransaction: jest.fn(),
     } as unknown as BalancesService;
 
     service = new WalletService(

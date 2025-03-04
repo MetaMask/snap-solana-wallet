@@ -17,6 +17,7 @@ import { TransactionScanService } from './core/services/transaction-scan/Transac
 import { TransactionsService } from './core/services/transactions/Transactions';
 import { WalletService } from './core/services/wallet/WalletService';
 import logger from './core/utils/logger';
+import { refreshAssets as refreshAssetsHandler } from './core/handlers/onCronjob/refreshAssets';
 
 /**
  * Initializes all the services using dependency injection.
@@ -72,10 +73,28 @@ const transactionsService = new TransactionsService({
   tokenMetadataService,
 });
 
+// Circular dependency fix:
+// There was a circular dependency between BalancesService.ts, refreshAssets.ts, and snapContext.ts
+// To solve it, we made refreshAssets an injectable dependency of the BalancesService class
+// And defined a type RefreshAssetsFunction to ensure type safety
+const refreshAssetsWrapper = async (params: {
+  request: {
+    params: {
+      accountId: string;
+    };
+    id: string;
+    method: string;
+    jsonrpc: string;
+  };
+}): Promise<void> => {
+  await refreshAssetsHandler(params as any);
+};
+
 const balancesService = new BalancesService(
   assetsService,
   tokenMetadataService,
   state,
+  refreshAssetsWrapper,
 );
 
 const walletService = new WalletService(

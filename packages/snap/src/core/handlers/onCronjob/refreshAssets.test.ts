@@ -42,7 +42,14 @@ describe('refreshAssets', () => {
       assets: {},
     });
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: { accountId: '' },
+        id: '1',
+        method: 'cronjob',
+        jsonrpc: '2.0',
+      },
+    });
 
     expect(snapContext.state.set).not.toHaveBeenCalled();
   });
@@ -56,7 +63,14 @@ describe('refreshAssets', () => {
       .mocked(snapContext.keyring.listAccounts as jest.Mock)
       .mockResolvedValueOnce([]);
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: { accountId: '' },
+        id: '1',
+        method: 'cronjob',
+        jsonrpc: '2.0',
+      },
+    });
 
     expect(snapContext.state.set).not.toHaveBeenCalled();
   });
@@ -70,6 +84,10 @@ describe('refreshAssets', () => {
           [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
         },
       },
+      keyringAccounts: {
+        [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[0],
+        [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[1],
+      },
     });
 
     // Mock account listing
@@ -77,23 +95,38 @@ describe('refreshAssets', () => {
       .mocked(snapContext.keyring.listAccounts as jest.Mock)
       .mockResolvedValueOnce(mockAccounts);
 
-    // Mock new assets being discovered
+    // Mock new assets being discovered for both accounts
     jest
       .mocked(snapContext.keyring.listAccountAssets as jest.Mock)
       .mockResolvedValueOnce([
         KnownCaip19Id.SolLocalnet,
         KnownCaip19Id.UsdcLocalnet,
+      ])
+      .mockResolvedValueOnce([
+        KnownCaip19Id.SolLocalnet,
+        KnownCaip19Id.UsdcLocalnet,
       ]);
 
-    // Mock balance fetching
+    // Mock balance fetching for both accounts
     jest
       .mocked(snapContext.keyring.getAccountBalances as jest.Mock)
       .mockResolvedValueOnce({
         [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
         [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
+      })
+      .mockResolvedValueOnce({
+        [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
+        [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
       });
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: { accountId: '' },
+        id: '1',
+        method: 'cronjob',
+        jsonrpc: '2.0',
+      },
+    });
 
     expect(jest.mocked(snapContext.keyring.emitEvent).mock.calls).toStrictEqual(
       [
@@ -113,6 +146,28 @@ describe('refreshAssets', () => {
           {
             balances: {
               [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
+                [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
+              },
+            },
+          },
+        ],
+        [
+          KeyringEvent.AccountAssetListUpdated,
+          {
+            assets: {
+              [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
+                added: [KnownCaip19Id.SolLocalnet, KnownCaip19Id.UsdcLocalnet],
+                removed: [],
+              },
+            },
+          },
+        ],
+        [
+          KeyringEvent.AccountBalancesUpdated,
+          {
+            balances: {
+              [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
+                [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
                 [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
               },
             },
@@ -129,7 +184,12 @@ describe('refreshAssets', () => {
       assets: {
         [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
           [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
+          [KnownCaip19Id.UsdcLocalnet]: { amount: '50', unit: 'USDC' },
         },
+      },
+      keyringAccounts: {
+        [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[0],
+        [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[1],
       },
     });
 
@@ -144,6 +204,10 @@ describe('refreshAssets', () => {
       .mockResolvedValueOnce([
         KnownCaip19Id.SolLocalnet,
         KnownCaip19Id.UsdcLocalnet,
+      ])
+      .mockResolvedValueOnce([
+        KnownCaip19Id.SolLocalnet,
+        KnownCaip19Id.UsdcLocalnet,
       ]);
 
     // Mock updated balance
@@ -152,19 +216,41 @@ describe('refreshAssets', () => {
       .mockResolvedValueOnce({
         [KnownCaip19Id.SolLocalnet]: { amount: '2', unit: 'SOL' },
         [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
+      })
+      .mockResolvedValueOnce({
+        [KnownCaip19Id.SolLocalnet]: { amount: '2', unit: 'SOL' },
+        [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
       });
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: { accountId: '' },
+        id: '1',
+        method: 'cronjob',
+        jsonrpc: '2.0',
+      },
+    });
 
     // Verify balance update event was emitted
     expect(jest.mocked(snapContext.keyring.emitEvent).mock.calls).toStrictEqual(
       [
         [
+          KeyringEvent.AccountBalancesUpdated,
+          {
+            balances: {
+              [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
+                [KnownCaip19Id.SolLocalnet]: { amount: '2', unit: 'SOL' },
+                [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
+              },
+            },
+          },
+        ],
+        [
           KeyringEvent.AccountAssetListUpdated,
           {
             assets: {
-              [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
-                added: [KnownCaip19Id.UsdcLocalnet],
+              [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
+                added: [KnownCaip19Id.SolLocalnet, KnownCaip19Id.UsdcLocalnet],
                 removed: [],
               },
             },
@@ -174,9 +260,9 @@ describe('refreshAssets', () => {
           KeyringEvent.AccountBalancesUpdated,
           {
             balances: {
-              [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
-                [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
+              [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
                 [KnownCaip19Id.SolLocalnet]: { amount: '2', unit: 'SOL' },
+                [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
               },
             },
           },
@@ -190,6 +276,10 @@ describe('refreshAssets', () => {
     jest.mocked(snapContext.state.get as jest.Mock).mockResolvedValueOnce({
       isFetchingAssets: false,
       assets: {},
+      keyringAccounts: {
+        [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[0],
+        [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[1],
+      },
     });
 
     // Mock accounts
@@ -200,32 +290,53 @@ describe('refreshAssets', () => {
     // Mock assets and balances for both accounts
     jest
       .mocked(snapContext.keyring.listAccountAssets as jest.Mock)
-      .mockResolvedValueOnce([KnownCaip19Id.SolLocalnet])
-      .mockResolvedValueOnce([KnownCaip19Id.UsdcLocalnet]);
+      .mockResolvedValueOnce([
+        KnownCaip19Id.SolLocalnet,
+        KnownCaip19Id.UsdcLocalnet,
+      ])
+      .mockResolvedValueOnce([
+        KnownCaip19Id.SolLocalnet,
+        KnownCaip19Id.UsdcLocalnet,
+      ]);
 
     jest
       .mocked(snapContext.keyring.getAccountBalances as jest.Mock)
       .mockResolvedValueOnce({
         [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
+        [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
       })
       .mockResolvedValueOnce({
+        [KnownCaip19Id.SolLocalnet]: { amount: '2', unit: 'SOL' },
         [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
       });
 
-    await refreshAssets();
+    await refreshAssets({
+      request: {
+        params: { accountId: '' },
+        id: '1',
+        method: 'cronjob',
+        jsonrpc: '2.0',
+      },
+    });
 
     // Verify final state update
     expect(snapContext.state.set).toHaveBeenCalledWith(
       expect.objectContaining({
         assets: {
+          [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
+            [KnownCaip19Id.SolLocalnet]: { amount: '2', unit: 'SOL' },
+            [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
+          },
           [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
             [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-          },
-          [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
             [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
           },
         },
         isFetchingAssets: false,
+        keyringAccounts: {
+          [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[0],
+          [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[1],
+        },
       }),
     );
   });

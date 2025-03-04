@@ -9,7 +9,6 @@ import {
   SOL_SYMBOL,
   SolanaCaip19Tokens,
 } from '../../constants/solana';
-import { refreshAssets } from '../../handlers/onCronjob/refreshAssets';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { lamportsToSol } from '../../utils/conversion';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
@@ -19,6 +18,18 @@ import type { AssetsService } from '../assets/AssetsService';
 import type { EncryptedState } from '../encrypted-state/EncryptedState';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 
+// The type for the refreshAssets function
+export type RefreshAssetsFunction = (params: {
+  request: {
+    params: {
+      accountId: string;
+    };
+    id: string;
+    method: string;
+    jsonrpc: string;
+  };
+}) => Promise<void>;
+
 export class BalancesService {
   readonly #assetsService: AssetsService;
 
@@ -26,14 +37,18 @@ export class BalancesService {
 
   readonly #state: EncryptedState;
 
+  readonly #refreshAssets: RefreshAssetsFunction;
+
   constructor(
     assetsService: AssetsService,
     tokenMetadataService: TokenMetadataService,
     state: EncryptedState,
+    refreshAssets: RefreshAssetsFunction,
   ) {
     this.#assetsService = assetsService;
     this.#tokenMetadataService = tokenMetadataService;
     this.#state = state;
+    this.#refreshAssets = refreshAssets;
   }
 
   /**
@@ -205,11 +220,14 @@ export class BalancesService {
     );
 
     for (const account of accountsChanged) {
-      await refreshAssets({
+      await this.#refreshAssets({
         request: {
           params: {
             accountId: account.id,
           },
+          id: '1',
+          method: 'cronjob',
+          jsonrpc: '2.0',
         },
       });
     }
