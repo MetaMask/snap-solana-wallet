@@ -36,19 +36,19 @@ export type SolanaTransaction = {
     computeUnitsConsumed?: bigint | null;
     // eslint-disable-next-line id-denylist
     err: TransactionError | null;
-    fee: Lamports;
-    logMessages: readonly string[] | null;
-    postBalances: readonly Lamports[];
+    fee?: Lamports;
+    logMessages?: readonly string[] | null;
+    postBalances?: readonly Lamports[];
     postTokenBalances?: readonly TokenBalance[];
-    preBalances: readonly Lamports[];
+    preBalances?: readonly Lamports[];
     preTokenBalances?: readonly TokenBalance[];
     returnData?: {
       data: Base64EncodedDataResponse;
       programId: Address;
     };
-    rewards: readonly Reward[] | null;
+    rewards?: readonly Reward[] | null;
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    status: { Ok: any } | { Err: TransactionError };
+    status?: { Ok: any } | { Err: TransactionError };
     innerInstructions?:
       | readonly {
           index: number;

@@ -36,14 +36,14 @@ export function parseTransactionNativeTransfers({
   const to: Transaction['to'] = [];
 
   const preBalances = new Map(
-    transactionData.meta?.preBalances.map((balance, index) => [
+    transactionData.meta?.preBalances?.map((balance, index) => [
       index,
       new BigNumber(balance.toString()),
     ]) ?? [],
   );
 
   const postBalances = new Map(
-    transactionData.meta?.postBalances.map((balance, index) => [
+    transactionData.meta?.postBalances?.map((balance, index) => [
       index,
       new BigNumber(balance.toString()),
     ]) ?? [],

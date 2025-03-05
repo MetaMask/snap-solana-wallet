@@ -359,6 +359,75 @@ describe('mapRpcTransaction', () => {
     });
   });
 
+  it('returns a failed transaction if the transaction has an error', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Localnet,
+      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+      transactionData: {
+        ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
+        meta: {
+          ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.meta,
+          // eslint-disable-next-line id-denylist
+          err: {
+            DuplicateInstruction: 1,
+          },
+          status: {
+            Err: {
+              DuplicateInstruction: 1,
+            },
+          },
+        },
+      },
+    });
+
+    expect(result).toStrictEqual({
+      id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
+      timestamp: 1736500242,
+      chain: Network.Localnet,
+      status: 'failed',
+      type: 'send',
+      from: [
+        {
+          address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+          asset: {
+            fungible: true,
+            type: Networks[Network.Localnet].nativeToken.caip19Id,
+            unit: Networks[Network.Localnet].nativeToken.symbol,
+            amount: '0.1',
+          },
+        },
+      ],
+      to: [
+        {
+          address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
+          asset: {
+            fungible: true,
+            type: Networks[Network.Localnet].nativeToken.caip19Id,
+            unit: Networks[Network.Localnet].nativeToken.symbol,
+            amount: '0.1',
+          },
+        },
+      ],
+      fees: [
+        {
+          type: 'base',
+          asset: {
+            fungible: true,
+            type: Networks[Network.Localnet].nativeToken.caip19Id,
+            unit: Networks[Network.Localnet].nativeToken.symbol,
+            amount: '0.000005',
+          },
+        },
+      ],
+      events: [
+        {
+          status: 'failed',
+          timestamp: 1736500242,
+        },
+      ],
+    });
+  });
+
   it('returns null if there is no transaction data', () => {
     const result = mapRpcTransaction({
       scope: Network.Localnet,

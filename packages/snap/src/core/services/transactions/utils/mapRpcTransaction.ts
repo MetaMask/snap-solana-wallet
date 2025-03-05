@@ -73,18 +73,24 @@ export function mapRpcTransaction({
     type = 'receive';
   }
 
+  const status =
+    transactionData.meta?.err ||
+    (transactionData.meta?.status && 'Err' in transactionData.meta.status)
+      ? 'failed'
+      : 'confirmed';
+
   return {
     id,
     timestamp,
     chain: scope as `${string}:${string}`,
-    status: 'confirmed',
+    status,
     type,
     from,
     to,
     fees,
     events: [
       {
-        status: 'confirmed',
+        status,
         timestamp,
       },
     ],
