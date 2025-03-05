@@ -180,7 +180,12 @@ async function fetchAndMapTransactionsPerAccount({
             account: account.id,
           };
         })
-        .filter((tx): tx is Transaction => tx !== null);
+        .filter(
+          (tx): tx is Transaction =>
+            // if there is no changes with the transaction, don't emit the event
+            // example: when sending SOL to the same account.
+            tx !== null && tx.from.length > 0 && tx.to.length > 0,
+        );
 
       newTransactions[account.id]?.push(...accountTransactions);
     }

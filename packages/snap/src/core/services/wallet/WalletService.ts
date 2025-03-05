@@ -210,6 +210,15 @@ export class WalletService {
         account: account.id,
       } as Transaction;
 
+      // if there is no changes with the transaction, don't emit the event
+      // example: when sending SOL to the same account.
+      if (
+        mappedTransactionWithAccountId?.from?.length === 0 &&
+        mappedTransactionWithAccountId?.to?.length === 0
+      ) {
+        return result;
+      }
+
       await emitSnapKeyringEvent(
         snap,
         KeyringEvent.AccountTransactionsUpdated,
