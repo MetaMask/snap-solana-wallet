@@ -38,7 +38,7 @@
       "message": "Le champ « Montant » ne peut pas être vide"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "Le montant doit être supérieur à {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "L’adresse du destinataire est requise"
@@ -98,7 +98,7 @@
       "message": "{amount} {tokenSymbol} a été envoyé avec succès"
     },
     "send.transaction-failure.title": {
-      "message": "La transaction a échoué "
+      "message": "La transaction a échoué"
     },
     "send.transaction-failure.subtitle": {
       "message": "Impossible d’envoyer {amount} {tokenSymbol}"

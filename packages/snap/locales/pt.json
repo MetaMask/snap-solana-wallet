@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Digite endereço público"
+      "message": "Digite o endereço público"
     },
     "send.fromRequiredError": {
       "message": "Conta obrigatória"
@@ -38,7 +38,7 @@
       "message": "O valor é obrigatório"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "O valor deve ser superior a {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "O endereço é obrigatório"
@@ -128,10 +128,10 @@
       "message": "Alterações estimadas são o que pode acontecer se você prosseguir com essa transação. Isso é apenas uma previsão, não uma garantia."
     },
     "confirmation.advanced.show": {
-      "message": "Mostrar avançado"
+      "message": "Mostrar antecipado"
     },
     "confirmation.advanced.hide": {
-      "message": "Ocultar avançado"
+      "message": "Ocultar antecipado"
     },
     "confirmation.cancelButton": {
       "message": "Cancelar"

@@ -17,10 +17,10 @@
       "message": "Продолжить"
     },
     "send.fromField": {
-      "message": "С"
+      "message": "От"
     },
     "send.toField": {
-      "message": "На"
+      "message": "Кому"
     },
     "send.amountField": {
       "message": "Сумма"
@@ -38,7 +38,7 @@
       "message": "Требуется сумма"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "Сумма должна быть больше {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "Требуется адрес получателя"
@@ -167,7 +167,7 @@
       "message": "Это запрос с целью обмана"
     },
     "confirmation.validationErrorSubtitle": {
-      "message": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, похитит все ваши активы."
+      "message": "Если вы одобрите этот запрос, третья сторона, известная мошенническим поведением, похитит все ваши активы."
     },
     "confirmation.validationErrorLearnMore": {
       "message": "Подробнее"

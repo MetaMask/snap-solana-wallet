@@ -38,7 +38,7 @@
       "message": "Jumlah diperlukan"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "Jumlah harus lebih besar dari {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "Alamat kirim diperlukan"

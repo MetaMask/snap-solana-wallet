@@ -38,7 +38,7 @@
       "message": "金額が必要です"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "金額は{minimumValue}より大きくする必要があります"
     },
     "send.toRequiredError": {
       "message": "送り先のアドレスが必要です"

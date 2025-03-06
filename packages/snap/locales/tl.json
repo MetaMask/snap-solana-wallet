@@ -38,7 +38,7 @@
       "message": "Kinakailangan ang halaga"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "Ang halaga ay dapat na mas malaki sa {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "Kinakailangan ang address na pupuntahan"
@@ -50,7 +50,7 @@
       "message": "Hindi sapat ang balanse"
     },
     "send.simulationTitleError": {
-      "message": "Pumalya ang pag-simulate ng transaksyon"
+      "message": "Nabigo ang pag-simulate ng transaksyon"
     },
     "send.simulationMessageError": {
       "message": "Binawi ang transaksyong ito habang nagsa-simulate."
@@ -98,7 +98,7 @@
       "message": "Matagumpay na naipadala ang {amount} {tokenSymbol}"
     },
     "send.transaction-failure.title": {
-      "message": "Pumalya ang transaksyon"
+      "message": "Nabigo ang transaksyon"
     },
     "send.transaction-failure.subtitle": {
       "message": "Hindi naipadala ang {amount} {tokenSymbol}"
@@ -125,7 +125,7 @@
       "message": "Walang pagbabago"
     },
     "confirmation.estimatedChanges.tooltip": {
-      "message": "Ang tinatayang mga pagbabago ay ang maaaring mangyari kung magpapatuloy ka sa transaksyong ito. Ito ay isang hula lang, hindi isang garantiya."
+      "message": "Ang tinatayang mga pagbabago ay ang maaaring mangyari kung magpapatuloy ka sa transaksyong ito. Ito ay isang hula lamang, hindi isang garantiya."
     },
     "confirmation.advanced.show": {
       "message": "Ipakita ang advanced"
