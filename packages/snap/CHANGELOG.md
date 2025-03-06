@@ -9,12 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.10.1]
 
-### Uncategorized
+### Removed
 
-- Revert "1.10.1" ([#231](https://github.com/MetaMask/snap-solana-wallet/pull/231))
-- 1.10.1 ([#229](https://github.com/MetaMask/snap-solana-wallet/pull/229))
-- chore: remove lifecycle hooks ([#226](https://github.com/MetaMask/snap-solana-wallet/pull/226))
-- fix: failed transactions ([#224](https://github.com/MetaMask/snap-solana-wallet/pull/224))
+- Lifecycle hooks permissions ([#226](https://github.com/MetaMask/snap-solana-wallet/pull/226))
+
+### Added
+
+- Support for failed transactions ([#224](https://github.com/MetaMask/snap-solana-wallet/pull/224))
 
 ## [1.10.0]
 
