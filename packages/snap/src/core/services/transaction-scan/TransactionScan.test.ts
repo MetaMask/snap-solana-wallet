@@ -2,6 +2,7 @@ import type { SecurityAlertsApiClient } from '../../clients/security-alerts-api/
 import type { SecurityAlertSimulationValidationResponse } from '../../clients/security-alerts-api/types';
 import { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
+import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionScanService } from './TransactionScan';
 
 describe('TransactionScan', () => {
@@ -9,8 +10,13 @@ describe('TransactionScan', () => {
     let transactionScanService: TransactionScanService;
     let mockSecurityAlertsApiClient: SecurityAlertsApiClient;
     let mockLogger: ILogger;
+    let mockTokenMetadataService: TokenMetadataService;
 
     beforeEach(() => {
+      mockTokenMetadataService = {
+        generateImageComponent: jest.fn().mockResolvedValue(null),
+      } as unknown as TokenMetadataService;
+
       mockSecurityAlertsApiClient = {
         scanTransactions: jest.fn().mockResolvedValue({}),
       } as unknown as SecurityAlertsApiClient;
@@ -21,6 +27,7 @@ describe('TransactionScan', () => {
 
       transactionScanService = new TransactionScanService(
         mockSecurityAlertsApiClient,
+        mockTokenMetadataService,
         mockLogger,
       );
     });
