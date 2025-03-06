@@ -3,6 +3,7 @@ import { SolMethod } from '@metamask/keyring-api';
 import { Network, Networks } from '../../core/constants/solana';
 import { SOL_IMAGE_SVG } from '../../core/test/mocks/solana-image-svg';
 import { lamportsToSol } from '../../core/utils/conversion';
+import { parseInstructions } from '../../core/utils/instructions';
 import {
   CONFIRMATION_INTERFACE_NAME,
   createInterface,
@@ -12,15 +13,12 @@ import {
 } from '../../core/utils/interface';
 import {
   state,
-  tokenMetadataService,
   tokenPricesService,
   transactionHelper,
   transactionScanService,
 } from '../../snapContext';
 import { Confirmation } from './Confirmation';
 import type { ConfirmationContext } from './types';
-
-const ICON_SIZE = 16;
 
 export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmationContext = {
   method: SolMethod.SignAndSendTransaction,
@@ -67,7 +65,19 @@ export async function renderConfirmation(incomingContext: ConfirmationContext) {
       context.preferences = DEFAULT_CONFIRMATION_CONTEXT.preferences;
     });
 
-  await Promise.all([preferencesPromise]);
+  const instructionsPromise = transactionHelper
+    .base64DecodeTransaction(context.transaction, context.scope)
+    .then((transaction) => {
+      context.advanced.instructions = parseInstructions(
+        transaction.instructions,
+      );
+    })
+    .catch((error) => {
+      console.error(error);
+      context.advanced.instructions = [];
+    });
+
+  await Promise.all([preferencesPromise, instructionsPromise]);
 
   const id = await createInterface(<Confirmation context={context} />, context);
 
@@ -136,38 +146,6 @@ export async function renderConfirmation(incomingContext: ConfirmationContext) {
     .then(async (scan) => {
       updatedContext2.scanFetchStatus = 'fetched';
       updatedContext2.scan = scan;
-      // Fetch asset images and add it to the scan object
-
-      if (!scan?.estimatedChanges?.assets) {
-        return;
-      }
-
-      const updatedScan = { ...scan };
-
-      const transactionScanIconPromises = scan?.estimatedChanges?.assets.map(
-        async (asset, index) => {
-          const { logo } = asset;
-
-          if (logo) {
-            return tokenMetadataService
-              .generateImageComponent(logo, ICON_SIZE, ICON_SIZE)
-              .then((image) => {
-                if (image && updatedScan?.estimatedChanges?.assets?.[index]) {
-                  updatedScan.estimatedChanges.assets[index].imageSvg = image;
-                }
-              })
-              .catch(() => {
-                return null;
-              });
-          }
-
-          return undefined;
-        },
-      );
-
-      await Promise.all(transactionScanIconPromises ?? []);
-
-      updatedContext2.scan = updatedScan;
     })
     .catch(() => {
       updatedContext2.scan = null;

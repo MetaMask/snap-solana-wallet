@@ -41,7 +41,7 @@ export const Accounts = () => {
   const handleSendAndConfirmTransaction = async () => {
     const lifiQuote = await fetch(
       // 'https://li.quest/v1/quote?fromChain=SOL&toChain=ARB&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=0xaf88d065e77c8cC2239327C5EDb3A432268e5831&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=0x2d757E532bE32766A64088e9200f0979c42372DC&fromAmount=100000',
-      'https://li.quest/v1/quote?fromChain=SOL&toChain=SOL&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=HaMv3cdfDW6357yjpDur6kb6w52BUPJrMJpR76tjpump&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&fromAmount=10000',
+      'https://li.quest/v1/quote?fromChain=SOL&toChain=SOL&fromToken=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&toToken=So11111111111111111111111111111111111111112&fromAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&toAddress=DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa&fromAmount=10000',
     ).then(async (quote) => quote.json());
 
     await invokeKeyring({
