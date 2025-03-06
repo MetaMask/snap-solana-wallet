@@ -7,16 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.10.1]
-
-### Removed
-
-- Lifecycle hooks permissions ([#226](https://github.com/MetaMask/snap-solana-wallet/pull/226))
-
-### Added 
-
-- Support for failed transactions ([#224](https://github.com/MetaMask/snap-solana-wallet/pull/224))
-
 ## [1.10.0]
 
 ### Added
@@ -267,8 +257,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.1...HEAD
-[1.10.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.0...v1.10.1
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.0...HEAD
 [1.10.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.7.0...v1.8.0
