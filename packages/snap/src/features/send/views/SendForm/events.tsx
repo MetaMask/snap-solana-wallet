@@ -1,3 +1,4 @@
+/* eslint-disable no-void */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
@@ -6,6 +7,7 @@ import {
   Networks,
   SOL_TRANSFER_FEE_LAMPORTS,
 } from '../../../../core/constants/solana';
+import { CronjobMethod } from '../../../../core/handlers/onCronjob';
 import {
   lamportsToSol,
   solToLamports,
@@ -309,6 +311,22 @@ async function onSendButtonClick({
   }
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
+
+  // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
+  void snap.request({
+    method: 'snap_scheduleBackgroundEvent',
+    params: {
+      duration: 'PT1S',
+      request: {
+        method: CronjobMethod.OnTransactionAdded,
+        params: {
+          accountId: context.fromAccountId,
+          base64EncodedTransactionMessage: context.transactionMessage,
+          scope: context.scope,
+        },
+      },
+    },
+  });
 }
 
 export const eventHandlers = {

@@ -3,6 +3,7 @@ import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/Secu
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
 import { refreshAssets as refreshAssetsHandler } from './core/handlers/onCronjob/refreshAssets';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
+import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { BalancesService } from './core/services/balances/BalancesService';
 import { ConfigProvider } from './core/services/config';
@@ -39,6 +40,7 @@ export type SnapExecutionContext = {
   walletService: WalletService;
   transactionScanService: TransactionScanService;
   balancesService: BalancesService;
+  analyticsService: AnalyticsService;
 };
 
 const configProvider = new ConfigProvider();
@@ -97,10 +99,11 @@ const balancesService = new BalancesService(
   refreshAssetsWrapper,
 );
 
+const analyticsService = new AnalyticsService(logger);
+
 const walletService = new WalletService(
   fromBase64EncodedBuilder,
   transactionHelper,
-  balancesService,
   logger,
 );
 
@@ -139,9 +142,11 @@ const snapContext: SnapExecutionContext = {
   walletService,
   transactionScanService,
   balancesService,
+  analyticsService,
 };
 
 export {
+  analyticsService,
   assetsService,
   balancesService,
   configProvider,

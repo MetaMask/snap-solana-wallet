@@ -1,5 +1,7 @@
+/* eslint-disable no-void */
 import { SolMethod } from '@metamask/keyring-api';
 
+import { CronjobMethod } from '../../../../core/handlers/onCronjob';
 import {
   resolveInterface,
   updateInterface,
@@ -71,6 +73,21 @@ async function onConfirmButtonClick({
     await updateInterface(id, <Send context={context} />, context);
     return;
   }
+
+  void snap.request({
+    method: 'snap_scheduleBackgroundEvent',
+    params: {
+      duration: 'PT1S',
+      request: {
+        method: CronjobMethod.OnTransactionApproved,
+        params: {
+          accountId: context.fromAccountId,
+          base64EncodedTransactionMessage: context.transactionMessage,
+          scope: context.scope,
+        },
+      },
+    },
+  });
 
   // First, show the pending stage
   const contextPending: SendContext = {

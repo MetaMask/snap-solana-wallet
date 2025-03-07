@@ -21,7 +21,7 @@ import type { Json } from '@metamask/snaps-controllers';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { MethodNotFoundError } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
-import type { CaipChainId } from '@metamask/utils';
+import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/web3.js';
 import { address as asAddress, getAddressDecoder } from '@solana/web3.js';
 
@@ -50,6 +50,7 @@ import {
   NetworkStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
+import { CronjobMethod } from '../onCronjob';
 import { SolanaKeyringRequestStruct } from './structs';
 
 /**
@@ -376,6 +377,22 @@ export class SolanaKeyring implements Keyring {
       );
     }
 
+    // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
+    void snap.request({
+      method: 'snap_scheduleBackgroundEvent',
+      params: {
+        duration: 'PT1S',
+        request: {
+          method: CronjobMethod.OnTransactionAdded,
+          params: {
+            accountId,
+            base64EncodedTransactionMessage: base64EncodedTransaction,
+            scope,
+          },
+        },
+      },
+    });
+
     const isConfirmed = await renderConfirmation({
       ...DEFAULT_CONFIRMATION_CONTEXT,
       scope,
@@ -387,6 +404,22 @@ export class SolanaKeyring implements Keyring {
     if (!isConfirmed) {
       return null;
     }
+
+    // Trigger the side effects that need to happen when the transaction is approved
+    void snap.request({
+      method: 'snap_scheduleBackgroundEvent',
+      params: {
+        duration: 'PT1S',
+        request: {
+          method: CronjobMethod.OnTransactionApproved,
+          params: {
+            accountId,
+            base64EncodedTransactionMessage: base64EncodedTransaction,
+            scope,
+          },
+        },
+      },
+    });
 
     switch (method) {
       case SolMethod.SignAndSendTransaction:

@@ -1,0 +1,54 @@
+import { TransactionStruct } from '@metamask/keyring-api';
+import { InternalError, type OnCronjobHandler } from '@metamask/snaps-sdk';
+import { assert, literal, object, string } from '@metamask/superstruct';
+
+import {
+  analyticsService,
+  balancesService,
+  keyring,
+} from '../../../snapContext';
+import logger from '../../utils/logger';
+import { UuidStruct } from '../../validation/structs';
+
+export const OnTransactionFinalizedRequestStruct = object({
+  id: string(),
+  jsonrpc: literal('2.0'),
+  method: literal('onTransactionFinalized'),
+  params: object({
+    accountId: UuidStruct,
+    transaction: TransactionStruct,
+  }),
+});
+
+/**
+ * Handles side effects that need to happen when a transaction is finalized (failed or confirmed).
+ *
+ * @param args - The arguments object.
+ * @param args.request - The request object containing transaction details.
+ * @returns A promise that resolves when the side effects are complete.
+ * @see https://www.notion.so/consensys/Transaction-Finalized-270e5858ccd94209954d7260438291b1?pvs=4
+ */
+export const onTransactionFinalized: OnCronjobHandler = async ({ request }) => {
+  try {
+    logger.info('[onTransactionFinalized] Cronjob triggered', request);
+
+    assert(request, OnTransactionFinalizedRequestStruct);
+
+    const { accountId, transaction } = request.params;
+
+    const account = await keyring.getAccountOrThrow(accountId);
+
+    const trackEventPromise = analyticsService
+      .trackEventTransactionFinalized(account, transaction)
+      .catch((error) => logger.error('Analytics error:', error));
+
+    const updateBalancesPromise = balancesService
+      .updateBalancesPostTransaction(transaction)
+      .catch((error) => logger.error('Balance update error:', error));
+
+    await Promise.all([trackEventPromise, updateBalancesPromise]);
+  } catch (error) {
+    logger.error(error);
+    throw new InternalError(error as string) as Error;
+  }
+};

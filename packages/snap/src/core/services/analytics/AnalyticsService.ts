@@ -1,0 +1,62 @@
+import type { Transaction } from '@metamask/keyring-api';
+
+import type { Network } from '../../constants/solana';
+import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import logger from '../../utils/logger';
+
+/**
+ * Service for tracking events related to transactions.
+ */
+export class AnalyticsService {
+  readonly #logger = logger;
+
+  constructor(_logger = logger) {
+    this.#logger = _logger;
+  }
+
+  async trackEventTransactionAdded(
+    account: SolanaKeyringAccount,
+    base64EncodedTransactionMessage: string,
+    scope: Network,
+  ): Promise<void> {
+    this.#logger.log(`[📣 AnalyticsService] Tracking event transaction added`);
+
+    // TODO: Implement
+  }
+
+  async trackEventTransactionApproved(
+    account: SolanaKeyringAccount,
+    base64EncodedTransactionMessage: string,
+    scope: Network,
+  ): Promise<void> {
+    this.#logger.log(
+      `[📣 AnalyticsService] Tracking event transaction approved`,
+    );
+
+    // TODO: Implement
+  }
+
+  async trackEventTransactionSubmitted(
+    account: SolanaKeyringAccount,
+    base64EncodedTransactionMessage: string,
+    signature: string,
+    scope: Network,
+  ): Promise<void> {
+    this.#logger.log(
+      `[📣 AnalyticsService] Tracking event transaction submitted`,
+    );
+
+    // TODO: Implement
+  }
+
+  async trackEventTransactionFinalized(
+    account: SolanaKeyringAccount,
+    transaction: Transaction,
+  ): Promise<void> {
+    this.#logger.log(
+      `[📣 AnalyticsService] Tracking event transaction finalized`,
+    );
+
+    // TODO: Implement
+  }
+}

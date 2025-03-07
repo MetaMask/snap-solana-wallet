@@ -1,11 +1,7 @@
+/* eslint-disable no-void */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Transaction } from '@metamask/keyring-api';
-import {
-  KeyringEvent,
-  type KeyringRequest,
-  SolMethod,
-} from '@metamask/keyring-api';
-import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
+import { type KeyringRequest, SolMethod } from '@metamask/keyring-api';
 import { assert } from '@metamask/superstruct';
 import {
   address as asAddress,
@@ -13,13 +9,13 @@ import {
 } from '@solana/web3.js';
 
 import type { Caip10Address, Network } from '../../constants/solana';
+import { CronjobMethod } from '../../handlers/onCronjob';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { NetworkStruct } from '../../validation/structs';
-import type { BalancesService } from '../balances/BalancesService';
 import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
@@ -46,19 +42,15 @@ export class WalletService {
 
   readonly #transactionHelper: TransactionHelper;
 
-  readonly #balancesService: BalancesService;
-
   readonly #logger: ILogger;
 
   constructor(
     fromBase64EncodedBuilder: FromBase64EncodedBuilder,
     transactionHelper: TransactionHelper,
-    balancesService: BalancesService,
     _logger = logger,
   ) {
     this.#fromBase64EncodedBuilder = fromBase64EncodedBuilder;
     this.#transactionHelper = transactionHelper;
-    this.#balancesService = balancesService;
     this.#logger = _logger;
   }
 
@@ -186,6 +178,23 @@ export class WalletService {
         scope,
       );
 
+      // Trigger the side effects that need to happen when the transaction is submitted
+      void snap.request({
+        method: 'snap_scheduleBackgroundEvent',
+        params: {
+          duration: 'PT1S',
+          request: {
+            method: CronjobMethod.OnTransactionSubmitted,
+            params: {
+              accountId: account.id,
+              base64EncodedTransactionMessage: base64EncodedTransaction,
+              signature,
+              scope,
+            },
+          },
+        },
+      });
+
       const result = {
         signature,
       };
@@ -210,19 +219,20 @@ export class WalletService {
         account: account.id,
       } as Transaction;
 
-      await emitSnapKeyringEvent(
-        snap,
-        KeyringEvent.AccountTransactionsUpdated,
-        {
-          transactions: {
-            [account.id]: [mappedTransactionWithAccountId],
+      // Trigger the side effects that need to happen when the transaction is finalized (failed or confirmed)
+      void snap.request({
+        method: 'snap_scheduleBackgroundEvent',
+        params: {
+          duration: 'PT1S',
+          request: {
+            method: CronjobMethod.OnTransactionFinalized,
+            params: {
+              accountId: account.id,
+              transaction: mappedTransactionWithAccountId,
+            },
           },
         },
-      );
-
-      await this.#balancesService.updateBalancesPostTransaction(
-        mappedTransactionWithAccountId,
-      );
+      });
 
       return result;
     } catch (error) {
