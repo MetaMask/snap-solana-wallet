@@ -12,11 +12,12 @@ import {
 } from '../../../../core/utils/conversion';
 import {
   resolveInterface,
+  SEND_FORM_INTERFACE_NAME,
   updateInterface,
 } from '../../../../core/utils/interface';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { validateField } from '../../../../core/validation/form';
-import { tokenPricesService } from '../../../../snapContext';
+import { state, tokenPricesService } from '../../../../snapContext';
 import { Send } from '../../Send';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 import { buildTransactionMessageAndUpdateInterface } from '../../utils/buildTransactionMessageAndUpdateInterface';
@@ -32,6 +33,15 @@ import { validation } from './validation';
  */
 async function onBackButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
+  await state.update((_state) => {
+    return {
+      ..._state,
+      mapInterfaceNameToId: {
+        ...(_state?.mapInterfaceNameToId ?? {}),
+        [SEND_FORM_INTERFACE_NAME]: null,
+      },
+    };
+  });
 }
 
 /**
@@ -277,6 +287,15 @@ async function onClearButtonClick({
  */
 async function onCancelButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
+  await state.update((_state) => {
+    return {
+      ..._state,
+      mapInterfaceNameToId: {
+        ...(_state?.mapInterfaceNameToId ?? {}),
+        [SEND_FORM_INTERFACE_NAME]: null,
+      },
+    };
+  });
 }
 
 /**

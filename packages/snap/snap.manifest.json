@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "1CsYl4l2X7YhztLfdMwJkel5fiiTZqk1mrsBGIryS1A=",
+    "shasum": "GCGVydwAUH65WdOcyt/BzEUPQW2LyU37UWIENU/cYxI=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -21,7 +21,8 @@
     ]
   },
   "initialConnections": {
-    "https://portfolio.metamask.io": {}
+    "https://portfolio.metamask.io": {},
+    "http://localhost:3000": {}
   },
   "initialPermissions": {
     "endowment:rpc": {
@@ -30,7 +31,8 @@
     },
     "endowment:keyring": {
       "allowedOrigins": [
-        "https://portfolio.metamask.io"
+        "https://portfolio.metamask.io",
+        "http://localhost:3000"
       ]
     },
     "snap_getBip32Entropy": [
@@ -49,7 +51,7 @@
         {
           "expression": "* * * * *",
           "request": {
-            "method": "refreshSendTokenPrices",
+            "method": "refreshSend",
             "params": {}
           }
         },

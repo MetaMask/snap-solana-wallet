@@ -6,6 +6,7 @@ import type {
 } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 
+import type { SpotPrices } from '../../clients/price-api/types';
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { safeMerge } from '../../utils/safeMerge';
@@ -14,12 +15,13 @@ export type AccountId = string;
 
 export type EncryptedStateValue = {
   keyringAccounts: Record<string, SolanaKeyringAccount>;
-  mapInterfaceNameToId: Record<string, string>;
+  mapInterfaceNameToId: Record<string, string | null>;
   isFetchingTransactions: boolean;
   transactions: Record<AccountId, Transaction[]>;
   isFetchingAssets: boolean;
   assets: Record<AccountId, Record<CaipAssetType, Balance>>;
   metadata: Record<CaipAssetType, SolanaTokenMetadata>;
+  tokenPrices: SpotPrices;
 };
 
 export const DEFAULT_ENCRYPTED_STATE: EncryptedStateValue = {
@@ -30,6 +32,7 @@ export const DEFAULT_ENCRYPTED_STATE: EncryptedStateValue = {
   isFetchingAssets: false,
   assets: {},
   metadata: {},
+  tokenPrices: {},
 };
 
 export class EncryptedState {

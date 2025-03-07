@@ -9,9 +9,9 @@ import {
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   showDialog,
+  updateInterface,
 } from '../../core/utils/interface';
 import {
-  keyring,
   state,
   tokenPricesService,
   transactionHelper,
@@ -72,20 +72,16 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     tokenCaipId,
   };
 
-  const preferencesPromise = getPreferences().catch(
-    () => DEFAULT_SEND_CONTEXT.preferences,
-  );
-
   /**
    * 1. Get the current state (from snap)
-   * 2. Get the accounts (from keyring)
-   * 3. Get the preferences (from extension)
+   * 2. Get the accounts (from state)
+   * 3. Get the preferences (from state)
    * 4. Get the token metadata (from state)
+   * 5. Get the token prices (from state)
    */
-  const [currentState, accounts, preferences] = await Promise.all([
+  const [currentState, preferences] = await Promise.all([
     state.get(),
-    keyring.listAccounts(),
-    preferencesPromise,
+    getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),
   ]);
 
   context.balances = getBalancesInScope({
@@ -96,14 +92,24 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   const accountBalances = currentState.assets[context.fromAccountId] ?? {};
   context.assets = Object.keys(accountBalances) as CaipAssetType[];
 
-  context.accounts = accounts;
+  context.accounts = Object.values(currentState.keyringAccounts);
   context.preferences = preferences;
   context.tokenMetadata = currentState.metadata ?? {};
+  context.tokenPrices = currentState.tokenPrices ?? {};
+
+  console.log('currentState.tokenPrices', currentState);
+
+  const id = await createInterface(<Send context={context} />, context);
+
+  const dialogPromise = showDialog(id);
 
   const tokenPricesPromise = tokenPricesService
     .getMultipleTokenPrices(context.assets, context.preferences.currency)
     .then((prices) => {
-      context.tokenPrices = prices;
+      context.tokenPrices = {
+        ...context.tokenPrices,
+        ...prices,
+      };
       context.tokenPricesFetchStatus = 'fetched';
     })
     .catch(() => {
@@ -121,16 +127,15 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     });
 
   /**
-   * 5. Get the token prices (from api)
+   * 6. Refresh token prices (from api)
+   * 7. Get the minimum balance for rent exemption (from api)
    */
   await Promise.all([
     tokenPricesPromise,
     minimumBalanceForRentExemptionPromise,
   ]);
 
-  const id = await createInterface(<Send context={context} />, context);
-
-  const dialogPromise = showDialog(id);
+  await updateInterface(id, <Send context={context} />, context);
 
   await state.update((_state) => {
     return {

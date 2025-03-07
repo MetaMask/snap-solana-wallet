@@ -63,7 +63,7 @@ export const AccountSelector: SnapComponent<AccountSelectorProps> = ({
           const extra =
             amount !== undefined && price !== null && currency
               ? formatFiat(tokenToFiat(amount, price), currency, locale)
-              : '';
+              : '-';
 
           return (
             <SelectorOption value={account.id}>
