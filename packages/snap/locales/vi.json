@@ -38,7 +38,7 @@
       "message": "Bắt buộc nhập số lượng"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "Số lượng phải lớn hơn {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "Bắt buộc nhập địa chỉ gửi đến"

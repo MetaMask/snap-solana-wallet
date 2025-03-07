@@ -4,10 +4,11 @@ import { SolMethod } from '@metamask/keyring-api';
 import { CronjobMethod } from '../../../../core/handlers/onCronjob';
 import {
   resolveInterface,
+  SEND_FORM_INTERFACE_NAME,
   updateInterface,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
-import { keyring, walletService } from '../../../../snapContext';
+import { keyring, state, walletService } from '../../../../snapContext';
 import { Send } from '../../Send';
 import { type SendContext } from '../../types';
 import { TransactionConfirmationNames } from './TransactionConfirmation';
@@ -44,6 +45,11 @@ async function onBackButtonClick({
  */
 async function onCancelButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
+  await state.update((_state) => {
+    delete _state?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
+
+    return _state;
+  });
 }
 
 /**

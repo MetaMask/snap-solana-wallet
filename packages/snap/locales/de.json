@@ -38,7 +38,7 @@
       "message": "Betrag erforderlich"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "Betrag muss größer sein als {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "Adresse des Empfängers ist erforderlich"

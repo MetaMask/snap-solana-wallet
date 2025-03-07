@@ -7,15 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0]
+
+### Added
+
+- New translations ([#234](https://github.com/MetaMask/snap-solana-wallet/pull/234))
+
+### Fixed
+
+- Reduce send delay ([#233](https://github.com/MetaMask/snap-solana-wallet/pull/233))
+- Put instructions back on confirmation ([#230](https://github.com/MetaMask/snap-solana-wallet/pull/230))
+
 ## [1.10.1]
-
-### Removed
-
-- Lifecycle hooks permissions ([#226](https://github.com/MetaMask/snap-solana-wallet/pull/226))
 
 ### Added
 
 - Support for failed transactions ([#224](https://github.com/MetaMask/snap-solana-wallet/pull/224))
+
+### Removed
+
+- Lifecycle hooks permissions ([#226](https://github.com/MetaMask/snap-solana-wallet/pull/226))
 
 ## [1.10.0]
 
@@ -267,7 +278,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.1...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.1...v1.11.0
 [1.10.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.8.0...v1.9.0

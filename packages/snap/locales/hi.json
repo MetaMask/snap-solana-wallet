@@ -38,7 +38,7 @@
       "message": "अमाउंट होना ज़रूरी है"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "राशि {minimumValue} से ज़्यादा होनी चाहिए"
     },
     "send.toRequiredError": {
       "message": "जिसको भेजा जा रहा है उसका एड्रेस होना चाहिए"

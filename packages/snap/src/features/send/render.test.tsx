@@ -224,6 +224,9 @@ describe('Send', () => {
       },
     });
 
+    const screen1BeforeUpdate = await response.getInterface();
+    await screen1BeforeUpdate.waitForUpdate();
+
     const screen1 = await response.getInterface();
 
     const updatedContext1: SendContext = mockContext;

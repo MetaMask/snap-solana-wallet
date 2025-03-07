@@ -38,7 +38,7 @@
       "message": "Απαιτείται το ποσό"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "Το ποσό πρέπει να είναι μεγαλύτερο από {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "Απαιτείται η διεύθυνση"

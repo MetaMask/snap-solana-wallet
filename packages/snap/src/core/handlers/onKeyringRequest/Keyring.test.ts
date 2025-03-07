@@ -142,6 +142,7 @@ describe('SolanaKeyring', () => {
       isFetchingTransactions: false,
       transactions: {},
       metadata: {},
+      tokenPrices: {},
     };
 
     /**
@@ -295,6 +296,7 @@ describe('SolanaKeyring', () => {
         isFetchingAssets: false,
         assets: {},
         metadata: {},
+        tokenPrices: {},
       };
 
       const firstAccount = await keyring.createAccount();
@@ -331,6 +333,7 @@ describe('SolanaKeyring', () => {
         isFetchingAssets: false,
         assets: {},
         metadata: {},
+        tokenPrices: {},
       };
 
       const firstAccount = await keyring.createAccount();

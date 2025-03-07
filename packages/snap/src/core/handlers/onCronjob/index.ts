@@ -6,11 +6,11 @@ import { onTransactionFinalized } from './onTransactionFinalized';
 import { onTransactionSubmitted } from './onTransactionSubmitted';
 import { refreshAssets } from './refreshAssets';
 import { refreshConfirmationEstimation } from './refreshConfirmationEstimation';
-import { refreshSendTokenPrices } from './refreshSendTokenPrices';
+import { refreshSend } from './refreshSend';
 import { refreshTransactions } from './refreshTransactions';
 
 export enum CronjobMethod {
-  RefreshSendTokenPrices = 'refreshSendTokenPrices',
+  RefreshSend = 'refreshSend',
   RefreshConfirmationEstimation = 'refreshConfirmationEstimation',
   RefreshTransactions = 'refreshTransactions',
   RefreshAssets = 'refreshAssets',
@@ -25,7 +25,7 @@ export enum CronjobMethod {
 }
 
 export const handlers: Record<CronjobMethod, OnCronjobHandler> = {
-  [CronjobMethod.RefreshSendTokenPrices]: refreshSendTokenPrices,
+  [CronjobMethod.RefreshSend]: refreshSend,
   [CronjobMethod.RefreshConfirmationEstimation]: refreshConfirmationEstimation,
   [CronjobMethod.RefreshTransactions]: refreshTransactions,
   [CronjobMethod.RefreshAssets]: refreshAssets,

@@ -38,7 +38,7 @@
       "message": "金額が必要です"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "金額は{minimumValue}より大きくする必要があります"
     },
     "send.toRequiredError": {
       "message": "送り先のアドレスが必要です"
@@ -167,7 +167,7 @@
       "message": "これは虚偽のリクエストです"
     },
     "confirmation.validationErrorSubtitle": {
-      "message": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。"
+      "message": "このリクエストを承認すると、詐欺が判明している第三者に資産をすべて奪われます。"
     },
     "confirmation.validationErrorLearnMore": {
       "message": "詳細"

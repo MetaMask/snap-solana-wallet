@@ -38,7 +38,7 @@
       "message": "金额为必填项"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "金额必须大于 {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "接收者地址为必填项"

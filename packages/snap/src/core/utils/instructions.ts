@@ -1,9 +1,5 @@
 /* eslint-disable no-restricted-globals */
-import {
-  address,
-  isInstructionForProgram,
-  type CompilableTransactionMessage,
-} from '@solana/web3.js';
+import { type CompilableTransactionMessage } from '@solana/web3.js';
 import bs58 from 'bs58';
 
 import type { SolanaInstruction } from '../../features/confirmation/types';

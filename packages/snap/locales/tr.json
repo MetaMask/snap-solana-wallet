@@ -38,7 +38,7 @@
       "message": "Tutar gereklidir"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "Amount must be greater than {minimumValue}"
+      "message": "Miktar şundan fazla olmalıdır: {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "Alıcı adres gereklidir"

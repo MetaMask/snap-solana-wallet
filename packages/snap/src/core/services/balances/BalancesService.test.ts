@@ -43,6 +43,7 @@ describe('BalancesService', () => {
       isFetchingTransactions: false,
       transactions: {},
       metadata: {},
+      tokenPrices: {},
     };
 
     const snap = {
@@ -346,6 +347,7 @@ describe('BalancesService', () => {
           },
         },
         metadata: {},
+        tokenPrices: {},
       };
 
       // Create a mock refreshAssets function that updates the state with expected values
