@@ -38,7 +38,7 @@
       "message": "O valor é obrigatório"
     },
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
-      "message": "O valor deve ser superior a {minimumValue}"
+      "message": "O valor deve ser maior que {minimumValue}"
     },
     "send.toRequiredError": {
       "message": "O endereço é obrigatório"
