@@ -15,7 +15,7 @@ export type AccountId = string;
 
 export type EncryptedStateValue = {
   keyringAccounts: Record<string, SolanaKeyringAccount>;
-  mapInterfaceNameToId: Record<string, string | null>;
+  mapInterfaceNameToId: Record<string, string>;
   isFetchingTransactions: boolean;
   transactions: Record<AccountId, Transaction[]>;
   isFetchingAssets: boolean;
