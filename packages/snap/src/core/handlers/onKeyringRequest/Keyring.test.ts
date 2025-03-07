@@ -8,10 +8,8 @@ import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
-import { AssetsService } from '../../services/assets/AssetsService';
-import type { BalancesService } from '../../services/balances/BalancesService';
+import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfigProvider } from '../../services/config';
-import type { Config } from '../../services/config/ConfigProvider';
 import type { SolanaConnection } from '../../services/connection/SolanaConnection';
 import type { EncryptedStateValue } from '../../services/encrypted-state/EncryptedState';
 import { EncryptedState } from '../../services/encrypted-state/EncryptedState';
@@ -21,7 +19,6 @@ import { TransactionsService } from '../../services/transactions/TransactionsSer
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
 import type { WalletService } from '../../services/wallet/WalletService';
 import {
-  SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN,
   SOLANA_MOCK_TOKEN_METADATA,
 } from '../../test/mocks/solana-assets';
@@ -69,7 +66,7 @@ describe('SolanaKeyring', () => {
   let mockConnection: SolanaConnection;
   let mockTokenMetadataService: TokenMetadataService;
   let mockWalletService: WalletService;
-  let mockBalancesService: BalancesService;
+  let mockAssetsService: AssetsService;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -92,12 +89,14 @@ describe('SolanaKeyring', () => {
       logger,
       connection: mockConnection,
       tokenMetadataService: mockTokenMetadataService,
+      state,
+      configProvider: mockConfigProvider,
     });
 
-    const assetsService = new AssetsService({
-      connection: mockConnection,
-      logger,
-    });
+    mockAssetsService = {
+      listAccountAssets: jest.fn(),
+      getAccountBalances: jest.fn(),
+    } as unknown as AssetsService;
 
     mockTokenMetadataService = {
       getTokensMetadata: jest
@@ -113,18 +112,12 @@ describe('SolanaKeyring', () => {
       signAndSendTransaction: jest.fn(),
     } as unknown as WalletService;
 
-    mockBalancesService = {
-      getAccountBalances: jest.fn(),
-    } as unknown as BalancesService;
-
     keyring = new SolanaKeyring({
       state,
       logger,
-      configProvider: mockConfigProvider,
       transactionsService,
-      assetsService,
+      assetsService: mockAssetsService,
       walletService: mockWalletService,
-      balancesService: mockBalancesService,
     });
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
@@ -213,14 +206,16 @@ describe('SolanaKeyring', () => {
   });
 
   describe('listAccountAssets', () => {
-    it('lists account assets', async () => {
-      const assets = await keyring.listAccountAssets(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+    it('calls the assets service', async () => {
+      jest
+        .spyOn(mockAssetsService, 'listAccountAssets')
+        .mockResolvedValue([SOLANA_MOCK_TOKEN.address]);
+
+      await keyring.listAccountAssets(MOCK_SOLANA_KEYRING_ACCOUNT_0.id);
+
+      expect(mockAssetsService.listAccountAssets).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
       );
-      expect(assets).toStrictEqual([
-        SOLANA_MOCK_TOKEN.address,
-        ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.address),
-      ]);
     });
 
     it('throws and error if the account provided is not a uuid', async () => {
@@ -233,17 +228,6 @@ describe('SolanaKeyring', () => {
       await expect(
         keyring.listAccountAssets(NON_EXISTENT_ACCOUNT_ID),
       ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
-    });
-
-    it('returns empty if no active networks', async () => {
-      jest
-        .spyOn(mockConfigProvider, 'get')
-        .mockReturnValue({ activeNetworks: [] } as unknown as Config);
-
-      const assets = await keyring.listAccountAssets(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      );
-      expect(assets).toStrictEqual([]);
     });
   });
 
@@ -487,7 +471,7 @@ describe('SolanaKeyring', () => {
         },
       };
       jest
-        .spyOn(mockBalancesService, 'getAccountBalances')
+        .spyOn(mockAssetsService, 'getAccountBalances')
         .mockResolvedValue(invalidResponse);
 
       await expect(

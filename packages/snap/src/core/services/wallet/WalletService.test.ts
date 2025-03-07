@@ -14,7 +14,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../../test/mocks/solana-keyring-accounts';
 import type { ILogger } from '../../utils/logger';
-import type { BalancesService } from '../balances/BalancesService';
+import logger from '../../utils/logger';
 import { EncryptedState } from '../encrypted-state/EncryptedState';
 import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
@@ -51,20 +51,12 @@ describe('WalletService', () => {
   let mockState: EncryptedState;
   let mockTransactionHelper: TransactionHelper;
   let mockFromBase64EncodedBuilder: FromBase64EncodedBuilder;
-  let mockBalancesService: BalancesService;
   let service: WalletService;
   const scope = Network.Testnet;
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
 
   beforeEach(() => {
-    mockLogger = {
-      warn: jest.fn(),
-      error: jest.fn(),
-      info: jest.fn(),
-      debug: jest.fn(),
-      log: jest.fn(),
-    } as unknown as ILogger;
-
+    mockLogger = logger;
     mockState = new EncryptedState();
 
     mockTransactionHelper = {
@@ -80,14 +72,9 @@ describe('WalletService', () => {
       buildTransactionMessage: jest.fn(),
     } as unknown as FromBase64EncodedBuilder;
 
-    mockBalancesService = {
-      updateBalancesPostTransaction: jest.fn(),
-    } as unknown as BalancesService;
-
     service = new WalletService(
       mockFromBase64EncodedBuilder,
       mockTransactionHelper,
-      mockBalancesService,
       mockLogger,
     );
 

@@ -7,7 +7,7 @@ import {
   Networks,
   SOL_TRANSFER_FEE_LAMPORTS,
 } from '../../../../core/constants/solana';
-import { CronjobMethod } from '../../../../core/handlers/onCronjob';
+import { CronjobMethod } from '../../../../core/handlers/onCronjob/CronjobMethod';
 import {
   lamportsToSol,
   solToLamports,

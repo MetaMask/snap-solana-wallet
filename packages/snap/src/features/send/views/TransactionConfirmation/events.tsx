@@ -1,7 +1,7 @@
 /* eslint-disable no-void */
 import { SolMethod } from '@metamask/keyring-api';
 
-import { CronjobMethod } from '../../../../core/handlers/onCronjob';
+import { CronjobMethod } from '../../../../core/handlers/onCronjob/CronjobMethod';
 import {
   resolveInterface,
   SEND_FORM_INTERFACE_NAME,

@@ -18,10 +18,8 @@ import BigNumber from 'bignumber.js';
 
 import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
 import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';
-import {
-  CronjobMethod,
-  handlers as onCronjobHandlers,
-} from './core/handlers/onCronjob';
+import { handlers as onCronjobHandlers } from './core/handlers/onCronjob';
+import { CronjobMethod } from './core/handlers/onCronjob/CronjobMethod';
 import { onProtocolRequest as onProtocolRequestHandler } from './core/handlers/onProtocolRequest/onProtocolRequest';
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';

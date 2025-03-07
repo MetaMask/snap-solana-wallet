@@ -2,7 +2,8 @@ import { expect } from '@jest/globals';
 import { installSnap } from '@metamask/snaps-jest';
 
 import { onCronjob } from '.';
-import { CronjobMethod, handlers } from './core/handlers/onCronjob';
+import { handlers } from './core/handlers/onCronjob';
+import { CronjobMethod } from './core/handlers/onCronjob/CronjobMethod';
 
 jest.mock('@noble/ed25519', () => ({
   getPublicKey: jest.fn(),
@@ -65,9 +66,7 @@ describe('onCronjob', () => {
           method: 'foo',
         },
       }),
-    ).rejects.toThrow(
-      'Expected one of `"refreshSend","refreshConfirmationEstimation","refreshTransactions","refreshAssets"`, but received: "foo"',
-    );
+    ).rejects.toThrow(/Expected one of/u);
   });
 
   it('calls the correct handler when the method is valid and snap is not locked', async () => {

@@ -4,7 +4,7 @@ import { assert, literal, object, string } from '@metamask/superstruct';
 
 import {
   analyticsService,
-  balancesService,
+  assetsService,
   keyring,
   transactionsService,
 } from '../../../snapContext';
@@ -39,31 +39,30 @@ export const onTransactionFinalized: OnCronjobHandler = async ({ request }) => {
 
     const account = await keyring.getAccountOrThrow(accountId);
 
+    const allAccounts = await keyring.listAccounts();
+
+    // Identify accounts that are involved in the transaction. We will perform refreshes for these specifically
+    const fromAddresses = transaction.from.map((from) => from.address);
+    const toAddresses = transaction.to.map((to) => to.address);
+    const toAndFromAddresses = [...fromAddresses, ...toAddresses];
+    const accountsChanged = allAccounts.filter((item) =>
+      toAndFromAddresses.includes(item.address),
+    );
+
+    const refreshAssetsPromise = assetsService.refreshAssets(accountsChanged);
+
+    const refreshTransactionsPromise =
+      transactionsService.refreshTransactions(accountsChanged);
+
     const trackEventPromise = analyticsService.trackEventTransactionFinalized(
       account,
       transaction,
     );
 
-    const updateBalancesPromise =
-      balancesService.updateBalancesPostTransaction(transaction);
-
-    // Refresh transactions for all accounts that are involved in the transaction,
-    // either as a sender or a recipient.
-    const allAccounts = await keyring.listAccounts();
-    const fromAddresses = transaction.from.map((from) => from.address);
-    const toAddresses = transaction.to.map((to) => to.address);
-    const toAndFromAddresses = [...fromAddresses, ...toAddresses];
-    const accountsToRefreshTransactions = allAccounts.filter((item) =>
-      toAndFromAddresses.includes(item.address),
-    );
-    const refreshTransactionsPromise = transactionsService.refreshTransactions(
-      accountsToRefreshTransactions,
-    );
-
     await Promise.all([
-      trackEventPromise,
-      updateBalancesPromise,
+      refreshAssetsPromise,
       refreshTransactionsPromise,
+      trackEventPromise,
     ]);
   } catch (error) {
     logger.error(error);

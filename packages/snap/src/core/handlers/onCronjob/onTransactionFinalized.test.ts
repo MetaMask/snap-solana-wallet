@@ -20,11 +20,11 @@ jest.mock('../../../snapContext', () => ({
   analyticsService: {
     trackEventTransactionFinalized: jest.fn(),
   },
-  balancesService: {
-    updateBalancesPostTransaction: jest.fn(),
-  },
   transactionsService: {
     refreshTransactions: jest.fn(),
+  },
+  assetsService: {
+    refreshAssets: jest.fn(),
   },
 }));
 
@@ -41,12 +41,14 @@ describe('onTransactionFinalized', () => {
     jest
       .spyOn(snapContext.transactionsService, 'refreshTransactions')
       .mockResolvedValue();
+
+    jest.spyOn(snapContext.assetsService, 'refreshAssets').mockResolvedValue();
   });
 
-  it('should refresh transactions for all accounts that are involved in the transaction', async () => {
+  it('refreshes assets, balances and transactions for all accounts that are involved in the transaction', async () => {
     const mockAccountId = MOCK_SOLANA_KEYRING_ACCOUNT_0.id;
 
-    // Assume a very generic transaction with multiple senders and recipients
+    // A special transaction with multiple senders and recipients that are all owned by the keyring
     const mockTransaction: Transaction = {
       from: [
         {
@@ -119,21 +121,31 @@ describe('onTransactionFinalized', () => {
       },
     });
 
-    expect(
-      snapContext.transactionsService.refreshTransactions,
-    ).toHaveBeenCalledWith([
+    const expectedAccounts = [
       MOCK_SOLANA_KEYRING_ACCOUNT_0,
       MOCK_SOLANA_KEYRING_ACCOUNT_1,
       MOCK_SOLANA_KEYRING_ACCOUNT_3,
       MOCK_SOLANA_KEYRING_ACCOUNT_4,
       MOCK_SOLANA_KEYRING_ACCOUNT_5,
-    ]);
+    ];
+
+    expect(snapContext.assetsService.refreshAssets).toHaveBeenCalledWith(
+      expectedAccounts,
+    );
+
+    expect(snapContext.assetsService.refreshAssets).toHaveBeenCalledWith(
+      expectedAccounts,
+    );
+
+    expect(
+      snapContext.transactionsService.refreshTransactions,
+    ).toHaveBeenCalledWith(expectedAccounts);
   });
 
-  it('should refresh transactions for the sender only if it is the only account involved in the transaction', async () => {
+  it('refreshes balances and transactions for the sender only if it is the only account involved in the transaction', async () => {
     const mockAccountId = MOCK_SOLANA_KEYRING_ACCOUNT_0.id;
 
-    // Transaction with only one sender, and one random recipient
+    // Transaction with only one owned sender, and one non-owned recipient
     const mockTransaction: Transaction = {
       from: [
         {
@@ -179,8 +191,18 @@ describe('onTransactionFinalized', () => {
       },
     });
 
+    const expectedAccounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
+
+    expect(snapContext.assetsService.refreshAssets).toHaveBeenCalledWith(
+      expectedAccounts,
+    );
+
+    expect(snapContext.assetsService.refreshAssets).toHaveBeenCalledWith(
+      expectedAccounts,
+    );
+
     expect(
       snapContext.transactionsService.refreshTransactions,
-    ).toHaveBeenCalledWith([MOCK_SOLANA_KEYRING_ACCOUNT_0]);
+    ).toHaveBeenCalledWith(expectedAccounts);
   });
 });

@@ -9,7 +9,7 @@ import {
 } from '@solana/web3.js';
 
 import type { Caip10Address, Network } from '../../constants/solana';
-import { CronjobMethod } from '../../handlers/onCronjob';
+import { CronjobMethod } from '../../handlers/onCronjob/CronjobMethod';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';

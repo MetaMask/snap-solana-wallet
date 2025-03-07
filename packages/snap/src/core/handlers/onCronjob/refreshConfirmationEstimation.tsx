@@ -1,6 +1,5 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import { CronjobMethod } from '.';
 import { Confirmation } from '../../../features/confirmation/Confirmation';
 import type { ConfirmationContext } from '../../../features/confirmation/types';
 import { state, transactionScanService } from '../../../snapContext';
@@ -10,6 +9,7 @@ import {
   updateInterface,
 } from '../../utils/interface';
 import logger from '../../utils/logger';
+import { CronjobMethod } from './CronjobMethod';
 
 export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
   try {

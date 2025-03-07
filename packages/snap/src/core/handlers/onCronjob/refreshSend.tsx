@@ -1,6 +1,5 @@
 import type { CaipAssetType, OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import { CronjobMethod } from '.';
 import { DEFAULT_SEND_CONTEXT } from '../../../features/send/render';
 import { Send } from '../../../features/send/Send';
 import type { SendContext } from '../../../features/send/types';
@@ -13,6 +12,7 @@ import {
   updateInterface,
 } from '../../utils/interface';
 import logger from '../../utils/logger';
+import { CronjobMethod } from './CronjobMethod';
 
 export const refreshSend: OnCronjobHandler = async () => {
   const [stateValue, preferences] = await Promise.all([

@@ -9,7 +9,7 @@ import type {
   UpdateInterfaceResult,
 } from '@metamask/snaps-sdk';
 
-import type { CronjobMethod } from '../handlers/onCronjob';
+import type { CronjobMethod } from '../handlers/onCronjob/CronjobMethod';
 import type { Preferences } from '../types/snap';
 import type { Locale } from './i18n';
 

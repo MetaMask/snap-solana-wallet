@@ -210,6 +210,10 @@ export class TransactionsService {
     return transactionsData;
   }
 
+  /**
+   * Fetches transactions for all accounts in the keyring and updates the state accordingly. Also emits events for any changes.
+   * @param accounts - The accounts to refresh transactions for.
+   */
   async refreshTransactions(accounts: SolanaKeyringAccount[]) {
     try {
       this.#logger.log(

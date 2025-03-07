@@ -1,14 +1,14 @@
 /* eslint-disable no-void */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
+import type { Balance } from '@metamask/keyring-api';
 import {
   KeyringEvent,
+  ListAccountAssetsResponseStruct,
   ResolveAccountAddressRequestStruct,
   SolAccountType,
   SolMethod,
   SolScope,
-  type Balance,
-  type CaipAssetType,
   type Keyring,
   type KeyringAccount,
   type KeyringRequest,
@@ -18,7 +18,7 @@ import {
 } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { Json } from '@metamask/snaps-controllers';
-import type { JsonRpcRequest } from '@metamask/snaps-sdk';
+import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { MethodNotFoundError } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 import { type CaipChainId } from '@metamask/utils';
@@ -30,8 +30,6 @@ import {
   renderConfirmation,
 } from '../../../features/confirmation/renderConfirmation';
 import type { AssetsService } from '../../services/assets/AssetsService';
-import type { BalancesService } from '../../services/balances/BalancesService';
-import type { ConfigProvider } from '../../services/config';
 import type { EncryptedState } from '../../services/encrypted-state/EncryptedState';
 import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
@@ -44,13 +42,12 @@ import {
   GetAccounBalancesResponseStruct,
   GetAccountBalancesStruct,
   GetAccountStruct,
-  ListAccountAssetsResponseStruct,
   ListAccountAssetsStruct,
   ListAccountTransactionsStruct,
   NetworkStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
-import { CronjobMethod } from '../onCronjob';
+import { CronjobMethod } from '../onCronjob/CronjobMethod';
 import { SolanaKeyringRequestStruct } from './structs';
 
 /**
@@ -64,41 +61,31 @@ export type SolanaKeyringAccount = {
 export class SolanaKeyring implements Keyring {
   readonly #state: EncryptedState;
 
-  readonly #configProvider: ConfigProvider;
-
   readonly #logger: ILogger;
 
   readonly #transactionsService: TransactionsService;
 
   readonly #assetsService: AssetsService;
 
-  readonly #balancesService: BalancesService;
-
   readonly #walletService: WalletService;
 
   constructor({
     state,
-    configProvider,
     logger,
     transactionsService,
     assetsService,
-    balancesService,
     walletService,
   }: {
     state: EncryptedState;
-    configProvider: ConfigProvider;
     logger: ILogger;
     transactionsService: TransactionsService;
     assetsService: AssetsService;
-    balancesService: BalancesService;
     walletService: WalletService;
   }) {
     this.#state = state;
-    this.#configProvider = configProvider;
     this.#logger = logger;
     this.#transactionsService = transactionsService;
     this.#assetsService = assetsService;
-    this.#balancesService = balancesService;
     this.#walletService = walletService;
   }
 
@@ -266,32 +253,9 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, ListAccountAssetsStruct);
 
-      const account = await this.getAccount(accountId);
-      if (!account) {
-        throw new Error('Account not found');
-      }
+      const account = await this.getAccountOrThrow(accountId);
 
-      const { activeNetworks } = this.#configProvider.get();
-
-      const nativeResponses = await Promise.all(
-        activeNetworks.map(async (network) =>
-          this.#assetsService.getNativeAsset(account.address, network),
-        ),
-      );
-
-      const tokensResponses = await Promise.all(
-        activeNetworks.map(async (network) =>
-          this.#assetsService.discoverTokens(account.address, network),
-        ),
-      );
-
-      const nativeAssets = nativeResponses.map((response) => response.address);
-
-      const tokenAssets = tokensResponses.flatMap((response) =>
-        response.map((token) => token.address),
-      );
-
-      const result = [...nativeAssets, ...tokenAssets] as CaipAssetType[];
+      const result = await this.#assetsService.listAccountAssets(account);
 
       validateResponse(result, ListAccountAssetsResponseStruct);
 
@@ -316,7 +280,7 @@ export class SolanaKeyring implements Keyring {
       validateRequest({ accountId, assets }, GetAccountBalancesStruct);
 
       const account = await this.getAccountOrThrow(accountId);
-      const result = await this.#balancesService.getAccountBalances(
+      const result = await this.#assetsService.getAccountBalances(
         account,
         assets,
       );
