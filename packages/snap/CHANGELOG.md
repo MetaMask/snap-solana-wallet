@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.11.0]
 
-### Uncategorized
+### Added
 
-- New Crowdin translations by Github Action ([#234](https://github.com/MetaMask/snap-solana-wallet/pull/234))
-- feat: reduce send delay ([#233](https://github.com/MetaMask/snap-solana-wallet/pull/233))
-- New Crowdin translations by Github Action ([#228](https://github.com/MetaMask/snap-solana-wallet/pull/228))
-- fix: put instructions back on confirmation ([#230](https://github.com/MetaMask/snap-solana-wallet/pull/230))
+- New translations ([#234](https://github.com/MetaMask/snap-solana-wallet/pull/234))
+
+### Fixed
+
+- Reduce send delay ([#233](https://github.com/MetaMask/snap-solana-wallet/pull/233))
+- Put instructions back on confirmation ([#230](https://github.com/MetaMask/snap-solana-wallet/pull/230))
 
 ## [1.10.1]
 

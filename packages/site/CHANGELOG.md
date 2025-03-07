@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.11.0]
 
-### Uncategorized
+### Fixed
 
-- fix: put instructions back on confirmation ([#230](https://github.com/MetaMask/snap-solana-wallet/pull/230))
+- Put instructions back on confirmation ([#230](https://github.com/MetaMask/snap-solana-wallet/pull/230))
 
 ## [1.9.0]
 
