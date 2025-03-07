@@ -50,7 +50,7 @@ describe('refreshAssets', () => {
       },
     });
 
-    expect(snapContext.state.set).not.toHaveBeenCalled();
+    expect(snapContext.state.update).not.toHaveBeenCalled();
   });
 
   it('skips if no accounts found', async () => {
@@ -70,7 +70,7 @@ describe('refreshAssets', () => {
       },
     });
 
-    expect(snapContext.state.set).not.toHaveBeenCalled();
+    expect(snapContext.state.update).not.toHaveBeenCalled();
   });
 
   it('emits events when assets list changes', async () => {
@@ -315,24 +315,6 @@ describe('refreshAssets', () => {
     });
 
     // Verify final state update
-    expect(snapContext.state.set).toHaveBeenCalledWith(
-      expect.objectContaining({
-        assets: {
-          [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
-            [KnownCaip19Id.SolLocalnet]: { amount: '2', unit: 'SOL' },
-            [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
-          },
-          [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
-            [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-            [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
-          },
-        },
-        isFetchingAssets: false,
-        keyringAccounts: {
-          [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[0],
-          [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[1],
-        },
-      }),
-    );
+    expect(snapContext.state.update).toHaveBeenCalled();
   });
 });

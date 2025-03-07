@@ -66,7 +66,7 @@ describe('onCronjob', () => {
         },
       }),
     ).rejects.toThrow(
-      'Expected one of `"refreshSendTokenPrices","refreshConfirmationEstimation","refreshTransactions","refreshAssets"`, but received: "foo"',
+      'Expected one of `"refreshSend","refreshConfirmationEstimation","refreshTransactions","refreshAssets"`, but received: "foo"',
     );
   });
 

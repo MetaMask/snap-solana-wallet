@@ -97,8 +97,6 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   context.tokenMetadata = currentState.metadata ?? {};
   context.tokenPrices = currentState.tokenPrices ?? {};
 
-  console.log('currentState.tokenPrices', currentState);
-
   const id = await createInterface(<Send context={context} />, context);
 
   const dialogPromise = showDialog(id);

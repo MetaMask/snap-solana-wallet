@@ -113,10 +113,10 @@ export const refreshAssets: OnCronjobHandler = async (args) => {
       accountToAssetsMap.set(account.id, accountBalances);
     }
 
-    await state.set({
-      ...currentState,
+    await state.update((_state) => ({
+      ..._state,
       assets: Object.fromEntries(accountToAssetsMap),
-    });
+    }));
 
     logger.info('[refreshAssets] Done refreshing assets');
   } catch (error) {
