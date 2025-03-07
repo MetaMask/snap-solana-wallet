@@ -6,6 +6,7 @@ import {
   analyticsService,
   balancesService,
   keyring,
+  transactionsService,
 } from '../../../snapContext';
 import logger from '../../utils/logger';
 import { UuidStruct } from '../../validation/structs';
@@ -38,15 +39,32 @@ export const onTransactionFinalized: OnCronjobHandler = async ({ request }) => {
 
     const account = await keyring.getAccountOrThrow(accountId);
 
-    const trackEventPromise = analyticsService
-      .trackEventTransactionFinalized(account, transaction)
-      .catch((error) => logger.error('Analytics error:', error));
+    const trackEventPromise = analyticsService.trackEventTransactionFinalized(
+      account,
+      transaction,
+    );
 
-    const updateBalancesPromise = balancesService
-      .updateBalancesPostTransaction(transaction)
-      .catch((error) => logger.error('Balance update error:', error));
+    const updateBalancesPromise =
+      balancesService.updateBalancesPostTransaction(transaction);
 
-    await Promise.all([trackEventPromise, updateBalancesPromise]);
+    // Refresh transactions for all accounts that are involved in the transaction,
+    // either as a sender or a recipient.
+    const allAccounts = await keyring.listAccounts();
+    const fromAddresses = transaction.from.map((from) => from.address);
+    const toAddresses = transaction.to.map((to) => to.address);
+    const toAndFromAddresses = [...fromAddresses, ...toAddresses];
+    const accountsToRefreshTransactions = allAccounts.filter((item) =>
+      toAndFromAddresses.includes(item.address),
+    );
+    const refreshTransactionsPromise = transactionsService.refreshTransactions(
+      accountsToRefreshTransactions,
+    );
+
+    await Promise.all([
+      trackEventPromise,
+      updateBalancesPromise,
+      refreshTransactionsPromise,
+    ]);
   } catch (error) {
     logger.error(error);
     throw new InternalError(error as string) as Error;

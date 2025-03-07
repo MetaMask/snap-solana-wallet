@@ -16,7 +16,7 @@ import { TransactionHelper } from './core/services/execution/TransactionHelper';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
-import { TransactionsService } from './core/services/transactions/Transactions';
+import { TransactionsService } from './core/services/transactions/TransactionsService';
 import { WalletService } from './core/services/wallet/WalletService';
 import logger from './core/utils/logger';
 
@@ -73,6 +73,8 @@ const transactionsService = new TransactionsService({
   logger,
   connection,
   tokenMetadataService,
+  state,
+  configProvider,
 });
 
 // Circular dependency fix:

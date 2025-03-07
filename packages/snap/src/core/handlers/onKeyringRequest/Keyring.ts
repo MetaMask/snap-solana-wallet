@@ -33,7 +33,7 @@ import type { AssetsService } from '../../services/assets/AssetsService';
 import type { BalancesService } from '../../services/balances/BalancesService';
 import type { ConfigProvider } from '../../services/config';
 import type { EncryptedState } from '../../services/encrypted-state/EncryptedState';
-import type { TransactionsService } from '../../services/transactions/Transactions';
+import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';

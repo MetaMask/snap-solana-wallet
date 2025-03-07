@@ -17,7 +17,7 @@ import type { EncryptedStateValue } from '../../services/encrypted-state/Encrypt
 import { EncryptedState } from '../../services/encrypted-state/EncryptedState';
 import { createMockConnection } from '../../services/mocks/mockConnection';
 import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
-import { TransactionsService } from '../../services/transactions/Transactions';
+import { TransactionsService } from '../../services/transactions/TransactionsService';
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
 import type { WalletService } from '../../services/wallet/WalletService';
 import {
