@@ -4,6 +4,7 @@ import { CronjobMethod } from './CronjobMethod';
 import { onTransactionAdded } from './onTransactionAdded';
 import { onTransactionApproved } from './onTransactionApproved';
 import { onTransactionFinalized } from './onTransactionFinalized';
+import { onTransactionRejected } from './onTransactionRejected';
 import { onTransactionSubmitted } from './onTransactionSubmitted';
 import { refreshAssets } from './refreshAssets';
 import { refreshConfirmationEstimation } from './refreshConfirmationEstimation';
@@ -19,4 +20,5 @@ export const handlers: Record<CronjobMethod, OnCronjobHandler> = {
   [CronjobMethod.OnTransactionApproved]: onTransactionApproved,
   [CronjobMethod.OnTransactionSubmitted]: onTransactionSubmitted,
   [CronjobMethod.OnTransactionFinalized]: onTransactionFinalized,
+  [CronjobMethod.OnTransactionRejected]: onTransactionRejected,
 };

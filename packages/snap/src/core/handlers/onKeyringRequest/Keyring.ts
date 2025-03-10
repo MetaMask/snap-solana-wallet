@@ -366,6 +366,22 @@ export class SolanaKeyring implements Keyring {
     });
 
     if (!isConfirmed) {
+      // Trigger the side effects that need to happen when the transaction is rejected
+      void snap.request({
+        method: 'snap_scheduleBackgroundEvent',
+        params: {
+          duration: 'PT1S',
+          request: {
+            method: CronjobMethod.OnTransactionRejected,
+            params: {
+              accountId,
+              base64EncodedTransactionMessage: base64EncodedTransaction,
+              scope,
+            },
+          },
+        },
+      });
+
       return null;
     }
 

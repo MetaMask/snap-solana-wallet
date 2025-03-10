@@ -20,7 +20,6 @@ export class AnalyticsService {
     scope: Network,
   ): Promise<void> {
     this.#logger.log(`[📣 AnalyticsService] Tracking event transaction added`);
-
     // TODO: Implement
   }
 
@@ -32,7 +31,6 @@ export class AnalyticsService {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction approved`,
     );
-
     // TODO: Implement
   }
 
@@ -45,7 +43,6 @@ export class AnalyticsService {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction submitted`,
     );
-
     // TODO: Implement
   }
 
@@ -56,7 +53,17 @@ export class AnalyticsService {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction finalized`,
     );
+    // TODO: Implement
+  }
 
+  async trackEventTransactionRejected(
+    account: SolanaKeyringAccount,
+    base64EncodedTransactionMessage: string,
+    scope: Network,
+  ): Promise<void> {
+    this.#logger.log(
+      `[📣 AnalyticsService] Tracking event transaction rejected`,
+    );
     // TODO: Implement
   }
 }

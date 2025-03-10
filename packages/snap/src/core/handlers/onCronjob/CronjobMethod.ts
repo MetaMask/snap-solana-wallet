@@ -11,4 +11,6 @@ export enum CronjobMethod {
   OnTransactionSubmitted = 'onTransactionSubmitted',
   /** Triggered when a transaction is finalized (failed or confirmed) */
   OnTransactionFinalized = 'onTransactionFinalized',
+  /** Triggered when a transaction is rejected */
+  OnTransactionRejected = 'onTransactionRejected',
 }
