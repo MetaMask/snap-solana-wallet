@@ -50,11 +50,11 @@ jobs:
           restore-keys: site-${{ runner.os }}-
       - name: Upload to Github Pages
         if: always()
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./packages/site/public
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v3
 
   all-jobs-completed:
     name: All jobs completed
