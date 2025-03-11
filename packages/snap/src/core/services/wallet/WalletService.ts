@@ -186,7 +186,7 @@ export class WalletService {
             method: ScheduleBackgroundEventMethod.OnTransactionSubmitted,
             params: {
               accountId: account.id,
-              base64EncodedTransactionMessage: base64EncodedTransaction,
+              base64EncodedTransaction,
               signature,
               scope,
             },

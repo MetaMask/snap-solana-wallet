@@ -61,7 +61,7 @@ async function onCancelButtonClick({
         method: ScheduleBackgroundEventMethod.OnTransactionRejected,
         params: {
           accountId: fromAccountId,
-          base64EncodedTransactionMessage: transactionMessage,
+          base64EncodedTransaction: transactionMessage,
           scope,
         },
       },
@@ -112,7 +112,7 @@ async function onConfirmButtonClick({
         method: ScheduleBackgroundEventMethod.OnTransactionApproved,
         params: {
           accountId: context.fromAccountId,
-          base64EncodedTransactionMessage: context.transactionMessage,
+          base64EncodedTransaction: context.transactionMessage,
           scope: context.scope,
         },
       },

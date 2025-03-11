@@ -331,7 +331,7 @@ async function onSendButtonClick({
         method: ScheduleBackgroundEventMethod.OnTransactionAdded,
         params: {
           accountId: context.fromAccountId,
-          base64EncodedTransactionMessage: context.transactionMessage,
+          base64EncodedTransaction: context.transactionMessage,
           scope: context.scope,
         },
       },

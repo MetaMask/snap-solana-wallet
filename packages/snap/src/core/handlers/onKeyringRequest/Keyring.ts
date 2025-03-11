@@ -349,7 +349,7 @@ export class SolanaKeyring implements Keyring {
           method: ScheduleBackgroundEventMethod.OnTransactionAdded,
           params: {
             accountId,
-            base64EncodedTransactionMessage: base64EncodedTransaction,
+            base64EncodedTransaction,
             scope,
           },
         },
@@ -374,7 +374,7 @@ export class SolanaKeyring implements Keyring {
             method: ScheduleBackgroundEventMethod.OnTransactionRejected,
             params: {
               accountId,
-              base64EncodedTransactionMessage: base64EncodedTransaction,
+              base64EncodedTransaction,
               scope,
             },
           },
@@ -393,7 +393,7 @@ export class SolanaKeyring implements Keyring {
           method: ScheduleBackgroundEventMethod.OnTransactionApproved,
           params: {
             accountId,
-            base64EncodedTransactionMessage: base64EncodedTransaction,
+            base64EncodedTransaction,
             scope,
           },
         },
