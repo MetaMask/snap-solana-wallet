@@ -9,7 +9,7 @@ import {
 } from '@solana/web3.js';
 
 import type { Caip10Address, Network } from '../../constants/solana';
-import { CronjobMethod } from '../../handlers/onCronjob/CronjobMethod';
+import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
@@ -184,7 +184,7 @@ export class WalletService {
         params: {
           duration: 'PT1S',
           request: {
-            method: CronjobMethod.OnTransactionSubmitted,
+            method: ScheduleBackgroundEventMethod.OnTransactionSubmitted,
             params: {
               accountId: account.id,
               base64EncodedTransactionMessage: base64EncodedTransaction,
@@ -225,7 +225,7 @@ export class WalletService {
         params: {
           duration: 'PT1S',
           request: {
-            method: CronjobMethod.OnTransactionFinalized,
+            method: ScheduleBackgroundEventMethod.OnTransactionFinalized,
             params: {
               accountId: account.id,
               transaction: mappedTransactionWithAccountId,

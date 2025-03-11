@@ -1,15 +1,15 @@
 import { InternalError, type OnCronjobHandler } from '@metamask/snaps-sdk';
 import { assert, literal, object, string } from '@metamask/superstruct';
 
-import { analyticsService, keyring } from '../../../snapContext';
-import logger from '../../utils/logger';
-import { NetworkStruct, UuidStruct } from '../../validation/structs';
-import { CronjobMethod } from './CronjobMethod';
+import { analyticsService, keyring } from '../../../../snapContext';
+import logger from '../../../utils/logger';
+import { NetworkStruct, UuidStruct } from '../../../validation/structs';
+import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const OnTransactionRejectedRequestStruct = object({
   id: string(),
   jsonrpc: literal('2.0'),
-  method: literal(CronjobMethod.OnTransactionRejected),
+  method: literal(ScheduleBackgroundEventMethod.OnTransactionRejected),
   params: object({
     accountId: UuidStruct,
     base64EncodedTransactionMessage: string(),

@@ -1,7 +1,7 @@
 /* eslint-disable no-void */
 import { SolMethod } from '@metamask/keyring-api';
 
-import { CronjobMethod } from '../../../../core/handlers/onCronjob/CronjobMethod';
+import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import {
   resolveInterface,
   SEND_FORM_INTERFACE_NAME,
@@ -41,9 +41,34 @@ async function onBackButtonClick({
  *
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
+ * @param params.context - The send context.
  * @returns A promise that resolves when the operation is complete.
  */
-async function onCancelButtonClick({ id }: { id: string }) {
+async function onCancelButtonClick({
+  id,
+  context,
+}: {
+  id: string;
+  context: SendContext;
+}) {
+  const { fromAccountId, transactionMessage, scope } = context;
+
+  // Trigger the side effects that need to happen when the transaction is rejected
+  void snap.request({
+    method: 'snap_scheduleBackgroundEvent',
+    params: {
+      duration: 'PT1S',
+      request: {
+        method: ScheduleBackgroundEventMethod.OnTransactionRejected,
+        params: {
+          accountId: fromAccountId,
+          base64EncodedTransactionMessage: transactionMessage,
+          scope,
+        },
+      },
+    },
+  });
+
   await resolveInterface(id, false);
   await state.update((_state) => {
     delete _state?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
@@ -85,7 +110,7 @@ async function onConfirmButtonClick({
     params: {
       duration: 'PT1S',
       request: {
-        method: CronjobMethod.OnTransactionApproved,
+        method: ScheduleBackgroundEventMethod.OnTransactionApproved,
         params: {
           accountId: context.fromAccountId,
           base64EncodedTransactionMessage: context.transactionMessage,

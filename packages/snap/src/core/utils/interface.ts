@@ -9,7 +9,7 @@ import type {
   UpdateInterfaceResult,
 } from '@metamask/snaps-sdk';
 
-import type { CronjobMethod } from '../handlers/onCronjob/CronjobMethod';
+import type { ScheduleBackgroundEventMethod } from '../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { Preferences } from '../types/snap';
 import type { Locale } from './i18n';
 
@@ -167,7 +167,7 @@ export async function scheduleBackgroundEvent({
   params = {},
   duration,
 }: {
-  method: CronjobMethod;
+  method: ScheduleBackgroundEventMethod;
   params?: Record<string, Json>;
   duration: string;
 }) {

@@ -47,7 +47,7 @@ import {
   NetworkStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
-import { CronjobMethod } from '../onCronjob/CronjobMethod';
+import { ScheduleBackgroundEventMethod } from '../onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { SolanaKeyringRequestStruct } from './structs';
 
 /**
@@ -347,7 +347,7 @@ export class SolanaKeyring implements Keyring {
       params: {
         duration: 'PT1S',
         request: {
-          method: CronjobMethod.OnTransactionAdded,
+          method: ScheduleBackgroundEventMethod.OnTransactionAdded,
           params: {
             accountId,
             base64EncodedTransactionMessage: base64EncodedTransaction,
@@ -372,7 +372,7 @@ export class SolanaKeyring implements Keyring {
         params: {
           duration: 'PT1S',
           request: {
-            method: CronjobMethod.OnTransactionRejected,
+            method: ScheduleBackgroundEventMethod.OnTransactionRejected,
             params: {
               accountId,
               base64EncodedTransactionMessage: base64EncodedTransaction,
@@ -391,7 +391,7 @@ export class SolanaKeyring implements Keyring {
       params: {
         duration: 'PT1S',
         request: {
-          method: CronjobMethod.OnTransactionApproved,
+          method: ScheduleBackgroundEventMethod.OnTransactionApproved,
           params: {
             accountId,
             base64EncodedTransactionMessage: base64EncodedTransaction,

@@ -1,7 +1,7 @@
 import { InternalError } from '@metamask/snaps-sdk';
 
-import { keyring, transactionsService } from '../../../snapContext';
-import logger from '../../utils/logger';
+import { keyring, transactionsService } from '../../../../snapContext';
+import logger from '../../../utils/logger';
 
 /**
  * Fetch latest transactions for all accounts on all networks.

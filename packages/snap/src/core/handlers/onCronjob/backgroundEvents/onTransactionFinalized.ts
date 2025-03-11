@@ -7,9 +7,9 @@ import {
   assetsService,
   keyring,
   transactionsService,
-} from '../../../snapContext';
-import logger from '../../utils/logger';
-import { UuidStruct } from '../../validation/structs';
+} from '../../../../snapContext';
+import logger from '../../../utils/logger';
+import { UuidStruct } from '../../../validation/structs';
 
 export const OnTransactionFinalizedRequestStruct = object({
   id: string(),

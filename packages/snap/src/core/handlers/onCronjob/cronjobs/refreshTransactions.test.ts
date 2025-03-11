@@ -1,9 +1,9 @@
 import { InternalError } from '@metamask/snaps-sdk';
 
-import * as snapContext from '../../../snapContext';
+import * as snapContext from '../../../../snapContext';
 import { refreshTransactions } from './refreshTransactions';
 
-jest.mock('../../../snapContext', () => ({
+jest.mock('../../../../snapContext', () => ({
   keyring: {
     listAccounts: jest.fn(),
     emitEvent: jest.fn(),

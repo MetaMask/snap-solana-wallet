@@ -1,9 +1,9 @@
 import { literal, type OnCronjobHandler } from '@metamask/snaps-sdk';
 import { assert, object, optional, string } from '@metamask/superstruct';
 
-import { assetsService, keyring } from '../../../snapContext';
-import logger from '../../utils/logger';
-import { UuidStruct } from '../../validation/structs';
+import { assetsService, keyring } from '../../../../snapContext';
+import logger from '../../../utils/logger';
+import { UuidStruct } from '../../../validation/structs';
 
 export const RefreshAssetsRequestStruct = object({
   id: string(),

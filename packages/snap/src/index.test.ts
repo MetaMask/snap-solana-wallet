@@ -2,8 +2,8 @@ import { expect } from '@jest/globals';
 import { installSnap } from '@metamask/snaps-jest';
 
 import { onCronjob } from '.';
-import { handlers } from './core/handlers/onCronjob';
-import { CronjobMethod } from './core/handlers/onCronjob/CronjobMethod';
+import { handlers } from './core/handlers/onCronjob/cronjobs';
+import { CronjobMethod } from './core/handlers/onCronjob/cronjobs/CronjobMethod';
 
 jest.mock('@noble/ed25519', () => ({
   getPublicKey: jest.fn(),

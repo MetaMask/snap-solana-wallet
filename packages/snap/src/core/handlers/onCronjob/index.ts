@@ -1,24 +1,14 @@
 import { type OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import { CronjobMethod } from './CronjobMethod';
-import { onTransactionAdded } from './onTransactionAdded';
-import { onTransactionApproved } from './onTransactionApproved';
-import { onTransactionFinalized } from './onTransactionFinalized';
-import { onTransactionRejected } from './onTransactionRejected';
-import { onTransactionSubmitted } from './onTransactionSubmitted';
-import { refreshAssets } from './refreshAssets';
-import { refreshConfirmationEstimation } from './refreshConfirmationEstimation';
-import { refreshSend } from './refreshSend';
-import { refreshTransactions } from './refreshTransactions';
+import { handlers as backgroundEventHandlers } from './backgroundEvents';
+import type { ScheduleBackgroundEventMethod } from './backgroundEvents/ScheduleBackgroundEventMethod';
+import { handlers as cronjobHandlers } from './cronjobs';
+import type { CronjobMethod } from './cronjobs/CronjobMethod';
 
-export const handlers: Record<CronjobMethod, OnCronjobHandler> = {
-  [CronjobMethod.RefreshSend]: refreshSend,
-  [CronjobMethod.RefreshConfirmationEstimation]: refreshConfirmationEstimation,
-  [CronjobMethod.RefreshTransactions]: refreshTransactions,
-  [CronjobMethod.RefreshAssets]: refreshAssets,
-  [CronjobMethod.OnTransactionAdded]: onTransactionAdded,
-  [CronjobMethod.OnTransactionApproved]: onTransactionApproved,
-  [CronjobMethod.OnTransactionSubmitted]: onTransactionSubmitted,
-  [CronjobMethod.OnTransactionFinalized]: onTransactionFinalized,
-  [CronjobMethod.OnTransactionRejected]: onTransactionRejected,
+export const handlers: Record<
+  CronjobMethod | ScheduleBackgroundEventMethod,
+  OnCronjobHandler
+> = {
+  ...cronjobHandlers,
+  ...backgroundEventHandlers,
 };

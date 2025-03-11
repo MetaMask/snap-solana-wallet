@@ -19,7 +19,8 @@ import BigNumber from 'bignumber.js';
 import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
 import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';
 import { handlers as onCronjobHandlers } from './core/handlers/onCronjob';
-import { CronjobMethod } from './core/handlers/onCronjob/CronjobMethod';
+import { ScheduleBackgroundEventMethod } from './core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
+import { CronjobMethod } from './core/handlers/onCronjob/cronjobs/CronjobMethod';
 import { onProtocolRequest as onProtocolRequestHandler } from './core/handlers/onProtocolRequest/onProtocolRequest';
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
@@ -171,7 +172,13 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
   logger.log('[⏱️ onCronjob]', request.method, request);
 
   const { method } = request;
-  assert(method, enums(Object.values(CronjobMethod)));
+  assert(
+    method,
+    enums([
+      ...Object.values(CronjobMethod),
+      ...Object.values(ScheduleBackgroundEventMethod),
+    ]),
+  );
 
   // Don't run cronjobs if client is locked
   // This assumes we don't want to run cronjobs while the client is locked

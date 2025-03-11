@@ -7,7 +7,7 @@ import {
   Networks,
   SOL_TRANSFER_FEE_LAMPORTS,
 } from '../../../../core/constants/solana';
-import { CronjobMethod } from '../../../../core/handlers/onCronjob/CronjobMethod';
+import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import {
   lamportsToSol,
   solToLamports,
@@ -282,33 +282,8 @@ async function onClearButtonClick({
  * Handles the click event for the cancel button.
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
- * @param params.context - The send context.
  */
-async function onCancelButtonClick({
-  id,
-  context,
-}: {
-  id: string;
-  context: SendContext;
-}) {
-  const { fromAccountId, transactionMessage, scope } = context;
-
-  // Trigger the side effects that need to happen when the transaction is rejected
-  void snap.request({
-    method: 'snap_scheduleBackgroundEvent',
-    params: {
-      duration: 'PT1S',
-      request: {
-        method: CronjobMethod.OnTransactionRejected,
-        params: {
-          accountId: fromAccountId,
-          base64EncodedTransactionMessage: transactionMessage,
-          scope,
-        },
-      },
-    },
-  });
-
+async function onCancelButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
   await state.update((_state) => {
     delete _state?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
@@ -354,7 +329,7 @@ async function onSendButtonClick({
     params: {
       duration: 'PT1S',
       request: {
-        method: CronjobMethod.OnTransactionAdded,
+        method: ScheduleBackgroundEventMethod.OnTransactionAdded,
         params: {
           accountId: context.fromAccountId,
           base64EncodedTransactionMessage: context.transactionMessage,

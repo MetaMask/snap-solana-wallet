@@ -1,12 +1,12 @@
-import * as snapContext from '../../../snapContext';
+import * as snapContext from '../../../../snapContext';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
-} from '../../test/mocks/solana-keyring-accounts';
+} from '../../../test/mocks/solana-keyring-accounts';
 import { CronjobMethod } from './CronjobMethod';
 import { refreshAssets } from './refreshAssets';
 
-jest.mock('../../../snapContext', () => ({
+jest.mock('../../../../snapContext', () => ({
   keyring: {
     getAccountOrThrow: jest.fn(),
     listAccounts: jest.fn(),

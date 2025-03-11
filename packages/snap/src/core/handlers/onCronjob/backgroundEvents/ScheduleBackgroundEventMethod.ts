@@ -1,8 +1,4 @@
-export enum CronjobMethod {
-  RefreshSend = 'refreshSend',
-  RefreshConfirmationEstimation = 'refreshConfirmationEstimation',
-  RefreshTransactions = 'refreshTransactions',
-  RefreshAssets = 'refreshAssets',
+export enum ScheduleBackgroundEventMethod {
   /** Triggered when a transaction is shown in confirmation UI */
   OnTransactionAdded = 'onTransactionAdded',
   /** Triggered when the user confirms a transaction in the confirmation UI */

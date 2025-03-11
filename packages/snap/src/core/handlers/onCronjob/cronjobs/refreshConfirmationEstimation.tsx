@@ -1,14 +1,14 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import { Confirmation } from '../../../features/confirmation/Confirmation';
-import type { ConfirmationContext } from '../../../features/confirmation/types';
-import { state, transactionScanService } from '../../../snapContext';
+import { Confirmation } from '../../../../features/confirmation/Confirmation';
+import type { ConfirmationContext } from '../../../../features/confirmation/types';
+import { state, transactionScanService } from '../../../../snapContext';
 import {
   CONFIRMATION_INTERFACE_NAME,
   getInterfaceContext,
   updateInterface,
-} from '../../utils/interface';
-import logger from '../../utils/logger';
+} from '../../../utils/interface';
+import logger from '../../../utils/logger';
 import { CronjobMethod } from './CronjobMethod';
 
 export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
