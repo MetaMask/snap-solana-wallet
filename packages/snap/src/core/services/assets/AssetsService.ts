@@ -76,16 +76,19 @@ export class AssetsService {
     account: SolanaKeyringAccount,
   ): Promise<CaipAssetType[]> {
     const { activeNetworks } = this.#configProvider.get();
-    const nativeResponses = await Promise.all(
-      activeNetworks.map(async (network) =>
-        this.getNativeAsset(account.address, network),
-      ),
+
+    const nativeResponsePromises = activeNetworks.map(async (network) =>
+      this.getNativeAsset(account.address, network),
     );
-    const tokensResponses = await Promise.all(
-      activeNetworks.map(async (network) =>
-        this.discoverTokens(account.address, network),
-      ),
+    const tokensResponsePromises = activeNetworks.map(async (network) =>
+      this.discoverTokens(account.address, network),
     );
+
+    const [nativeResponses, tokensResponses] = await Promise.all([
+      Promise.all(nativeResponsePromises),
+      Promise.all(tokensResponsePromises),
+    ]);
+
     const nativeAssets = nativeResponses.map((response) => response.address);
     const tokenAssets = tokensResponses.flatMap((response) =>
       response.map((token) => token.address),
