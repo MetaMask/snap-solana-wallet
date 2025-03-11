@@ -1,5 +1,7 @@
 import type { Transaction } from '@metamask/keyring-api';
+import { SYSTEM_PROGRAM_ADDRESS } from '@solana-program/system';
 import BigNumber from 'bignumber.js';
+import bs58 from 'bs58';
 
 import {
   LAMPORTS_PER_SOL,
@@ -142,5 +144,138 @@ export function parseTransactionNativeTransfers({
     }
   }
 
+  /**
+   * And now we check if there are any native transfers to the same address.
+   */
+  const nativeTransfersToSelf = parseTransactionNativeTransfersToSelf({
+    scope,
+    transactionData,
+  });
+
+  if (nativeTransfersToSelf.from.length > 0) {
+    from.push(...nativeTransfersToSelf.from);
+  }
+
+  if (nativeTransfersToSelf.to.length > 0) {
+    to.push(...nativeTransfersToSelf.to);
+  }
+
   return { fees, from, to };
+}
+
+/**
+ * There are some transactions that are sent from the same address to itself.
+ * When this happens, the function above will not find any differences in the balances
+ * and we will not be able to detect the transfer.
+ *
+ * This function is used to parse those transactions.
+ *
+ * @param options0 - The options object.
+ * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
+ * @param options0.transactionData - The raw transaction data containing token balance changes.
+ * @returns Transaction transfer details.
+ */
+export function parseTransactionNativeTransfersToSelf({
+  scope,
+  transactionData,
+}: {
+  scope: Network;
+  transactionData: SolanaTransaction;
+}): {
+  from: Transaction['from'];
+  to: Transaction['to'];
+} {
+  const { instructions } = transactionData.transaction.message;
+
+  const from: Transaction['from'] = [];
+  const to: Transaction['to'] = [];
+
+  const systemProgramAccountIndex =
+    transactionData.transaction.message.accountKeys.findIndex(
+      (account) => account === SYSTEM_PROGRAM_ADDRESS,
+    );
+
+  /**
+   * If there are no System Program instructions, then we have no native transfers.
+   */
+  if (systemProgramAccountIndex === -1) {
+    return {
+      from,
+      to,
+    };
+  }
+
+  instructions.forEach((instruction) => {
+    const { accounts, data, programIdIndex } = instruction;
+
+    if (programIdIndex !== systemProgramAccountIndex) {
+      return;
+    }
+
+    const [fromAccountIndex, toAccountIndex] = accounts;
+
+    if (
+      fromAccountIndex === undefined ||
+      toAccountIndex === undefined ||
+      fromAccountIndex !== toAccountIndex
+    ) {
+      return;
+    }
+
+    const fromAddress =
+      transactionData.transaction.message.accountKeys[fromAccountIndex];
+    const toAddress =
+      transactionData.transaction.message.accountKeys[toAccountIndex];
+
+    if (!fromAddress || !toAddress || fromAddress !== toAddress) {
+      return;
+    }
+
+    const amount = decodeNativeTransferAmount(bs58.decode(data));
+
+    from.push({
+      address: fromAddress,
+      asset: {
+        amount: amount.toString(),
+        fungible: true,
+        type: Networks[scope].nativeToken.caip19Id,
+        unit: Networks[scope].nativeToken.symbol,
+      },
+    });
+
+    to.push({
+      address: toAddress,
+      asset: {
+        amount: amount.toString(),
+        fungible: true,
+        type: Networks[scope].nativeToken.caip19Id,
+        unit: Networks[scope].nativeToken.symbol,
+      },
+    });
+  });
+
+  return {
+    from,
+    to,
+  };
+}
+
+/**
+ * Decodes the amount from the instruction data.
+ * @param data - The instruction data.
+ * @returns The amount.
+ */
+export function decodeNativeTransferAmount(data: Uint8Array): BigNumber {
+  /**
+   * Native Solana transfers have a fixed length of 12 bytes.
+   * 4 bytes - Instruction index
+   * 8 bytes - Transfer amount unsigned int 64
+   */
+  let raw = BigInt(0);
+  for (let i = 4; i < 12; i++) {
+    // eslint-disable-next-line no-bitwise
+    raw |= BigInt(data[i] ?? 0) << BigInt(8 * (i - 4));
+  }
+
+  return BigNumber(raw.toString()).dividedBy(LAMPORTS_PER_SOL);
 }

@@ -2,7 +2,10 @@ import { address as asAddress } from '@solana/web3.js';
 
 import { Network, Networks } from '../../../constants/solana';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
+import { EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer-to-self';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
+import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self';
+import { EXPECTED_SWAP_FAILED_TRANSACTION_DATA } from '../../../test/mocks/transactions-data/swap-failed-transaction';
 import { EXPECTED_SWAP_TRANSFER_DATA } from '../../../test/mocks/transactions-data/swap-transfer';
 import { mapRpcTransaction } from './mapRpcTransaction';
 
@@ -117,6 +120,63 @@ describe('mapRpcTransaction', () => {
     });
   });
 
+  it('maps native SOL transfers - to self', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Localnet,
+      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+      transactionData: EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA,
+    });
+
+    expect(result).toStrictEqual({
+      id: '4Ccb8PaSob6JjsyDnoFJfUpJZDJHTwcjnK7MxiyVeMtPSsBGKuaMHEVL1VsXTKWS4w26tAhbc3T78aNELjfN8Zwb',
+      timestamp: 1741791493,
+      chain: Network.Localnet,
+      status: 'confirmed',
+      type: 'send',
+      from: [
+        {
+          address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+          asset: {
+            fungible: true,
+            type: Networks[Network.Localnet].nativeToken.caip19Id,
+            unit: Networks[Network.Localnet].nativeToken.symbol,
+            amount: '0.1',
+          },
+        },
+      ],
+      to: [
+        {
+          address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+          asset: {
+            fungible: true,
+            type: Networks[Network.Localnet].nativeToken.caip19Id,
+            unit: Networks[Network.Localnet].nativeToken.symbol,
+            amount: '0.1',
+          },
+        },
+      ],
+      fees: [
+        {
+          type: 'base',
+          asset: {
+            fungible: true,
+            type: Networks[Network.Localnet].nativeToken.caip19Id,
+            unit: Networks[Network.Localnet].nativeToken.symbol,
+            amount: '0.000005',
+          },
+        },
+      ],
+      events: [
+        {
+          status: 'confirmed',
+          timestamp: 1741791493,
+        },
+      ],
+    });
+  });
+
+  it.todo('maps native SOL transfers - failure');
+
   it('maps SPL token transfers - as a receiver', () => {
     const result = mapRpcTransaction({
       scope: Network.Devnet,
@@ -222,6 +282,61 @@ describe('mapRpcTransaction', () => {
         {
           status: 'confirmed',
           timestamp: 1736502537,
+        },
+      ],
+    });
+  });
+
+  it('maps SPL token transfers - to self', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Devnet,
+      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+      transactionData: EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA,
+    });
+
+    expect(result).toStrictEqual({
+      id: 'fFSAjDzu7CdhzVUUC7DMKf7xuuVn8cZ8njPnpjkTBMHo4Y43SZto2GDuy123yKDoTieihPfDHvBpysE7Eh9aPmH',
+      timestamp: 1741796354,
+      chain: Network.Devnet,
+      status: 'confirmed',
+      type: 'send',
+      from: [
+        {
+          address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+          asset: {
+            fungible: true,
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+            unit: '',
+            amount: '1',
+          },
+        },
+      ],
+      to: [
+        {
+          address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+          asset: {
+            fungible: true,
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+            unit: '',
+            amount: '1',
+          },
+        },
+      ],
+      fees: [
+        {
+          type: 'base',
+          asset: {
+            fungible: true,
+            type: Networks[Network.Devnet].nativeToken.caip19Id,
+            unit: Networks[Network.Devnet].nativeToken.symbol,
+            amount: '0.000005',
+          },
+        },
+      ],
+      events: [
+        {
+          status: 'confirmed',
+          timestamp: 1741796354,
         },
       ],
     });
@@ -356,6 +471,55 @@ describe('mapRpcTransaction', () => {
         },
       ],
       events: [{ status: 'confirmed', timestamp: 1740480781 }],
+    });
+  });
+
+  it('maps a failed swap transaction', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Mainnet,
+      address: asAddress('DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa'),
+      transactionData: EXPECTED_SWAP_FAILED_TRANSACTION_DATA,
+    });
+
+    expect(result).toStrictEqual({
+      id: '58FymkjJUeSFGeEdaUQZbhHP5tdwwvbRR8BfKfuEgfYznqDqsApRBk8LCtiKny9EjQZBNi5NxGvLjR6F3gY6rxn1',
+      timestamp: 1741949141,
+      chain: Network.Mainnet,
+      status: 'failed',
+      type: 'receive',
+      from: [
+        {
+          address: '9az5xpAV8KJ2Q2Jb1ZvBpvfUa5Cj4dZirbgvfPF5XsB8',
+          asset: {
+            amount: '0.000000006',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+          },
+        },
+      ],
+      to: [],
+      fees: [
+        {
+          type: 'base',
+          asset: {
+            fungible: true,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
+            amount: '0.000005',
+          },
+        },
+        {
+          type: 'priority',
+          asset: {
+            fungible: true,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
+            amount: '0.000000146',
+          },
+        },
+      ],
+      events: [{ status: 'failed', timestamp: 1741949141 }],
     });
   });
 

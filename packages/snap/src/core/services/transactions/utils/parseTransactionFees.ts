@@ -1,6 +1,6 @@
 import type { Transaction } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
-import b58 from 'bs58';
+import bs58 from 'bs58';
 
 import type { Network } from '../../../constants/solana';
 import { LAMPORTS_PER_SOL, Networks } from '../../../constants/solana';
@@ -90,7 +90,7 @@ function getTransactionPriorityFee(
 
   for (const instruction of transactionData.transaction.message.instructions) {
     if (instruction.programIdIndex === computeBudgetProgramAccountIndex) {
-      const data = b58.decode(instruction.data);
+      const data = bs58.decode(instruction.data);
       const opcode = data[0];
 
       /**
