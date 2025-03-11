@@ -16,7 +16,7 @@ export class AnalyticsService {
 
   async trackEventTransactionAdded(
     account: SolanaKeyringAccount,
-    base64EncodedTransactionMessage: string,
+    base64EncodedTransaction: string,
     scope: Network,
   ): Promise<void> {
     this.#logger.log(`[📣 AnalyticsService] Tracking event transaction added`);
@@ -25,7 +25,7 @@ export class AnalyticsService {
 
   async trackEventTransactionApproved(
     account: SolanaKeyringAccount,
-    base64EncodedTransactionMessage: string,
+    base64EncodedTransaction: string,
     scope: Network,
   ): Promise<void> {
     this.#logger.log(
@@ -36,7 +36,7 @@ export class AnalyticsService {
 
   async trackEventTransactionSubmitted(
     account: SolanaKeyringAccount,
-    base64EncodedTransactionMessage: string,
+    base64EncodedTransaction: string,
     signature: string,
     scope: Network,
   ): Promise<void> {
@@ -58,7 +58,7 @@ export class AnalyticsService {
 
   async trackEventTransactionRejected(
     account: SolanaKeyringAccount,
-    base64EncodedTransactionMessage: string,
+    base64EncodedTransaction: string,
     scope: Network,
   ): Promise<void> {
     this.#logger.log(

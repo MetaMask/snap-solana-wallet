@@ -12,7 +12,8 @@ export const OnTransactionSubmittedRequestStruct = object({
   method: literal(ScheduleBackgroundEventMethod.OnTransactionSubmitted),
   params: object({
     accountId: UuidStruct,
-    base64EncodedTransactionMessage: string(),
+    /** The base64 encoded transaction or transaction message. */
+    base64EncodedTransaction: string(),
     signature: string(),
     scope: NetworkStruct,
   }),
@@ -31,14 +32,14 @@ export const onTransactionSubmitted: OnCronjobHandler = async ({ request }) => {
 
     assert(request, OnTransactionSubmittedRequestStruct);
 
-    const { accountId, base64EncodedTransactionMessage, signature, scope } =
+    const { accountId, base64EncodedTransaction, signature, scope } =
       request.params;
 
     const account = await keyring.getAccountOrThrow(accountId);
 
     await analyticsService.trackEventTransactionSubmitted(
       account,
-      base64EncodedTransactionMessage,
+      base64EncodedTransaction,
       signature,
       scope,
     );
