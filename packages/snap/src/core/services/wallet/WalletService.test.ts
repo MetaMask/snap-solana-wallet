@@ -2,7 +2,7 @@ import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
 import { SLIP10Node } from '@metamask/key-tree';
 import { SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
-import type { Signature } from '@solana/web3.js';
+import { type Signature } from '@solana/web3.js';
 
 import { Network } from '../../constants/solana';
 import {

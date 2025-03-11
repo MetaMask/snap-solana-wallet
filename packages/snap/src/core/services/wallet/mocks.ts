@@ -90,8 +90,9 @@ export const MOCK_SIGN_AND_SEND_TRANSACTION_RESPONSE: SolanaSignAndSendTransacti
   } as const;
 
 export const MOCK_SIGN_MESSAGE_RESPONSE: SolanaSignMessageResponse = {
-  signature: MOCK_SIGN_MESSAGE_REQUEST.params.message,
-  signedMessage: MOCK_SIGN_MESSAGE_REQUEST.params.message,
+  signature:
+    '2p6VRuXEfrp4JzSkPeMiBpfvmnENEs1JWErVdTHsTSWyxa9LFoo1myNjswdLqFGFJZ1LwkcMWqsN7AssnranLYGW', // When signed by MOCK_SOLANA_KEYRING_ACCOUNT_0
+  signedMessage: '72k1xXWG59wUsYv7h2', // When signed by MOCK_SOLANA_KEYRING_ACCOUNT_0
   signatureType: 'ed25519',
 } as const;
 

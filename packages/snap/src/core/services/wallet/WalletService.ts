@@ -4,10 +4,12 @@ import {
   SolMethod,
   type Transaction,
 } from '@metamask/keyring-api';
-import { assert } from '@metamask/superstruct';
+import { assert, instance, object } from '@metamask/superstruct';
 import {
   address as asAddress,
   createKeyPairSignerFromPrivateKeyBytes,
+  createSignableMessage,
+  getBase58Decoder,
 } from '@solana/web3.js';
 
 import type { Caip10Address, Network } from '../../constants/solana';
@@ -275,10 +277,35 @@ export class WalletService {
 
     const { message } = request.request.params;
 
-    // TODO: Implement the actual confirmation + signing logic.
+    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+    const signer = await createKeyPairSignerFromPrivateKeyBytes(
+      privateKeyBytes,
+    );
+
+    const signableMessage = createSignableMessage(message);
+
+    const [messageSignatureBytesMap] = await signer.signMessages([
+      signableMessage,
+    ]);
+
+    // Equivalent to - but more compact than - an undefined check + throw error
+    assert(messageSignatureBytesMap, object());
+
+    const messageSignatureBytes =
+      messageSignatureBytesMap[asAddress(account.address)];
+
+    // Equivalent to - but more compact than - an undefined check + throw error
+    assert(messageSignatureBytes, instance(Uint8Array));
+
+    const signature = getBase58Decoder().decode(messageSignatureBytes);
+
+    const base58EncodedMessage = getBase58Decoder().decode(
+      signableMessage.content,
+    );
+
     const result = {
-      signature: message,
-      signedMessage: message,
+      signature,
+      signedMessage: base58EncodedMessage,
       signatureType: 'ed25519',
     };
 

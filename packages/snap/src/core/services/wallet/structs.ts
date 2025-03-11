@@ -4,6 +4,7 @@ import {
   array,
   boolean,
   enums,
+  literal,
   number,
   object,
   optional,
@@ -32,7 +33,7 @@ const WalletAccountStruct = type({
   address: string(),
 });
 
-const SolanaSignatureTypeStruct = enums(['ed25519']);
+const SolanaSignatureTypeStruct = literal('ed25519');
 
 const SolanaSignInInputStruct = type({
   domain: optional(string()),
@@ -135,7 +136,9 @@ export type SolanaSignTransactionResponse = Infer<
 >;
 
 export const SolanaSignMessageResponseStruct = object({
+  /** The base58 encoded message signature. */
   signature: MessageStruct,
+  /** The base58 encoded message. */
   signedMessage: MessageStruct,
   signatureType: SolanaSignatureTypeStruct,
 });
