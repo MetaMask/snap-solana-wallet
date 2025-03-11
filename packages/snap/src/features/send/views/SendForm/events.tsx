@@ -1,4 +1,3 @@
-/* eslint-disable no-void */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
@@ -324,7 +323,7 @@ async function onSendButtonClick({
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
   // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
-  void snap.request({
+  await snap.request({
     method: 'snap_scheduleBackgroundEvent',
     params: {
       duration: 'PT1S',

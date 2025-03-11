@@ -1,4 +1,3 @@
-/* eslint-disable no-void */
 import { SolMethod } from '@metamask/keyring-api';
 
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
@@ -54,7 +53,7 @@ async function onCancelButtonClick({
   const { fromAccountId, transactionMessage, scope } = context;
 
   // Trigger the side effects that need to happen when the transaction is rejected
-  void snap.request({
+  await snap.request({
     method: 'snap_scheduleBackgroundEvent',
     params: {
       duration: 'PT1S',
@@ -105,7 +104,7 @@ async function onConfirmButtonClick({
     return;
   }
 
-  void snap.request({
+  await snap.request({
     method: 'snap_scheduleBackgroundEvent',
     params: {
       duration: 'PT1S',

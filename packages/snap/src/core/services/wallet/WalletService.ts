@@ -1,4 +1,3 @@
-/* eslint-disable no-void */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Transaction } from '@metamask/keyring-api';
 import { type KeyringRequest, SolMethod } from '@metamask/keyring-api';
@@ -179,7 +178,7 @@ export class WalletService {
       );
 
       // Trigger the side effects that need to happen when the transaction is submitted
-      void snap.request({
+      await snap.request({
         method: 'snap_scheduleBackgroundEvent',
         params: {
           duration: 'PT1S',
@@ -220,7 +219,7 @@ export class WalletService {
       } as Transaction;
 
       // Trigger the side effects that need to happen when the transaction is finalized (failed or confirmed)
-      void snap.request({
+      await snap.request({
         method: 'snap_scheduleBackgroundEvent',
         params: {
           duration: 'PT1S',

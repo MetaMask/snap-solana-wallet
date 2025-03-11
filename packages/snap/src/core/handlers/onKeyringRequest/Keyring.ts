@@ -1,4 +1,3 @@
-/* eslint-disable no-void */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
 import type { Balance } from '@metamask/keyring-api';
@@ -342,7 +341,7 @@ export class SolanaKeyring implements Keyring {
     }
 
     // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
-    void snap.request({
+    await snap.request({
       method: 'snap_scheduleBackgroundEvent',
       params: {
         duration: 'PT1S',
@@ -367,7 +366,7 @@ export class SolanaKeyring implements Keyring {
 
     if (!isConfirmed) {
       // Trigger the side effects that need to happen when the transaction is rejected
-      void snap.request({
+      await snap.request({
         method: 'snap_scheduleBackgroundEvent',
         params: {
           duration: 'PT1S',
@@ -386,7 +385,7 @@ export class SolanaKeyring implements Keyring {
     }
 
     // Trigger the side effects that need to happen when the transaction is approved
-    void snap.request({
+    await snap.request({
       method: 'snap_scheduleBackgroundEvent',
       params: {
         duration: 'PT1S',
