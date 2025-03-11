@@ -2,6 +2,7 @@ import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
 import { SLIP10Node } from '@metamask/key-tree';
 import { SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
+import type { Signature } from '@solana/web3.js';
 
 import { Network } from '../../constants/solana';
 import {
@@ -15,7 +16,6 @@ import {
 } from '../../test/mocks/solana-keyring-accounts';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
-import { EncryptedState } from '../encrypted-state/EncryptedState';
 import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import {
@@ -48,7 +48,6 @@ jest.mock('../../utils/getBip32Entropy', () => ({
 
 describe('WalletService', () => {
   let mockLogger: ILogger;
-  let mockState: EncryptedState;
   let mockTransactionHelper: TransactionHelper;
   let mockFromBase64EncodedBuilder: FromBase64EncodedBuilder;
   let service: WalletService;
@@ -57,12 +56,13 @@ describe('WalletService', () => {
 
   beforeEach(() => {
     mockLogger = logger;
-    mockState = new EncryptedState();
 
     mockTransactionHelper = {
       getLatestBlockhash: jest.fn(),
       getComputeUnitEstimate: jest.fn(),
+      signTransaction: jest.fn(),
       sendTransaction: jest.fn(),
+      signAndSendTransaction: jest.fn(),
       base64DecodeTransaction: jest.fn(),
       getFeeForMessageInLamports: jest.fn(),
       waitForTransactionCommitment: jest.fn(),
@@ -191,6 +191,12 @@ describe('WalletService', () => {
       const request = wrapKeyringRequest(
         MOCK_SIGN_TRANSACTION_REQUEST as unknown as JsonRpcRequest,
       );
+      const mockSignature = MOCK_SIGN_TRANSACTION_RESPONSE.signedTransaction;
+
+      jest.spyOn(mockTransactionHelper, 'signTransaction').mockResolvedValue({
+        signature: mockSignature as Signature,
+        signedTransaction: {} as any,
+      });
 
       const result = await service.signTransaction(account, request);
 
@@ -219,7 +225,7 @@ describe('WalletService', () => {
       const mockSignature = MOCK_SIGN_AND_SEND_TRANSACTION_RESPONSE.signature;
 
       jest
-        .spyOn(mockTransactionHelper, 'sendTransaction')
+        .spyOn(mockTransactionHelper, 'signAndSendTransaction')
         .mockResolvedValue(mockSignature);
 
       const result = await service.signAndSendTransaction(account, request);

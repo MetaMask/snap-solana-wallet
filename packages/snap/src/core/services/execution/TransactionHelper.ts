@@ -1,11 +1,13 @@
 import type {
   Commitment,
   CompilableTransactionMessage,
+  FullySignedTransaction,
   GetTransactionApi,
   Lamports,
   Signature,
   TransactionMessageBytesBase64,
   TransactionSigner,
+  TransactionWithBlockhashLifetime,
 } from '@solana/web3.js';
 import {
   addSignersToTransactionMessage,
@@ -261,54 +263,89 @@ export class TransactionHelper {
   }
 
   /**
+   * Signs a transaction message.
+   *
+   * @param transactionMessage - The transaction message to sign.
+   * @param signers - The signers to use for the transaction.
+   * @returns The signature of the transaction.
+   */
+  async signTransaction(
+    transactionMessage: CompilableTransactionMessage,
+    signers: TransactionSigner[],
+  ): Promise<{
+    signature: Signature;
+    signedTransaction: Readonly<
+      FullySignedTransaction & TransactionWithBlockhashLifetime
+    >;
+  }> {
+    assertIsTransactionMessageWithBlockhashLifetime(transactionMessage);
+
+    const transactionMessageWithSigners = addSignersToTransactionMessage(
+      signers,
+      transactionMessage,
+    );
+
+    const signedTransaction = await signTransactionMessageWithSigners(
+      transactionMessageWithSigners,
+    );
+
+    const signature = getSignatureFromTransaction(signedTransaction);
+
+    return { signature, signedTransaction };
+  }
+
+  /**
    * Sends a transaction message to the network.
    *
    * The transaction message MUST have:
    * - A valid lifetime constraint.
    *
-   * @param transactionMessage - The transaction message to send.
-   * @param signers - The signers to use for the transaction.
+   * @param signature - The signature of the transaction.
+   * @param signedTransaction - The signed transaction.
    * @param network - The network on which to send the transaction.
    * @returns The signature of the transaction.
    */
   async sendTransaction(
+    signature: string,
+    signedTransaction: FullySignedTransaction,
+    network: Network,
+  ): Promise<string> {
+    const rpc = this.#connection.getRpc(network);
+
+    const sendTransactionWithoutConfirming =
+      sendTransactionWithoutConfirmingFactory({
+        rpc,
+      });
+
+    const explorerUrl = getSolanaExplorerUrl(network, 'tx', signature);
+    this.#logger.info(`Sending transaction: ${explorerUrl}`);
+
+    await sendTransactionWithoutConfirming(signedTransaction, {
+      commitment: 'confirmed',
+    });
+
+    return signature;
+  }
+
+  /**
+   * Signs and sends a transaction message to the network.
+   *
+   * @param transactionMessage - The transaction message to sign and send.
+   * @param signers - The signers to use for the transaction.
+   * @param network - The network on which to send the transaction.
+   * @returns The signature of the transaction.
+   */
+  async signAndSendTransaction(
     transactionMessage: CompilableTransactionMessage,
     signers: TransactionSigner[],
     network: Network,
   ): Promise<string> {
-    try {
-      assertIsTransactionMessageWithBlockhashLifetime(transactionMessage);
+    const { signature, signedTransaction } = await this.signTransaction(
+      transactionMessage,
+      signers,
+    );
 
-      const rpc = this.#connection.getRpc(network);
-
-      const sendTransactionWithoutConfirming =
-        sendTransactionWithoutConfirmingFactory({
-          rpc,
-        });
-
-      const transactionMessageWithSigners = addSignersToTransactionMessage(
-        signers,
-        transactionMessage,
-      );
-
-      const signedTransaction = await signTransactionMessageWithSigners(
-        transactionMessageWithSigners,
-      );
-
-      const signature = getSignatureFromTransaction(signedTransaction);
-
-      const explorerUrl = getSolanaExplorerUrl(network, 'tx', signature);
-      this.#logger.info(`Sending transaction: ${explorerUrl}`);
-
-      await sendTransactionWithoutConfirming(signedTransaction, {
-        commitment: 'confirmed',
-      });
-
-      return signature;
-    } catch (error: any) {
-      this.#logger.error(error);
-      throw error;
-    }
+    return this.sendTransaction(signature, signedTransaction, network);
   }
 
   /**

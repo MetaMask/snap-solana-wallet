@@ -211,14 +211,14 @@ describe('TransactionHelper', () => {
       );
     });
 
-    describe('sendTransaction', () => {
+    describe('signAndSendTransaction', () => {
       it(`Scenario ${name}: successfully sends a transaction and returns signature`, async () => {
         const getSignatureFromTransactionSpy = jest.spyOn(
           require('@solana/web3.js'),
           'getSignatureFromTransaction',
         );
 
-        const result = await transactionHelper.sendTransaction(
+        const result = await transactionHelper.signAndSendTransaction(
           transactionMessage,
           [mockSigner],
           scope,
@@ -250,6 +250,20 @@ describe('TransactionHelper', () => {
         );
 
         expect(result).toStrictEqual(transactionMessage);
+      });
+    });
+
+    describe('signTransaction', () => {
+      it(`Scenario ${name}: signs a transaction successfully`, async () => {
+        const result = await transactionHelper.signTransaction(
+          transactionMessage,
+          [mockSigner],
+        );
+
+        expect(result).toStrictEqual({
+          signature,
+          signedTransaction,
+        });
       });
     });
   });

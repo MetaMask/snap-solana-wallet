@@ -266,8 +266,8 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
         ),
     );
 
-    // Send the transaction to create the associated token account.
-    await this.#transactionHelper.sendTransaction(
+    // Sign and send the transaction to create the associated token account.
+    await this.#transactionHelper.signAndSendTransaction(
       transactionMessage,
       [payer],
       network,

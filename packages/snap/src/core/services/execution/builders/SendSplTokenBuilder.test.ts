@@ -51,6 +51,7 @@ describe('SendSplTokenBuilder', () => {
     getLatestBlockhash: jest.fn(),
     getTokenMintInfo: jest.fn(),
     getComputeUnitEstimate: jest.fn(),
+    signAndSendTransaction: jest.fn(),
   } as unknown as TransactionHelper;
 
   let sendSplTokenBuilder: SendSplTokenBuilder;
@@ -346,7 +347,7 @@ describe('SendSplTokenBuilder', () => {
       );
 
       expect(result).toStrictEqual(mockNewAccount);
-      expect(mockTransactionHelper.sendTransaction).toHaveBeenCalled();
+      expect(mockTransactionHelper.signAndSendTransaction).toHaveBeenCalled();
     });
 
     it('throws error if account already exists', async () => {

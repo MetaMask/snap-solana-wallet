@@ -130,12 +130,28 @@ export class WalletService {
     request: KeyringRequest,
   ): Promise<SolanaSignTransactionResponse> {
     assert(request.request, SolanaSignTransactionRequestStruct);
+    assert(request.scope, NetworkStruct);
 
-    const { transaction } = request.request.params;
+    const { transaction, scope } = request.request.params;
 
-    // TODO: Implement the actual confirmation + signing logic.
+    const transactionMessage =
+      await this.#fromBase64EncodedBuilder.buildTransactionMessage(
+        transaction,
+        scope,
+      );
+
+    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+    const signer = await createKeyPairSignerFromPrivateKeyBytes(
+      privateKeyBytes,
+    );
+
+    const { signature } = await this.#transactionHelper.signTransaction(
+      transactionMessage,
+      [signer],
+    );
+
     const result = {
-      signedTransaction: transaction,
+      signedTransaction: signature,
     };
 
     assert(result, SolanaSignTransactionResponseStruct);
@@ -174,7 +190,7 @@ export class WalletService {
         privateKeyBytes,
       );
 
-      const signature = await this.#transactionHelper.sendTransaction(
+      const signature = await this.#transactionHelper.signAndSendTransaction(
         transactionMessage,
         [signer],
         scope,
