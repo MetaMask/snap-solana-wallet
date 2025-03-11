@@ -4,11 +4,12 @@ import { assert, literal, object, string } from '@metamask/superstruct';
 import { analyticsService, keyring } from '../../../../snapContext';
 import logger from '../../../utils/logger';
 import { NetworkStruct, UuidStruct } from '../../../validation/structs';
+import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const OnTransactionAddedRequestStruct = object({
   id: string(),
   jsonrpc: literal('2.0'),
-  method: literal('onTransactionAdded'),
+  method: literal(ScheduleBackgroundEventMethod.OnTransactionAdded),
   params: object({
     accountId: UuidStruct,
     base64EncodedTransactionMessage: string(),

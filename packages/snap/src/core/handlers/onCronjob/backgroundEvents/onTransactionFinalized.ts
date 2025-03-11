@@ -10,11 +10,12 @@ import {
 } from '../../../../snapContext';
 import logger from '../../../utils/logger';
 import { UuidStruct } from '../../../validation/structs';
+import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const OnTransactionFinalizedRequestStruct = object({
   id: string(),
   jsonrpc: literal('2.0'),
-  method: literal('onTransactionFinalized'),
+  method: literal(ScheduleBackgroundEventMethod.OnTransactionFinalized),
   params: object({
     accountId: UuidStruct,
     transaction: TransactionStruct,
