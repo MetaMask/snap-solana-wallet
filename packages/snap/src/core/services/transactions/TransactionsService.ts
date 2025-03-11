@@ -1,5 +1,8 @@
-import type { Transaction } from '@metamask/keyring-api';
-import { KeyringEvent, type CaipAssetType } from '@metamask/keyring-api';
+import {
+  KeyringEvent,
+  type CaipAssetType,
+  type Transaction,
+} from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import {
   address as asAddress,

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { Transaction } from '@metamask/keyring-api';
-import { type KeyringRequest, SolMethod } from '@metamask/keyring-api';
+import {
+  type KeyringRequest,
+  SolMethod,
+  type Transaction,
+} from '@metamask/keyring-api';
 import { assert } from '@metamask/superstruct';
 import {
   address as asAddress,

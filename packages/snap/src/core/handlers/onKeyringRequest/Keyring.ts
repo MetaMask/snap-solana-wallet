@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
-import type { Balance } from '@metamask/keyring-api';
 import {
   KeyringEvent,
   ListAccountAssetsResponseStruct,
@@ -8,6 +7,7 @@ import {
   SolAccountType,
   SolMethod,
   SolScope,
+  type Balance,
   type Keyring,
   type KeyringAccount,
   type KeyringRequest,
