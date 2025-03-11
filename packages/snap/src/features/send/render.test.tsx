@@ -168,6 +168,11 @@ describe('Send', () => {
       },
     });
 
+    mockJsonRpc({
+      method: 'snap_scheduleBackgroundEvent',
+      result: {},
+    });
+
     mockResolvedResult({
       method: 'getLatestBlockhash',
       result: MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result,

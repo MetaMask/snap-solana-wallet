@@ -90,6 +90,11 @@ describe('Confirmation', () => {
       result: { locale: 'en', currency: 'usd' },
     });
 
+    mockJsonRpc({
+      method: 'snap_scheduleBackgroundEvent',
+      result: {},
+    });
+
     mockResolvedResult({
       method: 'getFeeForMessage',
       result: MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE.result,
