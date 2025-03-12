@@ -3,7 +3,11 @@ import { assert, literal, object, string } from '@metamask/superstruct';
 
 import { analyticsService, keyring } from '../../../../snapContext';
 import logger from '../../../utils/logger';
-import { NetworkStruct, UuidStruct } from '../../../validation/structs';
+import {
+  Base64Struct,
+  NetworkStruct,
+  UuidStruct,
+} from '../../../validation/structs';
 import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const OnTransactionRejectedRequestStruct = object({
@@ -13,7 +17,7 @@ export const OnTransactionRejectedRequestStruct = object({
   params: object({
     accountId: UuidStruct,
     /** The base64 encoded transaction or transaction message. */
-    base64EncodedTransaction: string(),
+    base64EncodedTransaction: Base64Struct,
     scope: NetworkStruct,
   }),
 });

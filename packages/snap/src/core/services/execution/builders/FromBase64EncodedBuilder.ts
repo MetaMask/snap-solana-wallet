@@ -1,9 +1,11 @@
+import { assert } from '@metamask/superstruct';
 import {
   setTransactionMessageLifetimeUsingBlockhash,
   type CompilableTransactionMessage,
 } from '@solana/web3.js';
 
 import type { Network } from '../../../constants/solana';
+import { Base64Struct } from '../../../validation/structs';
 import type { TransactionHelper } from '../TransactionHelper';
 import type { ITransactionMessageBuilder } from './ITransactionMessageBuilder';
 
@@ -21,6 +23,8 @@ export class FromBase64EncodedBuilder implements ITransactionMessageBuilder {
     base64EncodedString: string,
     network: Network,
   ): Promise<CompilableTransactionMessage> {
+    assert(base64EncodedString, Base64Struct);
+
     let transactionMessage: CompilableTransactionMessage;
 
     try {

@@ -563,7 +563,7 @@ describe('SolanaKeyring', () => {
               account: {
                 address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
               },
-              transaction: '1234567890',
+              transaction: 'SGVsbG8sIHdvcmxkIQ==', // "Hello, world!" in base64
               scope: Network.Localnet,
             },
           },
@@ -598,7 +598,7 @@ describe('SolanaKeyring', () => {
               account: {
                 address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
               },
-              transaction: '1234567890',
+              transaction: 'SGVsbG8sIHdvcmxkIQ==', // "Hello, world!" in base64
               scope: Network.Devnet,
             },
           },
@@ -620,7 +620,7 @@ describe('SolanaKeyring', () => {
               account: {
                 address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
               },
-              transaction: '1234567890',
+              transaction: 'SGVsbG8sIHdvcmxkIQ==', // "Hello, world!" in base64
               scope: Network.Devnet,
             },
           },

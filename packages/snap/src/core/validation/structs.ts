@@ -1,7 +1,8 @@
 import { SolMethod } from '@metamask/keyring-api';
-import type { Infer } from '@metamask/superstruct';
+import type { Infer, Struct } from '@metamask/superstruct';
 import {
   array,
+  define,
   enums,
   integer,
   nullable,
@@ -284,3 +285,34 @@ export const GetFeeForTransactionParamsStruct = object({
 export const GetFeeForTransactionResponseStruct = object({
   value: nullable(PositiveNumberStringStruct),
 });
+
+/**
+ * Validates if a string is Base58 encoded.
+ * Base58 uses alphanumeric characters excluding 0, O, I, and l.
+ */
+export const Base58Struct: Struct<string, null> = define('Base58', (value) => {
+  const BASE_58_PATTERN =
+    /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/u;
+
+  // First check if it's a string
+  if (typeof value !== 'string') {
+    return `Expected a string, but received: ${typeof value}`;
+  }
+
+  // Then check if it matches the Base58 pattern
+  if (!BASE_58_PATTERN.test(value)) {
+    return 'Expected a Base58 encoded string, but received a string with invalid characters';
+  }
+
+  return true;
+});
+
+/**
+ * Validates if a string is Base64 encoded.
+ * Base64 uses alphanumeric characters and +, /, and =.
+ * Empty strings are rejected.
+ */
+export const Base64Struct = pattern(
+  string(),
+  /^(?:[A-Za-z0-9+/]{4})+(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u,
+);

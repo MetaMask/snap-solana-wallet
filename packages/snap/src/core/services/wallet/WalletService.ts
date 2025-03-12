@@ -4,12 +4,18 @@ import {
   SolMethod,
   type Transaction,
 } from '@metamask/keyring-api';
+import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
+import type { SignatureBytes } from '@solana/web3.js';
 import {
   address as asAddress,
   createKeyPairSignerFromPrivateKeyBytes,
   createSignableMessage,
+  getBase58Codec,
   getBase58Decoder,
+  getBase64Codec,
+  getUtf8Codec,
+  verifySignature,
 } from '@solana/web3.js';
 
 import type { Caip10Address, Network } from '../../constants/solana';
@@ -19,7 +25,11 @@ import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
-import { NetworkStruct } from '../../validation/structs';
+import {
+  Base58Struct,
+  Base64Struct,
+  NetworkStruct,
+} from '../../validation/structs';
 import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
@@ -122,6 +132,7 @@ export class WalletService {
 
   /**
    * Signs a transaction.
+   *
    * @param account - The account to sign the transaction.
    * @param request - The request to sign a transaction.
    * @returns A Promise that resolves to the signed transaction.
@@ -178,7 +189,7 @@ export class WalletService {
       request: { params },
       scope,
     } = request;
-    const base64EncodedTransaction = params.transaction ?? '';
+    const base64EncodedTransaction = params.transaction;
 
     try {
       const transactionMessage =
@@ -263,7 +274,12 @@ export class WalletService {
   }
 
   /**
-   * Signs a message.
+   * Signs the provided base64 encoded message using the provided account's
+   * private key.
+   *
+   * It DOES NOT decode the message to UTF-8 before signing, meaning that the
+   * signature must be verified using the base64 encoded message as well.
+   *
    * @param account - The account to sign the message.
    * @param request - The request to sign a message.
    * @returns A Promise that resolves to the signed message.
@@ -275,14 +291,17 @@ export class WalletService {
   ): Promise<SolanaSignMessageResponse> {
     assert(request.request, SolanaSignMessageRequestStruct);
 
+    // message is base64 encoded
     const { message } = request.request.params;
+    const messageBytes = getBase64Codec().encode(message);
+    const messageUtf8 = getUtf8Codec().decode(messageBytes);
 
     const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );
 
-    const signableMessage = createSignableMessage(message);
+    const signableMessage = createSignableMessage(messageUtf8);
 
     const [messageSignatureBytesMap] = await signer.signMessages([
       signableMessage,
@@ -299,13 +318,9 @@ export class WalletService {
 
     const signature = getBase58Decoder().decode(messageSignatureBytes);
 
-    const base58EncodedMessage = getBase58Decoder().decode(
-      signableMessage.content,
-    );
-
     const result = {
       signature,
-      signedMessage: base58EncodedMessage,
+      signedMessage: message,
       signatureType: 'ed25519',
     };
 
@@ -314,28 +329,99 @@ export class WalletService {
     return result;
   }
 
+  /**
+   * Signs in to the Solana blockchain. Receives a sign in intent object
+   * that contains data like domain, or uri, then converts it into a message
+   * using JSON.stringify, then signs the message.
+   *
+   * @param account - The account to sign the message.
+   * @param request - The JSON-RPC request object.
+   * @param request.request.params - A sign in intent object that contains data like domain, or uri.
+   * @returns A Promise that resolves to the signed message.
+   * @throws If the request is invalid.
+   */
   async signIn(
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignInResponse> {
     assert(request.request, SolanaSignInRequestStruct);
 
-    const { address, ...params } = request.request.params;
+    const { address } = account;
+    const { params } = request.request;
 
-    // TODO: Implement the actual confirmation + signing logic.
-    const message = Object.values(params).join(' | ');
+    const messageUtf8 = JSON.stringify(params);
+    const messageBytes = getUtf8Codec().encode(messageUtf8);
+    const messageBase64 = getBase64Codec().decode(messageBytes);
+
+    const requestForSignMessage: KeyringRequest = {
+      id: globalThis.crypto.randomUUID(),
+      scope: request.scope,
+      account: account.id,
+      request: {
+        method: SolMethod.SignMessage,
+        params: {
+          account: {
+            address,
+          },
+          message: messageBase64,
+        },
+      },
+    };
+
+    const signMessageResponse = await this.signMessage(
+      account,
+      requestForSignMessage,
+    );
 
     const result = {
       account: {
         address,
       },
-      signature: 'mock-signature',
-      signedMessage: message,
-      signatureType: 'ed25519',
+      ...signMessageResponse,
     };
 
     assert(result, SolanaSignInResponseStruct);
 
     return result;
+  }
+
+  /**
+   * Verifies that the passed signature was rightfully created by signing the
+   * passed message with the passed account's private key.
+   *
+   * @param account - The account that is being verified.
+   * @param signatureBase58 - The signature to verify.
+   * @param messageBase64 - The original message.
+   * @returns A Promise that resolves to a boolean indicating whether the
+   * signature is valid.
+   */
+  async verifySignature(
+    account: SolanaKeyringAccount,
+    signatureBase58: Infer<typeof Base58Struct>,
+    messageBase64: Infer<typeof Base64Struct>,
+  ): Promise<boolean> {
+    assert(signatureBase58, Base58Struct);
+    assert(messageBase64, Base64Struct);
+
+    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+    const signer = await createKeyPairSignerFromPrivateKeyBytes(
+      privateKeyBytes,
+    );
+
+    const signatureBytes = getBase58Codec().encode(
+      signatureBase58,
+    ) as SignatureBytes;
+    console.log('signatureBytes', signatureBytes);
+
+    const messageBytes = getBase64Codec().encode(messageBase64);
+    console.log('messageBytes', messageBytes);
+
+    const verified = await verifySignature(
+      signer.keyPair.publicKey,
+      signatureBytes,
+      messageBytes,
+    );
+
+    return verified;
   }
 }

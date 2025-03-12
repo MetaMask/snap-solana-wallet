@@ -1,3 +1,5 @@
+import type { Infer } from '@metamask/superstruct';
+import { assert } from '@metamask/superstruct';
 import type {
   Commitment,
   CompilableTransactionMessage,
@@ -12,6 +14,7 @@ import type {
 import {
   addSignersToTransactionMessage,
   assertIsTransactionMessageWithBlockhashLifetime,
+  signature as asSignature,
   compileTransaction,
   compileTransactionMessage,
   decompileTransactionMessageFetchingLookupTables,
@@ -33,6 +36,7 @@ import type { Network } from '../../constants/solana';
 import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
 import { retry } from '../../utils/retry';
+import { Base58Struct, Base64Struct } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
 
 /**
@@ -140,10 +144,12 @@ export class TransactionHelper {
    * @returns The fee for the transaction in lamports.
    */
   async getFeeForMessageInLamports(
-    base64EncodedMessage: string,
+    base64EncodedMessage: Infer<typeof Base64Struct>,
     network: Network,
   ): Promise<string | null> {
     try {
+      assert(base64EncodedMessage, Base64Struct);
+
       const rpc = this.#connection.getRpc(network);
 
       const transactionCost = await rpc
@@ -228,7 +234,7 @@ export class TransactionHelper {
    * @returns The decoded transaction message.
    */
   async base64DecodeTransaction(
-    base64EncodedTransaction: string,
+    base64EncodedTransaction: Infer<typeof Base64Struct>,
     scope: Network,
   ): Promise<CompilableTransactionMessage> {
     return pipe(
@@ -251,7 +257,7 @@ export class TransactionHelper {
    * @returns The base64 encoded transaction message.
    */
   async base64EncodeTransactionMessageFromBase64EncodedTransaction(
-    base64EncodedTransaction: string,
+    base64EncodedTransaction: Infer<typeof Base64Struct>,
   ): Promise<string> {
     return pipe(
       base64EncodedTransaction,
@@ -357,10 +363,12 @@ export class TransactionHelper {
    * @returns The transaction.
    */
   async waitForTransactionCommitment(
-    signature: string,
+    signature: Infer<typeof Base58Struct>,
     commitmentLevel: 'confirmed' | 'finalized',
     network: Network,
   ): Promise<ReturnType<GetTransactionApi['getTransaction']>> {
+    assert(signature, Base58Struct);
+
     const rpc = this.#connection.getRpc(network);
 
     return retry(async () => {
@@ -368,7 +376,7 @@ export class TransactionHelper {
         `🔎 Checking if transaction ${signature} has reached commitment level ${commitmentLevel}`,
       );
       const transaction = await rpc
-        .getTransaction(signature as Signature, {
+        .getTransaction(asSignature(signature), {
           commitment: commitmentLevel,
           maxSupportedTransactionVersion: 0,
         })

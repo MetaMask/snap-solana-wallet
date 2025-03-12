@@ -1,7 +1,6 @@
 import type { Blockhash, CompilableTransactionMessage } from '@solana/web3.js';
 
 import { Network } from '../../../constants/solana';
-import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../mocks/scenarios/sendSol';
 import type { TransactionHelper } from '../TransactionHelper';
 import { FromBase64EncodedBuilder } from './FromBase64EncodedBuilder';
 
@@ -20,8 +19,7 @@ describe('FromBase64EncodedBuilder', () => {
   });
 
   it('builds a transaction message from base64 encoded transaction', async () => {
-    const base64Transaction =
-      MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded;
+    const base64Transaction = 'SGVsbG9Xb3JsZA=='; // "HelloWorld" in Base64
     const network = Network.Mainnet;
     const mockTransactionMessage = {} as CompilableTransactionMessage;
     const mockBlockhash = 'mock-blockhash' as Blockhash;
@@ -58,7 +56,7 @@ describe('FromBase64EncodedBuilder', () => {
   });
 
   it('builds a transaction message from base64 encoded transaction message', async () => {
-    const base64Transaction = 'mock-base64-transaction-message';
+    const base64Transaction = 'mockbase64transactionmessage';
     const network = Network.Mainnet;
     const mockTransactionMessage = {} as CompilableTransactionMessage;
     const mockBlockhash = 'mock-blockhash' as Blockhash;
@@ -95,11 +93,11 @@ describe('FromBase64EncodedBuilder', () => {
   });
 
   it('builds a transaction message from base64 encoded transaction when initial decode fails', async () => {
-    const base64Transaction = 'mock-base64-transaction';
+    const base64Transaction = 'SGVsbG9Xb3JsZA=='; // "HelloWorld" in Base64
     const network = Network.Mainnet;
     const mockTransactionMessage = {} as CompilableTransactionMessage;
+    const mockEncodedTransactionMessage = 'QW5vdGhlclZhbGlkQmFzZTY0'; // Another valid Base64 string
     const mockBlockhash = 'mock-blockhash' as Blockhash;
-    const mockEncodedTransactionMessage = 'mock-encoded-transaction-message';
     const expectedResult = {
       ...mockTransactionMessage,
       lifetimeConstraint: {

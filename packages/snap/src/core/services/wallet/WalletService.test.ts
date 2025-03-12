@@ -249,8 +249,8 @@ describe('WalletService', () => {
   });
 
   describe('signMessage', () => {
-    it('returns the signed message', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+    it('returns the signed message and is properly verified', async () => {
+      const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
       const request = wrapKeyringRequest(
         MOCK_SIGN_MESSAGE_REQUEST as unknown as JsonRpcRequest,
       );
@@ -258,6 +258,14 @@ describe('WalletService', () => {
       const result = await service.signMessage(account, request);
 
       expect(result).toStrictEqual(MOCK_SIGN_MESSAGE_RESPONSE);
+
+      const verified = await service.verifySignature(
+        account,
+        result.signature,
+        result.signedMessage,
+      );
+
+      expect(verified).toBe(true);
     });
 
     it('rejects invalid requests', async () => {
@@ -275,7 +283,7 @@ describe('WalletService', () => {
 
   describe('signIn', () => {
     it('returns the signed message', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+      const account = MOCK_SOLANA_KEYRING_ACCOUNT_2;
       const request = wrapKeyringRequest(
         MOCK_SIGN_IN_REQUEST as unknown as JsonRpcRequest,
       );
@@ -295,6 +303,20 @@ describe('WalletService', () => {
       await expect(service.signIn(account, request)).rejects.toThrow(
         /At path/u,
       );
+    });
+  });
+
+  describe('verifySignature', () => {
+    it('returns true for a valid signature', async () => {
+      const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
+
+      const result = await service.verifySignature(
+        account,
+        MOCK_SIGN_MESSAGE_RESPONSE.signature,
+        MOCK_SIGN_MESSAGE_RESPONSE.signedMessage,
+      );
+
+      expect(result).toBe(true);
     });
   });
 });

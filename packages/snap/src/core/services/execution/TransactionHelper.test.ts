@@ -13,6 +13,7 @@ import {
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
+import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from './mocks/scenarios/sendSol';
 import { TransactionHelper } from './TransactionHelper';
 
 // Mock dependencies
@@ -109,10 +110,12 @@ describe('TransactionHelper', () => {
 
   describe('getFeeForMessageInLamports', () => {
     it('returns the fee for a message in lamports', async () => {
+      const mockMessage =
+        MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded;
       mockRpcResponse.send.mockResolvedValueOnce({ value: 100000 });
 
       const result = await transactionHelper.getFeeForMessageInLamports(
-        'mockMessage',
+        mockMessage,
         mockScope,
       );
 
@@ -120,10 +123,12 @@ describe('TransactionHelper', () => {
     });
 
     it('returns null when the fee cannot be fetched', async () => {
+      const mockMessage =
+        MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded;
       mockRpcResponse.send.mockRejectedValueOnce(new Error('Network error'));
 
       const result = await transactionHelper.getFeeForMessageInLamports(
-        'mockMessage',
+        mockMessage,
         mockScope,
       );
 
@@ -133,6 +138,7 @@ describe('TransactionHelper', () => {
 
   describe('waitForTransactionCommitment', () => {
     it('successfully waits for transaction commitment', async () => {
+      const mockSignature = MOCK_EXECUTION_SCENARIO_SEND_SOL.signature;
       const mockTransaction = { blockTime: 123 };
       const mockGetTransactionResponse = {
         send: jest.fn().mockResolvedValue(mockTransaction),
@@ -143,7 +149,7 @@ describe('TransactionHelper', () => {
       } as any);
 
       const result = await transactionHelper.waitForTransactionCommitment(
-        'mockSignature',
+        mockSignature,
         'confirmed',
         mockScope,
       );
@@ -154,6 +160,7 @@ describe('TransactionHelper', () => {
     });
 
     it('retries on failure before succeeding', async () => {
+      const mockSignature = MOCK_EXECUTION_SCENARIO_SEND_SOL.signature;
       const mockTransaction = { blockTime: 123 };
       const mockGetTransactionResponse = {
         send: jest
@@ -168,7 +175,7 @@ describe('TransactionHelper', () => {
       } as any);
 
       const result = await transactionHelper.waitForTransactionCommitment(
-        'mockSignature',
+        mockSignature,
         'confirmed',
         mockScope,
       );

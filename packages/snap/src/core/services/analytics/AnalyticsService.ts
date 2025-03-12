@@ -1,8 +1,10 @@
 import type { Transaction } from '@metamask/keyring-api';
+import { assert } from '@metamask/superstruct';
 
 import type { Network } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import logger from '../../utils/logger';
+import { Base64Struct } from '../../validation/structs';
 
 /**
  * Service for tracking events related to transactions.
@@ -20,6 +22,8 @@ export class AnalyticsService {
     scope: Network,
   ): Promise<void> {
     this.#logger.log(`[📣 AnalyticsService] Tracking event transaction added`);
+
+    assert(base64EncodedTransaction, Base64Struct);
     // TODO: Implement
   }
 
@@ -31,6 +35,9 @@ export class AnalyticsService {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction approved`,
     );
+
+    assert(base64EncodedTransaction, Base64Struct);
+    // TODO: Implement
     // TODO: Implement
   }
 
@@ -43,6 +50,9 @@ export class AnalyticsService {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction submitted`,
     );
+
+    assert(base64EncodedTransaction, Base64Struct);
+    // TODO: Implement
     // TODO: Implement
   }
 
@@ -64,6 +74,9 @@ export class AnalyticsService {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction rejected`,
     );
+
+    assert(base64EncodedTransaction, Base64Struct);
+    // TODO: Implement
     // TODO: Implement
   }
 }
