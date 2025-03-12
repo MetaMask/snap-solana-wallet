@@ -38,7 +38,6 @@ export class AnalyticsService {
 
     assert(base64EncodedTransaction, Base64Struct);
     // TODO: Implement
-    // TODO: Implement
   }
 
   async trackEventTransactionSubmitted(
@@ -52,7 +51,6 @@ export class AnalyticsService {
     );
 
     assert(base64EncodedTransaction, Base64Struct);
-    // TODO: Implement
     // TODO: Implement
   }
 
@@ -76,7 +74,6 @@ export class AnalyticsService {
     );
 
     assert(base64EncodedTransaction, Base64Struct);
-    // TODO: Implement
     // TODO: Implement
   }
 }
