@@ -193,8 +193,6 @@ describe('TransactionHelper', () => {
       fromAccountPrivateKeyBytes,
       transactionMessage,
       transactionMessageBase64Encoded,
-      signedTransaction,
-      signature,
       getMultipleAccountsResponse,
     } = scenario;
 

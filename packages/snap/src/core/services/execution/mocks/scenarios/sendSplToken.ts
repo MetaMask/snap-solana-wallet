@@ -87,7 +87,8 @@ const signedTransaction = {
   },
 };
 
-const signedTransactionBase64Encoded = '';
+const signedTransactionBase64Encoded =
+  'AUxH2DUXTS4eGX/aJKPV8eE+WhLnRR+NMD+oPjdtltENFD6GLVsDXR7mKN2eYgaigEJ+Qa1cKFrcdCjHVjrxewGAAQACBZmwAo+dnq8yhuKR7QpXgj+5yPFMzVwViEudWE9Z+N90qg5jUUNU1A79nvrnBM2x0tvjvM0bJFPOKZHbnqR9TzLfJCXvFr85xcLXaaIzbXdnbOFs+klSdfVRIluJ9yfUxwMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAABt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKk9holmkkG74a11Z3XVXb69hHvVi8hHst59kfJlZt2iKAIDAAUCuhIAAAQDAgEACQPoAwAAAAAAAAA=';
 
 const signature =
   '2XTRDNsH7Hy3zqdWgWJ4Pe8wzfSo8THSxthn2Q9ENB4zq4Ncc2JsGmJKmqZ5WT2e8a2CFReQU8ndv9vHmZS2nPYk';

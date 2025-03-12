@@ -17,18 +17,16 @@ import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
-import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../execution/mocks/scenarios/sendSol';
+import { MOCK_EXECUTION_SCENARIOS } from '../execution/mocks/scenarios';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
 import {
   MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
-  MOCK_SIGN_AND_SEND_TRANSACTION_RESPONSE,
   MOCK_SIGN_IN_REQUEST,
   MOCK_SIGN_IN_RESPONSE,
   MOCK_SIGN_MESSAGE_REQUEST,
   MOCK_SIGN_MESSAGE_RESPONSE,
   MOCK_SIGN_TRANSACTION_REQUEST,
-  MOCK_SIGN_TRANSACTION_RESPONSE,
   wrapKeyringRequest,
 } from './mocks';
 import type { SolanaWalletRequest } from './structs';
@@ -54,7 +52,6 @@ describe('WalletService', () => {
   let mockTransactionHelper: TransactionHelper;
   let mockFromBase64EncodedBuilder: FromBase64EncodedBuilder;
   let service: WalletService;
-  const scope = Network.Testnet;
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
 
   beforeEach(() => {
@@ -90,6 +87,8 @@ describe('WalletService', () => {
   });
 
   describe('resolveAccountAddress', () => {
+    const scope = Network.Testnet;
+
     it('rejects invalid requests', async () => {
       const request = {
         id: 1,
@@ -191,69 +190,95 @@ describe('WalletService', () => {
     });
   });
 
-  describe('signTransaction', () => {
-    it('returns the signed transaction', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-      const request = wrapKeyringRequest(
-        MOCK_SIGN_TRANSACTION_REQUEST as unknown as JsonRpcRequest,
-      );
+  describe.each(MOCK_EXECUTION_SCENARIOS)(
+    'transaction scenarios',
+    (scenario) => {
+      const {
+        name,
+        scope,
+        fromAccount,
+        transactionMessage,
+        transactionMessageBase64Encoded,
+        signedTransactionBase64Encoded,
+        signature,
+      } = scenario;
 
-      const mockTransactionMessage =
-        MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessage;
+      describe(`signTransaction`, () => {
+        it(`Scenario ${name}: returns the signed transaction`, async () => {
+          const request = wrapKeyringRequest({
+            method: SolMethod.SignTransaction,
+            params: {
+              account: {
+                address: fromAccount.address,
+              },
+              transaction: transactionMessageBase64Encoded,
+              scope,
+            },
+          });
 
-      jest
-        .spyOn(mockFromBase64EncodedBuilder, 'buildTransactionMessage')
-        .mockResolvedValue(mockTransactionMessage);
+          jest
+            .spyOn(mockFromBase64EncodedBuilder, 'buildTransactionMessage')
+            .mockResolvedValue(transactionMessage);
 
-      const result = await service.signTransaction(account, request);
+          const result = await service.signTransaction(fromAccount, request);
 
-      expect(result).toStrictEqual(MOCK_SIGN_TRANSACTION_RESPONSE);
-    });
+          expect(result).toStrictEqual({
+            signedTransaction: signedTransactionBase64Encoded,
+          });
+        });
 
-    it('rejects invalid requests', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-      const request = wrapKeyringRequest({
-        ...MOCK_SIGN_TRANSACTION_REQUEST,
-        params: {},
-      } as unknown as JsonRpcRequest);
+        it(`Scenario ${name}: rejects invalid requests`, async () => {
+          const request = wrapKeyringRequest({
+            method: SolMethod.SignTransaction,
+            params: {},
+          });
 
-      await expect(service.signTransaction(account, request)).rejects.toThrow(
-        /At path/u,
-      );
-    });
-  });
-
-  describe('signAndSendTransaction', () => {
-    it('returns the signed transaction', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-      const request = wrapKeyringRequest(
-        MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST as unknown as JsonRpcRequest,
-      );
-      const mockSignature = MOCK_SIGN_AND_SEND_TRANSACTION_RESPONSE.signature;
-
-      jest
-        .spyOn(mockFromBase64EncodedBuilder, 'buildTransactionMessage')
-        .mockResolvedValue(MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessage);
-
-      const result = await service.signAndSendTransaction(account, request);
-
-      expect(result).toStrictEqual({
-        signature: mockSignature,
+          await expect(
+            service.signTransaction(fromAccount, request),
+          ).rejects.toThrow(/At path/u);
+        });
       });
-    });
 
-    it('rejects invalid requests', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-      const request = wrapKeyringRequest({
-        ...MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
-        params: {},
-      } as unknown as JsonRpcRequest);
+      describe(`Scenario ${name}: signAndSendTransaction`, () => {
+        it('returns the signed transaction', async () => {
+          const request = wrapKeyringRequest({
+            method: SolMethod.SignAndSendTransaction,
+            params: {
+              account: {
+                address: fromAccount.address,
+              },
+              transaction: transactionMessageBase64Encoded,
+              scope,
+            },
+          });
 
-      await expect(
-        service.signAndSendTransaction(account, request),
-      ).rejects.toThrow(/At path/u);
-    });
-  });
+          jest
+            .spyOn(mockFromBase64EncodedBuilder, 'buildTransactionMessage')
+            .mockResolvedValue(transactionMessage);
+
+          const result = await service.signAndSendTransaction(
+            fromAccount,
+            request,
+          );
+
+          expect(result).toStrictEqual({
+            signature,
+          });
+        });
+
+        it('rejects invalid requests', async () => {
+          const request = wrapKeyringRequest({
+            method: SolMethod.SignAndSendTransaction,
+            params: {},
+          });
+
+          await expect(
+            service.signAndSendTransaction(fromAccount, request),
+          ).rejects.toThrow(/At path/u);
+        });
+      });
+    },
+  );
 
   describe('signMessage', () => {
     it('returns the signed message and is properly verified', async () => {
