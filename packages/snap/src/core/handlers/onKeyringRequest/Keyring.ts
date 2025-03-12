@@ -407,6 +407,8 @@ export class SolanaKeyring implements Keyring {
         return this.#walletService.signTransaction(account, request);
       case SolMethod.SignMessage:
         return this.#walletService.signMessage(account, request);
+      case SolMethod.SignIn:
+        return this.#walletService.signIn(account, request);
       default:
         throw new MethodNotFoundError(
           `Unsupported method: ${method}`,
