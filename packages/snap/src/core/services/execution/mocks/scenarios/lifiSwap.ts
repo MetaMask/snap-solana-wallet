@@ -609,6 +609,8 @@ const signedTransaction = {
   },
 };
 
+const signedTransactionBase64Encoded = '';
+
 const signature =
   'DuvWiKG54eKcB1s777TgaZWtF9R23sVuEaugRufdXyqhCf6owy5hYqxeL8sa6zoCPVQu3NxxhjWuz91CKgLE6SB';
 
@@ -1395,6 +1397,7 @@ export const MOCK_EXECUTION_SCENARIO_LIFI_SWAP: MockExecutionScenario = {
   transactionMessage,
   transactionMessageBase64Encoded,
   signedTransaction,
+  signedTransactionBase64Encoded,
   signature,
   getMultipleAccountsResponse,
 };

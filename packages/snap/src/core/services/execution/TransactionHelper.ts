@@ -3,17 +3,11 @@ import { assert } from '@metamask/superstruct';
 import type {
   Commitment,
   CompilableTransactionMessage,
-  FullySignedTransaction,
   GetTransactionApi,
   Lamports,
-  Signature,
   TransactionMessageBytesBase64,
-  TransactionSigner,
-  TransactionWithBlockhashLifetime,
 } from '@solana/web3.js';
 import {
-  addSignersToTransactionMessage,
-  assertIsTransactionMessageWithBlockhashLifetime,
   signature as asSignature,
   compileTransaction,
   compileTransactionMessage,
@@ -23,17 +17,13 @@ import {
   getCompiledTransactionMessageDecoder,
   getCompiledTransactionMessageEncoder,
   getComputeUnitEstimateForTransactionMessageFactory,
-  getSignatureFromTransaction,
   getTransactionDecoder,
   getTransactionEncoder,
   pipe,
-  sendTransactionWithoutConfirmingFactory,
-  signTransactionMessageWithSigners,
   type Blockhash,
 } from '@solana/web3.js';
 
 import type { Network } from '../../constants/solana';
-import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
 import { retry } from '../../utils/retry';
 import { Base58Struct, Base64Struct } from '../../validation/structs';
@@ -266,92 +256,6 @@ export class TransactionHelper {
       (tx) => tx.messageBytes,
       getBase64Decoder().decode,
     );
-  }
-
-  /**
-   * Signs a transaction message.
-   *
-   * @param transactionMessage - The transaction message to sign.
-   * @param signers - The signers to use for the transaction.
-   * @returns The signature of the transaction.
-   */
-  async signTransaction(
-    transactionMessage: CompilableTransactionMessage,
-    signers: TransactionSigner[],
-  ): Promise<{
-    signature: Signature;
-    signedTransaction: Readonly<
-      FullySignedTransaction & TransactionWithBlockhashLifetime
-    >;
-  }> {
-    assertIsTransactionMessageWithBlockhashLifetime(transactionMessage);
-
-    const transactionMessageWithSigners = addSignersToTransactionMessage(
-      signers,
-      transactionMessage,
-    );
-
-    const signedTransaction = await signTransactionMessageWithSigners(
-      transactionMessageWithSigners,
-    );
-
-    const signature = getSignatureFromTransaction(signedTransaction);
-
-    return { signature, signedTransaction };
-  }
-
-  /**
-   * Sends a transaction message to the network.
-   *
-   * The transaction message MUST have:
-   * - A valid lifetime constraint.
-   *
-   * @param signature - The signature of the transaction.
-   * @param signedTransaction - The signed transaction.
-   * @param network - The network on which to send the transaction.
-   * @returns The signature of the transaction.
-   */
-  async sendTransaction(
-    signature: string,
-    signedTransaction: FullySignedTransaction,
-    network: Network,
-  ): Promise<string> {
-    const rpc = this.#connection.getRpc(network);
-
-    const sendTransactionWithoutConfirming =
-      sendTransactionWithoutConfirmingFactory({
-        rpc,
-      });
-
-    const explorerUrl = getSolanaExplorerUrl(network, 'tx', signature);
-    this.#logger.info(`Sending transaction: ${explorerUrl}`);
-
-    await sendTransactionWithoutConfirming(signedTransaction, {
-      commitment: 'confirmed',
-    });
-
-    return signature;
-  }
-
-  /**
-   * Signs and sends a transaction message to the network.
-   *
-   * @param transactionMessage - The transaction message to sign and send.
-   * @param signers - The signers to use for the transaction.
-   * @param network - The network on which to send the transaction.
-   * @returns The signature of the transaction.
-   */
-  async signAndSendTransaction(
-    transactionMessage: CompilableTransactionMessage,
-    signers: TransactionSigner[],
-    network: Network,
-  ): Promise<string> {
-    const { signature, signedTransaction } = await this.signTransaction(
-      transactionMessage,
-      signers,
-    );
-
-    return this.sendTransaction(signature, signedTransaction, network);
   }
 
   /**

@@ -8,13 +8,18 @@ import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
 import type { SignatureBytes } from '@solana/web3.js';
 import {
+  addSignersToTransactionMessage,
   address as asAddress,
   createKeyPairSignerFromPrivateKeyBytes,
   createSignableMessage,
   getBase58Codec,
   getBase58Decoder,
   getBase64Codec,
+  getSignatureFromTransaction,
+  getTransactionCodec,
   getUtf8Codec,
+  sendTransactionWithoutConfirmingFactory,
+  signTransactionMessageWithSigners,
   verifySignature,
 } from '@solana/web3.js';
 
@@ -23,6 +28,7 @@ import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgrou
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
+import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import {
@@ -30,6 +36,7 @@ import {
   Base64Struct,
   NetworkStruct,
 } from '../../validation/structs';
+import type { SolanaConnection } from '../connection';
 import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
@@ -52,6 +59,8 @@ import {
 } from './structs';
 
 export class WalletService {
+  readonly #connection: SolanaConnection;
+
   readonly #fromBase64EncodedBuilder: FromBase64EncodedBuilder;
 
   readonly #transactionHelper: TransactionHelper;
@@ -59,10 +68,12 @@ export class WalletService {
   readonly #logger: ILogger;
 
   constructor(
+    connection: SolanaConnection,
     fromBase64EncodedBuilder: FromBase64EncodedBuilder,
     transactionHelper: TransactionHelper,
     _logger = logger,
   ) {
+    this.#connection = connection;
     this.#fromBase64EncodedBuilder = fromBase64EncodedBuilder;
     this.#transactionHelper = transactionHelper;
     this.#logger = _logger;
@@ -158,13 +169,24 @@ export class WalletService {
       privateKeyBytes,
     );
 
-    const { signature } = await this.#transactionHelper.signTransaction(
-      transactionMessage,
+    const transactionMessageWithSigners = addSignersToTransactionMessage(
       [signer],
+      transactionMessage,
+    );
+
+    const signedTransaction = await signTransactionMessageWithSigners(
+      transactionMessageWithSigners,
+    );
+
+    const signedTransactionBytes =
+      getTransactionCodec().encode(signedTransaction);
+
+    const signedTransactionBase64 = getBase64Codec().decode(
+      signedTransactionBytes,
     );
 
     const result = {
-      signedTransaction: signature,
+      signedTransaction: signedTransactionBase64,
     };
 
     assert(result, SolanaSignTransactionResponseStruct);
@@ -186,91 +208,105 @@ export class WalletService {
     assert(request.scope, NetworkStruct);
 
     const {
-      request: { params },
+      request: {
+        params: { transaction: base64EncodedTransaction },
+      },
       scope,
     } = request;
-    const base64EncodedTransaction = params.transaction;
 
-    try {
-      const transactionMessage =
-        await this.#fromBase64EncodedBuilder.buildTransactionMessage(
-          base64EncodedTransaction,
-          scope,
-        );
-
-      const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
-      const signer = await createKeyPairSignerFromPrivateKeyBytes(
-        privateKeyBytes,
-      );
-
-      const signature = await this.#transactionHelper.signAndSendTransaction(
-        transactionMessage,
-        [signer],
+    const transactionMessage =
+      await this.#fromBase64EncodedBuilder.buildTransactionMessage(
+        base64EncodedTransaction,
         scope,
       );
 
-      // Trigger the side effects that need to happen when the transaction is submitted
-      await snap.request({
-        method: 'snap_scheduleBackgroundEvent',
-        params: {
-          duration: 'PT1S',
-          request: {
-            method: ScheduleBackgroundEventMethod.OnTransactionSubmitted,
-            params: {
-              accountId: account.id,
-              base64EncodedTransaction,
-              signature,
-              scope,
-            },
-          },
-        },
+    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+    const signer = await createKeyPairSignerFromPrivateKeyBytes(
+      privateKeyBytes,
+    );
+
+    const transactionMessageWithSigners = addSignersToTransactionMessage(
+      [signer],
+      transactionMessage,
+    );
+
+    const signedTransaction = await signTransactionMessageWithSigners(
+      transactionMessageWithSigners,
+    );
+
+    const signature = getSignatureFromTransaction(signedTransaction);
+
+    const rpc = this.#connection.getRpc(scope);
+
+    const sendTransactionWithoutConfirming =
+      sendTransactionWithoutConfirmingFactory({
+        rpc,
       });
 
-      const result = {
+    const explorerUrl = getSolanaExplorerUrl(scope, 'tx', signature);
+    this.#logger.info(`Sending transaction: ${explorerUrl}`);
+
+    await sendTransactionWithoutConfirming(signedTransaction, {
+      commitment: 'confirmed',
+    });
+
+    // Trigger the side effects that need to happen when the transaction is submitted
+    await snap.request({
+      method: 'snap_scheduleBackgroundEvent',
+      params: {
+        duration: 'PT1S',
+        request: {
+          method: ScheduleBackgroundEventMethod.OnTransactionSubmitted,
+          params: {
+            accountId: account.id,
+            base64EncodedTransaction,
+            signature,
+            scope,
+          },
+        },
+      },
+    });
+
+    const result = {
+      signature,
+    };
+
+    assert(result, SolanaSignAndSendTransactionResponseStruct);
+
+    const transaction =
+      await this.#transactionHelper.waitForTransactionCommitment(
         signature,
-      };
-
-      assert(result, SolanaSignAndSendTransactionResponseStruct);
-
-      const transaction =
-        await this.#transactionHelper.waitForTransactionCommitment(
-          signature,
-          'confirmed',
-          scope,
-        );
-
-      const mappedTransaction = mapRpcTransaction({
+        'confirmed',
         scope,
-        address: asAddress(account.address),
-        transactionData: transaction,
-      });
+      );
 
-      const mappedTransactionWithAccountId: Transaction = {
-        ...mappedTransaction,
-        account: account.id,
-      } as Transaction;
+    const mappedTransaction = mapRpcTransaction({
+      scope,
+      address: asAddress(account.address),
+      transactionData: transaction,
+    });
 
-      // Trigger the side effects that need to happen when the transaction is finalized (failed or confirmed)
-      await snap.request({
-        method: 'snap_scheduleBackgroundEvent',
-        params: {
-          duration: 'PT1S',
-          request: {
-            method: ScheduleBackgroundEventMethod.OnTransactionFinalized,
-            params: {
-              accountId: account.id,
-              transaction: mappedTransactionWithAccountId,
-            },
+    const mappedTransactionWithAccountId: Transaction = {
+      ...mappedTransaction,
+      account: account.id,
+    } as Transaction;
+
+    // Trigger the side effects that need to happen when the transaction is finalized (failed or confirmed)
+    await snap.request({
+      method: 'snap_scheduleBackgroundEvent',
+      params: {
+        duration: 'PT1S',
+        request: {
+          method: ScheduleBackgroundEventMethod.OnTransactionFinalized,
+          params: {
+            accountId: account.id,
+            transaction: mappedTransactionWithAccountId,
           },
         },
-      });
+      },
+    });
 
-      return result;
-    } catch (error) {
-      console.error(error);
-      this.#logger.error(error);
-      throw error;
-    }
+    return result;
   }
 
   /**
@@ -279,6 +315,8 @@ export class WalletService {
    *
    * It DOES NOT decode the message to UTF-8 before signing, meaning that the
    * signature must be verified using the base64 encoded message as well.
+   *
+   * You can then verify the signature with {@link WalletService.verifySignature}.
    *
    * @param account - The account to sign the message.
    * @param request - The request to sign a message.
@@ -332,7 +370,7 @@ export class WalletService {
   /**
    * Signs in to the Solana blockchain. Receives a sign in intent object
    * that contains data like domain, or uri, then converts it into a message
-   * using JSON.stringify, then signs the message.
+   * using `JSON.stringify()`, then signs the message.
    *
    * @param account - The account to sign the message.
    * @param request - The JSON-RPC request object.
@@ -411,10 +449,8 @@ export class WalletService {
     const signatureBytes = getBase58Codec().encode(
       signatureBase58,
     ) as SignatureBytes;
-    console.log('signatureBytes', signatureBytes);
 
     const messageBytes = getBase64Codec().encode(messageBase64);
-    console.log('messageBytes', messageBytes);
 
     const verified = await verifySignature(
       signer.keyPair.publicKey,

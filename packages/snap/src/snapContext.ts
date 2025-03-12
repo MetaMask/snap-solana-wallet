@@ -80,6 +80,7 @@ const transactionsService = new TransactionsService({
 const analyticsService = new AnalyticsService(logger);
 
 const walletService = new WalletService(
+  connection,
   fromBase64EncodedBuilder,
   transactionHelper,
   logger,

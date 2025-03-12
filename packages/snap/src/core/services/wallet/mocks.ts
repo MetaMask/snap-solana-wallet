@@ -13,6 +13,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_3,
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
 } from '../../test/mocks/solana-keyring-accounts';
+import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../execution/mocks/scenarios/sendSol';
 import type {
   SolanaSignAndSendTransactionRequest,
   SolanaSignAndSendTransactionResponse,
@@ -45,15 +46,15 @@ export const MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST: SolanaSignAndSendTransactio
       account: {
         address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
       },
-      transaction: 'VHJhbnNhY3Rpb24gMA==', // "Transaction 0" in base64
+      transaction:
+        MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded,
       scope: Network.Localnet,
     },
   } as const;
 
 export const MOCK_SIGN_AND_SEND_TRANSACTION_RESPONSE: SolanaSignAndSendTransactionResponse =
   {
-    signature:
-      '5KZbqHxgKvXrQdHZA2WkVqhM9Z255ke3xqKe7z2QM4ufKrVuMw8P3bRz6FJWmGqHnJQr4hfXRJCxcQMnPBsCe6j4',
+    signature: MOCK_EXECUTION_SCENARIO_SEND_SOL.signature,
   } as const;
 
 /**
@@ -66,13 +67,15 @@ export const MOCK_SIGN_TRANSACTION_REQUEST: SolanaSignTransactionRequest = {
     account: {
       address: MOCK_SOLANA_KEYRING_ACCOUNT_4.address,
     },
-    transaction: 'VHJhbnNhY3Rpb24gMQ==', // "Transaction 1" in base64
+    transaction:
+      MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded,
     scope: Network.Localnet,
   },
 };
 
 export const MOCK_SIGN_TRANSACTION_RESPONSE: SolanaSignTransactionResponse = {
-  signedTransaction: MOCK_SIGN_TRANSACTION_REQUEST.params.transaction,
+  signedTransaction:
+    MOCK_EXECUTION_SCENARIO_SEND_SOL.signedTransactionBase64Encoded,
 } as const;
 
 /**

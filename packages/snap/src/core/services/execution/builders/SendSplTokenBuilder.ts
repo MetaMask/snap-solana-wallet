@@ -7,15 +7,19 @@ import {
 } from '@solana-program/token';
 import type { CompilableTransactionMessage } from '@solana/web3.js';
 import {
+  addSignersToTransactionMessage,
   appendTransactionMessageInstruction,
   appendTransactionMessageInstructions,
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
   fetchJsonParsedAccount,
+  getSignatureFromTransaction,
   pipe,
   prependTransactionMessageInstructions,
+  sendTransactionWithoutConfirmingFactory,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
+  signTransactionMessageWithSigners,
   type Account,
   type Address,
   type KeyPairSigner,
@@ -266,10 +270,31 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
         ),
     );
 
-    // Sign and send the transaction to create the associated token account.
-    await this.#transactionHelper.signAndSendTransaction(
-      transactionMessage,
+    // Sign the transaction
+    const transactionMessageWithSigners = addSignersToTransactionMessage(
       [payer],
+      transactionMessage,
+    );
+    const signedTransaction = await signTransactionMessageWithSigners(
+      transactionMessageWithSigners,
+    );
+    const signature = getSignatureFromTransaction(signedTransaction);
+
+    // Send the transaction
+    const rpc = this.#connection.getRpc(network);
+
+    const sendTransactionWithoutConfirming =
+      sendTransactionWithoutConfirmingFactory({
+        rpc,
+      });
+
+    await sendTransactionWithoutConfirming(signedTransaction, {
+      commitment: 'confirmed',
+    });
+
+    await this.#transactionHelper.waitForTransactionCommitment(
+      signature,
+      'confirmed',
       network,
     );
 

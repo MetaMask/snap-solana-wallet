@@ -80,6 +80,9 @@ const signedTransaction = {
   },
 };
 
+const signedTransactionBase64Encoded =
+  'AchmhyZwTxtSzYoT9A89g0ttVuYx9yDzk8Ykw35yM2XuGwzv/8qwg8My2yAWI1Ai3PGMN1VioGZFl4LDIEtDKw6AAQACBJmwAo+dnq8yhuKR7QpXgj+5yPFMzVwViEudWE9Z+N903bOu6UdCGJS9VyhRo8wvswWSAO709XY+51AU1MALO6wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAdazMubIOjxUiTY/+xWYNSffhgTb7vd9LWQ0sI2iMMSoCAwAFAiwBAAACAgABDAIAAABAQg8AAAAAAAA=';
+
 const signature =
   '51PN5XQ34sjoZVrpwye6PZaX9jbPThQoFT9FsPAZU1AofqSahU9nWUUNevbQeoVqQZiptBv1uZ7xgPt23CbwDBLR';
 
@@ -92,5 +95,6 @@ export const MOCK_EXECUTION_SCENARIO_SEND_SOL: MockExecutionScenario = {
   transactionMessage,
   transactionMessageBase64Encoded,
   signedTransaction,
+  signedTransactionBase64Encoded,
   signature,
 };

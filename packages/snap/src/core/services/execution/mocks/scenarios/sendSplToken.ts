@@ -87,6 +87,8 @@ const signedTransaction = {
   },
 };
 
+const signedTransactionBase64Encoded = '';
+
 const signature =
   '2XTRDNsH7Hy3zqdWgWJ4Pe8wzfSo8THSxthn2Q9ENB4zq4Ncc2JsGmJKmqZ5WT2e8a2CFReQU8ndv9vHmZS2nPYk';
 
@@ -99,5 +101,6 @@ export const MOCK_EXECUTION_SCENARIO_SEND_SPL_TOKEN: MockExecutionScenario = {
   transactionMessage,
   transactionMessageBase64Encoded,
   signedTransaction,
+  signedTransactionBase64Encoded,
   signature,
 };

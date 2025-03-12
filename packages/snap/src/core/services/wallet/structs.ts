@@ -125,6 +125,11 @@ export type SolanaSignAndSendTransactionResponse = Infer<
 >;
 
 export const SolanaSignTransactionResponseStruct = object({
+  /**
+   * The whole signed transaction object, encoded in base64. It is NOT the signature.
+   * Returning a transaction rather than signatures allows multisig wallets, program wallets, and other wallets that
+   * use meta-transactions to return a modified, signed transaction.
+   */
   signedTransaction: Base64Struct,
 });
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable no-restricted-globals */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -7,7 +8,12 @@ import type {
   Rpc,
   SolanaRpcApi,
 } from '@solana/web3.js';
-import { address, type Address, type MaybeAccount } from '@solana/web3.js';
+import {
+  address,
+  createKeyPairSignerFromPrivateKeyBytes,
+  type Address,
+  type MaybeAccount,
+} from '@solana/web3.js';
 
 import {
   KnownCaip19Id,
@@ -15,11 +21,13 @@ import {
   TokenMetadata,
 } from '../../../constants/solana';
 import {
+  MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
 } from '../../../test/mocks/solana-keyring-accounts';
 import { mockLogger } from '../../mocks/logger';
 import { createMockConnection } from '../../mocks/mockConnection';
+import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../mocks/scenarios/sendSol';
 import type { TransactionHelper } from '../TransactionHelper';
 import type { Exists, MaybeHasDecimals } from './SendSplTokenBuilder';
 import { SendSplTokenBuilder } from './SendSplTokenBuilder';
@@ -27,6 +35,9 @@ import { SendSplTokenBuilder } from './SendSplTokenBuilder';
 jest.mock('@solana/web3.js', () => ({
   ...jest.requireActual('@solana/web3.js'),
   fetchJsonParsedAccount: jest.fn(),
+  sendTransactionWithoutConfirmingFactory: jest
+    .fn()
+    .mockReturnValue(() => jest.fn()),
 }));
 
 jest.mock('../../../utils/deriveSolanaPrivateKey', () => ({
@@ -51,7 +62,7 @@ describe('SendSplTokenBuilder', () => {
     getLatestBlockhash: jest.fn(),
     getTokenMintInfo: jest.fn(),
     getComputeUnitEstimate: jest.fn(),
-    signAndSendTransaction: jest.fn(),
+    waitForTransactionCommitment: jest.fn(),
   } as unknown as TransactionHelper;
 
   let sendSplTokenBuilder: SendSplTokenBuilder;
@@ -294,20 +305,20 @@ describe('SendSplTokenBuilder', () => {
         mockOwner,
         mockNetwork,
       );
-
       expect(result).toStrictEqual(mockNonExistingAccount);
     });
   });
 
   describe('createAssociatedTokenAccount', () => {
-    const mockMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU' as Address;
+    const mockMint = address('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
     const mockOwner = address(MOCK_SOLANA_KEYRING_ACCOUNTS[0].address);
     const mockNetwork = Network.Localnet;
-    const mockPayer = {
-      address: 'mockPayerAddress' as Address,
-    } as unknown as KeyPairSigner;
 
     it('creates new associated token account', async () => {
+      const mockPayer = await createKeyPairSignerFromPrivateKeyBytes(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+      );
+
       const mockNonExistingAccount = {
         exists: false,
       } as unknown as MaybeAccount<any>;
@@ -327,17 +338,16 @@ describe('SendSplTokenBuilder', () => {
         .mockResolvedValueOnce(mockNewAccount);
 
       const mockBlockhash = {
-        blockhash: 'blockhash123' as Blockhash,
+        blockhash: (
+          MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessage
+            .lifetimeConstraint as any
+        ).blockhash,
         lastValidBlockHeight: BigInt(1),
       };
 
       jest
         .spyOn(mockTransactionHelper, 'getLatestBlockhash')
         .mockResolvedValue(mockBlockhash);
-
-      jest
-        .spyOn(mockTransactionHelper, 'sendTransaction')
-        .mockResolvedValue('mockSignature');
 
       const result = await sendSplTokenBuilder.createAssociatedTokenAccount(
         mockMint,
@@ -347,10 +357,13 @@ describe('SendSplTokenBuilder', () => {
       );
 
       expect(result).toStrictEqual(mockNewAccount);
-      expect(mockTransactionHelper.signAndSendTransaction).toHaveBeenCalled();
     });
 
     it('throws error if account already exists', async () => {
+      const mockPayer = await createKeyPairSignerFromPrivateKeyBytes(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+      );
+
       const mockExistingAccount = {
         exists: true,
         address: 'mockAddress' as Address,
