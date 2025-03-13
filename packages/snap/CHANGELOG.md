@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.12.0]
 
-### Uncategorized
+### Added
 
-- Sol 181 snap sign message and sign in confirmation UI backend ([#241](https://github.com/MetaMask/snap-solana-wallet/pull/241))
-- fix: add validation to `getGenesisHash` request ([#239](https://github.com/MetaMask/snap-solana-wallet/pull/239))
-- fix: unit tests ([#238](https://github.com/MetaMask/snap-solana-wallet/pull/238))
-- Sol 188 analytics ([#236](https://github.com/MetaMask/snap-solana-wallet/pull/236))
+- `Sign{Message/Transaction/In} backend ([#241](https://github.com/MetaMask/snap-solana-wallet/pull/241))
+- Analytics service ([#236](https://github.com/MetaMask/snap-solana-wallet/pull/236))
+
+### Fixed
+
+- Add validation to `getGenesisHash` request ([#239](https://github.com/MetaMask/snap-solana-wallet/pull/239))
 
 ## [1.11.0]
 
