@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0]
+
+### Uncategorized
+
+- Sol 181 snap sign message and sign in confirmation UI backend ([#241](https://github.com/MetaMask/snap-solana-wallet/pull/241))
+- fix: add validation to `getGenesisHash` request ([#239](https://github.com/MetaMask/snap-solana-wallet/pull/239))
+- fix: unit tests ([#238](https://github.com/MetaMask/snap-solana-wallet/pull/238))
+- Sol 188 analytics ([#236](https://github.com/MetaMask/snap-solana-wallet/pull/236))
+
 ## [1.11.0]
 
 ### Added
@@ -278,7 +287,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.1...v1.11.0
 [1.10.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.0...v1.10.1
 [1.10.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.9.0...v1.10.0
