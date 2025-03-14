@@ -88,6 +88,162 @@ describe('sendFieldsAreValid', () => {
     expect(result).toBe(false);
   });
 
+  describe('amountInput', () => {
+    describe('when sending native SOL', () => {
+      const createSolContext = (overrides = {}) =>
+        ({
+          preferences: { locale: 'en' },
+          fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          tokenCaipId: KnownCaip19Id.SolTestnet,
+          minimumBalanceForRentExemptionSol: '0.002',
+          scope: Network.Testnet,
+          currencyType: SendCurrencyType.TOKEN,
+          feeEstimatedInSol: '0.000005',
+          balances: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [KnownCaip19Id.SolTestnet]: {
+                amount: '1', // Sender has 1 SOL by default
+              },
+            },
+          },
+          ...overrides,
+        } as unknown as SendContext);
+
+      it('returns null when the amount is valid', () => {
+        const context = createSolContext();
+        const validator = amountInput(context);
+        expect(validator('0.5')).toBeNull();
+      });
+
+      it('returns an error with no message when the amount is 0', () => {
+        const context = createSolContext();
+        const validator = amountInput(context);
+        expect(validator('0')).toStrictEqual({
+          message: '',
+          value: '0',
+        });
+      });
+
+      it('returns an error when the amount is less than the minimum balance for rent exemption', () => {
+        const context = createSolContext();
+        const validator = amountInput(context);
+        expect(validator('0.001')).toStrictEqual({
+          message: 'Amount must be greater than 0.002',
+          value: '0.001',
+        });
+      });
+
+      it('returns an error when the amount is greater than the balance', () => {
+        const context = createSolContext();
+        const validator = amountInput(context);
+        expect(validator('1.5')).toStrictEqual({
+          message: 'Insufficient balance',
+          value: '1.5',
+        });
+      });
+
+      it('considers transaction fees and rent exemption when validating balance', () => {
+        const context = createSolContext({
+          feeEstimatedInSol: '0.1',
+          minimumBalanceForRentExemptionSol: '0.05',
+          balances: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [KnownCaip19Id.SolTestnet]: {
+                amount: '1',
+              },
+            },
+          },
+        });
+
+        const validator = amountInput(context);
+        // 0.9 + 0.1 fee + 0.05 rent exemption > 1 SOL balance
+        expect(validator('0.9')).toStrictEqual({
+          message: 'Insufficient SOL balance to cover the transaction fee',
+          value: '0.9',
+        });
+
+        // 0.8 + 0.1 fee + 0.05 rent exemption < 1 SOL balance (0.95 total)
+        expect(validator('0.8')).toBeNull();
+      });
+    });
+
+    describe('when sending SPL token', () => {
+      const createSplContext = (overrides = {}) =>
+        ({
+          preferences: { locale: 'en' },
+          fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          tokenCaipId: KnownCaip19Id.EurcDevnet,
+          minimumBalanceForRentExemptionSol: '0.002',
+          scope: Network.Testnet,
+          currencyType: SendCurrencyType.TOKEN,
+          feeEstimatedInSol: '0.000005',
+          balances: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [KnownCaip19Id.EurcDevnet]: {
+                amount: '100', // Sender has 100 EURC by default
+              },
+              [KnownCaip19Id.SolTestnet]: {
+                amount: '1', // Sender has 1 SOL for fees by default
+              },
+            },
+          },
+          ...overrides,
+        } as unknown as SendContext);
+
+      it('returns null when the amount is valid', () => {
+        const context = createSplContext();
+        const validator = amountInput(context);
+        expect(validator('50')).toBeNull();
+      });
+
+      it('returns an error with no message when the amount is 0', () => {
+        const context = createSplContext();
+        const validator = amountInput(context);
+        expect(validator('0')).toStrictEqual({
+          message: '',
+          value: '0',
+        });
+      });
+
+      it('does not compare the amount to the minimum balance for rent exemption', () => {
+        const context = createSplContext();
+        const validator = amountInput(context);
+        expect(validator('0.001')).toBeNull();
+      });
+
+      it('returns an error when the token amount is greater than the balance', () => {
+        const context = createSplContext();
+        const validator = amountInput(context);
+        expect(validator('150')).toStrictEqual({
+          message: 'Insufficient balance',
+          value: '150',
+        });
+      });
+
+      it('returns an error when SOL balance is insufficient for fees', () => {
+        const context = createSplContext({
+          balances: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [KnownCaip19Id.EurcDevnet]: {
+                amount: '100',
+              },
+              [KnownCaip19Id.SolTestnet]: {
+                amount: '0.000001', // Not enough SOL for fees
+              },
+            },
+          },
+          feeEstimatedInSol: '0.00001',
+        });
+
+        const validator = amountInput(context);
+        expect(validator('50')).toStrictEqual({
+          message: 'Insufficient SOL balance to cover the transaction fee',
+          value: '50',
+        });
+      });
+    });
+  });
+
   it('returns false when the amount is greater than the balance', () => {
     const contextWithInvalidBalance = {
       preferences: {
@@ -111,69 +267,5 @@ describe('sendFieldsAreValid', () => {
 
     const result = sendFieldsAreValid(contextWithInvalidBalance);
     expect(result).toBe(false);
-  });
-
-  describe('amountInput', () => {
-    it('returns null when the amount is valid', () => {
-      const context = {
-        preferences: {
-          locale: 'en',
-        },
-        tokenCaipId: KnownCaip19Id.SolTestnet,
-        minimumBalanceForRentExemptionSol: '0.002',
-        scope: Network.Testnet,
-      } as unknown as SendContext;
-
-      const validator = amountInput(context);
-      expect(validator('0.5')).toBeNull(); // 0.5 SOL is more than 0.002 SOL
-    });
-
-    it('returns an error with no message when the amount is 0', () => {
-      const context = {
-        preferences: {
-          locale: 'en',
-        },
-        tokenCaipId: KnownCaip19Id.SolTestnet,
-        minimumBalanceForRentExemptionSol: '0.002',
-        scope: Network.Testnet,
-      } as unknown as SendContext;
-
-      const validator = amountInput(context);
-      expect(validator('0')).toStrictEqual({
-        message: '',
-        value: '0',
-      });
-    });
-
-    it('returns an error when sending SOL and the amount is less than the minimum balance for rent exemption', () => {
-      const context = {
-        preferences: {
-          locale: 'en',
-        },
-        tokenCaipId: KnownCaip19Id.SolTestnet,
-        minimumBalanceForRentExemptionSol: '0.002',
-        scope: Network.Testnet,
-      } as unknown as SendContext;
-
-      const validator = amountInput(context);
-      expect(validator('0.001')).toStrictEqual({
-        message: 'Amount must be greater than 0.002',
-        value: '0.001',
-      });
-    });
-
-    it('does not compare the amount to the minimum balance for rent exemption when sending a SPL token', () => {
-      const context = {
-        preferences: {
-          locale: 'en',
-        },
-        minimumBalanceForRentExemptionSol: '0.002',
-        tokenCaipId: KnownCaip19Id.EurcDevnet,
-        scope: Network.Testnet,
-      } as unknown as SendContext;
-
-      const validator = amountInput(context);
-      expect(validator('0.001')).toBeNull();
-    });
   });
 });

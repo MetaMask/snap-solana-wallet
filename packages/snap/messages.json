@@ -12,6 +12,7 @@
   "send.fromRequiredError": "Account is required",
   "send.amountRequiredError": "Amount is required",
   "send.amountGreatherThanMinimumBalanceForRentExemptionError": "Amount must be greater than {minimumValue}",
+  "send.insuffientSolToCoverFee": "Insufficient SOL balance to cover the transaction fee",
   "send.toRequiredError": "To address is required",
   "send.toInvalidError": "Invalid Solana address",
   "send.insufficientBalance": "Insufficient balance",

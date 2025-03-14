@@ -7,6 +7,7 @@ import {
   SOL_TRANSFER_FEE_LAMPORTS,
 } from '../../../../core/constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
+import { solToLamports } from '../../../../core/utils/conversion';
 import { updateInterface } from '../../../../core/utils/interface';
 import { keyring } from '../../../../snapContext';
 import type { SendContext } from '../../types';
@@ -22,6 +23,10 @@ describe('SendForm events', () => {
   const mockBalanceInSol = '1.5'; // 1.5 SOL
   const mockSolPrice = '20'; // $20 per SOL
   const mockCostInLamports = SOL_TRANSFER_FEE_LAMPORTS; // 0.000005 SOL
+  const mockMinimumBalanceForRentExemptionSol = '0.002';
+  const mockMinimumBalanceForRentExemptionLamports = solToLamports(
+    mockMinimumBalanceForRentExemptionSol,
+  );
   const baseContext: SendContext = {
     fromAccountId: mockAccount.id,
     toAddress: mockToAddress,
@@ -58,7 +63,7 @@ describe('SendForm events', () => {
     buildingTransaction: false,
     transactionMessage: null,
     error: null,
-    minimumBalanceForRentExemptionSol: '0.002',
+    minimumBalanceForRentExemptionSol: mockMinimumBalanceForRentExemptionSol,
   };
 
   describe('onSwapCurrencyButtonClick', () => {
@@ -129,10 +134,11 @@ describe('SendForm events', () => {
         context,
       });
 
-      // Expected SOL amount: (1.5 SOL * LAMPORTS_PER_SOL - 5000) / LAMPORTS_PER_SOL
+      // Expected SOL amount: (1.5 SOL * LAMPORTS_PER_SOL - 5000 - 2000) / LAMPORTS_PER_SOL
       const expectedAmount = BigNumber(mockBalanceInSol)
         .multipliedBy(LAMPORTS_PER_SOL)
         .minus(mockCostInLamports)
+        .minus(mockMinimumBalanceForRentExemptionLamports)
         .dividedBy(LAMPORTS_PER_SOL)
         .toString();
 
@@ -156,10 +162,11 @@ describe('SendForm events', () => {
         context,
       });
 
-      // Expected FIAT amount: ((1.5 SOL * LAMPORTS_PER_SOL - 5000) / LAMPORTS_PER_SOL) * $20
+      // Expected FIAT amount: ((1.5 SOL * LAMPORTS_PER_SOL - 5000 - 2000) / LAMPORTS_PER_SOL) * $20
       const expectedAmount = BigNumber(mockBalanceInSol)
         .multipliedBy(LAMPORTS_PER_SOL)
         .minus(mockCostInLamports)
+        .minus(mockMinimumBalanceForRentExemptionLamports)
         .dividedBy(LAMPORTS_PER_SOL)
         .multipliedBy(mockSolPrice)
         .toString();

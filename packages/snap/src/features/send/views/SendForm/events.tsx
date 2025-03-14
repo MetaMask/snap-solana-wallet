@@ -2,10 +2,7 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 
-import {
-  Networks,
-  SOL_TRANSFER_FEE_LAMPORTS,
-} from '../../../../core/constants/solana';
+import { SOL_TRANSFER_FEE_LAMPORTS } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import {
   lamportsToSol,
@@ -17,12 +14,15 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
-import { validateField } from '../../../../core/validation/form';
+import {
+  sendFieldsAreValid,
+  validateField,
+} from '../../../../core/validation/form';
 import { state, tokenPricesService } from '../../../../snapContext';
+import { getBalance, getIsNativeToken } from '../../selectors';
 import { Send } from '../../Send';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 import { buildTransactionMessageAndUpdateInterface } from '../../utils/buildTransactionMessageAndUpdateInterface';
-import { validateBalance } from '../../utils/validateBalance';
 import { validation } from './validation';
 
 /**
@@ -68,9 +68,10 @@ async function onSourceAccountSelectorValueChange({
       validation(context),
     );
 
-  context.validation[SendFormNames.AmountInput] = validateBalance(
+  context.validation[SendFormNames.AmountInput] = validateField<SendFormNames>(
+    SendFormNames.AmountInput,
     context.amount,
-    context,
+    validation(context),
   );
 
   await updateInterface(id, <Send context={context} />, context);
@@ -101,10 +102,6 @@ async function onAmountInputChange({
     context.amount,
     validation(context),
   );
-
-  context.validation[SendFormNames.AmountInput] =
-    context.validation[SendFormNames.AmountInput] ??
-    validateBalance(context.amount, context);
 
   await updateInterface(id, <Send context={context} />, context);
 
@@ -193,16 +190,26 @@ async function onMaxAmountButtonClick({
   id: string;
   context: SendContext;
 }) {
-  const { fromAccountId, currencyType, balances, tokenCaipId, scope } = context;
+  const { currencyType, minimumBalanceForRentExemptionSol } = context;
   const updatedContext: SendContext = { ...context };
-  const tokenBalance = balances[fromAccountId]?.[tokenCaipId]?.amount ?? '0';
-  const isNativeToken = tokenCaipId === Networks[scope].nativeToken.caip19Id;
+  const tokenBalance = getBalance(context);
+  const isNativeToken = getIsNativeToken(context);
 
   if (isNativeToken) {
-    // For a SOL transaction, we need to subtract the transfer fee
-    const balanceInLamportsAfterCost = solToLamports(tokenBalance).minus(
-      SOL_TRANSFER_FEE_LAMPORTS,
+    /**
+     * For a SOL transfer, the maximum amount we can send is the balance minus
+     * - the transfer fee
+     * - plus the minimum balance for rent exemption, because the account cannot fall below this amount
+     */
+    const balanceInLamports = solToLamports(tokenBalance);
+
+    const minimumBalanceForRentExemptionLamports = solToLamports(
+      minimumBalanceForRentExemptionSol,
     );
+
+    const balanceInLamportsAfterCost = balanceInLamports
+      .minus(SOL_TRANSFER_FEE_LAMPORTS)
+      .minus(minimumBalanceForRentExemptionLamports);
 
     const balanceInSolAfterCost = lamportsToSol(balanceInLamportsAfterCost);
     updatedContext.amount = balanceInSolAfterCost.toString();
@@ -306,6 +313,11 @@ async function onSendButtonClick({
   id: string;
   context: SendContext;
 }) {
+  const isValid = sendFieldsAreValid(context);
+  if (!isValid) {
+    return;
+  }
+
   const updatedContext: SendContext = { ...context };
   updatedContext.stage = 'transaction-confirmation';
 

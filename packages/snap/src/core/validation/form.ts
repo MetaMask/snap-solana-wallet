@@ -1,8 +1,12 @@
 import { address as addressValidator } from '@solana/web3.js';
 
+import {
+  getBalance,
+  getIsNativeToken,
+  getTokenAmount,
+} from '../../features/send/selectors';
 import type { SendContext } from '../../features/send/types';
 import { SendFormNames } from '../../features/send/types';
-import { validateBalance } from '../../features/send/utils/validateBalance';
 import { validation } from '../../features/send/views/SendForm/validation';
 import { Networks } from '../constants/solana';
 import type {
@@ -62,14 +66,7 @@ export function sendFieldsAreValid(context: SendContext): boolean {
     },
   );
 
-  // validateBalance is defined separately from the other validators
-  const amount = values[SendFormNames.AmountInput];
-  if (!amount) {
-    return false;
-  }
-  const isValidateBalanceValid = validateBalance(amount, context) === null;
-
-  return isAllValidatorsValid && isValidateBalanceValid;
+  return isAllValidatorsValid;
 }
 
 /**
@@ -121,6 +118,7 @@ export const address: ValidationFunction = (
  * It's invalid when:
  * - The value parses to 0.
  * - The user is sending SOL, and the amount is lower than the minimum balance for rent exemption.
+ * - The amount + fee is greater than the balance.
  *
  * @param context - The send context, where values are read from.
  * @returns True if the value is valid, otherwise an object with the error message.
@@ -129,32 +127,86 @@ export const amountInput = (context: SendContext) => {
   const {
     minimumBalanceForRentExemptionSol,
     preferences: { locale },
-    tokenCaipId,
     scope,
+    feeEstimatedInSol,
   } = context;
   const translate = i18n(locale);
 
   return (value: string) => {
+    const tokenAmount = getTokenAmount({ ...context, amount: value });
+    const tokenAmountNumber = parseFloat(tokenAmount);
+
+    const balance = getBalance(context);
+    const balanceNumber = parseFloat(balance);
+
+    const feeEstimatedInSolNumber = parseFloat(feeEstimatedInSol ?? '0');
+
+    const minimumBalanceForRentExemptionSolNumber = parseFloat(
+      minimumBalanceForRentExemptionSol ?? '0',
+    );
+
     // If the value parses to 0, it's invalid but we don't want to show an error
-    if (parseFloat(value) === 0) {
+    if (tokenAmountNumber === 0) {
       return { message: '', value };
     }
 
-    const valueLowerThanMinimum =
-      parseFloat(value) < parseFloat(minimumBalanceForRentExemptionSol);
-
-    const isNativeSol = tokenCaipId === Networks[scope].nativeToken.caip19Id;
-
-    if (valueLowerThanMinimum && isNativeSol) {
+    const isAmountGreaterThanBalance = tokenAmountNumber > balanceNumber;
+    if (isAmountGreaterThanBalance) {
       return {
-        message: translate(
-          'send.amountGreatherThanMinimumBalanceForRentExemptionError',
-          {
-            minimumValue: minimumBalanceForRentExemptionSol,
-          },
-        ),
+        message: translate('send.insufficientBalance'),
         value,
       };
+    }
+
+    const isNativeToken = getIsNativeToken(context);
+
+    if (isNativeToken) {
+      // If the value is lower than the minimum balance for rent exemption, it's invalid
+      const valueLowerThanMinimum =
+        tokenAmountNumber < parseFloat(minimumBalanceForRentExemptionSol);
+
+      if (valueLowerThanMinimum) {
+        return {
+          message: translate(
+            'send.amountGreatherThanMinimumBalanceForRentExemptionError',
+            {
+              minimumValue: minimumBalanceForRentExemptionSol,
+            },
+          ),
+          value,
+        };
+      }
+
+      // If the (amount + fee + minimum balance for rent exemption) is greater than the balance, it's invalid
+      const isAmountPlusFeePlusRentExemptionGreaterThanBalance =
+        tokenAmountNumber +
+          feeEstimatedInSolNumber +
+          minimumBalanceForRentExemptionSolNumber >
+        balanceNumber;
+
+      if (isAmountPlusFeePlusRentExemptionGreaterThanBalance) {
+        return {
+          message: translate('send.insuffientSolToCoverFee'),
+          value,
+        };
+      }
+    } else {
+      // If the SOL balance is lower than the fee, it's invalid
+      const solBalance = getBalance({
+        ...context,
+        tokenCaipId: Networks[scope].nativeToken.caip19Id,
+      });
+      const solBalanceNumber = parseFloat(solBalance);
+
+      const isFeeGreaterThanSolBalance =
+        feeEstimatedInSolNumber > solBalanceNumber;
+
+      if (isFeeGreaterThanSolBalance) {
+        return {
+          message: translate('send.insuffientSolToCoverFee'),
+          value,
+        };
+      }
     }
 
     return null;

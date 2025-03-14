@@ -10,7 +10,7 @@ import { SendCurrencyType, type SendContext } from './types';
 
 export const getTokenAmount = (context: SendContext) => {
   const { amount, tokenPrices, tokenCaipId, currencyType } = context;
-  const price = tokenPrices[tokenCaipId]?.price;
+  const price = tokenPrices?.[tokenCaipId]?.price;
 
   if (currencyType === SendCurrencyType.TOKEN) {
     return amount;
@@ -47,4 +47,14 @@ export const getNativeTokenPrice = (
 ): number | undefined => {
   const { tokenPrices, scope } = context;
   return tokenPrices?.[Networks[scope]?.nativeToken?.caip19Id]?.price;
+};
+
+export const getBalance = (context: SendContext) => {
+  const { balances, fromAccountId, tokenCaipId } = context;
+  return balances?.[fromAccountId]?.[tokenCaipId]?.amount ?? '0';
+};
+
+export const getIsNativeToken = (context: SendContext) => {
+  const { tokenCaipId, scope } = context;
+  return tokenCaipId === Networks[scope]?.nativeToken?.caip19Id;
 };
