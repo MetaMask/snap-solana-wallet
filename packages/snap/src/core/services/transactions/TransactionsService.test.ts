@@ -2,7 +2,6 @@ import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { address as asAddress } from '@solana/web3.js';
 
-import { TokenMetadataClient } from '../../clients/token-metadata-client/TokenMetadataClient';
 import { Network } from '../../constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -26,7 +25,7 @@ import type {
   EncryptedStateValue,
 } from '../encrypted-state/EncryptedState';
 import { mockLogger } from '../mocks/logger';
-import { TokenMetadataService } from '../token-metadata/TokenMetadata';
+import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from './TransactionsService';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
@@ -37,6 +36,7 @@ describe('TransactionsService', () => {
   let mockSolanaRpc: MockSolanaRpc;
   let mockState: EncryptedState;
   let mockConfigProvider: ConfigProvider;
+  let mockTokenMetadataService: TokenMetadataService;
   let service: TransactionsService;
 
   beforeAll(() => {
@@ -50,11 +50,10 @@ describe('TransactionsService', () => {
   beforeEach(() => {
     mockConfigProvider = new ConfigProvider();
     const connection = new SolanaConnection(mockConfigProvider);
-    const tokenMetadataClient = new TokenMetadataClient(mockConfigProvider);
-    const tokenMetadataService = new TokenMetadataService({
-      tokenMetadataClient,
-      logger: mockLogger,
-    });
+
+    mockTokenMetadataService = {
+      getTokensMetadata: jest.fn(),
+    } as unknown as TokenMetadataService;
 
     mockState = {
       get: jest.fn(),
@@ -65,7 +64,7 @@ describe('TransactionsService', () => {
     service = new TransactionsService({
       connection,
       logger: mockLogger,
-      tokenMetadataService,
+      tokenMetadataService: mockTokenMetadataService,
       state: mockState,
       configProvider: mockConfigProvider,
     });
@@ -119,28 +118,9 @@ describe('TransactionsService', () => {
         .mockResolvedValue([]);
     });
 
-    describe('when transactions are already being fetched', () => {
-      it('skips the run', async () => {
-        jest.spyOn(mockState, 'get').mockResolvedValue({
-          isFetchingTransactions: true,
-        } as any);
-
-        const updateSpy = jest.spyOn(mockState, 'update');
-
-        await service.refreshTransactions([MOCK_SOLANA_KEYRING_ACCOUNT_0]);
-
-        expect(service.fetchLatestSignatures).not.toHaveBeenCalled();
-        expect(updateSpy).not.toHaveBeenCalled();
-      });
-    });
-
     describe('when no accounts are passed', () => {
       it('skips the run', async () => {
         const updateSpy = jest.spyOn(mockState, 'update');
-
-        (mockState.get as jest.Mock).mockResolvedValue({
-          isFetchingTransactions: false,
-        });
 
         await service.refreshTransactions([]);
 
@@ -199,7 +179,6 @@ describe('TransactionsService', () => {
         };
 
         const initialState = {
-          isFetchingTransactions: false,
           transactions: {
             [firstAccount.id]: [],
             [secondAccount.id]: [],
@@ -215,6 +194,10 @@ describe('TransactionsService', () => {
             storageLimit: 50,
           },
         } as any);
+
+        jest
+          .spyOn(mockTokenMetadataService, 'getTokensMetadata')
+          .mockResolvedValue({});
 
         jest
           .spyOn(service, 'fetchLatestSignatures')
@@ -238,13 +221,6 @@ describe('TransactionsService', () => {
           });
 
         await service.refreshTransactions(mockAccounts);
-
-        const firstUpdateCall = (mockState.update as jest.Mock).mock
-          .calls[0][0];
-        expect(firstUpdateCall(initialState)).toStrictEqual({
-          ...initialState,
-          isFetchingTransactions: true,
-        });
 
         const expectedSignatureCalls = [
           [Network.Mainnet, firstAccount.address, 50],
@@ -288,9 +264,8 @@ describe('TransactionsService', () => {
 
         // Verify final state
         const finalUpdateCall = (mockState.update as jest.Mock).mock
-          .calls[1][0];
+          .calls[0][0];
         const finalState = finalUpdateCall(initialState);
-        expect(finalState.isFetchingTransactions).toBe(false);
 
         const firstAccountTxs = finalState.transactions[firstAccount.id];
         const secondAccountTxs = finalState.transactions[secondAccount.id];
@@ -412,7 +387,6 @@ describe('TransactionsService', () => {
 
         // Initial state with some transactions already saved
         const initialState = {
-          isFetchingTransactions: false,
           transactions: {
             [firstAccount.id]: [
               {
@@ -448,6 +422,10 @@ describe('TransactionsService', () => {
         } as any);
 
         jest
+          .spyOn(mockTokenMetadataService, 'getTokensMetadata')
+          .mockResolvedValue({});
+
+        jest
           .spyOn(service, 'fetchLatestSignatures')
           .mockImplementation(async (scope: Network, address: string) => {
             const signatures = mockedSignatures[scope][address];
@@ -472,14 +450,7 @@ describe('TransactionsService', () => {
 
         await service.refreshTransactions(mockAccounts);
 
-        expect(updateSpy).toHaveBeenCalledTimes(2);
-
-        const firstUpdateCall = (mockState.update as jest.Mock).mock
-          .calls[0][0];
-        expect(firstUpdateCall(initialState)).toStrictEqual({
-          ...initialState,
-          isFetchingTransactions: true,
-        });
+        expect(updateSpy).toHaveBeenCalledTimes(1);
 
         const expectedSignatureCalls = [
           [Network.Mainnet, firstAccount.address, 50],
@@ -520,9 +491,8 @@ describe('TransactionsService', () => {
 
         // Verify final state
         const finalUpdateCall = (mockState.update as jest.Mock).mock
-          .calls[1][0];
+          .calls[0][0];
         const finalState = finalUpdateCall(initialState);
-        expect(finalState.isFetchingTransactions).toBe(false);
 
         const firstAccountTxs = finalState.transactions[firstAccount.id];
         const secondAccountTxs = finalState.transactions[secondAccount.id];

@@ -16,9 +16,7 @@ export type AccountId = string;
 export type EncryptedStateValue = {
   keyringAccounts: Record<string, SolanaKeyringAccount>;
   mapInterfaceNameToId: Record<string, string>;
-  isFetchingTransactions: boolean;
   transactions: Record<AccountId, Transaction[]>;
-  isFetchingAssets: boolean;
   assets: Record<AccountId, Record<CaipAssetType, Balance>>;
   metadata: Record<CaipAssetType, SolanaTokenMetadata>;
   tokenPrices: SpotPrices;
@@ -27,9 +25,7 @@ export type EncryptedStateValue = {
 export const DEFAULT_ENCRYPTED_STATE: EncryptedStateValue = {
   keyringAccounts: {},
   mapInterfaceNameToId: {},
-  isFetchingTransactions: false,
   transactions: {},
-  isFetchingAssets: false,
   assets: {},
   metadata: {},
   tokenPrices: {},

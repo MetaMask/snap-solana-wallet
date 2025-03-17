@@ -301,21 +301,9 @@ describe('AssetsService', () => {
       expect(stateUpdateSpy).not.toHaveBeenCalled();
     });
 
-    it('skips if assets are already being fetched', async () => {
-      jest.spyOn(mockState, 'get').mockResolvedValueOnce({
-        isFetchingAssets: true,
-        assets: {},
-      } as EncryptedStateValue);
-
-      await assetsService.refreshAssets(mockAccounts);
-
-      expect(stateUpdateSpy).not.toHaveBeenCalled();
-    });
-
     it('emits events when assets list changes', async () => {
       // Mock initial state
       jest.spyOn(mockState, 'get').mockResolvedValueOnce({
-        isFetchingAssets: false,
         assets: {
           [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
             [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },

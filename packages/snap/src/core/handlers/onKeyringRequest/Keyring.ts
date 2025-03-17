@@ -448,11 +448,6 @@ export class SolanaKeyring implements Keyring {
        * We'll fetch the transactions from the blockchain and store them in the state.
        */
       if (!allTransactions.length) {
-        await this.#state.update((state) => ({
-          ...state,
-          isFetchingTransactions: true,
-        }));
-
         const transactions = (
           await this.#transactionsService.fetchLatestAddressTransactions(
             asAddress(keyringAccount.address),
@@ -465,7 +460,6 @@ export class SolanaKeyring implements Keyring {
 
         await this.#state.update((state) => ({
           ...state,
-          isFetchingTransactions: false,
           transactions: {
             ...(state?.transactions ?? {}),
             [keyringAccount.id]: transactions,
@@ -502,10 +496,6 @@ export class SolanaKeyring implements Keyring {
       };
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account transactions');
-      await this.#state.update((state) => ({
-        ...state,
-        isFetchingTransactions: false,
-      }));
       throw error;
     }
   }

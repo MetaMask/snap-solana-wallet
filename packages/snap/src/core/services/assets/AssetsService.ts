@@ -255,12 +255,6 @@ export class AssetsService {
     );
 
     const currentState = await this.#state.get();
-    const { isFetchingAssets } = currentState;
-
-    if (isFetchingAssets) {
-      this.#logger.info('[AssetsService] Assets are already being fetched');
-      return;
-    }
 
     const accountToAssetsMap = new Map<string, Record<string, Balance>>();
 

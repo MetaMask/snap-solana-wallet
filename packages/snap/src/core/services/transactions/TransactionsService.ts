@@ -126,40 +126,10 @@ export class TransactionsService {
       [],
     );
 
-    /**
-     * Populate token metadata on the `from` and `to` arrays
-     * 1. Go through each `from` and `to` element and collect all CAIP 19 IDs for the assets that we need metadata for.
-     * 2. Fetch the metadata for this array of CAIP 19 IDs.
-     * 3. Map the metadata to the `from` and `to` arrays.
-     */
-    const caip19Ids = [
-      ...new Set(
-        mappedTransactionsData.flatMap(({ from, to }) => [
-          ...from
-            .filter((item) => item.asset?.fungible)
-            .map((item) => (item.asset as { type: CaipAssetType }).type),
-          ...to
-            .filter((item) => item.asset?.fungible)
-            .map((item) => (item.asset as { type: CaipAssetType }).type),
-        ]),
-      ),
-    ];
-    const tokenMetadata = await this.#tokenMetadataService.getTokensMetadata(
-      caip19Ids,
-    );
-    mappedTransactionsData.forEach((transaction) => {
-      transaction.from.forEach((from) => {
-        if (from.asset?.fungible && tokenMetadata[from.asset.type]) {
-          from.asset.unit = tokenMetadata[from.asset.type]?.symbol ?? '';
-        }
+    const transactionsByAccountWithTokenMetadata =
+      await this.#populateAccountTransactionAssetUnits({
+        [address]: mappedTransactionsData,
       });
-
-      transaction.to.forEach((to) => {
-        if (to.asset?.fungible && tokenMetadata[to.asset.type]) {
-          to.asset.unit = tokenMetadata[to.asset.type]?.symbol ?? '';
-        }
-      });
-    });
 
     const next =
       signatures.length === pagination.limit
@@ -167,7 +137,7 @@ export class TransactionsService {
         : null;
 
     return {
-      data: mappedTransactionsData,
+      data: transactionsByAccountWithTokenMetadata[address] ?? [],
       next,
     };
   }
@@ -229,17 +199,6 @@ export class TransactionsService {
       }
 
       const currentState = await this.#state.get();
-      if (currentState.isFetchingTransactions) {
-        this.#logger.log(
-          '[TransactionsService] Another instance is already running',
-        );
-        return;
-      }
-
-      await this.#state.update((oldState) => ({
-        ...oldState,
-        isFetchingTransactions: true,
-      }));
 
       const transactionsByAccount = currentState.transactions;
       const existingSignatures = this.#mapExistingSignaturesSet(
@@ -257,23 +216,27 @@ export class TransactionsService {
           newSignaturesMapping,
         });
 
+      const newTransactionsByAccountWithTokenMetadata =
+        await this.#populateAccountTransactionAssetUnits(
+          newTransactionsByAccount,
+        );
+
+      await emitSnapKeyringEvent(
+        snap,
+        KeyringEvent.AccountTransactionsUpdated,
+        {
+          transactions: newTransactionsByAccountWithTokenMetadata,
+        },
+      );
+
       const updatedTransactionsByAccount = this.#mergeSortAndTrimTransactions({
         accounts,
         previousTransactionsByAccount: transactionsByAccount,
         newTransactionsByAccount,
       });
 
-      await emitSnapKeyringEvent(
-        snap,
-        KeyringEvent.AccountTransactionsUpdated,
-        {
-          transactions: newTransactionsByAccount,
-        },
-      );
-
       await this.#state.update((oldState) => ({
         ...oldState,
-        isFetchingTransactions: false,
         transactions: updatedTransactionsByAccount,
       }));
     } catch (error) {
@@ -281,10 +244,6 @@ export class TransactionsService {
         '[TransactionsService] Error. Releasing lock...',
         error,
       );
-      await this.#state.update((oldState) => ({
-        ...oldState,
-        isFetchingTransactions: false,
-      }));
     }
   }
 
@@ -486,5 +445,54 @@ export class TransactionsService {
           .slice(0, this.#configProvider.get().transactions.storageLimit),
       ]),
     );
+  }
+
+  /**
+   * Populate token metadata on the `from` and `to` arrays of each transaction.
+   * 1. Go through each `from` and `to` element and collect all CAIP 19 IDs for the assets that we need metadata for.
+   * 2. Fetch the metadata for this array of CAIP 19 IDs.
+   * 3. Map the metadata to the `from` and `to` arrays.
+   * @param transactionsByAccount - Array of mapped transactions to populate with token metadata.
+   * @returns Array of transactions with populated token metadata.
+   */
+  async #populateAccountTransactionAssetUnits(
+    transactionsByAccount: Record<string, MappedTransaction[]>,
+  ) {
+    const caip19Ids = [
+      ...new Set(
+        Object.values(transactionsByAccount).flatMap((transactions) =>
+          transactions.flatMap(({ from, to }) => [
+            ...from
+              .filter((item) => item.asset?.fungible)
+              .map((item) => (item.asset as { type: CaipAssetType }).type),
+            ...to
+              .filter((item) => item.asset?.fungible)
+              .map((item) => (item.asset as { type: CaipAssetType }).type),
+          ]),
+        ),
+      ),
+    ];
+
+    const tokenMetadata = await this.#tokenMetadataService.getTokensMetadata(
+      caip19Ids,
+    );
+
+    Object.keys(transactionsByAccount).forEach((accountId) => {
+      transactionsByAccount[accountId]?.forEach((transaction) => {
+        transaction.from.forEach((from) => {
+          if (from.asset?.fungible && tokenMetadata[from.asset.type]) {
+            from.asset.unit = tokenMetadata[from.asset.type]?.symbol ?? '';
+          }
+        });
+
+        transaction.to.forEach((to) => {
+          if (to.asset?.fungible && tokenMetadata[to.asset.type]) {
+            to.asset.unit = tokenMetadata[to.asset.type]?.symbol ?? '';
+          }
+        });
+      });
+    });
+
+    return transactionsByAccount;
   }
 }
