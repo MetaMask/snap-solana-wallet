@@ -24,11 +24,8 @@ import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/web3.js';
 import { address as asAddress, getAddressDecoder } from '@solana/web3.js';
 
-import {
-  DEFAULT_CONFIRMATION_CONTEXT,
-  renderConfirmation,
-} from '../../../features/confirmation/renderConfirmation';
 import type { AssetsService } from '../../services/assets/AssetsService';
+import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { EncryptedState } from '../../services/encrypted-state/EncryptedState';
 import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
@@ -46,7 +43,6 @@ import {
   NetworkStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
-import { ScheduleBackgroundEventMethod } from '../onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { SolanaKeyringRequestStruct } from './structs';
 
 /**
@@ -68,24 +64,29 @@ export class SolanaKeyring implements Keyring {
 
   readonly #walletService: WalletService;
 
+  readonly #confirmationHandler: ConfirmationHandler;
+
   constructor({
     state,
     logger,
     transactionsService,
     assetsService,
     walletService,
+    confirmationHandler,
   }: {
     state: EncryptedState;
     logger: ILogger;
     transactionsService: TransactionsService;
     assetsService: AssetsService;
     walletService: WalletService;
+    confirmationHandler: ConfirmationHandler;
   }) {
     this.#state = state;
     this.#logger = logger;
     this.#transactionsService = transactionsService;
     this.#assetsService = assetsService;
     this.#walletService = walletService;
+    this.#confirmationHandler = confirmationHandler;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -322,7 +323,6 @@ export class SolanaKeyring implements Keyring {
       scope,
       account: accountId,
     } = request;
-    const base64EncodedTransaction = (params as any).transaction ?? '';
 
     const account = await this.getAccountOrThrow(accountId);
 
@@ -340,65 +340,14 @@ export class SolanaKeyring implements Keyring {
       );
     }
 
-    // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
-    await snap.request({
-      method: 'snap_scheduleBackgroundEvent',
-      params: {
-        duration: 'PT1S',
-        request: {
-          method: ScheduleBackgroundEventMethod.OnTransactionAdded,
-          params: {
-            accountId,
-            base64EncodedTransaction,
-            scope,
-          },
-        },
-      },
-    });
-
-    const isConfirmed = await renderConfirmation({
-      ...DEFAULT_CONFIRMATION_CONTEXT,
-      scope,
-      method,
-      transaction: base64EncodedTransaction,
+    const isConfirmed = await this.#confirmationHandler.handleKeyringRequest(
+      request,
       account,
-    });
+    );
 
     if (!isConfirmed) {
-      // Trigger the side effects that need to happen when the transaction is rejected
-      await snap.request({
-        method: 'snap_scheduleBackgroundEvent',
-        params: {
-          duration: 'PT1S',
-          request: {
-            method: ScheduleBackgroundEventMethod.OnTransactionRejected,
-            params: {
-              accountId,
-              base64EncodedTransaction,
-              scope,
-            },
-          },
-        },
-      });
-
       return null;
     }
-
-    // Trigger the side effects that need to happen when the transaction is approved
-    await snap.request({
-      method: 'snap_scheduleBackgroundEvent',
-      params: {
-        duration: 'PT1S',
-        request: {
-          method: ScheduleBackgroundEventMethod.OnTransactionApproved,
-          params: {
-            accountId,
-            base64EncodedTransaction,
-            scope,
-          },
-        },
-      },
-    });
 
     switch (method) {
       case SolMethod.SignAndSendTransaction:

@@ -1,10 +1,10 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import { Confirmation } from '../../../../features/confirmation/Confirmation';
 import type { ConfirmationContext } from '../../../../features/confirmation/types';
+import { ConfirmSignAndSendTransaction } from '../../../../features/confirmation/views/ConfirmSignAndSendTransaction/ConfirmSignAndSendTransaction';
 import { state, transactionScanService } from '../../../../snapContext';
 import {
-  CONFIRMATION_INTERFACE_NAME,
+  CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
   getInterfaceContext,
   updateInterface,
 } from '../../../utils/interface';
@@ -19,7 +19,9 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
     const stateValue = await state.get();
     const confirmationInterfaceId =
-      stateValue?.mapInterfaceNameToId?.[CONFIRMATION_INTERFACE_NAME];
+      stateValue?.mapInterfaceNameToId?.[
+        CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME
+      ];
 
     // Update the interface context with the new rates.
     try {
@@ -55,7 +57,9 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
         await updateInterface(
           confirmationInterfaceId,
-          <Confirmation context={fetchingConfirmationContext} />,
+          <ConfirmSignAndSendTransaction
+            context={fetchingConfirmationContext}
+          />,
           fetchingConfirmationContext,
         );
 
@@ -83,7 +87,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
         await updateInterface(
           confirmationInterfaceId,
-          <Confirmation context={updatedInterfaceContext} />,
+          <ConfirmSignAndSendTransaction context={updatedInterfaceContext} />,
           updatedInterfaceContext,
         );
       }
@@ -109,7 +113,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
       await updateInterface(
         confirmationInterfaceId,
-        <Confirmation context={fetchingConfirmationContext} />,
+        <ConfirmSignAndSendTransaction context={fetchingConfirmationContext} />,
         fetchingConfirmationContext,
       );
 

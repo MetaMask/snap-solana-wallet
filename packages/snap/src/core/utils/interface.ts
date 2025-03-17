@@ -11,10 +11,11 @@ import type {
 
 import type { ScheduleBackgroundEventMethod } from '../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { Preferences } from '../types/snap';
-import type { Locale } from './i18n';
 
 export const SEND_FORM_INTERFACE_NAME = 'send-form';
-export const CONFIRMATION_INTERFACE_NAME = 'confirmation';
+export const CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME =
+  'confirm-sign-and-send-transaction';
+export const CONFIRM_SIGN_MESSAGE_INTERFACE_NAME = 'confirm-sign-message';
 
 /**
  * Creates an interface using the provided UI component and context.
@@ -116,10 +117,7 @@ export async function showDialog(id: string): Promise<DialogResult> {
  *
  * @returns A promise that resolves to snap preferences.
  */
-export async function getPreferences(): Promise<{
-  locale: Locale;
-  currency: string;
-}> {
+export async function getPreferences(): Promise<Preferences> {
   return snap.request({
     method: 'snap_getPreferences',
   }) as Promise<Preferences>;

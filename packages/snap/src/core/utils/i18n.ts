@@ -6,7 +6,7 @@ export const locales = {
   es: es.messages,
 };
 
-const FALLBACK_LANGUAGE: Locale = 'en';
+export const FALLBACK_LANGUAGE: Locale = 'en';
 
 export type Locale = keyof typeof locales;
 export type LocalizedMessage = keyof (typeof locales)[typeof FALLBACK_LANGUAGE];

@@ -13,9 +13,10 @@ import { Advanced } from '../../components/Advanced/Advanced';
 import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';
 import { TransactionAlert } from '../../components/TransactionAlert/TransactionAlert';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
-import { ConfirmationFormNames, type ConfirmationContext } from '../../types';
+import { type ConfirmationContext } from '../../types';
+import { ConfirmSignAndSendTransactionFormNames } from './events';
 
-export const ConfirmTransaction: SnapComponent<{
+export const ConfirmSignAndSendTransaction: SnapComponent<{
   context: ConfirmationContext;
 }> = ({ context }) => {
   const translate = i18n(context.preferences.locale);
@@ -62,10 +63,13 @@ export const ConfirmTransaction: SnapComponent<{
         />
       </Box>
       <Footer>
-        <Button name={ConfirmationFormNames.Cancel}>
+        <Button name={ConfirmSignAndSendTransactionFormNames.Cancel}>
           {translate('confirmation.cancelButton')}
         </Button>
-        <Button name={ConfirmationFormNames.Confirm} disabled={scanIsFetching}>
+        <Button
+          name={ConfirmSignAndSendTransactionFormNames.Confirm}
+          disabled={scanIsFetching}
+        >
           {translate('confirmation.confirmButton')}
         </Button>
       </Footer>

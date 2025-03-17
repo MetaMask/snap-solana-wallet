@@ -5,6 +5,7 @@ import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
+import { ConfirmationHandler } from './core/services/confirmation/ConfirmationHandler';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { EncryptedState } from './core/services/encrypted-state/EncryptedState';
 import { FromBase64EncodedBuilder } from './core/services/execution/builders/FromBase64EncodedBuilder';
@@ -38,6 +39,7 @@ export type SnapExecutionContext = {
   walletService: WalletService;
   transactionScanService: TransactionScanService;
   analyticsService: AnalyticsService;
+  confirmationHandler: ConfirmationHandler;
 };
 
 const configProvider = new ConfigProvider();
@@ -92,12 +94,15 @@ const transactionScanService = new TransactionScanService(
   logger,
 );
 
+const confirmationHandler = new ConfirmationHandler(snap);
+
 const keyring = new SolanaKeyring({
   state,
   transactionsService,
   logger,
   assetsService,
   walletService,
+  confirmationHandler,
 });
 
 const tokenPricesService = new TokenPricesService(priceApiClient);
@@ -119,12 +124,14 @@ const snapContext: SnapExecutionContext = {
   walletService,
   transactionScanService,
   analyticsService,
+  confirmationHandler,
 };
 
 export {
   analyticsService,
   assetsService,
   configProvider,
+  confirmationHandler,
   connection,
   fromBase64EncodedBuilder,
   keyring,

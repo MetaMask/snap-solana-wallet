@@ -1,6 +1,7 @@
 import { Button, IconButton, Link, Table } from '@chakra-ui/react';
 import {
   KeyringRpcMethod,
+  SolMethod,
   type Balance,
   type KeyringAccount,
 } from '@metamask/keyring-api';
@@ -10,6 +11,7 @@ import { LuCopy } from 'react-icons/lu';
 
 import type { Network } from '../../../../snap/src/core/constants/solana';
 import { RpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
+import { buildUrl } from '../../../../snap/src/core/utils/buildUrl';
 import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
@@ -52,6 +54,68 @@ export const AccountRow = ({
     });
   };
 
+  const handleSwap = async () => {
+    const url = buildUrl({
+      baseUrl: 'https://li.quest',
+      path: '/v1/quote',
+      queryParams: {
+        fromChain: 'SOL',
+        toChain: 'SOL',
+        fromToken: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        toToken: 'So11111111111111111111111111111111111111112',
+        fromAddress: account.address,
+        toAddress: account.address,
+        fromAmount: '10000',
+      },
+    });
+
+    const lifiQuote = await fetch(url).then(async (quote) => quote.json());
+
+    await invokeKeyring({
+      method: KeyringRpcMethod.SubmitRequest,
+      params: {
+        id: crypto.randomUUID(),
+        scope: network,
+        account: account.id,
+        request: {
+          method: SolMethod.SignAndSendTransaction,
+          params: {
+            transaction: lifiQuote.transactionRequest.data,
+            scope: network,
+            account: {
+              address: account.address,
+            },
+          },
+        },
+      },
+    });
+  };
+
+  const handleSignMessage = async () => {
+    const messageUtf8 =
+      "This is the message you are signing. This message might contain something like what the dapp might be able to do once you sign. It also might tell the user why they need or why they should sign this message. Maybe the user will sign the message or maybe they won't. At the end of the day its their choice.";
+    const messageBase64 = btoa(messageUtf8);
+
+    await invokeKeyring({
+      method: KeyringRpcMethod.SubmitRequest,
+      params: {
+        id: crypto.randomUUID(),
+        scope: network,
+        account: account.id,
+        request: {
+          method: SolMethod.SignMessage,
+          params: {
+            message: messageBase64,
+            scope: network,
+            account: {
+              address: account.address,
+            },
+          },
+        },
+      },
+    });
+  };
+
   useEffect(() => {
     fetchBalance();
   }, [account.id]);
@@ -67,7 +131,9 @@ export const AccountRow = ({
   return (
     <Table.Row key={account.id}>
       <Table.Cell fontFamily="monospace">
-        <RouterLink to={`/${account.id}`}>{account.address}</RouterLink>
+        <RouterLink to={`/${account.id}`}>
+          {account.address.slice(0, 6)}...{account.address.slice(-4)}
+        </RouterLink>
         <IconButton
           marginLeft="1"
           onClick={() => handleCopy(account.address)}
@@ -90,6 +156,16 @@ export const AccountRow = ({
           onClick={async () => handleSend(account.id)}
         >
           Send
+        </Button>
+        <Button colorPalette="cyan" marginLeft="3" onClick={handleSwap}>
+          Swap
+        </Button>
+        <Button
+          colorPalette="orange"
+          marginLeft="3"
+          onClick={handleSignMessage}
+        >
+          Sign message
         </Button>
       </Table.Cell>
       <Table.Cell textAlign="end">

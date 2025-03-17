@@ -57,5 +57,7 @@
   "confirmation.validationErrorTitle": "This is a deceptive request",
   "confirmation.validationErrorSubtitle": "If you approve this request, a third party known for scams will take all your assets.",
   "confirmation.validationErrorLearnMore": "Learn more",
-  "confirmation.validationErrorSecurityAdviced": "Security advice by"
+  "confirmation.validationErrorSecurityAdviced": "Security advice by",
+  "confirmSignMessage.title": "Sign message",
+  "confirmSignMessage.message": "Message"
 }

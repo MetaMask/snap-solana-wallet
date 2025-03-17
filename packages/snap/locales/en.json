@@ -177,6 +177,12 @@
     },
     "confirmation.validationErrorSecurityAdviced": {
       "message": "Security advice by"
+    },
+    "confirmSignMessage.title": {
+      "message": "Sign message"
+    },
+    "confirmSignMessage.message": {
+      "message": "Message"
     }
   }
 }

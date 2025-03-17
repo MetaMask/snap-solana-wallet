@@ -2,8 +2,8 @@ import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
-import { Confirmation } from '../../Confirmation';
-import { type ConfirmationContext, ConfirmationFormNames } from '../../types';
+import { type ConfirmationContext } from '../../types';
+import { ConfirmSignAndSendTransaction } from './ConfirmSignAndSendTransaction';
 
 /**
  * Handles the click event for the show advanced button.
@@ -29,7 +29,7 @@ async function onShowAdvancedButtonClick({
 
   await updateInterface(
     id,
-    <Confirmation context={updatedContext} />,
+    <ConfirmSignAndSendTransaction context={updatedContext} />,
     updatedContext,
   );
 }
@@ -54,8 +54,15 @@ async function onConfirmButtonClick({ id }: { id: string }) {
   await resolveInterface(id, true);
 }
 
+export enum ConfirmSignAndSendTransactionFormNames {
+  ShowAdvanced = 'confirm-sign-and-send-transaction-show-advanced',
+  Cancel = 'confirm-sign-and-send-transaction-cancel',
+  Confirm = 'confirm-sign-and-send-transaction-confirm',
+}
+
 export const eventHandlers = {
-  [ConfirmationFormNames.ShowAdvanced]: onShowAdvancedButtonClick,
-  [ConfirmationFormNames.Cancel]: onCancelButtonClick,
-  [ConfirmationFormNames.Confirm]: onConfirmButtonClick,
+  [ConfirmSignAndSendTransactionFormNames.ShowAdvanced]:
+    onShowAdvancedButtonClick,
+  [ConfirmSignAndSendTransactionFormNames.Cancel]: onCancelButtonClick,
+  [ConfirmSignAndSendTransactionFormNames.Confirm]: onConfirmButtonClick,
 };

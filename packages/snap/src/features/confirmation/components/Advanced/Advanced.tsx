@@ -3,7 +3,8 @@ import { Box, Button, Icon, type SnapComponent } from '@metamask/snaps-sdk/jsx';
 import type { Network } from '../../../../core/constants/solana';
 import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
-import { ConfirmationFormNames, type SolanaInstruction } from '../../types';
+import { type SolanaInstruction } from '../../types';
+import { ConfirmSignAndSendTransactionFormNames } from '../../views/ConfirmSignAndSendTransaction/events';
 import { Instruction } from '../Instruction/Instruction';
 
 type AdvancedProps = {
@@ -26,7 +27,7 @@ export const Advanced: SnapComponent<AdvancedProps> = ({
 
   return (
     <Box alignment="start">
-      <Button name={ConfirmationFormNames.ShowAdvanced}>
+      <Button name={ConfirmSignAndSendTransactionFormNames.ShowAdvanced}>
         {translate(`confirmation.advanced.${showInstructionsMode}`)}
         <Icon name={instructionsModeIcon} color="primary" />
       </Button>
