@@ -106,7 +106,6 @@ export const AccountRow = ({
           method: SolMethod.SignMessage,
           params: {
             message: messageBase64,
-            scope: network,
             account: {
               address: account.address,
             },

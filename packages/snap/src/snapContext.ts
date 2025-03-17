@@ -94,7 +94,7 @@ const transactionScanService = new TransactionScanService(
   logger,
 );
 
-const confirmationHandler = new ConfirmationHandler(snap);
+const confirmationHandler = new ConfirmationHandler();
 
 const keyring = new SolanaKeyring({
   state,

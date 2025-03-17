@@ -1,5 +1,4 @@
 import { SolMethod } from '@metamask/keyring-api';
-import type { SnapsProvider } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
 import {
@@ -22,12 +21,6 @@ import {
  * It is responsible for rendering the confirmation UI and handling the side effects that need to happen when the transaction is shown in confirmation UI.
  */
 export class ConfirmationHandler {
-  readonly #snap: SnapsProvider;
-
-  constructor(_snap: SnapsProvider) {
-    this.#snap = _snap;
-  }
-
   /**
    * Handles the confirmation of a request, based on the method of the request.
    * Renders the appropriate confirmation UI for the request, and returns whether the request was confirmed.
@@ -79,7 +72,7 @@ export class ConfirmationHandler {
     const base64EncodedTransaction = (params as any).transaction ?? '';
 
     // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
-    await this.#snap.request({
+    await snap.request({
       method: 'snap_scheduleBackgroundEvent',
       params: {
         duration: 'PT1S',

@@ -1,6 +1,7 @@
 import type { KeyringRequest } from '@metamask/keyring-api';
 import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
 import { installSnap } from '@metamask/snaps-jest';
+import { getBase64Codec, getUtf8Codec } from '@solana/web3.js';
 
 import { KnownCaip19Id, Network } from '../../core/constants/solana';
 import type { SolanaKeyringRequest } from '../../core/handlers/onKeyringRequest/structs';
@@ -13,6 +14,7 @@ import {
   MOCK_SCAN_TRANSACTION_RESPONSE,
   MOCK_SECURITY_ALERTS_API_SCAN_TRANSACTIONS_RESPONSE,
 } from '../../core/services/mocks/scanResponses';
+import { SOL_IMAGE_SVG } from '../../core/test/mocks/solana-image-svg';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -25,6 +27,7 @@ import { TEST_ORIGIN } from '../../core/test/utils';
 import { DEFAULT_CONFIRMATION_CONTEXT } from './render';
 import type { ConfirmationContext } from './types';
 import { ConfirmSignAndSendTransaction } from './views/ConfirmSignAndSendTransaction/ConfirmSignAndSendTransaction';
+import { ConfirmSignMessage } from './views/ConfirmSignMessage/ConfirmSignMessage';
 
 const mockConfirmationContext: ConfirmationContext = {
   ...DEFAULT_CONFIRMATION_CONTEXT,
@@ -44,18 +47,18 @@ const mockConfirmationContext: ConfirmationContext = {
 };
 
 describe('render', () => {
+  let mockSolanaRpc: MockSolanaRpc;
+
+  beforeAll(() => {
+    mockSolanaRpc = startMockSolanaRpc();
+  });
+
+  afterAll(() => {
+    mockSolanaRpc.shutdown();
+  });
+
   // FIXME: OnKeyringRequest doesnt let us test the confirmation dialog
   describe('renderConfirmationSignAndSendTransaction', () => {
-    let mockSolanaRpc: MockSolanaRpc;
-
-    beforeAll(() => {
-      mockSolanaRpc = startMockSolanaRpc();
-    });
-
-    afterAll(() => {
-      mockSolanaRpc.shutdown();
-    });
-
     it('renders the confirmation dialog', async () => {
       const { mockResolvedResult, server } = mockSolanaRpc;
 
@@ -142,6 +145,63 @@ describe('render', () => {
 
       expect(screen1).toRender(
         <ConfirmSignAndSendTransaction context={mockConfirmationContext} />,
+      );
+    });
+  });
+
+  describe('renderConfirmSignMessage', () => {
+    it('renders the confirmation dialog', async () => {
+      const { onKeyringRequest, mockJsonRpc } = await installSnap();
+
+      mockJsonRpc({
+        method: 'snap_manageState',
+        result: {
+          keyringAccounts: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          },
+        },
+      });
+
+      mockJsonRpc({
+        method: 'snap_getPreferences',
+        result: { locale: 'en', currency: 'usd' },
+      });
+
+      const mockMessageUtf8 = 'Hello, world!';
+      const mockMessageBytes = getUtf8Codec().encode(mockMessageUtf8);
+      const mockMessageBase64 = getBase64Codec().decode(mockMessageBytes);
+
+      const request: SolanaKeyringRequest = {
+        id: globalThis.crypto.randomUUID(),
+        scope: Network.Testnet,
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        request: {
+          method: SolMethod.SignMessage,
+          params: {
+            message: mockMessageBase64,
+            account: {
+              address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+            },
+          },
+        },
+      };
+
+      const response = onKeyringRequest({
+        origin: TEST_ORIGIN,
+        method: KeyringRpcMethod.SubmitRequest,
+        params: request as unknown as KeyringRequest,
+      });
+
+      const screen = await (response as any).getInterface();
+
+      expect(screen).toRender(
+        <ConfirmSignMessage
+          message={mockMessageUtf8}
+          account={MOCK_SOLANA_KEYRING_ACCOUNT_0}
+          scope={Network.Testnet}
+          locale={'en'}
+          networkImage={SOL_IMAGE_SVG}
+        />,
       );
     });
   });

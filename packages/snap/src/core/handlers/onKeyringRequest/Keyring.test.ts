@@ -2,7 +2,10 @@
 /* eslint-disable jest/prefer-strict-equal */
 import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
 import { SLIP10Node } from '@metamask/key-tree';
-import type { ResolveAccountAddressRequest } from '@metamask/keyring-api';
+import type {
+  KeyringRequest,
+  ResolveAccountAddressRequest,
+} from '@metamask/keyring-api';
 import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
 import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
@@ -10,6 +13,7 @@ import { type Json } from '@metamask/snaps-sdk';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfigProvider } from '../../services/config';
+import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { SolanaConnection } from '../../services/connection/SolanaConnection';
 import type { EncryptedStateValue } from '../../services/encrypted-state/EncryptedState';
 import { EncryptedState } from '../../services/encrypted-state/EncryptedState';
@@ -35,8 +39,6 @@ import {
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import { SolanaKeyring } from './Keyring';
-
-jest.mock('../../../features/confirmation/renderConfirmation');
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   ...jest.requireActual('@metamask/keyring-snap-sdk'),
@@ -67,6 +69,7 @@ describe('SolanaKeyring', () => {
   let mockTokenMetadataService: TokenMetadataService;
   let mockWalletService: WalletService;
   let mockAssetsService: AssetsService;
+  let mockConfirmationHandler: ConfirmationHandler;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -112,12 +115,17 @@ describe('SolanaKeyring', () => {
       signAndSendTransaction: jest.fn(),
     } as unknown as WalletService;
 
+    mockConfirmationHandler = {
+      handleKeyringRequest: jest.fn(),
+    } as unknown as ConfirmationHandler;
+
     keyring = new SolanaKeyring({
       state,
       logger,
       transactionsService,
       assetsService: mockAssetsService,
       walletService: mockWalletService,
+      confirmationHandler: mockConfirmationHandler,
     });
 
     // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
@@ -623,6 +631,74 @@ describe('SolanaKeyring', () => {
       ).rejects.toThrow(
         `Scope "${Network.Mainnet}" does not match "${Network.Devnet}" in request.params`,
       );
+    });
+
+    it('calls the confirmation handler, and calls the wallet service if confirmed', async () => {
+      const snap = {
+        request: jest.fn().mockResolvedValue({
+          keyringAccounts: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          },
+        }),
+      };
+
+      (globalThis as any).snap = snap;
+
+      jest
+        .spyOn(mockConfirmationHandler, 'handleKeyringRequest')
+        .mockResolvedValue(true);
+
+      const request: KeyringRequest = {
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        id: crypto.randomUUID(),
+        request: {
+          method: SolMethod.SignMessage,
+          params: {
+            account: {
+              address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+            },
+            message: 'SGVsbG8sIHdvcmxkIQ==', // "Hello, world!" in base64
+          },
+        },
+        scope: Network.Testnet,
+      };
+
+      await keyring.submitRequest(request);
+
+      expect(mockConfirmationHandler.handleKeyringRequest).toHaveBeenCalledWith(
+        request,
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+      );
+
+      expect(mockWalletService.signMessage).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        request,
+      );
+    });
+
+    it('returns null if the confirmation handler returns false', async () => {
+      jest
+        .spyOn(mockConfirmationHandler, 'handleKeyringRequest')
+        .mockResolvedValue(false);
+
+      const request: KeyringRequest = {
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        id: crypto.randomUUID(),
+        request: {
+          method: SolMethod.SignMessage,
+          params: {
+            account: {
+              address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+            },
+            message: 'SGVsbG8sIHdvcmxkIQ==', // "Hello, world!" in base64
+          },
+        },
+        scope: Network.Testnet,
+      };
+
+      const result = await keyring.submitRequest(request);
+
+      expect(result).toStrictEqual({ pending: false, result: null });
     });
   });
 });
