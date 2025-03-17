@@ -461,14 +461,11 @@ export class TransactionsService {
     const caip19Ids = [
       ...new Set(
         Object.values(transactionsByAccount).flatMap((transactions) =>
-          transactions.flatMap(({ from, to }) => [
-            ...from
+          transactions.flatMap(({ from, to }) =>
+            [...from, ...to]
               .filter((item) => item.asset?.fungible)
               .map((item) => (item.asset as { type: CaipAssetType }).type),
-            ...to
-              .filter((item) => item.asset?.fungible)
-              .map((item) => (item.asset as { type: CaipAssetType }).type),
-          ]),
+          ),
         ),
       ),
     ];
