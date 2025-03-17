@@ -115,6 +115,40 @@ export const AccountRow = ({
     });
   };
 
+  const handleSignIn = async () => {
+    const requestId = crypto.randomUUID();
+    const params = {
+      domain: 'example.com',
+      address: account.address,
+      statement: 'I accept the terms of service',
+      uri: 'https://example.com/login',
+      version: '1',
+      chainId: 'solana:101',
+      nonce: '32891756',
+      issuedAt: '2024-01-01T00:00:00.000Z',
+      expirationTime: '2024-01-02T00:00:00.000Z',
+      notBefore: '2023-12-31T00:00:00.000Z',
+      requestId,
+      resources: [
+        'ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/',
+        'https://example.com/my-web2-claim.json',
+      ],
+    };
+
+    await invokeKeyring({
+      method: KeyringRpcMethod.SubmitRequest,
+      params: {
+        id: requestId,
+        scope: network,
+        account: account.id,
+        request: {
+          method: SolMethod.SignIn,
+          params,
+        },
+      },
+    });
+  };
+
   useEffect(() => {
     fetchBalance();
   }, [account.id]);
@@ -165,6 +199,9 @@ export const AccountRow = ({
           onClick={handleSignMessage}
         >
           Sign message
+        </Button>
+        <Button colorPalette="green" marginLeft="3" onClick={handleSignIn}>
+          Sign In
         </Button>
       </Table.Cell>
       <Table.Cell textAlign="end">

@@ -4,6 +4,7 @@ import { assert } from '@metamask/superstruct';
 import {
   DEFAULT_CONFIRMATION_CONTEXT,
   renderConfirmSignAndSendTransaction,
+  renderConfirmSignIn,
   renderConfirmSignMessage,
 } from '../../../features/confirmation/render';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
@@ -11,7 +12,6 @@ import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyri
 import type { SolanaKeyringRequest } from '../../handlers/onKeyringRequest/structs';
 import {
   SolanaSignAndSendTransactionRequestStruct,
-  SolanaSignInRequestStruct,
   SolanaSignTransactionRequestStruct,
 } from '../wallet/structs';
 
@@ -176,8 +176,7 @@ export class ConfirmationHandler {
     request: SolanaKeyringRequest,
     account: SolanaKeyringAccount,
   ): Promise<boolean> {
-    assert(request.request, SolanaSignInRequestStruct);
-
-    return true;
+    const isConfirmed = await renderConfirmSignIn(request, account);
+    return Boolean(isConfirmed);
   }
 }

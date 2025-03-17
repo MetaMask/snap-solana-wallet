@@ -16,6 +16,7 @@ export const SEND_FORM_INTERFACE_NAME = 'send-form';
 export const CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME =
   'confirm-sign-and-send-transaction';
 export const CONFIRM_SIGN_MESSAGE_INTERFACE_NAME = 'confirm-sign-message';
+export const CONFIRM_SIGN_IN_INTERFACE_NAME = 'confirm-sign-in';
 
 /**
  * Creates an interface using the provided UI component and context.

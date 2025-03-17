@@ -58,6 +58,21 @@
   "confirmation.validationErrorSubtitle": "If you approve this request, a third party known for scams will take all your assets.",
   "confirmation.validationErrorLearnMore": "Learn more",
   "confirmation.validationErrorSecurityAdviced": "Security advice by",
-  "confirmSignMessage.title": "Sign message",
-  "confirmSignMessage.message": "Message"
+  "confirmation.signMessage.title": "Sign message",
+  "confirmation.signMessage.message": "Message",
+  "confirmation.signIn.title": "Sign-in request",
+  "confirmation.signIn.description": "A site wants you to sign in to prove you own this account.",
+  "confirmation.signIn.requestFrom": "Request from",
+  "confirmation.signIn.signingInWith": "Signing in with",
+  "confirmation.signIn.message": "Message",
+  "confirmation.signIn.messageDescription": "Please sign this message to confirm your identity.",
+  "confirmation.signIn.statement": "Statement",
+  "confirmation.signIn.version": "Version",
+  "confirmation.signIn.chainId": "Chain ID",
+  "confirmation.signIn.nonce": "Nonce",
+  "confirmation.signIn.issuedAt": "Issued at",
+  "confirmation.signIn.expirationTime": "Expiration time",
+  "confirmation.signIn.notBefore": "Not before",
+  "confirmation.signIn.requestId": "Request ID",
+  "confirmation.signIn.resources": "Resources"
 }

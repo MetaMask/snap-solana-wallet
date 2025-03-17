@@ -43,14 +43,16 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
       <Box>
         <Box alignment="center" center>
           <Box>{null}</Box>
-          <Heading size="lg">{translate('confirmSignMessage.title')}</Heading>
+          <Heading size="lg">
+            {translate('confirmation.signMessage.title')}
+          </Heading>
           <Box>{null}</Box>
         </Box>
 
         <Section>
           <Box direction="horizontal" center>
             <Text fontWeight="medium">
-              {translate('confirmSignMessage.message')}
+              {translate('confirmation.signMessage.message')}
             </Text>
           </Box>
           <Box alignment="space-between">
@@ -88,10 +90,7 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
         <Button name={ConfirmSignMessageFormNames.Cancel}>
           {translate('confirmation.cancelButton')}
         </Button>
-        <Button
-          name={ConfirmSignMessageFormNames.Confirm}
-          //   disabled={scanIsFetching}
-        >
+        <Button name={ConfirmSignMessageFormNames.Confirm}>
           {translate('confirmation.confirmButton')}
         </Button>
       </Footer>

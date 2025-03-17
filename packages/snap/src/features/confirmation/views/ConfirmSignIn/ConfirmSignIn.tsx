@@ -1,0 +1,193 @@
+import {
+  Address,
+  Box,
+  Button,
+  Container,
+  Footer,
+  Heading,
+  Image,
+  Section,
+  Text,
+  type SnapComponent,
+} from '@metamask/snaps-sdk/jsx';
+
+import { Networks, type Network } from '../../../../core/constants/solana';
+import type { SolanaKeyringAccount } from '../../../../core/handlers/onKeyringRequest/Keyring';
+import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
+import type { Preferences } from '../../../../core/types/snap';
+import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
+import { i18n } from '../../../../core/utils/i18n';
+import { BasicNullableField } from '../../components/BasicNullableField/BasicNullableField';
+import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';
+import { ConfirmSignInFormNames } from './events';
+
+export type ConfirmSignInProps = {
+  params: Partial<{
+    domain: string;
+    address: string;
+    statement: string;
+    uri: string;
+    version: string;
+    chainId: string;
+    nonce: string;
+    issuedAt: string;
+    expirationTime: string;
+    notBefore: string;
+    requestId: string;
+    resources: string[];
+  }>;
+  account: SolanaKeyringAccount;
+  scope: Network;
+  preferences: Preferences;
+  networkImage: string | null;
+};
+
+export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
+  params,
+  account,
+  scope,
+  preferences,
+  networkImage,
+}) => {
+  const translate = i18n(preferences.locale);
+  const addressCaip10 = addressToCaip10(scope, account.address);
+
+  const {
+    domain,
+    statement,
+    uri,
+    version,
+    chainId,
+    nonce,
+    issuedAt,
+    expirationTime,
+    notBefore,
+    requestId,
+    resources,
+  } = params;
+
+  return (
+    <Container>
+      <Box>
+        <Box alignment="center" center>
+          <Box>{null}</Box>
+          <Heading size="lg">{translate('confirmation.signIn.title')}</Heading>
+          <Text color="muted" alignment="center">
+            {translate('confirmation.signIn.description')}
+          </Text>
+          <Box>{null}</Box>
+        </Box>
+
+        <EstimatedChanges
+          changes={null}
+          scanStatus={null}
+          preferences={preferences}
+          scanFetchStatus="fetched"
+        />
+
+        <Section>
+          <Box alignment="space-between" direction="horizontal">
+            <Text fontWeight="medium">
+              {translate('confirmation.signIn.requestFrom')}
+            </Text>
+            <Text>{domain ?? 'Unknown domain'}</Text>
+          </Box>
+
+          <Box alignment="space-between" direction="horizontal">
+            <Text fontWeight="medium">
+              {translate('confirmation.signIn.signingInWith')}
+            </Text>
+            <Address address={addressCaip10} truncate displayName avatar />
+          </Box>
+        </Section>
+
+        <Box>{null}</Box>
+
+        <Section>
+          <Text fontWeight="medium">
+            {translate('confirmation.signIn.message')}
+          </Text>
+          <Text>{translate('confirmation.signIn.messageDescription')}</Text>
+
+          <BasicNullableField label="URL" value={uri} />
+
+          <Box alignment="space-between" direction="horizontal">
+            <Text fontWeight="medium" color="alternative">
+              {translate('confirmation.network')}
+            </Text>
+            <Box direction="horizontal" alignment="center">
+              <Box alignment="center" center>
+                <Image
+                  borderRadius="medium"
+                  src={networkImage ?? SOL_IMAGE_SVG}
+                />
+              </Box>
+              <Text>{Networks[scope].name}</Text>
+            </Box>
+          </Box>
+
+          <Box alignment="space-between" direction="horizontal">
+            <Text fontWeight="medium" color="alternative">
+              {translate('confirmation.account')}
+            </Text>
+            <Address address={addressCaip10} truncate displayName avatar />
+          </Box>
+
+          <BasicNullableField
+            label={translate('confirmation.signIn.statement')}
+            value={statement}
+          />
+          <BasicNullableField
+            label={translate('confirmation.signIn.version')}
+            value={version}
+          />
+          <BasicNullableField
+            label={translate('confirmation.signIn.chainId')}
+            value={chainId}
+          />
+          <BasicNullableField
+            label={translate('confirmation.signIn.nonce')}
+            value={nonce}
+          />
+          <BasicNullableField
+            label={translate('confirmation.signIn.issuedAt')}
+            value={issuedAt}
+          />
+          <BasicNullableField
+            label={translate('confirmation.signIn.expirationTime')}
+            value={expirationTime}
+          />
+          <BasicNullableField
+            label={translate('confirmation.signIn.notBefore')}
+            value={notBefore}
+          />
+          <BasicNullableField
+            label={translate('confirmation.signIn.requestId')}
+            value={requestId}
+          />
+
+          {resources && resources.length > 0 ? (
+            <Box alignment="space-between" direction="vertical">
+              <Text fontWeight="medium" color="alternative">
+                {translate('confirmation.signIn.resources')}
+              </Text>
+              <Box direction="vertical">
+                {resources.map((resource) => (
+                  <Text key={resource}>{resource}</Text>
+                ))}
+              </Box>
+            </Box>
+          ) : null}
+        </Section>
+      </Box>
+      <Footer>
+        <Button name={ConfirmSignInFormNames.Cancel}>
+          {translate('confirmation.cancelButton')}
+        </Button>
+        <Button name={ConfirmSignInFormNames.Confirm}>
+          {translate('confirmation.confirmButton')}
+        </Button>
+      </Footer>
+    </Container>
+  );
+};

@@ -30,6 +30,7 @@ import { getClientStatus, getInterfaceContext } from './core/utils/interface';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { eventHandlers as confirmSignAndSendTransactionEvents } from './features/confirmation/views/ConfirmSignAndSendTransaction/events';
+import { eventHandlers as confirmSignInEvents } from './features/confirmation/views/ConfirmSignIn/events';
 import { eventHandlers as confirmSignMessageEvents } from './features/confirmation/views/ConfirmSignMessage/events';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
@@ -148,6 +149,7 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
     ...transactionConfirmationEvents,
     ...confirmSignAndSendTransactionEvents,
     ...confirmSignMessageEvents,
+    ...confirmSignInEvents,
   };
 
   const handler = uiEventHandlers[event.name];

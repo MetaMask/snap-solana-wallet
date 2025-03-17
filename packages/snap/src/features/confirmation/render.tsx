@@ -5,13 +5,17 @@ import { getBase64Codec, getUtf8Codec } from '@solana/web3.js';
 import { Network, Networks } from '../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../core/handlers/onKeyringRequest/Keyring';
 import type { SolanaKeyringRequest } from '../../core/handlers/onKeyringRequest/structs';
-import { SolanaSignMessageRequestStruct } from '../../core/services/wallet/structs';
+import {
+  SolanaSignInRequestStruct,
+  SolanaSignMessageRequestStruct,
+} from '../../core/services/wallet/structs';
 import { SOL_IMAGE_SVG } from '../../core/test/mocks/solana-image-svg';
 import { lamportsToSol } from '../../core/utils/conversion';
 import { FALLBACK_LANGUAGE } from '../../core/utils/i18n';
 import { parseInstructions } from '../../core/utils/instructions';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
+  CONFIRM_SIGN_IN_INTERFACE_NAME,
   CONFIRM_SIGN_MESSAGE_INTERFACE_NAME,
   createInterface,
   getPreferences,
@@ -26,6 +30,8 @@ import {
 } from '../../snapContext';
 import type { ConfirmationContext } from './types';
 import { ConfirmSignAndSendTransaction } from './views/ConfirmSignAndSendTransaction/ConfirmSignAndSendTransaction';
+import type { ConfirmSignInProps } from './views/ConfirmSignIn/ConfirmSignIn';
+import { ConfirmSignIn } from './views/ConfirmSignIn/ConfirmSignIn';
 import { ConfirmSignMessage } from './views/ConfirmSignMessage/ConfirmSignMessage';
 
 export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmationContext = {
@@ -233,6 +239,50 @@ export async function renderConfirmSignMessage(
     mapInterfaceNameToId: {
       ...(_state?.mapInterfaceNameToId ?? {}),
       [CONFIRM_SIGN_MESSAGE_INTERFACE_NAME]: id,
+    },
+  }));
+
+  return dialogPromise;
+}
+
+/**
+ * Renders the confirmation dialog for a sign in request.
+ *
+ * @param request - The request to confirm.
+ * @param account - The account that the request is for.
+ * @returns The confirmation dialog.
+ */
+export async function renderConfirmSignIn(
+  request: SolanaKeyringRequest,
+  account: SolanaKeyringAccount,
+) {
+  assert(request.request, SolanaSignInRequestStruct);
+
+  const {
+    request: { params },
+    scope,
+  } = request;
+
+  const preferences = await getPreferences();
+
+  const id = await createInterface(
+    <ConfirmSignIn
+      params={params as ConfirmSignInProps['params']}
+      account={account}
+      scope={scope}
+      preferences={preferences}
+      networkImage={SOL_IMAGE_SVG}
+    />,
+    {},
+  );
+
+  const dialogPromise = showDialog(id);
+
+  await state.update((_state) => ({
+    ..._state,
+    mapInterfaceNameToId: {
+      ...(_state?.mapInterfaceNameToId ?? {}),
+      [CONFIRM_SIGN_IN_INTERFACE_NAME]: id,
     },
   }));
 
