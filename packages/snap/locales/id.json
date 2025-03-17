@@ -40,6 +40,9 @@
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "Jumlah harus lebih besar dari {minimumValue}"
     },
+    "send.insuffientSolToCoverFee": {
+      "message": "Insufficient SOL balance to cover the transaction fee"
+    },
     "send.toRequiredError": {
       "message": "Alamat kirim diperlukan"
     },

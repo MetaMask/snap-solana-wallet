@@ -40,6 +40,9 @@
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "금액은 {minimumValue}보다 커야 합니다"
     },
+    "send.insuffientSolToCoverFee": {
+      "message": "Insufficient SOL balance to cover the transaction fee"
+    },
     "send.toRequiredError": {
       "message": "수신 주소는 필수입니다"
     },

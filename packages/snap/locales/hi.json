@@ -40,6 +40,9 @@
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "राशि {minimumValue} से ज़्यादा होनी चाहिए"
     },
+    "send.insuffientSolToCoverFee": {
+      "message": "Insufficient SOL balance to cover the transaction fee"
+    },
     "send.toRequiredError": {
       "message": "जिसको भेजा जा रहा है उसका एड्रेस होना चाहिए"
     },

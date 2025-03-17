@@ -40,6 +40,9 @@
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "Betrag muss größer sein als {minimumValue}"
     },
+    "send.insuffientSolToCoverFee": {
+      "message": "Insufficient SOL balance to cover the transaction fee"
+    },
     "send.toRequiredError": {
       "message": "Adresse des Empfängers ist erforderlich"
     },

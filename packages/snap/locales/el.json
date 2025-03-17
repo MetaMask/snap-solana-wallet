@@ -40,6 +40,9 @@
     "send.amountGreatherThanMinimumBalanceForRentExemptionError": {
       "message": "Το ποσό πρέπει να είναι μεγαλύτερο από {minimumValue}"
     },
+    "send.insuffientSolToCoverFee": {
+      "message": "Insufficient SOL balance to cover the transaction fee"
+    },
     "send.toRequiredError": {
       "message": "Απαιτείται η διεύθυνση"
     },
