@@ -90,7 +90,9 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
             <Text fontWeight="medium">
               {translate('confirmation.signIn.requestFrom')}
             </Text>
-            <Text>{domain ?? 'Unknown domain'}</Text>
+            <Text>
+              {domain ?? translate('confirmation.signIn.unknownDomain')}
+            </Text>
           </Box>
 
           <Box alignment="space-between" direction="horizontal">

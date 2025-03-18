@@ -15,8 +15,6 @@ import { FALLBACK_LANGUAGE } from '../../core/utils/i18n';
 import { parseInstructions } from '../../core/utils/instructions';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
-  CONFIRM_SIGN_IN_INTERFACE_NAME,
-  CONFIRM_SIGN_MESSAGE_INTERFACE_NAME,
   createInterface,
   getPreferences,
   showDialog,
@@ -234,14 +232,6 @@ export async function renderConfirmSignMessage(
 
   const dialogPromise = showDialog(id);
 
-  await state.update((_state) => ({
-    ..._state,
-    mapInterfaceNameToId: {
-      ...(_state?.mapInterfaceNameToId ?? {}),
-      [CONFIRM_SIGN_MESSAGE_INTERFACE_NAME]: id,
-    },
-  }));
-
   return dialogPromise;
 }
 
@@ -277,14 +267,6 @@ export async function renderConfirmSignIn(
   );
 
   const dialogPromise = showDialog(id);
-
-  await state.update((_state) => ({
-    ..._state,
-    mapInterfaceNameToId: {
-      ...(_state?.mapInterfaceNameToId ?? {}),
-      [CONFIRM_SIGN_IN_INTERFACE_NAME]: id,
-    },
-  }));
 
   return dialogPromise;
 }

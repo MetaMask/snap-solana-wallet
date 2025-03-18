@@ -65,11 +65,13 @@ export class ConfirmationHandler {
     assert(request.request, SolanaSignAndSendTransactionRequestStruct);
 
     const {
-      request: { method, params },
+      request: {
+        method,
+        params: { transaction: base64EncodedTransaction },
+      },
       scope,
       account: accountId,
     } = request;
-    const base64EncodedTransaction = (params as any).transaction ?? '';
 
     // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
     await snap.request({

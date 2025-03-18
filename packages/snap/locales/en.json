@@ -193,6 +193,9 @@
     "confirmation.signIn.requestFrom": {
       "message": "Request from"
     },
+    "confirmation.signIn.unknownDomain": {
+      "message": "Unknown domain"
+    },
     "confirmation.signIn.signingInWith": {
       "message": "Signing in with"
     },

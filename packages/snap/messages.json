@@ -63,6 +63,7 @@
   "confirmation.signIn.title": "Sign-in request",
   "confirmation.signIn.description": "A site wants you to sign in to prove you own this account.",
   "confirmation.signIn.requestFrom": "Request from",
+  "confirmation.signIn.unknownDomain": "Unknown domain",
   "confirmation.signIn.signingInWith": "Signing in with",
   "confirmation.signIn.message": "Message",
   "confirmation.signIn.messageDescription": "Please sign this message to confirm your identity.",
