@@ -1,7 +1,9 @@
 import type { Transaction } from '@metamask/keyring-api';
+import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import BigNumber from 'bignumber.js';
+import bs58 from 'bs58';
 
-import type { Network } from '../../../constants/solana';
+import { type Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
 import { tokenAddressToCaip19 } from '../../../utils/tokenAddressToCaip19';
 
@@ -52,7 +54,7 @@ export function parseTransactionSplTransfers({
     const postBalance = postBalances.get(accountIndex) ?? new BigNumber(0);
     const balanceDiff = postBalance.minus(preBalance);
 
-    if (balanceDiff.isEqualTo(0)) {
+    if (balanceDiff.isZero()) {
       continue;
     }
 
@@ -110,5 +112,153 @@ export function parseTransactionSplTransfers({
     }
   }
 
+  /**
+   * And now we check if there are any native transfers to the same address.
+   */
+  const nativeTransfersToSelf = parseTransactionSplTransfersToSelf({
+    scope,
+    transactionData,
+  });
+
+  if (nativeTransfersToSelf.from.length > 0) {
+    from.push(...nativeTransfersToSelf.from);
+  }
+
+  if (nativeTransfersToSelf.to.length > 0) {
+    to.push(...nativeTransfersToSelf.to);
+  }
+
   return { from, to };
+}
+
+/**
+ * Parses SPL token transfers where the sender and receiver are the same address.
+ * @param options0 - The options object.
+ * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
+ * @param options0.transactionData - The raw transaction data containing token balance changes.
+ * @returns Transaction transfer details.
+ */
+export function parseTransactionSplTransfersToSelf({
+  scope,
+  transactionData,
+}: {
+  scope: Network;
+  transactionData: SolanaTransaction;
+}): { from: Transaction['from']; to: Transaction['to'] } {
+  const { instructions } = transactionData.transaction.message;
+
+  const from: Transaction['from'] = [];
+  const to: Transaction['to'] = [];
+
+  const tokenProgramAccountIndex =
+    transactionData.transaction.message.accountKeys.findIndex(
+      (account) => account === TOKEN_PROGRAM_ADDRESS,
+    );
+
+  /**
+   * If there are no System Program instructions, then we have no native transfers.
+   */
+  if (tokenProgramAccountIndex === -1) {
+    return {
+      from,
+      to,
+    };
+  }
+
+  instructions.forEach((instruction) => {
+    const { accounts, data, programIdIndex } = instruction;
+
+    if (programIdIndex !== tokenProgramAccountIndex) {
+      return;
+    }
+
+    const [fromAccountIndex, toAccountIndex] = accounts;
+
+    if (
+      fromAccountIndex === undefined ||
+      toAccountIndex === undefined ||
+      fromAccountIndex !== toAccountIndex
+    ) {
+      return;
+    }
+
+    const fromTokenAccountAddress =
+      transactionData.transaction.message.accountKeys[fromAccountIndex];
+    const toTokenAccountAddress =
+      transactionData.transaction.message.accountKeys[toAccountIndex];
+
+    if (
+      !fromTokenAccountAddress ||
+      !toTokenAccountAddress ||
+      fromTokenAccountAddress !== toTokenAccountAddress
+    ) {
+      return;
+    }
+
+    const amount = decodeSplTransferAmount(bs58.decode(data));
+
+    /**
+     * Using the account index, we can go to the `preTokenBalances` and get the `mint` address as well as the `owner` address.
+     */
+
+    const mint = transactionData.meta?.preTokenBalances?.find(
+      (b) => b.accountIndex === fromAccountIndex,
+    )?.mint;
+
+    const owner = transactionData.meta?.preTokenBalances?.find(
+      (b) => b.accountIndex === fromAccountIndex,
+    )?.owner;
+
+    if (!mint || !owner) {
+      return;
+    }
+
+    const caip19Id = tokenAddressToCaip19(scope, mint);
+
+    from.push({
+      address: owner,
+      asset: {
+        amount: amount.toString(),
+        fungible: true,
+        type: caip19Id,
+        unit: '',
+      },
+    });
+
+    to.push({
+      address: owner,
+      asset: {
+        amount: amount.toString(),
+        fungible: true,
+        type: caip19Id,
+        unit: '',
+      },
+    });
+  });
+
+  return {
+    from,
+    to,
+  };
+}
+
+/**
+ * Decodes the amount from the instruction data.
+ * @param data - The instruction data.
+ * @returns The amount.
+ */
+export function decodeSplTransferAmount(data: Uint8Array): BigNumber {
+  /**
+   * Native Solana transfers have a fixed length of 12 bytes.
+   * 1 byte - Opcode
+   * 8 bytes - Transfer amount unsigned int 64
+   */
+  let raw = BigInt(0);
+
+  for (let i = 1; i < 9; i++) {
+    // eslint-disable-next-line no-bitwise
+    raw |= BigInt(data[i] ?? 0) << BigInt(8 * (i - 1));
+  }
+
+  return BigNumber(raw.toString()).dividedBy(1e6);
 }

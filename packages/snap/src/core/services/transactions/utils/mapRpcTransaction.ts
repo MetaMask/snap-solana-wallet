@@ -66,7 +66,34 @@ export function mapRpcTransaction({
   let type: MappedTransaction['type'];
 
   if (isAddressSender && isAddressReceiver) {
-    type = 'swap';
+    const userSentItems = from.filter(
+      (fromItem) => fromItem.address === address,
+    );
+
+    const allAssetsAreSelfTransfers = userSentItems.every((fromItem) => {
+      return to.some(
+        (toItem) =>
+          toItem.address === address &&
+          fromItem.asset?.fungible === true &&
+          toItem.asset?.fungible === true &&
+          fromItem.asset.type === toItem.asset.type,
+      );
+    });
+
+    const userReceivedItems = to.filter((toItem) => toItem.address === address);
+    const allReceivesAreFromSelf = userReceivedItems.every((toItem) => {
+      return from.some(
+        (fromItem) =>
+          fromItem.address === address &&
+          fromItem.asset?.fungible === true &&
+          toItem.asset?.fungible === true &&
+          fromItem.asset.type === toItem.asset.type,
+      );
+    });
+
+    const isSelfTransfer = allAssetsAreSelfTransfers && allReceivesAreFromSelf;
+
+    type = isSelfTransfer ? 'send' : 'swap';
   } else if (isAddressSender) {
     type = 'send';
   } else {
