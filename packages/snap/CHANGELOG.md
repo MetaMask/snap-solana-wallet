@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0]
+
+### Uncategorized
+
+- fix: values transferred to the same account are not shown ([#240](https://github.com/MetaMask/snap-solana-wallet/pull/240))
+- New Crowdin translations by Github Action ([#244](https://github.com/MetaMask/snap-solana-wallet/pull/244))
+- chore: nitpick mapping transaction updates ([#246](https://github.com/MetaMask/snap-solana-wallet/pull/246))
+- fix: transaction updates dont include unit ([#245](https://github.com/MetaMask/snap-solana-wallet/pull/245))
+- feat: substract rent from max amount + improve validation on amount f… ([#243](https://github.com/MetaMask/snap-solana-wallet/pull/243))
+
 ## [1.12.0]
 
 ### Added
@@ -289,7 +299,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.1...v1.11.0
 [1.10.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.0...v1.10.1
