@@ -69,7 +69,6 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
             </Text>
             <Address address={addressCaip10} truncate displayName avatar />
           </Box>
-          <Box>{null}</Box>
           <Box alignment="space-between" direction="horizontal">
             <Text fontWeight="medium" color="alternative">
               {translate('confirmation.network')}
