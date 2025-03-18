@@ -46,7 +46,6 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
           <Heading size="lg">
             {translate('confirmation.signMessage.title')}
           </Heading>
-          <Box>{null}</Box>
         </Box>
 
         <Section>
@@ -59,8 +58,6 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
             <Text>{message}</Text>
           </Box>
         </Section>
-
-        <Box>{null}</Box>
 
         <Section>
           <Box alignment="space-between" direction="horizontal">

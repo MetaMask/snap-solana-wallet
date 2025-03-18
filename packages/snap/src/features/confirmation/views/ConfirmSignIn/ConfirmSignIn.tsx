@@ -6,6 +6,7 @@ import {
   Footer,
   Heading,
   Image,
+  Row,
   Section,
   Text,
   type SnapComponent,
@@ -75,7 +76,6 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
           <Text color="muted" alignment="center">
             {translate('confirmation.signIn.description')}
           </Text>
-          <Box>{null}</Box>
         </Box>
 
         <EstimatedChanges
@@ -86,24 +86,15 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
         />
 
         <Section>
-          <Box alignment="space-between" direction="horizontal">
-            <Text fontWeight="medium">
-              {translate('confirmation.signIn.requestFrom')}
-            </Text>
+          <Row label={translate('confirmation.signIn.requestFrom')}>
             <Text>
               {domain ?? translate('confirmation.signIn.unknownDomain')}
             </Text>
-          </Box>
-
-          <Box alignment="space-between" direction="horizontal">
-            <Text fontWeight="medium">
-              {translate('confirmation.signIn.signingInWith')}
-            </Text>
+          </Row>
+          <Row label={translate('confirmation.signIn.signingInWith')}>
             <Address address={addressCaip10} truncate displayName avatar />
-          </Box>
+          </Row>
         </Section>
-
-        <Box>{null}</Box>
 
         <Section>
           <Text fontWeight="medium">
