@@ -202,9 +202,6 @@
     "confirmation.signIn.message": {
       "message": "Message"
     },
-    "confirmation.signIn.messageDescription": {
-      "message": "Please sign this message to confirm your identity."
-    },
     "confirmation.signIn.statement": {
       "message": "Statement"
     },

@@ -66,7 +66,6 @@
   "confirmation.signIn.unknownDomain": "Unknown domain",
   "confirmation.signIn.signingInWith": "Signing in with",
   "confirmation.signIn.message": "Message",
-  "confirmation.signIn.messageDescription": "Please sign this message to confirm your identity.",
   "confirmation.signIn.statement": "Statement",
   "confirmation.signIn.version": "Version",
   "confirmation.signIn.chainId": "Chain ID",

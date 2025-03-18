@@ -109,7 +109,7 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
           <Text fontWeight="medium">
             {translate('confirmation.signIn.message')}
           </Text>
-          <Text>{translate('confirmation.signIn.messageDescription')}</Text>
+          <Text>{statement ?? ''}</Text>
 
           <BasicNullableField label="URL" value={uri} />
 
@@ -135,10 +135,6 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
             <Address address={addressCaip10} truncate displayName avatar />
           </Box>
 
-          <BasicNullableField
-            label={translate('confirmation.signIn.statement')}
-            value={statement}
-          />
           <BasicNullableField
             label={translate('confirmation.signIn.version')}
             value={version}
