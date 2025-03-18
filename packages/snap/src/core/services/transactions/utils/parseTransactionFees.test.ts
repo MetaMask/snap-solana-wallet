@@ -1,7 +1,7 @@
 import { KnownCaip19Id, Network, Networks } from '../../../constants/solana';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
-import { EXPECTED_SWAP_TRANSFER_DATA } from '../../../test/mocks/transactions-data/swap-transfer';
+import { EXPECTED_SWAP_USDC_TO_COBIE_DATA } from '../../../test/mocks/transactions-data/swap-usdc-to-cobie';
 import { parseTransactionFees } from './parseTransactionFees';
 
 describe('parseTransactionFees', () => {
@@ -46,7 +46,7 @@ describe('parseTransactionFees', () => {
   it('parses transaction fees on swap transactions', () => {
     const result = parseTransactionFees({
       scope: Network.Mainnet,
-      transactionData: EXPECTED_SWAP_TRANSFER_DATA,
+      transactionData: EXPECTED_SWAP_USDC_TO_COBIE_DATA,
     });
 
     expect(result).toStrictEqual([

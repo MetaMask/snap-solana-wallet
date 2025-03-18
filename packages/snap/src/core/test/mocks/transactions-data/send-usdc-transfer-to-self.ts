@@ -1,14 +1,11 @@
 import type {
-  Address,
   Base58EncodedBytes,
-  Blockhash,
-  Lamports,
   StringifiedBigInt,
   StringifiedNumber,
   TransactionVersion,
   UnixTimestamp,
 } from '@solana/web3.js';
-import { address as asAddress } from '@solana/web3.js';
+import { address, blockhash, lamports } from '@solana/web3.js';
 
 import type { SolanaTransaction } from '../../../types/solana';
 
@@ -28,7 +25,7 @@ export const EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
     computeUnitsConsumed: 4524n,
     // eslint-disable-next-line id-denylist
     err: null,
-    fee: 5000n as Lamports,
+    fee: lamports(5000n),
     innerInstructions: [],
     loadedAddresses: {
       readonly: [],
@@ -42,13 +39,18 @@ export const EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
       'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4374 of 4374 compute units',
       'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success',
     ],
-    postBalances: [2853640269n, 2039280n, 1n, 934087680n] as Lamports[],
+    postBalances: [
+      lamports(2853640269n),
+      lamports(2039280n),
+      lamports(1n),
+      lamports(934087680n),
+    ],
     postTokenBalances: [
       {
         accountIndex: 1,
-        mint: asAddress('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'),
-        owner: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
-        programId: asAddress('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        mint: address('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'),
+        owner: address('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+        programId: address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         uiTokenAmount: {
           amount: '7606876' as StringifiedBigInt,
           decimals: 6,
@@ -57,13 +59,18 @@ export const EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
         },
       },
     ],
-    preBalances: [2853645269n, 2039280n, 1n, 934087680n] as Lamports[],
+    preBalances: [
+      lamports(2853645269n),
+      lamports(2039280n),
+      lamports(1n),
+      lamports(934087680n),
+    ],
     preTokenBalances: [
       {
         accountIndex: 1,
-        mint: asAddress('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'),
-        owner: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
-        programId: asAddress('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        mint: address('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'),
+        owner: address('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+        programId: address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         uiTokenAmount: {
           amount: '7606876' as StringifiedBigInt,
           decimals: 6,
@@ -81,11 +88,11 @@ export const EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
   transaction: {
     message: {
       accountKeys: [
-        'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
-        'G23tQHsbQuh3yqUBoyXDn3TwqEbbbUHAHEeUSvJaVRtA',
-        'ComputeBudget111111111111111111111111111111',
-        'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-      ] as Address[],
+        address('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+        address('G23tQHsbQuh3yqUBoyXDn3TwqEbbbUHAHEeUSvJaVRtA'),
+        address('ComputeBudget111111111111111111111111111111'),
+        address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+      ],
       addressTableLookups: [],
       header: {
         numReadonlySignedAccounts: 0,
@@ -106,8 +113,9 @@ export const EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
           stackHeight: null,
         },
       ],
-      recentBlockhash:
-        'CAV8KMEh8AAacttd6Hdya1DJhDbuztFtdVsz6qHUx7EM' as Blockhash,
+      recentBlockhash: blockhash(
+        'CAV8KMEh8AAacttd6Hdya1DJhDbuztFtdVsz6qHUx7EM',
+      ),
     },
     signatures: [
       'fFSAjDzu7CdhzVUUC7DMKf7xuuVn8cZ8njPnpjkTBMHo4Y43SZto2GDuy123yKDoTieihPfDHvBpysE7Eh9aPmH',

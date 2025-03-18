@@ -8,10 +8,10 @@ import { parseTransactionSplTransfers } from './parseTransactionSplTransfers';
 
 /**
  * Maps RPC transaction data to a standardized format.
- * @param options0 - The options object.
- * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
- * @param options0.address - The account address associated with the transaction.
- * @param options0.transactionData - The raw transaction data from the RPC response.
+ * @param params - The options object.
+ * @param params.scope - The network scope (e.g., Mainnet, Devnet).
+ * @param params.address - The account address associated with the transaction.
+ * @param params.transactionData - The raw transaction data from the RPC response.
  * @returns The mapped transaction data.
  */
 export function mapRpcTransaction({
@@ -36,68 +36,35 @@ export function mapRpcTransaction({
   const id = firstSignature as string;
   const timestamp = Number(transactionData.blockTime);
 
-  const {
-    fees,
-    from: nativeFrom,
-    to: nativeTo,
-  } = parseTransactionNativeTransfers({
+  const nativeTransfers = parseTransactionNativeTransfers({
     scope,
     transactionData,
   });
+
+  let { fees } = nativeTransfers;
+  const { from: nativeFrom, to: nativeTo } = nativeTransfers;
 
   const { from: splFrom, to: splTo } = parseTransactionSplTransfers({
     scope,
     transactionData,
   });
 
-  const from = [...nativeFrom, ...splFrom];
-  const to = [...nativeTo, ...splTo];
+  let from = [...nativeFrom, ...splFrom];
+  let to = [...nativeTo, ...splTo];
 
-  /**
-   * Evaluate the type of transaction
-   */
-  const isAddressSender = from.some(
-    ({ address: fromAddress }) => fromAddress === address,
-  );
-  const isAddressReceiver = to.some(
-    ({ address: toAddress }) => toAddress === address,
-  );
+  const type = evaluateTransactionType({
+    address,
+    from,
+    to,
+  });
 
-  let type: MappedTransaction['type'];
+  if (type === 'swap') {
+    from = from.filter((fromItem) => fromItem.address === address);
+    to = to.filter((toItem) => toItem.address === address);
+  }
 
-  if (isAddressSender && isAddressReceiver) {
-    const userSentItems = from.filter(
-      (fromItem) => fromItem.address === address,
-    );
-
-    const allAssetsAreSelfTransfers = userSentItems.every((fromItem) => {
-      return to.some(
-        (toItem) =>
-          toItem.address === address &&
-          fromItem.asset?.fungible === true &&
-          toItem.asset?.fungible === true &&
-          fromItem.asset.type === toItem.asset.type,
-      );
-    });
-
-    const userReceivedItems = to.filter((toItem) => toItem.address === address);
-    const allReceivesAreFromSelf = userReceivedItems.every((toItem) => {
-      return from.some(
-        (fromItem) =>
-          fromItem.address === address &&
-          fromItem.asset?.fungible === true &&
-          toItem.asset?.fungible === true &&
-          fromItem.asset.type === toItem.asset.type,
-      );
-    });
-
-    const isSelfTransfer = allAssetsAreSelfTransfers && allReceivesAreFromSelf;
-
-    type = isSelfTransfer ? 'send' : 'swap';
-  } else if (isAddressSender) {
-    type = 'send';
-  } else {
-    type = 'receive';
+  if (type === 'receive') {
+    fees = [];
   }
 
   const status =
@@ -122,4 +89,64 @@ export function mapRpcTransaction({
       },
     ],
   };
+}
+
+/**
+ * Evaluates the type of transaction based on the address and the from and to items.
+ * @param params - The options object.
+ * @param params.address - The address of the user.
+ * @param params.from - The from items.
+ * @param params.to - The to items.
+ * @returns The type of transaction.
+ */
+function evaluateTransactionType({
+  address,
+  from,
+  to,
+}: {
+  address: Address;
+  from: MappedTransaction['from'];
+  to: MappedTransaction['to'];
+}): MappedTransaction['type'] {
+  const userSentItems = from.filter((fromItem) => fromItem.address === address);
+  const userReceivedItems = to.filter((toItem) => toItem.address === address);
+
+  const isAddressSender = userSentItems.length > 0;
+  const isAddressReceiver = userReceivedItems.length > 0;
+
+  const allSentItemsAreToSelf = from.every((fromItem) => {
+    return to.some(
+      (toItem) =>
+        toItem.address === address &&
+        fromItem.asset?.fungible === true &&
+        toItem.asset?.fungible === true &&
+        fromItem.asset.type === toItem.asset.type,
+    );
+  });
+
+  const allReceivedItemsAreFromSelf = to.every((toItem) => {
+    return from.some(
+      (fromItem) =>
+        fromItem.address === address &&
+        fromItem.asset?.fungible === true &&
+        toItem.asset?.fungible === true &&
+        fromItem.asset.type === toItem.asset.type,
+    );
+  });
+
+  const isSelfTransfer = allSentItemsAreToSelf && allReceivedItemsAreFromSelf;
+
+  if (isSelfTransfer) {
+    return 'send';
+  }
+
+  if (isAddressSender && isAddressReceiver) {
+    return 'swap';
+  }
+
+  if (isAddressSender) {
+    return 'send';
+  }
+
+  return 'receive';
 }

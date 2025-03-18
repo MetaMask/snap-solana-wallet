@@ -123,7 +123,7 @@ function getTransactionPriorityFee(
   const priorityFee = computeUnitPrice
     .multipliedBy(computeUnitLimit)
     .dividedBy(LAMPORTS_PER_SOL)
-    .decimalPlaces(9, BigNumber.ROUND_HALF_UP);
+    .decimalPlaces(9, BigNumber.ROUND_UP);
 
   return priorityFee;
 }

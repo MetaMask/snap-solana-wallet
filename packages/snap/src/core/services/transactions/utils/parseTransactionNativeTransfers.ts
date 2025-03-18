@@ -9,6 +9,7 @@ import {
   type Network,
 } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
+import { lamportsToSol } from '../../../utils/conversion';
 import { parseTransactionFees } from './parseTransactionFees';
 
 /**
@@ -92,17 +93,11 @@ export function parseTransactionNativeTransfers({
      * since we are counting them separately.
      */
     if (accountIndex === 0) {
-      const totalFees = fees
-        .reduce((acc, currentFee) => {
-          if (currentFee.asset.fungible) {
-            return acc.plus(currentFee.asset.amount);
-          }
+      const totalFees = lamportsToSol(transactionData.meta?.fee ?? 0);
 
-          return acc;
-        }, new BigNumber(0))
+      balanceDiff = balanceDiff
+        .minus(totalFees)
         .decimalPlaces(8, BigNumber.ROUND_DOWN);
-
-      balanceDiff = balanceDiff.minus(totalFees);
     }
 
     if (balanceDiff.isZero()) {
