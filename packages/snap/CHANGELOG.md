@@ -9,13 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.13.0]
 
-### Uncategorized
+### Added
 
-- fix: values transferred to the same account are not shown ([#240](https://github.com/MetaMask/snap-solana-wallet/pull/240))
-- New Crowdin translations by Github Action ([#244](https://github.com/MetaMask/snap-solana-wallet/pull/244))
-- chore: nitpick mapping transaction updates ([#246](https://github.com/MetaMask/snap-solana-wallet/pull/246))
-- fix: transaction updates dont include unit ([#245](https://github.com/MetaMask/snap-solana-wallet/pull/245))
-- feat: substract rent from max amount + improve validation on amount f… ([#243](https://github.com/MetaMask/snap-solana-wallet/pull/243))
+- New translations ([#244](https://github.com/MetaMask/snap-solana-wallet/pull/244))
+- Substract rent from max amount + improve validation on amount f… ([#243](https://github.com/MetaMask/snap-solana-wallet/pull/243))
+
+### Fixed
+
+- Show amount for self and failed transactions ([#240](https://github.com/MetaMask/snap-solana-wallet/pull/240))
+- Transaction updates not showing asset units ([#245](https://github.com/MetaMask/snap-solana-wallet/pull/245))
 
 ## [1.12.0]
 
