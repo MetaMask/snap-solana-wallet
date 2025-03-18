@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0]
+
+### Added
+
+- New translations ([#244](https://github.com/MetaMask/snap-solana-wallet/pull/244))
+- Substract rent from max amount + improve validation on amount f… ([#243](https://github.com/MetaMask/snap-solana-wallet/pull/243))
+
+### Fixed
+
+- Show amount for self and failed transactions ([#240](https://github.com/MetaMask/snap-solana-wallet/pull/240))
+- Transaction updates not showing asset units ([#245](https://github.com/MetaMask/snap-solana-wallet/pull/245))
+
 ## [1.12.0]
 
 ### Added
@@ -289,7 +301,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.1...v1.11.0
 [1.10.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.0...v1.10.1
