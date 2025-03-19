@@ -2,7 +2,7 @@
 import { type CompilableTransactionMessage } from '@solana/web3.js';
 import bs58 from 'bs58';
 
-import type { SolanaInstruction } from '../../features/confirmation/types';
+import type { SolanaInstruction } from '../../features/confirmation/views/ConfirmTransactionRequest/types';
 
 /**
  * Parses a Solana transaction message into a simplified format.

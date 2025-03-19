@@ -1,12 +1,12 @@
 import { SolMethod } from '@metamask/keyring-api';
-import { assert } from '@metamask/superstruct';
+import { assert, union } from '@metamask/superstruct';
 
+import { render as renderConfirmSignIn } from '../../../features/confirmation/views/ConfirmSignIn/render';
+import { render as renderConfirmSignMessage } from '../../../features/confirmation/views/ConfirmSignMessage/render';
 import {
   DEFAULT_CONFIRMATION_CONTEXT,
-  renderConfirmSignAndSendTransaction,
-  renderConfirmSignIn,
-  renderConfirmSignMessage,
-} from '../../../features/confirmation/render';
+  render as renderConfirmTransactionRequest,
+} from '../../../features/confirmation/views/ConfirmTransactionRequest/render';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import type { SolanaKeyringRequest } from '../../handlers/onKeyringRequest/structs';
@@ -39,30 +39,38 @@ export class ConfirmationHandler {
 
     switch (method) {
       case SolMethod.SignAndSendTransaction:
-        return this.#handleSignAndSendTransaction(request, account);
+        return this.#handleConfirmTransactionRequest(request, account);
       case SolMethod.SignTransaction:
-        return this.#handleSignTransaction(request, account);
+        return this.#handleConfirmTransactionRequest(request, account);
       case SolMethod.SignMessage:
-        return this.#handleSignMessage(request, account);
+        return this.#handleConfirmSignMessage(request, account);
       case SolMethod.SignIn:
-        return this.#handleSignIn(request, account);
+        return this.#handleConfirmSignIn(request, account);
       default:
         throw new Error(`Unsupported method: ${method}`);
     }
   }
 
   /**
-   * Handles the confirmation of a sign and send transaction request.
+   * Handles the confirmation whenever a transaction needs to be signed:
+   * - Sign and send transaction request.
+   * - Sign transaction request.
    *
    * @param request - The request to confirm.
    * @param account - The account that the request is for.
    * @returns Whether the request was confirmed.
    */
-  async #handleSignAndSendTransaction(
+  async #handleConfirmTransactionRequest(
     request: SolanaKeyringRequest,
     account: SolanaKeyringAccount,
   ): Promise<boolean> {
-    assert(request.request, SolanaSignAndSendTransactionRequestStruct);
+    assert(
+      request.request,
+      union([
+        SolanaSignAndSendTransactionRequestStruct,
+        SolanaSignTransactionRequestStruct,
+      ]),
+    );
 
     const {
       request: {
@@ -89,7 +97,7 @@ export class ConfirmationHandler {
       },
     });
 
-    const isConfirmed = await renderConfirmSignAndSendTransaction({
+    const isConfirmed = await renderConfirmTransactionRequest({
       ...DEFAULT_CONFIRMATION_CONTEXT,
       scope,
       method,
@@ -137,29 +145,13 @@ export class ConfirmationHandler {
   }
 
   /**
-   * Handles the confirmation of a sign transaction request.
-   *
-   * @param request - The request to confirm.
-   * @param account - The account that the request is for.
-   * @returns Whether the request was confirmed.
-   */
-  async #handleSignTransaction(
-    request: SolanaKeyringRequest,
-    account: SolanaKeyringAccount,
-  ): Promise<boolean> {
-    assert(request.request, SolanaSignTransactionRequestStruct);
-
-    return true;
-  }
-
-  /**
    * Handles the confirmation of a sign message request.
    *
    * @param request - The request to confirm.
    * @param account - The account that the request is for.
    * @returns Whether the request was confirmed.
    */
-  async #handleSignMessage(
+  async #handleConfirmSignMessage(
     request: SolanaKeyringRequest,
     account: SolanaKeyringAccount,
   ): Promise<boolean> {
@@ -174,7 +166,7 @@ export class ConfirmationHandler {
    * @param account - The account that the request is for.
    * @returns Whether the request was confirmed.
    */
-  async #handleSignIn(
+  async #handleConfirmSignIn(
     request: SolanaKeyringRequest,
     account: SolanaKeyringAccount,
   ): Promise<boolean> {

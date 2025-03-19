@@ -3,8 +3,8 @@ import { Box, Button, Icon, type SnapComponent } from '@metamask/snaps-sdk/jsx';
 import type { Network } from '../../../../core/constants/solana';
 import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
-import { type SolanaInstruction } from '../../types';
-import { ConfirmSignAndSendTransactionFormNames } from '../../views/ConfirmSignAndSendTransaction/events';
+import { ConfirmSignAndSendTransactionFormNames } from '../../views/ConfirmTransactionRequest/events';
+import { type SolanaInstruction } from '../../views/ConfirmTransactionRequest/types';
 import { Instruction } from '../Instruction/Instruction';
 
 type AdvancedProps = {

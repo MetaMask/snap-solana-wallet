@@ -9,7 +9,7 @@ import { Link as RouterLink } from 'gatsby';
 import { useEffect, useState } from 'react';
 import { LuCopy } from 'react-icons/lu';
 
-import type { Network } from '../../../../snap/src/core/constants/solana';
+import { Network } from '../../../../snap/src/core/constants/solana';
 import { RpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
 import { buildUrl } from '../../../../snap/src/core/utils/buildUrl';
 import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
@@ -54,15 +54,15 @@ export const AccountRow = ({
     });
   };
 
-  const handleSwap = async () => {
+  const getLifiQuote = async () => {
     const url = buildUrl({
       baseUrl: 'https://li.quest',
       path: '/v1/quote',
       queryParams: {
         fromChain: 'SOL',
         toChain: 'SOL',
-        fromToken: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        toToken: 'So11111111111111111111111111111111111111112',
+        fromToken: 'So11111111111111111111111111111111111111112',
+        toToken: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         fromAddress: account.address,
         toAddress: account.address,
         fromAmount: '10000',
@@ -70,6 +70,12 @@ export const AccountRow = ({
     });
 
     const lifiQuote = await fetch(url).then(async (quote) => quote.json());
+
+    return lifiQuote;
+  };
+
+  const handleSwap = async () => {
+    const lifiQuote = await getLifiQuote();
 
     await invokeKeyring({
       method: KeyringRpcMethod.SubmitRequest,
@@ -84,6 +90,33 @@ export const AccountRow = ({
             scope: network,
             account: {
               address: account.address,
+            },
+          },
+        },
+      },
+    });
+  };
+
+  const handleSignTransaction = async () => {
+    const transactionMessageBase64 =
+      'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQACBJmwAo+dnq8yhuKR7QpXgj+5yPFMzVwViEudWE9Z+N903bOu6UdCGJS9VyhRo8wvswWSAO709XY+51AU1MALO6wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAYqwneKPqhd1YIZ5CHmd8CYyqRjq2iJtk4wZf14qPmLgCAwAFAiwBAAACAgABDAIAAABAQg8AAAAAAAA=';
+
+    await invokeKeyring({
+      method: KeyringRpcMethod.SubmitRequest,
+      params: {
+        id: crypto.randomUUID(),
+        scope: network,
+        account: account.id,
+        request: {
+          method: SolMethod.SignTransaction,
+          params: {
+            account: {
+              address: account.address,
+            },
+            transaction: transactionMessageBase64,
+            scope: network,
+            options: {
+              commitment: 'finalized',
             },
           },
         },
@@ -190,15 +223,27 @@ export const AccountRow = ({
         >
           Send
         </Button>
-        <Button colorPalette="cyan" marginLeft="3" onClick={handleSwap}>
+        <Button
+          disabled={network !== Network.Mainnet}
+          colorPalette="cyan"
+          marginLeft="3"
+          onClick={handleSwap}
+        >
           Swap
+        </Button>
+        <Button
+          colorPalette="pink"
+          marginLeft="3"
+          onClick={handleSignTransaction}
+        >
+          Sign tx
         </Button>
         <Button
           colorPalette="orange"
           marginLeft="3"
           onClick={handleSignMessage}
         >
-          Sign message
+          Sign msg
         </Button>
         <Button colorPalette="green" marginLeft="3" onClick={handleSignIn}>
           Sign In

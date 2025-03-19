@@ -1,7 +1,7 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
-import type { ConfirmationContext } from '../../../../features/confirmation/types';
-import { ConfirmSignAndSendTransaction } from '../../../../features/confirmation/views/ConfirmSignAndSendTransaction/ConfirmSignAndSendTransaction';
+import { ConfirmTransactionRequest } from '../../../../features/confirmation/views/ConfirmTransactionRequest/ConfirmTransactionRequest';
+import type { ConfirmTransactionRequestContext } from '../../../../features/confirmation/views/ConfirmTransactionRequest/types';
 import { state, transactionScanService } from '../../../../snapContext';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
@@ -29,7 +29,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
         // Get the current context
         const interfaceContext = (await getInterfaceContext(
           confirmationInterfaceId,
-        )) as ConfirmationContext;
+        )) as ConfirmTransactionRequestContext;
 
         if (!interfaceContext) {
           logger.info(
@@ -53,13 +53,11 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
         const fetchingConfirmationContext = {
           ...interfaceContext,
           scanFetchStatus: 'fetching',
-        } as ConfirmationContext;
+        } as ConfirmTransactionRequestContext;
 
         await updateInterface(
           confirmationInterfaceId,
-          <ConfirmSignAndSendTransaction
-            context={fetchingConfirmationContext}
-          />,
+          <ConfirmTransactionRequest context={fetchingConfirmationContext} />,
           fetchingConfirmationContext,
         );
 
@@ -72,7 +70,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
         const updatedInterfaceContextFinal = (await getInterfaceContext(
           confirmationInterfaceId,
-        )) as ConfirmationContext;
+        )) as ConfirmTransactionRequestContext;
 
         // Update the current context with the new rates
         const updatedInterfaceContext = {
@@ -87,7 +85,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
         await updateInterface(
           confirmationInterfaceId,
-          <ConfirmSignAndSendTransaction context={updatedInterfaceContext} />,
+          <ConfirmTransactionRequest context={updatedInterfaceContext} />,
           updatedInterfaceContext,
         );
       }
@@ -105,15 +103,15 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
       const fetchedInterfaceContext = (await getInterfaceContext(
         confirmationInterfaceId,
-      )) as ConfirmationContext;
+      )) as ConfirmTransactionRequestContext;
       const fetchingConfirmationContext = {
         ...fetchedInterfaceContext,
         scanFetchStatus: 'fetched',
-      } as ConfirmationContext;
+      } as ConfirmTransactionRequestContext;
 
       await updateInterface(
         confirmationInterfaceId,
-        <ConfirmSignAndSendTransaction context={fetchingConfirmationContext} />,
+        <ConfirmTransactionRequest context={fetchingConfirmationContext} />,
         fetchingConfirmationContext,
       );
 

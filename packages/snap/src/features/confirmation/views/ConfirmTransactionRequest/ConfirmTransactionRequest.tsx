@@ -13,11 +13,11 @@ import { Advanced } from '../../components/Advanced/Advanced';
 import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';
 import { TransactionAlert } from '../../components/TransactionAlert/TransactionAlert';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
-import { type ConfirmationContext } from '../../types';
 import { ConfirmSignAndSendTransactionFormNames } from './events';
+import { type ConfirmTransactionRequestContext } from './types';
 
-export const ConfirmSignAndSendTransaction: SnapComponent<{
-  context: ConfirmationContext;
+export const ConfirmTransactionRequest: SnapComponent<{
+  context: ConfirmTransactionRequestContext;
 }> = ({ context }) => {
   const translate = i18n(context.preferences.locale);
 

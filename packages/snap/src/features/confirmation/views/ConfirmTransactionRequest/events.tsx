@@ -2,8 +2,8 @@ import {
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
-import { type ConfirmationContext } from '../../types';
-import { ConfirmSignAndSendTransaction } from './ConfirmSignAndSendTransaction';
+import { ConfirmTransactionRequest } from './ConfirmTransactionRequest';
+import { type ConfirmTransactionRequestContext } from './types';
 
 /**
  * Handles the click event for the show advanced button.
@@ -17,9 +17,9 @@ async function onShowAdvancedButtonClick({
   context,
 }: {
   id: string;
-  context: ConfirmationContext;
+  context: ConfirmTransactionRequestContext;
 }) {
-  const updatedContext: ConfirmationContext = {
+  const updatedContext: ConfirmTransactionRequestContext = {
     ...context,
     advanced: {
       ...context.advanced,
@@ -29,7 +29,7 @@ async function onShowAdvancedButtonClick({
 
   await updateInterface(
     id,
-    <ConfirmSignAndSendTransaction context={updatedContext} />,
+    <ConfirmTransactionRequest context={updatedContext} />,
     updatedContext,
   );
 }

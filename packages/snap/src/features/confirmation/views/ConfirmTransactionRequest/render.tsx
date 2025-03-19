@@ -1,38 +1,26 @@
 import { SolMethod } from '@metamask/keyring-api';
-import { assert } from '@metamask/superstruct';
-import { getBase64Codec, getUtf8Codec } from '@solana/web3.js';
 
-import { Network, Networks } from '../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../core/handlers/onKeyringRequest/Keyring';
-import type { SolanaKeyringRequest } from '../../core/handlers/onKeyringRequest/structs';
-import {
-  SolanaSignInRequestStruct,
-  SolanaSignMessageRequestStruct,
-} from '../../core/services/wallet/structs';
-import { SOL_IMAGE_SVG } from '../../core/test/mocks/solana-image-svg';
-import { lamportsToSol } from '../../core/utils/conversion';
-import { FALLBACK_LANGUAGE } from '../../core/utils/i18n';
-import { parseInstructions } from '../../core/utils/instructions';
+import { Network, Networks } from '../../../../core/constants/solana';
+import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
+import { lamportsToSol } from '../../../../core/utils/conversion';
+import { parseInstructions } from '../../../../core/utils/instructions';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
   createInterface,
   getPreferences,
   showDialog,
   updateInterface,
-} from '../../core/utils/interface';
+} from '../../../../core/utils/interface';
 import {
   state,
   tokenPricesService,
   transactionHelper,
   transactionScanService,
-} from '../../snapContext';
-import type { ConfirmationContext } from './types';
-import { ConfirmSignAndSendTransaction } from './views/ConfirmSignAndSendTransaction/ConfirmSignAndSendTransaction';
-import type { ConfirmSignInProps } from './views/ConfirmSignIn/ConfirmSignIn';
-import { ConfirmSignIn } from './views/ConfirmSignIn/ConfirmSignIn';
-import { ConfirmSignMessage } from './views/ConfirmSignMessage/ConfirmSignMessage';
+} from '../../../../snapContext';
+import { ConfirmTransactionRequest } from './ConfirmTransactionRequest';
+import type { ConfirmTransactionRequestContext } from './types';
 
-export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmationContext = {
+export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmTransactionRequestContext = {
   method: SolMethod.SignAndSendTransaction,
   scope: Network.Mainnet,
   networkImage: SOL_IMAGE_SVG,
@@ -54,13 +42,13 @@ export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmationContext = {
 };
 
 /**
- * Renders the confirmation dialog for a sign and send transaction.
+ * Renders the confirmation dialog for a transaction request.
  *
  * @param incomingContext - The confirmation context.
  * @returns The confirmation dialog.
  */
-export async function renderConfirmSignAndSendTransaction(
-  incomingContext: ConfirmationContext,
+export async function render(
+  incomingContext: ConfirmTransactionRequestContext,
 ) {
   /**
    * First render:
@@ -94,7 +82,7 @@ export async function renderConfirmSignAndSendTransaction(
   await Promise.all([preferencesPromise, instructionsPromise]);
 
   const id = await createInterface(
-    <ConfirmSignAndSendTransaction context={context} />,
+    <ConfirmTransactionRequest context={context} />,
     context,
   );
 
@@ -141,7 +129,7 @@ export async function renderConfirmSignAndSendTransaction(
 
   await updateInterface(
     id,
-    <ConfirmSignAndSendTransaction context={updatedContext1} />,
+    <ConfirmTransactionRequest context={updatedContext1} />,
     updatedContext1,
   );
 
@@ -173,7 +161,7 @@ export async function renderConfirmSignAndSendTransaction(
 
   await updateInterface(
     id,
-    <ConfirmSignAndSendTransaction context={updatedContext2} />,
+    <ConfirmTransactionRequest context={updatedContext2} />,
     updatedContext2,
   );
 
@@ -186,87 +174,6 @@ export async function renderConfirmSignAndSendTransaction(
       },
     };
   });
-
-  return dialogPromise;
-}
-
-/**
- * Renders the confirmation dialog for a sign message.
- *
- * @param request - The request to confirm.
- * @param account - The account that the request is for.
- * @returns The confirmation dialog.
- */
-export async function renderConfirmSignMessage(
-  request: SolanaKeyringRequest,
-  account: SolanaKeyringAccount,
-) {
-  assert(request.request, SolanaSignMessageRequestStruct);
-
-  const {
-    request: {
-      params: { message: messageBase64 },
-    },
-    scope,
-  } = request;
-
-  const messageBytes = getBase64Codec().encode(messageBase64);
-  const messageUtf8 = getUtf8Codec().decode(messageBytes);
-
-  const locale = await getPreferences()
-    .then((preferences) => {
-      return preferences.locale;
-    })
-    .catch(() => FALLBACK_LANGUAGE);
-
-  const id = await createInterface(
-    <ConfirmSignMessage
-      message={messageUtf8}
-      account={account}
-      scope={scope}
-      locale={locale}
-      networkImage={SOL_IMAGE_SVG}
-    />,
-    {},
-  );
-
-  const dialogPromise = showDialog(id);
-
-  return dialogPromise;
-}
-
-/**
- * Renders the confirmation dialog for a sign in request.
- *
- * @param request - The request to confirm.
- * @param account - The account that the request is for.
- * @returns The confirmation dialog.
- */
-export async function renderConfirmSignIn(
-  request: SolanaKeyringRequest,
-  account: SolanaKeyringAccount,
-) {
-  assert(request.request, SolanaSignInRequestStruct);
-
-  const {
-    request: { params },
-    scope,
-  } = request;
-
-  const preferences = await getPreferences();
-
-  const id = await createInterface(
-    <ConfirmSignIn
-      params={params as ConfirmSignInProps['params']}
-      account={account}
-      scope={scope}
-      preferences={preferences}
-      networkImage={SOL_IMAGE_SVG}
-    />,
-    {},
-  );
-
-  const dialogPromise = showDialog(id);
 
   return dialogPromise;
 }

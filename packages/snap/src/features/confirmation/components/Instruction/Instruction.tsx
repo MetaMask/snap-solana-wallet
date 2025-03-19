@@ -6,7 +6,7 @@ import { getSolanaExplorerUrl } from '../../../../core/utils/getSolanaExplorerUr
 import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
 import { truncateInstructionData } from '../../../../core/utils/instructions';
-import type { SolanaInstruction } from '../../types';
+import type { SolanaInstruction } from '../../views/ConfirmTransactionRequest/types';
 
 type InstructionProps = SolanaInstruction & {
   scope: Network;
