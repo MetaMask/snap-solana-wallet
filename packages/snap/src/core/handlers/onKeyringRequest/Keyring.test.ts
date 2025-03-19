@@ -487,19 +487,11 @@ describe('SolanaKeyring', () => {
   describe('resolveAccountAddress', () => {
     it('returns resolved address when wallet standard service resolves successfully', async () => {
       const mockScope = Network.Testnet;
-      const mockRequest: ResolveAccountAddressRequest = {
+      const mockRequest = {
         id: 1,
         jsonrpc: '2.0',
-        method: KeyringRpcMethod.ResolveAccountAddress,
-        params: {
-          request: {
-            id: 1,
-            jsonrpc: '2.0',
-            ...MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
-          } as unknown as JsonRpcRequest,
-          scope: mockScope,
-        },
-      };
+        ...MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
+      } as unknown as JsonRpcRequest;
       const mockResolvedAddress = `${mockScope}:resolved-address`;
 
       jest

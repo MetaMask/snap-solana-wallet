@@ -319,13 +319,16 @@ export class AssetsService {
             },
           },
         });
+
+        await this.#state.update((_state) => ({
+          ..._state,
+          assets: {
+            ..._state.assets,
+            [account.id]: accountBalances,
+          },
+        }));
       }
     }
-
-    await this.#state.update((_state) => ({
-      ..._state,
-      assets: Object.fromEntries(accountToAssetsMap),
-    }));
   }
 
   /**
