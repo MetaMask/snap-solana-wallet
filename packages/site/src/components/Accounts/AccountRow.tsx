@@ -5,6 +5,7 @@ import {
   type Balance,
   type KeyringAccount,
 } from '@metamask/keyring-api';
+import { address as asAddress } from '@solana/kit';
 import { Link as RouterLink } from 'gatsby';
 import { useEffect, useState } from 'react';
 import { LuCopy } from 'react-icons/lu';
@@ -16,6 +17,8 @@ import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaE
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
 import { toaster } from '../Toaster/Toaster';
+import { base64EncodeTransaction } from './base64EncodeTransaction';
+import { buildSendSolTransactionMessage } from './buildSendSolTransactionMessage';
 
 const SOLANA_TOKEN = 'slip44:501';
 
@@ -98,8 +101,17 @@ export const AccountRow = ({
   };
 
   const handleSignTransaction = async () => {
-    const transactionMessageBase64 =
-      'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQACBJmwAo+dnq8yhuKR7QpXgj+5yPFMzVwViEudWE9Z+N903bOu6UdCGJS9VyhRo8wvswWSAO709XY+51AU1MALO6wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAYqwneKPqhd1YIZ5CHmd8CYyqRjq2iJtk4wZf14qPmLgCAwAFAiwBAAACAgABDAIAAABAQg8AAAAAAAA=';
+    // Build simple transaction message that sends 0.001 SOL to the same account.
+    const transactionMessage = await buildSendSolTransactionMessage(
+      asAddress(account.address),
+      asAddress(account.address),
+      1_000_000, // 0.001 SOL
+      'https://solana-mainnet.infura.io/v3/5b98a22672004ef1bf40a80123c5c48d',
+    );
+
+    const transactionMessageBase64 = await base64EncodeTransaction(
+      transactionMessage,
+    );
 
     await invokeKeyring({
       method: KeyringRpcMethod.SubmitRequest,
