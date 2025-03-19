@@ -3,7 +3,6 @@
 import {
   KeyringEvent,
   ListAccountAssetsResponseStruct,
-  ResolveAccountAddressRequestStruct,
   SolAccountType,
   SolMethod,
   SolScope,
@@ -467,8 +466,7 @@ export class SolanaKeyring implements Keyring {
   ): Promise<ResolvedAccountAddress | null> {
     try {
       assert(scope, NetworkStruct);
-      assert(request, ResolveAccountAddressRequestStruct);
-      const { method, params } = request.params.request;
+      const { method, params } = request;
 
       const requestWithoutCommonHeader = { method, params };
       assert(requestWithoutCommonHeader, SolanaWalletRequestStruct);
