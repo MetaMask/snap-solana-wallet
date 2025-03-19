@@ -12,6 +12,7 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import {
+  fromBase64EncodedBuilder,
   state,
   tokenPricesService,
   transactionHelper,
@@ -98,8 +99,9 @@ export async function render(
   };
 
   const transactionMessage =
-    await transactionHelper.base64EncodeTransactionMessageFromBase64EncodedTransaction(
+    await fromBase64EncodedBuilder.buildTransactionMessage(
       context.transaction,
+      context.scope,
     );
 
   const assets = [Networks[context.scope].nativeToken.caip19Id];
@@ -115,7 +117,7 @@ export async function render(
     });
 
   const transactionFeePromise = transactionHelper
-    .getFeeForMessageInLamports(transactionMessage, updatedContext1.scope)
+    .getFeeFromTransactionInLamports(transactionMessage, updatedContext1.scope)
     .then((feeInLamports) => {
       updatedContext1.feeEstimatedInSol = feeInLamports
         ? lamportsToSol(feeInLamports).toString()
