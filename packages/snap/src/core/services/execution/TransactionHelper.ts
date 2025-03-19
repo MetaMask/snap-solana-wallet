@@ -275,28 +275,33 @@ export class TransactionHelper {
 
     const rpc = this.#connection.getRpc(network);
 
-    return retry(async () => {
-      this.#logger.log(
-        `🔎 Checking if transaction ${signature} has reached commitment level ${commitmentLevel}`,
-      );
-      const transaction = await rpc
-        .getTransaction(asSignature(signature), {
-          commitment: commitmentLevel,
-          maxSupportedTransactionVersion: 0,
-        })
-        .send();
-
-      if (transaction) {
+    return retry(
+      async () => {
         this.#logger.log(
-          `🎉 Transaction ${signature} has reached commitment level ${commitmentLevel}`,
+          `🔎 Checking if transaction ${signature} has reached commitment level ${commitmentLevel}`,
         );
-        return transaction;
-      }
+        const transaction = await rpc
+          .getTransaction(asSignature(signature), {
+            commitment: commitmentLevel,
+            maxSupportedTransactionVersion: 0,
+          })
+          .send();
 
-      const errorMessage = `⚠️ Transaction with signature ${signature} not found or has not yet reached requested commitment level: ${commitmentLevel}`;
-      this.#logger.warn(errorMessage);
-      throw new Error(errorMessage);
-    });
+        if (transaction) {
+          this.#logger.log(
+            `🎉 Transaction ${signature} has reached commitment level ${commitmentLevel}`,
+          );
+          return transaction;
+        }
+
+        const errorMessage = `⚠️ Transaction with signature ${signature} not found or has not yet reached requested commitment level: ${commitmentLevel}`;
+        this.#logger.warn(errorMessage);
+        throw new Error(errorMessage);
+      },
+      {
+        delayMs: 200,
+      },
+    );
   }
 
   /**
