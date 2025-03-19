@@ -1,10 +1,10 @@
-import type {
-  Address,
-  Base58EncodedBytes,
-  Blockhash,
-  Lamports,
-  TransactionVersion,
-  UnixTimestamp,
+import {
+  blockhash,
+  lamports,
+  type Address,
+  type Base58EncodedBytes,
+  type TransactionVersion,
+  type UnixTimestamp,
 } from '@solana/web3.js';
 
 import type { SolanaTransaction } from '../../../types/solana';
@@ -25,7 +25,7 @@ export const EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
     computeUnitsConsumed: 300n,
     // eslint-disable-next-line id-denylist
     err: null,
-    fee: 5000n as Lamports,
+    fee: lamports(5000n),
     innerInstructions: [],
     loadedAddresses: {
       readonly: [],
@@ -37,9 +37,9 @@ export const EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
       'Program 11111111111111111111111111111111 invoke [1]',
       'Program 11111111111111111111111111111111 success',
     ],
-    postBalances: [2853645269n, 1n, 1n] as Lamports[],
+    postBalances: [lamports(2853645269n), lamports(1n), lamports(1n)],
     postTokenBalances: [],
-    preBalances: [2853650269n, 1n, 1n] as Lamports[],
+    preBalances: [lamports(2853650269n), lamports(1n), lamports(1n)],
     preTokenBalances: [],
     rewards: [],
     status: {
@@ -74,8 +74,9 @@ export const EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
           stackHeight: null,
         },
       ],
-      recentBlockhash:
-        '3JrVnd9x8o81Jd21tu2tuCfuhmce2C8uSfP9R3nPQVuc' as Blockhash,
+      recentBlockhash: blockhash(
+        '3JrVnd9x8o81Jd21tu2tuCfuhmce2C8uSfP9R3nPQVuc',
+      ),
     },
     signatures: [
       '4Ccb8PaSob6JjsyDnoFJfUpJZDJHTwcjnK7MxiyVeMtPSsBGKuaMHEVL1VsXTKWS4w26tAhbc3T78aNELjfN8Zwb',

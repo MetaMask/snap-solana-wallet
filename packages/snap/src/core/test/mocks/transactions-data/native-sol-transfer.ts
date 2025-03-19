@@ -1,11 +1,5 @@
-import type {
-  Base58EncodedBytes,
-  Blockhash,
-  Lamports,
-  Slot,
-  UnixTimestamp,
-} from '@solana/web3.js';
-import { address as asAddress } from '@solana/web3.js';
+import type { Base58EncodedBytes, Slot, UnixTimestamp } from '@solana/web3.js';
+import { address, blockhash, lamports } from '@solana/web3.js';
 
 import type { SolanaTransaction } from '../../../types/solana';
 
@@ -25,16 +19,16 @@ export const EXPECTED_NATIVE_SOL_TRANSFER_DATA: SolanaTransaction = {
     computeUnitsConsumed: 150n,
     // eslint-disable-next-line id-denylist
     err: null,
-    fee: 5000n as Lamports,
+    fee: lamports(5000n),
     innerInstructions: [],
     loadedAddresses: { readonly: [], writable: [] },
     logMessages: [
       'Program 11111111111111111111111111111111 invoke [1]',
       'Program 11111111111111111111111111111111 success',
     ],
-    postBalances: [3283865040n, 100000000n, 1n] as Lamports[],
+    postBalances: [lamports(3283865040n), lamports(100000000n), lamports(1n)],
     postTokenBalances: [],
-    preBalances: [3383870040n, 0n, 1n] as Lamports[],
+    preBalances: [lamports(3383870040n), lamports(0n), lamports(1n)],
     preTokenBalances: [],
     rewards: [],
     status: { Ok: null },
@@ -43,9 +37,9 @@ export const EXPECTED_NATIVE_SOL_TRANSFER_DATA: SolanaTransaction = {
   transaction: {
     message: {
       accountKeys: [
-        asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
-        asAddress('FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK'),
-        asAddress('11111111111111111111111111111111'),
+        address('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+        address('FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK'),
+        address('11111111111111111111111111111111'),
       ],
       addressTableLookups: [],
       header: {
@@ -61,8 +55,9 @@ export const EXPECTED_NATIVE_SOL_TRANSFER_DATA: SolanaTransaction = {
           stackHeight: null,
         },
       ],
-      recentBlockhash:
-        'Dd2KFRayr2fPNAKnKUuB6cSqEi4YSRhUPgG2BfaDTiLL' as Blockhash,
+      recentBlockhash: blockhash(
+        'Dd2KFRayr2fPNAKnKUuB6cSqEi4YSRhUPgG2BfaDTiLL',
+      ),
     },
     signatures: [
       '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
