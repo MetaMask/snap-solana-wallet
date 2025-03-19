@@ -177,6 +177,57 @@
     },
     "confirmation.validationErrorSecurityAdviced": {
       "message": "की ओर से सुरक्षा सलाह"
+    },
+    "confirmation.signMessage.title": {
+      "message": "Sign message"
+    },
+    "confirmation.signMessage.message": {
+      "message": "Message"
+    },
+    "confirmation.signIn.title": {
+      "message": "Sign-in request"
+    },
+    "confirmation.signIn.description": {
+      "message": "A site wants you to sign in to prove you own this account."
+    },
+    "confirmation.signIn.requestFrom": {
+      "message": "Request from"
+    },
+    "confirmation.signIn.unknownDomain": {
+      "message": "Unknown domain"
+    },
+    "confirmation.signIn.signingInWith": {
+      "message": "Signing in with"
+    },
+    "confirmation.signIn.message": {
+      "message": "Message"
+    },
+    "confirmation.signIn.statement": {
+      "message": "Statement"
+    },
+    "confirmation.signIn.version": {
+      "message": "Version"
+    },
+    "confirmation.signIn.chainId": {
+      "message": "Chain ID"
+    },
+    "confirmation.signIn.nonce": {
+      "message": "Nonce"
+    },
+    "confirmation.signIn.issuedAt": {
+      "message": "Issued at"
+    },
+    "confirmation.signIn.expirationTime": {
+      "message": "Expiration time"
+    },
+    "confirmation.signIn.notBefore": {
+      "message": "Not before"
+    },
+    "confirmation.signIn.requestId": {
+      "message": "Request ID"
+    },
+    "confirmation.signIn.resources": {
+      "message": "Resources"
     }
   }
 }
