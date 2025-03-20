@@ -199,6 +199,9 @@
     "confirmation.signIn.signingInWith": {
       "message": "Signing in with"
     },
+    "confirmation.signIn.badAccount": {
+      "message": "This site is asking you to sign in using the wrong account."
+    },
     "confirmation.signIn.message": {
       "message": "Message"
     },
