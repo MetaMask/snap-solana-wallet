@@ -50,6 +50,14 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
           return;
         }
 
+        // Skip transaction simulation if the preference is disabled
+        if (!interfaceContext.preferences?.simulateOnChainActions) {
+          logger.info(
+            `[${CronjobMethod.RefreshConfirmationEstimation}] Transaction simulation is disabled in preferences`,
+          );
+          return;
+        }
+
         const fetchingConfirmationContext = {
           ...interfaceContext,
           scanFetchStatus: 'fetching',

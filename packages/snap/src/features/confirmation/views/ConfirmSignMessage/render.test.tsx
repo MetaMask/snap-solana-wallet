@@ -10,6 +10,7 @@ import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solan
 import type { MockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../../../core/test/utils';
+import type { Preferences } from '../../../../core/types/snap';
 import { ConfirmSignMessage } from './ConfirmSignMessage';
 
 describe('render', () => {
@@ -35,9 +36,22 @@ describe('render', () => {
       },
     });
 
+    const mockPreferences: Preferences = {
+      locale: 'en',
+      currency: 'usd',
+      hideBalances: false,
+      useSecurityAlerts: true,
+      useExternalPricingData: true,
+      simulateOnChainActions: true,
+      useTokenDetection: true,
+      batchCheckBalances: true,
+      displayNftMedia: true,
+      useNftDetection: true,
+    };
+
     mockJsonRpc({
       method: 'snap_getPreferences',
-      result: { locale: 'en', currency: 'usd' },
+      result: mockPreferences,
     });
 
     const request: SolanaKeyringRequest = {

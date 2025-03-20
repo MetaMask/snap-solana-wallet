@@ -35,6 +35,14 @@ export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmTransactionRequestContext = {
   preferences: {
     locale: 'en',
     currency: 'usd',
+    hideBalances: false,
+    useSecurityAlerts: true,
+    useExternalPricingData: true,
+    simulateOnChainActions: true,
+    useTokenDetection: true,
+    batchCheckBalances: true,
+    displayNftMedia: true,
+    useNftDetection: true,
   },
   advanced: {
     shown: false,
@@ -81,6 +89,12 @@ export async function render(
     });
 
   await Promise.all([preferencesPromise, instructionsPromise]);
+  const {
+    currency,
+    useExternalPricingData,
+    useSecurityAlerts,
+    simulateOnChainActions,
+  } = context.preferences;
 
   const id = await createInterface(
     <ConfirmTransactionRequest context={context} />,
@@ -106,15 +120,22 @@ export async function render(
 
   const assets = [Networks[context.scope].nativeToken.caip19Id];
 
-  const tokenPricesPromise = tokenPricesService
-    .getMultipleTokenPrices(assets, context.preferences.currency)
-    .then((prices) => {
-      updatedContext1.tokenPrices = prices;
-      updatedContext1.tokenPricesFetchStatus = 'fetched';
-    })
-    .catch(() => {
-      updatedContext1.tokenPricesFetchStatus = 'error';
-    });
+  let tokenPricesPromise;
+
+  if (useExternalPricingData) {
+    tokenPricesPromise = tokenPricesService
+      .getMultipleTokenPrices(assets, currency)
+      .then((prices) => {
+        updatedContext1.tokenPrices = prices;
+        updatedContext1.tokenPricesFetchStatus = 'fetched';
+      })
+      .catch(() => {
+        updatedContext1.tokenPricesFetchStatus = 'error';
+      });
+  } else {
+    updatedContext1.tokenPricesFetchStatus = 'fetched';
+    updatedContext1.tokenPrices = {};
+  }
 
   const transactionFeePromise = transactionHelper
     .getFeeFromTransactionInLamports(transactionMessage, updatedContext1.scope)
@@ -143,23 +164,39 @@ export async function render(
     ...updatedContext1,
   };
 
-  const transactionScanPromise = transactionScanService
-    .scanTransaction({
-      method: updatedContext2.method,
-      accountAddress: updatedContext2.account?.address ?? '',
-      transaction: updatedContext2.transaction,
-      scope: updatedContext2.scope,
-    })
-    .then(async (scan) => {
-      updatedContext2.scanFetchStatus = 'fetched';
-      updatedContext2.scan = scan;
-    })
-    .catch(() => {
-      updatedContext2.scan = null;
-      updatedContext2.scanFetchStatus = 'error';
-    });
+  const options = [];
 
-  await Promise.all([transactionScanPromise]);
+  if (simulateOnChainActions) {
+    options.push('simulation');
+  }
+
+  if (useSecurityAlerts) {
+    options.push('validation');
+  }
+
+  if (simulateOnChainActions || useSecurityAlerts) {
+    const transactionScanPromise = transactionScanService
+      .scanTransaction({
+        method: updatedContext2.method,
+        accountAddress: updatedContext2.account?.address ?? '',
+        transaction: updatedContext2.transaction,
+        scope: updatedContext2.scope,
+        options,
+      })
+      .then(async (scan) => {
+        updatedContext2.scanFetchStatus = 'fetched';
+        updatedContext2.scan = scan;
+      })
+      .catch(() => {
+        updatedContext2.scan = null;
+        updatedContext2.scanFetchStatus = 'error';
+      });
+
+    await Promise.all([transactionScanPromise]);
+  } else {
+    updatedContext2.scanFetchStatus = 'fetched';
+    updatedContext2.scan = null;
+  }
 
   await updateInterface(
     id,

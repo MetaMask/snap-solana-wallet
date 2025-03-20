@@ -83,12 +83,14 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
           </Text>
         </Box>
 
-        <EstimatedChanges
-          changes={null}
-          scanStatus={null}
-          preferences={preferences}
-          scanFetchStatus="fetched"
-        />
+        {preferences.simulateOnChainActions ? (
+          <EstimatedChanges
+            changes={null}
+            scanStatus={null}
+            preferences={preferences}
+            scanFetchStatus="fetched"
+          />
+        ) : null}
 
         <Section>
           <Row label={translate('confirmation.signIn.requestFrom')}>

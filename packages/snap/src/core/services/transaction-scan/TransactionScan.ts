@@ -31,6 +31,7 @@ export class TransactionScanService {
    * @param params.accountAddress - The address of the account.
    * @param params.transaction - The transaction to scan.
    * @param params.scope - The scope of the transaction.
+   * @param params.options - The options for the scan.
    * @returns The result of the scan.
    */
   async scanTransaction({
@@ -38,11 +39,13 @@ export class TransactionScanService {
     accountAddress,
     transaction,
     scope,
+    options = ['simulation', 'validation'],
   }: {
     method: string;
     accountAddress: string;
     transaction: string;
     scope: Network;
+    options?: string[];
   }): Promise<TransactionScanResult | null> {
     try {
       const result = await this.#securityAlertsApiClient.scanTransactions({
@@ -50,7 +53,7 @@ export class TransactionScanService {
         accountAddress,
         transactions: [transaction],
         scope,
-        options: ['simulation', 'validation'],
+        options,
       });
 
       const scan = this.#mapScan(result);

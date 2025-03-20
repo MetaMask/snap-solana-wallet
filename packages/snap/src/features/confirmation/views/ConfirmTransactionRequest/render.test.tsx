@@ -20,11 +20,12 @@ import {
 import type { MockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../../../core/test/utils';
+import type { Preferences } from '../../../../core/types/snap';
 import { ConfirmTransactionRequest } from './ConfirmTransactionRequest';
 import { DEFAULT_CONFIRMATION_CONTEXT } from './render';
 import type { ConfirmTransactionRequestContext } from './types';
 
-// FIXME: OnKeyringRequest doesnt let us test the confirmation dialog
+// FIXME: OnKeyringRequest doesn't let us test the confirmation dialog
 describe('render', () => {
   let mockSolanaRpc: MockSolanaRpc;
 
@@ -53,92 +54,225 @@ describe('render', () => {
     mockSolanaRpc.shutdown();
   });
 
-  it('renders the confirmation dialog', async () => {
-    const { mockResolvedResult, server } = mockSolanaRpc;
+  describe('when all preferences are enabled', () => {
+    it('renders the confirmation dialog', async () => {
+      const { mockResolvedResult, server } = mockSolanaRpc;
 
-    server?.get(`/v3/spot-prices`, (_: any, res: any) => {
-      return res.json({
-        [KnownCaip19Id.SolLocalnet]: {
-          usd: 200,
+      server?.get(`/v3/spot-prices`, (_: any, res: any) => {
+        return res.json({
+          [KnownCaip19Id.SolLocalnet]: {
+            usd: 200,
+          },
+        });
+      });
+
+      server?.post(`/solana/message/scan`, (_: any, res: any) => {
+        return res.json(MOCK_SECURITY_ALERTS_API_SCAN_TRANSACTIONS_RESPONSE);
+      });
+
+      const { onKeyringRequest, mockJsonRpc } = await installSnap();
+
+      mockJsonRpc({
+        method: 'snap_manageState',
+        result: {
+          keyringAccounts: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+              scopes: [Network.Localnet],
+            },
+            [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
+          },
         },
       });
-    });
 
-    server?.post(`/solana/message/scan`, (_: any, res: any) => {
-      return res.json(MOCK_SECURITY_ALERTS_API_SCAN_TRANSACTIONS_RESPONSE);
-    });
+      const mockPreferences: Preferences = {
+        locale: 'en',
+        currency: 'usd',
+        hideBalances: false,
+        useSecurityAlerts: true,
+        useExternalPricingData: true,
+        simulateOnChainActions: true,
+        useTokenDetection: true,
+        batchCheckBalances: true,
+        displayNftMedia: true,
+        useNftDetection: true,
+      };
 
-    const { onKeyringRequest, mockJsonRpc } = await installSnap();
+      mockJsonRpc({
+        method: 'snap_getPreferences',
+        result: mockPreferences,
+      });
 
-    mockJsonRpc({
-      method: 'snap_manageState',
-      result: {
-        keyringAccounts: {
-          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-            ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-            scopes: [Network.Localnet],
-          },
-          [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        },
-      },
-    });
+      mockJsonRpc({
+        method: 'snap_scheduleBackgroundEvent',
+        result: {},
+      });
 
-    mockJsonRpc({
-      method: 'snap_getPreferences',
-      result: { locale: 'en', currency: 'usd' },
-    });
+      mockResolvedResult({
+        method: 'getFeeForMessage',
+        result: MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE.result,
+      });
 
-    mockJsonRpc({
-      method: 'snap_scheduleBackgroundEvent',
-      result: {},
-    });
+      mockResolvedResult({
+        method: 'getLatestBlockhash',
+        result: MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result,
+      });
 
-    mockResolvedResult({
-      method: 'getFeeForMessage',
-      result: MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE.result,
-    });
+      mockResolvedResult({
+        method: 'getMultipleAccounts',
+        result: MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_SWAP_RESPONSE.result,
+      });
 
-    mockResolvedResult({
-      method: 'getLatestBlockhash',
-      result: MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result,
-    });
-
-    mockResolvedResult({
-      method: 'getMultipleAccounts',
-      result: MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_SWAP_RESPONSE.result,
-    });
-
-    const request: SolanaKeyringRequest = {
-      id: globalThis.crypto.randomUUID(),
-      scope: Network.Localnet,
-      account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      request: {
-        method: SolMethod.SignAndSendTransaction,
-        params: {
-          transaction: mockConfirmationContext.transaction,
-          scope: Network.Localnet,
-          account: {
-            address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+      const request: SolanaKeyringRequest = {
+        id: globalThis.crypto.randomUUID(),
+        scope: Network.Localnet,
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        request: {
+          method: SolMethod.SignAndSendTransaction,
+          params: {
+            transaction: mockConfirmationContext.transaction,
+            scope: Network.Localnet,
+            account: {
+              address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+            },
           },
         },
-      },
-    };
+      };
 
-    const response = onKeyringRequest({
-      origin: TEST_ORIGIN,
-      method: KeyringRpcMethod.SubmitRequest,
-      params: request as unknown as KeyringRequest,
+      const response = onKeyringRequest({
+        origin: TEST_ORIGIN,
+        method: KeyringRpcMethod.SubmitRequest,
+        params: request as unknown as KeyringRequest,
+      });
+
+      const screen1BeforeUpdate = await (response as any).getInterface();
+
+      /**
+       * Second render:
+       * - Get token prices
+       * - Get transaction fee
+       */
+      await screen1BeforeUpdate.waitForUpdate();
+
+      /**
+       * Third render:
+       * - Scan transaction
+       */
+      await screen1BeforeUpdate.waitForUpdate();
+
+      const screen1 = await (response as any).getInterface();
+
+      expect(screen1).toRender(
+        <ConfirmTransactionRequest context={mockConfirmationContext} />,
+      );
     });
+  });
 
-    const screen1BeforeUpdate = await (response as any).getInterface();
+  describe('when all preferences are disabled', () => {
+    it('renders the confirmation dialog', async () => {
+      const { mockResolvedResult } = mockSolanaRpc;
+      const { onKeyringRequest, mockJsonRpc } = await installSnap();
 
-    await screen1BeforeUpdate.waitForUpdate();
-    await screen1BeforeUpdate.waitForUpdate();
+      mockJsonRpc({
+        method: 'snap_manageState',
+        result: {
+          keyringAccounts: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+              scopes: [Network.Localnet],
+            },
+            [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
+          },
+        },
+      });
 
-    const screen1 = await (response as any).getInterface();
+      const mockPreferences: Preferences = {
+        locale: 'en',
+        currency: 'usd',
+        hideBalances: false,
+        useSecurityAlerts: false,
+        useExternalPricingData: false,
+        simulateOnChainActions: false,
+        useTokenDetection: true,
+        batchCheckBalances: true,
+        displayNftMedia: true,
+        useNftDetection: true,
+      };
 
-    expect(screen1).toRender(
-      <ConfirmTransactionRequest context={mockConfirmationContext} />,
-    );
+      mockJsonRpc({
+        method: 'snap_getPreferences',
+        result: mockPreferences,
+      });
+
+      mockJsonRpc({
+        method: 'snap_scheduleBackgroundEvent',
+        result: {},
+      });
+
+      mockResolvedResult({
+        method: 'getFeeForMessage',
+        result: MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE.result,
+      });
+
+      mockResolvedResult({
+        method: 'getLatestBlockhash',
+        result: MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result,
+      });
+
+      mockResolvedResult({
+        method: 'getMultipleAccounts',
+        result: MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_SWAP_RESPONSE.result,
+      });
+
+      const request: SolanaKeyringRequest = {
+        id: globalThis.crypto.randomUUID(),
+        scope: Network.Localnet,
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        request: {
+          method: SolMethod.SignAndSendTransaction,
+          params: {
+            transaction: mockConfirmationContext.transaction,
+            scope: Network.Localnet,
+            account: {
+              address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+            },
+          },
+        },
+      };
+
+      const response = onKeyringRequest({
+        origin: TEST_ORIGIN,
+        method: KeyringRpcMethod.SubmitRequest,
+        params: request as unknown as KeyringRequest,
+      });
+
+      const screen1BeforeUpdate = await (response as any).getInterface();
+
+      /**
+       * Second render:
+       * - Get token prices, which does not happen
+       * - Get transaction fee
+       */
+      await screen1BeforeUpdate.waitForUpdate();
+
+      /**
+       * Third render:
+       * - Scan transaction, which does not happen
+       */
+      await screen1BeforeUpdate.waitForUpdate();
+
+      const screen1 = await (response as any).getInterface();
+
+      const mockContext = {
+        ...mockConfirmationContext,
+        preferences: mockPreferences,
+        scan: null,
+        tokenPrices: {},
+      };
+
+      expect(screen1).toRender(
+        <ConfirmTransactionRequest context={mockContext} />,
+      );
+    });
   });
 });
