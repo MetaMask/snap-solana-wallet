@@ -1,5 +1,4 @@
-/* eslint-disable no-restricted-globals */
-import { type CompilableTransactionMessage } from '@solana/web3.js';
+import { type CompilableTransactionMessage } from '@solana/kit';
 import bs58 from 'bs58';
 
 import type { SolanaInstruction } from '../../features/confirmation/views/ConfirmTransactionRequest/types';
@@ -17,7 +16,9 @@ export function parseInstructions(
   instructions.forEach((instruction) => {
     parsedInstructions.push({
       programId: instruction.programAddress,
-      data: bs58.encode(instruction?.data ?? new Uint8Array()),
+      data: bs58.encode(
+        instruction?.data ? new Uint8Array(instruction.data) : new Uint8Array(),
+      ),
     });
   });
 

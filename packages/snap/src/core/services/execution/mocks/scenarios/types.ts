@@ -1,4 +1,4 @@
-import type { CompilableTransactionMessage } from '@solana/web3.js';
+import type { CompilableTransactionMessage } from '@solana/kit';
 
 import type { Network } from '../../../../constants/solana';
 import type { SolanaKeyringAccount } from '../../../../handlers/onKeyringRequest/Keyring';

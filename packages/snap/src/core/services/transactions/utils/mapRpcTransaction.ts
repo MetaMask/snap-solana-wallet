@@ -1,4 +1,4 @@
-import type { Address } from '@solana/web3.js';
+import type { Address } from '@solana/kit';
 
 import type { Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';

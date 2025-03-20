@@ -8,7 +8,7 @@ import {
   address as asAddress,
   type Address,
   type Signature,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import { Network } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';

@@ -1,7 +1,7 @@
 import {
   createKeyPairFromPrivateKeyBytes,
   getAddressFromPublicKey,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import { Network } from '../constants/solana';
 import type { AssetsService } from '../services/assets/AssetsService';

@@ -2,18 +2,13 @@
 /* eslint-disable no-restricted-globals */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import type {
-  Blockhash,
-  KeyPairSigner,
-  Rpc,
-  SolanaRpcApi,
-} from '@solana/web3.js';
+import type { Blockhash, KeyPairSigner, Rpc, SolanaRpcApi } from '@solana/kit';
 import {
   address,
   createKeyPairSignerFromPrivateKeyBytes,
   type Address,
   type MaybeAccount,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import {
   KnownCaip19Id,
@@ -32,8 +27,8 @@ import type { TransactionHelper } from '../TransactionHelper';
 import type { Exists, MaybeHasDecimals } from './SendSplTokenBuilder';
 import { SendSplTokenBuilder } from './SendSplTokenBuilder';
 
-jest.mock('@solana/web3.js', () => ({
-  ...jest.requireActual('@solana/web3.js'),
+jest.mock('@solana/kit', () => ({
+  ...jest.requireActual('@solana/kit'),
   fetchJsonParsedAccount: jest.fn(),
   sendTransactionWithoutConfirmingFactory: jest
     .fn()
@@ -402,7 +397,7 @@ describe('SendSplTokenBuilder', () => {
 
       // Mock the web3.js fetchJsonParsedAccount function
       const fetchJsonParsedAccountSpy = jest.spyOn(
-        require('@solana/web3.js'),
+        require('@solana/kit'),
         'fetchJsonParsedAccount',
       );
       fetchJsonParsedAccountSpy.mockResolvedValue(mockTokenAccount);
@@ -427,7 +422,7 @@ describe('SendSplTokenBuilder', () => {
       } as unknown as Rpc<SolanaRpcApi>);
 
       const fetchJsonParsedAccountSpy = jest.spyOn(
-        require('@solana/web3.js'),
+        require('@solana/kit'),
         'fetchJsonParsedAccount',
       );
       fetchJsonParsedAccountSpy.mockResolvedValue(mockNonExistingAccount);

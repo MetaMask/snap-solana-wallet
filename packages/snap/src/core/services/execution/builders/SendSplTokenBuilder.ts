@@ -5,7 +5,7 @@ import {
   getTransferInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
-import type { CompilableTransactionMessage } from '@solana/web3.js';
+import type { CompilableTransactionMessage } from '@solana/kit';
 import {
   addSignersToTransactionMessage,
   appendTransactionMessageInstruction,
@@ -25,7 +25,7 @@ import {
   type KeyPairSigner,
   type MaybeAccount,
   type MaybeEncodedAccount,
-} from '@solana/web3.js';
+} from '@solana/kit';
 import type BigNumber from 'bignumber.js';
 
 import type { Network } from '../../../constants/solana';

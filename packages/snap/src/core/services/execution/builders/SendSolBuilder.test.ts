@@ -1,5 +1,5 @@
-import type { Blockhash } from '@solana/web3.js';
-import { address } from '@solana/web3.js';
+import type { Blockhash } from '@solana/kit';
+import { address } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 
 import { Network } from '../../../constants/solana';

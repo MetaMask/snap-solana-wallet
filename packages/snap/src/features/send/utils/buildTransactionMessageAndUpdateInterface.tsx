@@ -1,4 +1,4 @@
-import { address, type CompilableTransactionMessage } from '@solana/web3.js';
+import { address, type CompilableTransactionMessage } from '@solana/kit';
 import debounce from 'lodash/fp/debounce';
 import pipe from 'lodash/fp/pipe';
 

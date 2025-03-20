@@ -3,7 +3,7 @@ import {
   address,
   blockhash,
   type CompilableTransactionMessage,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import { Network } from '../../../../constants/solana';
 import {

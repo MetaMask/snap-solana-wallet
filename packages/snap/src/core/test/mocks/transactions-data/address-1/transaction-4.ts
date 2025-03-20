@@ -4,8 +4,8 @@ import type {
   Lamports,
   Slot,
   UnixTimestamp,
-} from '@solana/web3.js';
-import { address as asAddress } from '@solana/web3.js';
+} from '@solana/kit';
+import { address as asAddress } from '@solana/kit';
 
 import type { SolanaTransaction } from '../../../../types/solana';
 

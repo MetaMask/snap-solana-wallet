@@ -1,4 +1,4 @@
-import { address as asAddress } from '@solana/web3.js';
+import { address as asAddress } from '@solana/kit';
 
 import { Network, Networks } from '../../../constants/solana';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';

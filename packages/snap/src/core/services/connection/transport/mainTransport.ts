@@ -1,4 +1,4 @@
-import { createDefaultRpcTransport } from '@solana/web3.js';
+import { createDefaultRpcTransport } from '@solana/kit';
 
 import { createFailoverTransport } from './failoverTransport';
 import { createRetryingTransport } from './retryingTransport';

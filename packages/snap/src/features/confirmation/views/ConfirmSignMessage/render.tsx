@@ -1,5 +1,5 @@
 import { assert } from '@metamask/superstruct';
-import { getBase64Codec, getUtf8Codec } from '@solana/web3.js';
+import { getBase64Codec, getUtf8Codec } from '@solana/kit';
 
 import type { SolanaKeyringAccount } from '../../../../core/handlers/onKeyringRequest/Keyring';
 import type { SolanaKeyringRequest } from '../../../../core/handlers/onKeyringRequest/structs';

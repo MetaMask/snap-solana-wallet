@@ -1,6 +1,6 @@
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import { address as asAddress } from '@solana/web3.js';
+import { address as asAddress } from '@solana/kit';
 
 import { Network } from '../../constants/solana';
 import {

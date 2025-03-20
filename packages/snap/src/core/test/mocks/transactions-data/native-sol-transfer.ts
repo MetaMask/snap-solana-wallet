@@ -1,5 +1,5 @@
-import type { Base58EncodedBytes, Slot, UnixTimestamp } from '@solana/web3.js';
-import { address, blockhash, lamports } from '@solana/web3.js';
+import type { Base58EncodedBytes, Slot, UnixTimestamp } from '@solana/kit';
+import { address, blockhash, lamports } from '@solana/kit';
 
 import type { SolanaTransaction } from '../../../types/solana';
 

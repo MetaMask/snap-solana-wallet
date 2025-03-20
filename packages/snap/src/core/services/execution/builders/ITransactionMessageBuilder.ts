@@ -1,4 +1,4 @@
-import type { CompilableTransactionMessage } from '@solana/web3.js';
+import type { CompilableTransactionMessage } from '@solana/kit';
 
 /**
  * A transaction message builder is a class that can build a transaction message.

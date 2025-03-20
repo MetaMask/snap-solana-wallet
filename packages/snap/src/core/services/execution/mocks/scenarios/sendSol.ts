@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { CompilableTransactionMessage } from '@solana/web3.js';
-import { address, blockhash } from '@solana/web3.js';
+import type { CompilableTransactionMessage } from '@solana/kit';
+import { address, blockhash } from '@solana/kit';
 
 import { Network } from '../../../../constants/solana';
 import {

@@ -20,8 +20,8 @@ import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { MethodNotFoundError } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 import { type CaipChainId } from '@metamask/utils';
-import type { Signature } from '@solana/web3.js';
-import { address as asAddress, getAddressDecoder } from '@solana/web3.js';
+import type { Signature } from '@solana/kit';
+import { address as asAddress, getAddressDecoder } from '@solana/kit';
 
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';

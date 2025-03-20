@@ -6,7 +6,7 @@ import {
 } from '@metamask/keyring-api';
 import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
-import type { SignatureBytes } from '@solana/web3.js';
+import type { SignatureBytes } from '@solana/kit';
 import {
   addSignersToTransactionMessage,
   address as asAddress,
@@ -21,7 +21,7 @@ import {
   sendTransactionWithoutConfirmingFactory,
   signTransactionMessageWithSigners,
   verifySignature,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import type { Caip10Address, Network } from '../../constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';

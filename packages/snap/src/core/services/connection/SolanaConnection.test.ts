@@ -2,7 +2,7 @@ import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../config';
 import { SolanaConnection } from './SolanaConnection';
 
-jest.mock('@solana/web3.js', () => ({
+jest.mock('@solana/kit', () => ({
   createSolanaRpcFromTransport: jest.fn().mockImplementation((transport) => ({
     urls: transport.urls,
   })),

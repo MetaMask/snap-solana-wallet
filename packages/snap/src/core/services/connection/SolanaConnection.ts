@@ -3,7 +3,7 @@ import {
   createSolanaRpcFromTransport,
   type Rpc,
   type SolanaRpcApi,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import type { Network } from '../../constants/solana';
 import { NetworkStruct } from '../../validation/structs';

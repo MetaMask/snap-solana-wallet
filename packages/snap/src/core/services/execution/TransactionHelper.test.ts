@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable no-restricted-globals */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import type { KeyPairSigner } from '@solana/web3.js';
-import { createKeyPairSignerFromPrivateKeyBytes } from '@solana/web3.js';
+import type { KeyPairSigner } from '@solana/kit';
+import { createKeyPairSignerFromPrivateKeyBytes } from '@solana/kit';
 
 import { Network } from '../../constants/solana';
 import {
@@ -19,8 +19,8 @@ import { TransactionHelper } from './TransactionHelper';
 // Mock dependencies
 jest.mock('@solana-program/compute-budget');
 
-jest.mock('@solana/web3.js', () => ({
-  ...jest.requireActual('@solana/web3.js'),
+jest.mock('@solana/kit', () => ({
+  ...jest.requireActual('@solana/kit'),
   getComputeUnitEstimateForTransactionMessageFactory: jest
     .fn()
     .mockReturnValue(jest.fn().mockResolvedValue(200000)),

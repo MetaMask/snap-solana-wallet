@@ -2,7 +2,7 @@ import { assert } from '@metamask/superstruct';
 import {
   setTransactionMessageLifetimeUsingBlockhash,
   type CompilableTransactionMessage,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import type { Network } from '../../../constants/solana';
 import { Base64Struct } from '../../../validation/structs';

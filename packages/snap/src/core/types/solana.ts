@@ -11,7 +11,7 @@ import type {
   TransactionError,
   TransactionVersion,
   UnixTimestamp,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import type { Network } from '../constants/solana';
 

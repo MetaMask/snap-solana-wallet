@@ -6,7 +6,7 @@ import type {
   GetTransactionApi,
   Lamports,
   TransactionMessageBytesBase64,
-} from '@solana/web3.js';
+} from '@solana/kit';
 import {
   signature as asSignature,
   compileTransaction,
@@ -21,7 +21,7 @@ import {
   getTransactionEncoder,
   pipe,
   type Blockhash,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import type { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';

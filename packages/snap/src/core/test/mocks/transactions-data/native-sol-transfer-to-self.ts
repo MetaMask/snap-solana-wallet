@@ -5,7 +5,7 @@ import {
   type Base58EncodedBytes,
   type TransactionVersion,
   type UnixTimestamp,
-} from '@solana/web3.js';
+} from '@solana/kit';
 
 import type { SolanaTransaction } from '../../../types/solana';
 

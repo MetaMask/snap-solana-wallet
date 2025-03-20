@@ -1,6 +1,6 @@
 import { getSetComputeUnitLimitInstruction } from '@solana-program/compute-budget';
 import { getTransferSolInstruction } from '@solana-program/system';
-import type { Address, CompilableTransactionMessage } from '@solana/web3.js';
+import type { Address, CompilableTransactionMessage } from '@solana/kit';
 import {
   appendTransactionMessageInstruction,
   createNoopSigner,
@@ -9,7 +9,7 @@ import {
   prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
-} from '@solana/web3.js';
+} from '@solana/kit';
 import type BigNumber from 'bignumber.js';
 
 import { type Network } from '../../../constants/solana';

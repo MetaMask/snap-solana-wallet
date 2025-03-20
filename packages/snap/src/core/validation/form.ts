@@ -1,4 +1,4 @@
-import { address as addressValidator } from '@solana/web3.js';
+import { address as addressValidator } from '@solana/kit';
 
 import {
   getBalance,

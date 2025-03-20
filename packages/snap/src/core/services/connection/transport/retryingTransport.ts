@@ -1,4 +1,4 @@
-import { type RpcTransport } from '@solana/web3.js';
+import { type RpcTransport } from '@solana/kit';
 
 import logger from '../../../utils/logger';
 import { sleep } from '../../../utils/sleep';

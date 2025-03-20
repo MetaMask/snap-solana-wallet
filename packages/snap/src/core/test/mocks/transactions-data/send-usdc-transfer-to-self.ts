@@ -4,8 +4,8 @@ import type {
   StringifiedNumber,
   TransactionVersion,
   UnixTimestamp,
-} from '@solana/web3.js';
-import { address, blockhash, lamports } from '@solana/web3.js';
+} from '@solana/kit';
+import { address, blockhash, lamports } from '@solana/kit';
 
 import type { SolanaTransaction } from '../../../types/solana';
 

@@ -1,4 +1,4 @@
-import { address } from '@solana/web3.js';
+import { address } from '@solana/kit';
 
 /* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';

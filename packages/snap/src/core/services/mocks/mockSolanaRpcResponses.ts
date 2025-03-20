@@ -1,5 +1,5 @@
-import type { GetLatestBlockhashApi } from '@solana/web3.js';
-import { blockhash, lamports, type GetBalanceApi } from '@solana/web3.js';
+import type { GetLatestBlockhashApi } from '@solana/kit';
+import { blockhash, lamports, type GetBalanceApi } from '@solana/kit';
 
 /**
  * Sample response from the Solana RPC `getBalance` method

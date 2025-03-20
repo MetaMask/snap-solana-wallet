@@ -1,4 +1,4 @@
-import type { Blockhash, CompilableTransactionMessage } from '@solana/web3.js';
+import type { Blockhash, CompilableTransactionMessage } from '@solana/kit';
 
 import { Network } from '../../../constants/solana';
 import type { TransactionHelper } from '../TransactionHelper';

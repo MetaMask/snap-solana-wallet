@@ -3,11 +3,8 @@ import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
-import type {
-  GetTransactionApi,
-  JsonParsedTokenAccount,
-} from '@solana/web3.js';
-import { address as asAddress } from '@solana/web3.js';
+import type { GetTransactionApi, JsonParsedTokenAccount } from '@solana/kit';
+import { address as asAddress } from '@solana/kit';
 
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { Network } from '../../constants/solana';
