@@ -164,7 +164,7 @@ export const AccountRow = ({
     const requestId = crypto.randomUUID();
     const params = {
       domain: 'example.com',
-      address: account.address,
+      address: 'Sol11111111111111111111111111111111111111112',
       statement: 'I accept the terms of service',
       uri: 'https://example.com/login',
       version: '1',

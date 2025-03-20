@@ -65,6 +65,7 @@
   "confirmation.signIn.requestFrom": "Request from",
   "confirmation.signIn.unknownDomain": "Unknown domain",
   "confirmation.signIn.signingInWith": "Signing in with",
+  "confirmation.signIn.badAccount": "This site is asking you to sign in using the wrong account.",
   "confirmation.signIn.message": "Message",
   "confirmation.signIn.statement": "Statement",
   "confirmation.signIn.version": "Version",

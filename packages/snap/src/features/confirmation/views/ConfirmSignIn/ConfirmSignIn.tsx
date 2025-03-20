@@ -51,7 +51,6 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
   networkImage,
 }) => {
   const translate = i18n(preferences.locale);
-  const addressCaip10 = addressToCaip10(scope, account.address);
 
   const {
     domain,
@@ -65,7 +64,13 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
     notBefore,
     requestId,
     resources,
+    address,
   } = params;
+
+  const accountAddressCaip10 = addressToCaip10(scope, account.address);
+  const signInAddressCaip10 = address ? addressToCaip10(scope, address) : null;
+
+  const isBadAccount = signInAddressCaip10 !== accountAddressCaip10;
 
   return (
     <Container>
@@ -91,8 +96,22 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
               {domain ?? translate('confirmation.signIn.unknownDomain')}
             </Text>
           </Row>
-          <Row label={translate('confirmation.signIn.signingInWith')}>
-            <Address address={addressCaip10} truncate displayName avatar />
+
+          <Row
+            label={translate('confirmation.signIn.signingInWith')}
+            tooltip={
+              isBadAccount
+                ? translate('confirmation.signIn.badAccount')
+                : undefined
+            }
+            variant={isBadAccount ? 'warning' : 'default'}
+          >
+            <Address
+              address={accountAddressCaip10}
+              truncate
+              displayName
+              avatar
+            />
           </Row>
         </Section>
 
@@ -119,12 +138,19 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
             </Box>
           </Box>
 
-          <Box alignment="space-between" direction="horizontal">
-            <Text fontWeight="medium" color="alternative">
-              {translate('confirmation.account')}
-            </Text>
-            <Address address={addressCaip10} truncate displayName avatar />
-          </Box>
+          {signInAddressCaip10 ? (
+            <Box alignment="space-between" direction="horizontal">
+              <Text fontWeight="medium" color="alternative">
+                {translate('confirmation.account')}
+              </Text>
+              <Address
+                address={signInAddressCaip10}
+                truncate
+                displayName
+                avatar
+              />
+            </Box>
+          ) : null}
 
           <BasicNullableField
             label={translate('confirmation.signIn.version')}

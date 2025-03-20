@@ -104,6 +104,7 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
     logger.log('[🔑 onKeyringRequest]', request.method, request);
 
     validateOrigin(origin, request.method);
+
     return (await handleKeyringRequest(
       keyring,
       request,
