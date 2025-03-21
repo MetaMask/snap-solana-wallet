@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.14.0]
 
-### Uncategorized
+### Added
 
-- feat: warn on bad account in confirm sign in ([#256](https://github.com/MetaMask/snap-solana-wallet/pull/256))
-- Fix/fee estimate in confirm tx request ([#255](https://github.com/MetaMask/snap-solana-wallet/pull/255))
-- feat: confirmation UI for signTransaction ([#251](https://github.com/MetaMask/snap-solana-wallet/pull/251))
-- Sol 181 snap sign message and sign in confirmation UI frontend ([#247](https://github.com/MetaMask/snap-solana-wallet/pull/247))
+- Warn on bad account in confirm `signIn` ([#256](https://github.com/MetaMask/snap-solana-wallet/pull/256))
+- Confirmation UI for `signTransaction` ([#251](https://github.com/MetaMask/snap-solana-wallet/pull/251))
+- Confirmation UI for `signMessage` and `signIn` ([#247](https://github.com/MetaMask/snap-solana-wallet/pull/247))
+
+### Fixed
+
+- Fee estimate in confirm tx request ([#255](https://github.com/MetaMask/snap-solana-wallet/pull/255))
 
 ## [1.11.0]
 
