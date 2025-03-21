@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0]
+
+### Uncategorized
+
+- New Crowdin translations by Github Action ([#257](https://github.com/MetaMask/snap-solana-wallet/pull/257))
+- feat: warn on bad account in confirm sign in ([#256](https://github.com/MetaMask/snap-solana-wallet/pull/256))
+- New Crowdin translations by Github Action ([#249](https://github.com/MetaMask/snap-solana-wallet/pull/249))
+- fix: Correct expected parameter shape for `resolveAccountAddress` ([#254](https://github.com/MetaMask/snap-solana-wallet/pull/254))
+- fix: assets wipe up by the cronjob ([#253](https://github.com/MetaMask/snap-solana-wallet/pull/253))
+- fix: fee estimation in confirm tx request ([#252](https://github.com/MetaMask/snap-solana-wallet/pull/252))
+- feat: confirmation UI for signTransaction ([#251](https://github.com/MetaMask/snap-solana-wallet/pull/251))
+- fix: mapping differences between Send, Receive and Swap transactions ([#250](https://github.com/MetaMask/snap-solana-wallet/pull/250))
+- Sol 181 snap sign message and sign in confirmation UI frontend ([#247](https://github.com/MetaMask/snap-solana-wallet/pull/247))
+
 ## [1.13.0]
 
 ### Added
@@ -301,7 +315,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.13.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.10.1...v1.11.0

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0]
+
+### Uncategorized
+
+- feat: warn on bad account in confirm sign in ([#256](https://github.com/MetaMask/snap-solana-wallet/pull/256))
+- Fix/fee estimate in confirm tx request ([#255](https://github.com/MetaMask/snap-solana-wallet/pull/255))
+- feat: confirmation UI for signTransaction ([#251](https://github.com/MetaMask/snap-solana-wallet/pull/251))
+- Sol 181 snap sign message and sign in confirmation UI frontend ([#247](https://github.com/MetaMask/snap-solana-wallet/pull/247))
+
 ## [1.11.0]
 
 ### Fixed
@@ -110,7 +119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.11.0...v1.14.0
 [1.11.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.9.0...v1.11.0
 [1.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.7.0...v1.8.0
