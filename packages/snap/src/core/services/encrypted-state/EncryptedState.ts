@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type {
-  Balance,
-  CaipAssetType,
-  Transaction,
-} from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 
-import type { SpotPrices } from '../../clients/price-api/types';
-import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { safeMerge } from '../../utils/safeMerge';
 
@@ -15,20 +8,10 @@ export type AccountId = string;
 
 export type EncryptedStateValue = {
   keyringAccounts: Record<string, SolanaKeyringAccount>;
-  mapInterfaceNameToId: Record<string, string>;
-  transactions: Record<AccountId, Transaction[]>;
-  assets: Record<AccountId, Record<CaipAssetType, Balance>>;
-  metadata: Record<CaipAssetType, SolanaTokenMetadata>;
-  tokenPrices: SpotPrices;
 };
 
 export const DEFAULT_ENCRYPTED_STATE: EncryptedStateValue = {
   keyringAccounts: {},
-  mapInterfaceNameToId: {},
-  transactions: {},
-  assets: {},
-  metadata: {},
-  tokenPrices: {},
 };
 
 export class EncryptedState {

@@ -2,11 +2,8 @@
 /* eslint-disable jest/prefer-strict-equal */
 import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
 import { SLIP10Node } from '@metamask/key-tree';
-import type {
-  KeyringRequest,
-  ResolveAccountAddressRequest,
-} from '@metamask/keyring-api';
-import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
+import type { KeyringRequest } from '@metamask/keyring-api';
+import { SolMethod } from '@metamask/keyring-api';
 import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
 
@@ -18,6 +15,7 @@ import type { SolanaConnection } from '../../services/connection/SolanaConnectio
 import type { EncryptedStateValue } from '../../services/encrypted-state/EncryptedState';
 import { EncryptedState } from '../../services/encrypted-state/EncryptedState';
 import { createMockConnection } from '../../services/mocks/mockConnection';
+import { State, type StateValue } from '../../services/state/State';
 import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
 import { TransactionsService } from '../../services/transactions/TransactionsService';
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
@@ -63,7 +61,7 @@ const NON_EXISTENT_ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174009';
 
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
-  let mockStateValue: EncryptedStateValue;
+  let mockStateValue: EncryptedStateValue & StateValue;
   let mockConfigProvider: ConfigProvider;
   let mockConnection: SolanaConnection;
   let mockTokenMetadataService: TokenMetadataService;
@@ -76,7 +74,8 @@ describe('SolanaKeyring', () => {
 
     mockConnection = createMockConnection();
 
-    const state = new EncryptedState();
+    const encryptedState = new EncryptedState();
+    const state = new State();
 
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
@@ -120,6 +119,7 @@ describe('SolanaKeyring', () => {
     } as unknown as ConfirmationHandler;
 
     keyring = new SolanaKeyring({
+      encryptedState,
       state,
       logger,
       transactionsService,
@@ -164,10 +164,11 @@ describe('SolanaKeyring', () => {
                   case 'get':
                     return mockStateValue;
                   case 'update':
-                    mockStateValue = params.newState as EncryptedStateValue;
+                    mockStateValue = params.newState as EncryptedStateValue &
+                      StateValue;
                     return null;
                   case 'clear':
-                    mockStateValue = {} as EncryptedStateValue;
+                    mockStateValue = {} as EncryptedStateValue & StateValue;
                     return null;
                   default:
                     throw new Error(`Unknown operation: ${params.operation}`);

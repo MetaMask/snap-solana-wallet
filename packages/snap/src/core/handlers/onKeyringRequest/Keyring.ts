@@ -26,6 +26,7 @@ import { address as asAddress, getAddressDecoder } from '@solana/kit';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { EncryptedState } from '../../services/encrypted-state/EncryptedState';
+import type { State } from '../../services/state/State';
 import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
@@ -53,7 +54,9 @@ export type SolanaKeyringAccount = {
 } & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
-  readonly #state: EncryptedState;
+  readonly #encryptedState: EncryptedState;
+
+  readonly #state: State;
 
   readonly #logger: ILogger;
 
@@ -66,6 +69,7 @@ export class SolanaKeyring implements Keyring {
   readonly #confirmationHandler: ConfirmationHandler;
 
   constructor({
+    encryptedState,
     state,
     logger,
     transactionsService,
@@ -73,13 +77,15 @@ export class SolanaKeyring implements Keyring {
     walletService,
     confirmationHandler,
   }: {
-    state: EncryptedState;
+    encryptedState: EncryptedState;
+    state: State;
     logger: ILogger;
     transactionsService: TransactionsService;
     assetsService: AssetsService;
     walletService: WalletService;
     confirmationHandler: ConfirmationHandler;
   }) {
+    this.#encryptedState = encryptedState;
     this.#state = state;
     this.#logger = logger;
     this.#transactionsService = transactionsService;
@@ -90,7 +96,7 @@ export class SolanaKeyring implements Keyring {
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
-      const currentState = await this.#state.get();
+      const currentState = await this.#encryptedState.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
       return Object.values(keyringAccounts).sort((a, b) => a.index - b.index);
@@ -106,7 +112,7 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, GetAccountStruct);
 
-      const currentState = await this.#state.get();
+      const currentState = await this.#encryptedState.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
       if (!keyringAccounts[accountId]) {
@@ -181,7 +187,7 @@ export class SolanaKeyring implements Keyring {
         ],
       };
 
-      await this.#state.update((state) => ({
+      await this.#encryptedState.update((state) => ({
         ...state,
         keyringAccounts: {
           ...(state?.keyringAccounts ?? {}),
@@ -219,15 +225,21 @@ export class SolanaKeyring implements Keyring {
   }
 
   async #deleteAccountFromState(accountId: string): Promise<void> {
-    await this.#state.update((state) => {
-      if (state?.keyringAccounts?.[accountId]) {
-        delete state?.keyringAccounts?.[accountId];
-        delete state?.assets?.[accountId];
-        delete state?.transactions?.[accountId];
-      }
+    await Promise.all([
+      this.#encryptedState.update((state) => {
+        if (state?.keyringAccounts?.[accountId]) {
+          delete state?.keyringAccounts?.[accountId];
+        }
 
-      return state;
-    });
+        return state;
+      }),
+      this.#state.update((state) => {
+        delete state?.transactions?.[accountId];
+        delete state?.assets?.[accountId];
+
+        return state;
+      }),
+    ]);
   }
 
   async deleteAccount(accountId: string): Promise<void> {

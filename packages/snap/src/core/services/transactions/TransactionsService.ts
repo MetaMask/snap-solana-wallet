@@ -15,7 +15,7 @@ import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyri
 import type { ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
-import type { EncryptedState } from '../encrypted-state/EncryptedState';
+import type { State } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { MappedTransaction, SignatureMapping } from './types';
 import { mapRpcTransaction } from './utils/mapRpcTransaction';
@@ -27,7 +27,7 @@ export class TransactionsService {
 
   readonly #tokenMetadataService: TokenMetadataService;
 
-  readonly #state: EncryptedState;
+  readonly #state: State;
 
   readonly #configProvider: ConfigProvider;
 
@@ -41,7 +41,7 @@ export class TransactionsService {
     logger: ILogger;
     connection: SolanaConnection;
     tokenMetadataService: TokenMetadataService;
-    state: EncryptedState;
+    state: State;
     configProvider: ConfigProvider;
   }) {
     this.#connection = connection;
