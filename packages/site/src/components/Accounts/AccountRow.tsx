@@ -15,7 +15,7 @@ import {
 import { address as asAddress } from '@solana/kit';
 import { Link as RouterLink } from 'gatsby';
 import { useEffect, useState } from 'react';
-import { LuCopy } from 'react-icons/lu';
+import { LuCopy, LuExternalLink, LuTrash } from 'react-icons/lu';
 
 import { Network } from '../../../../snap/src/core/constants/solana';
 import { RpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
@@ -105,35 +105,6 @@ export const AccountRow = ({
     return lifiQuote;
   };
 
-  const handleSwap = async () => {
-    try {
-      const lifiQuote = await getLifiQuote();
-
-      const response = await invokeKeyring({
-        method: KeyringRpcMethod.SubmitRequest,
-        params: {
-          id: crypto.randomUUID(),
-          scope: network,
-          account: account.id,
-          request: {
-            method: SolMethod.SignAndSendTransaction,
-            params: {
-              transaction: lifiQuote.transactionRequest.data,
-              scope: network,
-              account: {
-                address: account.address,
-              },
-            },
-          },
-        },
-      });
-
-      handleInvokeKeyringResponse(response, 'Swap submitted successfully');
-    } catch (error) {
-      handleInvokeKeyringError(error);
-    }
-  };
-
   /**
    * A list of use cases for transactions that can be signed.
    * We display a menu item for each.
@@ -141,9 +112,9 @@ export const AccountRow = ({
    * Each item has a title, shown in UI, and a builder function.
    * The builder function returns a promise that resolves to the transaction or transaction message in base64 encoding.
    */
-  const SIGN_TRANSACTION_USE_CASES = [
+  const USE_CASES = [
     {
-      title: 'No-op with "Hello, world!" data',
+      title: 'No-op with "Hello, world!" data | SDK v1',
       excludeFromNetworks: [],
       builder: async () =>
         buildNoOpWithHelloWorldData(
@@ -152,7 +123,7 @@ export const AccountRow = ({
         ),
     },
     {
-      title: 'Send 0.001 SOL to self',
+      title: 'Send 0.001 SOL to self | SDK v2',
       excludeFromNetworks: [],
       builder: async () =>
         buildSendSolTransactionMessage(
@@ -163,7 +134,7 @@ export const AccountRow = ({
         ),
     },
     {
-      title: 'Swap 0.001 SOL to USDC on LiFi',
+      title: 'Swap 0.001 SOL to USDC on LiFi | SDK v2',
       excludeFromNetworks: [Network.Devnet, Network.Testnet, Network.Localnet],
       builder: async () => {
         const lifiQuote = await getLifiQuote();
@@ -171,6 +142,40 @@ export const AccountRow = ({
       },
     },
   ];
+
+  const handleSignAndSendTransaction = async (
+    builder: () => Promise<string>,
+  ) => {
+    try {
+      const transactionMessageBase64 = await builder();
+
+      const response = await invokeKeyring({
+        method: KeyringRpcMethod.SubmitRequest,
+        params: {
+          id: crypto.randomUUID(),
+          scope: network,
+          account: account.id,
+          request: {
+            method: SolMethod.SignAndSendTransaction,
+            params: {
+              transaction: transactionMessageBase64,
+              scope: network,
+              account: {
+                address: account.address,
+              },
+            },
+          },
+        },
+      });
+
+      handleInvokeKeyringResponse(
+        response,
+        'Transaction signed and sent successfully',
+      );
+    } catch (error) {
+      handleInvokeKeyringError(error);
+    }
+  };
 
   const handleSignTransaction = async (builder: () => Promise<string>) => {
     try {
@@ -302,6 +307,19 @@ export const AccountRow = ({
         >
           <LuCopy />
         </IconButton>
+        <Link
+          colorPalette="purple"
+          href={getSolanaExplorerUrl(
+            network as Network,
+            'address',
+            account.address,
+          )}
+          target="_blank"
+          rel="noreferrer"
+          marginLeft="3"
+        >
+          <LuExternalLink />
+        </Link>
       </Table.Cell>
       <Table.Cell>{balance} SOL </Table.Cell>
       <Table.Cell textAlign="end">
@@ -315,24 +333,45 @@ export const AccountRow = ({
         >
           Send
         </Button>
-        <Button
-          disabled={network !== Network.Mainnet}
-          colorPalette="cyan"
-          marginLeft="3"
-          onClick={handleSwap}
-        >
-          Swap
-        </Button>
         <Menu.Root>
           <Menu.Trigger asChild>
-            <Button marginLeft="3" colorPalette="pink">
-              Sign tx
+            <Button marginLeft="3" colorPalette="cyan">
+              Sign & Send Tx
             </Button>
           </Menu.Trigger>
           <Portal>
             <Menu.Positioner>
               <Menu.Content>
-                {SIGN_TRANSACTION_USE_CASES.filter(
+                {USE_CASES.filter(
+                  (signableTransaction) =>
+                    !signableTransaction.excludeFromNetworks.includes(
+                      network as Network,
+                    ),
+                ).map((signableTransaction) => (
+                  <Menu.Item
+                    key={signableTransaction.title}
+                    value={signableTransaction.title}
+                    onClick={async () =>
+                      handleSignAndSendTransaction(signableTransaction.builder)
+                    }
+                  >
+                    {signableTransaction.title}
+                  </Menu.Item>
+                ))}
+              </Menu.Content>
+            </Menu.Positioner>
+          </Portal>
+        </Menu.Root>
+        <Menu.Root>
+          <Menu.Trigger asChild>
+            <Button marginLeft="3" colorPalette="pink">
+              Sign Tx
+            </Button>
+          </Menu.Trigger>
+          <Portal>
+            <Menu.Positioner>
+              <Menu.Content>
+                {USE_CASES.filter(
                   (signableTransaction) =>
                     !signableTransaction.excludeFromNetworks.includes(
                       network as Network,
@@ -362,26 +401,14 @@ export const AccountRow = ({
         <Button colorPalette="green" marginLeft="3" onClick={handleSignIn}>
           Sign In
         </Button>
-        <Link
-          colorPalette="purple"
-          href={getSolanaExplorerUrl(
-            network as Network,
-            'address',
-            account.address,
-          )}
-          target="_blank"
-          rel="noreferrer"
-          marginLeft="3"
-        >
-          View
-        </Link>
         <Button
-          variant="outline"
+          variant="ghost"
           colorPalette="purple"
           marginLeft="3"
+          size="xs"
           onClick={() => onRemove(account.id)}
         >
-          Remove
+          <LuTrash />
         </Button>
       </Table.Cell>
     </Table.Row>
