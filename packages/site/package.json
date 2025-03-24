@@ -37,6 +37,7 @@
     "@solana-program/system": "^0.7.0",
     "@solana/kit": "^2.1.0",
     "@solana/web3.js": "1.98.0",
+    "dotenv": "^16.4.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.4.0",

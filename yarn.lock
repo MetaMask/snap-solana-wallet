@@ -4723,6 +4723,7 @@ __metadata:
     "@testing-library/react": ^16.0.1
     "@testing-library/user-event": ^14.5.2
     "@types/styled-components": ^5.1.34
+    dotenv: ^16.4.7
     gatsby: ^5.13.7
     gatsby-plugin-manifest: ^5.13.1
     gatsby-plugin-styled-components: ^6.13.1
@@ -13314,7 +13315,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:^16.4.5":
+"dotenv@npm:^16.4.5, dotenv@npm:^16.4.7":
   version: 16.4.7
   resolution: "dotenv@npm:16.4.7"
   checksum: c27419b5875a44addcc56cc69b7dc5b0e6587826ca85d5b355da9303c6fc317fc9989f1f18366a16378c9fdd9532d14117a1abe6029cc719cdbbef6eaef2cea4
