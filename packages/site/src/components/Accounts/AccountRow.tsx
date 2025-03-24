@@ -1,4 +1,11 @@
-import { Button, IconButton, Link, Table } from '@chakra-ui/react';
+import {
+  Button,
+  IconButton,
+  Link,
+  Menu,
+  Portal,
+  Table,
+} from '@chakra-ui/react';
 import {
   KeyringRpcMethod,
   SolMethod,
@@ -17,8 +24,8 @@ import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaE
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
 import { toaster } from '../Toaster/Toaster';
-import { base64EncodeTransaction } from './base64EncodeTransaction';
-import { buildSendSolTransactionMessage } from './buildSendSolTransactionMessage';
+import { buildNoOpWithHelloWorldData } from './builders/buildNoOpWithHelloWorldData';
+import { buildSendSolTransactionMessage } from './builders/buildSendSolTransactionMessage';
 
 const SOLANA_TOKEN = 'slip44:501';
 
@@ -100,98 +107,165 @@ export const AccountRow = ({
     });
   };
 
-  const handleSignTransaction = async () => {
-    // Build simple transaction message that sends 0.001 SOL to the same account.
-    const transactionMessage = await buildSendSolTransactionMessage(
-      asAddress(account.address),
-      asAddress(account.address),
-      1_000_000, // 0.001 SOL
-      'https://solana-mainnet.infura.io/v3/5b98a22672004ef1bf40a80123c5c48d',
-    );
+  /**
+   * A list of use cases for transactions that can be signed.
+   * We display a menu item for each.
+   *
+   * Each item has a title, shown in UI, and a builder function.
+   * The builder function returns a promise that resolves to the transaction or transaction message in base64 encoding.
+   */
+  const SIGN_TRANSACTION_USE_CASES = [
+    {
+      title: 'No-op with "Hello, world!" data',
+      excludeFromNetworks: [],
+      builder: async () =>
+        buildNoOpWithHelloWorldData(
+          asAddress(account.address),
+          network as Network,
+        ),
+    },
+    {
+      title: 'Send 0.001 SOL to self',
+      excludeFromNetworks: [],
+      builder: async () =>
+        buildSendSolTransactionMessage(
+          asAddress(account.address),
+          asAddress(account.address),
+          1_000_000, // 0.001 SOL
+          network as Network,
+        ),
+    },
+    {
+      title: 'Swap 0.001 SOL to USDC on LiFi',
+      excludeFromNetworks: [Network.Devnet, Network.Testnet, Network.Localnet],
+      builder: async () => {
+        const lifiQuote = await getLifiQuote();
+        return lifiQuote.transactionRequest.data;
+      },
+    },
+  ];
 
-    const transactionMessageBase64 = await base64EncodeTransaction(
-      transactionMessage,
-    );
+  const handleSignTransaction = async (builder: () => Promise<string>) => {
+    try {
+      const transactionMessageBase64 = await builder();
 
-    await invokeKeyring({
-      method: KeyringRpcMethod.SubmitRequest,
-      params: {
-        id: crypto.randomUUID(),
-        scope: network,
-        account: account.id,
-        request: {
-          method: SolMethod.SignTransaction,
-          params: {
-            account: {
-              address: account.address,
-            },
-            transaction: transactionMessageBase64,
-            scope: network,
-            options: {
-              commitment: 'finalized',
+      await invokeKeyring({
+        method: KeyringRpcMethod.SubmitRequest,
+        params: {
+          id: crypto.randomUUID(),
+          scope: network,
+          account: account.id,
+          request: {
+            method: SolMethod.SignTransaction,
+            params: {
+              account: {
+                address: account.address,
+              },
+              transaction: transactionMessageBase64,
+              scope: network,
+              options: {
+                commitment: 'finalized',
+              },
             },
           },
         },
-      },
-    });
+      });
+
+      toaster.create({
+        description: 'Transaction signed successfully',
+        type: 'success',
+      });
+    } catch (error) {
+      console.error('error', error);
+      toaster.create({
+        description: `Error signing transaction: ${error as string}`,
+        type: 'error',
+      });
+    }
   };
 
   const handleSignMessage = async () => {
-    const messageUtf8 =
-      "This is the message you are signing. This message might contain something like what the dapp might be able to do once you sign. It also might tell the user why they need or why they should sign this message. Maybe the user will sign the message or maybe they won't. At the end of the day its their choice.";
-    const messageBase64 = btoa(messageUtf8);
+    try {
+      const messageUtf8 =
+        "This is the message you are signing. This message might contain something like what the dapp might be able to do once you sign. It also might tell the user why they need or why they should sign this message. Maybe the user will sign the message or maybe they won't. At the end of the day its their choice.";
+      const messageBase64 = btoa(messageUtf8);
 
-    await invokeKeyring({
-      method: KeyringRpcMethod.SubmitRequest,
-      params: {
-        id: crypto.randomUUID(),
-        scope: network,
-        account: account.id,
-        request: {
-          method: SolMethod.SignMessage,
-          params: {
-            message: messageBase64,
-            account: {
-              address: account.address,
+      await invokeKeyring({
+        method: KeyringRpcMethod.SubmitRequest,
+        params: {
+          id: crypto.randomUUID(),
+          scope: network,
+          account: account.id,
+          request: {
+            method: SolMethod.SignMessage,
+            params: {
+              message: messageBase64,
+              account: {
+                address: account.address,
+              },
             },
           },
         },
-      },
-    });
+      });
+
+      toaster.create({
+        description: 'Message signed successfully',
+        type: 'success',
+      });
+    } catch (error) {
+      console.error('error', error);
+      toaster.create({
+        description: `Error signing message: ${error as string}`,
+        type: 'error',
+      });
+    }
   };
 
   const handleSignIn = async () => {
-    const requestId = crypto.randomUUID();
-    const params = {
-      domain: 'example.com',
-      address: 'Sol11111111111111111111111111111111111111112',
-      statement: 'I accept the terms of service',
-      uri: 'https://example.com/login',
-      version: '1',
-      chainId: 'solana:101',
-      nonce: '32891756',
-      issuedAt: '2024-01-01T00:00:00.000Z',
-      expirationTime: '2024-01-02T00:00:00.000Z',
-      notBefore: '2023-12-31T00:00:00.000Z',
-      requestId,
-      resources: [
-        'ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/',
-        'https://example.com/my-web2-claim.json',
-      ],
-    };
+    try {
+      const requestId = crypto.randomUUID();
+      const params = {
+        domain: 'example.com',
+        address: 'Sol11111111111111111111111111111111111111112',
+        statement: 'I accept the terms of service',
+        uri: 'https://example.com/login',
+        version: '1',
+        chainId: 'solana:101',
+        nonce: '32891756',
+        issuedAt: '2024-01-01T00:00:00.000Z',
+        expirationTime: '2024-01-02T00:00:00.000Z',
+        notBefore: '2023-12-31T00:00:00.000Z',
+        requestId,
+        resources: [
+          'ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/',
+          'https://example.com/my-web2-claim.json',
+        ],
+      };
 
-    await invokeKeyring({
-      method: KeyringRpcMethod.SubmitRequest,
-      params: {
-        id: requestId,
-        scope: network,
-        account: account.id,
-        request: {
-          method: SolMethod.SignIn,
-          params,
+      await invokeKeyring({
+        method: KeyringRpcMethod.SubmitRequest,
+        params: {
+          id: requestId,
+          scope: network,
+          account: account.id,
+          request: {
+            method: SolMethod.SignIn,
+            params,
+          },
         },
-      },
-    });
+      });
+
+      toaster.create({
+        description: 'Signed in successfully',
+        type: 'success',
+      });
+    } catch (error) {
+      console.error('error', error);
+      toaster.create({
+        description: `Error signing in: ${error as string}`,
+        type: 'error',
+      });
+    }
   };
 
   useEffect(() => {
@@ -201,7 +275,7 @@ export const AccountRow = ({
   const handleCopy = (address: string) => {
     navigator.clipboard.writeText(address);
     toaster.create({
-      description: 'Address copied successfully',
+      description: 'Address copied',
       type: 'info',
     });
   };
@@ -243,13 +317,35 @@ export const AccountRow = ({
         >
           Swap
         </Button>
-        <Button
-          colorPalette="pink"
-          marginLeft="3"
-          onClick={handleSignTransaction}
-        >
-          Sign tx
-        </Button>
+        <Menu.Root>
+          <Menu.Trigger asChild>
+            <Button marginLeft="3" colorPalette="pink">
+              Sign tx
+            </Button>
+          </Menu.Trigger>
+          <Portal>
+            <Menu.Positioner>
+              <Menu.Content>
+                {SIGN_TRANSACTION_USE_CASES.filter(
+                  (signableTransaction) =>
+                    !signableTransaction.excludeFromNetworks.includes(
+                      network as Network,
+                    ),
+                ).map((signableTransaction) => (
+                  <Menu.Item
+                    key={signableTransaction.title}
+                    value={signableTransaction.title}
+                    onClick={async () =>
+                      handleSignTransaction(signableTransaction.builder)
+                    }
+                  >
+                    {signableTransaction.title}
+                  </Menu.Item>
+                ))}
+              </Menu.Content>
+            </Menu.Positioner>
+          </Portal>
+        </Menu.Root>
         <Button
           colorPalette="orange"
           marginLeft="3"

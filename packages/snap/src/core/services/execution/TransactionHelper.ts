@@ -3,28 +3,37 @@ import { assert } from '@metamask/superstruct';
 import type {
   Commitment,
   CompilableTransactionMessage,
+  FullySignedTransaction,
   GetTransactionApi,
   Lamports,
   TransactionMessageBytesBase64,
+  TransactionWithLifetime,
 } from '@solana/kit';
 import {
+  addSignersToTransactionMessage,
   signature as asSignature,
-  compileTransaction,
   compileTransactionMessage,
+  createKeyPairSignerFromPrivateKeyBytes,
+  decompileTransactionMessage,
   decompileTransactionMessageFetchingLookupTables,
+  getBase64Codec,
   getBase64Decoder,
   getBase64Encoder,
   getCompiledTransactionMessageDecoder,
   getCompiledTransactionMessageEncoder,
   getComputeUnitEstimateForTransactionMessageFactory,
+  getTransactionCodec,
   getTransactionDecoder,
-  getTransactionEncoder,
   pipe,
+  signTransactionMessageWithSigners,
   type Blockhash,
 } from '@solana/kit';
 
 import type { Network } from '../../constants/solana';
+import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
 import type { ILogger } from '../../utils/logger';
+import { PromiseAny } from '../../utils/PromiseAny';
 import { retry } from '../../utils/retry';
 import { Base58Struct, Base64Struct } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
@@ -193,37 +202,30 @@ export class TransactionHelper {
   }
 
   /**
-   * Convert a transaction to a base64 encoded string.
+   * Decodes a base64 encoded transaction message into a transaction message.
    *
-   * Convenient to send a transaction via json serializable channels.
-   *
-   * @param transactionMessage - The transaction to base64 encode.
-   * @returns The base64 encoded transaction.
+   * @param base64EncodedTransactionMessage - The base64 encoded transaction message to decode.
+   * @returns The decoded transaction message.
    */
-  async base64EncodeTransaction(
-    transactionMessage: CompilableTransactionMessage,
-  ): Promise<string> {
-    const base64EncodedMessage = pipe(
-      transactionMessage,
-      // Compile transaction.
-      compileTransaction,
-      // Encode the transaction into a byte array.
-      getTransactionEncoder().encode,
-      // Encode that byte array as a base64 string.
-      getBase64Decoder().decode,
+  async #decodeBase64EncodedTransactionMessage(
+    base64EncodedTransactionMessage: Infer<typeof Base64Struct>,
+  ): Promise<CompilableTransactionMessage> {
+    return pipe(
+      base64EncodedTransactionMessage,
+      getBase64Encoder().encode,
+      getCompiledTransactionMessageDecoder().decode,
+      decompileTransactionMessage,
     );
-
-    return base64EncodedMessage;
   }
 
   /**
-   * Base64 decode a transaction message: converts a base64 encoded string back to a transaction message.
+   * Decodes a base64 encoded transaction into a transaction message.
    *
-   * @param base64EncodedTransaction - The base64 encoded transaction message to decode.
+   * @param base64EncodedTransaction - The base64 encoded transaction to decode.
    * @param scope - The network on which the transaction is being sent.
    * @returns The decoded transaction message.
    */
-  async base64DecodeTransaction(
+  async #decodeBase64EncodedTransaction(
     base64EncodedTransaction: Infer<typeof Base64Struct>,
     scope: Network,
   ): Promise<CompilableTransactionMessage> {
@@ -238,6 +240,23 @@ export class TransactionHelper {
           this.#connection.getRpc(scope),
         ),
     );
+  }
+
+  /**
+   * Decodes a base64 encoded string (either a transaction message or a transaction) into a transaction message.
+   *
+   * @param base64EncodedString - The base64 encoded string to decode.
+   * @param scope - The network on which the transaction is being sent.
+   * @returns The decoded transaction message.
+   */
+  async decodeBase64Encoded(
+    base64EncodedString: Infer<typeof Base64Struct>,
+    scope: Network,
+  ): Promise<CompilableTransactionMessage> {
+    return PromiseAny([
+      this.#decodeBase64EncodedTransactionMessage(base64EncodedString),
+      this.#decodeBase64EncodedTransaction(base64EncodedString, scope),
+    ]);
   }
 
   /**
@@ -324,5 +343,54 @@ export class TransactionHelper {
       .getMinimumBalanceForRentExemption(accountSize, config)
       .send();
     return minimumBalance;
+  }
+
+  /**
+   * Signs a transaction message.
+   *
+   * @param transactionMessage - The transaction message to sign.
+   * @param account - The account to sign the transaction message with.
+   * @returns The signed transaction.
+   */
+  async signTransactionMessage(
+    transactionMessage: CompilableTransactionMessage,
+    account: SolanaKeyringAccount,
+  ): Promise<Readonly<FullySignedTransaction & TransactionWithLifetime>> {
+    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+    const signer = await createKeyPairSignerFromPrivateKeyBytes(
+      privateKeyBytes,
+    );
+
+    const transactionMessageWithSigners = addSignersToTransactionMessage(
+      [signer],
+      transactionMessage,
+    );
+
+    const signedTransaction = await signTransactionMessageWithSigners(
+      transactionMessageWithSigners,
+    );
+
+    return signedTransaction;
+  }
+
+  /**
+   * Encodes a signed transaction to a base64 encoded string.
+   *
+   * @param signedTransaction - The signed transaction to encode.
+   * @returns The base64 encoded signed transaction.
+   */
+  async encodeSignedTransactionToBase64(
+    signedTransaction: Readonly<
+      FullySignedTransaction & TransactionWithLifetime
+    >,
+  ): Promise<string> {
+    const signedTransactionBytes =
+      getTransactionCodec().encode(signedTransaction);
+
+    const signedTransactionBase64 = getBase64Codec().decode(
+      signedTransactionBytes,
+    );
+
+    return signedTransactionBase64;
   }
 }

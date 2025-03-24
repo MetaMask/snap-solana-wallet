@@ -1,5 +1,5 @@
 import { getTransferSolInstruction } from '@solana-program/system';
-import type { Address, CompilableTransactionMessage } from '@solana/kit';
+import type { Address } from '@solana/kit';
 import {
   appendTransactionMessageInstruction,
   createNoopSigner,
@@ -10,13 +10,18 @@ import {
   setTransactionMessageLifetimeUsingBlockhash,
 } from '@solana/kit';
 
+import type { Network } from '../../../../../snap/src/core/constants/solana';
+import { base64EncodeTransaction } from '../base64EncodeTransaction';
+import { networkToUrl } from '../networkToUrl';
+
 export const buildSendSolTransactionMessage = async (
   from: Address,
   to: Address,
   amountInLamports: number | bigint,
-  network: string,
-): Promise<CompilableTransactionMessage> => {
-  const rpc = createSolanaRpc(network);
+  network: Network,
+): Promise<string> => {
+  const url = networkToUrl(network);
+  const rpc = createSolanaRpc(url);
 
   const latestBlockhash = await rpc.getLatestBlockhash().send();
 
@@ -47,5 +52,9 @@ export const buildSendSolTransactionMessage = async (
       ),
   );
 
-  return transactionMessage;
+  const transactionMessageBase64 = await base64EncodeTransaction(
+    transactionMessage,
+  );
+
+  return transactionMessageBase64;
 };

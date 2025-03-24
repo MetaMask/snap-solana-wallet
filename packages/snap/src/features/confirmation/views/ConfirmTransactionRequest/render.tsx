@@ -69,7 +69,7 @@ export async function render(
     });
 
   const instructionsPromise = transactionHelper
-    .base64DecodeTransaction(context.transaction, context.scope)
+    .decodeBase64Encoded(context.transaction, context.scope)
     .then((transaction) => {
       context.advanced.instructions = parseInstructions(
         transaction.instructions,

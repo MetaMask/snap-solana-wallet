@@ -63,7 +63,7 @@ const buildTransactionMessage = async (context: SendContext) => {
   );
 
   const base64EncodedTransactionMessage =
-    await transactionHelper.base64EncodeTransaction(transactionMessage);
+    await transactionHelper.base64EncodeTransactionMessage(transactionMessage);
 
   return {
     feeInLamports,

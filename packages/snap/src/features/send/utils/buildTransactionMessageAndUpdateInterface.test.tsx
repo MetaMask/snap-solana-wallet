@@ -68,9 +68,9 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
       transactionHelper.getFeeFromTransactionInLamports as jest.Mock
     ).mockResolvedValue(5000);
 
-    (transactionHelper.base64EncodeTransaction as jest.Mock).mockResolvedValue(
-      'base64-encoded',
-    );
+    (
+      transactionHelper.base64EncodeTransactionMessage as jest.Mock
+    ).mockResolvedValue('base64-encoded');
 
     (getInterfaceContext as jest.Mock).mockResolvedValue(mockContext);
   });

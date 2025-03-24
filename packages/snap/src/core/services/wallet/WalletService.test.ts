@@ -62,11 +62,8 @@ describe('WalletService', () => {
     mockTransactionHelper = {
       getLatestBlockhash: jest.fn(),
       getComputeUnitEstimate: jest.fn(),
-      signTransaction: jest.fn(),
-      sendTransaction: jest.fn(),
-      signAndSendTransaction: jest.fn(),
-      base64DecodeTransaction: jest.fn(),
-      getFeeForMessageInLamports: jest.fn(),
+      signTransactionMessage: jest.fn(),
+      encodeSignedTransactionToBase64: jest.fn(),
       waitForTransactionCommitment: jest.fn(),
     } as unknown as TransactionHelper;
 
@@ -199,6 +196,7 @@ describe('WalletService', () => {
         fromAccount,
         transactionMessage,
         transactionMessageBase64Encoded,
+        signedTransaction,
         signedTransactionBase64Encoded,
         signature,
       } = scenario;
@@ -219,6 +217,14 @@ describe('WalletService', () => {
           jest
             .spyOn(mockFromBase64EncodedBuilder, 'buildTransactionMessage')
             .mockResolvedValue(transactionMessage);
+
+          jest
+            .spyOn(mockTransactionHelper, 'signTransactionMessage')
+            .mockResolvedValue(signedTransaction);
+
+          jest
+            .spyOn(mockTransactionHelper, 'encodeSignedTransactionToBase64')
+            .mockResolvedValue(signedTransactionBase64Encoded);
 
           const result = await service.signTransaction(fromAccount, request);
 
@@ -255,6 +261,14 @@ describe('WalletService', () => {
           jest
             .spyOn(mockFromBase64EncodedBuilder, 'buildTransactionMessage')
             .mockResolvedValue(transactionMessage);
+
+          jest
+            .spyOn(mockTransactionHelper, 'signTransactionMessage')
+            .mockResolvedValue(signedTransaction);
+
+          jest
+            .spyOn(mockTransactionHelper, 'encodeSignedTransactionToBase64')
+            .mockResolvedValue(signedTransactionBase64Encoded);
 
           const result = await service.signAndSendTransaction(
             fromAccount,

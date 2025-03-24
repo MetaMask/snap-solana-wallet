@@ -190,10 +190,13 @@ describe('TransactionHelper', () => {
     const {
       name,
       scope,
+      fromAccount,
       fromAccountPrivateKeyBytes,
       transactionMessage,
       transactionMessageBase64Encoded,
       getMultipleAccountsResponse,
+      signedTransaction,
+      signedTransactionBase64Encoded,
     } = scenario;
 
     let mockSigner: KeyPairSigner;
@@ -216,24 +219,35 @@ describe('TransactionHelper', () => {
       );
     });
 
-    describe('base64EncodeTransaction', () => {
-      it(`Scenario ${name}: encodes a transaction successfully`, async () => {
-        const result = await transactionHelper.base64EncodeTransaction(
-          transactionMessage,
-        );
-
-        expect(result).toBe(transactionMessageBase64Encoded);
-      });
-    });
-
-    describe('base64DecodeTransaction', () => {
+    describe('decodeBase64Encoded', () => {
       it(`Scenario ${name}: decodes a transaction successfully`, async () => {
-        const result = await transactionHelper.base64DecodeTransaction(
+        const result = await transactionHelper.decodeBase64Encoded(
           transactionMessageBase64Encoded,
           scope,
         );
 
         expect(result).toStrictEqual(transactionMessage);
+      });
+    });
+
+    describe('signTransactionMessage', () => {
+      it(`Scenario ${name}: signs a transaction message successfully`, async () => {
+        const result = await transactionHelper.signTransactionMessage(
+          transactionMessage,
+          fromAccount,
+        );
+
+        expect(result).toStrictEqual(signedTransaction);
+      });
+    });
+
+    describe('encodeSignedTransactionToBase64', () => {
+      it(`Scenario ${name}: encodes a signed transaction to a base64 encoded string successfully`, async () => {
+        const result = await transactionHelper.encodeSignedTransactionToBase64(
+          signedTransaction,
+        );
+
+        expect(result).toBe(signedTransactionBase64Encoded);
       });
     });
   });

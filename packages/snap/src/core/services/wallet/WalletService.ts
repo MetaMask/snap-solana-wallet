@@ -8,7 +8,6 @@ import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
 import type { SignatureBytes } from '@solana/kit';
 import {
-  addSignersToTransactionMessage,
   address as asAddress,
   createKeyPairSignerFromPrivateKeyBytes,
   createSignableMessage,
@@ -16,10 +15,8 @@ import {
   getBase58Decoder,
   getBase64Codec,
   getSignatureFromTransaction,
-  getTransactionCodec,
   getUtf8Codec,
   sendTransactionWithoutConfirmingFactory,
-  signTransactionMessageWithSigners,
   verifySignature,
 } from '@solana/kit';
 
@@ -164,26 +161,16 @@ export class WalletService {
         scope,
       );
 
-    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
+    const signedTransaction =
+      await this.#transactionHelper.signTransactionMessage(
+        transactionMessage,
+        account,
+      );
 
-    const transactionMessageWithSigners = addSignersToTransactionMessage(
-      [signer],
-      transactionMessage,
-    );
-
-    const signedTransaction = await signTransactionMessageWithSigners(
-      transactionMessageWithSigners,
-    );
-
-    const signedTransactionBytes =
-      getTransactionCodec().encode(signedTransaction);
-
-    const signedTransactionBase64 = getBase64Codec().decode(
-      signedTransactionBytes,
-    );
+    const signedTransactionBase64 =
+      await this.#transactionHelper.encodeSignedTransactionToBase64(
+        signedTransaction,
+      );
 
     const result = {
       signedTransaction: signedTransactionBase64,
@@ -220,19 +207,11 @@ export class WalletService {
         scope,
       );
 
-    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
-
-    const transactionMessageWithSigners = addSignersToTransactionMessage(
-      [signer],
-      transactionMessage,
-    );
-
-    const signedTransaction = await signTransactionMessageWithSigners(
-      transactionMessageWithSigners,
-    );
+    const signedTransaction =
+      await this.#transactionHelper.signTransactionMessage(
+        transactionMessage,
+        account,
+      );
 
     const signature = getSignatureFromTransaction(signedTransaction);
 

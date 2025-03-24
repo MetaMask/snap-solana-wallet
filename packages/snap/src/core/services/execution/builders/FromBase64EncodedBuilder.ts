@@ -25,27 +25,11 @@ export class FromBase64EncodedBuilder implements ITransactionMessageBuilder {
   ): Promise<CompilableTransactionMessage> {
     assert(base64EncodedString, Base64Struct);
 
-    let transactionMessage: CompilableTransactionMessage;
-
-    try {
-      // In case the string is a base64 encoded transaction message
-      transactionMessage =
-        await this.#transactionHelper.base64DecodeTransaction(
-          base64EncodedString,
-          network,
-        );
-    } catch (error) {
-      // In case the string is a base64 encoded transaction
-      const base64EncodedTransactionMessage =
-        await this.#transactionHelper.base64EncodeTransactionMessageFromBase64EncodedTransaction(
-          base64EncodedString,
-        );
-      transactionMessage =
-        await this.#transactionHelper.base64DecodeTransaction(
-          base64EncodedTransactionMessage,
-          network,
-        );
-    }
+    const transactionMessage =
+      await this.#transactionHelper.decodeBase64Encoded(
+        base64EncodedString,
+        network,
+      );
 
     const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
       network,
