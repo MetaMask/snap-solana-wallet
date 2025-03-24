@@ -297,8 +297,8 @@ export const AccountRow = ({
           <LuCopy />
         </IconButton>
       </Table.Cell>
-      <Table.Cell>
-        {balance} SOL{' '}
+      <Table.Cell>{balance} SOL </Table.Cell>
+      <Table.Cell textAlign="end">
         <Button marginLeft="3" onClick={fetchBalance}>
           Fetch
         </Button>
@@ -356,8 +356,6 @@ export const AccountRow = ({
         <Button colorPalette="green" marginLeft="3" onClick={handleSignIn}>
           Sign In
         </Button>
-      </Table.Cell>
-      <Table.Cell textAlign="end">
         <Link
           colorPalette="purple"
           href={getSolanaExplorerUrl(
@@ -367,13 +365,14 @@ export const AccountRow = ({
           )}
           target="_blank"
           rel="noreferrer"
-          marginRight="5"
+          marginLeft="3"
         >
           View
         </Link>
         <Button
           variant="outline"
           colorPalette="purple"
+          marginLeft="3"
           onClick={() => onRemove(account.id)}
         >
           Remove
