@@ -54,6 +54,27 @@ export const AccountRow = ({
     setBalance(response?.[`${network}/${SOLANA_TOKEN}`]?.amount ?? '0');
   };
 
+  const handleInvokeKeyringResponse = (response: any, message: string) => {
+    if (response.result === null) {
+      toaster.create({
+        description: 'User rejected the confirmation',
+        type: 'warning',
+      });
+    } else {
+      toaster.create({
+        description: message,
+        type: 'success',
+      });
+    }
+  };
+
+  const handleInvokeKeyringError = (error: any) => {
+    toaster.create({
+      description: error.message,
+      type: 'error',
+    });
+  };
+
   const handleSend = async (id: string) => {
     await invokeSnap({
       method: RpcRequestMethod.StartSendTransactionFlow,
@@ -85,26 +106,32 @@ export const AccountRow = ({
   };
 
   const handleSwap = async () => {
-    const lifiQuote = await getLifiQuote();
+    try {
+      const lifiQuote = await getLifiQuote();
 
-    await invokeKeyring({
-      method: KeyringRpcMethod.SubmitRequest,
-      params: {
-        id: crypto.randomUUID(),
-        scope: network,
-        account: account.id,
-        request: {
-          method: SolMethod.SignAndSendTransaction,
-          params: {
-            transaction: lifiQuote.transactionRequest.data,
-            scope: network,
-            account: {
-              address: account.address,
+      const response = await invokeKeyring({
+        method: KeyringRpcMethod.SubmitRequest,
+        params: {
+          id: crypto.randomUUID(),
+          scope: network,
+          account: account.id,
+          request: {
+            method: SolMethod.SignAndSendTransaction,
+            params: {
+              transaction: lifiQuote.transactionRequest.data,
+              scope: network,
+              account: {
+                address: account.address,
+              },
             },
           },
         },
-      },
-    });
+      });
+
+      handleInvokeKeyringResponse(response, 'Swap submitted successfully');
+    } catch (error) {
+      handleInvokeKeyringError(error);
+    }
   };
 
   /**
@@ -149,7 +176,7 @@ export const AccountRow = ({
     try {
       const transactionMessageBase64 = await builder();
 
-      await invokeKeyring({
+      const response = await invokeKeyring({
         method: KeyringRpcMethod.SubmitRequest,
         params: {
           id: crypto.randomUUID(),
@@ -171,16 +198,9 @@ export const AccountRow = ({
         },
       });
 
-      toaster.create({
-        description: 'Transaction signed successfully',
-        type: 'success',
-      });
+      handleInvokeKeyringResponse(response, 'Transaction signed successfully');
     } catch (error) {
-      console.error('error', error);
-      toaster.create({
-        description: `Error signing transaction: ${error as string}`,
-        type: 'error',
-      });
+      handleInvokeKeyringError(error);
     }
   };
 
@@ -190,7 +210,7 @@ export const AccountRow = ({
         "This is the message you are signing. This message might contain something like what the dapp might be able to do once you sign. It also might tell the user why they need or why they should sign this message. Maybe the user will sign the message or maybe they won't. At the end of the day its their choice.";
       const messageBase64 = btoa(messageUtf8);
 
-      await invokeKeyring({
+      const response = await invokeKeyring({
         method: KeyringRpcMethod.SubmitRequest,
         params: {
           id: crypto.randomUUID(),
@@ -208,16 +228,9 @@ export const AccountRow = ({
         },
       });
 
-      toaster.create({
-        description: 'Message signed successfully',
-        type: 'success',
-      });
+      handleInvokeKeyringResponse(response, 'Message signed successfully');
     } catch (error) {
-      console.error('error', error);
-      toaster.create({
-        description: `Error signing message: ${error as string}`,
-        type: 'error',
-      });
+      handleInvokeKeyringError(error);
     }
   };
 
@@ -242,7 +255,7 @@ export const AccountRow = ({
         ],
       };
 
-      await invokeKeyring({
+      const response = await invokeKeyring({
         method: KeyringRpcMethod.SubmitRequest,
         params: {
           id: requestId,
@@ -255,16 +268,9 @@ export const AccountRow = ({
         },
       });
 
-      toaster.create({
-        description: 'Signed in successfully',
-        type: 'success',
-      });
+      handleInvokeKeyringResponse(response, 'Signed in successfully');
     } catch (error) {
-      console.error('error', error);
-      toaster.create({
-        description: `Error signing in: ${error as string}`,
-        type: 'error',
-      });
+      handleInvokeKeyringError(error);
     }
   };
 
