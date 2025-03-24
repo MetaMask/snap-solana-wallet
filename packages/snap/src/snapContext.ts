@@ -12,6 +12,7 @@ import { FromBase64EncodedBuilder } from './core/services/execution/builders/Fro
 import { SendSolBuilder } from './core/services/execution/builders/SendSolBuilder';
 import { SendSplTokenBuilder } from './core/services/execution/builders/SendSplTokenBuilder';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
+import { State } from './core/services/state/State';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
@@ -28,7 +29,8 @@ export type SnapExecutionContext = {
   connection: SolanaConnection;
   keyring: SolanaKeyring;
   priceApiClient: PriceApiClient;
-  state: EncryptedState;
+  encryptedState: EncryptedState;
+  state: State;
   assetsService: AssetsService;
   tokenPricesService: TokenPricesService;
   transactionHelper: TransactionHelper;
@@ -43,7 +45,8 @@ export type SnapExecutionContext = {
 };
 
 const configProvider = new ConfigProvider();
-const state = new EncryptedState();
+const encryptedState = new EncryptedState();
+const state = new State();
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);
 const sendSolBuilder = new SendSolBuilder(transactionHelper, logger);
@@ -97,6 +100,7 @@ const transactionScanService = new TransactionScanService(
 const confirmationHandler = new ConfirmationHandler();
 
 const keyring = new SolanaKeyring({
+  encryptedState,
   state,
   transactionsService,
   logger,
@@ -112,6 +116,7 @@ const snapContext: SnapExecutionContext = {
   connection,
   keyring,
   priceApiClient,
+  encryptedState,
   state,
   /* Services */
   assetsService,
@@ -138,6 +143,7 @@ export {
   priceApiClient,
   sendSolBuilder,
   sendSplTokenBuilder,
+  encryptedState,
   state,
   tokenMetadataClient,
   tokenMetadataService,

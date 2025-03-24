@@ -12,6 +12,7 @@ import {
   updateInterface,
 } from '../../core/utils/interface';
 import {
+  encryptedState,
   state,
   tokenPricesService,
   transactionHelper,
@@ -79,8 +80,9 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
    * 4. Get the token metadata (from state)
    * 5. Get the token prices (from state)
    */
-  const [currentState, preferences] = await Promise.all([
+  const [currentState, currentEncryptedState, preferences] = await Promise.all([
     state.get(),
+    encryptedState.get(),
     getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),
   ]);
 
@@ -92,7 +94,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   const accountBalances = currentState.assets[context.fromAccountId] ?? {};
   context.assets = Object.keys(accountBalances) as CaipAssetType[];
 
-  context.accounts = Object.values(currentState.keyringAccounts);
+  context.accounts = Object.values(currentEncryptedState.keyringAccounts);
   context.preferences = preferences;
   context.tokenMetadata = currentState.metadata ?? {};
   context.tokenPrices = currentState.tokenPrices ?? {};

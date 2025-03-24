@@ -30,7 +30,7 @@ import {
   GetBalanceResponseStruct,
   GetTokenAccountsByOwnerResponseStruct,
 } from '../connection/structs';
-import type { EncryptedState } from '../encrypted-state/EncryptedState';
+import type { State } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 
 export class AssetsService {
@@ -40,7 +40,7 @@ export class AssetsService {
 
   readonly #configProvider: ConfigProvider;
 
-  readonly #state: EncryptedState;
+  readonly #state: State;
 
   readonly #tokenMetadataService: TokenMetadataService;
 
@@ -54,7 +54,7 @@ export class AssetsService {
     connection: SolanaConnection;
     logger: ILogger;
     configProvider: ConfigProvider;
-    state: EncryptedState;
+    state: State;
     tokenMetadataService: TokenMetadataService;
   }) {
     this.#logger = logger;
@@ -252,8 +252,6 @@ export class AssetsService {
     );
 
     const currentState = await this.#state.get();
-
-    const accountToAssetsMap = new Map<string, Record<string, Balance>>();
 
     for (const account of accounts) {
       this.#logger.log(
