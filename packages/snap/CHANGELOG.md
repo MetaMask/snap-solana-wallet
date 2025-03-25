@@ -9,12 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.15.0]
 
-### Uncategorized
+### Added
 
-- Fix/tx decoding ([#262](https://github.com/MetaMask/snap-solana-wallet/pull/262))
-- feat: use MetaMask preferences as feature flags in the code where it makes sense ([#258](https://github.com/MetaMask/snap-solana-wallet/pull/258))
-- fix: move state to unencrypted ([#261](https://github.com/MetaMask/snap-solana-wallet/pull/261))
-- chore: upgrade `@solana/web3.js` to `@solana/kit` ([#259](https://github.com/MetaMask/snap-solana-wallet/pull/259))
+- Use new snap MetaMask preferences ([#258](https://github.com/MetaMask/snap-solana-wallet/pull/258))
+
+### Changed
+
+- Move state to unencrypted ([#261](https://github.com/MetaMask/snap-solana-wallet/pull/261))
+- Upgrade `@solana/web3.js` to `@solana/kit` ([#259](https://github.com/MetaMask/snap-solana-wallet/pull/259))
+
+### Fixed
+
+- Transaction decoding ([#262](https://github.com/MetaMask/snap-solana-wallet/pull/262))
 
 ## [1.14.0]
 
