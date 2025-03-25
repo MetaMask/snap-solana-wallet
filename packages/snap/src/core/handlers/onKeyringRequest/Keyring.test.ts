@@ -382,6 +382,7 @@ describe('SolanaKeyring', () => {
       expect(emitEventSpy).toHaveBeenCalledWith('notify:accountCreated', {
         accountNameSuggestion: 'My Cool Account Name',
         displayAccountNameSuggestion: false,
+        displayConfirmation: false,
         account,
       });
     });

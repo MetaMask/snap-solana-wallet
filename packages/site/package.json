@@ -31,7 +31,7 @@
   "dependencies": {
     "@chakra-ui/react": "^3.0.2",
     "@emotion/react": "^11.13.3",
-    "@metamask/keyring-api": "^17.2.1",
+    "@metamask/keyring-api": "^17.3.0",
     "@metamask/providers": "^18.1.0",
     "@solana-program/compute-budget": "^0.7.0",
     "@solana-program/system": "^0.7.0",

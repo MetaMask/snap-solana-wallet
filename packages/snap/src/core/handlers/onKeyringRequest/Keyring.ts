@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
+import type { MetaMaskOptions } from '@metamask/keyring-api';
 import {
   KeyringEvent,
   ListAccountAssetsResponseStruct,
@@ -135,12 +136,14 @@ export class SolanaKeyring implements Keyring {
     return account;
   }
 
-  async createAccount(options?: {
-    importedAccount?: boolean;
-    index?: number;
-    [key: string]: Json | undefined;
-    accountNameSuggestion?: string;
-  }): Promise<KeyringAccount> {
+  async createAccount(
+    options?: {
+      importedAccount?: boolean;
+      index?: number;
+      [key: string]: Json | undefined;
+      accountNameSuggestion?: string;
+    } & MetaMaskOptions,
+  ): Promise<KeyringAccount> {
     // eslint-disable-next-line no-restricted-globals
     const id = crypto.randomUUID();
 
@@ -166,6 +169,7 @@ export class SolanaKeyring implements Keyring {
         importedAccount,
         index: _,
         accountNameSuggestion,
+        metamask: metamaskOptions,
         ...remainingOptions
       } = options ?? {};
 
@@ -213,6 +217,16 @@ export class SolanaKeyring implements Keyring {
         accountNameSuggestion:
           accountNameSuggestion ?? `Solana Account ${index + 1}`,
         displayAccountNameSuggestion: !accountNameSuggestion,
+        // Skip account creation confirmation dialogs to make it look like a native
+        // account creation flow.
+        displayConfirmation: false,
+        // Internal options to MetaMask that includes a correlation ID. We need
+        // to also emit this ID to the Snap keyring.
+        ...(metamaskOptions
+          ? {
+              metamask: metamaskOptions,
+            }
+          : {}),
       });
 
       return keyringAccount;
