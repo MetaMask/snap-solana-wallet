@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.15.1]
 
-### Uncategorized
+### Changed
 
-- feat: move to solscan ([#264](https://github.com/MetaMask/snap-solana-wallet/pull/264))
+- Move to solscan ([#264](https://github.com/MetaMask/snap-solana-wallet/pull/264))
 
 ## [1.15.0]
 
