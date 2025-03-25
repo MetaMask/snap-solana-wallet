@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.15.0]
 
-### Uncategorized
+### Fixed
 
-- Fix/tx decoding ([#262](https://github.com/MetaMask/snap-solana-wallet/pull/262))
+- Transaction decoding ([#262](https://github.com/MetaMask/snap-solana-wallet/pull/262))
 
 ## [1.14.0]
 
