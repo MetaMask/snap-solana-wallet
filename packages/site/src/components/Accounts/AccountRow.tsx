@@ -29,6 +29,10 @@ import { buildSendSolTransactionMessage } from './builders/buildSendSolTransacti
 
 const SOLANA_TOKEN = 'slip44:501';
 
+type InvokeResponse = {
+  result: object | null;
+};
+
 export const AccountRow = ({
   account,
   onRemove,
@@ -54,21 +58,26 @@ export const AccountRow = ({
     setBalance(response?.[`${network}/${SOLANA_TOKEN}`]?.amount ?? '0');
   };
 
-  const handleInvokeKeyringResponse = (response: any, message: string) => {
+  const handleInvokeResponse = (
+    response: InvokeResponse,
+    description: React.ReactNode,
+    action?: { label: string; onClick: () => void },
+  ) => {
     if (response.result === null) {
       toaster.create({
-        description: 'User rejected the confirmation',
-        type: 'warning',
+        description: 'Rejected the confirmation',
+        type: 'info',
       });
     } else {
       toaster.create({
-        description: message,
+        description,
         type: 'success',
+        action: action as any,
       });
     }
   };
 
-  const handleInvokeKeyringError = (error: any) => {
+  const handleInvokeError = (error: any) => {
     toaster.create({
       description: error.message,
       type: 'error',
@@ -76,13 +85,17 @@ export const AccountRow = ({
   };
 
   const handleSend = async (id: string) => {
-    await invokeSnap({
-      method: RpcRequestMethod.StartSendTransactionFlow,
-      params: {
-        scope: network,
-        account: id,
-      },
-    });
+    try {
+      await invokeSnap({
+        method: RpcRequestMethod.StartSendTransactionFlow,
+        params: {
+          scope: network,
+          account: id,
+        },
+      });
+    } catch (error) {
+      handleInvokeError(error);
+    }
   };
 
   const getLifiQuote = async () => {
@@ -168,12 +181,25 @@ export const AccountRow = ({
         },
       });
 
-      handleInvokeKeyringResponse(
-        response,
+      handleInvokeResponse(
+        response as InvokeResponse,
         'Transaction signed and sent successfully',
+        {
+          label: 'View',
+          onClick: () => {
+            window.open(
+              getSolanaExplorerUrl(
+                network as Network,
+                'tx',
+                (response as any).result.signature,
+              ),
+              '_blank',
+            );
+          },
+        },
       );
     } catch (error) {
-      handleInvokeKeyringError(error);
+      handleInvokeError(error);
     }
   };
 
@@ -203,9 +229,12 @@ export const AccountRow = ({
         },
       });
 
-      handleInvokeKeyringResponse(response, 'Transaction signed successfully');
+      handleInvokeResponse(
+        response as InvokeResponse,
+        'Transaction signed successfully',
+      );
     } catch (error) {
-      handleInvokeKeyringError(error);
+      handleInvokeError(error);
     }
   };
 
@@ -233,9 +262,12 @@ export const AccountRow = ({
         },
       });
 
-      handleInvokeKeyringResponse(response, 'Message signed successfully');
+      handleInvokeResponse(
+        response as InvokeResponse,
+        'Message signed successfully',
+      );
     } catch (error) {
-      handleInvokeKeyringError(error);
+      handleInvokeError(error);
     }
   };
 
@@ -273,9 +305,12 @@ export const AccountRow = ({
         },
       });
 
-      handleInvokeKeyringResponse(response, 'Signed in successfully');
+      handleInvokeResponse(
+        response as InvokeResponse,
+        'Signed in successfully',
+      );
     } catch (error) {
-      handleInvokeKeyringError(error);
+      handleInvokeError(error);
     }
   };
 
