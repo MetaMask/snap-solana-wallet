@@ -1,5 +1,8 @@
 import type { Network } from '../constants/solana';
-import { NETWORK_BLOCK_EXPLORER_URL, Networks } from '../constants/solana';
+import {
+  DEFAULT_NETWORK_BLOCK_EXPLORER_URL,
+  Networks,
+} from '../constants/solana';
 import { buildUrl } from './buildUrl';
 
 /**
@@ -18,7 +21,9 @@ export function getSolanaExplorerUrl(
   const { cluster } = Networks[scope];
 
   const url = buildUrl({
-    baseUrl: NETWORK_BLOCK_EXPLORER_URL,
+    baseUrl:
+      // eslint-disable-next-line no-restricted-globals
+      process.env.EXPLORER_BASE_URL ?? DEFAULT_NETWORK_BLOCK_EXPLORER_URL,
     path: `/${type}/${value}`,
     queryParams: cluster ? { cluster } : undefined,
   });

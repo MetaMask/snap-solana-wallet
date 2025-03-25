@@ -30,6 +30,7 @@ const EnvStruct = object({
   RPC_URL_DEVNET_LIST: CommaSeparatedListOfUrlsStruct,
   RPC_URL_TESTNET_LIST: CommaSeparatedListOfUrlsStruct,
   RPC_URL_LOCALNET_LIST: CommaSeparatedListOfStringsStruct,
+  EXPLORER_BASE_URL: UrlStruct,
   PRICE_API_BASE_URL: UrlStruct,
   TOKEN_API_BASE_URL: UrlStruct,
   STATIC_API_BASE_URL: UrlStruct,
@@ -47,6 +48,7 @@ export type Config = {
   environment: string;
   networks: NetworkWithRpcUrls[];
   activeNetworks: Network[];
+  explorerBaseUrl: string;
   priceApi: {
     baseUrl: string;
     chunkSize: number;
@@ -91,6 +93,7 @@ export class ConfigProvider {
       RPC_URL_DEVNET_LIST: process.env.RPC_URL_DEVNET_LIST,
       RPC_URL_TESTNET_LIST: process.env.RPC_URL_TESTNET_LIST,
       RPC_URL_LOCALNET_LIST: process.env.RPC_URL_LOCALNET_LIST,
+      EXPLORER_BASE_URL: process.env.EXPLORER_BASE_URL,
       // Price API
       PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL,
       // Token API
@@ -128,6 +131,7 @@ export class ConfigProvider {
           rpcUrls: environment.RPC_URL_LOCALNET_LIST,
         },
       ],
+      explorerBaseUrl: environment.EXPLORER_BASE_URL,
       activeNetworks:
         environment.ENVIRONMENT === 'test'
           ? [Network.Localnet]

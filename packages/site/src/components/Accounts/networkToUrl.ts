@@ -9,6 +9,4 @@ const NETWORK_TO_URL: Record<Network, string> = {
   [Network.Localnet]: process.env.RPC_URL_LOCAL!,
 } as const;
 
-console.log('NETWORK_TO_URL', NETWORK_TO_URL);
-
 export const networkToUrl = (network: Network) => NETWORK_TO_URL[network];

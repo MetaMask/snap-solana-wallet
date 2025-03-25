@@ -9,40 +9,36 @@ describe('getSolanaExplorerUrl', () => {
   it('should generate mainnet URL for address without cluster param', () => {
     const url = getSolanaExplorerUrl(Network.Mainnet, 'address', mockAddress);
     expect(url).toBe(
-      `https://explorer.solana.com/address/${mockAddress}?cluster=mainnet`,
+      `https://solscan.io/address/${mockAddress}?cluster=mainnet`,
     );
   });
 
   it('should generate devnet URL for address with cluster param', () => {
     const url = getSolanaExplorerUrl(Network.Devnet, 'address', mockAddress);
     expect(url).toBe(
-      `https://explorer.solana.com/address/${mockAddress}?cluster=devnet`,
+      `https://solscan.io/address/${mockAddress}?cluster=devnet`,
     );
   });
 
   it('should generate testnet URL for address with cluster param', () => {
     const url = getSolanaExplorerUrl(Network.Testnet, 'address', mockAddress);
     expect(url).toBe(
-      `https://explorer.solana.com/address/${mockAddress}?cluster=testnet`,
+      `https://solscan.io/address/${mockAddress}?cluster=testnet`,
     );
   });
 
   it('should generate mainnet URL for transaction without cluster param', () => {
     const url = getSolanaExplorerUrl(Network.Mainnet, 'tx', mockTx);
-    expect(url).toBe(
-      `https://explorer.solana.com/tx/${mockTx}?cluster=mainnet`,
-    );
+    expect(url).toBe(`https://solscan.io/tx/${mockTx}?cluster=mainnet`);
   });
 
   it('should generate devnet URL for transaction with cluster param', () => {
     const url = getSolanaExplorerUrl(Network.Devnet, 'tx', mockTx);
-    expect(url).toBe(`https://explorer.solana.com/tx/${mockTx}?cluster=devnet`);
+    expect(url).toBe(`https://solscan.io/tx/${mockTx}?cluster=devnet`);
   });
 
   it('should generate testnet URL for transaction with cluster param', () => {
     const url = getSolanaExplorerUrl(Network.Testnet, 'tx', mockTx);
-    expect(url).toBe(
-      `https://explorer.solana.com/tx/${mockTx}?cluster=testnet`,
-    );
+    expect(url).toBe(`https://solscan.io/tx/${mockTx}?cluster=testnet`);
   });
 });

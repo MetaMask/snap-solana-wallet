@@ -25,7 +25,8 @@ on:
         required: true
       SECURITY_ALERTS_API_BASE_URL:
         required: true
-
+      EXPLORER_BASE_URL:
+        required: true
 jobs:
   publish-release:
     permissions:
@@ -52,6 +53,7 @@ jobs:
           RPC_URL_DEVNET_LIST: ${{ secrets.RPC_URL_DEVNET_LIST }}
           RPC_URL_TESTNET_LIST: ${{ secrets.RPC_URL_TESTNET_LIST }}
           RPC_URL_LOCALNET_LIST: ${{ secrets.RPC_URL_LOCALNET_LIST }}
+          EXPLORER_BASE_URL: ${{ secrets.EXPLORER_BASE_URL }}
           PRICE_API_BASE_URL: ${{ secrets.PRICE_API_BASE_URL }}
           LOCAL_API_BASE_URL: ${{ secrets.LOCAL_API_BASE_URL }}
           TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
