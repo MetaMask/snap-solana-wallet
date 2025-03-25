@@ -27,6 +27,7 @@ import type { MockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../core/test/mocks/transactions-data/native-sol-transfer';
 import { TEST_ORIGIN } from '../../core/test/utils';
+import type { Preferences } from '../../core/types/snap';
 import { DEFAULT_SEND_CONTEXT } from './render';
 import { Send } from './Send';
 import { type SendContext, SendCurrencyType, SendFormNames } from './types';
@@ -155,9 +156,22 @@ describe('Send', () => {
       },
     });
 
+    const mockPreferences: Preferences = {
+      locale: 'en',
+      currency: 'usd',
+      hideBalances: false,
+      useSecurityAlerts: true,
+      useExternalPricingData: true,
+      simulateOnChainActions: true,
+      useTokenDetection: true,
+      batchCheckBalances: true,
+      displayNftMedia: true,
+      useNftDetection: true,
+    };
+
     mockJsonRpc({
       method: 'snap_getPreferences',
-      result: { locale: 'en', currency: 'usd' },
+      result: mockPreferences,
     });
 
     mockJsonRpc({

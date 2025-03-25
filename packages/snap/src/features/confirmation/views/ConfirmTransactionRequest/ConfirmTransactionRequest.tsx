@@ -29,23 +29,27 @@ export const ConfirmTransactionRequest: SnapComponent<{
   return (
     <Container>
       <Box>
-        <TransactionAlert
-          scanFetchStatus={context.scanFetchStatus}
-          validation={context.scan?.validation ?? null}
-          error={context.scan?.error ?? null}
-          preferences={context.preferences}
-        />
+        {context.preferences.useSecurityAlerts ? (
+          <TransactionAlert
+            scanFetchStatus={context.scanFetchStatus}
+            validation={context.scan?.validation ?? null}
+            error={context.scan?.error ?? null}
+            preferences={context.preferences}
+          />
+        ) : null}
         <Box alignment="center" center>
           <Box>{null}</Box>
           <Heading size="lg">{translate('confirmation.title')}</Heading>
           <Box>{null}</Box>
         </Box>
-        <EstimatedChanges
-          scanStatus={context.scan?.status ?? null}
-          scanFetchStatus={context.scanFetchStatus}
-          changes={context.scan?.estimatedChanges ?? null}
-          preferences={context.preferences}
-        />
+        {context.preferences.simulateOnChainActions ? (
+          <EstimatedChanges
+            scanStatus={context.scan?.status ?? null}
+            scanFetchStatus={context.scanFetchStatus}
+            changes={context.scan?.estimatedChanges ?? null}
+            preferences={context.preferences}
+          />
+        ) : null}
         <TransactionDetails
           accountAddress={context.account?.address ?? null}
           scope={context.scope}

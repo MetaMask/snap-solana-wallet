@@ -42,6 +42,14 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   preferences: {
     locale: 'en',
     currency: 'usd',
+    hideBalances: false,
+    useSecurityAlerts: true,
+    useExternalPricingData: true,
+    simulateOnChainActions: true,
+    useTokenDetection: true,
+    batchCheckBalances: true,
+    displayNftMedia: true,
+    useNftDetection: true,
   },
   error: null,
   buildingTransaction: false,
@@ -103,18 +111,24 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const dialogPromise = showDialog(id);
 
-  const tokenPricesPromise = tokenPricesService
-    .getMultipleTokenPrices(context.assets, context.preferences.currency)
-    .then((prices) => {
-      context.tokenPrices = {
-        ...context.tokenPrices,
-        ...prices,
-      };
-      context.tokenPricesFetchStatus = 'fetched';
-    })
-    .catch(() => {
-      context.tokenPricesFetchStatus = 'error';
-    });
+  let tokenPricesPromise;
+
+  if (context.preferences.useExternalPricingData) {
+    tokenPricesPromise = tokenPricesService
+      .getMultipleTokenPrices(context.assets, context.preferences.currency)
+      .then((prices) => {
+        context.tokenPrices = {
+          ...context.tokenPrices,
+          ...prices,
+        };
+        context.tokenPricesFetchStatus = 'fetched';
+      })
+      .catch(() => {
+        context.tokenPricesFetchStatus = 'error';
+      });
+  } else {
+    context.tokenPricesFetchStatus = 'fetched';
+  }
 
   const minimumBalanceForRentExemptionPromise = transactionHelper
     .getMinimumBalanceForRentExemption(scope)

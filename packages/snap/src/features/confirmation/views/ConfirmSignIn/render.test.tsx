@@ -37,7 +37,18 @@ describe('render', () => {
       },
     });
 
-    const mockPreferences: Preferences = { locale: 'en', currency: 'usd' };
+    const mockPreferences: Preferences = {
+      locale: 'en',
+      currency: 'usd',
+      hideBalances: false,
+      useSecurityAlerts: true,
+      useExternalPricingData: true,
+      simulateOnChainActions: true,
+      useTokenDetection: true,
+      batchCheckBalances: true,
+      displayNftMedia: true,
+      useNftDetection: true,
+    };
 
     mockJsonRpc({
       method: 'snap_getPreferences',
