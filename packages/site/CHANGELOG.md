@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.1]
+
+### Uncategorized
+
+- feat: move to solscan ([#264](https://github.com/MetaMask/snap-solana-wallet/pull/264))
+
 ## [1.15.0]
 
 ### Fixed
@@ -128,7 +134,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.15.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.15.1...HEAD
+[1.15.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.15.0...v1.15.1
 [1.15.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.11.0...v1.14.0
 [1.11.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.9.0...v1.11.0
