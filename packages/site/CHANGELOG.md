@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Forward `MetaMaskOptions` in `keyring_createAccount` method ([#266](https://github.com/MetaMask/snap-solana-wallet/pull/266))
+- Bump `@metamask/keyring-api` to `^17.3.0` ([#266](https://github.com/MetaMask/snap-solana-wallet/pull/266))
 
 ## [1.15.1]
 
