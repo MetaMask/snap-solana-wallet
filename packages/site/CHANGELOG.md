@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.16.0]
 
-### Uncategorized
+### Added
 
-- feat: forward `MetaMaskOptions` in `keyring_createAccount` method ([#266](https://github.com/MetaMask/snap-solana-wallet/pull/266))
+- Forward `MetaMaskOptions` in `keyring_createAccount` method ([#266](https://github.com/MetaMask/snap-solana-wallet/pull/266))
 
 ## [1.15.1]
 
