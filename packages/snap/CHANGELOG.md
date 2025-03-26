@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.16.1]
 
-### Uncategorized
+### Fixed
 
-- fix: `signIn` message formatting ([#268](https://github.com/MetaMask/snap-solana-wallet/pull/268))
+- `signIn` message formatting ([#268](https://github.com/MetaMask/snap-solana-wallet/pull/268))
 
 ## [1.16.0]
 
