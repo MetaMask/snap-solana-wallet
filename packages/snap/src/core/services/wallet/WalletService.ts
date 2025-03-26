@@ -25,6 +25,7 @@ import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgrou
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
+import { formatSignInMessage } from '../../utils/formatSignInMessage';
 import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
@@ -366,7 +367,7 @@ export class WalletService {
     const { address } = account;
     const { params } = request.request;
 
-    const messageUtf8 = JSON.stringify(params);
+    const messageUtf8 = formatSignInMessage(params);
     const messageBytes = getUtf8Codec().encode(messageUtf8);
     const messageBase64 = getBase64Codec().decode(messageBytes);
 
