@@ -343,7 +343,7 @@ describe('WalletService', () => {
       const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
       const request = wrapKeyringRequest({
         ...MOCK_SIGN_IN_REQUEST,
-        params: {},
+        params: undefined,
       } as unknown as JsonRpcRequest);
 
       await expect(service.signIn(account, request)).rejects.toThrow(
