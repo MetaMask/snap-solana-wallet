@@ -72,7 +72,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const { scope, account } = params;
 
-  const tokenCaipId = Networks[scope].nativeToken.caip19Id;
+  const tokenCaipId =
+    (params.assetId as CaipAssetType) ?? Networks[scope].nativeToken.caip19Id;
 
   const context = {
     ...DEFAULT_SEND_CONTEXT,
