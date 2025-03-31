@@ -7,6 +7,7 @@ import { connection } from '../../../snapContext';
 import { NetworkStruct } from '../../validation/structs';
 import {
   SolanaGetGenesisHashRequestStruct,
+  SolanaGetLatestBlockhashRequestStruct,
   SolanaProtocolRequestMethod,
 } from './structs';
 
@@ -19,8 +20,15 @@ export const onProtocolRequest: OnProtocolRequestHandler = async ({
   switch (request.method) {
     case SolanaProtocolRequestMethod.GetGenesisHash:
       assert(request, SolanaGetGenesisHashRequestStruct);
-
       return connection.getRpc(scope).getGenesisHash().send();
+
+    case SolanaProtocolRequestMethod.GetLatestBlockhash:
+      assert(request, SolanaGetLatestBlockhashRequestStruct);
+      const latestBlockhash = await connection
+        .getRpc(scope)
+        .getLatestBlockhash()
+        .send();
+      return latestBlockhash.value.blockhash;
 
     default:
       throw new Error(`Unsupported method: ${request.method}`);

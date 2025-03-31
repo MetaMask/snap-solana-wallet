@@ -60,17 +60,17 @@ export const AccountRow = ({
 
   const handleInvokeResponse = (
     response: InvokeResponse,
-    description: React.ReactNode,
+    title: React.ReactNode,
     action?: { label: string; onClick: () => void },
   ) => {
     if (response.result === null) {
       toaster.create({
-        description: 'Rejected the confirmation',
+        title: 'Rejected the confirmation',
         type: 'info',
       });
     } else {
       toaster.create({
-        description,
+        title,
         type: 'success',
         action: action as any,
       });
@@ -79,6 +79,7 @@ export const AccountRow = ({
 
   const handleInvokeError = (error: any) => {
     toaster.create({
+      title: 'Error from the snap',
       description: error.message,
       type: 'error',
     });

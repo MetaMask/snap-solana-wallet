@@ -1,5 +1,6 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
 
+import { SolanaProtocolRequestMethod } from './core/handlers/onProtocolRequest/structs';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { ConfigProvider } from './core/services/config/ConfigProvider';
 
@@ -25,6 +26,9 @@ const dappPermissions = isDev
       // RPC methods
       RpcRequestMethod.StartSendTransactionFlow,
       RpcRequestMethod.GetFeeForTransaction,
+      // Protocol methods
+      SolanaProtocolRequestMethod.GetGenesisHash,
+      SolanaProtocolRequestMethod.GetLatestBlockhash,
     ])
   : new Set([]);
 
@@ -42,6 +46,9 @@ const metamaskPermissions = new Set([
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
   RpcRequestMethod.GetFeeForTransaction,
+  // Protocol methods
+  SolanaProtocolRequestMethod.GetGenesisHash,
+  SolanaProtocolRequestMethod.GetLatestBlockhash,
 ]);
 
 const metamask = 'metamask';
