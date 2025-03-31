@@ -15,8 +15,7 @@ export const ProtocolDetails = () => {
   const cannotCallOnProtocolRequest = () => {
     toaster.create({
       title: 'Cannot call onProtocolRequest yet',
-      description:
-        'Wait for SIP-36 to be integrated, or switch metamask-extension to branch sip-26',
+      description: 'Must wait for SIP-36 to be integrated',
       action: {
         label: 'View PR',
         onClick: () => {
