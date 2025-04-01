@@ -456,7 +456,9 @@ describe('SolanaKeyring', () => {
           KnownCaip19Id.SolMainnet,
           'Bob' as unknown as CaipAssetType,
         ]),
-      ).rejects.toThrow(/At path: assets.1 -- Expected a string matching/u);
+      ).rejects.toThrow(
+        'At path: assets.1 -- Expected a value of type `CaipAssetType`, but received: `"Bob"`',
+      );
     });
 
     it('throws an error if account is not found', async () => {

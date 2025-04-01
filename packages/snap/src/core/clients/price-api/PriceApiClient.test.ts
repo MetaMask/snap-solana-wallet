@@ -1,15 +1,14 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { CaipAssetType } from '@metamask/keyring-api';
+import { cloneDeep } from 'lodash';
 
 import { KnownCaip19Id } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import { mockLogger } from '../../services/mocks/logger';
 import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
+import { MOCK_SPOT_PRICES } from './mocks/spot-prices';
 import { PriceApiClient } from './PriceApiClient';
-import type {
-  SpotPrices,
-  SpotPricesFromPriceApiWithoutMarketData,
-  VsCurrencyParam,
-} from './types';
+import type { SpotPrices, VsCurrencyParam } from './structs';
 
 describe('PriceApiClient', () => {
   const mockFetch = jest.fn();
@@ -46,29 +45,26 @@ describe('PriceApiClient', () => {
   });
 
   describe('getMultipleSpotPrices', () => {
+    const mockResponse: SpotPrices = {
+      [KnownCaip19Id.SolMainnet]: MOCK_SPOT_PRICES[KnownCaip19Id.SolMainnet]!,
+      [KnownCaip19Id.UsdcMainnet]: MOCK_SPOT_PRICES[KnownCaip19Id.UsdcMainnet]!,
+    };
+
     it('fetches multiple spot prices successfully', async () => {
-      const mockResponse: SpotPricesFromPriceApiWithoutMarketData = {
-        [KnownCaip19Id.SolLocalnet]: { usd: 100 },
-        [KnownCaip19Id.UsdcLocalnet]: { usd: 100 },
-      };
-      const expectedResponse: SpotPrices = {
-        [KnownCaip19Id.SolLocalnet]: { price: 100 },
-        [KnownCaip19Id.UsdcLocalnet]: { price: 100 },
-      };
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
       const result = await client.getMultipleSpotPrices([
-        KnownCaip19Id.SolLocalnet,
-        KnownCaip19Id.UsdcLocalnet,
+        KnownCaip19Id.SolMainnet,
+        KnownCaip19Id.UsdcMainnet,
       ]);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://some-mock-url.com/v3/spot-prices?vsCurrency=usd&assetIds=solana%3A123456789abcdef%2Fslip44%3A501%2Csolana%3A123456789abcdef%2Ftoken%3A4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU&includeMarketData=false',
+        'https://some-mock-url.com/v3/spot-prices?vsCurrency=usd&assetIds=solana%3A5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp%2Fslip44%3A501%2Csolana%3A5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp%2Ftoken%3AEPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&includeMarketData=true',
       );
-      expect(result).toStrictEqual(expectedResponse);
+      expect(result).toStrictEqual(mockResponse);
     });
 
     it('logs and throws an error if fetch fails', async () => {
@@ -106,28 +102,19 @@ describe('PriceApiClient', () => {
     });
 
     it('fetches spot price with custom vsCurrency', async () => {
-      const mockResponse: SpotPricesFromPriceApiWithoutMarketData = {
-        [KnownCaip19Id.SolLocalnet]: { eur: 100 },
-        [KnownCaip19Id.UsdcLocalnet]: { eur: 100 },
-      };
-      const expectedResponse: SpotPrices = {
-        [KnownCaip19Id.SolLocalnet]: { price: 100 },
-        [KnownCaip19Id.UsdcLocalnet]: { price: 100 },
-      };
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(mockResponse),
+        json: jest.fn().mockResolvedValueOnce(MOCK_SPOT_PRICES),
       });
 
-      const result = await client.getMultipleSpotPrices(
-        [KnownCaip19Id.SolLocalnet, KnownCaip19Id.UsdcLocalnet],
+      await client.getMultipleSpotPrices(
+        [KnownCaip19Id.SolMainnet, KnownCaip19Id.UsdcMainnet],
         'eur',
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://some-mock-url.com/v3/spot-prices?vsCurrency=eur&assetIds=solana%3A123456789abcdef%2Fslip44%3A501%2Csolana%3A123456789abcdef%2Ftoken%3A4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU&includeMarketData=false',
+        'https://some-mock-url.com/v3/spot-prices?vsCurrency=eur&assetIds=solana%3A5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp%2Fslip44%3A501%2Csolana%3A5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp%2Ftoken%3AEPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&includeMarketData=true',
       );
-      expect(result).toStrictEqual(expectedResponse);
     });
 
     it('handles malformed JSON response', async () => {
@@ -164,10 +151,8 @@ describe('PriceApiClient', () => {
     });
 
     it('throws when malformed response from the Price API', async () => {
-      const mockMalformedResponse = {
-        [KnownCaip19Id.SolLocalnet]: { name: 'Bob' },
-        [KnownCaip19Id.UsdcLocalnet]: { usd: 100 },
-      } as unknown as SpotPricesFromPriceApiWithoutMarketData;
+      const mockMalformedResponse = cloneDeep(mockResponse);
+      mockMalformedResponse[KnownCaip19Id.SolMainnet]!.price = -999; // Price must be a positive number
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -175,12 +160,9 @@ describe('PriceApiClient', () => {
       });
 
       await expect(
-        client.getMultipleSpotPrices([
-          KnownCaip19Id.SolLocalnet,
-          KnownCaip19Id.UsdcLocalnet,
-        ]),
+        client.getMultipleSpotPrices([KnownCaip19Id.SolMainnet]),
       ).rejects.toThrow(
-        'At path: solana:123456789abcdef/slip44:501.name -- Expected a number, but received: "Bob"',
+        'At path: solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501.price -- Expected a positive number but received a negative number -999',
       );
     });
   });
@@ -221,12 +203,9 @@ describe('PriceApiClient', () => {
     });
 
     it('handles URLs with multiple query parameters safely', async () => {
-      const mockResponse: SpotPricesFromPriceApiWithoutMarketData = {
-        [KnownCaip19Id.SolLocalnet]: { usd: 100 },
-      };
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(mockResponse),
+        json: jest.fn().mockResolvedValueOnce({}),
       });
 
       await client.getMultipleSpotPrices([KnownCaip19Id.SolLocalnet]);
@@ -240,12 +219,9 @@ describe('PriceApiClient', () => {
     });
 
     it('rejects non-printable characters in input', async () => {
-      const mockResponse: SpotPricesFromPriceApiWithoutMarketData = {
-        [KnownCaip19Id.SolLocalnet]: { usd: 100 },
-      };
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(mockResponse),
+        json: jest.fn().mockResolvedValueOnce({}),
       });
 
       await expect(

@@ -18,7 +18,7 @@ import {
   sendFieldsAreValid,
   validateField,
 } from '../../../../core/validation/form';
-import { state, tokenPricesService } from '../../../../snapContext';
+import { priceApiClient, state } from '../../../../snapContext';
 import { getBalance, getIsNativeToken } from '../../selectors';
 import { Send } from '../../Send';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
@@ -323,8 +323,8 @@ async function onSendButtonClick({
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
-  const tokenPrices = await tokenPricesService
-    .getMultipleTokenPrices(context.assets, context.preferences.currency)
+  const tokenPrices = await priceApiClient
+    .getMultipleSpotPrices(context.assets, context.preferences.currency)
     .then((prices) => prices)
     .catch(() => null);
 

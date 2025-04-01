@@ -1,15 +1,12 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import type { AssetConversion } from '@metamask/snaps-sdk';
-import { array, assert } from '@metamask/superstruct';
 import BigNumber from 'bignumber.js';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
-import { VsCurrencyParamStruct } from '../../clients/price-api/structs';
-import type { FiatTicker, SpotPrices } from '../../clients/price-api/types';
+import type { FiatTicker } from '../../clients/price-api/types';
 import { getCaip19Address } from '../../utils/getCaip19Address';
 import { isFiat } from '../../utils/isFiat';
 import logger, { type ILogger } from '../../utils/logger';
-import { Caip19Struct } from '../../validation/structs';
 
 export class TokenPricesService {
   readonly #priceApiClient: PriceApiClient;
@@ -24,30 +21,6 @@ export class TokenPricesService {
   #fiatCaipIdToSymbol(caip19Id: CaipAssetType) {
     const caip19Address = getCaip19Address(caip19Id);
     return caip19Address.toLowerCase() as FiatTicker;
-  }
-
-  async getMultipleTokenPrices(
-    caip19Ids: CaipAssetType[],
-    currency?: string,
-  ): Promise<SpotPrices> {
-    assert(caip19Ids, array(Caip19Struct));
-    assert(currency, VsCurrencyParamStruct);
-
-    if (caip19Ids.length === 0) {
-      return {};
-    }
-
-    try {
-      const tokenPrices = await this.#priceApiClient.getMultipleSpotPrices(
-        caip19Ids,
-        currency,
-      );
-
-      return tokenPrices;
-    } catch (error) {
-      this.#logger.error(error, 'Error fetching token prices');
-      return {};
-    }
   }
 
   async getMultipleTokenConversions(

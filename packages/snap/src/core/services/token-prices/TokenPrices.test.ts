@@ -1,74 +1,8 @@
-import type { CaipAssetType } from '@metamask/keyring-api';
-
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
-import { KnownCaip19Id } from '../../constants/solana';
 import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
 import { TokenPricesService } from './TokenPrices';
 
 describe('TokenPricesService', () => {
-  describe('getMultipleTokenPrices', () => {
-    let tokenPricesService: TokenPricesService;
-    let mockPriceApiClient: PriceApiClient;
-    const currency = 'usd';
-
-    beforeEach(() => {
-      mockPriceApiClient = {
-        getMultipleSpotPrices: jest.fn().mockResolvedValue({
-          [KnownCaip19Id.SolMainnet]: { price: 1.23 },
-          [KnownCaip19Id.UsdcLocalnet]: { price: 1.23 },
-        }),
-      } as unknown as PriceApiClient;
-
-      tokenPricesService = new TokenPricesService(mockPriceApiClient);
-    });
-
-    it('returns the correct token prices', async () => {
-      const caip19Ids: CaipAssetType[] = [
-        KnownCaip19Id.SolMainnet,
-        KnownCaip19Id.UsdcLocalnet,
-      ];
-      const expectedPrices = {
-        [KnownCaip19Id.SolMainnet]: { price: 1.23 },
-        [KnownCaip19Id.UsdcLocalnet]: { price: 1.23 },
-      };
-
-      const prices = await tokenPricesService.getMultipleTokenPrices(
-        caip19Ids,
-        currency,
-      );
-
-      expect(prices).toStrictEqual(expectedPrices);
-    });
-
-    it('returns the correct token prices when using a different currency', async () => {
-      const caip19Ids: CaipAssetType[] = [
-        KnownCaip19Id.SolMainnet,
-        KnownCaip19Id.UsdcLocalnet,
-      ];
-      const expectedPrices = {
-        [KnownCaip19Id.SolMainnet]: { price: 1.23 },
-        [KnownCaip19Id.UsdcLocalnet]: { price: 1.23 },
-      };
-
-      const prices = await tokenPricesService.getMultipleTokenPrices(
-        caip19Ids,
-        'eur',
-      );
-
-      expect(prices).toStrictEqual(expectedPrices);
-    });
-
-    it('returns an empty object if no caip19Ids are provided', async () => {
-      const caip19Ids: CaipAssetType[] = [];
-
-      const prices = await tokenPricesService.getMultipleTokenPrices(
-        caip19Ids,
-        currency,
-      );
-      expect(prices).toStrictEqual({});
-    });
-  });
-
   describe('getMultipleTokenConversions', () => {
     let tokenPricesService: TokenPricesService;
     let mockPriceApiClient: PriceApiClient;
@@ -76,7 +10,7 @@ describe('TokenPricesService', () => {
     /* Crypto */
     const BTC = 'bip122:000000000019d6689c085ae165831e93/slip44:0';
     const ETH = 'eip155:1/slip44:60';
-    const SOL = 'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ/slip44:501';
+    const SOL = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
     const USDC = 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 
     /* Fiat */

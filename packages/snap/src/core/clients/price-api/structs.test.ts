@@ -1,31 +1,26 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { assert } from '@metamask/superstruct';
+import { cloneDeep } from 'lodash';
 
-import { SpotPricesFromPriceApiWithoutMarketDataStruct } from './structs';
+import { MOCK_SPOT_PRICES } from './mocks/spot-prices';
+import { SpotPricesStruct } from './structs';
 
 describe('structs', () => {
   describe('SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct', () => {
     it('should validate the struct', () => {
-      const spotPrices = {
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
-          usd: 202.53,
-        },
-        'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501': null,
-      };
+      const spotPrices = MOCK_SPOT_PRICES;
 
-      expect(() =>
-        assert(spotPrices, SpotPricesFromPriceApiWithoutMarketDataStruct),
-      ).not.toThrow();
+      expect(() => assert(spotPrices, SpotPricesStruct)).not.toThrow();
     });
 
     it('should reject invalid spot prices', () => {
-      const spotPrices = {
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
-          usd: -4,
-        },
-      };
+      const spotPricesWithInvalidPrice = cloneDeep(MOCK_SPOT_PRICES);
+      spotPricesWithInvalidPrice[
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501'
+      ]!.price = -4;
 
       expect(() =>
-        assert(spotPrices, SpotPricesFromPriceApiWithoutMarketDataStruct),
+        assert(spotPricesWithInvalidPrice, SpotPricesStruct),
       ).toThrow('Expected a positive number but received a negative number -4');
     });
   });

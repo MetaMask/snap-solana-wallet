@@ -13,8 +13,8 @@ import {
 } from '../../../../core/utils/interface';
 import {
   fromBase64EncodedBuilder,
+  priceApiClient,
   state,
-  tokenPricesService,
   transactionHelper,
   transactionScanService,
 } from '../../../../snapContext';
@@ -123,8 +123,8 @@ export async function render(
   let tokenPricesPromise;
 
   if (useExternalPricingData) {
-    tokenPricesPromise = tokenPricesService
-      .getMultipleTokenPrices(assets, currency)
+    tokenPricesPromise = priceApiClient
+      .getMultipleSpotPrices(assets, currency)
       .then((prices) => {
         updatedContext1.tokenPrices = prices;
         updatedContext1.tokenPricesFetchStatus = 'fetched';

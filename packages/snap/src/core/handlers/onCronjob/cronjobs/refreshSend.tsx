@@ -3,8 +3,8 @@ import type { CaipAssetType, OnCronjobHandler } from '@metamask/snaps-sdk';
 import { DEFAULT_SEND_CONTEXT } from '../../../../features/send/render';
 import { Send } from '../../../../features/send/Send';
 import type { SendContext } from '../../../../features/send/types';
-import { state, tokenPricesService } from '../../../../snapContext';
-import type { SpotPrices } from '../../../clients/price-api/types';
+import { priceApiClient, state } from '../../../../snapContext';
+import { type SpotPrices } from '../../../clients/price-api/structs';
 import {
   getInterfaceContext,
   getPreferences,
@@ -31,7 +31,7 @@ export const refreshSend: OnCronjobHandler = async () => {
 
     try {
       // First, fetch the token prices
-      tokenPrices = await tokenPricesService.getMultipleTokenPrices(
+      tokenPrices = await priceApiClient.getMultipleSpotPrices(
         assetsFromAllAccounts,
         preferences.currency,
       );

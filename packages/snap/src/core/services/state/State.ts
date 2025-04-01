@@ -6,7 +6,7 @@ import type {
 } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 
-import type { SpotPrices } from '../../clients/price-api/types';
+import type { SpotPrices } from '../../clients/price-api/structs';
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import { safeMerge } from '../../utils/safeMerge';
 

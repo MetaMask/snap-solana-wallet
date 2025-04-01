@@ -1,14 +1,7 @@
 /* eslint-disable jest/require-to-throw-message */
 import { assert, is } from '@metamask/superstruct';
 
-import { KnownCaip19Id } from '../constants/solana';
-import {
-  Base58Struct,
-  Base64Struct,
-  Caip19Struct,
-  UrlStruct,
-  UuidStruct,
-} from './structs';
+import { Base58Struct, Base64Struct, UrlStruct, UuidStruct } from './structs';
 
 describe('structs', () => {
   describe('Uuid', () => {
@@ -137,34 +130,6 @@ describe('structs', () => {
       maliciousUrls.forEach((url) => {
         expect(() => assert(url, UrlStruct)).toThrow();
         expect(is(url, UrlStruct)).toBe(false);
-      });
-    });
-
-    describe('Caip19Struct', () => {
-      it('validates valid CAIP-19 IDs', () => {
-        const validCaip19Ids = [
-          KnownCaip19Id.SolMainnet,
-          KnownCaip19Id.SolDevnet,
-          KnownCaip19Id.SolTestnet,
-          KnownCaip19Id.SolLocalnet,
-          KnownCaip19Id.UsdcLocalnet,
-        ];
-
-        validCaip19Ids.forEach((caip19Id) => {
-          expect(() => assert(caip19Id, Caip19Struct)).not.toThrow();
-          expect(is(caip19Id, Caip19Struct)).toBe(true);
-        });
-      });
-
-      it('rejects invalid CAIP-19 IDs', () => {
-        const invalidCaip19Ids = ['bob', 'bob/slip44:501'];
-
-        invalidCaip19Ids.forEach((caip19Id) => {
-          expect(() => assert(caip19Id, Caip19Struct)).toThrow(
-            /Expected a string matching/u,
-          );
-          expect(is(caip19Id, Caip19Struct)).toBe(false);
-        });
       });
     });
   });

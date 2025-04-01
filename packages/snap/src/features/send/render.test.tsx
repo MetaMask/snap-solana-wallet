@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { installSnap } from '@metamask/snaps-jest';
 
+import type { SpotPrices } from '../../core/clients/price-api/structs';
 import {
   KnownCaip19Id,
   Network,
@@ -53,6 +54,72 @@ const solanaAccountBalances = {
   },
 };
 
+const mockSpotPrices = {
+  [KnownCaip19Id.SolLocalnet]: {
+    id: 'solana',
+    price: 200,
+    marketCap: 60217502031.67665,
+    allTimeHigh: 271.90599356377726,
+    allTimeLow: 0.46425554356391946,
+    totalVolume: 3389485617.517553,
+    high1d: 120.28162239575909,
+    low1d: 114.6267638476733,
+    circulatingSupply: 512506275.4700137,
+    dilutedMarketCap: 70208307228.42435,
+    marketCapPercentChange1d: 1.82897,
+    priceChange1d: 2.03,
+    pricePercentChange1h: -0.7015657267954617,
+    pricePercentChange1d: 1.6270441732346845,
+    pricePercentChange7d: -10.985589910714582,
+    pricePercentChange14d: 2.557473792001135,
+    pricePercentChange30d: -11.519171371325216,
+    pricePercentChange200d: -4.453777067234332,
+    pricePercentChange1y: -35.331458644625535,
+  },
+  'solana:123456789abcdef/token:address1': {
+    id: 'euro-coin',
+    price: 200,
+    marketCap: 142095635.08509836,
+    allTimeHigh: 1.2514850885107882,
+    allTimeLow: 0.04899146959823566,
+    totalVolume: 25199808.258576106,
+    high1d: 1.0048961747745884,
+    low1d: 0.9993340188256516,
+    circulatingSupply: 142084788.4864096,
+    dilutedMarketCap: 142095635.08509836,
+    marketCapPercentChange1d: 2.2575,
+    priceChange1d: -0.002559725137667668,
+    pricePercentChange1h: 0.03324277835545184,
+    pricePercentChange1d: -0.23674527641785267,
+    pricePercentChange7d: -0.2372037121786562,
+    pricePercentChange14d: -1.230607529415818,
+    pricePercentChange30d: 4.034620460890957,
+    pricePercentChange200d: -2.4622235894139086,
+    pricePercentChange1y: 0.2685816973195049,
+  },
+  'solana:123456789abcdef/token:address2': {
+    id: 'usd-coin',
+    price: 200,
+    marketCap: 55688170578.59265,
+    allTimeHigh: 1.084620410042683,
+    allTimeLow: 0.8136015803527613,
+    totalVolume: 8880279668.334307,
+    high1d: 0.9270204293335238,
+    low1d: 0.9267951620175918,
+    circulatingSupply: 60073257677.05562,
+    dilutedMarketCap: 55717659417.21691,
+    marketCapPercentChange1d: 0.02765,
+    priceChange1d: 0.00012002,
+    pricePercentChange1h: 0.005951260480466856,
+    pricePercentChange1d: 0.012003855299833856,
+    pricePercentChange7d: 0.010535714950044883,
+    pricePercentChange14d: 0.013896106834960937,
+    pricePercentChange30d: 0.009428708838368462,
+    pricePercentChange200d: -0.03983945503023834,
+    pricePercentChange1y: 0.0011388468382004923,
+  },
+} as unknown as SpotPrices;
+
 const mockContext: SendContext = {
   ...DEFAULT_SEND_CONTEXT,
   accounts: solanaKeyringAccounts,
@@ -69,17 +136,7 @@ const mockContext: SendContext = {
     [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
     [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
   },
-  tokenPrices: {
-    [KnownCaip19Id.SolLocalnet]: {
-      price: 200,
-    },
-    'solana:123456789abcdef/token:address1': {
-      price: 200,
-    },
-    'solana:123456789abcdef/token:address2': {
-      price: 200,
-    },
-  },
+  tokenPrices: mockSpotPrices,
   tokenMetadata: {
     [KnownCaip19Id.SolLocalnet]: {
       name: 'Solana',
@@ -115,17 +172,7 @@ describe('Send', () => {
     // temporary mock for the token prices
     // FIXME: when we have a better way to handle external requests
     server?.get(`/v3/spot-prices`, (_: any, res: any) => {
-      return res.json({
-        [KnownCaip19Id.SolLocalnet]: {
-          usd: 200,
-        },
-        'solana:123456789abcdef/token:address1': {
-          usd: 200,
-        },
-        'solana:123456789abcdef/token:address2': {
-          usd: 200,
-        },
-      });
+      return res.json(mockSpotPrices);
     });
 
     const { request, mockJsonRpc } = await installSnap({

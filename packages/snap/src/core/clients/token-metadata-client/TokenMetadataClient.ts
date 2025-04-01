@@ -1,11 +1,12 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
+import { CaipAssetTypeStruct } from '@metamask/utils';
 
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
-import { Caip19Struct, UrlStruct } from '../../validation/structs';
+import { UrlStruct } from '../../validation/structs';
 import { TokenMetadataResponseStruct } from './structs';
 import type { SolanaTokenMetadata, TokenMetadata } from './types';
 
@@ -41,7 +42,7 @@ export class TokenMetadataClient {
   async #fetchTokenMetadataBatch(
     caip19Ids: CaipAssetType[],
   ): Promise<TokenMetadata[]> {
-    assert(caip19Ids, array(Caip19Struct));
+    assert(caip19Ids, array(CaipAssetTypeStruct));
 
     const url = buildUrl({
       baseUrl: this.#baseUrl,
@@ -67,7 +68,7 @@ export class TokenMetadataClient {
     caip19Ids: CaipAssetType[],
   ): Promise<Record<CaipAssetType, SolanaTokenMetadata>> {
     try {
-      assert(caip19Ids, array(Caip19Struct));
+      assert(caip19Ids, array(CaipAssetTypeStruct));
 
       // Split addresses into chunks
       const chunks: CaipAssetType[][] = [];

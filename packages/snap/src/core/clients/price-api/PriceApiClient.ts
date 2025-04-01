@@ -1,22 +1,16 @@
 /* eslint-disable no-restricted-globals */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
+import { CaipAssetTypeStruct } from '@metamask/utils';
 
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
-import { Caip19Struct, UrlStruct } from '../../validation/structs';
-import {
-  SpotPricesFromPriceApiWithoutMarketDataStruct,
-  VsCurrencyParamStruct,
-} from './structs';
-import type {
-  ExchangeRate,
-  FiatTicker,
-  SpotPrices,
-  VsCurrencyParam,
-} from './types';
+import { UrlStruct } from '../../validation/structs';
+import type { SpotPrices, VsCurrencyParam } from './structs';
+import { SpotPricesStruct, VsCurrencyParamStruct } from './structs';
+import type { ExchangeRate, FiatTicker } from './types';
 
 export class PriceApiClient {
   readonly #fetch: typeof globalThis.fetch;
@@ -62,10 +56,10 @@ export class PriceApiClient {
 
   async getMultipleSpotPrices(
     tokenCaip19Ids: CaipAssetType[],
-    vsCurrency: VsCurrencyParam = 'usd',
+    vsCurrency: VsCurrencyParam | string = 'usd',
   ): Promise<SpotPrices> {
     try {
-      assert(tokenCaip19Ids, array(Caip19Struct));
+      assert(tokenCaip19Ids, array(CaipAssetTypeStruct));
       assert(vsCurrency, VsCurrencyParamStruct);
 
       if (tokenCaip19Ids.length === 0) {
@@ -87,7 +81,7 @@ export class PriceApiClient {
             queryParams: {
               vsCurrency,
               assetIds: chunk.join(','),
-              includeMarketData: 'false',
+              includeMarketData: 'true',
             },
           });
 
@@ -98,27 +92,9 @@ export class PriceApiClient {
           }
 
           const spotPricesResponse = await response.json();
-          assert(
-            spotPricesResponse,
-            SpotPricesFromPriceApiWithoutMarketDataStruct,
-          );
+          assert(spotPricesResponse, SpotPricesStruct);
 
-          const result = Object.keys(spotPricesResponse).reduce(
-            (acc: SpotPrices, caip19Id) => {
-              const price =
-                spotPricesResponse?.[caip19Id as CaipAssetType]?.[vsCurrency];
-              if (!price) {
-                return acc;
-              }
-              acc[caip19Id as CaipAssetType] = {
-                price,
-              };
-              return acc;
-            },
-            {},
-          );
-
-          return result;
+          return spotPricesResponse;
         }),
       );
 

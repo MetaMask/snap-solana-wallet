@@ -5,11 +5,11 @@ import { tokenPricesService } from '../../../snapContext';
 export const onAssetsConversion: OnAssetsConversionHandler = async (params) => {
   const { conversions } = params;
 
-  const result = await tokenPricesService.getMultipleTokenConversions(
+  const conversionRates = await tokenPricesService.getMultipleTokenConversions(
     conversions,
   );
 
   return {
-    conversionRates: result,
+    conversionRates,
   };
 };

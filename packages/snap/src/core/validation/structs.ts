@@ -1,4 +1,4 @@
-import { SolMethod } from '@metamask/keyring-api';
+import { CaipAssetTypeStruct, SolMethod } from '@metamask/keyring-api';
 import type { Infer, Struct } from '@metamask/superstruct';
 import {
   array,
@@ -34,6 +34,13 @@ export const PositiveNumberStringStruct = pattern(
   string(),
   /^(?!0\d)(\d+(\.\d+)?)$/u,
 );
+
+export const PercentNumberStruct = refine(number(), 'percentage', (value) => {
+  if (value < -100 || value > 100) {
+    return `Expected a percentage between -100 and 100 but received ${value}`;
+  }
+  return true;
+});
 
 /**
  * Validates that a string is a valid and safe URL. Accepts http and https protocols.
@@ -158,15 +165,6 @@ export const UrlStruct = refine(string(), 'safe-url', (value) => {
 });
 
 /**
- * Validates a CAIP-19 asset identifier string, for instance
- * "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
- */
-export const Caip19Struct = pattern(
-  string(),
-  /^[-a-z0-9]{3,8}:[-a-zA-Z0-9]{1,64}\/[-a-zA-Z0-9]{1,64}(:[-a-zA-Z0-9]{1,64})?$/u,
-);
-
-/**
  * Keyring validations
  */
 export const GetAccountStruct = object({
@@ -180,7 +178,7 @@ export const ListAccountAssetsStruct = object({
 });
 export const GetAccountBalancesStruct = object({
   accountId: UuidStruct,
-  assets: array(Caip19Struct),
+  assets: array(CaipAssetTypeStruct),
 });
 export const ListAccountTransactionsStruct = object({
   accountId: UuidStruct,
@@ -191,14 +189,14 @@ export const ListAccountTransactionsStruct = object({
 });
 
 export const GetAccounBalancesResponseStruct = record(
-  Caip19Struct,
+  CaipAssetTypeStruct,
   object({
     amount: PositiveNumberStringStruct,
     unit: string(),
   }),
 );
 
-export const ListAccountAssetsResponseStruct = array(Caip19Struct);
+export const ListAccountAssetsResponseStruct = array(CaipAssetTypeStruct);
 
 export const SubmitRequestMethodStruct = enums(Object.values(SolMethod));
 

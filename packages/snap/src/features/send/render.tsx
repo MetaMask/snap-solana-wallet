@@ -13,8 +13,8 @@ import {
 } from '../../core/utils/interface';
 import {
   encryptedState,
+  priceApiClient,
   state,
-  tokenPricesService,
   transactionHelper,
 } from '../../snapContext';
 import { Send } from './Send';
@@ -115,8 +115,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   let tokenPricesPromise;
 
   if (context.preferences.useExternalPricingData) {
-    tokenPricesPromise = tokenPricesService
-      .getMultipleTokenPrices(context.assets, context.preferences.currency)
+    tokenPricesPromise = priceApiClient
+      .getMultipleSpotPrices(context.assets, context.preferences.currency)
       .then((prices) => {
         context.tokenPrices = {
           ...context.tokenPrices,

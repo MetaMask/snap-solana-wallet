@@ -1,23 +1,80 @@
-import { enums, nullable, record, string } from '@metamask/superstruct';
+import type { Infer } from '@metamask/superstruct';
+import {
+  enums,
+  nullable,
+  number,
+  record,
+  string,
+  type,
+} from '@metamask/superstruct';
+import { CaipAssetTypeStruct } from '@metamask/utils';
 
-import { Caip19Struct, PositiveNumberStruct } from '../../validation/structs';
+import {
+  PercentNumberStruct,
+  PositiveNumberStruct,
+} from '../../validation/structs';
 
 /**
- * When includeMarketData=false, the price api returns the following format,
- * which is DIFFERENT from the format when includeMarketData=true.
- *
+ * We use `type()` here instead of `object()` to allow for extra properties that are not defined in the schema.
+ * This is because the Price API `GET /v3/spot-prices` endpoint returns undocumented extra properties occasionally.
+ */
+export const SpotPriceStruct = type({
+  id: string(),
+  price: PositiveNumberStruct,
+  marketCap: PositiveNumberStruct,
+  allTimeHigh: nullable(PositiveNumberStruct),
+  allTimeLow: nullable(PositiveNumberStruct),
+  totalVolume: PositiveNumberStruct,
+  high1d: nullable(PositiveNumberStruct),
+  low1d: nullable(PositiveNumberStruct),
+  circulatingSupply: nullable(PositiveNumberStruct),
+  dilutedMarketCap: nullable(PositiveNumberStruct),
+  marketCapPercentChange1d: nullable(PercentNumberStruct),
+  priceChange1d: nullable(number()),
+  pricePercentChange1h: nullable(PercentNumberStruct),
+  pricePercentChange1d: nullable(PercentNumberStruct),
+  pricePercentChange7d: nullable(PercentNumberStruct),
+  pricePercentChange14d: nullable(PercentNumberStruct),
+  pricePercentChange30d: nullable(PercentNumberStruct),
+  pricePercentChange200d: nullable(PercentNumberStruct),
+  pricePercentChange1y: nullable(PercentNumberStruct),
+});
+
+export type SpotPrice = Infer<typeof SpotPriceStruct>;
+
+/**
  * @example
  * {
- *   "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501": {
- *     "usd": 202.53
+ *   "bip122:000000000019d6689c085ae165831e93/slip44:0": {
+ *     "id": "bitcoin",
+ *     "price": 84302,
+ *     "marketCap": 1670808919774,
+ *     "allTimeHigh": 108786,
+ *     "allTimeLow": 67.81,
+ *     "totalVolume": 25784747348,
+ *     "high1d": 84370,
+ *     "low1d": 81426,
+ *     "circulatingSupply": 19844840,
+ *     "dilutedMarketCap": 1670808919774,
+ *     "marketCapPercentChange1d": 3.2788,
+ *     "priceChange1d": 2876.1,
+ *     "pricePercentChange1h": 0.1991278666784771,
+ *     "pricePercentChange1d": 3.5321815522315307,
+ *     "pricePercentChange7d": -3.4056070943823666,
+ *     "pricePercentChange14d": 1.663812725054475,
+ *     "pricePercentChange30d": -1.8166338283570667,
+ *     "pricePercentChange200d": 45.12491105880435,
+ *     "pricePercentChange1y": 21.403818710804778
  *   },
+ *   "eip155:1/slip44:60": { ... },
  *   "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501": null
- * }
  */
-export const SpotPricesFromPriceApiWithoutMarketDataStruct = record(
-  Caip19Struct,
-  nullable(record(string(), PositiveNumberStruct)),
+export const SpotPricesStruct = record(
+  CaipAssetTypeStruct,
+  nullable(SpotPriceStruct),
 );
+
+export type SpotPrices = Infer<typeof SpotPricesStruct>;
 
 export const VsCurrencyParamStruct = enums([
   'btc',
@@ -83,3 +140,5 @@ export const VsCurrencyParamStruct = enums([
   'bits',
   'sats',
 ]);
+
+export type VsCurrencyParam = Infer<typeof VsCurrencyParamStruct>;

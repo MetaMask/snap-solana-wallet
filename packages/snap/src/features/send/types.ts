@@ -1,6 +1,6 @@
 import type { Balance, CaipAssetType } from '@metamask/keyring-api';
 
-import type { SpotPrices } from '../../core/clients/price-api/types';
+import type { SpotPrices } from '../../core/clients/price-api/structs';
 import type { SolanaTokenMetadata } from '../../core/clients/token-metadata-client/types';
 import type { Network } from '../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../core/handlers/onKeyringRequest/Keyring';
