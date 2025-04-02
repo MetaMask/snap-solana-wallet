@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
-import type { MetaMaskOptions } from '@metamask/keyring-api';
+import type { EntropySourceId, MetaMaskOptions } from '@metamask/keyring-api';
 import {
   KeyringEvent,
   ListAccountAssetsResponseStruct,
@@ -31,7 +31,7 @@ import type { State } from '../../services/state/State';
 import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
-import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
+import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
 import type { ILogger } from '../../utils/logger';
 import {
@@ -140,8 +140,9 @@ export class SolanaKeyring implements Keyring {
     options?: {
       importedAccount?: boolean;
       index?: number;
-      [key: string]: Json | undefined;
+      entropySource?: EntropySourceId;
       accountNameSuggestion?: string;
+      [key: string]: Json | undefined;
     } & MetaMaskOptions,
   ): Promise<KeyringAccount> {
     // eslint-disable-next-line no-restricted-globals
@@ -159,7 +160,10 @@ export class SolanaKeyring implements Keyring {
         index = getLowestUnusedIndex(keyringAccounts);
       }
 
-      const { publicKeyBytes } = await deriveSolanaPrivateKey(index);
+      const { publicKeyBytes } = await deriveSolanaKeypair({
+        index,
+        entropySource: options?.entropySource,
+      });
       const accountAddress = getAddressDecoder().decode(
         publicKeyBytes.slice(1),
       );

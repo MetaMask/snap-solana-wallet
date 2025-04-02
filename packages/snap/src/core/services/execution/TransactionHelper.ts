@@ -31,7 +31,7 @@ import {
 
 import type { Network } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
-import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
+import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import type { ILogger } from '../../utils/logger';
 import { PromiseAny } from '../../utils/PromiseAny';
 import { retry } from '../../utils/retry';
@@ -356,7 +356,9 @@ export class TransactionHelper {
     transactionMessage: CompilableTransactionMessage,
     account: SolanaKeyringAccount,
   ): Promise<Readonly<FullySignedTransaction & TransactionWithLifetime>> {
-    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+    const { privateKeyBytes } = await deriveSolanaKeypair({
+      index: account.index,
+    });
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );
