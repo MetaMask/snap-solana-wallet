@@ -100,6 +100,10 @@ export const TOKEN_PROGRAM_ID = address(
   'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
 );
 
+export const TOKEN_2022_PROGRAM_ID = address(
+  'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+);
+
 export const Networks = {
   [Network.Mainnet]: {
     caip2Id: Network.Mainnet,
