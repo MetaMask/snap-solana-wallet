@@ -302,8 +302,8 @@ export class AssetsService {
         await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
           assets: {
             [account.id]: {
-              added: assetsAdded,
-              removed: assetsDeleted,
+              added: assetsAdded as CaipAssetType[],
+              removed: assetsDeleted as CaipAssetType[],
             },
           },
         });

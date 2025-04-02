@@ -1,15 +1,12 @@
+/* eslint-disable no-restricted-globals */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable no-restricted-globals */
 /* eslint-disable @typescript-eslint/no-require-imports */
 import type { KeyPairSigner } from '@solana/kit';
 import { createKeyPairSignerFromPrivateKeyBytes } from '@solana/kit';
 
 import { Network } from '../../constants/solana';
-import {
-  MOCK_SOLANA_KEYRING_ACCOUNTS,
-  MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
-} from '../../test/mocks/solana-keyring-accounts';
+import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
@@ -29,18 +26,8 @@ jest.mock('@solana/kit', () => ({
     .mockReturnValue(jest.fn().mockResolvedValueOnce(undefined)),
 }));
 
-jest.mock('../../utils/deriveSolanaPrivateKey', () => ({
-  deriveSolanaPrivateKey: jest.fn().mockImplementation((index) => {
-    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index];
-    if (!account) {
-      throw new Error('[deriveSolanaAddress] Not enough mocked indices');
-    }
-    return {
-      privateKeyBytes:
-        MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES[account.id],
-      publicKeyBytes: null, // We don't need public key bytes for the tests
-    };
-  }),
+jest.mock('../../utils/deriveSolanaKeypair', () => ({
+  deriveSolanaKeypair: deriveSolanaKeypairMock,
 }));
 
 describe('TransactionHelper', () => {

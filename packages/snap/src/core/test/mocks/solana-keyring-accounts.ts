@@ -7,6 +7,11 @@ export const MOCK_SEED_PHRASE =
   'sugar interest animal afford dog imitate relief lizard width strategy embark midnight';
 export const MOCK_SEED_PHRASE_BYTES = mnemonicPhraseToBytes(MOCK_SEED_PHRASE);
 
+export const MOCK_SEED_PHRASE_2 =
+  'flight baby section trick minute clog jar swear oblige expect start unlock';
+export const MOCK_SEED_PHRASE_2_BYTES =
+  mnemonicPhraseToBytes(MOCK_SEED_PHRASE_2);
+
 /**
  * Solana account scopes.
  */

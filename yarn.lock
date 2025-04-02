@@ -4176,42 +4176,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:17.3.0, @metamask/keyring-api@npm:^17.3.0":
-  version: 17.3.0
-  resolution: "@metamask/keyring-api@npm:17.3.0"
+"@metamask/keyring-api@npm:17.4.0, @metamask/keyring-api@npm:^17.4.0":
+  version: 17.4.0
+  resolution: "@metamask/keyring-api@npm:17.4.0"
   dependencies:
     "@metamask/keyring-utils": ^3.0.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.1.0
     bech32: ^2.0.0
-  checksum: 3e913743fca5ecf74530752322caa4f840a55175886c0c7b9a9185d8e9fa91cc81b1fb52fa360b85fc4560ca4c5a1202b8eb7d16b7f7a6b2237df1b62317817a
+  checksum: 97c23b8a4c1d583ca511f9edaacbb1c87bbe74416f922d72129dba7ab8e681dd11a858fcca390ddd2bff31bbb10c7f44fb10543cc903b1db5e434c0bc1ca4889
   languageName: node
   linkType: hard
 
-"@metamask/keyring-snap-sdk@npm:3.0.1":
-  version: 3.0.1
-  resolution: "@metamask/keyring-snap-sdk@npm:3.0.1"
+"@metamask/keyring-snap-sdk@npm:3.2.0":
+  version: 3.2.0
+  resolution: "@metamask/keyring-snap-sdk@npm:3.2.0"
   dependencies:
-    "@metamask/keyring-utils": ^2.3.0
+    "@metamask/keyring-utils": ^3.0.0
     "@metamask/snaps-sdk": ^6.16.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.1.0
     webextension-polyfill: ^0.12.0
   peerDependencies:
     "@metamask/providers": ^19.0.0
-  checksum: 24c0652541a78710c3021cb6f3bbf4a811b15d75bab22ec28c0a6ba456d4fbb0d17fc695c03b20d04d5aa58cf8416527848f27025f6d9ca74f642159be11e0c7
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-utils@npm:^2.3.0":
-  version: 2.3.1
-  resolution: "@metamask/keyring-utils@npm:2.3.1"
-  dependencies:
-    "@ethereumjs/tx": ^4.2.0
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.1.0
-    bitcoin-address-validation: ^2.2.3
-  checksum: cd27eebbc7277a85a922cd581a2eaf3c82521cf5df62e4de6fea2bbdf9d68461d5e51eab08a0eb26c0bf5873f12ff85b7211f629dc1f8eb2e055225b1e2075a8
+  checksum: fbd8fa42d42b2d1c76956b060c441edc097565dc4ec84b8012590f0ff3b81f4118c379104677c5e16e14b9d7345c5f6c04a0b285d56717fe1357b3dfb2c2f184
   languageName: node
   linkType: hard
 
@@ -4725,8 +4713,8 @@ __metadata:
     "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": 4.0.0
     "@metamask/key-tree": 9.1.2
-    "@metamask/keyring-api": 17.3.0
-    "@metamask/keyring-snap-sdk": 3.0.1
+    "@metamask/keyring-api": 17.4.0
+    "@metamask/keyring-snap-sdk": 3.2.0
     "@metamask/snaps-cli": 6.5.1
     "@metamask/snaps-jest": 8.12.0
     "@metamask/snaps-sdk": 6.18.0
@@ -4763,7 +4751,7 @@ __metadata:
     "@chakra-ui/react": ^3.0.2
     "@emotion/react": ^11.13.3
     "@metamask/eslint-config-browser": ^12.1.0
-    "@metamask/keyring-api": ^17.3.0
+    "@metamask/keyring-api": ^17.4.0
     "@metamask/providers": ^18.1.0
     "@solana-program/compute-budget": ^0.7.0
     "@solana-program/system": ^0.7.0

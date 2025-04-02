@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
-import type { EntropySourceId, MetaMaskOptions } from '@metamask/keyring-api';
+import type {
+  DiscoveredAccount,
+  EntropySourceId,
+  KeyringEventPayload,
+  MetaMaskOptions,
+} from '@metamask/keyring-api';
 import {
   KeyringEvent,
   ListAccountAssetsResponseStruct,
@@ -24,6 +29,7 @@ import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
 
+import type { Network } from '../../constants/solana';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { EncryptedState } from '../../services/encrypted-state/EncryptedState';
@@ -44,7 +50,10 @@ import {
   NetworkStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
-import { SolanaKeyringRequestStruct } from './structs';
+import {
+  DiscoverAccountsRequestStruct,
+  SolanaKeyringRequestStruct,
+} from './structs';
 
 /**
  * We need to store the index of the KeyringAccount in the state because
@@ -324,7 +333,7 @@ export class SolanaKeyring implements Keyring {
 
   async emitEvent(
     event: KeyringEvent,
-    data: Record<string, Json>,
+    data: KeyringEventPayload<KeyringEvent>,
   ): Promise<void> {
     await emitSnapKeyringEvent(snap, event, data);
   }
@@ -513,6 +522,69 @@ export class SolanaKeyring implements Keyring {
     } catch (error: any) {
       this.#logger.error({ error }, 'Error resolving account address');
       return null;
+    }
+  }
+
+  /**
+   * Checks if a Solana account has activity on the given scopes. The Solana account
+   * is derived using the BIP-44 derivation path `m/44'/501'/${groupIndex}'/0'`, applied
+   * to the SRP referenced by the entropy source.
+   *
+   * @param scopes - The scopes to discover the accounts for.
+   * @param entropySource - The entropy source aka Recovery Phrase.
+   * @param groupIndex - The group index to use for the account discovery.
+   * @returns The discovered accounts.
+   */
+  async discoverAccounts(
+    scopes: CaipChainId[],
+    entropySource: EntropySourceId,
+    groupIndex: number,
+  ): Promise<DiscoveredAccount[]> {
+    try {
+      assert(
+        { scopes, entropySource, groupIndex },
+        DiscoverAccountsRequestStruct,
+      );
+
+      const keypair = await deriveSolanaKeypair({
+        index: groupIndex,
+        ...(entropySource ? { entropySource } : {}),
+      });
+      const address = asAddress(
+        getAddressDecoder().decode(keypair.publicKeyBytes),
+      );
+
+      const activityChecksPromises = [];
+
+      for (const scope of scopes) {
+        activityChecksPromises.push(
+          this.#transactionsService.fetchLatestSignatures(
+            scope as Network,
+            address,
+            1,
+          ),
+        );
+      }
+
+      const scopeSignatures = await Promise.all(activityChecksPromises);
+      const hasActivity = scopeSignatures.some(
+        (signatures) => signatures.length > 0,
+      );
+
+      if (!hasActivity) {
+        return [];
+      }
+
+      return [
+        {
+          type: 'bip44',
+          scopes,
+          derivationPath: `m/44'/501'/${groupIndex}'/0'`,
+        },
+      ];
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error discovering accounts');
+      throw error;
     }
   }
 }

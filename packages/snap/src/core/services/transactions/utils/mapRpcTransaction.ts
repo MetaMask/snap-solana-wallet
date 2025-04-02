@@ -1,8 +1,8 @@
+import type { Transaction } from '@metamask/keyring-api';
 import type { Address } from '@solana/kit';
 
 import type { Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
-import type { MappedTransaction } from '../types';
 import { parseTransactionNativeTransfers } from './parseTransactionNativeTransfers';
 import { parseTransactionSplTransfers } from './parseTransactionSplTransfers';
 
@@ -22,7 +22,7 @@ export function mapRpcTransaction({
   scope: Network;
   address: Address;
   transactionData: SolanaTransaction | null;
-}): MappedTransaction | null {
+}): Transaction | null {
   if (!transactionData) {
     return null;
   }
@@ -75,6 +75,7 @@ export function mapRpcTransaction({
 
   return {
     id,
+    account: address,
     timestamp,
     chain: scope as `${string}:${string}`,
     status,
@@ -105,9 +106,9 @@ function evaluateTransactionType({
   to,
 }: {
   address: Address;
-  from: MappedTransaction['from'];
-  to: MappedTransaction['to'];
-}): MappedTransaction['type'] {
+  from: Transaction['from'];
+  to: Transaction['to'];
+}): Transaction['type'] {
   const userSentItems = from.filter((fromItem) => fromItem.address === address);
   const userReceivedItems = to.filter((toItem) => toItem.address === address);
 

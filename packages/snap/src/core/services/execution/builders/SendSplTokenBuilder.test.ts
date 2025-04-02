@@ -18,8 +18,8 @@ import {
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
-  MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
 } from '../../../test/mocks/solana-keyring-accounts';
+import { deriveSolanaKeypairMock } from '../../../test/mocks/utils/deriveSolanaKeypair';
 import { mockLogger } from '../../mocks/logger';
 import { createMockConnection } from '../../mocks/mockConnection';
 import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../mocks/scenarios/sendSol';
@@ -35,18 +35,8 @@ jest.mock('@solana/kit', () => ({
     .mockReturnValue(() => jest.fn()),
 }));
 
-jest.mock('../../../utils/deriveSolanaPrivateKey', () => ({
-  deriveSolanaPrivateKey: jest.fn().mockImplementation((index) => {
-    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index];
-    if (!account) {
-      throw new Error('[deriveSolanaAddress] Not enough mocked indices');
-    }
-    return {
-      privateKeyBytes:
-        MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES[account.id],
-      publicKeyBytes: null, // We don't need public key bytes for the tests
-    };
-  }),
+jest.mock('../../../utils/deriveSolanaKeypair', () => ({
+  deriveSolanaKeypair: deriveSolanaKeypairMock,
 }));
 
 describe('SendSplTokenBuilder', () => {

@@ -50,7 +50,7 @@ describe('deriveSolanaKeypair', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getBip32Entropy as jest.Mock).mockImplementation(
-      async (path: string[], curve: SupportedCurve) => {
+      async ({ path, curve }: { path: string[]; curve: SupportedCurve }) => {
         return await SLIP10Node.fromDerivationPath({
           derivationPath: [
             MOCK_SEED_PHRASE_BYTES,
@@ -63,11 +63,21 @@ describe('deriveSolanaKeypair', () => {
   });
 
   it('successfully derives Solana private keys', async () => {
-    const { privateKeyBytes: firstPrivateKey } = await deriveSolanaKeypair(0);
-    const { privateKeyBytes: secondPrivateKey } = await deriveSolanaKeypair(1);
-    const { privateKeyBytes: thirdPrivateKey } = await deriveSolanaKeypair(2);
-    const { privateKeyBytes: fourthPrivateKey } = await deriveSolanaKeypair(3);
-    const { privateKeyBytes: fifthPrivateKey } = await deriveSolanaKeypair(4);
+    const { privateKeyBytes: firstPrivateKey } = await deriveSolanaKeypair({
+      index: 0,
+    });
+    const { privateKeyBytes: secondPrivateKey } = await deriveSolanaKeypair({
+      index: 1,
+    });
+    const { privateKeyBytes: thirdPrivateKey } = await deriveSolanaKeypair({
+      index: 2,
+    });
+    const { privateKeyBytes: fourthPrivateKey } = await deriveSolanaKeypair({
+      index: 3,
+    });
+    const { privateKeyBytes: fifthPrivateKey } = await deriveSolanaKeypair({
+      index: 4,
+    });
 
     expect(firstPrivateKey).toStrictEqual(
       MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
@@ -89,7 +99,7 @@ describe('deriveSolanaKeypair', () => {
   it('throws error if unable to derive private key', async () => {
     jest.mocked(getBip32Entropy).mockResolvedValue({} as any);
 
-    await expect(deriveSolanaKeypair(0)).rejects.toThrow(
+    await expect(deriveSolanaKeypair({ index: 0 })).rejects.toThrow(
       'Unable to derive private key',
     );
   });
@@ -98,6 +108,8 @@ describe('deriveSolanaKeypair', () => {
     const errorMessage = 'Failed to get entropy';
     (getBip32Entropy as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
-    await expect(deriveSolanaKeypair(0)).rejects.toThrow(errorMessage);
+    await expect(deriveSolanaKeypair({ index: 0 })).rejects.toThrow(
+      errorMessage,
+    );
   });
 });
