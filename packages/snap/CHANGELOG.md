@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.17.0]
 
-### Uncategorized
+### Added
 
-- feat: add getLatestBlockhash protocol request ([#271](https://github.com/MetaMask/snap-solana-wallet/pull/271))
-- feat(send): add optional `assetId` to send flow ([#270](https://github.com/MetaMask/snap-solana-wallet/pull/270))
+- Add `getLatestBlockhash` protocol request ([#271](https://github.com/MetaMask/snap-solana-wallet/pull/271))
+- Add optional `assetId` to send flow ([#270](https://github.com/MetaMask/snap-solana-wallet/pull/270))
 
 ## [1.16.1]
 
