@@ -77,6 +77,7 @@ describe('AssetsService', () => {
       expect(assets).toStrictEqual([
         SOLANA_MOCK_TOKEN.address,
         ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.address),
+        ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.address),
       ]);
     });
   });
@@ -124,6 +125,14 @@ describe('AssetsService', () => {
       const tokens = await assetsService.discoverTokens(address, scope);
 
       expect(tokens).toStrictEqual([
+        ...SOLANA_MOCK_SPL_TOKENS,
+        {
+          address: 'solana:123456789abcdef/token:tokenAddress1',
+          balance: '0',
+          decimals: 6,
+          native: false,
+          scope: Network.Localnet,
+        },
         ...SOLANA_MOCK_SPL_TOKENS,
         {
           address: 'solana:123456789abcdef/token:tokenAddress1',
