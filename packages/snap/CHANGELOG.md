@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.18.0]
 
-### Uncategorized
+### Added
 
-- fix: partially sign transaction ([#276](https://github.com/MetaMask/snap-solana-wallet/pull/276))
-- Support Multi-SRP + Implement Account Discovery ([#274](https://github.com/MetaMask/snap-solana-wallet/pull/274))
-- feat: add support for `Token2022` program assets ([#275](https://github.com/MetaMask/snap-solana-wallet/pull/275))
+- Keyring `discoverAccounts` ([#274](https://github.com/MetaMask/snap-solana-wallet/pull/274))
+- Support for `Token2022` program assets ([#275](https://github.com/MetaMask/snap-solana-wallet/pull/275))
+
+### Fixed
+
+- Partially sign transaction ([#276](https://github.com/MetaMask/snap-solana-wallet/pull/276))
 
 ## [1.17.0]
 

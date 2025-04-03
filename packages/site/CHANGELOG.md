@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.18.0]
 
-### Uncategorized
+### Added
 
 - Support Multi-SRP + Implement Account Discovery ([#274](https://github.com/MetaMask/snap-solana-wallet/pull/274))
 
