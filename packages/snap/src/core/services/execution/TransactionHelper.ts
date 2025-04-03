@@ -3,9 +3,9 @@ import { assert } from '@metamask/superstruct';
 import type {
   Commitment,
   CompilableTransactionMessage,
-  FullySignedTransaction,
   GetTransactionApi,
   Lamports,
+  Transaction,
   TransactionMessageBytesBase64,
   TransactionWithLifetime,
 } from '@solana/kit';
@@ -24,8 +24,8 @@ import {
   getComputeUnitEstimateForTransactionMessageFactory,
   getTransactionCodec,
   getTransactionDecoder,
+  partiallySignTransactionMessageWithSigners,
   pipe,
-  signTransactionMessageWithSigners,
   type Blockhash,
 } from '@solana/kit';
 
@@ -355,7 +355,7 @@ export class TransactionHelper {
   async signTransactionMessage(
     transactionMessage: CompilableTransactionMessage,
     account: SolanaKeyringAccount,
-  ): Promise<Readonly<FullySignedTransaction & TransactionWithLifetime>> {
+  ): Promise<Readonly<Transaction & TransactionWithLifetime>> {
     const { privateKeyBytes } = await deriveSolanaKeypair({
       index: account.index,
     });
@@ -368,7 +368,7 @@ export class TransactionHelper {
       transactionMessage,
     );
 
-    const signedTransaction = await signTransactionMessageWithSigners(
+    const signedTransaction = await partiallySignTransactionMessageWithSigners(
       transactionMessageWithSigners,
     );
 
@@ -382,9 +382,7 @@ export class TransactionHelper {
    * @returns The base64 encoded signed transaction.
    */
   async encodeSignedTransactionToBase64(
-    signedTransaction: Readonly<
-      FullySignedTransaction & TransactionWithLifetime
-    >,
+    signedTransaction: Readonly<Transaction & TransactionWithLifetime>,
   ): Promise<string> {
     const signedTransactionBytes =
       getTransactionCodec().encode(signedTransaction);

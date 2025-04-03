@@ -9,6 +9,7 @@ import { assert, instance, object } from '@metamask/superstruct';
 import type { SignatureBytes } from '@solana/kit';
 import {
   address as asAddress,
+  assertTransactionIsFullySigned,
   createKeyPairSignerFromPrivateKeyBytes,
   createSignableMessage,
   getBase58Codec,
@@ -225,6 +226,8 @@ export class WalletService {
 
     const explorerUrl = getSolanaExplorerUrl(scope, 'tx', signature);
     this.#logger.info(`Sending transaction: ${explorerUrl}`);
+
+    assertTransactionIsFullySigned(signedTransaction);
 
     await sendTransactionWithoutConfirming(signedTransaction, {
       commitment: 'confirmed',
