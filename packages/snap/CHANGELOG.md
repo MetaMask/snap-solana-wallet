@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0]
+
+### Uncategorized
+
+- fix: partially sign transaction ([#276](https://github.com/MetaMask/snap-solana-wallet/pull/276))
+- Support Multi-SRP + Implement Account Discovery ([#274](https://github.com/MetaMask/snap-solana-wallet/pull/274))
+- feat: add support for `Token2022` program assets ([#275](https://github.com/MetaMask/snap-solana-wallet/pull/275))
+
 ## [1.17.0]
 
 ### Added
@@ -357,7 +365,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.17.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...HEAD
+[1.18.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.17.0...v1.18.0
 [1.17.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.16.1...v1.17.0
 [1.16.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.16.0...v1.16.1
 [1.16.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.15.1...v1.16.0
