@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
-import { CaipAssetTypeStruct } from '@metamask/utils';
+import { CaipAssetTypeStruct, JsonStruct } from '@metamask/utils';
 
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
@@ -92,9 +92,9 @@ export class PriceApiClient {
           }
 
           const spotPricesResponse = await response.json();
-          assert(spotPricesResponse, SpotPricesStruct);
 
-          return spotPricesResponse;
+          const spotPrices = this.#sanitizeSpotPrices(spotPricesResponse);
+          return spotPrices;
         }),
       );
 
@@ -104,5 +104,23 @@ export class PriceApiClient {
       this.#logger.error(error, 'Error fetching spot prices');
       throw error;
     }
+  }
+
+  #sanitizeSpotPrices(spotPrices: SpotPrices): SpotPrices {
+    /**
+     * Replace all undefined fields with null to ensure that the returned object is assignable to `Json`.
+     * This is important because the spot prices are then stored in the snap state and in component contexts,
+     * and both cases require the object to be serializable to JSON.
+     */
+    const withNulls = Object.fromEntries(
+      Object.entries(spotPrices).map(([key, value]) => [
+        key,
+        value === undefined ? null : value,
+      ]),
+    );
+
+    assert(withNulls, SpotPricesStruct);
+    assert(withNulls, JsonStruct);
+    return withNulls;
   }
 }

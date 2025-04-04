@@ -145,7 +145,7 @@ export class TokenPricesService {
       result[from][to] = {
         rate,
         conversionTime: Date.now(),
-        expirationTime: undefined,
+        // expirationTime: undefined, // TODO: Enable this when snaps SDK is updated
         // marketData, // TODO: Enable this when snaps SDK is updated
       };
     });
