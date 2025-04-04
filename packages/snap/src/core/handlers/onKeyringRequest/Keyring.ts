@@ -64,6 +64,7 @@ import {
  */
 export type SolanaKeyringAccount = {
   index: number;
+  entropySource: EntropySourceId;
 } & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
@@ -148,6 +149,17 @@ export class SolanaKeyring implements Keyring {
     return account;
   }
 
+  #getLowestUnusedKeyringAccountIndex(
+    accounts: SolanaKeyringAccount[],
+    entropySource: EntropySourceId,
+  ): number {
+    const accountsFilteredByEntropySourceId = accounts.filter(
+      (account) => account.entropySource === entropySource,
+    );
+
+    return getLowestUnusedIndex(accountsFilteredByEntropySourceId);
+  }
+
   async createAccount(
     options?: {
       importedAccount?: boolean;
@@ -161,6 +173,12 @@ export class SolanaKeyring implements Keyring {
     const id = crypto.randomUUID();
 
     try {
+      const entropySource = options?.entropySource;
+
+      if (!entropySource) {
+        throw new Error('No entropy source provided');
+      }
+
       // Find the account index
       let index: number;
       if (options?.importedAccount && typeof options.index === 'number') {
@@ -169,12 +187,15 @@ export class SolanaKeyring implements Keyring {
       } else {
         // Get the lowest unused index for new accounts
         const keyringAccounts = await this.listAccounts();
-        index = getLowestUnusedIndex(keyringAccounts);
+        index = this.#getLowestUnusedKeyringAccountIndex(
+          keyringAccounts,
+          entropySource,
+        );
       }
 
       const { publicKeyBytes } = await deriveSolanaKeypair({
         index,
-        entropySource: options?.entropySource,
+        entropySource,
       });
       const accountAddress = getAddressDecoder().decode(
         publicKeyBytes.slice(1),
@@ -191,6 +212,7 @@ export class SolanaKeyring implements Keyring {
 
       const solanaKeyringAccount: SolanaKeyringAccount = {
         id,
+        entropySource,
         index,
         type: SolAccountType.DataAccount,
         address: accountAddress,
@@ -551,10 +573,10 @@ export class SolanaKeyring implements Keyring {
 
       const keypair = await deriveSolanaKeypair({
         index: groupIndex,
-        ...(entropySource ? { entropySource } : {}),
+        entropySource,
       });
-      const address = asAddress(
-        getAddressDecoder().decode(keypair.publicKeyBytes),
+      const address = getAddressDecoder().decode(
+        keypair.publicKeyBytes.slice(1),
       );
 
       const activityChecksPromises = [];

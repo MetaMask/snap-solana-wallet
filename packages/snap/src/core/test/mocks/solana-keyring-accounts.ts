@@ -6,11 +6,13 @@ import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyri
 export const MOCK_SEED_PHRASE =
   'sugar interest animal afford dog imitate relief lizard width strategy embark midnight';
 export const MOCK_SEED_PHRASE_BYTES = mnemonicPhraseToBytes(MOCK_SEED_PHRASE);
+export const MOCK_SEED_PHRASE_ENTROPY_SOURCE = '01JR0PQ12DKG65S4ZX6EEF5PZ2';
 
 export const MOCK_SEED_PHRASE_2 =
   'flight baby section trick minute clog jar swear oblige expect start unlock';
 export const MOCK_SEED_PHRASE_2_BYTES =
   mnemonicPhraseToBytes(MOCK_SEED_PHRASE_2);
+export const MOCK_SEED_PHRASE_2_ENTROPY_SOURCE = '01JR0PT6PNGBN7MRM3MPEVQPC0';
 
 /**
  * Solana account scopes.
@@ -25,10 +27,12 @@ export const ALL_SCOPES = [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet];
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
   address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+  entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
   index: 0,
   type: 'solana:data-account',
   id: '4b445722-6766-4f99-ade5-c2c9295f21d0',
   options: {
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -52,10 +56,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0_PUBLIC_KEY_BYTES = Uint8Array.from([
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   address: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
+  entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
   index: 1,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174001',
   options: {
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -74,10 +80,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES = Uint8Array.from([
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
   address: '27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD',
+  entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
   index: 2,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174002',
   options: {
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -96,10 +104,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES = Uint8Array.from([
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   address: '3SYHDFbhoxuTCYCGRw7KSL8GbwUoByjtvyy7pUZeAhh8',
+  entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
   index: 3,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174003',
   options: {
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -118,10 +128,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES = Uint8Array.from([
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
   address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
+  entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
   index: 4,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174004',
   options: {
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -140,10 +152,12 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES = Uint8Array.from([
 
 export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
   address: 'GN1DST49kafBmRDnKKwUbR6nJWoqzSJBPoHwcTXzgmkH',
+  entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
   index: 5,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174005',
   options: {
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
