@@ -146,8 +146,8 @@ export class TokenPricesService {
         rate,
         conversionTime: Date.now(),
         expirationTime: undefined,
-        // marketData, // TODO: Enable this when snaps SDK is updated
-      };
+        marketData, // TODO: Enable this when snaps SDK is updated
+      } as unknown as any;
     });
 
     return result;
@@ -169,6 +169,13 @@ export class TokenPricesService {
       'circulatingSupply',
       'allTimeHigh',
       'allTimeLow',
+      'pricePercentChange1h',
+      'pricePercentChange1d',
+      'pricePercentChange7d',
+      'pricePercentChange14d',
+      'pricePercentChange30d',
+      'pricePercentChange200d',
+      'pricePercentChange1y',
     ]);
 
     const toCurrency = (value: number | null | undefined) =>
@@ -179,9 +186,19 @@ export class TokenPricesService {
     const marketDataInToCurrency = {
       marketCap: toCurrency(marketDataInUsd.marketCap),
       totalVolume: toCurrency(marketDataInUsd.totalVolume),
-      circulatingSupply: marketDataInUsd.circulatingSupply, // Circulating supply counts the number of tokens in circulation so it doesn't need to be converted
+      circulatingSupply: marketDataInUsd.circulatingSupply, // Circulating supply counts the number of tokens in circulation, so we don't convert
       allTimeHigh: toCurrency(marketDataInUsd.allTimeHigh),
       allTimeLow: toCurrency(marketDataInUsd.allTimeLow),
+      // Variations in percent don't need to be converted, they are independent of the currency
+      pricePercentChange: {
+        PT1H: marketDataInUsd.pricePercentChange1h,
+        P1D: marketDataInUsd.pricePercentChange1d,
+        P7D: marketDataInUsd.pricePercentChange7d,
+        P14D: marketDataInUsd.pricePercentChange14d,
+        P30D: marketDataInUsd.pricePercentChange30d,
+        P200D: marketDataInUsd.pricePercentChange200d,
+        P1Y: marketDataInUsd.pricePercentChange1y,
+      },
     };
 
     return marketDataInToCurrency;

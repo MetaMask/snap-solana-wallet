@@ -55,145 +55,147 @@ describe('TokenPricesService', () => {
       expect(result).toStrictEqual({});
     });
 
-    it('handles fiat to fiat conversions', async () => {
-      const result = await tokenPricesService.getMultipleTokenConversions([
-        /* Same currency */
-        { from: USD, to: USD },
-        { from: EUR, to: EUR },
-        /* Different currency */
-        { from: EUR, to: USD },
-        { from: USD, to: BZR },
-        { from: EUR, to: BZR },
-      ]);
+    describe('when includeMarketData is false', () => {
+      it('handles fiat to fiat conversions', async () => {
+        const result = await tokenPricesService.getMultipleTokenConversions([
+          /* Same currency */
+          { from: USD, to: USD },
+          { from: EUR, to: EUR },
+          /* Different currency */
+          { from: EUR, to: USD },
+          { from: USD, to: BZR },
+          { from: EUR, to: BZR },
+        ]);
 
-      expect(result).toStrictEqual(
-        expect.objectContaining({
-          [USD]: expect.objectContaining({
-            [USD]: { rate: '1', conversionTime: expect.any(Number) },
-            [BZR]: {
-              rate: '5.76570004244899399996',
-              conversionTime: expect.any(Number),
-            },
+        expect(result).toStrictEqual(
+          expect.objectContaining({
+            [USD]: expect.objectContaining({
+              [USD]: { rate: '1', conversionTime: expect.any(Number) },
+              [BZR]: {
+                rate: '5.76570004244899399996',
+                conversionTime: expect.any(Number),
+              },
+            }),
+            [EUR]: expect.objectContaining({
+              [EUR]: { rate: '1', conversionTime: expect.any(Number) },
+              [USD]: {
+                rate: '1.03740143454969449639',
+                conversionTime: expect.any(Number),
+              },
+              [BZR]: {
+                rate: '5.98134549521982082858',
+                conversionTime: expect.any(Number),
+              },
+            }),
           }),
-          [EUR]: expect.objectContaining({
-            [EUR]: { rate: '1', conversionTime: expect.any(Number) },
-            [USD]: {
-              rate: '1.03740143454969449639',
-              conversionTime: expect.any(Number),
-            },
-            [BZR]: {
-              rate: '5.98134549521982082858',
-              conversionTime: expect.any(Number),
-            },
-          }),
-        }),
-      );
-    });
+        );
+      });
 
-    it('handles crypto to crypto conversions', async () => {
-      const result = await tokenPricesService.getMultipleTokenConversions([
-        /* Same currency */
-        { from: BTC, to: BTC },
-        { from: ETH, to: ETH },
-        /* Different currency */
-        { from: BTC, to: ETH },
-        { from: ETH, to: SOL },
-        { from: SOL, to: USDC },
-      ]);
+      it('handles crypto to crypto conversions', async () => {
+        const result = await tokenPricesService.getMultipleTokenConversions([
+          /* Same currency */
+          { from: BTC, to: BTC },
+          { from: ETH, to: ETH },
+          /* Different currency */
+          { from: BTC, to: ETH },
+          { from: ETH, to: SOL },
+          { from: SOL, to: USDC },
+        ]);
 
-      expect(result).toStrictEqual(
-        expect.objectContaining({
-          [BTC]: expect.objectContaining({
-            [BTC]: { rate: '1', conversionTime: expect.any(Number) },
-            [ETH]: {
-              rate: '33.33333333333333333333',
-              conversionTime: expect.any(Number),
-            },
+        expect(result).toStrictEqual(
+          expect.objectContaining({
+            [BTC]: expect.objectContaining({
+              [BTC]: { rate: '1', conversionTime: expect.any(Number) },
+              [ETH]: {
+                rate: '33.33333333333333333333',
+                conversionTime: expect.any(Number),
+              },
+            }),
+            [ETH]: expect.objectContaining({
+              [ETH]: { rate: '1', conversionTime: expect.any(Number) },
+              [SOL]: {
+                rate: '15',
+                conversionTime: expect.any(Number),
+              },
+            }),
+            [SOL]: expect.objectContaining({
+              [USDC]: {
+                rate: '200.01800162014581312318',
+                conversionTime: expect.any(Number),
+              },
+            }),
           }),
-          [ETH]: expect.objectContaining({
-            [ETH]: { rate: '1', conversionTime: expect.any(Number) },
-            [SOL]: {
-              rate: '15',
-              conversionTime: expect.any(Number),
-            },
-          }),
-          [SOL]: expect.objectContaining({
-            [USDC]: {
-              rate: '200.01800162014581312318',
-              conversionTime: expect.any(Number),
-            },
-          }),
-        }),
-      );
-    });
+        );
+      });
 
-    it('handles crypto to fiat conversions', async () => {
-      const result = await tokenPricesService.getMultipleTokenConversions([
-        { from: BTC, to: USD },
-        { from: ETH, to: USD },
-        { from: SOL, to: USD },
-      ]);
+      it('handles crypto to fiat conversions', async () => {
+        const result = await tokenPricesService.getMultipleTokenConversions([
+          { from: BTC, to: USD },
+          { from: ETH, to: USD },
+          { from: SOL, to: USD },
+        ]);
 
-      expect(result).toStrictEqual(
-        expect.objectContaining({
-          [BTC]: expect.objectContaining({
-            [USD]: { rate: '100000', conversionTime: expect.any(Number) },
+        expect(result).toStrictEqual(
+          expect.objectContaining({
+            [BTC]: expect.objectContaining({
+              [USD]: { rate: '100000', conversionTime: expect.any(Number) },
+            }),
+            [ETH]: expect.objectContaining({
+              [USD]: { rate: '3000', conversionTime: expect.any(Number) },
+            }),
+            [SOL]: expect.objectContaining({
+              [USD]: { rate: '200', conversionTime: expect.any(Number) },
+            }),
           }),
-          [ETH]: expect.objectContaining({
-            [USD]: { rate: '3000', conversionTime: expect.any(Number) },
+        );
+      });
+
+      it('handles fiat to crypto conversions', async () => {
+        const result = await tokenPricesService.getMultipleTokenConversions([
+          { from: USD, to: BTC },
+          { from: USD, to: ETH },
+          { from: USD, to: SOL },
+        ]);
+
+        expect(result).toStrictEqual(
+          expect.objectContaining({
+            [USD]: expect.objectContaining({
+              [BTC]: { rate: '0.00001', conversionTime: expect.any(Number) },
+              [ETH]: {
+                rate: '0.00033333333333333333',
+                conversionTime: expect.any(Number),
+              },
+              [SOL]: { rate: '0.005', conversionTime: expect.any(Number) },
+            }),
           }),
-          [SOL]: expect.objectContaining({
-            [USD]: { rate: '200', conversionTime: expect.any(Number) },
-          }),
-        }),
-      );
-    });
+        );
+      });
 
-    it('handles fiat to crypto conversions', async () => {
-      const result = await tokenPricesService.getMultipleTokenConversions([
-        { from: USD, to: BTC },
-        { from: USD, to: ETH },
-        { from: USD, to: SOL },
-      ]);
+      it('handles missing data correctly', async () => {
+        const result = await tokenPricesService.getMultipleTokenConversions([
+          { from: UNKNOWN_CRYPTO_1, to: UNKNOWN_CRYPTO_2 },
+          { from: UNKNOWN_CRYPTO_1, to: UNKNOWN_FIAT_1 },
+          { from: UNKNOWN_FIAT_1, to: UNKNOWN_CRYPTO_2 },
+          { from: UNKNOWN_FIAT_1, to: UNKNOWN_FIAT_2 },
+        ]);
 
-      expect(result).toStrictEqual(
-        expect.objectContaining({
-          [USD]: expect.objectContaining({
-            [BTC]: { rate: '0.00001', conversionTime: expect.any(Number) },
-            [ETH]: {
-              rate: '0.00033333333333333333',
-              conversionTime: expect.any(Number),
-            },
-            [SOL]: { rate: '0.005', conversionTime: expect.any(Number) },
-          }),
-        }),
-      );
-    });
-
-    it('handles missing data correctly', async () => {
-      const result = await tokenPricesService.getMultipleTokenConversions([
-        { from: UNKNOWN_CRYPTO_1, to: UNKNOWN_CRYPTO_2 },
-        { from: UNKNOWN_CRYPTO_1, to: UNKNOWN_FIAT_1 },
-        { from: UNKNOWN_FIAT_1, to: UNKNOWN_CRYPTO_2 },
-        { from: UNKNOWN_FIAT_1, to: UNKNOWN_FIAT_2 },
-      ]);
-
-      expect(result).toStrictEqual({
-        [UNKNOWN_CRYPTO_1]: {
-          [UNKNOWN_CRYPTO_2]: null,
-          [UNKNOWN_FIAT_1]: null,
-        },
-        [UNKNOWN_FIAT_1]: {
-          [UNKNOWN_CRYPTO_2]: null,
-          [UNKNOWN_FIAT_2]: null,
-        },
+        expect(result).toStrictEqual({
+          [UNKNOWN_CRYPTO_1]: {
+            [UNKNOWN_CRYPTO_2]: null,
+            [UNKNOWN_FIAT_1]: null,
+          },
+          [UNKNOWN_FIAT_1]: {
+            [UNKNOWN_CRYPTO_2]: null,
+            [UNKNOWN_FIAT_2]: null,
+          },
+        });
       });
     });
 
     /**
      * TODO: Enable this when snaps SDK is updated
      */
-    describe.skip('when includeMarketData is true', () => {
+    describe('when includeMarketData is true', () => {
       const includeMarketData = true;
 
       it('returns market data in the correct currency', async () => {
@@ -221,6 +223,15 @@ describe('TokenPricesService', () => {
                 circulatingSupply: 19844921,
                 allTimeHigh: '100847.44951017378',
                 allTimeLow: '62.86163248290115',
+                pricePercentChange: {
+                  PT1H: -0.4456714429821922,
+                  P1D: 1.3725526422881404,
+                  P7D: -4.2914380354332256,
+                  P14D: 1.3530761284206316,
+                  P30D: -2.6647248645353425,
+                  P200D: 44.69565022141291,
+                  P1Y: 20.367003699380124,
+                },
               },
             },
           },
@@ -235,6 +246,15 @@ describe('TokenPricesService', () => {
                 circulatingSupply: 120659504.7581715,
                 allTimeHigh: '4522.273813243435',
                 allTimeLow: '0.4013827867691204',
+                pricePercentChange: {
+                  PT1H: -0.16193070976498064,
+                  P1D: 1.9964598342126199,
+                  P7D: -10.123102834312476,
+                  P14D: -1.7452971064771636,
+                  P30D: -16.78602306244949,
+                  P200D: -21.026646670919543,
+                  P1Y: -47.45246230239663,
+                },
               },
             },
             'bip122:000000000019d6689c085ae165831e93/slip44:0': {
@@ -247,6 +267,15 @@ describe('TokenPricesService', () => {
                 circulatingSupply: 120659504.7581715,
                 allTimeHigh: '0.04522273813243435',
                 allTimeLow: '0.0000040138278676912',
+                pricePercentChange: {
+                  PT1H: -0.16193070976498064,
+                  P1D: 1.9964598342126199,
+                  P7D: -10.123102834312476,
+                  P14D: -1.7452971064771636,
+                  P30D: -16.78602306244949,
+                  P200D: -21.026646670919543,
+                  P1Y: -47.45246230239663,
+                },
               },
             },
           },
@@ -261,6 +290,15 @@ describe('TokenPricesService', () => {
                 circulatingSupply: 512506275.4700137,
                 allTimeHigh: '262.1029666127304599094',
                 allTimeLow: '0.44751773816992952247',
+                pricePercentChange: {
+                  PT1H: -0.7015657267954617,
+                  P1D: 1.6270441732346845,
+                  P7D: -10.985589910714582,
+                  P14D: 2.557473792001135,
+                  P30D: -11.519171371325216,
+                  P200D: -4.453777067234332,
+                  P1Y: -35.331458644625535,
+                },
               },
             },
             'swift:0/iso4217:USD': {
@@ -273,6 +311,15 @@ describe('TokenPricesService', () => {
                 circulatingSupply: 512506275.4700137,
                 allTimeHigh: '271.90599356377726',
                 allTimeLow: '0.46425554356391946',
+                pricePercentChange: {
+                  PT1H: -0.7015657267954617,
+                  P1D: 1.6270441732346845,
+                  P7D: -10.985589910714582,
+                  P14D: 2.557473792001135,
+                  P30D: -11.519171371325216,
+                  P200D: -4.453777067234332,
+                  P1Y: -35.331458644625535,
+                },
               },
             },
             'bip122:000000000019d6689c085ae165831e93/slip44:0': {
@@ -285,6 +332,15 @@ describe('TokenPricesService', () => {
                 circulatingSupply: 512506275.4700137,
                 allTimeHigh: '0.0027190599356377726',
                 allTimeLow: '0.00000464255543563919',
+                pricePercentChange: {
+                  PT1H: -0.7015657267954617,
+                  P1D: 1.6270441732346845,
+                  P7D: -10.985589910714582,
+                  P14D: 2.557473792001135,
+                  P30D: -11.519171371325216,
+                  P200D: -4.453777067234332,
+                  P1Y: -35.331458644625535,
+                },
               },
             },
           },
