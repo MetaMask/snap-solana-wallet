@@ -1,6 +1,9 @@
-import type { CaipAssetType } from '@metamask/keyring-api';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { CaipAssetTypeStruct, type CaipAssetType } from '@metamask/keyring-api';
 import type { AssetConversion } from '@metamask/snaps-sdk';
+import { assert, object } from '@metamask/superstruct';
 import BigNumber from 'bignumber.js';
+import { groupBy, map, mapValues, pick } from 'lodash';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import type { FiatTicker } from '../../clients/price-api/types';
@@ -25,6 +28,7 @@ export class TokenPricesService {
 
   async getMultipleTokenConversions(
     conversions: { from: CaipAssetType; to: CaipAssetType }[],
+    includeMarketData = false,
   ): Promise<
     Record<CaipAssetType, Record<CaipAssetType, AssetConversion | null>>
   > {
@@ -122,12 +126,116 @@ export class TokenPricesService {
 
       const rate = fromUsdRate.dividedBy(toUsdRate).toString();
 
+      const shouldIncludeMarketData =
+        includeMarketData && !isFiat(from) && !isFiat(to);
+
+      const marketData = (() => {
+        if (!shouldIncludeMarketData) {
+          return undefined;
+        }
+
+        const marketDataInUsd = pick(cryptoPrices[from], [
+          'marketCap',
+          'totalVolume',
+          'circulatingSupply',
+          'allTimeHigh',
+          'allTimeLow',
+        ]) as Record<string, number | null>;
+
+        const marketDataInToCurrency = mapValues(marketDataInUsd, (value) =>
+          value === null
+            ? null
+            : new BigNumber(value).dividedBy(toUsdRate).toString(),
+        );
+
+        return marketDataInToCurrency;
+      })();
+
       result[from][to] = {
         rate,
         conversionTime: Date.now(),
-      };
+        marketData,
+      } as unknown as AssetConversion; // TODO: Remove this type assertion when snaps SDK is updated
     });
 
     return result;
+  }
+
+  async getMultipleTokenConversions2(
+    conversions: { from: CaipAssetType; to: CaipAssetType }[],
+    includeMarketData = true,
+  ) {
+    if (conversions.length === 0) {
+      return {};
+    }
+
+    // Group conversions by `to` asset
+    const conversionsGroupsByTo = groupBy(conversions, 'to');
+
+    // Fetch spot prices, triggering one request per group per `to` asset (= per vsCurrency)
+    const spotPricePromises = Object.values(conversionsGroupsByTo).map(
+      async (conversionsGroup) => {
+        const firstConversion = conversionsGroup[0];
+        assert(firstConversion, object()); // Equivalent to - but more compact than - an undefined check + throw error
+        const { to } = firstConversion;
+
+        const vsCurrency = this.#fiatCaipIdToSymbol(to);
+        const tokenCaip19Ids = map(conversionsGroup, 'from');
+
+        const spotPrices = await this.#priceApiClient.getMultipleSpotPrices(
+          tokenCaip19Ids,
+          vsCurrency,
+        );
+
+        /**
+         * Build a list of {from, to, spotPrice} objects.
+         * It will be convenient later on to keep of the `from` and `to` in the data structure.
+         * We will remove them at the end.
+         */
+        return Object.entries(spotPrices).map(([tokenCaip19Id, spotPrice]) => ({
+          from: tokenCaip19Id,
+          to,
+          spotPrice,
+        }));
+      },
+    );
+
+    // Resolve all requests and flatten the list of lists into a single list
+    // Also filter out null spot prices
+    const spotPrices = (await Promise.all(spotPricePromises))
+      .flat()
+      .filter(({ spotPrice }) => spotPrice !== null);
+
+    // Build the asset conversions from the spot prices
+    const assetConversions = spotPrices.map(({ from, to, spotPrice }) => ({
+      from,
+      to,
+      rate: spotPrice!.price.toString(),
+      conversionTime: Date.now(),
+      expirationTime: undefined, // TODO: Add expiration time
+      marketData: includeMarketData
+        ? pick(spotPrice, [
+            'marketCap',
+            'totalVolume',
+            'circulatingSupply',
+            'allTimeHigh',
+            'allTimeLow',
+          ])
+        : undefined,
+    }));
+
+    // From the array of {from, to, ...assetConversion}, build the doubly-indexed map from -> to -> assetConversion
+    const indexedByFromAndTo = assetConversions.reduce<
+      Record<CaipAssetType, Record<CaipAssetType, AssetConversion>>
+    >((acc, { from, to, ...rest }) => {
+      assert(from, CaipAssetTypeStruct);
+      if (!acc[from]) {
+        acc[from] = {};
+      }
+      acc[from][to] = rest; // Using the rest to finally get rid of the `from` and `to` in the data structure
+      return acc;
+    }, {});
+
+    return indexedByFromAndTo;
   }
 }
