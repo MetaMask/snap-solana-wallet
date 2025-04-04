@@ -228,6 +228,7 @@ async function onMaxAmountButtonClick({
     validateField<SendFormNames>(
       SendFormNames.AmountInput,
       updatedContext.amount,
+      // TODO: This validation should run with the latest fee estimate
       validation(updatedContext),
     );
 
