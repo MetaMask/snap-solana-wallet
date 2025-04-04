@@ -195,7 +195,7 @@ describe('TokenPricesService', () => {
     /**
      * TODO: Enable this when snaps SDK is updated
      */
-    describe('when includeMarketData is true', () => {
+    describe.skip('when includeMarketData is true', () => {
       const includeMarketData = true;
 
       it('returns market data in the correct currency', async () => {
