@@ -180,7 +180,7 @@ export const amountInput = (context: SendContext) => {
 
       // If the (amount + fee + minimum balance for rent exemption) is greater than the balance, it's invalid
       const isAmountPlusFeePlusRentExemptionGreaterThanBalance =
-        tokenAmountNumber.plus(feeEstimatedInSolNumber).plus(minimumBalanceForRentExemptionSolNumber) > balanceNumber;
+        tokenAmountNumber.plus(feeEstimatedInSolNumber).plus(minimumBalanceForRentExemptionSolNumber).gt(balanceNumber);
 
       if (isAmountPlusFeePlusRentExemptionGreaterThanBalance) {
         return {
