@@ -1,12 +1,12 @@
 import { Accounts } from '../components/Accounts/Accounts';
-import { ProtocolDetails } from '../components/ProtocolDetails/ProtocolDetails';
+import { Handlers } from '../components/Handlers/Handlers';
 import { PageTemplate } from '../templates/page';
 
 const Index = () => {
   return (
     <PageTemplate>
-      <ProtocolDetails />
       <Accounts />
+      <Handlers />
     </PageTemplate>
   );
 };

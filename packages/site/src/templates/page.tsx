@@ -1,16 +1,11 @@
 import { Flex } from '@chakra-ui/react';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 import { Card, InstallFlaskButton } from '../components';
 import { NetworkSelector } from '../components/NetworkSelector/NetworkSelector';
 import { SolanaLogo } from '../components/SolanaLogo';
-import {
-  CardContainer,
-  Container,
-  ErrorMessage,
-  Heading,
-  Span,
-} from '../components/styled';
+import { CardContainer, Container, Heading, Span } from '../components/styled';
+import { toaster } from '../components/Toaster/Toaster';
 import { defaultSnapOrigin } from '../config';
 import { useMetaMask, useMetaMaskContext } from '../hooks';
 import { isLocalSnap } from '../utils';
@@ -24,6 +19,16 @@ export const PageTemplate = ({ children }: PageTemplateProps) => {
   const { error } = useMetaMaskContext();
   const { isFlask, snapsDetected } = useMetaMask();
 
+  useEffect(() => {
+    if (error) {
+      toaster.create({
+        title: 'Error',
+        description: error.message,
+        type: 'error',
+      });
+    }
+  }, [error]);
+
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? isFlask
     : snapsDetected;
@@ -35,11 +40,6 @@ export const PageTemplate = ({ children }: PageTemplateProps) => {
         <Span>olana wallet</Span>
       </Heading>
       <CardContainer>
-        {error && (
-          <ErrorMessage>
-            <b>An error happened:</b> {error.message}
-          </ErrorMessage>
-        )}
         {isMetaMaskReady ? (
           <>
             <Flex width="full" justifyContent="space-between">
