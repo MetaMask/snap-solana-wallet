@@ -156,7 +156,7 @@ export function parseTransactionSplTransfersToSelf({
     );
 
   /**
-   * If there are no System Program instructions, then we have no native transfers.
+   * If there are no Token Program instructions, then we have no native transfers.
    */
   if (tokenProgramAccountIndex === -1) {
     return {
@@ -172,7 +172,29 @@ export function parseTransactionSplTransfersToSelf({
       return;
     }
 
-    const [fromAccountIndex, toAccountIndex] = accounts;
+    /**
+     * If we are here, we have a Token Program instruction.
+     * It can be a Transfer or a TransferChecked.
+     * We need to check the data to see which one it is.
+     */
+    let fromAccountIndex: number | undefined;
+    let toAccountIndex: number | undefined;
+
+    if (accounts.length === 5) {
+      /**
+       * TransferChecked instruction.
+       * Accounts: [source, mint, destination, authority, signers]
+       */
+      fromAccountIndex = accounts[0];
+      toAccountIndex = accounts[2];
+    } else if (accounts.length === 3) {
+      /**
+       * Transfer instruction.
+       * Accounts: [source, destination, authority]
+       */
+      fromAccountIndex = accounts[0];
+      toAccountIndex = accounts[1];
+    }
 
     if (
       fromAccountIndex === undefined ||
@@ -200,11 +222,9 @@ export function parseTransactionSplTransfersToSelf({
     /**
      * Using the account index, we can go to the `preTokenBalances` and get the `mint` address as well as the `owner` address.
      */
-
     const mint = transactionData.meta?.preTokenBalances?.find(
       (b) => b.accountIndex === fromAccountIndex,
     )?.mint;
-
     const owner = transactionData.meta?.preTokenBalances?.find(
       (b) => b.accountIndex === fromAccountIndex,
     )?.owner;
