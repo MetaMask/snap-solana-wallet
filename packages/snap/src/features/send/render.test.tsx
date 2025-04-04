@@ -54,7 +54,7 @@ const solanaAccountBalances = {
   },
 };
 
-const mockSpotPrices = {
+const mockSpotPrices: SpotPrices = {
   [KnownCaip19Id.SolLocalnet]: {
     id: 'solana',
     price: 200,
@@ -75,6 +75,11 @@ const mockSpotPrices = {
     pricePercentChange30d: -11.519171371325216,
     pricePercentChange200d: -4.453777067234332,
     pricePercentChange1y: -35.331458644625535,
+    bondingCurveProgressPercent: null,
+    liquidity: null,
+    totalSupply: null,
+    holderCount: null,
+    isMutable: null,
   },
   'solana:123456789abcdef/token:address1': {
     id: 'euro-coin',
@@ -96,6 +101,11 @@ const mockSpotPrices = {
     pricePercentChange30d: 4.034620460890957,
     pricePercentChange200d: -2.4622235894139086,
     pricePercentChange1y: 0.2685816973195049,
+    bondingCurveProgressPercent: null,
+    liquidity: null,
+    totalSupply: null,
+    holderCount: null,
+    isMutable: null,
   },
   'solana:123456789abcdef/token:address2': {
     id: 'usd-coin',
@@ -117,8 +127,13 @@ const mockSpotPrices = {
     pricePercentChange30d: 0.009428708838368462,
     pricePercentChange200d: -0.03983945503023834,
     pricePercentChange1y: 0.0011388468382004923,
+    bondingCurveProgressPercent: null,
+    liquidity: null,
+    totalSupply: null,
+    holderCount: null,
+    isMutable: null,
   },
-} as unknown as SpotPrices;
+};
 
 const mockContext: SendContext = {
   ...DEFAULT_SEND_CONTEXT,
