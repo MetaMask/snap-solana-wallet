@@ -137,7 +137,9 @@ describe('TokenMetadataClient', () => {
         client.getTokenMetadataFromAddresses([
           'invalid-caip19-id' as CaipAssetType,
         ]),
-      ).rejects.toThrow(/At path: 0 -- Expected a string matching/u);
+      ).rejects.toThrow(
+        'At path: 0 -- Expected a value of type `CaipAssetType`, but received: `"invalid-caip19-id"`',
+      );
     });
 
     it('rejects caip19Ids that include malicious inputs', async () => {
@@ -146,7 +148,9 @@ describe('TokenMetadataClient', () => {
           KnownCaip19Id.SolLocalnet,
           'INVALID<script>alert(1)</script>' as CaipAssetType,
         ]),
-      ).rejects.toThrow(/Expected a string matching/u);
+      ).rejects.toThrow(
+        'At path: 1 -- Expected a value of type `CaipAssetType`, but received: `"INVALID<script>alert(1)</script>"`',
+      );
     });
 
     it('throws an error if fetch fails', async () => {
@@ -187,7 +191,9 @@ describe('TokenMetadataClient', () => {
 
       await expect(
         client.getTokenMetadataFromAddresses(tokenAddresses),
-      ).rejects.toThrow(/At path: 0.assetId -- Expected a string matching/u);
+      ).rejects.toThrow(
+        'At path: 0.assetId -- Expected a value of type `CaipAssetType`, but received: `"bad-asset-id"`',
+      );
     });
   });
 });

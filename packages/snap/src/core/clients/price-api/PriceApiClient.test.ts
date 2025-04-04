@@ -190,7 +190,9 @@ describe('PriceApiClient', () => {
           KnownCaip19Id.SolLocalnet,
           'INVALID<script>alert(1)</script>' as CaipAssetType,
         ]),
-      ).rejects.toThrow(/Expected a string matching/u);
+      ).rejects.toThrow(
+        'At path: 1 -- Expected a value of type `CaipAssetType`, but received: `"INVALID<script>alert(1)</script>"`',
+      );
     });
 
     it('rejects vsCurrency parameters that are invalid or that include malicious inputs', async () => {

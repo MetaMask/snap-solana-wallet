@@ -1,13 +1,12 @@
 import { type CaipAssetType } from '@metamask/keyring-api';
 import type { AssetConversion } from '@metamask/snaps-sdk';
-import { assert, enums } from '@metamask/superstruct';
 import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { pick } from 'lodash';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import type { SpotPrice } from '../../clients/price-api/structs';
-import { FiatTicker } from '../../clients/price-api/types';
+import type { FiatTicker } from '../../clients/price-api/types';
 import { isFiat } from '../../utils/isFiat';
 import logger, { type ILogger } from '../../utils/logger';
 
@@ -35,8 +34,7 @@ export class TokenPricesService {
     const fiatTicker =
       parseCaipAssetType(caipAssetType).assetReference.toLowerCase();
 
-    assert(fiatTicker, enums(Object.values(FiatTicker)));
-    return fiatTicker;
+    return fiatTicker as FiatTicker;
   }
 
   async getMultipleTokenConversions(
