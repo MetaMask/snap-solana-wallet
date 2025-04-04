@@ -13,8 +13,8 @@ import type {
   FieldValidationFunction,
   ValidationFunction,
 } from '../types/form';
-import { i18n, type Locale, type LocalizedMessage } from '../utils/i18n';
 import { solToLamports } from '../utils/conversion';
+import { i18n, type Locale, type LocalizedMessage } from '../utils/i18n';
 
 /**
  * Validates a field value based on the provided validation functions.
@@ -163,8 +163,9 @@ export const amountInput = (context: SendContext) => {
 
     if (isNativeToken) {
       // If the value is lower than the minimum balance for rent exemption, it's invalid
-      const valueLowerThanMinimum =
-        tokenAmountNumber.lt(solToLamports(minimumBalanceForRentExemptionSol));
+      const valueLowerThanMinimum = tokenAmountNumber.lt(
+        solToLamports(minimumBalanceForRentExemptionSol),
+      );
 
       if (valueLowerThanMinimum) {
         return {
@@ -180,7 +181,10 @@ export const amountInput = (context: SendContext) => {
 
       // If the (amount + fee + minimum balance for rent exemption) is greater than the balance, it's invalid
       const isAmountPlusFeePlusRentExemptionGreaterThanBalance =
-        tokenAmountNumber.plus(feeEstimatedInSolNumber).plus(minimumBalanceForRentExemptionSolNumber).gt(balanceNumber);
+        tokenAmountNumber
+          .plus(feeEstimatedInSolNumber)
+          .plus(minimumBalanceForRentExemptionSolNumber)
+          .gt(balanceNumber);
 
       if (isAmountPlusFeePlusRentExemptionGreaterThanBalance) {
         return {

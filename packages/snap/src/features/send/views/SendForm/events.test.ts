@@ -9,11 +9,11 @@ import {
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import { solToLamports } from '../../../../core/utils/conversion';
 import { updateInterface } from '../../../../core/utils/interface';
+import { amountInput } from '../../../../core/validation/form';
 import { keyring } from '../../../../snapContext';
 import type { SendContext } from '../../types';
 import { SendCurrencyType, SendFormNames } from '../../types';
 import { eventHandlers } from './events';
-import { amountInput } from '../../../../core/validation/form';
 
 jest.mock('../../../../core/utils/interface');
 
@@ -167,12 +167,12 @@ describe('SendForm events', () => {
         balances: {
           [mockAccount.id]: {
             [KnownCaip19Id.SolLocalnet]: {
-              amount: "1.00999",
+              amount: '1.00999',
               unit: 'SOL',
             },
           },
         },
-        minimumBalanceForRentExemptionSol: "0.00089088",
+        minimumBalanceForRentExemptionSol: '0.00089088',
       };
 
       await eventHandlers[SendFormNames.MaxAmountButton]({
@@ -189,10 +189,14 @@ describe('SendForm events', () => {
         }),
       );
 
-      console.log(expectedAmount)
+      console.log(expectedAmount);
 
       // This is a hack to test that the transaction would actually be sendable after
-      expect(amountInput({ ...context, feeEstimatedInSol: '0.000005' })(expectedAmount)).toBeNull();
+      expect(
+        amountInput({ ...context, feeEstimatedInSol: '0.000005' })(
+          expectedAmount,
+        ),
+      ).toBeNull();
     });
 
     it('calculates max amount in FIAT correctly', async () => {
