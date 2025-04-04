@@ -6,6 +6,7 @@ import {
   enums,
   integer,
   nullable,
+  number,
   object,
   optional,
   pattern,

@@ -162,7 +162,7 @@ describe('PriceApiClient', () => {
       await expect(
         client.getMultipleSpotPrices([KnownCaip19Id.SolMainnet]),
       ).rejects.toThrow(
-        'At path: solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501.price -- Expected a positive number but received a negative number -999',
+        'At path: solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501.price -- Expected a number greater than or equal to 0 but received `-999`',
       );
     });
   });
