@@ -26,7 +26,9 @@ describe('structs', () => {
 
       expect(() =>
         assert(spotPrices, SpotPricesFromPriceApiWithoutMarketDataStruct),
-      ).toThrow('Expected a positive number but received a negative number -4');
+      ).toThrow(
+        'At path: solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501.usd -- Expected a number greater than or equal to 0 but received `-4`',
+      );
     });
   });
 });
