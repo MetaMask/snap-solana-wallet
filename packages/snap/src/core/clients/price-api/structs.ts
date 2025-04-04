@@ -1,34 +1,36 @@
 import { CaipAssetTypeStruct } from '@metamask/keyring-api';
 import type { Infer } from '@metamask/superstruct';
 import {
+  boolean,
   enums,
   min,
   nullable,
   number,
+  object,
+  optional,
   record,
   string,
-  type,
 } from '@metamask/superstruct';
 
 import { PercentNumberStruct } from '../../validation/structs';
 
 /**
- * We use `type()` here instead of `object()` to allow for extra properties that are not defined in the schema.
- * This is because the Price API `GET /v3/spot-prices` endpoint returns undocumented extra properties occasionally.
+ * The structure of the spot price response from the Price API as described in
+ * [this file](https://github.com/consensys-vertical-apps/va-mmcx-price-api/blob/main/src/types/price.ts#L46-L71).
  */
-export const SpotPriceStruct = type({
+export const SpotPriceStruct = object({
   id: string(),
   price: min(number(), 0),
   marketCap: min(number(), 0),
-  allTimeHigh: nullable(min(number(), 0)),
-  allTimeLow: nullable(min(number(), 0)),
-  totalVolume: min(number(), 0),
-  high1d: nullable(min(number(), 0)),
-  low1d: nullable(min(number(), 0)),
-  circulatingSupply: nullable(min(number(), 0)),
-  dilutedMarketCap: nullable(min(number(), 0)),
-  marketCapPercentChange1d: nullable(PercentNumberStruct),
-  priceChange1d: nullable(number()),
+  allTimeHigh: optional(min(number(), 0)),
+  allTimeLow: optional(min(number(), 0)),
+  totalVolume: optional(min(number(), 0)),
+  high1d: optional(min(number(), 0)),
+  low1d: optional(min(number(), 0)),
+  circulatingSupply: optional(min(number(), 0)),
+  dilutedMarketCap: optional(min(number(), 0)),
+  marketCapPercentChange1d: optional(PercentNumberStruct),
+  priceChange1d: number(),
   pricePercentChange1h: nullable(PercentNumberStruct),
   pricePercentChange1d: nullable(PercentNumberStruct),
   pricePercentChange7d: nullable(PercentNumberStruct),
@@ -36,6 +38,11 @@ export const SpotPriceStruct = type({
   pricePercentChange30d: nullable(PercentNumberStruct),
   pricePercentChange200d: nullable(PercentNumberStruct),
   pricePercentChange1y: nullable(PercentNumberStruct),
+  bondingCurveProgressPercent: optional(nullable(number())),
+  liquidity: optional(nullable(number())),
+  totalSupply: optional(nullable(number())),
+  holderCount: optional(nullable(number())),
+  isMutable: optional(nullable(boolean())),
 });
 
 export type SpotPrice = Infer<typeof SpotPriceStruct>;
