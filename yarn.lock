@@ -4719,7 +4719,7 @@ __metadata:
     "@metamask/snaps-jest": 8.12.0
     "@metamask/snaps-sdk": 6.18.0
     "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": 11.0.0
+    "@metamask/utils": 11.4.0
     "@noble/ed25519": 2.1.0
     "@solana-program/compute-budget": 0.7.0
     "@solana-program/system": 0.7.0
@@ -4784,9 +4784,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:11.0.0":
-  version: 11.0.0
-  resolution: "@metamask/utils@npm:11.0.0"
+"@metamask/utils@npm:11.4.0":
+  version: 11.4.0
+  resolution: "@metamask/utils@npm:11.4.0"
   dependencies:
     "@ethereumjs/tx": ^4.2.0
     "@metamask/superstruct": ^3.1.0
@@ -4797,7 +4797,7 @@ __metadata:
     pony-cause: ^2.1.10
     semver: ^7.5.4
     uuid: ^9.0.1
-  checksum: 3e29213263efc9332c70ee8185cfa9390c494f770eea72fc8b8697d87a9850a9202f0d567232f7cb44e282494f26426384cce49f3f0a28bf21798454e8e04db8
+  checksum: 18f4ac60221b4651a4c64fe9b2985092537248662634e8c6757afaef752b9dc400bd13fb7f4e8172823f5e5ec96ea129d7622c0fb2f3b9abfec2af8b466fff92
   languageName: node
   linkType: hard
 

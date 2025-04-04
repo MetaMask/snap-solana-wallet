@@ -1,3 +1,4 @@
+import { parseCaipAssetType } from '@metamask/utils';
 import { address, type CompilableTransactionMessage } from '@solana/kit';
 import debounce from 'lodash/fp/debounce';
 import pipe from 'lodash/fp/pipe';
@@ -5,7 +6,6 @@ import pipe from 'lodash/fp/pipe';
 import { Networks } from '../../../core/constants/solana';
 import { withoutConcurrency } from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
-import { getCaip19Address } from '../../../core/utils/getCaip19Address';
 import {
   getInterfaceContext,
   updateInterface,
@@ -47,7 +47,7 @@ const buildTransactionMessage = async (context: SendContext) => {
     transactionMessage = await sendSplTokenBuilder.buildTransactionMessage(
       account,
       address(toAddress),
-      address(getCaip19Address(tokenCaipId)),
+      address(parseCaipAssetType(tokenCaipId).assetReference),
       tokenAmount,
       scope,
     );

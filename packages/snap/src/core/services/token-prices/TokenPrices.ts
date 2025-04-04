@@ -1,13 +1,13 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { CaipAssetTypeStruct, type CaipAssetType } from '@metamask/keyring-api';
+import { type CaipAssetType } from '@metamask/keyring-api';
 import type { AssetConversion } from '@metamask/snaps-sdk';
-import { assert, object } from '@metamask/superstruct';
+import { assert, enums } from '@metamask/superstruct';
+import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
-import { groupBy, map, mapValues, pick } from 'lodash';
+import { pick } from 'lodash';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
-import type { FiatTicker } from '../../clients/price-api/types';
-import { getCaip19Address } from '../../utils/getCaip19Address';
+import type { SpotPrice } from '../../clients/price-api/structs';
+import { FiatTicker } from '../../clients/price-api/types';
 import { isFiat } from '../../utils/isFiat';
 import logger, { type ILogger } from '../../utils/logger';
 
@@ -21,9 +21,22 @@ export class TokenPricesService {
     this.#logger = _logger;
   }
 
-  #fiatCaipIdToSymbol(caip19Id: CaipAssetType) {
-    const caip19Address = getCaip19Address(caip19Id);
-    return caip19Address.toLowerCase() as FiatTicker;
+  /**
+   * Extracts the ISO 4217 currency code (aka fiat ticker) from a fiat CAIP-19 asset type.
+   *
+   * @param caipAssetType - The CAIP-19 asset type.
+   * @returns The fiat ticker.
+   */
+  #extractFiatTicker(caipAssetType: CaipAssetType): FiatTicker {
+    if (!isFiat(caipAssetType)) {
+      throw new Error('Passed caipAssetType is not a fiat asset');
+    }
+
+    const fiatTicker =
+      parseCaipAssetType(caipAssetType).assetReference.toLowerCase();
+
+    assert(fiatTicker, enums(Object.values(FiatTicker)));
+    return fiatTicker;
   }
 
   async getMultipleTokenConversions(
@@ -89,7 +102,7 @@ export class TokenPricesService {
          * We need to invert the fiat exchange rate because exchange rate != spot price
          */
         const fiatExchangeRate =
-          fiatExchangeRates[this.#fiatCaipIdToSymbol(from)]?.value;
+          fiatExchangeRates[this.#extractFiatTicker(from)]?.value;
 
         if (!fiatExchangeRate) {
           result[from][to] = null;
@@ -107,7 +120,7 @@ export class TokenPricesService {
          * We need to invert the fiat exchange rate because exchange rate != spot price
          */
         const fiatExchangeRate =
-          fiatExchangeRates[this.#fiatCaipIdToSymbol(to)]?.value;
+          fiatExchangeRates[this.#extractFiatTicker(to)]?.value;
 
         if (!fiatExchangeRate) {
           result[from][to] = null;
@@ -126,116 +139,53 @@ export class TokenPricesService {
 
       const rate = fromUsdRate.dividedBy(toUsdRate).toString();
 
-      const shouldIncludeMarketData =
-        includeMarketData && !isFiat(from) && !isFiat(to);
-
-      const marketData = (() => {
-        if (!shouldIncludeMarketData) {
-          return undefined;
-        }
-
-        const marketDataInUsd = pick(cryptoPrices[from], [
-          'marketCap',
-          'totalVolume',
-          'circulatingSupply',
-          'allTimeHigh',
-          'allTimeLow',
-        ]) as Record<string, number | null>;
-
-        const marketDataInToCurrency = mapValues(marketDataInUsd, (value) =>
-          value === null
-            ? null
-            : new BigNumber(value).dividedBy(toUsdRate).toString(),
-        );
-
-        return marketDataInToCurrency;
-      })();
+      const marketData =
+        includeMarketData && cryptoPrices[from]
+          ? this.#computeMarketData(cryptoPrices[from], toUsdRate)
+          : undefined;
 
       result[from][to] = {
         rate,
         conversionTime: Date.now(),
-        marketData,
-      } as unknown as AssetConversion; // TODO: Remove this type assertion when snaps SDK is updated
+        expirationTime: undefined,
+        // marketData, // TODO: Enable this when snaps SDK is updated
+      };
     });
 
     return result;
   }
 
-  async getMultipleTokenConversions2(
-    conversions: { from: CaipAssetType; to: CaipAssetType }[],
-    includeMarketData = true,
-  ) {
-    if (conversions.length === 0) {
-      return {};
-    }
+  /**
+   * Computes the market data object in the target currency.
+   *
+   * TODO: Type the return with `AssetConversion['marketData']` when snap SDK is updated.
+   *
+   * @param spotPrice - The spot price of the asset in source currency.
+   * @param rate - The rate to convert the market data to from source currency to target currency.
+   * @returns The market data in the target currency.
+   */
+  #computeMarketData(spotPrice: SpotPrice, rate: BigNumber) {
+    const marketDataInUsd = pick(spotPrice, [
+      'marketCap',
+      'totalVolume',
+      'circulatingSupply',
+      'allTimeHigh',
+      'allTimeLow',
+    ]);
 
-    // Group conversions by `to` asset
-    const conversionsGroupsByTo = groupBy(conversions, 'to');
+    const toCurrency = (value: number | null | undefined) =>
+      value === null || value === undefined
+        ? null
+        : new BigNumber(value).dividedBy(rate).toString();
 
-    // Fetch spot prices, triggering one request per group per `to` asset (= per vsCurrency)
-    const spotPricePromises = Object.values(conversionsGroupsByTo).map(
-      async (conversionsGroup) => {
-        const firstConversion = conversionsGroup[0];
-        assert(firstConversion, object()); // Equivalent to - but more compact than - an undefined check + throw error
-        const { to } = firstConversion;
+    const marketDataInToCurrency = {
+      marketCap: toCurrency(marketDataInUsd.marketCap),
+      totalVolume: toCurrency(marketDataInUsd.totalVolume),
+      circulatingSupply: marketDataInUsd.circulatingSupply, // Circulating supply counts the number of tokens in circulation so it doesn't need to be converted
+      allTimeHigh: toCurrency(marketDataInUsd.allTimeHigh),
+      allTimeLow: toCurrency(marketDataInUsd.allTimeLow),
+    };
 
-        const vsCurrency = this.#fiatCaipIdToSymbol(to);
-        const tokenCaip19Ids = map(conversionsGroup, 'from');
-
-        const spotPrices = await this.#priceApiClient.getMultipleSpotPrices(
-          tokenCaip19Ids,
-          vsCurrency,
-        );
-
-        /**
-         * Build a list of {from, to, spotPrice} objects.
-         * It will be convenient later on to keep of the `from` and `to` in the data structure.
-         * We will remove them at the end.
-         */
-        return Object.entries(spotPrices).map(([tokenCaip19Id, spotPrice]) => ({
-          from: tokenCaip19Id,
-          to,
-          spotPrice,
-        }));
-      },
-    );
-
-    // Resolve all requests and flatten the list of lists into a single list
-    // Also filter out null spot prices
-    const spotPrices = (await Promise.all(spotPricePromises))
-      .flat()
-      .filter(({ spotPrice }) => spotPrice !== null);
-
-    // Build the asset conversions from the spot prices
-    const assetConversions = spotPrices.map(({ from, to, spotPrice }) => ({
-      from,
-      to,
-      rate: spotPrice!.price.toString(),
-      conversionTime: Date.now(),
-      expirationTime: undefined, // TODO: Add expiration time
-      marketData: includeMarketData
-        ? pick(spotPrice, [
-            'marketCap',
-            'totalVolume',
-            'circulatingSupply',
-            'allTimeHigh',
-            'allTimeLow',
-          ])
-        : undefined,
-    }));
-
-    // From the array of {from, to, ...assetConversion}, build the doubly-indexed map from -> to -> assetConversion
-    const indexedByFromAndTo = assetConversions.reduce<
-      Record<CaipAssetType, Record<CaipAssetType, AssetConversion>>
-    >((acc, { from, to, ...rest }) => {
-      assert(from, CaipAssetTypeStruct);
-      if (!acc[from]) {
-        acc[from] = {};
-      }
-      acc[from][to] = rest; // Using the rest to finally get rid of the `from` and `to` in the data structure
-      return acc;
-    }, {});
-
-    return indexedByFromAndTo;
+    return marketDataInToCurrency;
   }
 }

@@ -29,7 +29,7 @@ import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
 
-import type { Network } from '../../constants/solana';
+import { type Network } from '../../constants/solana';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { EncryptedState } from '../../services/encrypted-state/EncryptedState';

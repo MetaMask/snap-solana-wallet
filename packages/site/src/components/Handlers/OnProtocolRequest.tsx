@@ -15,7 +15,7 @@ export const OnProtocolRequest = () => {
   const cannotCallOnProtocolRequest = () => {
     toaster.create({
       title: 'Cannot call onProtocolRequest yet',
-      description: 'Must wait for SIP-36 to be integrated',
+      description: 'Must wait for SIP-26 to be integrated',
       action: {
         label: 'View PR',
         onClick: () => {
