@@ -28,7 +28,7 @@ describe('getBip32Entropy', () => {
     const path = ['m', "44'", "501'"];
     const curve = 'ed25519';
 
-    await getBip32Entropy(path, curve);
+    await getBip32Entropy({ path, curve });
 
     expect(snap.request).toHaveBeenCalledWith({
       method: 'snap_getBip32Entropy',

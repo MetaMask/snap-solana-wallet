@@ -30,7 +30,7 @@ import type BigNumber from 'bignumber.js';
 
 import type { Network } from '../../../constants/solana';
 import type { SolanaKeyringAccount } from '../../../handlers/onKeyringRequest/Keyring';
-import { deriveSolanaPrivateKey } from '../../../utils/deriveSolanaPrivateKey';
+import { deriveSolanaKeypair } from '../../../utils/deriveSolanaKeypair';
 import type { ILogger } from '../../../utils/logger';
 import { retry } from '../../../utils/retry';
 import { toTokenUnits } from '../../../utils/toTokenUnit';
@@ -64,7 +64,9 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
   ): Promise<CompilableTransactionMessage> {
     this.#logger.log('Build transfer SPL token transaction message');
 
-    const { privateKeyBytes } = await deriveSolanaPrivateKey(from.index);
+    const { privateKeyBytes } = await deriveSolanaKeypair({
+      index: from.index,
+    });
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );

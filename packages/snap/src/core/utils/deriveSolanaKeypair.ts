@@ -1,3 +1,4 @@
+import type { EntropySourceId } from '@metamask/keyring-api';
 import { hexToBytes } from '@metamask/utils';
 
 import { getBip32Entropy } from './getBip32Entropy';
@@ -23,7 +24,9 @@ const CURVE = 'ed25519' as const;
  * Derives a Solana private and public key from a given index using BIP44 derivation path.
  * The derivation path follows Phantom wallet's standard: m/44'/501'/index'/0'.
  *
- * @param index - The account index to derive. Must be a non-negative integer.
+ * @param params - The parameters for the Solana key derivation.
+ * @param params.index - The account index to derive. Must be a non-negative integer.
+ * @param params.entropySource - The entropy source to use for key derivation.
  * @returns A Promise that resolves to a Uint8Array of the private key.
  * @throws {Error} If unable to derive private key or if derivation fails.
  * @example
@@ -34,9 +37,13 @@ const CURVE = 'ed25519' as const;
  * @see {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki} BIP44 specification
  * @see {@link https://github.com/satoshilabs/slips/blob/master/slip-0044.md} SLIP-0044 for coin types.
  */
-export async function deriveSolanaPrivateKey(
-  index: number,
-): Promise<{ privateKeyBytes: Uint8Array; publicKeyBytes: Uint8Array }> {
+export async function deriveSolanaKeypair({
+  index,
+  entropySource,
+}: {
+  index: number;
+  entropySource?: EntropySourceId | undefined;
+}): Promise<{ privateKeyBytes: Uint8Array; publicKeyBytes: Uint8Array }> {
   logger.log({ index }, 'Generating solana wallet');
 
   /**
@@ -48,7 +55,11 @@ export async function deriveSolanaPrivateKey(
   const hdPath = [`${index}'`, `0'`];
 
   try {
-    const node = await getBip32Entropy([...DERIVATION_PATH, ...hdPath], CURVE);
+    const node = await getBip32Entropy({
+      entropySource,
+      path: [...DERIVATION_PATH, ...hdPath],
+      curve: CURVE,
+    });
 
     if (!node.privateKey || !node.publicKey) {
       throw new Error('Unable to derive private key');

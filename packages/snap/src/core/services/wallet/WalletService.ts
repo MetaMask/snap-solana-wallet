@@ -9,6 +9,7 @@ import { assert, instance, object } from '@metamask/superstruct';
 import type { SignatureBytes } from '@solana/kit';
 import {
   address as asAddress,
+  assertTransactionIsFullySigned,
   createKeyPairSignerFromPrivateKeyBytes,
   createSignableMessage,
   getBase58Codec,
@@ -24,7 +25,7 @@ import type { Caip10Address, Network } from '../../constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
-import { deriveSolanaPrivateKey } from '../../utils/deriveSolanaPrivateKey';
+import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
@@ -226,6 +227,8 @@ export class WalletService {
     const explorerUrl = getSolanaExplorerUrl(scope, 'tx', signature);
     this.#logger.info(`Sending transaction: ${explorerUrl}`);
 
+    assertTransactionIsFullySigned(signedTransaction);
+
     await sendTransactionWithoutConfirming(signedTransaction, {
       commitment: 'confirmed',
     });
@@ -314,7 +317,9 @@ export class WalletService {
     const messageBytes = getBase64Codec().encode(message);
     const messageUtf8 = getUtf8Codec().decode(messageBytes);
 
-    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+    const { privateKeyBytes } = await deriveSolanaKeypair({
+      index: account.index,
+    });
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );
@@ -421,7 +426,9 @@ export class WalletService {
     assert(signatureBase58, Base58Struct);
     assert(messageBase64, Base64Struct);
 
-    const { privateKeyBytes } = await deriveSolanaPrivateKey(account.index);
+    const { privateKeyBytes } = await deriveSolanaKeypair({
+      index: account.index,
+    });
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );

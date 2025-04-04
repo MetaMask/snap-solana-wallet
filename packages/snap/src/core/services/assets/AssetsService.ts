@@ -12,6 +12,7 @@ import {
   Networks,
   SOL_SYMBOL,
   SolanaCaip19Tokens,
+  TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
@@ -118,22 +119,45 @@ export class AssetsService {
 
   async #getAddressTokenAccounts(address: string, scope: Network) {
     try {
-      const response = await this.#connection
-        .getRpc(scope)
-        .getTokenAccountsByOwner(
-          asAddress(address),
-          {
-            programId: TOKEN_PROGRAM_ID,
-          },
-          {
-            encoding: 'jsonParsed',
-          },
-        )
-        .send();
-      assert(response, GetTokenAccountsByOwnerResponseStruct);
-      return response.value.map((token) =>
+      const [tokenProgramResponse, token2022ProgramResponse] =
+        await Promise.all([
+          this.#connection
+            .getRpc(scope)
+            .getTokenAccountsByOwner(
+              asAddress(address),
+              {
+                programId: TOKEN_PROGRAM_ID,
+              },
+              {
+                encoding: 'jsonParsed',
+              },
+            )
+            .send(),
+          this.#connection
+            .getRpc(scope)
+            .getTokenAccountsByOwner(
+              asAddress(address),
+              {
+                programId: TOKEN_2022_PROGRAM_ID,
+              },
+              {
+                encoding: 'jsonParsed',
+              },
+            )
+            .send(),
+        ]);
+      assert(tokenProgramResponse, GetTokenAccountsByOwnerResponseStruct);
+      assert(token2022ProgramResponse, GetTokenAccountsByOwnerResponseStruct);
+
+      const tokenProgramAccounts = tokenProgramResponse.value.map((token) =>
         this.#mapRpcSolanaToken(token.account.data.parsed.info, scope),
       );
+
+      const token2022ProgramAccounts = token2022ProgramResponse.value.map(
+        (token) =>
+          this.#mapRpcSolanaToken(token.account.data.parsed.info, scope),
+      );
+      return [...tokenProgramAccounts, ...token2022ProgramAccounts];
     } catch (error) {
       this.#logger.error(error, 'Error fetching token accounts');
       throw error;
@@ -278,8 +302,8 @@ export class AssetsService {
         await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
           assets: {
             [account.id]: {
-              added: assetsAdded,
-              removed: assetsDeleted,
+              added: assetsAdded as CaipAssetType[],
+              removed: assetsDeleted as CaipAssetType[],
             },
           },
         });

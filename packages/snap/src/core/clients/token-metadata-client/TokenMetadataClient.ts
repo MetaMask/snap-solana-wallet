@@ -85,9 +85,18 @@ export class TokenMetadataClient {
       const tokenMetadataMap = new Map<string, SolanaTokenMetadata>();
 
       tokenMetadataResponses.flat().forEach((metadata) => {
+        const tokenSymbol = metadata?.symbol;
+        const tokenNameOrSymbol = metadata?.name ?? tokenSymbol;
+        const tokenDecimals = metadata?.decimals;
+
+        if (!tokenSymbol || !tokenNameOrSymbol) {
+          this.#logger.warn(`No metadata for ${metadata.assetId}`);
+          return;
+        }
+
         tokenMetadataMap.set(metadata.assetId, {
-          name: metadata.name,
-          symbol: metadata.symbol,
+          name: tokenNameOrSymbol,
+          symbol: tokenSymbol,
           fungible: true,
           iconUrl:
             metadata?.iconUrl ??
@@ -100,9 +109,9 @@ export class TokenMetadataClient {
             }),
           units: [
             {
-              name: metadata.name,
-              symbol: metadata.symbol,
-              decimals: metadata.decimals,
+              name: tokenNameOrSymbol,
+              symbol: tokenSymbol,
+              decimals: tokenDecimals,
             },
           ],
         });

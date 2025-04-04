@@ -12,8 +12,8 @@ import { UrlStruct } from '../../validation/structs';
 export const TokenMetadataStruct = object({
   decimals: integer(),
   assetId: CaipAssetTypeStruct,
-  name: string(),
-  symbol: string(),
+  name: optional(string()),
+  symbol: optional(string()),
   iconUrl: optional(UrlStruct),
 });
 

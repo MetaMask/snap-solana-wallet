@@ -6,7 +6,6 @@ import {
   enums,
   integer,
   nullable,
-  number,
   object,
   optional,
   pattern,
@@ -22,13 +21,6 @@ export const UuidStruct = pattern(
   string(),
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
 );
-
-export const PositiveNumberStruct = refine(number(), 'positive', (value) => {
-  if (value < 0) {
-    return `Expected a positive number but received a negative number ${value}`;
-  }
-  return true;
-});
 
 export const PositiveNumberStringStruct = pattern(
   string(),

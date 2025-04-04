@@ -1,11 +1,10 @@
 /* eslint-disable no-restricted-globals */
 /* eslint-disable jest/prefer-strict-equal */
-import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
-import { SLIP10Node } from '@metamask/key-tree';
 import type { KeyringRequest } from '@metamask/keyring-api';
 import { SolMethod } from '@metamask/keyring-api';
 import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type Json } from '@metamask/snaps-sdk';
+import { signature } from '@solana/kit';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { AssetsService } from '../../services/assets/AssetsService';
@@ -17,7 +16,7 @@ import { EncryptedState } from '../../services/encrypted-state/EncryptedState';
 import { createMockConnection } from '../../services/mocks/mockConnection';
 import { State, type StateValue } from '../../services/state/State';
 import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
-import { TransactionsService } from '../../services/transactions/TransactionsService';
+import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
 import type { WalletService } from '../../services/wallet/WalletService';
 import {
@@ -25,7 +24,6 @@ import {
   SOLANA_MOCK_TOKEN_METADATA,
 } from '../../test/mocks/solana-assets';
 import {
-  MOCK_SEED_PHRASE_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
@@ -34,6 +32,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../../test/mocks/solana-keyring-accounts';
+import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import { SolanaKeyring } from './Keyring';
@@ -44,17 +43,7 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 }));
 
 jest.mock('../../utils/getBip32Entropy', () => ({
-  getBip32Entropy: jest
-    .fn()
-    .mockImplementation(async (path: string[], curve: SupportedCurve) => {
-      return await SLIP10Node.fromDerivationPath({
-        derivationPath: [
-          MOCK_SEED_PHRASE_BYTES,
-          ...path.slice(1).map((node) => `slip10:${node}` as SLIP10PathNode),
-        ],
-        curve,
-      });
-    }),
+  getBip32Entropy: getBip32EntropyMock,
 }));
 
 const NON_EXISTENT_ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174009';
@@ -68,7 +57,7 @@ describe('SolanaKeyring', () => {
   let mockWalletService: WalletService;
   let mockAssetsService: AssetsService;
   let mockConfirmationHandler: ConfirmationHandler;
-
+  let mockTransactionsService: jest.Mocked<TransactionsService>;
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -86,14 +75,6 @@ describe('SolanaKeyring', () => {
     mockTokenMetadataService = {
       getTokensMetadata: jest.fn().mockResolvedValue({}),
     } as unknown as TokenMetadataService;
-
-    const transactionsService = new TransactionsService({
-      logger,
-      connection: mockConnection,
-      tokenMetadataService: mockTokenMetadataService,
-      state,
-      configProvider: mockConfigProvider,
-    });
 
     mockAssetsService = {
       listAccountAssets: jest.fn(),
@@ -118,11 +99,15 @@ describe('SolanaKeyring', () => {
       handleKeyringRequest: jest.fn(),
     } as unknown as ConfirmationHandler;
 
+    mockTransactionsService = {
+      fetchLatestSignatures: jest.fn(),
+    } as unknown as jest.Mocked<TransactionsService>;
+
     keyring = new SolanaKeyring({
       encryptedState,
       state,
       logger,
-      transactionsService,
+      transactionsService: mockTransactionsService,
       assetsService: mockAssetsService,
       walletService: mockWalletService,
       confirmationHandler: mockConfirmationHandler,
@@ -387,6 +372,48 @@ describe('SolanaKeyring', () => {
       });
     });
 
+    it('uses the provided entropy source when creating an account', async () => {
+      mockStateValue = {
+        keyringAccounts: {},
+        mapInterfaceNameToId: {},
+        transactions: {},
+        assets: {},
+        metadata: {},
+        tokenPrices: {},
+      };
+
+      const entropySource = 'custom-seed-phrase';
+      const account = await keyring.createAccount({ entropySource });
+
+      expect(getBip32Entropy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entropySource,
+        }),
+      );
+
+      const expectedAccount = {
+        type: 'solana:data-account',
+        id: expect.any(String),
+        address: '8fi28SQKWhzCaH5c2RrHLbpgQJctNG6NFrfZyCj51rJX',
+        options: { entropySource: 'custom-seed-phrase', imported: false },
+        methods: [
+          'signAndSendTransaction',
+          'signTransaction',
+          'signMessage',
+          'signIn',
+        ],
+        scopes: expect.arrayContaining([Network.Mainnet, Network.Devnet]),
+      };
+
+      expect(account).toBeDefined();
+      expect(account).toMatchObject(expectedAccount);
+
+      expect(mockStateValue.keyringAccounts[account.id]).toBeDefined();
+      expect(mockStateValue.keyringAccounts[account.id]).toMatchObject(
+        expectedAccount,
+      );
+    });
+
     it('throws when deriving address fails', async () => {
       jest.mocked(getBip32Entropy).mockImplementationOnce(async () => {
         return Promise.reject(new Error('Error deriving address'));
@@ -490,7 +517,7 @@ describe('SolanaKeyring', () => {
 
   describe('resolveAccountAddress', () => {
     it('returns resolved address when wallet standard service resolves successfully', async () => {
-      const mockScope = Network.Testnet;
+      const mockScope = Network.Localnet;
       const mockRequest = {
         id: 1,
         jsonrpc: '2.0',
@@ -516,7 +543,7 @@ describe('SolanaKeyring', () => {
     });
 
     it('returns null when an error occurs', async () => {
-      const mockScope = Network.Testnet;
+      const mockScope = Network.Localnet;
       const mockRequest = {
         method: 'someMethod',
         params: [],
@@ -656,7 +683,7 @@ describe('SolanaKeyring', () => {
             message: 'SGVsbG8sIHdvcmxkIQ==', // "Hello, world!" in base64
           },
         },
-        scope: Network.Testnet,
+        scope: Network.Devnet,
       };
 
       await keyring.submitRequest(request);
@@ -689,12 +716,71 @@ describe('SolanaKeyring', () => {
             message: 'SGVsbG8sIHdvcmxkIQ==', // "Hello, world!" in base64
           },
         },
-        scope: Network.Testnet,
+        scope: Network.Devnet,
       };
 
       const result = await keyring.submitRequest(request);
 
       expect(result).toStrictEqual({ pending: false, result: null });
+    });
+  });
+
+  describe('discoverAccounts', () => {
+    it('returns an empty array if there is no activity on any of the scopes', async () => {
+      mockTransactionsService.fetchLatestSignatures
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const result = await keyring.discoverAccounts(
+        [Network.Mainnet, Network.Devnet],
+        'test',
+        0,
+      );
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('returns the discovered accounts when there is activity in any of the scopes', async () => {
+      mockTransactionsService.fetchLatestSignatures
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          signature(
+            '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
+          ),
+        ]);
+
+      const result = await keyring.discoverAccounts(
+        [Network.Mainnet, Network.Devnet],
+        'test',
+        3,
+      );
+
+      expect(result).toStrictEqual([
+        {
+          type: 'bip44',
+          scopes: [Network.Mainnet, Network.Devnet],
+          derivationPath: `m/44'/501'/3'/0'`,
+        },
+      ]);
+    });
+
+    it('throws an error if there is an error fetching transactions', async () => {
+      mockTransactionsService.fetchLatestSignatures.mockRejectedValue(
+        new Error('Network error'),
+      );
+
+      await expect(
+        keyring.discoverAccounts([Network.Mainnet], 'test', 0),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('throws an error if no scopes are provided', async () => {
+      await expect(keyring.discoverAccounts([], 'test', 0)).rejects.toThrow(
+        'At path: scopes -- Expected a nonempty array but received an empty one',
+      );
+      expect(
+        mockTransactionsService.fetchLatestSignatures,
+      ).not.toHaveBeenCalled();
     });
   });
 });

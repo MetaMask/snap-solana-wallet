@@ -1,18 +1,16 @@
+import { CaipAssetTypeStruct } from '@metamask/keyring-api';
 import type { Infer } from '@metamask/superstruct';
 import {
   enums,
+  min,
   nullable,
   number,
   record,
   string,
   type,
 } from '@metamask/superstruct';
-import { CaipAssetTypeStruct } from '@metamask/utils';
 
-import {
-  PercentNumberStruct,
-  PositiveNumberStruct,
-} from '../../validation/structs';
+import { PercentNumberStruct } from '../../validation/structs';
 
 /**
  * We use `type()` here instead of `object()` to allow for extra properties that are not defined in the schema.
@@ -20,15 +18,15 @@ import {
  */
 export const SpotPriceStruct = type({
   id: string(),
-  price: PositiveNumberStruct,
-  marketCap: PositiveNumberStruct,
-  allTimeHigh: nullable(PositiveNumberStruct),
-  allTimeLow: nullable(PositiveNumberStruct),
-  totalVolume: PositiveNumberStruct,
-  high1d: nullable(PositiveNumberStruct),
-  low1d: nullable(PositiveNumberStruct),
-  circulatingSupply: nullable(PositiveNumberStruct),
-  dilutedMarketCap: nullable(PositiveNumberStruct),
+  price: min(number(), 0),
+  marketCap: min(number(), 0),
+  allTimeHigh: nullable(min(number(), 0)),
+  allTimeLow: nullable(min(number(), 0)),
+  totalVolume: min(number(), 0),
+  high1d: nullable(min(number(), 0)),
+  low1d: nullable(min(number(), 0)),
+  circulatingSupply: nullable(min(number(), 0)),
+  dilutedMarketCap: nullable(min(number(), 0)),
   marketCapPercentChange1d: nullable(PercentNumberStruct),
   priceChange1d: nullable(number()),
   pricePercentChange1h: nullable(PercentNumberStruct),

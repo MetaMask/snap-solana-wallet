@@ -1,6 +1,6 @@
 {
   "name": "@metamask/solana-wallet-test-dapp",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "private": true,
   "description": "A sample dapp to test the Solana wallet Snap.",
   "license": "(MIT-0 OR Apache-2.0)",
@@ -31,7 +31,7 @@
   "dependencies": {
     "@chakra-ui/react": "^3.0.2",
     "@emotion/react": "^11.13.3",
-    "@metamask/keyring-api": "^17.3.0",
+    "@metamask/keyring-api": "^17.4.0",
     "@metamask/providers": "^18.1.0",
     "@solana-program/compute-budget": "^0.7.0",
     "@solana-program/system": "^0.7.0",

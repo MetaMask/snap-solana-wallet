@@ -19,6 +19,7 @@ describe('mapRpcTransaction', () => {
 
     expect(result).toStrictEqual({
       id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
+      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
       timestamp: 1736500242,
       chain: Network.Localnet,
       status: 'confirmed',
@@ -74,6 +75,7 @@ describe('mapRpcTransaction', () => {
 
     expect(result).toStrictEqual({
       id: '4Ccb8PaSob6JjsyDnoFJfUpJZDJHTwcjnK7MxiyVeMtPSsBGKuaMHEVL1VsXTKWS4w26tAhbc3T78aNELjfN8Zwb',
+      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
       timestamp: 1741791493,
       chain: Network.Localnet,
       status: 'confirmed',
@@ -129,6 +131,7 @@ describe('mapRpcTransaction', () => {
 
     expect(result).toStrictEqual({
       id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
+      account: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
       timestamp: 1736500242,
       chain: Network.Localnet,
       status: 'confirmed',
@@ -188,6 +191,7 @@ describe('mapRpcTransaction', () => {
 
     expect(result).toStrictEqual({
       id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
+      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
       timestamp: 1736500242,
       chain: Network.Localnet,
       status: 'failed',
@@ -243,6 +247,7 @@ describe('mapRpcTransaction', () => {
 
     expect(result).toStrictEqual({
       id: '3Zj5XkvE1Uec1frjue6SK2ND2cqhKPvPkZ1ZFPwo2v9iL4NX4b4WWG1wPNEQdnJJU8sVx7MMHjSH1HxoR21vEjoV',
+      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
       timestamp: 1736502537,
       chain: Network.Devnet,
       status: 'confirmed',
@@ -298,6 +303,7 @@ describe('mapRpcTransaction', () => {
 
     expect(result).toStrictEqual({
       id: 'fFSAjDzu7CdhzVUUC7DMKf7xuuVn8cZ8njPnpjkTBMHo4Y43SZto2GDuy123yKDoTieihPfDHvBpysE7Eh9aPmH',
+      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
       timestamp: 1741796354,
       chain: Network.Devnet,
       status: 'confirmed',
@@ -353,6 +359,7 @@ describe('mapRpcTransaction', () => {
 
     expect(result).toStrictEqual({
       id: '3Zj5XkvE1Uec1frjue6SK2ND2cqhKPvPkZ1ZFPwo2v9iL4NX4b4WWG1wPNEQdnJJU8sVx7MMHjSH1HxoR21vEjoV',
+      account: 'BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe',
       timestamp: 1736502537,
       chain: Network.Devnet,
       status: 'confirmed',
@@ -413,6 +420,7 @@ describe('mapRpcTransaction', () => {
      */
     expect(result).toStrictEqual({
       id: '2pfnv4drhnitfzCFKxiRoJMzFQpG7wZ9mpRQVk7xm5TQ27g6FZH95HVF6KgwQBS872yGtyhuq57jXXS1y29ub11',
+      account: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
       timestamp: 1740480781,
       chain: Network.Mainnet,
       status: 'confirmed',
@@ -485,6 +493,7 @@ describe('mapRpcTransaction', () => {
      */
     expect(result).toStrictEqual({
       id: '5LuTa5k9UvgM2eJknVUD9MjfcmcTP7nvFrCedU8d7ZLXCHbrrwqhXDQYTSfncm1wTSNFPZj3Y4cRkWC8CLG6Zcvh',
+      account: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
       timestamp: 1742297902,
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'confirmed',

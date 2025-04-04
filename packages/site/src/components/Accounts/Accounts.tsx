@@ -38,7 +38,7 @@ export const Accounts = () => {
   }, []);
 
   return (
-    <Flex direction="column" width="full">
+    <Flex direction="column" width="full" marginBottom="5">
       <Flex align="center" justifyContent="space-between">
         <ChakraText textStyle="2xl" marginBottom="5">
           Accounts

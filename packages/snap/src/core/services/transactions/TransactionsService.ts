@@ -17,7 +17,7 @@ import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import type { State } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
-import type { MappedTransaction, SignatureMapping } from './types';
+import type { SignatureMapping } from './types';
 import { mapRpcTransaction } from './utils/mapRpcTransaction';
 
 export class TransactionsService {
@@ -74,7 +74,7 @@ export class TransactionsService {
     address: Address,
     pagination: { limit: number; next?: Signature | null },
   ): Promise<{
-    data: MappedTransaction[];
+    data: Transaction[];
     next: Signature | null;
   }> {
     /**
@@ -106,7 +106,7 @@ export class TransactionsService {
     /**
      * Map it to the expected format from the Keyring API
      */
-    const mappedTransactionsData = transactionsData.reduce<MappedTransaction[]>(
+    const mappedTransactionsData = transactionsData.reduce<Transaction[]>(
       (transactions, transactionData) => {
         const mappedTransaction = mapRpcTransaction({
           scope,
@@ -128,7 +128,10 @@ export class TransactionsService {
 
     const transactionsByAccountWithTokenMetadata =
       await this.#populateAccountTransactionAssetUnits({
-        [address]: mappedTransactionsData,
+        [address]: mappedTransactionsData.map((tx) => ({
+          ...tx,
+          account: address,
+        })),
       });
 
     const next =
@@ -456,7 +459,7 @@ export class TransactionsService {
    * @returns Array of transactions with populated token metadata.
    */
   async #populateAccountTransactionAssetUnits(
-    transactionsByAccount: Record<string, MappedTransaction[]>,
+    transactionsByAccount: Record<string, Transaction[]>,
   ) {
     const caip19Ids = [
       ...new Set(

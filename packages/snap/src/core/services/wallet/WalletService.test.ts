@@ -1,11 +1,8 @@
-import type { SLIP10PathNode, SupportedCurve } from '@metamask/key-tree';
-import { SLIP10Node } from '@metamask/key-tree';
 import { SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 
 import { Network } from '../../constants/solana';
 import {
-  MOCK_SEED_PHRASE_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
@@ -13,6 +10,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../../test/mocks/solana-keyring-accounts';
+import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
@@ -33,17 +31,7 @@ import type { SolanaWalletRequest } from './structs';
 import { WalletService } from './WalletService';
 
 jest.mock('../../utils/getBip32Entropy', () => ({
-  getBip32Entropy: jest
-    .fn()
-    .mockImplementation(async (path: string[], curve: SupportedCurve) => {
-      return await SLIP10Node.fromDerivationPath({
-        derivationPath: [
-          MOCK_SEED_PHRASE_BYTES,
-          ...path.slice(1).map((node) => `slip10:${node}` as SLIP10PathNode),
-        ],
-        curve,
-      });
-    }),
+  getBip32Entropy: getBip32EntropyMock,
 }));
 
 describe('WalletService', () => {
