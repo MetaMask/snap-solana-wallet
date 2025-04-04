@@ -1,6 +1,13 @@
-import { enums, nullable, record, string } from '@metamask/superstruct';
+import {
+  enums,
+  min,
+  nullable,
+  number,
+  record,
+  string,
+} from '@metamask/superstruct';
 
-import { Caip19Struct, PositiveNumberStruct } from '../../validation/structs';
+import { Caip19Struct } from '../../validation/structs';
 
 /**
  * When includeMarketData=false, the price api returns the following format,
@@ -16,7 +23,7 @@ import { Caip19Struct, PositiveNumberStruct } from '../../validation/structs';
  */
 export const SpotPricesFromPriceApiWithoutMarketDataStruct = record(
   Caip19Struct,
-  nullable(record(string(), PositiveNumberStruct)),
+  nullable(record(string(), min(number(), 0))),
 );
 
 export const VsCurrencyParamStruct = enums([
