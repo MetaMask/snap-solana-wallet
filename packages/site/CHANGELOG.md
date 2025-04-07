@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.1]
+
+### Changed
+
+- Dapp site UI improvements ([#279](https://github.com/MetaMask/snap-solana-wallet/pull/279))
+
 ## [1.18.0]
 
 ### Added
@@ -152,7 +158,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...HEAD
+[1.18.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...v1.18.1
 [1.18.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.17.0...v1.18.0
 [1.17.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.16.0...v1.17.0
 [1.16.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.15.1...v1.16.0

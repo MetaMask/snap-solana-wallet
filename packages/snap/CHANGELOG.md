@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.1]
+
+### Fixed
+
+- `getLowestUnusedIndex` should consider SRPs in the check ([#282](https://github.com/MetaMask/snap-solana-wallet/pull/282))
+- Prevent rounding errors during validation of amount ([#281](https://github.com/MetaMask/snap-solana-wallet/pull/281))
+
+### Changed
+
+- Make state support non-json-serializable data ([#283](https://github.com/MetaMask/snap-solana-wallet/pull/283))
+
+### Removed
+
+- Remove the unnecessary `PositiveNumberStruct` ([#278](https://github.com/MetaMask/snap-solana-wallet/pull/278))
+
 ## [1.18.0]
 
 ### Added
@@ -90,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `Sign{Message/Transaction/In} backend ([#241](https://github.com/MetaMask/snap-solana-wallet/pull/241))
+- `Sign{Message/Transaction/In}` backend ([#241](https://github.com/MetaMask/snap-solana-wallet/pull/241))
 - Analytics service ([#236](https://github.com/MetaMask/snap-solana-wallet/pull/236))
 
 ### Fixed
@@ -368,7 +383,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...HEAD
+[1.18.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...v1.18.1
 [1.18.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.17.0...v1.18.0
 [1.17.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.16.1...v1.17.0
 [1.16.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.16.0...v1.16.1
