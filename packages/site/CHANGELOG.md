@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.18.1]
 
-### Uncategorized
+### Changed
 
-- feat: site UI improvements ([#279](https://github.com/MetaMask/snap-solana-wallet/pull/279))
+- Dapp site UI improvements ([#279](https://github.com/MetaMask/snap-solana-wallet/pull/279))
 
 ## [1.18.0]
 

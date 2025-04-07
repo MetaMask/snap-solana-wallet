@@ -9,12 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.18.1]
 
-### Uncategorized
+### Fixed
 
-- fix: getLowestUnusedIndex should consider SRPs in the check ([#282](https://github.com/MetaMask/snap-solana-wallet/pull/282))
-- feat: make state support non-json-serializable data ([#283](https://github.com/MetaMask/snap-solana-wallet/pull/283))
-- fix: Prevent rounding errors during validation of amount ([#281](https://github.com/MetaMask/snap-solana-wallet/pull/281))
-- chore: remove the unnecessary `PositiveNumberStruct` ([#278](https://github.com/MetaMask/snap-solana-wallet/pull/278))
+- `getLowestUnusedIndex` should consider SRPs in the check ([#282](https://github.com/MetaMask/snap-solana-wallet/pull/282))
+- Prevent rounding errors during validation of amount ([#281](https://github.com/MetaMask/snap-solana-wallet/pull/281))
+
+### Changed
+
+- Make state support non-json-serializable data ([#283](https://github.com/MetaMask/snap-solana-wallet/pull/283))
+
+### Removed
+
+- Remove the unnecessary `PositiveNumberStruct` ([#278](https://github.com/MetaMask/snap-solana-wallet/pull/278))
 
 ## [1.18.0]
 
@@ -99,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `Sign{Message/Transaction/In} backend ([#241](https://github.com/MetaMask/snap-solana-wallet/pull/241))
+- `Sign{Message/Transaction/In}` backend ([#241](https://github.com/MetaMask/snap-solana-wallet/pull/241))
 - Analytics service ([#236](https://github.com/MetaMask/snap-solana-wallet/pull/236))
 
 ### Fixed
