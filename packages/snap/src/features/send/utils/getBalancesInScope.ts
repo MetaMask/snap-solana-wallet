@@ -2,7 +2,7 @@ import type { Balance } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
 
 import { Networks, type Network } from '../../../core/constants/solana';
-import type { AccountId } from '../../../core/services/encrypted-state/EncryptedState';
+import type { AccountId } from '../../../core/services/state/State';
 
 /**
  * Given the balances of all accounts, which includes tokens from all scopes,

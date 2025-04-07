@@ -32,8 +32,11 @@ import { address as asAddress, getAddressDecoder } from '@solana/kit';
 import type { Network } from '../../constants/solana';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
-import type { EncryptedState } from '../../services/encrypted-state/EncryptedState';
-import type { State } from '../../services/state/State';
+import type { IStateManager } from '../../services/state/IStateManager';
+import type {
+  EncryptedStateValue,
+  UnencryptedStateValue,
+} from '../../services/state/State';
 import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
@@ -64,9 +67,9 @@ export type SolanaKeyringAccount = {
 } & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
-  readonly #encryptedState: EncryptedState;
+  readonly #encryptedState: IStateManager<EncryptedStateValue>;
 
-  readonly #state: State;
+  readonly #state: IStateManager<UnencryptedStateValue>;
 
   readonly #logger: ILogger;
 
@@ -87,8 +90,8 @@ export class SolanaKeyring implements Keyring {
     walletService,
     confirmationHandler,
   }: {
-    encryptedState: EncryptedState;
-    state: State;
+    encryptedState: IStateManager<EncryptedStateValue>;
+    state: IStateManager<UnencryptedStateValue>;
     logger: ILogger;
     transactionsService: TransactionsService;
     assetsService: AssetsService;
