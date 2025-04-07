@@ -12,7 +12,7 @@ const snap = {
 
 type User = {
   name: string;
-  age: BigNumber | bigint | number | undefined;
+  age: BigNumber | bigint | number | undefined | null;
 };
 
 type MockStateValue = {
@@ -276,6 +276,23 @@ describe('State', () => {
                   },
                 },
               ],
+            },
+          },
+        });
+      });
+
+      it('serializes null values', async () => {
+        await state.update((currentState) => ({
+          users: [...currentState.users, { name: 'Bob', age: null }],
+        }));
+
+        expect(snap.request).toHaveBeenNthCalledWith(2, {
+          method: 'snap_manageState',
+          params: {
+            operation: 'update',
+            encrypted: false,
+            newState: {
+              users: [...DEFAULT_STATE.users, { name: 'Bob', age: null }],
             },
           },
         });

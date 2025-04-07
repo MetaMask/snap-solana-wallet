@@ -163,6 +163,10 @@ export class State<TStateValue extends object>
    */
   #deserialize(serializedState: Record<string, Json>): TStateValue {
     return JSON.parse(JSON.stringify(serializedState), (_key, value) => {
+      if (!value) {
+        return value;
+      }
+
       if (value.__type === 'undefined') {
         return undefined;
       }
