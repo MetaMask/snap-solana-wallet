@@ -21,7 +21,8 @@ import { ADDRESS_2_TRANSACTION_4_DATA } from '../../test/mocks/transactions-data
 import { ConfigProvider } from '../config';
 import { SolanaConnection } from '../connection/SolanaConnection';
 import { mockLogger } from '../mocks/logger';
-import type { State, StateValue } from '../state/State';
+import type { IStateManager } from '../state/IStateManager';
+import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from './TransactionsService';
 
@@ -31,7 +32,7 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 
 describe('TransactionsService', () => {
   let mockSolanaRpc: MockSolanaRpc;
-  let mockState: State;
+  let mockState: IStateManager<UnencryptedStateValue>;
   let mockConfigProvider: ConfigProvider;
   let mockTokenMetadataService: TokenMetadataService;
   let service: TransactionsService;
@@ -54,9 +55,8 @@ describe('TransactionsService', () => {
 
     mockState = {
       get: jest.fn(),
-      set: jest.fn(),
       update: jest.fn(),
-    };
+    } as unknown as IStateManager<UnencryptedStateValue>;
 
     service = new TransactionsService({
       connection,
@@ -180,7 +180,7 @@ describe('TransactionsService', () => {
             [firstAccount.id]: [],
             [secondAccount.id]: [],
           },
-        } as unknown as StateValue;
+        } as unknown as UnencryptedStateValue;
 
         const mockAccounts = [firstAccount, secondAccount];
 
@@ -406,7 +406,7 @@ describe('TransactionsService', () => {
               },
             ],
           },
-        } as unknown as StateValue;
+        } as unknown as UnencryptedStateValue;
 
         jest.spyOn(mockState, 'get').mockResolvedValue(initialState);
 

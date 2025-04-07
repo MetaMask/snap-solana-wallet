@@ -9,6 +9,7 @@ import {
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import { solToLamports } from '../../../../core/utils/conversion';
 import { updateInterface } from '../../../../core/utils/interface';
+import { amountInput } from '../../../../core/validation/form';
 import { keyring } from '../../../../snapContext';
 import type { SendContext } from '../../types';
 import { SendCurrencyType, SendFormNames } from '../../types';
@@ -71,7 +72,7 @@ describe('SendForm events', () => {
     validation: {},
     amount: '',
     accounts: [],
-    feeEstimatedInSol: '',
+    feeEstimatedInSol: '0',
     currencyType: SendCurrencyType.TOKEN,
     transaction: null,
     stage: 'send-form',
@@ -180,6 +181,43 @@ describe('SendForm events', () => {
           amount: expectedAmount,
         }),
       );
+    });
+
+    it('calculates max amount in SOL correctly including rounding', async () => {
+      const context: SendContext = {
+        ...baseContext,
+        currencyType: SendCurrencyType.TOKEN,
+        balances: {
+          [mockAccount.id]: {
+            [KnownCaip19Id.SolLocalnet]: {
+              amount: '1.00999',
+              unit: 'SOL',
+            },
+          },
+        },
+        minimumBalanceForRentExemptionSol: '0.00089088',
+      };
+
+      await eventHandlers[SendFormNames.MaxAmountButton]({
+        id: mockId,
+        context,
+      });
+
+      const expectedAmount = '1.00909412';
+      expect(updateInterface).toHaveBeenCalledWith(
+        mockId,
+        expect.anything(),
+        expect.objectContaining({
+          amount: expectedAmount,
+        }),
+      );
+
+      // This is a hack to test that the transaction would actually be sendable after
+      expect(
+        amountInput({ ...context, feeEstimatedInSol: '0.000005' })(
+          expectedAmount,
+        ),
+      ).toBeNull();
     });
 
     it('calculates max amount in FIAT correctly', async () => {

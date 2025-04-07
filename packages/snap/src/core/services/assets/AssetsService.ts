@@ -31,7 +31,8 @@ import {
   GetBalanceResponseStruct,
   GetTokenAccountsByOwnerResponseStruct,
 } from '../connection/structs';
-import type { State } from '../state/State';
+import type { IStateManager } from '../state/IStateManager';
+import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 
 export class AssetsService {
@@ -41,7 +42,7 @@ export class AssetsService {
 
   readonly #configProvider: ConfigProvider;
 
-  readonly #state: State;
+  readonly #state: IStateManager<UnencryptedStateValue>;
 
   readonly #tokenMetadataService: TokenMetadataService;
 
@@ -55,7 +56,7 @@ export class AssetsService {
     connection: SolanaConnection;
     logger: ILogger;
     configProvider: ConfigProvider;
-    state: State;
+    state: IStateManager<UnencryptedStateValue>;
     tokenMetadataService: TokenMetadataService;
   }) {
     this.#logger = logger;

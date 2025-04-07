@@ -21,7 +21,9 @@ import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import { createMockConnection } from '../mocks/mockConnection';
 import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/mockSolanaRpcResponses';
-import { State, type StateValue } from '../state/State';
+import type { IStateManager } from '../state/IStateManager';
+import type { UnencryptedStateValue } from '../state/State';
+import { DEFAULT_UNENCRYPTED_STATE, State } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { AssetsService } from './AssetsService';
 
@@ -34,7 +36,7 @@ describe('AssetsService', () => {
   let mockConnection: SolanaConnection;
   let mockConfigProvider: ConfigProvider;
   let mockTokenMetadataService: TokenMetadataService;
-  let mockState: State;
+  let mockState: IStateManager<UnencryptedStateValue>;
   let stateUpdateSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -52,7 +54,10 @@ describe('AssetsService', () => {
         .mockResolvedValue(SOLANA_MOCK_TOKEN_METADATA),
     } as unknown as TokenMetadataService;
 
-    mockState = new State();
+    mockState = new State({
+      encrypted: false,
+      defaultState: DEFAULT_UNENCRYPTED_STATE,
+    });
 
     stateUpdateSpy = jest.spyOn(mockState, 'update');
 
@@ -321,7 +326,7 @@ describe('AssetsService', () => {
           [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[0],
           [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[1],
         },
-      } as unknown as StateValue);
+      } as unknown as UnencryptedStateValue);
 
       //   // Mock account listing
       //   jest

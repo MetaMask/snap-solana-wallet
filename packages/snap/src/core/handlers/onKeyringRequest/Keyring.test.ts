@@ -3,18 +3,18 @@
 import type { KeyringRequest } from '@metamask/keyring-api';
 import { SolMethod } from '@metamask/keyring-api';
 import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
-import { type Json } from '@metamask/snaps-sdk';
 import { signature } from '@solana/kit';
+import { cloneDeep } from 'lodash';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { AssetsService } from '../../services/assets/AssetsService';
-import type { ConfigProvider } from '../../services/config';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
-import type { SolanaConnection } from '../../services/connection/SolanaConnection';
-import type { EncryptedStateValue } from '../../services/encrypted-state/EncryptedState';
-import { EncryptedState } from '../../services/encrypted-state/EncryptedState';
-import { createMockConnection } from '../../services/mocks/mockConnection';
-import { State, type StateValue } from '../../services/state/State';
+import type { IStateManager } from '../../services/state/IStateManager';
+import { InMemoryState } from '../../services/state/mocks/InMemoryState';
+import type {
+  EncryptedStateValue,
+  UnencryptedStateValue,
+} from '../../services/state/State';
 import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
 import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
@@ -48,29 +48,39 @@ jest.mock('../../utils/getBip32Entropy', () => ({
 
 const NON_EXISTENT_ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174009';
 
+(globalThis as any).snap = {};
+
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
-  let mockStateValue: EncryptedStateValue & StateValue;
-  let mockConfigProvider: ConfigProvider;
-  let mockConnection: SolanaConnection;
+  let mockEncryptedState: IStateManager<EncryptedStateValue>;
+  let mockState: IStateManager<UnencryptedStateValue>;
   let mockTokenMetadataService: TokenMetadataService;
   let mockWalletService: WalletService;
   let mockAssetsService: AssetsService;
   let mockConfirmationHandler: ConfirmationHandler;
   let mockTransactionsService: jest.Mocked<TransactionsService>;
+
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockConnection = createMockConnection();
+    // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
+    mockEncryptedState = new InMemoryState({
+      keyringAccounts: MOCK_SOLANA_KEYRING_ACCOUNTS.reduce(
+        (acc, account) => ({
+          ...acc,
+          [account.id]: account,
+        }),
+        {},
+      ),
+    });
 
-    const encryptedState = new EncryptedState();
-    const state = new State();
-
-    mockConfigProvider = {
-      get: jest.fn().mockReturnValue({
-        activeNetworks: [Network.Localnet],
-      }),
-    } as unknown as ConfigProvider;
+    mockState = new InMemoryState({
+      mapInterfaceNameToId: {},
+      assets: {},
+      transactions: {},
+      metadata: {},
+      tokenPrices: {},
+    });
 
     mockTokenMetadataService = {
       getTokensMetadata: jest.fn().mockResolvedValue({}),
@@ -104,67 +114,14 @@ describe('SolanaKeyring', () => {
     } as unknown as jest.Mocked<TransactionsService>;
 
     keyring = new SolanaKeyring({
-      encryptedState,
-      state,
+      encryptedState: mockEncryptedState,
+      state: mockState,
       logger,
       transactionsService: mockTransactionsService,
       assetsService: mockAssetsService,
       walletService: mockWalletService,
       confirmationHandler: mockConfirmationHandler,
     });
-
-    // To simplify the mocking of individual tests, we initialize the state in happy path with all mock accounts
-    mockStateValue = {
-      keyringAccounts: MOCK_SOLANA_KEYRING_ACCOUNTS.reduce(
-        (acc, account) => ({
-          ...acc,
-          [account.id]: account,
-        }),
-        {},
-      ),
-      mapInterfaceNameToId: {},
-      assets: {},
-      transactions: {},
-      metadata: {},
-      tokenPrices: {},
-    };
-
-    /**
-     * Mock the snap_manageState method to control the state
-     */
-    const snap = {
-      request: jest
-        .fn()
-        .mockImplementation(
-          async ({
-            method,
-            params,
-          }: {
-            method: string;
-            params: { operation: string; newState: Record<string, Json> };
-          }) => {
-            switch (method) {
-              case 'snap_manageState':
-                switch (params.operation) {
-                  case 'get':
-                    return mockStateValue;
-                  case 'update':
-                    mockStateValue = params.newState as EncryptedStateValue &
-                      StateValue;
-                    return null;
-                  case 'clear':
-                    mockStateValue = {} as EncryptedStateValue & StateValue;
-                    return null;
-                  default:
-                    throw new Error(`Unknown operation: ${params.operation}`);
-                }
-              default:
-                throw new Error(`Unknown method: ${method}`);
-            }
-          },
-        ),
-    };
-    (globalThis as any).snap = snap;
   });
 
   describe('listAccounts', () => {
@@ -180,16 +137,18 @@ describe('SolanaKeyring', () => {
     });
 
     it('returns empty array if no accounts are found', async () => {
-      (snap.request as jest.Mock).mockReturnValueOnce(null);
+      jest.spyOn(mockEncryptedState, 'get').mockResolvedValueOnce({
+        keyringAccounts: {},
+      });
 
       const accounts = await keyring.listAccounts();
       expect(accounts).toStrictEqual([]);
     });
 
     it('throws an error if state fails to be retrieved', async () => {
-      (snap.request as jest.Mock).mockRejectedValueOnce(
-        new Error('State error'),
-      );
+      jest
+        .spyOn(mockEncryptedState, 'get')
+        .mockRejectedValueOnce(new Error('State error'));
 
       await expect(keyring.listAccounts()).rejects.toThrow(
         'Error listing accounts',
@@ -244,9 +203,9 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws an error if state fails to be retrieved', async () => {
-      (snap.request as jest.Mock).mockRejectedValueOnce(
-        new Error('State error'),
-      );
+      jest
+        .spyOn(mockEncryptedState, 'get')
+        .mockRejectedValueOnce(new Error('State error'));
 
       await expect(
         keyring.getAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id),
@@ -263,21 +222,31 @@ describe('SolanaKeyring', () => {
   });
 
   describe('createAccount', () => {
-    it('creates new accounts with increasing indices', async () => {
-      mockStateValue = {
+    beforeEach(() => {
+      // Start with no accounts
+      mockEncryptedState = new InMemoryState({
         keyringAccounts: {},
-        mapInterfaceNameToId: {},
-        transactions: {},
-        assets: {},
-        metadata: {},
-        tokenPrices: {},
-      };
+      });
 
+      keyring = new SolanaKeyring({
+        encryptedState: mockEncryptedState,
+        state: mockState,
+        logger,
+        transactionsService: mockTransactionsService,
+        assetsService: mockAssetsService,
+        walletService: mockWalletService,
+        confirmationHandler: mockConfirmationHandler,
+      });
+    });
+
+    it('creates new accounts with increasing indices', async () => {
       const firstAccount = await keyring.createAccount();
       const secondAccount = await keyring.createAccount();
       const thirdAccount = await keyring.createAccount();
 
-      const accounts = Object.values(mockStateValue.keyringAccounts);
+      const accounts = Object.values(
+        (await mockEncryptedState.get()).keyringAccounts,
+      );
       expect(accounts).toHaveLength(3);
 
       const accountIndex0 = accounts.find((acc) => acc.index === 0);
@@ -299,29 +268,27 @@ describe('SolanaKeyring', () => {
     });
 
     it('recreates accounts with missing indices, in order', async () => {
-      mockStateValue = {
-        keyringAccounts: {},
-        mapInterfaceNameToId: {},
-        transactions: {},
-        assets: {},
-        metadata: {},
-        tokenPrices: {},
-      };
-
       const firstAccount = await keyring.createAccount();
       const secondAccount = await keyring.createAccount();
       const thirdAccount = await keyring.createAccount();
       const fourthAccount = await keyring.createAccount();
       const fifthAccount = await keyring.createAccount();
 
-      delete mockStateValue.keyringAccounts[secondAccount.id];
-      delete mockStateValue.keyringAccounts[fourthAccount.id];
+      await mockEncryptedState.update((state) => {
+        const updatedState = cloneDeep(state);
+        delete updatedState.keyringAccounts[secondAccount.id];
+        delete updatedState.keyringAccounts[fourthAccount.id];
+
+        return updatedState;
+      });
 
       const regeneratedSecondAccount = await keyring.createAccount();
       const regeneratedFourthAccount = await keyring.createAccount();
       const sixthAccount = await keyring.createAccount();
 
-      const accounts = Object.values(mockStateValue.keyringAccounts);
+      const accounts = Object.values(
+        (await mockEncryptedState.get()).keyringAccounts,
+      );
       expect(accounts).toHaveLength(6);
 
       const accountIndex0 = accounts.find((acc) => acc.index === 0);
@@ -373,15 +340,6 @@ describe('SolanaKeyring', () => {
     });
 
     it('uses the provided entropy source when creating an account', async () => {
-      mockStateValue = {
-        keyringAccounts: {},
-        mapInterfaceNameToId: {},
-        transactions: {},
-        assets: {},
-        metadata: {},
-        tokenPrices: {},
-      };
-
       const entropySource = 'custom-seed-phrase';
       const account = await keyring.createAccount({ entropySource });
 
@@ -408,10 +366,12 @@ describe('SolanaKeyring', () => {
       expect(account).toBeDefined();
       expect(account).toMatchObject(expectedAccount);
 
-      expect(mockStateValue.keyringAccounts[account.id]).toBeDefined();
-      expect(mockStateValue.keyringAccounts[account.id]).toMatchObject(
-        expectedAccount,
-      );
+      expect(
+        (await mockEncryptedState.get()).keyringAccounts[account.id],
+      ).toBeDefined();
+      expect(
+        (await mockEncryptedState.get()).keyringAccounts[account.id],
+      ).toMatchObject(expectedAccount);
     });
 
     it('throws when deriving address fails', async () => {
@@ -425,9 +385,9 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws an error if state fails to be retrieved', async () => {
-      (snap.request as jest.Mock).mockRejectedValueOnce(
-        new Error('State error'),
-      );
+      jest
+        .spyOn(mockEncryptedState, 'get')
+        .mockRejectedValueOnce(new Error('State error'));
 
       await expect(keyring.createAccount()).rejects.toThrow(
         'Error creating account',
@@ -457,10 +417,10 @@ describe('SolanaKeyring', () => {
       );
     });
 
-    it('throws an error if state fails to be retrieved', async () => {
-      (snap.request as jest.Mock).mockRejectedValueOnce(
-        new Error('State error'),
-      );
+    it('throws an error if state fails to be updated', async () => {
+      jest
+        .spyOn(mockEncryptedState, 'update')
+        .mockRejectedValueOnce(new Error('State error'));
 
       await expect(
         keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id),
@@ -564,19 +524,15 @@ describe('SolanaKeyring', () => {
 
   describe('submitRequest', () => {
     it('throws an error if the account does not have the method', async () => {
-      const snap = {
-        request: jest.fn().mockResolvedValue({
-          keyringAccounts: {
-            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-              ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-              methods: [],
-              scopes: [Network.Localnet],
-            },
+      jest.spyOn(mockEncryptedState, 'get').mockResolvedValueOnce({
+        keyringAccounts: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+            ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+            methods: [],
+            scopes: [Network.Localnet],
           },
-        }),
-      };
-
-      (globalThis as any).snap = snap;
+        },
+      });
 
       await expect(
         keyring.submitRequest({
@@ -600,18 +556,14 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws an error if the account does not have the scope', async () => {
-      const snap = {
-        request: jest.fn().mockResolvedValue({
-          keyringAccounts: {
-            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-              ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-              scopes: [],
-            },
+      jest.spyOn(mockEncryptedState, 'get').mockResolvedValueOnce({
+        keyringAccounts: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+            ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+            scopes: [],
           },
-        }),
-      };
-
-      (globalThis as any).snap = snap;
+        },
+      });
 
       await expect(
         keyring.submitRequest({
@@ -657,15 +609,11 @@ describe('SolanaKeyring', () => {
     });
 
     it('calls the confirmation handler, and calls the wallet service if confirmed', async () => {
-      const snap = {
-        request: jest.fn().mockResolvedValue({
-          keyringAccounts: {
-            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
-          },
-        }),
-      };
-
-      (globalThis as any).snap = snap;
+      jest.spyOn(mockEncryptedState, 'get').mockResolvedValueOnce({
+        keyringAccounts: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        },
+      });
 
       jest
         .spyOn(mockConfirmationHandler, 'handleKeyringRequest')

@@ -1,7 +1,8 @@
-import type { Json } from '@metamask/snaps-sdk';
+/* eslint-disable jest/prefer-strict-equal */
+/* eslint-disable @typescript-eslint/naming-convention */
+import BigNumber from 'bignumber.js';
 
-import { KnownCaip19Id } from '../../constants/solana';
-import { DEFAULT_STATE, State, type StateValue } from './State';
+import { State } from './State';
 
 const snap = {
   request: jest.fn(),
@@ -9,11 +10,36 @@ const snap = {
 
 (globalThis as any).snap = snap;
 
-describe('SolanaState', () => {
-  let solanaState: State;
+type User = {
+  name: string;
+  age: BigNumber | bigint | number | undefined | null;
+};
+
+type MockStateValue = {
+  users: User[];
+};
+
+const DEFAULT_STATE: MockStateValue = {
+  users: [
+    {
+      name: 'John',
+      age: 30,
+    },
+    {
+      name: 'Jane',
+      age: 25,
+    },
+  ],
+};
+
+describe('State', () => {
+  let state: State<MockStateValue>;
 
   beforeEach(() => {
-    solanaState = new State();
+    state = new State<MockStateValue>({
+      encrypted: false,
+      defaultState: DEFAULT_STATE,
+    });
     jest.clearAllMocks();
   });
 
@@ -21,93 +47,256 @@ describe('SolanaState', () => {
     snap.request.mockReset();
   });
 
-  it('gets the state', async () => {
-    const mockState = DEFAULT_STATE;
-    snap.request.mockResolvedValue(mockState);
+  describe('get', () => {
+    it('gets the state', async () => {
+      const mockUnderlyingState = DEFAULT_STATE;
+      snap.request.mockResolvedValue(mockUnderlyingState);
 
-    const state = await solanaState.get();
+      const stateValue = await state.get();
 
-    expect(snap.request).toHaveBeenCalledWith({
-      method: 'snap_manageState',
-      params: { operation: 'get', encrypted: false },
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_manageState',
+        params: { operation: 'get', encrypted: false },
+      });
+      expect(stateValue).toStrictEqual(mockUnderlyingState);
     });
-    expect(state).toStrictEqual(mockState);
-  });
 
-  it('gets the default state if the snap state is empty', async () => {
-    const mockState = {};
-    snap.request.mockResolvedValue(mockState);
+    it('gets the default state if the snap state is empty', async () => {
+      const mockUnderlyingState = {};
+      snap.request.mockResolvedValue(mockUnderlyingState);
 
-    const state = await solanaState.get();
+      const stateValue = await state.get();
 
-    expect(state).toStrictEqual(DEFAULT_STATE);
-  });
+      expect(stateValue).toStrictEqual(DEFAULT_STATE);
+    });
 
-  it('sets the state', async () => {
-    const newState = {
-      assets: {
-        '0': {
-          [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-        },
-      },
-    } as unknown as StateValue;
+    describe('when getting serialized non-JSON values', () => {
+      it('deserializes undefined values', async () => {
+        const mockUnderlyingState = {
+          users: [
+            {
+              name: 'John',
+              age: {
+                __type: 'undefined',
+              },
+            },
+          ],
+        };
+        snap.request.mockResolvedValue(mockUnderlyingState);
 
-    await solanaState.set(newState);
+        const stateValue = await state.get();
 
-    expect(snap.request).toHaveBeenCalledWith({
-      method: 'snap_manageState',
-      params: {
-        operation: 'update',
-        newState: newState as unknown as Record<string, Json>,
-        encrypted: false,
-      },
+        expect(stateValue).toEqual({
+          users: [
+            {
+              name: 'John',
+              age: undefined,
+            },
+          ],
+        });
+      });
+
+      it('deserializes BigNumber values', async () => {
+        const mockUnderlyingState = {
+          users: [
+            {
+              name: 'John',
+              age: {
+                __type: 'BigNumber',
+                value: '30',
+              },
+            },
+          ],
+        };
+        snap.request.mockResolvedValue(mockUnderlyingState);
+
+        const stateValue = await state.get();
+
+        expect(stateValue).toStrictEqual({
+          users: [
+            {
+              name: 'John',
+              age: new BigNumber(30),
+            },
+          ],
+        });
+      });
+
+      it('deserializes bigint values', async () => {
+        const mockUnderlyingState = {
+          users: [
+            {
+              name: 'John',
+              age: {
+                __type: 'bigint',
+                value: '30',
+              },
+            },
+          ],
+        };
+        snap.request.mockResolvedValue(mockUnderlyingState);
+
+        const stateValue = await state.get();
+
+        expect(stateValue).toStrictEqual({
+          users: [
+            {
+              name: 'John',
+              age: BigInt(30),
+            },
+          ],
+        });
+      });
     });
   });
 
-  it('updates the state', async () => {
-    const initialState = {
-      assets: {
-        '0': {
-          [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-        },
-      },
-    };
-    const updatedState = {
-      assets: {
-        '0': {
-          [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-        },
-        '1': {
-          [KnownCaip19Id.SolLocalnet]: { amount: '2', unit: 'SOL' },
-        },
-      },
-    };
-    snap.request.mockResolvedValueOnce(initialState);
+  describe('update', () => {
+    it('updates the state', async () => {
+      await state.update((currentState) => ({
+        users: [
+          ...currentState.users,
+          {
+            name: 'Bob',
+            age: 50,
+          },
+        ],
+      }));
 
-    await solanaState.update(
-      (state) =>
-        ({
-          assets: {
-            ...(state?.assets ?? {}),
-            '1': {
-              [KnownCaip19Id.SolLocalnet]: { amount: '2', unit: 'SOL' },
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_manageState',
+        params: { operation: 'get', encrypted: false },
+      });
+
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_manageState',
+        params: {
+          operation: 'update',
+          encrypted: false,
+          newState: {
+            users: [
+              ...DEFAULT_STATE.users,
+              {
+                name: 'Bob',
+                age: 50,
+              },
+            ],
+          },
+        },
+      });
+    });
+
+    describe('when updating serialized non-JSON values', () => {
+      it('serializes undefined values', async () => {
+        await state.update((currentState) => ({
+          users: [
+            ...currentState.users,
+            {
+              name: 'Bob',
+              age: undefined,
+            },
+          ],
+        }));
+
+        expect(snap.request).toHaveBeenNthCalledWith(2, {
+          method: 'snap_manageState',
+          params: {
+            operation: 'update',
+            encrypted: false,
+            newState: {
+              users: [
+                ...DEFAULT_STATE.users,
+                {
+                  name: 'Bob',
+                  age: {
+                    __type: 'undefined',
+                  },
+                },
+              ],
             },
           },
-        } as unknown as StateValue),
-    );
+        });
+      });
 
-    expect(snap.request).toHaveBeenCalledWith({
-      method: 'snap_manageState',
-      params: { operation: 'get', encrypted: false },
-    });
+      it('serializes BigNumber values', async () => {
+        await state.update((currentState) => ({
+          users: [
+            ...currentState.users,
+            {
+              name: 'Bob',
+              age: new BigNumber(50),
+            },
+          ],
+        }));
 
-    expect(snap.request).toHaveBeenCalledWith({
-      method: 'snap_manageState',
-      params: {
-        operation: 'update',
-        newState: updatedState as unknown as Record<string, Json>,
-        encrypted: false,
-      },
+        expect(snap.request).toHaveBeenNthCalledWith(2, {
+          method: 'snap_manageState',
+          params: {
+            operation: 'update',
+            encrypted: false,
+            newState: {
+              users: [
+                ...DEFAULT_STATE.users,
+                {
+                  name: 'Bob',
+                  age: {
+                    __type: 'BigNumber',
+                    value: '50',
+                  },
+                },
+              ],
+            },
+          },
+        });
+      });
+
+      it('serializes bigint values', async () => {
+        await state.update((currentState) => ({
+          users: [
+            ...currentState.users,
+            {
+              name: 'Bob',
+              age: BigInt(50),
+            },
+          ],
+        }));
+
+        expect(snap.request).toHaveBeenNthCalledWith(2, {
+          method: 'snap_manageState',
+          params: {
+            operation: 'update',
+            encrypted: false,
+            newState: {
+              users: [
+                ...DEFAULT_STATE.users,
+                {
+                  name: 'Bob',
+                  age: {
+                    __type: 'bigint',
+                    value: '50',
+                  },
+                },
+              ],
+            },
+          },
+        });
+      });
+
+      it('serializes null values', async () => {
+        await state.update((currentState) => ({
+          users: [...currentState.users, { name: 'Bob', age: null }],
+        }));
+
+        expect(snap.request).toHaveBeenNthCalledWith(2, {
+          method: 'snap_manageState',
+          params: {
+            operation: 'update',
+            encrypted: false,
+            newState: {
+              users: [...DEFAULT_STATE.users, { name: 'Bob', age: null }],
+            },
+          },
+        });
+      });
     });
   });
 });

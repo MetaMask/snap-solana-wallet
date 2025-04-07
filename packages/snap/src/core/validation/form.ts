@@ -13,6 +13,7 @@ import type {
   FieldValidationFunction,
   ValidationFunction,
 } from '../types/form';
+import { solToLamports } from '../utils/conversion';
 import { i18n, type Locale, type LocalizedMessage } from '../utils/i18n';
 
 /**
@@ -134,23 +135,23 @@ export const amountInput = (context: SendContext) => {
 
   return (value: string) => {
     const tokenAmount = getTokenAmount({ ...context, amount: value });
-    const tokenAmountNumber = parseFloat(tokenAmount);
+    const tokenAmountLamports = solToLamports(tokenAmount);
 
     const balance = getBalance(context);
-    const balanceNumber = parseFloat(balance);
+    const balanceLamports = solToLamports(balance);
 
-    const feeEstimatedInSolNumber = parseFloat(feeEstimatedInSol ?? '0');
+    const feeEstimatedInLamports = solToLamports(feeEstimatedInSol ?? '0');
 
-    const minimumBalanceForRentExemptionSolNumber = parseFloat(
+    const minimumBalanceForRentExemptionLamports = solToLamports(
       minimumBalanceForRentExemptionSol ?? '0',
     );
 
     // If the value parses to 0, it's invalid but we don't want to show an error
-    if (tokenAmountNumber === 0) {
+    if (tokenAmountLamports.isZero()) {
       return { message: '', value };
     }
 
-    const isAmountGreaterThanBalance = tokenAmountNumber > balanceNumber;
+    const isAmountGreaterThanBalance = tokenAmountLamports.gt(balanceLamports);
     if (isAmountGreaterThanBalance) {
       return {
         message: translate('send.insufficientBalance'),
@@ -162,8 +163,9 @@ export const amountInput = (context: SendContext) => {
 
     if (isNativeToken) {
       // If the value is lower than the minimum balance for rent exemption, it's invalid
-      const valueLowerThanMinimum =
-        tokenAmountNumber < parseFloat(minimumBalanceForRentExemptionSol);
+      const valueLowerThanMinimum = tokenAmountLamports.lt(
+        minimumBalanceForRentExemptionLamports,
+      );
 
       if (valueLowerThanMinimum) {
         return {
@@ -179,10 +181,10 @@ export const amountInput = (context: SendContext) => {
 
       // If the (amount + fee + minimum balance for rent exemption) is greater than the balance, it's invalid
       const isAmountPlusFeePlusRentExemptionGreaterThanBalance =
-        tokenAmountNumber +
-          feeEstimatedInSolNumber +
-          minimumBalanceForRentExemptionSolNumber >
-        balanceNumber;
+        tokenAmountLamports
+          .plus(feeEstimatedInLamports)
+          .plus(minimumBalanceForRentExemptionLamports)
+          .gt(balanceLamports);
 
       if (isAmountPlusFeePlusRentExemptionGreaterThanBalance) {
         return {
@@ -196,10 +198,10 @@ export const amountInput = (context: SendContext) => {
         ...context,
         tokenCaipId: Networks[scope].nativeToken.caip19Id,
       });
-      const solBalanceNumber = parseFloat(solBalance);
+      const solBalanceLamports = solToLamports(solBalance);
 
       const isFeeGreaterThanSolBalance =
-        feeEstimatedInSolNumber > solBalanceNumber;
+        feeEstimatedInLamports.gt(solBalanceLamports);
 
       if (isFeeGreaterThanSolBalance) {
         return {

@@ -7,12 +7,20 @@ import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
 import { ConfirmationHandler } from './core/services/confirmation/ConfirmationHandler';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
-import { EncryptedState } from './core/services/encrypted-state/EncryptedState';
 import { FromBase64EncodedBuilder } from './core/services/execution/builders/FromBase64EncodedBuilder';
 import { SendSolBuilder } from './core/services/execution/builders/SendSolBuilder';
 import { SendSplTokenBuilder } from './core/services/execution/builders/SendSplTokenBuilder';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
-import { State } from './core/services/state/State';
+import type { IStateManager } from './core/services/state/IStateManager';
+import type {
+  EncryptedStateValue,
+  UnencryptedStateValue,
+} from './core/services/state/State';
+import {
+  DEFAULT_ENCRYPTED_STATE,
+  DEFAULT_UNENCRYPTED_STATE,
+  State,
+} from './core/services/state/State';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
@@ -29,8 +37,8 @@ export type SnapExecutionContext = {
   connection: SolanaConnection;
   keyring: SolanaKeyring;
   priceApiClient: PriceApiClient;
-  encryptedState: EncryptedState;
-  state: State;
+  encryptedState: IStateManager<EncryptedStateValue>;
+  state: IStateManager<UnencryptedStateValue>;
   assetsService: AssetsService;
   tokenPricesService: TokenPricesService;
   transactionHelper: TransactionHelper;
@@ -45,8 +53,14 @@ export type SnapExecutionContext = {
 };
 
 const configProvider = new ConfigProvider();
-const encryptedState = new EncryptedState();
-const state = new State();
+const encryptedState = new State({
+  encrypted: true,
+  defaultState: DEFAULT_ENCRYPTED_STATE,
+});
+const state = new State({
+  encrypted: false,
+  defaultState: DEFAULT_UNENCRYPTED_STATE,
+});
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);
 const sendSolBuilder = new SendSolBuilder(transactionHelper, logger);
@@ -138,12 +152,12 @@ export {
   configProvider,
   confirmationHandler,
   connection,
+  encryptedState,
   fromBase64EncodedBuilder,
   keyring,
   priceApiClient,
   sendSolBuilder,
   sendSplTokenBuilder,
-  encryptedState,
   state,
   tokenMetadataClient,
   tokenMetadataService,
