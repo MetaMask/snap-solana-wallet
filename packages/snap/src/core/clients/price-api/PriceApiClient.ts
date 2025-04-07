@@ -2,14 +2,20 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
 import { CaipAssetTypeStruct, JsonStruct } from '@metamask/utils';
+import { mapValues } from 'lodash';
 
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
+import { safeMerge } from '../../utils/safeMerge';
 import { UrlStruct } from '../../validation/structs';
 import type { SpotPrices, VsCurrencyParam } from './structs';
-import { SpotPricesStruct, VsCurrencyParamStruct } from './structs';
+import {
+  SPOT_PRICE_NULL_OBJECT,
+  SpotPricesStruct,
+  VsCurrencyParamStruct,
+} from './structs';
 import type { ExchangeRate, FiatTicker } from './types';
 
 export class PriceApiClient {
@@ -106,17 +112,13 @@ export class PriceApiClient {
     }
   }
 
-  #sanitizeSpotPrices(spotPrices: SpotPrices): SpotPrices {
+  #sanitizeSpotPrices(spotPricesResponse: object): SpotPrices {
     /**
-     * Replace all undefined fields with null to ensure that the returned object is assignable to `Json`.
-     * This is important because the spot prices are then stored in the snap state and in component contexts,
-     * and both cases require the object to be serializable to JSON.
+     * Merge every spot price with the null object to ensure that we have the returned object is assignable to `Json` by having no undefined values, only nulls.
+     * This is important because the spot prices are then stored in a component context, that requires the object to be serializable to JSON.
      */
-    const withNulls = Object.fromEntries(
-      Object.entries(spotPrices).map(([key, value]) => [
-        key,
-        value === undefined ? null : value,
-      ]),
+    const withNulls = mapValues(spotPricesResponse, (spotPrice) =>
+      spotPrice ? safeMerge(SPOT_PRICE_NULL_OBJECT, spotPrice) : null,
     );
 
     assert(withNulls, SpotPricesStruct);

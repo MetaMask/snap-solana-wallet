@@ -15,9 +15,9 @@ import { PercentNumberStruct } from '../../validation/structs';
 
 /**
  * The structure of the spot price response from the Price API as described in
- * [this file](https://github.com/consensys-vertical-apps/va-mmcx-price-api/blob/main/src/types/price.ts#L46-L71),
+ * [this file](https://github.com/consensys-vertical-apps/va-mmcx-price-api/blob/main/src/types/price.ts#L46-L71).
  *
- * All undefined fields are replaced with null, to ensure that the returned object is assignable to `Json`.
+ * For safety, most fields are marked nullable even though it goes against the type in the Price API source code.
  */
 export const SpotPriceStruct = object({
   id: string(),

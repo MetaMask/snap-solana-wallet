@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "Cdx4q/SKVk9FdxOsKBj9KFMO7lBdJwOu8aqY8o769SI=",
+    "shasum": "kLSOGKziQIWtQMjaVHEvUau3RyKr+tAqMQaYKCmpYgU=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -16,7 +16,9 @@
         "registry": "https://registry.npmjs.org/"
       }
     },
-    "locales": ["locales/en.json"]
+    "locales": [
+      "locales/en.json"
+    ]
   },
   "initialConnections": {
     "https://portfolio.metamask.io": {}
@@ -27,11 +29,17 @@
       "snaps": false
     },
     "endowment:keyring": {
-      "allowedOrigins": ["https://portfolio.metamask.io"]
+      "allowedOrigins": [
+        "https://portfolio.metamask.io"
+      ]
     },
     "snap_getBip32Entropy": [
       {
-        "path": ["m", "44'", "501'"],
+        "path": [
+          "m",
+          "44'",
+          "501'"
+        ],
         "curve": "ed25519"
       }
     ],
@@ -71,10 +79,16 @@
     "endowment:protocol": {
       "scopes": {
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
-          "methods": ["getGenesisHash", "getLatestBlockhash"]
+          "methods": [
+            "getGenesisHash",
+            "getLatestBlockhash"
+          ]
         },
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": {
-          "methods": ["getGenesisHash", "getLatestBlockhash"]
+          "methods": [
+            "getGenesisHash",
+            "getLatestBlockhash"
+          ]
         }
       }
     },
