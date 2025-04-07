@@ -3,7 +3,6 @@ import {
   findAssociatedTokenPda,
   getCreateAssociatedTokenInstruction,
   getTransferInstruction,
-  TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
 import type { CompilableTransactionMessage } from '@solana/kit';
 import {
@@ -29,6 +28,7 @@ import {
 import type BigNumber from 'bignumber.js';
 
 import type { Network } from '../../../constants/solana';
+import { TOKEN_PROGRAM_ID } from '../../../constants/solana';
 import type { SolanaKeyringAccount } from '../../../handlers/onKeyringRequest/Keyring';
 import { deriveSolanaKeypair } from '../../../utils/deriveSolanaKeypair';
 import type { ILogger } from '../../../utils/logger';
@@ -55,13 +55,19 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
     this.#logger = logger;
   }
 
-  async buildTransactionMessage(
-    from: SolanaKeyringAccount,
-    to: Address,
-    mint: Address,
-    amountInToken: string | number | bigint | BigNumber,
-    network: Network,
-  ): Promise<CompilableTransactionMessage> {
+  async buildTransactionMessage({
+    from,
+    to,
+    mint,
+    amountInToken,
+    network,
+  }: {
+    from: SolanaKeyringAccount;
+    to: Address;
+    mint: Address;
+    amountInToken: string | number | bigint | BigNumber;
+    network: Network;
+  }): Promise<CompilableTransactionMessage> {
     this.#logger.log('Build transfer SPL token transaction message');
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
@@ -71,27 +77,36 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
       privateKeyBytes,
     );
 
+    // SPL tokens can be minted by both the Token Program and the Token2022 Program.
+    // We need to determine which program the mint belongs to.
+    const tokenProgram = await this.determineTokenProgram({
+      mint,
+      network,
+    });
+
     // SPL tokens are not held in the wallet's account, they are held in the associated token account.
     // For both the sender and the receiver, we need to get or create the associated token account for the wallet and token mint.
-    const fromTokenAccount = await this.getOrCreateAssociatedTokenAccount(
+    const fromTokenAccount = await this.getOrCreateAssociatedTokenAccount({
       mint,
-      signer.address,
+      owner: signer.address,
       network,
-      signer,
-    );
+      payer: signer,
+      tokenProgram,
+    });
 
-    const toTokenAccount = await this.getOrCreateAssociatedTokenAccount(
+    const toTokenAccount = await this.getOrCreateAssociatedTokenAccount({
       mint,
-      to,
+      owner: to,
       network,
-      signer,
-    );
+      payer: signer,
+      tokenProgram,
+    });
 
     // Fetch the token account
-    const tokenAccount = await this.getTokenAccount<MaybeHasDecimals>(
+    const tokenAccount = await this.getTokenAccount<MaybeHasDecimals>({
       mint,
       network,
-    );
+    });
 
     const decimals = this.getDecimals(tokenAccount);
 
@@ -108,12 +123,17 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
       (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
       (tx) =>
         appendTransactionMessageInstruction(
-          getTransferInstruction({
-            source: fromTokenAccount.address,
-            destination: toTokenAccount.address,
-            authority: signer,
-            amount: amountInTokenUnits,
-          }),
+          getTransferInstruction(
+            {
+              source: fromTokenAccount.address,
+              destination: toTokenAccount.address,
+              authority: signer,
+              amount: amountInTokenUnits,
+            },
+            {
+              programAddress: tokenProgram,
+            },
+          ),
           tx,
         ),
     );
@@ -133,24 +153,69 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
   }
 
   /**
+   * Determines which token program a mint belongs to (Token Program or Token2022 Program).
+   *
+   * @param params -
+   * @param params.mint - The mint address.
+   * @param params.network - The network.
+   * @returns The token program address.
+   */
+  async determineTokenProgram({
+    mint,
+    network,
+  }: {
+    mint: Address;
+    network: Network;
+  }): Promise<Address> {
+    try {
+      const tokenAccount = await this.getTokenAccount({
+        mint,
+        network,
+      });
+      SendSplTokenBuilder.assertAccountExists(tokenAccount);
+      SendSplTokenBuilder.assertAccountDecoded(tokenAccount);
+
+      return tokenAccount.programAddress;
+    } catch (error) {
+      this.#logger.error(
+        error,
+        `Error determining token program for mint: ${mint}`,
+      );
+
+      return TOKEN_PROGRAM_ID;
+    }
+  }
+
+  /**
    * Creates or fetches the associated token account for a given wallet and token mint.
-   * @param mint - The mint address.
-   * @param owner - The owner's address.
-   * @param network - The network.
-   * @param payer - If the associated token account does not exist, the signer will pay for the transaction creating the associated token account.
+   *
+   * @param params -
+   * @param params.mint - The mint address.
+   * @param params.owner - The owner's address.
+   * @param params.network - The network.
+   * @param params.payer - If the associated token account does not exist, the signer will pay for the transaction creating the associated token account.
+   * @param params.tokenProgram - The token program to use. If not provided, it will be determined automatically.
    * @returns The associated token account's address.
    */
-  async getOrCreateAssociatedTokenAccount<TData extends Uint8Array | object>(
-    mint: Address,
-    owner: Address,
-    network: Network,
-    payer?: KeyPairSigner,
-  ): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
-    const associatedTokenAccount = await this.getAssociatedTokenAccount(
+  async getOrCreateAssociatedTokenAccount<TData extends Uint8Array | object>({
+    mint,
+    owner,
+    network,
+    tokenProgram,
+    payer,
+  }: {
+    mint: Address;
+    owner: Address;
+    network: Network;
+    tokenProgram: Address;
+    payer?: KeyPairSigner;
+  }): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
+    const associatedTokenAccount = await this.getAssociatedTokenAccount({
       mint,
       owner,
       network,
-    );
+      tokenProgram,
+    });
 
     try {
       SendSplTokenBuilder.assertAccountExists(associatedTokenAccount);
@@ -164,86 +229,119 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
       if (!payer) {
         throw new Error('Payer is required to create associated token account');
       }
-      return await this.createAssociatedTokenAccount(
+      return await this.createAssociatedTokenAccount({
         mint,
         owner,
         network,
         payer,
-      );
+        tokenProgram,
+      });
     }
   }
 
   /**
    * Derive the associated token account address for a given mint and owner.
-   * @param mint - The mint address.
-   * @param owner - The owner's address.
+   *
+   * @param params -
+   * @param params.mint - The mint address.
+   * @param params.owner - The owner's address.
+   * @param params.tokenProgram - The token program to use. If not provided, it will be determined automatically.
    * @returns The associated token account address.
    */
-  static async deriveAssociatedTokenAccountAddress(
-    mint: Address,
-    owner: Address,
-  ): Promise<Address> {
+  static async deriveAssociatedTokenAccountAddress({
+    mint,
+    owner,
+    tokenProgram,
+  }: {
+    mint: Address;
+    owner: Address;
+    tokenProgram: Address;
+  }): Promise<Address> {
     return (
       await findAssociatedTokenPda({
         mint,
         owner,
-        tokenProgram: TOKEN_PROGRAM_ADDRESS,
+        tokenProgram,
       })
     )[0];
   }
 
   /**
    * Get the associated token account for a given mint and owner.
-   * @param mint - The mint address.
-   * @param owner - The owner's address.
-   * @param network - The network.
+   * @param params -
+   * @param params.mint - The mint address.
+   * @param params.owner - The owner's address.
+   * @param params.network - The network.
+   * @param params.tokenProgram - The token program to use. If not provided, it will be determined automatically.
    * @returns The associated token account. Handle with care, it might:
    * - not exist (exists: false).
    * - be encoded (data instanceof Uint8Array).
    */
-  async getAssociatedTokenAccount<TData extends Uint8Array | object>(
-    mint: Address,
-    owner: Address,
-    network: Network,
-  ): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
+  async getAssociatedTokenAccount<TData extends Uint8Array | object>({
+    mint,
+    owner,
+    network,
+    tokenProgram,
+  }: {
+    mint: Address;
+    owner: Address;
+    network: Network;
+    tokenProgram: Address;
+  }): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
     const associatedTokenAccountAddress =
-      await SendSplTokenBuilder.deriveAssociatedTokenAccountAddress(
+      await SendSplTokenBuilder.deriveAssociatedTokenAccountAddress({
         mint,
         owner,
-      );
+        tokenProgram,
+      });
 
     // Fetch the full account and return it if it exists
-    const associatedTokenAccount = await this.getTokenAccount<TData>(
-      associatedTokenAccountAddress,
+    const associatedTokenAccount = await this.getTokenAccount<TData>({
+      mint: associatedTokenAccountAddress,
       network,
-    );
+    });
 
     return associatedTokenAccount;
   }
 
   /**
    * Create an associated token account for a given mint and owner.
-   * @param mint - The mint address.
-   * @param owner - The owner's address.
-   * @param network - The network.
-   * @param payer - The payer's address.
+   * @param params -
+   * @param params.mint - The mint address.
+   * @param params.owner - The owner's address.
+   * @param params.network - The network.
+   * @param params.payer - The payer's address.
+   * @param params.tokenProgram - The token program to use.
    * @returns The associated token account.
    */
-  async createAssociatedTokenAccount<TData extends Uint8Array | object>(
-    mint: Address,
-    owner: Address,
-    network: Network,
-    payer: KeyPairSigner,
-  ): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
+  async createAssociatedTokenAccount<TData extends Uint8Array | object>({
+    mint,
+    owner,
+    network,
+    payer,
+    tokenProgram,
+  }: {
+    mint: Address;
+    owner: Address;
+    network: Network;
+    payer: KeyPairSigner;
+    tokenProgram: Address;
+  }): Promise<(MaybeAccount<TData> | MaybeEncodedAccount) & Exists> {
     const associatedTokenAccountAddress =
-      await SendSplTokenBuilder.deriveAssociatedTokenAccountAddress(
+      await SendSplTokenBuilder.deriveAssociatedTokenAccountAddress({
         mint,
         owner,
-      );
+        tokenProgram,
+      });
 
     // Try to get the associated token account. It should not exist.
     const nonExistingAssociatedTokenAccount =
-      await this.getAssociatedTokenAccount(mint, owner, network);
+      await this.getAssociatedTokenAccount({
+        mint,
+        owner,
+        network,
+        tokenProgram,
+      });
 
     // Throw an error if the associated token account already exists.
     SendSplTokenBuilder.assertAccountNotExists(
@@ -266,6 +364,7 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
               ata: associatedTokenAccountAddress,
               owner,
               mint,
+              tokenProgram,
             }),
           ],
           tx,
@@ -305,10 +404,10 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
      * We need to poll the account until it exists.
      */
     return await retry(async () => {
-      const account = await this.getTokenAccount<TData>(
-        associatedTokenAccountAddress,
+      const account = await this.getTokenAccount<TData>({
+        mint: associatedTokenAccountAddress,
         network,
-      );
+      });
       SendSplTokenBuilder.assertAccountExists(account);
       return account;
     });
@@ -316,16 +415,20 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
 
   /**
    * Get the token account for a given mint and network.
-   * @param mint - The mint address.
-   * @param network - The network.
+   * @param params - The parameters object containing mint and network.
+   * @param params.mint - The mint address.
+   * @param params.network - The network.
    * @returns The token account. Handle with care, it might:
    * - not exist (exists: false).
    * - be encoded (data instanceof Uint8Array).
    */
-  async getTokenAccount<TData extends Uint8Array | object>(
-    mint: Address,
-    network: Network,
-  ): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
+  async getTokenAccount<TData extends Uint8Array | object>({
+    mint,
+    network,
+  }: {
+    mint: Address;
+    network: Network;
+  }): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
     const rpc = this.#connection.getRpc(network);
     const tokenAccount = await fetchJsonParsedAccount<TData>(rpc, mint);
 

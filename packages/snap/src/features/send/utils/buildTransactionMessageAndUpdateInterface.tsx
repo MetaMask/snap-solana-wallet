@@ -45,13 +45,13 @@ const buildTransactionMessage = async (context: SendContext) => {
     );
   } else {
     // SPL token transaction
-    transactionMessage = await sendSplTokenBuilder.buildTransactionMessage(
-      account,
-      address(toAddress),
-      address(parseCaipAssetType(tokenCaipId).assetReference),
-      tokenAmount,
-      scope,
-    );
+    transactionMessage = await sendSplTokenBuilder.buildTransactionMessage({
+      from: account,
+      to: address(toAddress),
+      mint: address(parseCaipAssetType(tokenCaipId).assetReference),
+      amountInToken: tokenAmount,
+      network: scope,
+    });
   }
 
   if (!transactionMessage) {
