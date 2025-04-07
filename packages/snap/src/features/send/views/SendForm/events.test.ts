@@ -189,8 +189,6 @@ describe('SendForm events', () => {
         }),
       );
 
-      console.log(expectedAmount);
-
       // This is a hack to test that the transaction would actually be sendable after
       expect(
         amountInput({ ...context, feeEstimatedInSol: '0.000005' })(
