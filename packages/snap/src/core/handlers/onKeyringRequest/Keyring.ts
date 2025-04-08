@@ -272,7 +272,7 @@ export class SolanaKeyring implements Keyring {
       this.#logger.error({ error }, 'Error creating account');
       await this.#deleteAccountFromState(id);
 
-      throw new Error('Error creating account');
+      throw new Error(`Error creating account: ${error.message}`);
     }
   }
 
