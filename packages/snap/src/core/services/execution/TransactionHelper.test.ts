@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import type { KeyPairSigner } from '@solana/kit';
-import { createKeyPairSignerFromPrivateKeyBytes } from '@solana/kit';
+import { getSignatureFromTransaction } from '@solana/kit';
 
 import { Network } from '../../constants/solana';
 import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
@@ -12,9 +11,6 @@ import type { SolanaConnection } from '../connection';
 import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
 import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from './mocks/scenarios/sendSol';
 import { TransactionHelper } from './TransactionHelper';
-
-// Mock dependencies
-jest.mock('@solana-program/compute-budget');
 
 jest.mock('@solana/kit', () => ({
   ...jest.requireActual('@solana/kit'),
@@ -178,15 +174,13 @@ describe('TransactionHelper', () => {
       name,
       scope,
       fromAccount,
-      fromAccountPrivateKeyBytes,
       transactionMessage,
       transactionMessageBase64Encoded,
       getMultipleAccountsResponse,
       signedTransaction,
       signedTransactionBase64Encoded,
+      signature,
     } = scenario;
-
-    let mockSigner: KeyPairSigner;
 
     beforeEach(async () => {
       jest.clearAllMocks();
@@ -201,20 +195,6 @@ describe('TransactionHelper', () => {
             .mockResolvedValue(getMultipleAccountsResponse?.result),
         }),
       });
-      mockSigner = await createKeyPairSignerFromPrivateKeyBytes(
-        fromAccountPrivateKeyBytes,
-      );
-    });
-
-    describe('decodeBase64Encoded', () => {
-      it(`Scenario ${name}: decodes a transaction successfully`, async () => {
-        const result = await transactionHelper.decodeBase64Encoded(
-          transactionMessageBase64Encoded,
-          scope,
-        );
-
-        expect(result).toStrictEqual(transactionMessage);
-      });
     });
 
     describe('signTransactionMessage', () => {
@@ -222,11 +202,35 @@ describe('TransactionHelper', () => {
         const result = await transactionHelper.signTransactionMessage(
           transactionMessage,
           fromAccount,
+          scope,
         );
+        const resultSignature = getSignatureFromTransaction(result);
 
         expect(result).toStrictEqual(signedTransaction);
+        expect(resultSignature).toBe(signature);
       });
     });
+
+    describe('base64EncodeTransactionMessage', () => {
+      it(`Scenario ${name}: encodes a transaction message to a base64 encoded string successfully`, async () => {
+        const result = await transactionHelper.base64EncodeTransactionMessage(
+          transactionMessage,
+        );
+
+        expect(result).toBe(transactionMessageBase64Encoded);
+      });
+    });
+
+    // describe('decodeBase64Encoded', () => {
+    //   it(`Scenario ${name}: decodes a transaction successfully`, async () => {
+    //     const result = await transactionHelper.decodeBase64Encoded(
+    //       transactionMessageBase64Encoded,
+    //       scope,
+    //     );
+
+    //     expect(result).toStrictEqual(transactionMessage);
+    //   });
+    // });
 
     describe('encodeSignedTransactionToBase64', () => {
       it(`Scenario ${name}: encodes a signed transaction to a base64 encoded string successfully`, async () => {

@@ -1,6 +1,7 @@
 import type { Infer } from '@metamask/superstruct';
 import { assert } from '@metamask/superstruct';
 import type {
+  BaseTransactionMessage,
   Commitment,
   CompilableTransactionMessage,
   GetTransactionApi,
@@ -24,6 +25,7 @@ import {
   getComputeUnitEstimateForTransactionMessageFactory,
   getTransactionCodec,
   getTransactionDecoder,
+  isTransactionMessageWithBlockhashLifetime,
   partiallySignTransactionMessageWithSigners,
   pipe,
   type Blockhash,
@@ -31,6 +33,13 @@ import {
 
 import type { Network } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import {
+  isTransactionMessageWithComputeUnitLimitInstruction,
+  setComputeUnitLimitInstructionIfMissing,
+  setComputeUnitPriceInstructionIfMissing,
+  setTransactionMessageFeePayerIfMissing,
+  setTransactionMessageLifetimeUsingBlockhashIfMissing,
+} from '../../sdk/extensions';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import type { ILogger } from '../../utils/logger';
 import { PromiseAny } from '../../utils/PromiseAny';
@@ -53,6 +62,10 @@ export class TransactionHelper {
   readonly #connection: SolanaConnection;
 
   readonly #logger: ILogger;
+
+  static readonly defaultComputeUnitLimit = 200000;
+
+  static readonly defaultComputeUnitPriceInMicroLamportsPerComputeUnit = 1000n;
 
   constructor(connection: SolanaConnection, logger: ILogger) {
     this.#connection = connection;
@@ -346,15 +359,17 @@ export class TransactionHelper {
   }
 
   /**
-   * Signs a transaction message.
+   * Internal logic to sign a generic transaction message.
    *
    * @param transactionMessage - The transaction message to sign.
    * @param account - The account to sign the transaction message with.
+   * @param scope - The network where the transaction is to be sent.
    * @returns The signed transaction.
    */
   async signTransactionMessage(
-    transactionMessage: CompilableTransactionMessage,
+    transactionMessage: BaseTransactionMessage,
     account: SolanaKeyringAccount,
+    scope: Network,
   ): Promise<Readonly<Transaction & TransactionWithLifetime>> {
     const { privateKeyBytes } = await deriveSolanaKeypair({
       index: account.index,
@@ -363,11 +378,59 @@ export class TransactionHelper {
       privateKeyBytes,
     );
 
-    const transactionMessageWithSigners = addSignersToTransactionMessage(
-      [signer],
+    // First, make sure the transaction message has a fee payer and a lifetime constraint
+    const hasLifetimeConstraint =
+      isTransactionMessageWithBlockhashLifetime(transactionMessage);
+
+    const blockhash = hasLifetimeConstraint
+      ? transactionMessage.lifetimeConstraint // Use any value, it won't be used
+      : await this.getLatestBlockhash(scope);
+
+    const compilableTransactionMessage = pipe(
       transactionMessage,
+      (tx) => setTransactionMessageFeePayerIfMissing(signer.address, tx),
+      (tx) =>
+        setTransactionMessageLifetimeUsingBlockhashIfMissing(blockhash, tx),
     );
 
+    // Then, make sure the transaction message has a compute unit limit and a compute unit price
+    const hasComputeUnitLimit =
+      isTransactionMessageWithComputeUnitLimitInstruction(transactionMessage);
+
+    const units = hasComputeUnitLimit
+      ? TransactionHelper.defaultComputeUnitLimit // Use any value, it won't be used
+      : await this.getComputeUnitEstimate(
+          compilableTransactionMessage,
+          scope,
+        ).catch((error) => {
+          this.#logger.warn(error);
+          return TransactionHelper.defaultComputeUnitLimit;
+        });
+
+    const microLamports =
+      TransactionHelper.defaultComputeUnitPriceInMicroLamportsPerComputeUnit;
+
+    const budgetedTransactionMessage = pipe(
+      compilableTransactionMessage,
+      (tx) => setComputeUnitLimitInstructionIfMissing(tx, { units }),
+      (tx) => setComputeUnitPriceInstructionIfMissing(tx, { microLamports }),
+    );
+
+    // Attach the signers to the transaction message
+    const transactionMessageWithSigners = addSignersToTransactionMessage(
+      [signer],
+      budgetedTransactionMessage,
+    );
+
+    /**
+     * Partially sign the transaction message with the signers.
+     *
+     * When we "partially" sign, we only sign with the passed signers, and don't expect the
+     * transaction to be fully signed afterwards.
+     *
+     * It's important to do this because the transaction might also expect signatures from other signers,
+     * so we need to return it as is, so that more signers can sign later.
+     */
     const signedTransaction = await partiallySignTransactionMessageWithSigners(
       transactionMessageWithSigners,
     );

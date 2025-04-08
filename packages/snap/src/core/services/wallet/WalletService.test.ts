@@ -234,7 +234,7 @@ describe('WalletService', () => {
       });
 
       describe(`Scenario ${name}: signAndSendTransaction`, () => {
-        it('returns the signed transaction', async () => {
+        it('returns the signature', async () => {
           const request = wrapKeyringRequest({
             method: SolMethod.SignAndSendTransaction,
             params: {

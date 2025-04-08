@@ -167,6 +167,7 @@ export class WalletService {
       await this.#transactionHelper.signTransactionMessage(
         transactionMessage,
         account,
+        scope,
       );
 
     const signedTransactionBase64 =
@@ -213,6 +214,7 @@ export class WalletService {
       await this.#transactionHelper.signTransactionMessage(
         transactionMessage,
         account,
+        scope,
       );
 
     const signature = getSignatureFromTransaction(signedTransaction);

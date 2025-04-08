@@ -33,6 +33,10 @@ const transactionMessage: CompilableTransactionMessage = {
       data: Uint8Array.from([2, 44, 1, 0, 0]),
     },
     {
+      programAddress: address('ComputeBudget111111111111111111111111111111'),
+      data: Uint8Array.from([3, 232, 3, 0, 0, 0, 0, 0, 0]), // 1000n microLamports per compute unit
+    },
+    {
       programAddress: address('11111111111111111111111111111111'),
       accounts: [
         {
@@ -50,14 +54,14 @@ const transactionMessage: CompilableTransactionMessage = {
 };
 
 const transactionMessageBase64Encoded =
-  'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQACBJmwAo+dnq8yhuKR7QpXgj+5yPFMzVwViEudWE9Z+N903bOu6UdCGJS9VyhRo8wvswWSAO709XY+51AU1MALO6wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAdazMubIOjxUiTY/+xWYNSffhgTb7vd9LWQ0sI2iMMSoCAwAFAiwBAAACAgABDAIAAABAQg8AAAAAAAA=';
+  'gAEAAgSZsAKPnZ6vMobike0KV4I/ucjxTM1cFYhLnVhPWfjfdN2zrulHQhiUvVcoUaPML7MFkgDu9PV2PudQFNTACzusAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAHWszLmyDo8VIk2P/sVmDUn34YE2+73fS1kNLCNojDEqAwMABQIsAQAAAwAJA+gDAAAAAAAAAgIAAQwCAAAAQEIPAAAAAAAA';
 
 const signedTransaction = {
   lifetimeConstraint: {
     blockhash: blockhash('8vMXV3ERvs12BY8w1nSHutzwwMptAR5UvUSq5pH2QYsK'),
     lastValidBlockHeight: 18446744073709551615n,
   },
-  messageBytes: Uint8Array.from([
+  messageBytes: new Uint8Array([
     128, 1, 0, 2, 4, 153, 176, 2, 143, 157, 158, 175, 50, 134, 226, 145, 237,
     10, 87, 130, 63, 185, 200, 241, 76, 205, 92, 21, 136, 75, 157, 88, 79, 89,
     248, 223, 116, 221, 179, 174, 233, 71, 66, 24, 148, 189, 87, 40, 81, 163,
@@ -67,24 +71,24 @@ const signedTransaction = {
     186, 114, 195, 155, 231, 188, 140, 229, 187, 197, 247, 18, 107, 44, 67, 155,
     58, 64, 0, 0, 0, 117, 172, 204, 185, 178, 14, 143, 21, 34, 77, 143, 254,
     197, 102, 13, 73, 247, 225, 129, 54, 251, 189, 223, 75, 89, 13, 44, 35, 104,
-    140, 49, 42, 2, 3, 0, 5, 2, 44, 1, 0, 0, 2, 2, 0, 1, 12, 2, 0, 0, 0, 64, 66,
-    15, 0, 0, 0, 0, 0, 0,
+    140, 49, 42, 3, 3, 0, 5, 2, 44, 1, 0, 0, 3, 0, 9, 3, 232, 3, 0, 0, 0, 0, 0,
+    0, 2, 2, 0, 1, 12, 2, 0, 0, 0, 64, 66, 15, 0, 0, 0, 0, 0, 0,
   ]),
   signatures: {
-    BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP: Uint8Array.from([
-      200, 102, 135, 38, 112, 79, 27, 82, 205, 138, 19, 244, 15, 61, 131, 75,
-      109, 86, 230, 49, 247, 32, 243, 147, 198, 36, 195, 126, 114, 51, 101, 238,
-      27, 12, 239, 255, 202, 176, 131, 195, 50, 219, 32, 22, 35, 80, 34, 220,
-      241, 140, 55, 85, 98, 160, 102, 69, 151, 130, 195, 32, 75, 67, 43, 14,
+    BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP: new Uint8Array([
+      99, 71, 118, 0, 107, 144, 42, 175, 174, 75, 46, 121, 60, 40, 175, 238,
+      109, 104, 232, 29, 253, 249, 18, 241, 53, 26, 190, 146, 185, 248, 200, 68,
+      71, 127, 155, 221, 252, 116, 1, 211, 62, 10, 250, 75, 67, 199, 247, 199,
+      239, 77, 7, 60, 45, 179, 174, 129, 11, 246, 223, 168, 249, 0, 204, 2,
     ]),
   },
 };
 
 const signedTransactionBase64Encoded =
-  'AchmhyZwTxtSzYoT9A89g0ttVuYx9yDzk8Ykw35yM2XuGwzv/8qwg8My2yAWI1Ai3PGMN1VioGZFl4LDIEtDKw6AAQACBJmwAo+dnq8yhuKR7QpXgj+5yPFMzVwViEudWE9Z+N903bOu6UdCGJS9VyhRo8wvswWSAO709XY+51AU1MALO6wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAdazMubIOjxUiTY/+xWYNSffhgTb7vd9LWQ0sI2iMMSoCAwAFAiwBAAACAgABDAIAAABAQg8AAAAAAAA=';
+  'AWNHdgBrkCqvrksueTwor+5taOgd/fkS8TUavpK5+MhER3+b3fx0AdM+CvpLQ8f3x+9NBzwts66BC/bfqPkAzAKAAQACBJmwAo+dnq8yhuKR7QpXgj+5yPFMzVwViEudWE9Z+N903bOu6UdCGJS9VyhRo8wvswWSAO709XY+51AU1MALO6wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAdazMubIOjxUiTY/+xWYNSffhgTb7vd9LWQ0sI2iMMSoDAwAFAiwBAAADAAkD6AMAAAAAAAACAgABDAIAAABAQg8AAAAAAAA=';
 
 const signature =
-  '51PN5XQ34sjoZVrpwye6PZaX9jbPThQoFT9FsPAZU1AofqSahU9nWUUNevbQeoVqQZiptBv1uZ7xgPt23CbwDBLR';
+  '2z8EPNFosL7kfjTsTKWRPMgH7G41bJW22qNtRa4vNSHEmBG84SSr4yjqAFsp82gc2tEuc6wtamiof7BMwfeZzewB';
 
 export const MOCK_EXECUTION_SCENARIO_SEND_SOL: MockExecutionScenario = {
   name: 'Send SOL',
