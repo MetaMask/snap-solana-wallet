@@ -411,7 +411,7 @@ describe('SolanaKeyring', () => {
         keyring.createAccount({
           entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
         }),
-      ).rejects.toThrow('Error creating account');
+      ).rejects.toThrow('Error creating account: Error: Error deriving address');
     });
 
     it('throws an error if state fails to be retrieved', async () => {
@@ -423,7 +423,7 @@ describe('SolanaKeyring', () => {
         keyring.createAccount({
           entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
         }),
-      ).rejects.toThrow('Error creating account');
+      ).rejects.toThrow('Error creating account: Error listing accounts');
     });
   });
 
