@@ -73,7 +73,7 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
   const isBadAccount = signInAddressCaip10 !== accountAddressCaip10;
 
   return (
-    <Container>
+    <Container backgroundColor="alternative">
       <Box>
         <Box alignment="center" center>
           <Box>{null}</Box>

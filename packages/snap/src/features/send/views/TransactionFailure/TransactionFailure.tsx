@@ -20,7 +20,7 @@ export const TransactionFailure = ({ context }: TransactionFailureProps) => {
   const tokenAmount = getTokenAmount(context);
 
   return (
-    <Container>
+    <Container backgroundColor="alternative">
       <Box>
         <Box>{null}</Box>
         <ActionHeader

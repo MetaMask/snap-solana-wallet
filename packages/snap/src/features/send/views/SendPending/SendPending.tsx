@@ -13,7 +13,7 @@ export const SendPending = ({ context }: SendPendingProps) => {
   const translate = i18n(context.preferences.locale);
 
   return (
-    <Container>
+    <Container backgroundColor="alternative">
       <Box>
         <Box>{null}</Box>
         <ActionHeader
