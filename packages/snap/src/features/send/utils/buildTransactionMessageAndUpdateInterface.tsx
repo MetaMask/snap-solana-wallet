@@ -4,6 +4,7 @@ import debounce from 'lodash/fp/debounce';
 import pipe from 'lodash/fp/pipe';
 
 import { Networks } from '../../../core/constants/solana';
+import { fromCompilableTransactionMessageToBase64String } from '../../../core/sdk-extensions/codecs';
 import { withoutConcurrency } from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import {
@@ -63,7 +64,7 @@ const buildTransactionMessage = async (context: SendContext) => {
   );
 
   const base64EncodedTransactionMessage =
-    await transactionHelper.base64EncodeTransactionMessage(transactionMessage);
+    await fromCompilableTransactionMessageToBase64String(transactionMessage);
 
   return {
     feeInLamports,

@@ -68,6 +68,8 @@ export async function render(
     ...incomingContext,
   };
 
+  console.log('🔮🔮🔮🔮context', context);
+
   const preferencesPromise = getPreferences()
     .then((preferences) => {
       context.preferences = preferences;
@@ -198,6 +200,7 @@ export async function render(
     updatedContext2.scan = null;
   }
 
+  console.log('🔮🔮🔮🔮updatedContext2', updatedContext2);
   await updateInterface(
     id,
     <ConfirmTransactionRequest context={updatedContext2} />,
