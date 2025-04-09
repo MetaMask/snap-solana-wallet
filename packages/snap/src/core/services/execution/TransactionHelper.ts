@@ -13,19 +13,12 @@ import type {
 import {
   addSignersToTransactionMessage,
   signature as asSignature,
-  compileTransactionMessage,
+  createKeyPairFromPrivateKeyBytes,
   createKeyPairSignerFromPrivateKeyBytes,
-  decompileTransactionMessage,
-  decompileTransactionMessageFetchingLookupTables,
   getBase64Codec,
-  getBase64Decoder,
-  getBase64Encoder,
-  getCompiledTransactionMessageDecoder,
-  getCompiledTransactionMessageEncoder,
   getComputeUnitEstimateForTransactionMessageFactory,
-  getTransactionCodec,
-  getTransactionDecoder,
   isTransactionMessageWithBlockhashLifetime,
+  partiallySignTransaction,
   partiallySignTransactionMessageWithSigners,
   pipe,
   type Blockhash,
@@ -33,6 +26,10 @@ import {
 
 import type { Network } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import {
+  fromBytesToCompilableTransactionMessage,
+  fromUnknowBase64StringToTransactionOrTransactionMessage,
+} from '../../sdk-extensions/codecs';
 import {
   isTransactionMessageWithComputeUnitLimitInstruction,
   setComputeUnitLimitInstructionIfMissing,
@@ -42,7 +39,6 @@ import {
 } from '../../sdk-extensions/transaction-messages';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import type { ILogger } from '../../utils/logger';
-import { PromiseAny } from '../../utils/PromiseAny';
 import { retry } from '../../utils/retry';
 import { Base58Struct, Base64Struct } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
@@ -128,45 +124,42 @@ export class TransactionHelper {
   }
 
   /**
-   * Gets the fee for a transaction message in lamports. Assumes that the transaction message has been
-   * "budgeted" for compute units.
-   *
-   * @param budgetedTransactionMessage - The transaction message to get the fee for.
-   * @param network - The network on which the transaction is being sent.
-   * @see https://solana.com/developers/cookbook/transactions/calculate-cost
-   * @returns The fee for the transaction in lamports.
-   */
-  async getFeeFromTransactionInLamports(
-    budgetedTransactionMessage: CompilableTransactionMessage,
-    network: Network,
-  ): Promise<string | null> {
-    const base64EncodedMessage = await this.base64EncodeTransactionMessage(
-      budgetedTransactionMessage,
-    );
-
-    return await this.getFeeForMessageInLamports(base64EncodedMessage, network);
-  }
-
-  /**
    * Gets the fee for a transaction message in lamports.
    *
-   * @param base64EncodedMessage - The base64 encoded transaction message to get the fee for.
+   * @param base64String - The base64 encoded transaction message to get the fee for.
    * @param network - The network on which the transaction is being sent.
    * @see https://solana.com/developers/cookbook/transactions/calculate-cost
    * @returns The fee for the transaction in lamports.
    */
-  async getFeeForMessageInLamports(
-    base64EncodedMessage: Infer<typeof Base64Struct>,
+  async getFeeFromBase64StringInLamports(
+    base64String: Infer<typeof Base64Struct>,
     network: Network,
   ): Promise<string | null> {
     try {
-      assert(base64EncodedMessage, Base64Struct);
+      assert(base64String, Base64Struct);
+
+      const transactionOrTransactionMessage =
+        await fromUnknowBase64StringToTransactionOrTransactionMessage(
+          base64String,
+          this.#connection.getRpc(network),
+        );
+
+      /**
+       * If the transactionOrTransactionMessage is a transaction message, we can return the base64 string directly.
+       * Otherwise, it's a transaction, so we need to recover the message bytes from the transaction and then convert bytes to a base64 string.
+       */
+      const base64EncodedTransactionMessage =
+        'instructions' in transactionOrTransactionMessage
+          ? base64String
+          : getBase64Codec().decode(
+              transactionOrTransactionMessage.messageBytes,
+            );
 
       const rpc = this.#connection.getRpc(network);
 
       const transactionCost = await rpc
         .getFeeForMessage(
-          base64EncodedMessage as TransactionMessageBytesBase64,
+          base64EncodedTransactionMessage as TransactionMessageBytesBase64,
           { commitment: 'confirmed' },
         )
         .send();
@@ -180,114 +173,6 @@ export class TransactionHelper {
       this.#logger.error(error);
       return null;
     }
-  }
-
-  /**
-   * Convert a transaction message to a base64 encoded string.
-   *
-   * Convenient to send a transaction message via json serializable channels.
-   *
-   * WARNING: It strips off the private keys from the transaction message, so you need to add them back in when you decode the transaction message in order to sign it.
-   *
-   * @example
-   * const transactionMessage = await transactionHelper.base64DecodeTransactionMessage(base64EncodedTransactionMessage);
-   * // send it over RPC or other JSON serializable channels
-   * // receive it on the other side
-   * const transactionMessageWithSigners = addSignersToTransactionMessage(signers, transactionMessage);
-   * const signature = await transactionHelper.sendTransaction(transactionMessageWithSigners, signers, network);
-   * @param transactionMessage - The transaction message to base64 encode.
-   * @returns The base64 encoded transaction message.
-   */
-  async base64EncodeTransactionMessage(
-    transactionMessage: CompilableTransactionMessage,
-  ): Promise<string> {
-    const base64EncodedMessage = pipe(
-      transactionMessage,
-      // Compile it.
-      compileTransactionMessage,
-      // Convert the compiled message into a byte array.
-      getCompiledTransactionMessageEncoder().encode,
-      // Encode that byte array as a base64 string.
-      getBase64Decoder().decode,
-    );
-
-    return base64EncodedMessage;
-  }
-
-  /**
-   * Decodes a base64 encoded transaction message into a transaction message.
-   *
-   * @param base64EncodedTransactionMessage - The base64 encoded transaction message to decode.
-   * @returns The decoded transaction message.
-   */
-  async #decodeBase64EncodedTransactionMessage(
-    base64EncodedTransactionMessage: Infer<typeof Base64Struct>,
-  ): Promise<CompilableTransactionMessage> {
-    return pipe(
-      base64EncodedTransactionMessage,
-      getBase64Encoder().encode,
-      getCompiledTransactionMessageDecoder().decode,
-      decompileTransactionMessage,
-    );
-  }
-
-  /**
-   * Decodes a base64 encoded transaction into a transaction message.
-   *
-   * @param base64EncodedTransaction - The base64 encoded transaction to decode.
-   * @param scope - The network on which the transaction is being sent.
-   * @returns The decoded transaction message.
-   */
-  async #decodeBase64EncodedTransaction(
-    base64EncodedTransaction: Infer<typeof Base64Struct>,
-    scope: Network,
-  ): Promise<CompilableTransactionMessage> {
-    return pipe(
-      base64EncodedTransaction,
-      getBase64Encoder().encode,
-      getTransactionDecoder().decode,
-      (tx) => getCompiledTransactionMessageDecoder().decode(tx.messageBytes),
-      async (decodedMessageBytes) =>
-        decompileTransactionMessageFetchingLookupTables(
-          decodedMessageBytes,
-          this.#connection.getRpc(scope),
-        ),
-    );
-  }
-
-  /**
-   * Decodes a base64 encoded string (either a transaction message or a transaction) into a transaction message.
-   *
-   * @param base64EncodedString - The base64 encoded string to decode.
-   * @param scope - The network on which the transaction is being sent.
-   * @returns The decoded transaction message.
-   */
-  async decodeBase64Encoded(
-    base64EncodedString: Infer<typeof Base64Struct>,
-    scope: Network,
-  ): Promise<CompilableTransactionMessage> {
-    return PromiseAny([
-      this.#decodeBase64EncodedTransactionMessage(base64EncodedString),
-      this.#decodeBase64EncodedTransaction(base64EncodedString, scope),
-    ]);
-  }
-
-  /**
-   * Base64 encode a transaction message from a base64 encoded transaction.
-   *
-   * @param base64EncodedTransaction - The base64 encoded transaction to encode.
-   * @returns The base64 encoded transaction message.
-   */
-  async base64EncodeTransactionMessageFromBase64EncodedTransaction(
-    base64EncodedTransaction: Infer<typeof Base64Struct>,
-  ): Promise<string> {
-    return pipe(
-      base64EncodedTransaction,
-      getBase64Encoder().encode,
-      getTransactionDecoder().decode,
-      (tx) => tx.messageBytes,
-      getBase64Decoder().decode,
-    );
   }
 
   /**
@@ -359,14 +244,81 @@ export class TransactionHelper {
   }
 
   /**
-   * Internal logic to sign a generic transaction message.
+   * Partially signs an arbitrary base64 string, adapting the logic depending on whether
+   * the string represents a transaction or a transaction message.
+   *
+   * - If it's a transaction message, we need to need add all missing fields, then sign it.
+   * - If it's a transaction, we need to need add the account's signature.
+   *
+   * @param base64String - The base64 encoded transaction or transaction message to sign.
+   * @param account - The account to sign the transaction or transaction message with.
+   * @param network - The network on which the transaction is being sent.
+   * @returns The signed transaction.
+   * @throws If the base64 string is not a valid transaction or transaction message.
+   */
+  async partiallySignBase64String(
+    base64String: Infer<typeof Base64Struct>,
+    account: SolanaKeyringAccount,
+    network: Network,
+  ): Promise<Transaction> {
+    // The received base64 string can either represent a transaction or a transaction message.
+    const transactionMessageOrTransaction =
+      await fromUnknowBase64StringToTransactionOrTransactionMessage(
+        base64String,
+        this.#connection.getRpc(network),
+      );
+
+    // It's a transaction message, add all missing fields, then partially sign it.
+    if ('instructions' in transactionMessageOrTransaction) {
+      return this.#prepareAndPartiallySignTransactionMessage(
+        transactionMessageOrTransaction,
+        account,
+        network,
+      );
+    }
+
+    const isUnsigned = Object.values(
+      transactionMessageOrTransaction.signatures,
+    ).every((signature) => !signature);
+
+    // It's an unsigned transaction, grab the message from the transaction and apply the same logic as above.
+    if (isUnsigned) {
+      const { messageBytes } = transactionMessageOrTransaction;
+
+      const transactionMessageFromUnsignedTransaction =
+        await fromBytesToCompilableTransactionMessage(
+          messageBytes,
+          this.#connection.getRpc(network),
+        );
+
+      return this.#prepareAndPartiallySignTransactionMessage(
+        transactionMessageFromUnsignedTransaction,
+        account,
+        network,
+      );
+    }
+
+    // It's a partially signed transaction, so we cannot alter its content, and we add the account's signature.
+    return this.#partiallySignTransaction(
+      transactionMessageOrTransaction,
+      account,
+    );
+  }
+
+  /**
+   * Prepares the passed transaction message by:
+   * - adding a feePayer if missing,
+   * - adding a lifetimeConstraint if missing,
+   * - adding a computeUnitLimit if missing,
+   * - adding a computeUnitPrice if missing,
+   * - partially signing it with the passed account.
    *
    * @param transactionMessage - The transaction message to sign.
    * @param account - The account to sign the transaction message with.
    * @param scope - The network where the transaction is to be sent.
-   * @returns The signed transaction.
+   * @returns The partially signed transaction.
    */
-  async signTransactionMessage(
+  async #prepareAndPartiallySignTransactionMessage(
     transactionMessage: BaseTransactionMessage,
     account: SolanaKeyringAccount,
     scope: Network,
@@ -439,21 +391,53 @@ export class TransactionHelper {
   }
 
   /**
-   * Encodes a signed transaction to a base64 encoded string.
+   * Partially signs a transaction with the passed account.
    *
-   * @param signedTransaction - The signed transaction to encode.
-   * @returns The base64 encoded signed transaction.
+   * @param transaction - The transaction to partially sign.
+   * @param account - The account to partially sign the transaction with.
+   * @returns The partially signed transaction.
    */
-  async encodeSignedTransactionToBase64(
-    signedTransaction: Readonly<Transaction & TransactionWithLifetime>,
-  ): Promise<string> {
-    const signedTransactionBytes =
-      getTransactionCodec().encode(signedTransaction);
+  async #partiallySignTransaction(
+    transaction: Transaction,
+    account: SolanaKeyringAccount,
+  ) {
+    const { privateKeyBytes } = await deriveSolanaKeypair({
+      index: account.index,
+    });
 
-    const signedTransactionBase64 = getBase64Codec().decode(
-      signedTransactionBytes,
+    const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
+
+    return partiallySignTransaction([keyPair], transaction);
+  }
+
+  /**
+   * Extracts the instructions from a base64 string, adapting the logic depending on whether
+   * the string represents a transaction or a transaction message.
+   *
+   * @param base64EncodedString - The base64 encoded string to extract the instructions from.
+   * @param scope - The network on which the transaction is being sent.
+   * @returns The instructions from the base64 encoded string.
+   * @throws If the base64 encoded string is not a valid transaction or transaction message.
+   */
+  async extractInstructionsFromUnknownBase64String(
+    base64EncodedString: Infer<typeof Base64Struct>,
+    scope: Network,
+  ): Promise<CompilableTransactionMessage['instructions']> {
+    const transactionOrTransactionMessage =
+      await fromUnknowBase64StringToTransactionOrTransactionMessage(
+        base64EncodedString,
+        this.#connection.getRpc(scope),
+      );
+
+    if ('instructions' in transactionOrTransactionMessage) {
+      return transactionOrTransactionMessage.instructions;
+    }
+
+    const transactionMessage = await fromBytesToCompilableTransactionMessage(
+      transactionOrTransactionMessage.messageBytes,
+      this.#connection.getRpc(scope),
     );
 
-    return signedTransactionBase64;
+    return transactionMessage.instructions;
   }
 }

@@ -66,7 +66,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
     );
 
     (
-      transactionHelper.getFeeFromTransactionInLamports as jest.Mock
+      transactionHelper.getFeeFromBase64StringInLamports as jest.Mock
     ).mockResolvedValue(5000);
 
     (getInterfaceContext as jest.Mock).mockResolvedValue(mockContext);

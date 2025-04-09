@@ -58,13 +58,14 @@ const buildTransactionMessage = async (context: SendContext) => {
     throw new Error('Unable to generate transaction message');
   }
 
-  const feeInLamports = await transactionHelper.getFeeFromTransactionInLamports(
-    transactionMessage,
-    scope,
-  );
-
   const base64EncodedTransactionMessage =
     await fromCompilableTransactionMessageToBase64String(transactionMessage);
+
+  const feeInLamports =
+    await transactionHelper.getFeeFromBase64StringInLamports(
+      base64EncodedTransactionMessage,
+      scope,
+    );
 
   return {
     feeInLamports,

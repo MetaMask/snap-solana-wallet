@@ -3,10 +3,8 @@ import type {
   CompilableTransactionMessage,
   GetMultipleAccountsApi,
   Rpc,
-  SignaturesMap,
   Transaction,
   TransactionMessageBytes,
-  TransactionWithLifetime,
 } from '@solana/kit';
 import {
   compileTransactionMessage,
@@ -90,7 +88,7 @@ export const fromBytesToCompilableTransactionMessage = async (
  * @returns The base64 encoded string.
  */
 export const fromTransactionToBase64String = async (
-  transaction: Readonly<Transaction & TransactionWithLifetime>,
+  transaction: Transaction,
 ): Promise<Infer<typeof Base64Struct>> =>
   pipe(transaction, getTransactionEncoder().encode, getBase64Decoder().decode);
 
@@ -107,12 +105,7 @@ export const fromTransactionToBase64String = async (
  */
 export const fromBase64StringToTransaction = async (
   base64String: Infer<typeof Base64Struct>,
-): Promise<
-  Readonly<{
-    messageBytes: TransactionMessageBytes;
-    signatures: SignaturesMap;
-  }>
-> =>
+): Promise<Transaction> =>
   pipe(base64String, getBase64Encoder().encode, getTransactionDecoder().decode);
 
 /**
@@ -125,16 +118,8 @@ export const fromBase64StringToTransaction = async (
 export const fromUnknowBase64StringToTransactionOrTransactionMessage = async (
   base64String: Infer<typeof Base64Struct>,
   rpc: Rpc<GetMultipleAccountsApi>,
-) =>
-  PromiseAny<
-    Readonly<
-      | {
-          messageBytes: TransactionMessageBytes;
-          signatures: SignaturesMap;
-        }
-      | CompilableTransactionMessage
-    >
-  >([
+): Promise<Transaction | CompilableTransactionMessage> =>
+  PromiseAny<Transaction | CompilableTransactionMessage>([
     fromBase64StringToTransaction(base64String),
     fromBase64StringToCompilableTransactionMessage(base64String, rpc),
   ]);

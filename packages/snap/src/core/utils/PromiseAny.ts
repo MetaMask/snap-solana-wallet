@@ -6,7 +6,9 @@
  * @param promises - The promises to resolve.
  * @returns A promise that resolves to the first resolved promise.
  */
-export const PromiseAny = async <TReturn>(promises: Promise<TReturn>[]) => {
+export const PromiseAny = async <TReturn>(
+  promises: Promise<TReturn>[],
+): Promise<TReturn> => {
   return new Promise<TReturn>((resolve, reject) => {
     if (promises.length === 0) {
       reject(new AggregateError([], 'No promises to resolve'));
