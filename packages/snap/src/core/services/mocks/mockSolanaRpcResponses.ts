@@ -66,7 +66,7 @@ export const MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE = {
   jsonrpc: '2.0',
   result: {
     signature:
-      '3Avy1mZnwzwmo3EqhxXkHfuzGfMhfvw8tqkoNimgJWhrFEpoNzmUdPFx79VKJTo4XPfkepmoD5qvmhMFDX24tstq',
+      '5UAxPVH9V3BZYzZVX17Aw7kB7h3biM3oWL75j4BtoPpDUsdyrzjPMqanpGwEPpodWjXce63571DZVWz3AZTtmotn',
   },
   id: '0',
 };

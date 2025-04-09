@@ -3,14 +3,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 import {
-  decompileTransactionMessageFetchingLookupTables,
-  getCompiledTransactionMessageDecoder,
   getSignatureFromTransaction,
   isTransactionMessageWithBlockhashLifetime,
-  pipe,
 } from '@solana/kit';
 
 import { Network } from '../../constants/solana';
+import { fromBytesToCompilableTransactionMessage } from '../../sdk-extensions/codecs';
 import {
   isTransactionMessageWithComputeUnitLimitInstruction,
   isTransactionMessageWithComputeUnitPriceInstruction,
@@ -227,15 +225,11 @@ describe('TransactionHelper', () => {
           fromAccount,
           scope,
         );
-        const transactionMessageAfterSigning = await pipe(
-          messageBytes,
-          getCompiledTransactionMessageDecoder().decode,
-          async (decodedMessageBytes) =>
-            decompileTransactionMessageFetchingLookupTables(
-              decodedMessageBytes,
-              mockConnection.getRpc(scope),
-            ),
-        );
+        const transactionMessageAfterSigning =
+          await fromBytesToCompilableTransactionMessage(
+            messageBytes,
+            mockConnection.getRpc(scope),
+          );
 
         expect(
           isTransactionMessageWithFeePayer(transactionMessageAfterSigning),

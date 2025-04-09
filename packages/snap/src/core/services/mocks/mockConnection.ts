@@ -97,6 +97,11 @@ const createMockGetTokenAccountsByOwner = () =>
       ),
   });
 
+const createMockGetMultipleAccounts = () =>
+  jest.fn().mockReturnValue({
+    send: jest.fn().mockResolvedValue({ value: [] }),
+  });
+
 const createMockGetRpc = () =>
   jest.fn().mockReturnValue({
     getBalance: createMockGetBalance(),
@@ -105,6 +110,7 @@ const createMockGetRpc = () =>
     sendTransaction: createMockSendTransaction(),
     getSignaturesForAddress: createMockGetSignaturesForAddress(),
     getTransaction: createMockGetTransaction(),
+    getMultipleAccounts: createMockGetMultipleAccounts(),
   });
 
 export const createMockConnection = (): SolanaConnection =>
