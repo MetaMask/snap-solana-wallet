@@ -45,7 +45,13 @@ export const onTransactionFinalized: OnCronjobHandler = async ({ request }) => {
     // Identify accounts that are involved in the transaction. We will perform refreshes for these specifically
     const fromAddresses = transaction.from.map((from) => from.address);
     const toAddresses = transaction.to.map((to) => to.address);
-    const toAndFromAddresses = [...fromAddresses, ...toAddresses];
+    const toAndFromAddresses = [
+      // The account that triggered the cronjob
+      account.address,
+      // The accounts that are involved in the transaction
+      ...fromAddresses,
+      ...toAddresses,
+    ];
     const accountsChanged = allAccounts.filter((item) =>
       toAndFromAddresses.includes(item.address),
     );
