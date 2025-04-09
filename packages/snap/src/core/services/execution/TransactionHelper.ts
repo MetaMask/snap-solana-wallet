@@ -31,8 +31,8 @@ import {
   fromUnknowBase64StringToTransactionOrTransactionMessage,
 } from '../../sdk-extensions/codecs';
 import {
-  isTransactionMessageWithComputeUnitLimitInstruction,
-  setComputeUnitLimitInstructionIfMissing,
+  estimateAndOverrideComputeUnitLimit,
+  isTransactionMessageWithComputeUnitPriceInstruction,
   setComputeUnitPriceInstructionIfMissing,
   setTransactionMessageFeePayerIfMissing,
   setTransactionMessageLifetimeUsingBlockhashIfMissing,
@@ -59,9 +59,7 @@ export class TransactionHelper {
 
   readonly #logger: ILogger;
 
-  static readonly defaultComputeUnitLimit = 200000;
-
-  static readonly defaultComputeUnitPriceInMicroLamportsPerComputeUnit = 1000n;
+  static readonly defaultComputeUnitPriceInMicroLamportsPerComputeUnit = 10000n;
 
   constructor(connection: SolanaConnection, logger: ILogger) {
     this.#connection = connection;
@@ -145,7 +143,7 @@ export class TransactionHelper {
         );
 
       /**
-       * If the transactionOrTransactionMessage is a transaction message, we can return the base64 string directly.
+       * If it's a transaction message, we can return the base64 string directly.
        * Otherwise, it's a transaction, so we need to recover the message bytes from the transaction and then convert bytes to a base64 string.
        */
       const base64EncodedTransactionMessage =
@@ -223,6 +221,7 @@ export class TransactionHelper {
 
   /**
    * Returns minimum balance required to make account rent exempt.
+   *
    * @param network - The network on which the transaction is being sent.
    * @param accountSize - The Account's data length.
    * @param config - The configuration for the request.
@@ -261,11 +260,13 @@ export class TransactionHelper {
     account: SolanaKeyringAccount,
     network: Network,
   ): Promise<Transaction> {
+    const rpc = this.#connection.getRpc(network);
+
     // The received base64 string can either represent a transaction or a transaction message.
     const transactionMessageOrTransaction =
       await fromUnknowBase64StringToTransactionOrTransactionMessage(
         base64String,
-        this.#connection.getRpc(network),
+        rpc,
       );
 
     // It's a transaction message, add all missing fields, then partially sign it.
@@ -286,10 +287,7 @@ export class TransactionHelper {
       const { messageBytes } = transactionMessageOrTransaction;
 
       const transactionMessageFromUnsignedTransaction =
-        await fromBytesToCompilableTransactionMessage(
-          messageBytes,
-          this.#connection.getRpc(network),
-        );
+        await fromBytesToCompilableTransactionMessage(messageBytes, rpc);
 
       return this.#prepareAndPartiallySignTransactionMessage(
         transactionMessageFromUnsignedTransaction,
@@ -330,7 +328,7 @@ export class TransactionHelper {
       privateKeyBytes,
     );
 
-    // First, make sure the transaction message has a fee payer and a lifetime constraint
+    // First, make sure the transaction message has a fee payer, lifetime constraint and compute unit price
     const hasLifetimeConstraint =
       isTransactionMessageWithBlockhashLifetime(transactionMessage);
 
@@ -338,40 +336,35 @@ export class TransactionHelper {
       ? transactionMessage.lifetimeConstraint // Use any value, it won't be used
       : await this.getLatestBlockhash(scope);
 
-    const compilableTransactionMessage = pipe(
-      transactionMessage,
-      (tx) => setTransactionMessageFeePayerIfMissing(signer.address, tx),
-      (tx) =>
-        setTransactionMessageLifetimeUsingBlockhashIfMissing(blockhash, tx),
-    );
-
-    // Then, make sure the transaction message has a compute unit limit and a compute unit price
-    const hasComputeUnitLimit =
-      isTransactionMessageWithComputeUnitLimitInstruction(transactionMessage);
-
-    const units = hasComputeUnitLimit
-      ? TransactionHelper.defaultComputeUnitLimit // Use any value, it won't be used
-      : await this.getComputeUnitEstimate(
-          compilableTransactionMessage,
-          scope,
-        ).catch((error) => {
-          this.#logger.warn(error);
-          return TransactionHelper.defaultComputeUnitLimit;
-        });
+    const hadComputeUnitPrice =
+      isTransactionMessageWithComputeUnitPriceInstruction(transactionMessage);
 
     const microLamports =
       TransactionHelper.defaultComputeUnitPriceInMicroLamportsPerComputeUnit;
 
-    const budgetedTransactionMessage = pipe(
-      compilableTransactionMessage,
-      (tx) => setComputeUnitLimitInstructionIfMissing(tx, { units }),
-      (tx) => setComputeUnitPriceInstructionIfMissing(tx, { microLamports }),
+    const compilableTransactionMessage = await pipe(
+      transactionMessage,
+      (tx) => setTransactionMessageFeePayerIfMissing(signer.address, tx),
+      (tx) =>
+        setTransactionMessageLifetimeUsingBlockhashIfMissing(blockhash, tx),
+      (tx) =>
+        setComputeUnitPriceInstructionIfMissing(tx, {
+          microLamports,
+        }),
+      // If the transaction message had no compute unit price, we just added one, so we need to recompute the compute unit limit
+      async (tx) =>
+        hadComputeUnitPrice
+          ? tx
+          : estimateAndOverrideComputeUnitLimit(
+              tx,
+              this.#connection.getRpc(scope),
+            ),
     );
 
     // Attach the signers to the transaction message
     const transactionMessageWithSigners = addSignersToTransactionMessage(
       [signer],
-      budgetedTransactionMessage,
+      compilableTransactionMessage,
     );
 
     /**
@@ -423,10 +416,12 @@ export class TransactionHelper {
     base64EncodedString: Infer<typeof Base64Struct>,
     scope: Network,
   ): Promise<CompilableTransactionMessage['instructions']> {
+    const rpc = this.#connection.getRpc(scope);
+
     const transactionOrTransactionMessage =
       await fromUnknowBase64StringToTransactionOrTransactionMessage(
         base64EncodedString,
-        this.#connection.getRpc(scope),
+        rpc,
       );
 
     if ('instructions' in transactionOrTransactionMessage) {
@@ -435,7 +430,7 @@ export class TransactionHelper {
 
     const transactionMessage = await fromBytesToCompilableTransactionMessage(
       transactionOrTransactionMessage.messageBytes,
-      this.#connection.getRpc(scope),
+      rpc,
     );
 
     return transactionMessage.instructions;

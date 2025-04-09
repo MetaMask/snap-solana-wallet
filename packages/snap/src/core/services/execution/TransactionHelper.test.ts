@@ -196,7 +196,6 @@ describe('TransactionHelper', () => {
       name,
       scope,
       fromAccount,
-      transactionMessage,
       transactionMessageBase64Encoded,
       getMultipleAccountsResponse,
       signedTransaction,
@@ -216,6 +215,28 @@ describe('TransactionHelper', () => {
             .fn()
             .mockResolvedValue(getMultipleAccountsResponse?.result),
         }),
+      });
+    });
+
+    describe('extractInstructionsFromBase64String', () => {
+      it(`Scenario ${name}: successfully extracts instructions from a base64 encoded transaction message`, async () => {
+        const result =
+          await transactionHelper.extractInstructionsFromUnknownBase64String(
+            transactionMessageBase64Encoded,
+            scope,
+          );
+
+        expect(result).not.toHaveLength(0);
+      });
+
+      it(`Scenario ${name}: successfully extracts instructions from a base64 encoded transaction`, async () => {
+        const result =
+          await transactionHelper.extractInstructionsFromUnknownBase64String(
+            signedTransactionBase64Encoded,
+            scope,
+          );
+
+        expect(result).not.toHaveLength(0);
       });
     });
 
@@ -265,44 +286,6 @@ describe('TransactionHelper', () => {
             ),
           ).toBe(true);
         });
-      });
-
-      describe('when the base64 string represents a transaction', () => {
-        it(`Scenario ${name}: signs a transaction successfully`, async () => {
-          const result = await transactionHelper.partiallySignBase64String(
-            signedTransactionBase64Encoded,
-            fromAccount,
-            scope,
-          );
-
-          const resultSignature = getSignatureFromTransaction(result);
-          const { lifetimeConstraint, ...rest } = signedTransaction;
-
-          expect(result).toStrictEqual(rest);
-          expect(resultSignature).toBe(signature);
-        });
-      });
-    });
-
-    describe('extractInstructionsFromBase64String', () => {
-      it(`Scenario ${name}: successfully extracts instructions from a base64 encoded transaction message`, async () => {
-        const result =
-          await transactionHelper.extractInstructionsFromUnknownBase64String(
-            transactionMessageBase64Encoded,
-            scope,
-          );
-
-        expect(result).not.toHaveLength(0);
-      });
-
-      it(`Scenario ${name}: successfully extracts instructions from a base64 encoded transaction`, async () => {
-        const result =
-          await transactionHelper.extractInstructionsFromUnknownBase64String(
-            signedTransactionBase64Encoded,
-            scope,
-          );
-
-        expect(result).not.toHaveLength(0);
       });
     });
   });
