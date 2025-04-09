@@ -39,7 +39,7 @@ import {
   setComputeUnitPriceInstructionIfMissing,
   setTransactionMessageFeePayerIfMissing,
   setTransactionMessageLifetimeUsingBlockhashIfMissing,
-} from '../../sdk/extensions';
+} from '../../sdk-extensions/transaction-messages';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import type { ILogger } from '../../utils/logger';
 import { PromiseAny } from '../../utils/PromiseAny';

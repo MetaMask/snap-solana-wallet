@@ -10,9 +10,9 @@ import {
   setComputeUnitPriceInstructionIfMissing,
   setTransactionMessageFeePayerIfMissing,
   setTransactionMessageLifetimeUsingBlockhashIfMissing,
-} from './extensions';
+} from './transaction-messages';
 
-describe('extensions', () => {
+describe('transaction-messages', () => {
   describe('isTransactionMessageWithFeePayer', () => {
     it('returns true if the transaction message has a fee payer', () => {
       const transactionMessage = {

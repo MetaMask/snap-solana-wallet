@@ -2,9 +2,20 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { getSignatureFromTransaction } from '@solana/kit';
+import {
+  decompileTransactionMessageFetchingLookupTables,
+  getCompiledTransactionMessageDecoder,
+  getSignatureFromTransaction,
+  isTransactionMessageWithBlockhashLifetime,
+  pipe,
+} from '@solana/kit';
 
 import { Network } from '../../constants/solana';
+import {
+  isTransactionMessageWithComputeUnitLimitInstruction,
+  isTransactionMessageWithComputeUnitPriceInstruction,
+  isTransactionMessageWithFeePayer,
+} from '../../sdk-extensions/transaction-messages';
 import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
@@ -208,6 +219,42 @@ describe('TransactionHelper', () => {
 
         expect(result).toStrictEqual(signedTransaction);
         expect(resultSignature).toBe(signature);
+      });
+
+      it(`Scenario ${name}: adds if missing a fee payer, a lifetimeConstraint, a compute unit limit and a compute unit price`, async () => {
+        const { messageBytes } = await transactionHelper.signTransactionMessage(
+          transactionMessage,
+          fromAccount,
+          scope,
+        );
+        const transactionMessageAfterSigning = await pipe(
+          messageBytes,
+          getCompiledTransactionMessageDecoder().decode,
+          async (decodedMessageBytes) =>
+            decompileTransactionMessageFetchingLookupTables(
+              decodedMessageBytes,
+              mockConnection.getRpc(scope),
+            ),
+        );
+
+        expect(
+          isTransactionMessageWithFeePayer(transactionMessageAfterSigning),
+        ).toBe(true);
+        expect(
+          isTransactionMessageWithBlockhashLifetime(
+            transactionMessageAfterSigning,
+          ),
+        ).toBe(true);
+        expect(
+          isTransactionMessageWithComputeUnitLimitInstruction(
+            transactionMessageAfterSigning,
+          ),
+        ).toBe(true);
+        expect(
+          isTransactionMessageWithComputeUnitPriceInstruction(
+            transactionMessageAfterSigning,
+          ),
+        ).toBe(true);
       });
     });
 
