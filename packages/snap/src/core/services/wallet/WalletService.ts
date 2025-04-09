@@ -219,6 +219,7 @@ export class WalletService {
 
     await sendTransactionWithoutConfirming(partiallySignedTransaction, {
       commitment: 'confirmed',
+      skipPreflight: true,
     });
 
     // Trigger the side effects that need to happen when the transaction is submitted

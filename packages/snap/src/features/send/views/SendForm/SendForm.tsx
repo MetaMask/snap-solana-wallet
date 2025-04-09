@@ -98,7 +98,7 @@ export const SendForm = ({ context }: SendFormProps) => {
     isTransactionMessageSuccessfullyBuild;
 
   return (
-    <Container>
+    <Container backgroundColor="alternative">
       <Box>
         <Navigation
           title={translate('send.title')}
