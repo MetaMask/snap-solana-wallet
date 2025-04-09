@@ -22,7 +22,7 @@ export const TransactionSuccess = ({ context }: TransactionSuccessProps) => {
   const tokenAmount = getTokenAmount(context);
 
   return (
-    <Container backgroundColor="alternative">
+    <Container>
       <Box>
         <Box>{null}</Box>
         <ActionHeader

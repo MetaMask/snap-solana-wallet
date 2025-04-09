@@ -39,7 +39,7 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
   const addressCaip10 = addressToCaip10(scope, address);
 
   return (
-    <Container backgroundColor="alternative">
+    <Container>
       <Box>
         <Box alignment="center" center>
           <Box>{null}</Box>

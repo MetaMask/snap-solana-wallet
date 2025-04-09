@@ -45,7 +45,7 @@ export const TransactionConfirmation = ({
         );
 
   return (
-    <Container backgroundColor="alternative">
+    <Container>
       <Box>
         <Navigation
           title={translate('send.confirmation.title')}
