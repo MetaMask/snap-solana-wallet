@@ -7,12 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.0]
+
+### Uncategorized
+
+- chore: bump keyring api + map unknown tx type ([#292](https://github.com/MetaMask/snap-solana-wallet/pull/292))
+- Sol 252 snap priority fee automatic compute budget instructions ([#290](https://github.com/MetaMask/snap-solana-wallet/pull/290))
+- chore: remove alternative background for confirmation ([#289](https://github.com/MetaMask/snap-solana-wallet/pull/289))
+- refactor: alternative background on dialogs ([#288](https://github.com/MetaMask/snap-solana-wallet/pull/288))
+- fix: transaction skip preflight ([#287](https://github.com/MetaMask/snap-solana-wallet/pull/287))
+- chore: improve error message for account creation ([#286](https://github.com/MetaMask/snap-solana-wallet/pull/286))
+- fix: transfers using the `TransferChecked` don't map correctly ([#280](https://github.com/MetaMask/snap-solana-wallet/pull/280))
+- feat: include market data when fetching spot prices ([#272](https://github.com/MetaMask/snap-solana-wallet/pull/272))
+
 ## [1.18.1]
-
-### Fixed
-
-- `getLowestUnusedIndex` should consider SRPs in the check ([#282](https://github.com/MetaMask/snap-solana-wallet/pull/282))
-- Prevent rounding errors during validation of amount ([#281](https://github.com/MetaMask/snap-solana-wallet/pull/281))
 
 ### Changed
 
@@ -21,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Remove the unnecessary `PositiveNumberStruct` ([#278](https://github.com/MetaMask/snap-solana-wallet/pull/278))
+
+### Fixed
+
+- `getLowestUnusedIndex` should consider SRPs in the check ([#282](https://github.com/MetaMask/snap-solana-wallet/pull/282))
+- Prevent rounding errors during validation of amount ([#281](https://github.com/MetaMask/snap-solana-wallet/pull/281))
 
 ## [1.18.0]
 
@@ -383,7 +396,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.19.0...HEAD
+[1.19.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...v1.19.0
 [1.18.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...v1.18.1
 [1.18.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.17.0...v1.18.0
 [1.17.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.16.1...v1.17.0
