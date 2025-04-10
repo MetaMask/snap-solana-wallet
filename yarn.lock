@@ -4176,15 +4176,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:17.4.0, @metamask/keyring-api@npm:^17.4.0":
-  version: 17.4.0
-  resolution: "@metamask/keyring-api@npm:17.4.0"
+"@metamask/keyring-api@npm:17.5.0, @metamask/keyring-api@npm:^17.4.0":
+  version: 17.5.0
+  resolution: "@metamask/keyring-api@npm:17.5.0"
   dependencies:
     "@metamask/keyring-utils": ^3.0.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.1.0
     bech32: ^2.0.0
-  checksum: 97c23b8a4c1d583ca511f9edaacbb1c87bbe74416f922d72129dba7ab8e681dd11a858fcca390ddd2bff31bbb10c7f44fb10543cc903b1db5e434c0bc1ca4889
+  checksum: 68e496ea72a6b231c21688084cf90a052113e88e31405839d5ba4389e10b519542533827220925a43d1955ecf2ead9ee9783c5432a11bc5e4af38c272b50cbd1
   languageName: node
   linkType: hard
 
@@ -4713,7 +4713,7 @@ __metadata:
     "@jest/globals": ^29.5.0
     "@metamask/auto-changelog": 4.0.0
     "@metamask/key-tree": 9.1.2
-    "@metamask/keyring-api": 17.4.0
+    "@metamask/keyring-api": 17.5.0
     "@metamask/keyring-snap-sdk": 3.2.0
     "@metamask/snaps-cli": 6.5.1
     "@metamask/snaps-jest": 8.12.0
