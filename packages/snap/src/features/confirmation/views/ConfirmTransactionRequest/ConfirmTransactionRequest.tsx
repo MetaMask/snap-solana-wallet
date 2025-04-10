@@ -4,7 +4,6 @@ import {
   Container,
   Footer,
   Heading,
-  type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
 import { Networks } from '../../../../core/constants/solana';
@@ -16,9 +15,11 @@ import { TransactionDetails } from '../../components/TransactionDetails/Transact
 import { ConfirmSignAndSendTransactionFormNames } from './events';
 import { type ConfirmTransactionRequestContext } from './types';
 
-export const ConfirmTransactionRequest: SnapComponent<{
+export const ConfirmTransactionRequest = ({
+  context,
+}: {
   context: ConfirmTransactionRequestContext;
-}> = ({ context }) => {
+}) => {
   const translate = i18n(context.preferences.locale);
 
   const feeInSol = context.feeEstimatedInSol;

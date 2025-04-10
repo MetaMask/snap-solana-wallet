@@ -1,21 +1,15 @@
 /* eslint-disable no-restricted-globals */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
-import { CaipAssetTypeStruct, JsonStruct } from '@metamask/utils';
-import { mapValues } from 'lodash';
+import { CaipAssetTypeStruct } from '@metamask/utils';
 
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
-import { safeMerge } from '../../utils/safeMerge';
 import { UrlStruct } from '../../validation/structs';
 import type { SpotPrices, VsCurrencyParam } from './structs';
-import {
-  SPOT_PRICE_NULL_OBJECT,
-  SpotPricesStruct,
-  VsCurrencyParamStruct,
-} from './structs';
+import { SpotPricesStruct, VsCurrencyParamStruct } from './structs';
 import type { ExchangeRate, FiatTicker } from './types';
 
 export class PriceApiClient {
@@ -97,9 +91,9 @@ export class PriceApiClient {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          const spotPricesResponse = await response.json();
+          const spotPrices = await response.json();
+          assert(spotPrices, SpotPricesStruct);
 
-          const spotPrices = this.#sanitizeSpotPrices(spotPricesResponse);
           return spotPrices;
         }),
       );
@@ -110,19 +104,5 @@ export class PriceApiClient {
       this.#logger.error(error, 'Error fetching spot prices');
       throw error;
     }
-  }
-
-  #sanitizeSpotPrices(spotPricesResponse: object): SpotPrices {
-    /**
-     * Merge every spot price with the null object to ensure that we have the returned object is assignable to `Json` by having no undefined values, only nulls.
-     * This is important because the spot prices are then stored in a component context, that requires the object to be serializable to JSON.
-     */
-    const withNulls = mapValues(spotPricesResponse, (spotPrice) =>
-      spotPrice ? safeMerge(SPOT_PRICE_NULL_OBJECT, spotPrice) : null,
-    );
-
-    assert(withNulls, SpotPricesStruct);
-    assert(withNulls, JsonStruct);
-    return withNulls;
   }
 }

@@ -6,6 +6,7 @@ import {
   nullable,
   number,
   object,
+  optional,
   record,
   string,
 } from '@metamask/superstruct';
@@ -17,63 +18,36 @@ import { PercentNumberStruct } from '../../validation/structs';
  * The structure of the spot price response from the Price API as described in
  * [this file](https://github.com/consensys-vertical-apps/va-mmcx-price-api/blob/main/src/types/price.ts#L46-L71).
  *
- * For safety, most fields are marked nullable even though it goes against the type in the Price API source code.
+ * For safety, most fields are marked optional and nullable even though it goes against the type in the Price API source code.
  */
 export const SpotPriceStruct = object({
   id: string(),
   price: min(number(), 0),
   marketCap: min(number(), 0),
-  allTimeHigh: nullable(min(number(), 0)),
-  allTimeLow: nullable(min(number(), 0)),
-  totalVolume: nullable(min(number(), 0)),
-  high1d: nullable(min(number(), 0)),
-  low1d: nullable(min(number(), 0)),
-  circulatingSupply: nullable(min(number(), 0)),
-  dilutedMarketCap: nullable(min(number(), 0)),
-  marketCapPercentChange1d: nullable(PercentNumberStruct),
-  priceChange1d: nullable(number()),
-  pricePercentChange1h: nullable(PercentNumberStruct),
-  pricePercentChange1d: nullable(PercentNumberStruct),
-  pricePercentChange7d: nullable(PercentNumberStruct),
-  pricePercentChange14d: nullable(PercentNumberStruct),
-  pricePercentChange30d: nullable(PercentNumberStruct),
-  pricePercentChange200d: nullable(PercentNumberStruct),
-  pricePercentChange1y: nullable(PercentNumberStruct),
-  bondingCurveProgressPercent: nullable(number()),
-  liquidity: nullable(number()),
-  totalSupply: nullable(number()),
-  holderCount: nullable(number()),
-  isMutable: nullable(boolean()),
+  allTimeHigh: optional(nullable(min(number(), 0))),
+  allTimeLow: optional(nullable(min(number(), 0))),
+  totalVolume: optional(nullable(min(number(), 0))),
+  high1d: optional(nullable(min(number(), 0))),
+  low1d: optional(nullable(min(number(), 0))),
+  circulatingSupply: optional(nullable(min(number(), 0))),
+  dilutedMarketCap: optional(nullable(min(number(), 0))),
+  marketCapPercentChange1d: optional(nullable(PercentNumberStruct)),
+  priceChange1d: optional(nullable(number())),
+  pricePercentChange1h: optional(nullable(PercentNumberStruct)),
+  pricePercentChange1d: optional(nullable(PercentNumberStruct)),
+  pricePercentChange7d: optional(nullable(PercentNumberStruct)),
+  pricePercentChange14d: optional(nullable(PercentNumberStruct)),
+  pricePercentChange30d: optional(nullable(PercentNumberStruct)),
+  pricePercentChange200d: optional(nullable(PercentNumberStruct)),
+  pricePercentChange1y: optional(nullable(PercentNumberStruct)),
+  bondingCurveProgressPercent: optional(nullable(number())),
+  liquidity: optional(nullable(number())),
+  totalSupply: optional(nullable(number())),
+  holderCount: optional(nullable(number())),
+  isMutable: optional(nullable(boolean())),
 });
 
 export type SpotPrice = Infer<typeof SpotPriceStruct>;
-
-export const SPOT_PRICE_NULL_OBJECT: SpotPrice = {
-  id: '',
-  price: 0,
-  marketCap: 0,
-  allTimeHigh: null,
-  allTimeLow: null,
-  totalVolume: null,
-  high1d: null,
-  low1d: null,
-  circulatingSupply: null,
-  dilutedMarketCap: null,
-  marketCapPercentChange1d: null,
-  priceChange1d: null,
-  pricePercentChange1h: null,
-  pricePercentChange1d: null,
-  pricePercentChange7d: null,
-  pricePercentChange14d: null,
-  pricePercentChange30d: null,
-  pricePercentChange200d: null,
-  pricePercentChange1y: null,
-  bondingCurveProgressPercent: null,
-  liquidity: null,
-  totalSupply: null,
-  holderCount: null,
-  isMutable: null,
-};
 
 /**
  * @example

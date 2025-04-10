@@ -175,14 +175,17 @@ export class TokenPricesService {
       'pricePercentChange1y',
     ]);
 
-    const toCurrency = (value: number | null): string => {
-      return value === null
+    const toCurrency = (value: number | null | undefined): string => {
+      return value === null || value === undefined
         ? ''
         : new BigNumber(value).dividedBy(rate).toString();
     };
 
-    const includeIfNotNull = (key: string, value: number | null) => {
-      return value === null ? {} : { [key]: value };
+    const includeIfDefined = (
+      key: string,
+      value: number | null | undefined,
+    ) => {
+      return value === null || value === undefined ? {} : { [key]: value };
     };
 
     const marketDataInToCurrency = {
@@ -193,13 +196,13 @@ export class TokenPricesService {
       allTimeLow: toCurrency(marketDataInUsd.allTimeLow),
       // Variations in percent don't need to be converted, they are independent of the currency
       pricePercentChange: {
-        ...includeIfNotNull('PT1H', marketDataInUsd.pricePercentChange1h),
-        ...includeIfNotNull('P1D', marketDataInUsd.pricePercentChange1d),
-        ...includeIfNotNull('P7D', marketDataInUsd.pricePercentChange7d),
-        ...includeIfNotNull('P14D', marketDataInUsd.pricePercentChange14d),
-        ...includeIfNotNull('P30D', marketDataInUsd.pricePercentChange30d),
-        ...includeIfNotNull('P200D', marketDataInUsd.pricePercentChange200d),
-        ...includeIfNotNull('P1Y', marketDataInUsd.pricePercentChange1y),
+        ...includeIfDefined('PT1H', marketDataInUsd.pricePercentChange1h),
+        ...includeIfDefined('P1D', marketDataInUsd.pricePercentChange1d),
+        ...includeIfDefined('P7D', marketDataInUsd.pricePercentChange7d),
+        ...includeIfDefined('P14D', marketDataInUsd.pricePercentChange14d),
+        ...includeIfDefined('P30D', marketDataInUsd.pricePercentChange30d),
+        ...includeIfDefined('P200D', marketDataInUsd.pricePercentChange200d),
+        ...includeIfDefined('P1Y', marketDataInUsd.pricePercentChange1y),
       },
     };
 
