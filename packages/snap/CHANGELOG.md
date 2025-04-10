@@ -9,16 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.19.0]
 
-### Uncategorized
+### Added
 
-- chore: bump keyring api + map unknown tx type ([#292](https://github.com/MetaMask/snap-solana-wallet/pull/292))
-- Sol 252 snap priority fee automatic compute budget instructions ([#290](https://github.com/MetaMask/snap-solana-wallet/pull/290))
-- chore: remove alternative background for confirmation ([#289](https://github.com/MetaMask/snap-solana-wallet/pull/289))
-- refactor: alternative background on dialogs ([#288](https://github.com/MetaMask/snap-solana-wallet/pull/288))
-- fix: transaction skip preflight ([#287](https://github.com/MetaMask/snap-solana-wallet/pull/287))
-- chore: improve error message for account creation ([#286](https://github.com/MetaMask/snap-solana-wallet/pull/286))
-- fix: transfers using the `TransferChecked` don't map correctly ([#280](https://github.com/MetaMask/snap-solana-wallet/pull/280))
-- feat: include market data when fetching spot prices ([#272](https://github.com/MetaMask/snap-solana-wallet/pull/272))
+- Automatically add priority fee and compute budget instructions ([#290](https://github.com/MetaMask/snap-solana-wallet/pull/290), [#288](https://github.com/MetaMask/snap-solana-wallet/pull/288))
+- Map `TransferChecked` ([#280](https://github.com/MetaMask/snap-solana-wallet/pull/280))
+- Include market data when fetching spot prices ([#272](https://github.com/MetaMask/snap-solana-wallet/pull/272))
+
+### Changed
+
+- Bump keyring api + map unknown tx type ([#292](https://github.com/MetaMask/snap-solana-wallet/pull/292))
+- Alternative background in SendForm ([#289](https://github.com/MetaMask/snap-solana-wallet/pull/289))
+- Transaction `skipPreflight` ([#287](https://github.com/MetaMask/snap-solana-wallet/pull/287))
+
+### Fixed
+
+- Error message for account creation ([#286](https://github.com/MetaMask/snap-solana-wallet/pull/286))
 
 ## [1.18.1]
 

@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.19.0]
 
-### Uncategorized
+### Added
 
-- feat: include market data when fetching spot prices ([#272](https://github.com/MetaMask/snap-solana-wallet/pull/272))
+- Include market data when fetching spot prices ([#272](https://github.com/MetaMask/snap-solana-wallet/pull/272))
 
 ## [1.18.1]
 
