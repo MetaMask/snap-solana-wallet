@@ -1,4 +1,3 @@
-import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 import {
   Address,
   Box,
@@ -22,9 +21,7 @@ export type TransactionDetailsProps = {
   context: SendContext;
 };
 
-export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
-  context,
-}) => {
+export const TransactionDetails = ({ context }: TransactionDetailsProps) => {
   const {
     scope,
     fromAccountId,

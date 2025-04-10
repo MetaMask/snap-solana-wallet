@@ -1,8 +1,6 @@
 import type {
-  ComponentOrElement,
   DialogResult,
   GetClientStatusResult,
-  GetInterfaceContextResult,
   GetInterfaceStateResult,
   Json,
   ResolveInterfaceResult,
@@ -10,6 +8,8 @@ import type {
 } from '@metamask/snaps-sdk';
 
 import type { ScheduleBackgroundEventMethod } from '../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
+import { deserialize } from '../serialization/deserialize';
+import { serialize } from '../serialization/serialize';
 import type { Preferences } from '../types/snap';
 
 export const SEND_FORM_INTERFACE_NAME = 'send-form';
@@ -25,15 +25,16 @@ export const CONFIRM_SIGN_IN_INTERFACE_NAME = 'confirm-sign-in';
  * @param context - The context for the interface.
  * @returns A promise that resolves to a string.
  */
-export async function createInterface(
-  ui: ComponentOrElement,
-  context: Record<string, Json>,
+export async function createInterface<TContext extends object>(
+  ui: any,
+  context: TContext,
 ): Promise<string> {
+  const serializedContext = serialize(context);
   return snap.request({
     method: 'snap_createInterface',
     params: {
       ui,
-      context,
+      context: serializedContext,
     },
   });
 }
@@ -46,17 +47,18 @@ export async function createInterface(
  * @param context - The context for the interface.
  * @returns A promise that resolves to a string.
  */
-export async function updateInterface(
+export async function updateInterface<TContext extends object>(
   id: string,
-  ui: ComponentOrElement,
-  context: Record<string, Json>,
+  ui: any,
+  context: TContext,
 ): Promise<UpdateInterfaceResult> {
+  const serializedContext = serialize(context);
   return snap.request({
     method: 'snap_updateInterface',
     params: {
       id,
       ui,
-      context,
+      context: serializedContext,
     },
   });
 }
@@ -130,15 +132,21 @@ export async function getPreferences(): Promise<Preferences> {
  * @param interfaceId - The ID for the interface to retrieve the context.
  * @returns An object containing the context of the interface.
  */
-export async function getInterfaceContext(
+export async function getInterfaceContext<TContext extends object>(
   interfaceId: string,
-): Promise<GetInterfaceContextResult> {
-  return await snap.request({
+): Promise<TContext | null> {
+  const rawContext = await snap.request({
     method: 'snap_getInterfaceContext',
     params: {
       id: interfaceId,
     },
   });
+
+  if (!rawContext) {
+    return null;
+  }
+
+  return deserialize<TContext>(rawContext);
 }
 
 /**

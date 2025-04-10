@@ -1,5 +1,3 @@
-import type { SnapComponent } from '@metamask/snaps-sdk/dist/jsx/component.cjs';
-
 import type { SendContext, SendFlowStage } from './types';
 import { SendForm } from './views/SendForm/SendForm';
 import { SendPending } from './views/SendPending/SendPending';
@@ -16,7 +14,7 @@ export type SendProps = {
  */
 export const MapStageToComponent: Record<
   SendFlowStage,
-  SnapComponent<{ context: SendContext }>
+  ({ context }: SendProps) => JSX.Element
 > = {
   'send-form': SendForm,
   'transaction-confirmation': TransactionConfirmation,

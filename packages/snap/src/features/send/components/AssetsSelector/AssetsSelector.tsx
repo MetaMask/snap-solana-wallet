@@ -1,11 +1,5 @@
 import type { Balance } from '@metamask/keyring-api';
-import {
-  Card,
-  Field,
-  Selector,
-  SelectorOption,
-  type SnapComponent,
-} from '@metamask/snaps-sdk/jsx';
+import { Card, Field, Selector, SelectorOption } from '@metamask/snaps-sdk/jsx';
 
 import type { SolanaTokenMetadata } from '../../../../core/clients/token-metadata-client/types';
 import QUESTION_MARK_SVG from '../../../../core/img/question-mark.svg';
@@ -20,13 +14,13 @@ type AssetsSelectorProps = {
   tokenCaipId: string;
 };
 
-export const AssetSelector: SnapComponent<AssetsSelectorProps> = ({
+export const AssetSelector = ({
   selectedAccountId,
   balances,
   tokenMetadata,
   locale,
   tokenCaipId,
-}) => {
+}: AssetsSelectorProps) => {
   const translate = i18n(locale);
   const accountAssets = balances[selectedAccountId] ?? {};
 
