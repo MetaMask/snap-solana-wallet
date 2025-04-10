@@ -24,6 +24,7 @@ import {
 import type { Caip10Address, Network } from '../../constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
@@ -35,7 +36,6 @@ import {
   NetworkStruct,
 } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
-import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
 import type {
@@ -60,20 +60,16 @@ import {
 export class WalletService {
   readonly #connection: SolanaConnection;
 
-  readonly #fromBase64EncodedBuilder: FromBase64EncodedBuilder;
-
   readonly #transactionHelper: TransactionHelper;
 
   readonly #logger: ILogger;
 
   constructor(
     connection: SolanaConnection,
-    fromBase64EncodedBuilder: FromBase64EncodedBuilder,
     transactionHelper: TransactionHelper,
     _logger = logger,
   ) {
     this.#connection = connection;
-    this.#fromBase64EncodedBuilder = fromBase64EncodedBuilder;
     this.#transactionHelper = transactionHelper;
     this.#logger = _logger;
   }
@@ -143,6 +139,9 @@ export class WalletService {
   /**
    * Signs a transaction.
    *
+   * For a detailed visual representation of the transaction signing flow, see the
+   * [transaction signing flow diagram](./img/transaction-signing-flow.png).
+   *
    * @param account - The account to sign the transaction.
    * @param request - The request to sign a transaction.
    * @returns A Promise that resolves to the signed transaction.
@@ -157,22 +156,16 @@ export class WalletService {
 
     const { transaction, scope } = request.request.params;
 
-    const transactionMessage =
-      await this.#fromBase64EncodedBuilder.buildTransactionMessage(
+    const partiallySignedTransaction =
+      await this.#transactionHelper.partiallySignBase64String(
         transaction,
+        account,
         scope,
       );
 
-    const signedTransaction =
-      await this.#transactionHelper.signTransactionMessage(
-        transactionMessage,
-        account,
-      );
-
-    const signedTransactionBase64 =
-      await this.#transactionHelper.encodeSignedTransactionToBase64(
-        signedTransaction,
-      );
+    const signedTransactionBase64 = await fromTransactionToBase64String(
+      partiallySignedTransaction,
+    );
 
     const result = {
       signedTransaction: signedTransactionBase64,
@@ -203,19 +196,14 @@ export class WalletService {
       scope,
     } = request;
 
-    const transactionMessage =
-      await this.#fromBase64EncodedBuilder.buildTransactionMessage(
+    const partiallySignedTransaction =
+      await this.#transactionHelper.partiallySignBase64String(
         base64EncodedTransaction,
+        account,
         scope,
       );
 
-    const signedTransaction =
-      await this.#transactionHelper.signTransactionMessage(
-        transactionMessage,
-        account,
-      );
-
-    const signature = getSignatureFromTransaction(signedTransaction);
+    const signature = getSignatureFromTransaction(partiallySignedTransaction);
 
     const rpc = this.#connection.getRpc(scope);
 
@@ -227,9 +215,9 @@ export class WalletService {
     const explorerUrl = getSolanaExplorerUrl(scope, 'tx', signature);
     this.#logger.info(`Sending transaction: ${explorerUrl}`);
 
-    assertTransactionIsFullySigned(signedTransaction);
+    assertTransactionIsFullySigned(partiallySignedTransaction);
 
-    await sendTransactionWithoutConfirming(signedTransaction, {
+    await sendTransactionWithoutConfirming(partiallySignedTransaction, {
       commitment: 'confirmed',
       skipPreflight: true,
     });

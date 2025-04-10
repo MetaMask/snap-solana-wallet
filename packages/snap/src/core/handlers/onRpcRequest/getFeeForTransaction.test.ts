@@ -75,7 +75,7 @@ describe('getFeeForTransaction', () => {
     });
   });
 
-  it('returns an error if transaction cannot be dedcoded', async () => {
+  it('returns an error if transaction cannot be decoded', async () => {
     const { request } = await installSnap();
 
     const response = request({
@@ -94,7 +94,7 @@ describe('getFeeForTransaction', () => {
       notifications: [],
       response: {
         error: {
-          message: expect.stringMatching(/Solana error/u),
+          message: 'Internal JSON-RPC error.',
         },
       },
     });

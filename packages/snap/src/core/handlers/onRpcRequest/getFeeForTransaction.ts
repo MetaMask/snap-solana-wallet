@@ -1,4 +1,4 @@
-import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
+import { InternalError, type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
 import { transactionHelper } from '../../../snapContext';
@@ -16,23 +16,22 @@ export const getFeeForTransaction: OnRpcRequestHandler = async ({
   const { transaction, scope } = request.params;
 
   try {
-    const message =
-      await transactionHelper.base64EncodeTransactionMessageFromBase64EncodedTransaction(
-        transaction,
-      );
-
-    const value = await transactionHelper.getFeeForMessageInLamports(
-      message,
+    const value = await transactionHelper.getFeeFromBase64StringInLamports(
+      transaction,
       scope,
     );
 
-    const result = { value: value?.toString() ?? null };
+    if (value === null) {
+      throw new Error('Failed to get fee for transaction');
+    }
+
+    const result = { value: value.toString() };
 
     assert(result, GetFeeForTransactionResponseStruct);
 
     return result;
   } catch (error) {
     logger.error(error);
-    throw error;
+    throw new InternalError(error as string) as Error;
   }
 };

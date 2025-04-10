@@ -97,6 +97,33 @@ const createMockGetTokenAccountsByOwner = () =>
       ),
   });
 
+const createMockGetMultipleAccounts = () =>
+  jest.fn().mockReturnValue({
+    send: jest.fn().mockResolvedValue({ value: [] }),
+  });
+
+const createMockSimulateTransaction = () =>
+  jest.fn().mockReturnValue({
+    send: jest.fn().mockResolvedValue({
+      value: {
+        // eslint-disable-next-line id-denylist
+        err: null,
+        accounts: null,
+        logs: [
+          'Program 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri invoke [1]',
+          'Program 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri consumed 2366 of 1400000 compute units',
+          'Program return: 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri KgAAAAAAAAA=',
+          'Program 83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri success',
+        ],
+        returnData: {
+          data: ['Kg==', 'base64'],
+          programId: '83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri',
+        },
+        unitsConsumed: 2366,
+      },
+    }),
+  });
+
 const createMockGetRpc = () =>
   jest.fn().mockReturnValue({
     getBalance: createMockGetBalance(),
@@ -105,6 +132,8 @@ const createMockGetRpc = () =>
     sendTransaction: createMockSendTransaction(),
     getSignaturesForAddress: createMockGetSignaturesForAddress(),
     getTransaction: createMockGetTransaction(),
+    getMultipleAccounts: createMockGetMultipleAccounts(),
+    simulateTransaction: createMockSimulateTransaction(),
   });
 
 export const createMockConnection = (): SolanaConnection =>

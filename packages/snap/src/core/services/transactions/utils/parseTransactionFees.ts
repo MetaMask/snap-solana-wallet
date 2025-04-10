@@ -1,4 +1,9 @@
 import type { Transaction } from '@metamask/keyring-api';
+import {
+  COMPUTE_BUDGET_PROGRAM_ADDRESS,
+  SET_COMPUTE_UNIT_LIMIT_DISCRIMINATOR,
+  SET_COMPUTE_UNIT_PRICE_DISCRIMINATOR,
+} from '@solana-program/compute-budget';
 import BigNumber from 'bignumber.js';
 import bs58 from 'bs58';
 
@@ -76,8 +81,7 @@ function getTransactionPriorityFee(
 ): BigNumber | null {
   const computeBudgetProgramAccountIndex =
     transactionData.transaction.message.accountKeys.findIndex(
-      (accountKey) =>
-        accountKey === 'ComputeBudget111111111111111111111111111111',
+      (accountKey) => accountKey === COMPUTE_BUDGET_PROGRAM_ADDRESS,
     );
 
   if (!computeBudgetProgramAccountIndex) {
@@ -98,11 +102,11 @@ function getTransactionPriorityFee(
        * setComputeUnitLimit instruction is 2. Value is the next 4 bytes.
        * setComputeUnitPrice instruction is 3. Value is the next 8 bytes.
        */
-      if (opcode === 2) {
+      if (opcode === SET_COMPUTE_UNIT_LIMIT_DISCRIMINATOR) {
         computeUnitLimit = decodeComputeUnitLimit(data);
       }
 
-      if (opcode === 3) {
+      if (opcode === SET_COMPUTE_UNIT_PRICE_DISCRIMINATOR) {
         computeUnitPrice = decodeComputeUnitPrice(data);
       }
     } else {

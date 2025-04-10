@@ -7,7 +7,6 @@ import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
 import { ConfirmationHandler } from './core/services/confirmation/ConfirmationHandler';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
-import { FromBase64EncodedBuilder } from './core/services/execution/builders/FromBase64EncodedBuilder';
 import { SendSolBuilder } from './core/services/execution/builders/SendSolBuilder';
 import { SendSplTokenBuilder } from './core/services/execution/builders/SendSplTokenBuilder';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
@@ -45,7 +44,6 @@ export type SnapExecutionContext = {
   transactionsService: TransactionsService;
   sendSolBuilder: SendSolBuilder;
   sendSplTokenBuilder: SendSplTokenBuilder;
-  fromBase64EncodedBuilder: FromBase64EncodedBuilder;
   walletService: WalletService;
   transactionScanService: TransactionScanService;
   analyticsService: AnalyticsService;
@@ -68,9 +66,6 @@ const sendSplTokenBuilder = new SendSplTokenBuilder(
   connection,
   transactionHelper,
   logger,
-);
-const fromBase64EncodedBuilder = new FromBase64EncodedBuilder(
-  transactionHelper,
 );
 const tokenMetadataClient = new TokenMetadataClient(configProvider);
 const priceApiClient = new PriceApiClient(configProvider);
@@ -98,12 +93,7 @@ const transactionsService = new TransactionsService({
 
 const analyticsService = new AnalyticsService(logger);
 
-const walletService = new WalletService(
-  connection,
-  fromBase64EncodedBuilder,
-  transactionHelper,
-  logger,
-);
+const walletService = new WalletService(connection, transactionHelper, logger);
 
 const transactionScanService = new TransactionScanService(
   new SecurityAlertsApiClient(configProvider),
@@ -139,7 +129,6 @@ const snapContext: SnapExecutionContext = {
   transactionsService,
   sendSolBuilder,
   sendSplTokenBuilder,
-  fromBase64EncodedBuilder,
   walletService,
   transactionScanService,
   analyticsService,
@@ -153,7 +142,6 @@ export {
   confirmationHandler,
   connection,
   encryptedState,
-  fromBase64EncodedBuilder,
   keyring,
   priceApiClient,
   sendSolBuilder,

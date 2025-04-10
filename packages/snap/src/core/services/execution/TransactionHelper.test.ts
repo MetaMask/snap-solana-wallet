@@ -2,19 +2,24 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import type { KeyPairSigner } from '@solana/kit';
-import { createKeyPairSignerFromPrivateKeyBytes } from '@solana/kit';
+import {
+  getSignatureFromTransaction,
+  isTransactionMessageWithBlockhashLifetime,
+} from '@solana/kit';
 
 import { Network } from '../../constants/solana';
+import { fromBytesToCompilableTransactionMessage } from '../../sdk-extensions/codecs';
+import {
+  isTransactionMessageWithComputeUnitLimitInstruction,
+  isTransactionMessageWithComputeUnitPriceInstruction,
+  isTransactionMessageWithFeePayer,
+} from '../../sdk-extensions/transaction-messages';
 import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
 import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from './mocks/scenarios/sendSol';
 import { TransactionHelper } from './TransactionHelper';
-
-// Mock dependencies
-jest.mock('@solana-program/compute-budget');
 
 jest.mock('@solana/kit', () => ({
   ...jest.requireActual('@solana/kit'),
@@ -95,13 +100,26 @@ describe('TransactionHelper', () => {
     });
   });
 
-  describe('getFeeForMessageInLamports', () => {
-    it('returns the fee for a message in lamports', async () => {
+  describe('getFeeFromBase64StringInLamports', () => {
+    it('returns the fee for a base64 encoded transaction message', async () => {
       const mockMessage =
         MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded;
       mockRpcResponse.send.mockResolvedValueOnce({ value: 100000 });
 
-      const result = await transactionHelper.getFeeForMessageInLamports(
+      const result = await transactionHelper.getFeeFromBase64StringInLamports(
+        mockMessage,
+        mockScope,
+      );
+
+      expect(result).toBe(100000);
+    });
+
+    it('returns the fee for a base64 encoded transaction', async () => {
+      const mockMessage =
+        MOCK_EXECUTION_SCENARIO_SEND_SOL.signedTransactionBase64Encoded;
+      mockRpcResponse.send.mockResolvedValueOnce({ value: 100000 });
+
+      const result = await transactionHelper.getFeeFromBase64StringInLamports(
         mockMessage,
         mockScope,
       );
@@ -114,7 +132,7 @@ describe('TransactionHelper', () => {
         MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded;
       mockRpcResponse.send.mockRejectedValueOnce(new Error('Network error'));
 
-      const result = await transactionHelper.getFeeForMessageInLamports(
+      const result = await transactionHelper.getFeeFromBase64StringInLamports(
         mockMessage,
         mockScope,
       );
@@ -178,15 +196,12 @@ describe('TransactionHelper', () => {
       name,
       scope,
       fromAccount,
-      fromAccountPrivateKeyBytes,
-      transactionMessage,
       transactionMessageBase64Encoded,
       getMultipleAccountsResponse,
       signedTransaction,
       signedTransactionBase64Encoded,
+      signature,
     } = scenario;
-
-    let mockSigner: KeyPairSigner;
 
     beforeEach(async () => {
       jest.clearAllMocks();
@@ -201,40 +216,76 @@ describe('TransactionHelper', () => {
             .mockResolvedValue(getMultipleAccountsResponse?.result),
         }),
       });
-      mockSigner = await createKeyPairSignerFromPrivateKeyBytes(
-        fromAccountPrivateKeyBytes,
-      );
     });
 
-    describe('decodeBase64Encoded', () => {
-      it(`Scenario ${name}: decodes a transaction successfully`, async () => {
-        const result = await transactionHelper.decodeBase64Encoded(
-          transactionMessageBase64Encoded,
-          scope,
-        );
+    describe('extractInstructionsFromBase64String', () => {
+      it(`Scenario ${name}: successfully extracts instructions from a base64 encoded transaction message`, async () => {
+        const result =
+          await transactionHelper.extractInstructionsFromUnknownBase64String(
+            transactionMessageBase64Encoded,
+            scope,
+          );
 
-        expect(result).toStrictEqual(transactionMessage);
+        expect(result).not.toHaveLength(0);
+      });
+
+      it(`Scenario ${name}: successfully extracts instructions from a base64 encoded transaction`, async () => {
+        const result =
+          await transactionHelper.extractInstructionsFromUnknownBase64String(
+            signedTransactionBase64Encoded,
+            scope,
+          );
+
+        expect(result).not.toHaveLength(0);
       });
     });
 
-    describe('signTransactionMessage', () => {
-      it(`Scenario ${name}: signs a transaction message successfully`, async () => {
-        const result = await transactionHelper.signTransactionMessage(
-          transactionMessage,
-          fromAccount,
-        );
+    describe('partiallySignBase64String', () => {
+      describe('when the base64 string represents a transaction message', () => {
+        it(`Scenario ${name}: signs a transaction message successfully`, async () => {
+          const result = await transactionHelper.partiallySignBase64String(
+            transactionMessageBase64Encoded,
+            fromAccount,
+            scope,
+          );
+          const resultSignature = getSignatureFromTransaction(result);
 
-        expect(result).toStrictEqual(signedTransaction);
-      });
-    });
+          expect(result).toStrictEqual(signedTransaction);
+          expect(resultSignature).toBe(signature);
+        });
 
-    describe('encodeSignedTransactionToBase64', () => {
-      it(`Scenario ${name}: encodes a signed transaction to a base64 encoded string successfully`, async () => {
-        const result = await transactionHelper.encodeSignedTransactionToBase64(
-          signedTransaction,
-        );
+        it(`Scenario ${name}: adds if missing a fee payer, a lifetimeConstraint, a compute unit limit and a compute unit price`, async () => {
+          const { messageBytes } =
+            await transactionHelper.partiallySignBase64String(
+              transactionMessageBase64Encoded,
+              fromAccount,
+              scope,
+            );
+          const transactionMessageAfterSigning =
+            await fromBytesToCompilableTransactionMessage(
+              messageBytes,
+              mockConnection.getRpc(scope),
+            );
 
-        expect(result).toBe(signedTransactionBase64Encoded);
+          expect(
+            isTransactionMessageWithFeePayer(transactionMessageAfterSigning),
+          ).toBe(true);
+          expect(
+            isTransactionMessageWithBlockhashLifetime(
+              transactionMessageAfterSigning,
+            ),
+          ).toBe(true);
+          expect(
+            isTransactionMessageWithComputeUnitLimitInstruction(
+              transactionMessageAfterSigning,
+            ),
+          ).toBe(true);
+          expect(
+            isTransactionMessageWithComputeUnitPriceInstruction(
+              transactionMessageAfterSigning,
+            ),
+          ).toBe(true);
+        });
       });
     });
   });

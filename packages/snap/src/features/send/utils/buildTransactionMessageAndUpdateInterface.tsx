@@ -4,6 +4,7 @@ import debounce from 'lodash/fp/debounce';
 import pipe from 'lodash/fp/pipe';
 
 import { Networks } from '../../../core/constants/solana';
+import { fromCompilableTransactionMessageToBase64String } from '../../../core/sdk-extensions/codecs';
 import { withoutConcurrency } from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import {
@@ -57,13 +58,14 @@ const buildTransactionMessage = async (context: SendContext) => {
     throw new Error('Unable to generate transaction message');
   }
 
-  const feeInLamports = await transactionHelper.getFeeFromTransactionInLamports(
-    transactionMessage,
-    scope,
-  );
-
   const base64EncodedTransactionMessage =
-    await transactionHelper.base64EncodeTransactionMessage(transactionMessage);
+    await fromCompilableTransactionMessageToBase64String(transactionMessage);
+
+  const feeInLamports =
+    await transactionHelper.getFeeFromBase64StringInLamports(
+      base64EncodedTransactionMessage,
+      scope,
+    );
 
   return {
     feeInLamports,

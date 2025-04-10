@@ -12,7 +12,6 @@ import {
   updateInterface,
 } from '../../../../core/utils/interface';
 import {
-  fromBase64EncodedBuilder,
   priceApiClient,
   state,
   transactionHelper,
@@ -77,11 +76,12 @@ export async function render(
     });
 
   const instructionsPromise = transactionHelper
-    .decodeBase64Encoded(context.transaction, context.scope)
-    .then((transaction) => {
-      context.advanced.instructions = parseInstructions(
-        transaction.instructions,
-      );
+    .extractInstructionsFromUnknownBase64String(
+      context.transaction,
+      context.scope,
+    )
+    .then((instructions) => {
+      context.advanced.instructions = parseInstructions(instructions);
     })
     .catch((error) => {
       console.error(error);
@@ -112,12 +112,6 @@ export async function render(
     ...context,
   };
 
-  const transactionMessage =
-    await fromBase64EncodedBuilder.buildTransactionMessage(
-      context.transaction,
-      context.scope,
-    );
-
   const assets = [Networks[context.scope].nativeToken.caip19Id];
 
   let tokenPricesPromise;
@@ -138,7 +132,10 @@ export async function render(
   }
 
   const transactionFeePromise = transactionHelper
-    .getFeeFromTransactionInLamports(transactionMessage, updatedContext1.scope)
+    .getFeeFromBase64StringInLamports(
+      context.transaction,
+      updatedContext1.scope,
+    )
     .then((feeInLamports) => {
       updatedContext1.feeEstimatedInSol = feeInLamports
         ? lamportsToSol(feeInLamports).toString()

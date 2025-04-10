@@ -14,7 +14,6 @@ import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
-import type { FromBase64EncodedBuilder } from '../execution/builders/FromBase64EncodedBuilder';
 import { MOCK_EXECUTION_SCENARIOS } from '../execution/mocks/scenarios';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
@@ -38,7 +37,6 @@ describe('WalletService', () => {
   let mockLogger: ILogger;
   let mockConnection: SolanaConnection;
   let mockTransactionHelper: TransactionHelper;
-  let mockFromBase64EncodedBuilder: FromBase64EncodedBuilder;
   let service: WalletService;
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
 
@@ -50,18 +48,12 @@ describe('WalletService', () => {
     mockTransactionHelper = {
       getLatestBlockhash: jest.fn(),
       getComputeUnitEstimate: jest.fn(),
-      signTransactionMessage: jest.fn(),
-      encodeSignedTransactionToBase64: jest.fn(),
+      partiallySignBase64String: jest.fn(),
       waitForTransactionCommitment: jest.fn(),
     } as unknown as TransactionHelper;
 
-    mockFromBase64EncodedBuilder = {
-      buildTransactionMessage: jest.fn(),
-    } as unknown as FromBase64EncodedBuilder;
-
     service = new WalletService(
       mockConnection,
-      mockFromBase64EncodedBuilder,
       mockTransactionHelper,
       mockLogger,
     );
@@ -182,12 +174,27 @@ describe('WalletService', () => {
         name,
         scope,
         fromAccount,
-        transactionMessage,
         transactionMessageBase64Encoded,
         signedTransaction,
         signedTransactionBase64Encoded,
         signature,
+        getMultipleAccountsResponse,
       } = scenario;
+
+      beforeEach(() => {
+        jest
+          .spyOn(mockTransactionHelper, 'partiallySignBase64String')
+          .mockResolvedValue(signedTransaction);
+
+        jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+          ...mockConnection.getRpc(scope),
+          getMultipleAccounts: jest.fn().mockReturnValue({
+            send: jest
+              .fn()
+              .mockResolvedValue(getMultipleAccountsResponse?.result),
+          }),
+        });
+      });
 
       describe(`signTransaction`, () => {
         it(`Scenario ${name}: returns the signed transaction`, async () => {
@@ -201,18 +208,6 @@ describe('WalletService', () => {
               scope,
             },
           });
-
-          jest
-            .spyOn(mockFromBase64EncodedBuilder, 'buildTransactionMessage')
-            .mockResolvedValue(transactionMessage);
-
-          jest
-            .spyOn(mockTransactionHelper, 'signTransactionMessage')
-            .mockResolvedValue(signedTransaction);
-
-          jest
-            .spyOn(mockTransactionHelper, 'encodeSignedTransactionToBase64')
-            .mockResolvedValue(signedTransactionBase64Encoded);
 
           const result = await service.signTransaction(fromAccount, request);
 
@@ -234,7 +229,7 @@ describe('WalletService', () => {
       });
 
       describe(`Scenario ${name}: signAndSendTransaction`, () => {
-        it('returns the signed transaction', async () => {
+        it('returns the signature', async () => {
           const request = wrapKeyringRequest({
             method: SolMethod.SignAndSendTransaction,
             params: {
@@ -245,18 +240,6 @@ describe('WalletService', () => {
               scope,
             },
           });
-
-          jest
-            .spyOn(mockFromBase64EncodedBuilder, 'buildTransactionMessage')
-            .mockResolvedValue(transactionMessage);
-
-          jest
-            .spyOn(mockTransactionHelper, 'signTransactionMessage')
-            .mockResolvedValue(signedTransaction);
-
-          jest
-            .spyOn(mockTransactionHelper, 'encodeSignedTransactionToBase64')
-            .mockResolvedValue(signedTransactionBase64Encoded);
 
           const result = await service.signAndSendTransaction(
             fromAccount,

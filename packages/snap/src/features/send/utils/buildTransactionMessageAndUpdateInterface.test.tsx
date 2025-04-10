@@ -1,6 +1,7 @@
 import { address } from '@solana/kit';
 
 import { KnownCaip19Id, Network } from '../../../core/constants/solana';
+import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../../../core/services/execution/mocks/scenarios/sendSol';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -60,17 +61,13 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
       address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
     });
 
-    (sendSolBuilder.buildTransactionMessage as jest.Mock).mockResolvedValue({
-      someTransactionData: 'data',
-    });
+    (sendSolBuilder.buildTransactionMessage as jest.Mock).mockResolvedValue(
+      MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessage,
+    );
 
     (
-      transactionHelper.getFeeFromTransactionInLamports as jest.Mock
+      transactionHelper.getFeeFromBase64StringInLamports as jest.Mock
     ).mockResolvedValue(5000);
-
-    (
-      transactionHelper.base64EncodeTransactionMessage as jest.Mock
-    ).mockResolvedValue('base64-encoded');
 
     (getInterfaceContext as jest.Mock).mockResolvedValue(mockContext);
   });
@@ -152,7 +149,8 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
         expect.anything(),
         expect.objectContaining({
           feeEstimatedInSol: '0.000005',
-          transactionMessage: 'base64-encoded',
+          transactionMessage:
+            MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded,
           buildingTransaction: false,
         }),
       );
