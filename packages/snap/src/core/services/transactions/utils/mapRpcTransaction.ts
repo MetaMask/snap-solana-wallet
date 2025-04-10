@@ -1,4 +1,8 @@
-import type { Transaction } from '@metamask/keyring-api';
+import {
+  TransactionStatus,
+  TransactionType,
+  type Transaction,
+} from '@metamask/keyring-api';
 import type { Address } from '@solana/kit';
 
 import type { Network } from '../../../constants/solana';
@@ -52,26 +56,33 @@ export function mapRpcTransaction({
   let from = [...nativeFrom, ...splFrom];
   let to = [...nativeTo, ...splTo];
 
-  const type = evaluateTransactionType({
+  let type = evaluateTransactionType({
     address,
     from,
     to,
   });
 
-  if (type === 'swap') {
+  if (type === TransactionType.Swap) {
+    // if type is swap, use only show the items where the user is the sender and receiver
     from = from.filter((fromItem) => fromItem.address === address);
     to = to.filter((toItem) => toItem.address === address);
   }
 
-  if (type === 'receive') {
+  if (type === TransactionType.Receive) {
+    // if user receives, we don't need to show the fees as they were not paid by the user
     fees = [];
+  }
+
+  if (from.length === 0 || to.length === 0) {
+    // if we are unable to determine the type of transaction, we should set it to unknown
+    type = TransactionType.Unknown;
   }
 
   const status =
     transactionData.meta?.err ||
     (transactionData.meta?.status && 'Err' in transactionData.meta.status)
-      ? 'failed'
-      : 'confirmed';
+      ? TransactionStatus.Failed
+      : TransactionStatus.Confirmed;
 
   return {
     id,
@@ -108,7 +119,7 @@ function evaluateTransactionType({
   address: Address;
   from: Transaction['from'];
   to: Transaction['to'];
-}): Transaction['type'] {
+}): TransactionType {
   const userSentItems = from.filter((fromItem) => fromItem.address === address);
   const userReceivedItems = to.filter((toItem) => toItem.address === address);
 
@@ -138,16 +149,16 @@ function evaluateTransactionType({
   const isSelfTransfer = allSentItemsAreToSelf && allReceivedItemsAreFromSelf;
 
   if (isSelfTransfer) {
-    return 'send';
+    return TransactionType.Send;
   }
 
   if (isAddressSender && isAddressReceiver) {
-    return 'swap';
+    return TransactionType.Swap;
   }
 
   if (isAddressSender) {
-    return 'send';
+    return TransactionType.Send;
   }
 
-  return 'receive';
+  return TransactionType.Receive;
 }
