@@ -12,7 +12,14 @@ import { createRetryingTransport } from './retryingTransport';
  * @returns The transport.
  */
 export const createMainTransport = (urls: string[]) => {
-  const baseTransports = urls.map((url) => createDefaultRpcTransport({ url }));
+  const config = {
+    headers: {
+      'x-bigtable': 'disabled',
+    },
+  };
+  const baseTransports = urls.map((url) =>
+    createDefaultRpcTransport({ url, ...config }),
+  );
   const failoverTransport = createFailoverTransport(baseTransports);
   return createRetryingTransport(failoverTransport);
 };
