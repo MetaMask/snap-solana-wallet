@@ -1,4 +1,5 @@
 import type {
+  ComponentOrElement,
   DialogResult,
   GetClientStatusResult,
   GetInterfaceStateResult,
@@ -26,7 +27,7 @@ export const CONFIRM_SIGN_IN_INTERFACE_NAME = 'confirm-sign-in';
  * @returns A promise that resolves to a string.
  */
 export async function createInterface<TContext extends object>(
-  ui: any,
+  ui: ComponentOrElement,
   context: TContext,
 ): Promise<string> {
   const serializedContext = serialize(context);
@@ -49,7 +50,7 @@ export async function createInterface<TContext extends object>(
  */
 export async function updateInterface<TContext extends object>(
   id: string,
-  ui: any,
+  ui: ComponentOrElement,
   context: TContext,
 ): Promise<UpdateInterfaceResult> {
   const serializedContext = serialize(context);

@@ -4626,7 +4626,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-sdk@npm:6.22.0":
+"@metamask/snaps-sdk@npm:6.22.0, @metamask/snaps-sdk@npm:^6.16.0, @metamask/snaps-sdk@npm:^6.18.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.9.0":
   version: 6.22.0
   resolution: "@metamask/snaps-sdk@npm:6.22.0"
   dependencies:
@@ -4636,19 +4636,6 @@ __metadata:
     "@metamask/superstruct": ^3.2.1
     "@metamask/utils": ^11.2.0
   checksum: 7c5b2a8745da72816f320a42c9bfde56930ef124f40d289050f519a75ea7bb0f8b889034a7ad2435beae6ae97cbe597e7ee05565204f8696b3d294f0bba9d594
-  languageName: node
-  linkType: hard
-
-"@metamask/snaps-sdk@npm:^6.16.0, @metamask/snaps-sdk@npm:^6.18.0, @metamask/snaps-sdk@npm:^6.5.0, @metamask/snaps-sdk@npm:^6.9.0":
-  version: 6.18.0
-  resolution: "@metamask/snaps-sdk@npm:6.18.0"
-  dependencies:
-    "@metamask/key-tree": ^10.0.2
-    "@metamask/providers": ^20.0.0
-    "@metamask/rpc-errors": ^7.0.2
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.2.0
-  checksum: 13f1a16675fd869f7d34664ede6cc11a990cb785edf940e9e9b14fabcde70edd97b9cf40a4b7053f64bf35958fd3c61d5f803de85fdef0fa89a5033f7f31adb2
   languageName: node
   linkType: hard
 
