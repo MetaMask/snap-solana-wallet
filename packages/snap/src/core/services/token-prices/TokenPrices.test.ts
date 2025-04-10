@@ -192,10 +192,7 @@ describe('TokenPricesService', () => {
       });
     });
 
-    /**
-     * TODO: Enable this when snaps SDK is updated
-     */
-    describe.skip('when includeMarketData is true', () => {
+    describe('when includeMarketData is true', () => {
       const includeMarketData = true;
 
       it('returns market data in the correct currency', async () => {
@@ -216,11 +213,10 @@ describe('TokenPricesService', () => {
             'swift:0/iso4217:USD': {
               rate: '100000',
               conversionTime: expect.any(Number),
-              expirationTime: undefined,
               marketData: {
                 marketCap: '1540421085883.0198',
                 totalVolume: '23748436299.895576',
-                circulatingSupply: 19844921,
+                circulatingSupply: '19844921',
                 allTimeHigh: '100847.44951017378',
                 allTimeLow: '62.86163248290115',
                 pricePercentChange: {
@@ -239,11 +235,10 @@ describe('TokenPricesService', () => {
             'swift:0/iso4217:USD': {
               rate: '3000',
               conversionTime: expect.any(Number),
-              expirationTime: undefined,
               marketData: {
                 marketCap: '208326525244.77222',
                 totalVolume: '14672129201.423573',
-                circulatingSupply: 120659504.7581715,
+                circulatingSupply: '120659504.7581715',
                 allTimeHigh: '4522.273813243435',
                 allTimeLow: '0.4013827867691204',
                 pricePercentChange: {
@@ -260,11 +255,10 @@ describe('TokenPricesService', () => {
             'bip122:000000000019d6689c085ae165831e93/slip44:0': {
               rate: '0.03',
               conversionTime: expect.any(Number),
-              expirationTime: undefined,
               marketData: {
                 marketCap: '2083265.2524477222',
                 totalVolume: '146721.29201423573',
-                circulatingSupply: 120659504.7581715,
+                circulatingSupply: '120659504.7581715',
                 allTimeHigh: '0.04522273813243435',
                 allTimeLow: '0.0000040138278676912',
                 pricePercentChange: {
@@ -283,11 +277,10 @@ describe('TokenPricesService', () => {
             'swift:0/iso4217:EUR': {
               rate: '192.7893998785668999995',
               conversionTime: expect.any(Number),
-              expirationTime: undefined,
               marketData: {
                 marketCap: '58046480394.36662200758692138314',
                 totalVolume: '3267284490.49121393197975318582',
-                circulatingSupply: 512506275.4700137,
+                circulatingSupply: '512506275.4700137',
                 allTimeHigh: '262.1029666127304599094',
                 allTimeLow: '0.44751773816992952247',
                 pricePercentChange: {
@@ -304,11 +297,10 @@ describe('TokenPricesService', () => {
             'swift:0/iso4217:USD': {
               rate: '200',
               conversionTime: expect.any(Number),
-              expirationTime: undefined,
               marketData: {
                 marketCap: '60217502031.67665',
                 totalVolume: '3389485617.517553',
-                circulatingSupply: 512506275.4700137,
+                circulatingSupply: '512506275.4700137',
                 allTimeHigh: '271.90599356377726',
                 allTimeLow: '0.46425554356391946',
                 pricePercentChange: {
@@ -325,11 +317,10 @@ describe('TokenPricesService', () => {
             'bip122:000000000019d6689c085ae165831e93/slip44:0': {
               rate: '0.002',
               conversionTime: expect.any(Number),
-              expirationTime: undefined,
               marketData: {
                 marketCap: '602175.0203167665',
                 totalVolume: '33894.85617517553',
-                circulatingSupply: 512506275.4700137,
+                circulatingSupply: '512506275.4700137',
                 allTimeHigh: '0.0027190599356377726',
                 allTimeLow: '0.00000464255543563919',
                 pricePercentChange: {

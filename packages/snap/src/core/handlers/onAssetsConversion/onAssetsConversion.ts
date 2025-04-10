@@ -10,10 +10,7 @@ export const onAssetsConversion: OnAssetsConversionHandler = async (params) => {
   try {
     logger.log('[💱 onAssetsConversion]', params);
 
-    const { conversions } = params;
-
-    const includeMarketData = true;
-    //   const { conversions, includeMarketData } = params; // TODO: Enable this when snaps SDK is updated
+    const { conversions, includeMarketData } = params;
 
     const conversionRates =
       await tokenPricesService.getMultipleTokenConversions(

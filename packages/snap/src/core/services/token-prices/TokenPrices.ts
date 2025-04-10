@@ -1,5 +1,5 @@
 import { type CaipAssetType } from '@metamask/keyring-api';
-import type { AssetConversion } from '@metamask/snaps-sdk';
+import type { AssetConversion, MarketData } from '@metamask/snaps-sdk';
 import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { pick } from 'lodash';
@@ -145,8 +145,7 @@ export class TokenPricesService {
       result[from][to] = {
         rate,
         conversionTime: Date.now(),
-        // expirationTime: undefined, // TODO: Enable this when snaps SDK is updated
-        // marketData, // TODO: Enable this when snaps SDK is updated
+        ...(includeMarketData && marketData ? { marketData } : {}), // Convoluted syntax enforced by TS config 'exactOptionalPropertyTypes: true'
       };
     });
 
@@ -156,13 +155,11 @@ export class TokenPricesService {
   /**
    * Computes the market data object in the target currency.
    *
-   * TODO: Type the return with `AssetConversion['marketData']` when snap SDK is updated.
-   *
    * @param spotPrice - The spot price of the asset in source currency.
    * @param rate - The rate to convert the market data to from source currency to target currency.
    * @returns The market data in the target currency.
    */
-  #computeMarketData(spotPrice: SpotPrice, rate: BigNumber) {
+  #computeMarketData(spotPrice: SpotPrice, rate: BigNumber): MarketData {
     const marketDataInUsd = pick(spotPrice, [
       'marketCap',
       'totalVolume',
@@ -178,26 +175,27 @@ export class TokenPricesService {
       'pricePercentChange1y',
     ]);
 
-    const toCurrency = (value: number | null | undefined) =>
-      value === null || value === undefined
-        ? null
+    const toCurrency = (value: number | null): string => {
+      return value === null
+        ? ''
         : new BigNumber(value).dividedBy(rate).toString();
+    };
 
     const marketDataInToCurrency = {
       marketCap: toCurrency(marketDataInUsd.marketCap),
       totalVolume: toCurrency(marketDataInUsd.totalVolume),
-      circulatingSupply: marketDataInUsd.circulatingSupply, // Circulating supply counts the number of tokens in circulation, so we don't convert
+      circulatingSupply: (marketDataInUsd.circulatingSupply ?? 0).toString(), // Circulating supply counts the number of tokens in circulation, so we don't convert
       allTimeHigh: toCurrency(marketDataInUsd.allTimeHigh),
       allTimeLow: toCurrency(marketDataInUsd.allTimeLow),
       // Variations in percent don't need to be converted, they are independent of the currency
       pricePercentChange: {
-        PT1H: marketDataInUsd.pricePercentChange1h,
-        P1D: marketDataInUsd.pricePercentChange1d,
-        P7D: marketDataInUsd.pricePercentChange7d,
-        P14D: marketDataInUsd.pricePercentChange14d,
-        P30D: marketDataInUsd.pricePercentChange30d,
-        P200D: marketDataInUsd.pricePercentChange200d,
-        P1Y: marketDataInUsd.pricePercentChange1y,
+        PT1H: marketDataInUsd.pricePercentChange1h ?? 0,
+        P1D: marketDataInUsd.pricePercentChange1d ?? 0,
+        P7D: marketDataInUsd.pricePercentChange7d ?? 0,
+        P14D: marketDataInUsd.pricePercentChange14d ?? 0,
+        P30D: marketDataInUsd.pricePercentChange30d ?? 0,
+        P200D: marketDataInUsd.pricePercentChange200d ?? 0,
+        P1Y: marketDataInUsd.pricePercentChange1y ?? 0,
       },
     };
 
