@@ -181,6 +181,10 @@ export class TokenPricesService {
         : new BigNumber(value).dividedBy(rate).toString();
     };
 
+    const includeIfNotNull = (key: string, value: number | null) => {
+      return value === null ? {} : { [key]: value };
+    };
+
     const marketDataInToCurrency = {
       marketCap: toCurrency(marketDataInUsd.marketCap),
       totalVolume: toCurrency(marketDataInUsd.totalVolume),
@@ -189,13 +193,13 @@ export class TokenPricesService {
       allTimeLow: toCurrency(marketDataInUsd.allTimeLow),
       // Variations in percent don't need to be converted, they are independent of the currency
       pricePercentChange: {
-        PT1H: marketDataInUsd.pricePercentChange1h ?? 0,
-        P1D: marketDataInUsd.pricePercentChange1d ?? 0,
-        P7D: marketDataInUsd.pricePercentChange7d ?? 0,
-        P14D: marketDataInUsd.pricePercentChange14d ?? 0,
-        P30D: marketDataInUsd.pricePercentChange30d ?? 0,
-        P200D: marketDataInUsd.pricePercentChange200d ?? 0,
-        P1Y: marketDataInUsd.pricePercentChange1y ?? 0,
+        ...includeIfNotNull('PT1H', marketDataInUsd.pricePercentChange1h),
+        ...includeIfNotNull('P1D', marketDataInUsd.pricePercentChange1d),
+        ...includeIfNotNull('P7D', marketDataInUsd.pricePercentChange7d),
+        ...includeIfNotNull('P14D', marketDataInUsd.pricePercentChange14d),
+        ...includeIfNotNull('P30D', marketDataInUsd.pricePercentChange30d),
+        ...includeIfNotNull('P200D', marketDataInUsd.pricePercentChange200d),
+        ...includeIfNotNull('P1Y', marketDataInUsd.pricePercentChange1y),
       },
     };
 

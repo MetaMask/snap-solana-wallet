@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { MOCK_SPOT_PRICES } from '../../clients/price-api/mocks/spot-prices';
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
+import type { SpotPrice } from '../../clients/price-api/structs';
 import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
 import { TokenPricesService } from './TokenPrices';
 
@@ -335,6 +337,34 @@ describe('TokenPricesService', () => {
               },
             },
           },
+        });
+      });
+
+      it('only includes price percent change if Price API returns it', async () => {
+        jest
+          .spyOn(mockPriceApiClient, 'getMultipleSpotPrices')
+          .mockResolvedValue({
+            [BTC]: {
+              ...MOCK_SPOT_PRICES[BTC],
+              pricePercentChange1h: -0.4456714429821922,
+              pricePercentChange1d: null,
+              pricePercentChange7d: null,
+              pricePercentChange14d: null,
+              pricePercentChange30d: null,
+              pricePercentChange200d: null,
+              pricePercentChange1y: null,
+            } as SpotPrice,
+          });
+
+        const result = await tokenPricesService.getMultipleTokenConversions(
+          [{ from: BTC, to: USD }],
+          includeMarketData,
+        );
+
+        expect(
+          result[BTC]?.[USD]?.marketData?.pricePercentChange,
+        ).toStrictEqual({
+          PT1H: -0.4456714429821922,
         });
       });
     });
