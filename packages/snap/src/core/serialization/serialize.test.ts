@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js';
 import { serialize } from './serialize';
 
 describe('serialize', () => {
-  it('should leave regular values unchanged', () => {
+  it('leaves regular values unchanged', () => {
     const input = {
       string: 'test',
       number: 42,
@@ -19,7 +19,7 @@ describe('serialize', () => {
     expect(result).toStrictEqual(input);
   });
 
-  it('should serialize undefined values', () => {
+  it('serializes undefined values', () => {
     const input = {
       value: undefined,
     };
@@ -31,7 +31,7 @@ describe('serialize', () => {
     });
   });
 
-  it('should serialize BigNumber values', () => {
+  it('serializes BigNumber values', () => {
     const input = {
       value: new BigNumber('123456789.123456789'),
     };
@@ -43,7 +43,7 @@ describe('serialize', () => {
     });
   });
 
-  it('should serialize bigint values', () => {
+  it('serializes bigint values', () => {
     const input = {
       value: BigInt('9007199254740991'),
     };
@@ -55,7 +55,7 @@ describe('serialize', () => {
     });
   });
 
-  it('should handle nested objects with special values', () => {
+  it('handles nested objects with special values', () => {
     const input = {
       nested: {
         bigNumber: new BigNumber('123.456'),
@@ -80,7 +80,7 @@ describe('serialize', () => {
     });
   });
 
-  it('should handle arrays with special values', () => {
+  it('handles arrays with special values', () => {
     const input = {
       array: [undefined, new BigNumber('123'), BigInt('456')],
     };
@@ -96,7 +96,7 @@ describe('serialize', () => {
     });
   });
 
-  it('should handle empty objects and arrays', () => {
+  it('handles empty objects and arrays', () => {
     const input = {
       emptyObject: {},
       emptyArray: [],
@@ -107,7 +107,7 @@ describe('serialize', () => {
     expect(result).toStrictEqual(input);
   });
 
-  it('should handle deeply nested structures', () => {
+  it('handles deeply nested structures', () => {
     const input = {
       level1: {
         level2: {
