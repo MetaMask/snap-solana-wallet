@@ -24,7 +24,9 @@ import {
 
 jest.mock('@solana/kit', () => ({
   ...jest.requireActual('@solana/kit'),
-  getComputeUnitEstimateForTransactionMessageFactory: jest.fn(),
+  getComputeUnitEstimateForTransactionMessageFactory: jest
+    .fn()
+    .mockReturnValue(jest.fn().mockResolvedValue(500)), // 500 compute units
 }));
 
 describe('transaction-messages', () => {
@@ -388,7 +390,7 @@ describe('transaction-messages', () => {
       instructions: [],
     };
 
-    it('estimates the compute unit limit and sets it on a transaction message with previous compute unit limit instruction', async () => {
+    it('estimates the compute unit limit and sets it on a transaction message with no previous compute unit limit instruction', async () => {
       const result = await estimateAndOverrideComputeUnitLimit(
         transactionMessageWithNoComputeUnitLimit,
         rpc,
@@ -397,7 +399,7 @@ describe('transaction-messages', () => {
       expect(result.instructions).toHaveLength(1);
       expect(result.instructions[0]).toStrictEqual({
         programAddress: address('ComputeBudget111111111111111111111111111111'),
-        data: Uint8Array.from([2, 62, 9, 0, 0]),
+        data: Uint8Array.from([2, 244, 1, 0, 0]),
       });
     });
 
@@ -422,7 +424,7 @@ describe('transaction-messages', () => {
       expect(result.instructions).toHaveLength(1);
       expect(result.instructions[0]).toStrictEqual({
         programAddress: address('ComputeBudget111111111111111111111111111111'),
-        data: Uint8Array.from([2, 62, 9, 0, 0]),
+        data: Uint8Array.from([2, 244, 1, 0, 0]),
       });
     });
 
