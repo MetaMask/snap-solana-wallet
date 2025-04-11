@@ -1,7 +1,10 @@
+import type { ICache } from './core/caching/ICache';
+import { StateCache } from './core/caching/StateCache';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
+import type { Serializable } from './core/serialization/types';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
@@ -48,6 +51,7 @@ export type SnapExecutionContext = {
   transactionScanService: TransactionScanService;
   analyticsService: AnalyticsService;
   confirmationHandler: ConfirmationHandler;
+  cache: ICache<Serializable>;
 };
 
 const configProvider = new ConfigProvider();
@@ -59,6 +63,9 @@ const state = new State({
   encrypted: false,
   defaultState: DEFAULT_UNENCRYPTED_STATE,
 });
+
+const cache = new StateCache(state);
+
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);
 const sendSolBuilder = new SendSolBuilder(transactionHelper, logger);
@@ -68,7 +75,7 @@ const sendSplTokenBuilder = new SendSplTokenBuilder(
   logger,
 );
 const tokenMetadataClient = new TokenMetadataClient(configProvider);
-const priceApiClient = new PriceApiClient(configProvider);
+const priceApiClient = new PriceApiClient(configProvider, cache);
 
 const tokenMetadataService = new TokenMetadataService({
   tokenMetadataClient,
@@ -122,6 +129,7 @@ const snapContext: SnapExecutionContext = {
   priceApiClient,
   encryptedState,
   state,
+  cache,
   /* Services */
   assetsService,
   tokenPricesService,

@@ -3,6 +3,8 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
 import { CaipAssetTypeStruct } from '@metamask/utils';
 
+import type { ICache } from '../../caching/ICache';
+import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
@@ -21,8 +23,11 @@ export class PriceApiClient {
 
   readonly #chunkSize: number;
 
+  readonly #cache: ICache<Serializable>;
+
   constructor(
     configProvider: ConfigProvider,
+    _cache: ICache<Serializable>,
     _fetch: typeof globalThis.fetch = globalThis.fetch,
     _logger: ILogger = logger,
   ) {
@@ -34,6 +39,8 @@ export class PriceApiClient {
     this.#logger = _logger;
     this.#baseUrl = baseUrl;
     this.#chunkSize = chunkSize;
+
+    this.#cache = _cache;
   }
 
   async getFiatExchangeRates(): Promise<Record<FiatTicker, ExchangeRate>> {
@@ -99,7 +106,21 @@ export class PriceApiClient {
       );
 
       // Combine all responses
-      return responses.reduce((prices, price) => ({ ...prices, ...price }), {});
+      const spotPrices = responses.reduce(
+        (prices, price) => ({ ...prices, ...price }),
+        {},
+      );
+
+      // Cache the spot prices for 5 minutes
+      await this.#cache.mset(
+        tokenCaip19Ids.map((tokenCaip19Id) => ({
+          key: `PriceApiClient:getMultipleSpotPrices:${tokenCaip19Id}:${vsCurrency}`,
+          value: spotPrices[tokenCaip19Id],
+          ttlMilliseconds: 60 * 5 * 1000, // 5 minutes
+        })),
+      );
+
+      return spotPrices;
     } catch (error) {
       this.#logger.error(error, 'Error fetching spot prices');
       throw error;

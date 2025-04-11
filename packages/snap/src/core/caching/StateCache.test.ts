@@ -89,11 +89,13 @@ describe('StateCache', () => {
         },
       });
       const cache = new StateCache(stateWithCache);
-      const deleteSpy = jest.spyOn(cache, 'delete');
 
       await cache.get('someKey');
+      const stateValue = await stateWithCache.get();
 
-      expect(deleteSpy).toHaveBeenCalledWith('someKey');
+      expect(stateValue).toStrictEqual({
+        __cache__default: {},
+      });
     });
   });
 
@@ -166,7 +168,7 @@ describe('StateCache', () => {
         __cache__default: {},
       });
       const cache = new StateCache(stateWithCache);
-      jest.spyOn(Date, 'now').mockReturnValue(1704067200000); // January 1, 2024
+      jest.spyOn(Date, 'now').mockReturnValueOnce(1704067200000); // January 1, 2024
 
       await cache.set('someKey', 'someValue', 1000);
       const stateValue = await stateWithCache.get();
@@ -242,7 +244,7 @@ describe('StateCache', () => {
   });
 
   describe('delete', () => {
-    it('deletes the cache entry and returns true if the entry is present', async () => {
+    it('deletes the cache entry and returns true if the entry was present', async () => {
       const stateWithCache = new InMemoryState({
         __cache__default: {
           someKey: {
@@ -254,13 +256,14 @@ describe('StateCache', () => {
       const cache = new StateCache(stateWithCache);
 
       const result = await cache.delete('someKey');
+      expect(result).toBe(true);
+
       const value = await cache.get('someKey');
 
-      expect(result).toBe(true);
       expect(value).toBeUndefined();
     });
 
-    it('leaves the cache unchanged and returns false if the entry is not present', async () => {
+    it('leaves the cache unchanged and returns false if the entry was not present', async () => {
       const stateWithCache = new InMemoryState({
         __cache__default: {
           someKey: {
@@ -512,6 +515,24 @@ describe('StateCache', () => {
       });
     });
 
+    it('returns undefined for keys that are expired', async () => {
+      const stateWithCache = new InMemoryState({
+        __cache__default: {
+          someKey: {
+            value: 'someValue',
+            expiresAt: 1704067200000, // January 1, 2024
+          },
+        },
+      });
+      const cache = new StateCache(stateWithCache);
+
+      const result = await cache.mget(['someKey']);
+
+      expect(result).toEqual({
+        someKey: undefined,
+      });
+    });
+
     it('returns an empty object if the cache is not initialized', async () => {
       const stateWithCache = new InMemoryState({});
       const cache = new StateCache(stateWithCache);
@@ -519,6 +540,34 @@ describe('StateCache', () => {
       const result = await cache.mget(['someKey', 'someOtherKey']);
 
       expect(result).toStrictEqual({});
+    });
+
+    it('deletes expired cache entries upon retrieval', async () => {
+      const stateWithCache = new InMemoryState({
+        __cache__default: {
+          someKey: {
+            value: 'someValue',
+            expiresAt: 1704067200000, // January 1, 2024
+          },
+          someOtherKey: {
+            value: 'someOtherValue',
+            expiresAt: Number.MAX_SAFE_INTEGER,
+          },
+        },
+      });
+      const cache = new StateCache(stateWithCache);
+
+      await cache.mget(['someKey']);
+      const stateValue = await stateWithCache.get();
+
+      expect(stateValue).toStrictEqual({
+        __cache__default: {
+          someOtherKey: {
+            value: 'someOtherValue',
+            expiresAt: Number.MAX_SAFE_INTEGER,
+          },
+        },
+      });
     });
   });
 
@@ -566,6 +615,64 @@ describe('StateCache', () => {
           },
         ]),
       ).rejects.toThrow('TTL must be a number');
+    });
+  });
+
+  describe('mdelete', () => {
+    it('deletes the keys from the cache', async () => {
+      const stateWithCache = new InMemoryState({
+        __cache__default: {
+          someKey: {
+            value: 'someValue',
+            expiresAt: Number.MAX_SAFE_INTEGER,
+          },
+          someOtherKey: {
+            value: 'someOtherValue',
+            expiresAt: Number.MAX_SAFE_INTEGER,
+          },
+        },
+      });
+      const cache = new StateCache(stateWithCache);
+
+      await cache.mdelete(['someKey', 'someOtherKey']);
+
+      const result = await cache.mget(['someKey', 'someOtherKey']);
+
+      expect(result).toEqual({
+        someKey: undefined,
+        someOtherKey: undefined,
+      });
+    });
+
+    it('returns an object where the values are true if the keys were deleted and false if they were not present', async () => {
+      const stateWithCache = new InMemoryState({
+        __cache__default: {
+          someKey: {
+            value: 'someValue',
+            expiresAt: Number.MAX_SAFE_INTEGER,
+          },
+        },
+      });
+      const cache = new StateCache(stateWithCache);
+
+      const result = await cache.mdelete(['someKey', 'someOtherKey']);
+
+      expect(result).toStrictEqual({
+        someKey: true,
+        someOtherKey: false,
+      });
+    });
+
+    it('does not throw an error if the cache is not initialized', async () => {
+      const stateWithCache = new InMemoryState({});
+      const cache = new StateCache(stateWithCache);
+
+      const result = await cache.mdelete(['someKey', 'someOtherKey']);
+
+      expect(result).toStrictEqual({
+        someKey: false,
+        someOtherKey: false,
+      });
     });
   });
 });

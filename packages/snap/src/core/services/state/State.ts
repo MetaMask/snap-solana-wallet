@@ -43,8 +43,6 @@ export type StateConfig<TValue extends Record<string, Serializable>> = {
   defaultState: TValue;
 };
 
-// export type StateValue = Record<string, Serializable>;
-
 /**
  * This class is a layer on top the the `snap_manageState` API that facilitates its usage:
  *

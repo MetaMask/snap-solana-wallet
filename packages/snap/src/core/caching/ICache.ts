@@ -73,4 +73,11 @@ export type ICache<TValue> = {
   mset(
     entries: { key: string; value: TValue; ttlMilliseconds?: number }[],
   ): Promise<void>;
+
+  /**
+   * Removes multiple values from the cache.
+   * @param keys - Array of keys to remove
+   * @returns An object mapping each key to a boolean indicating whether it was found and removed
+   */
+  mdelete(keys: string[]): Promise<Record<string, boolean>>;
 };

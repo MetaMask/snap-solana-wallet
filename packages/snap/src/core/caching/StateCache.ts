@@ -72,8 +72,15 @@ export type StateValue = {
  * //   },
  * // }
  * ```
- * @param state - An instance of `IStateManager` to manage the state storage.
- * @param prefix - A string prefix used to namespace the cache within the state. Defaults to '__cache'.
+ *
+ * Instead of using the `StateCache` class directly, you can use the `@Cache` decorator to cache the result of a method.
+ * @example
+ * ```ts
+ * @Cache({ ttlMilliseconds: 1000 }, snapContext.cache)
+ * getSomething() {
+ *   return 'something';
+ * }
+ * ```
  */
 export class StateCache implements ICache<Serializable | undefined> {
   #state: IStateManager<StateValue>;
@@ -89,20 +96,8 @@ export class StateCache implements ICache<Serializable | undefined> {
   }
 
   async get(key: string): Promise<Serializable | undefined> {
-    const stateValue = await this.#state.get();
-    const cacheStore = stateValue[this.prefix];
-    const cacheEntry = cacheStore?.[key];
-
-    if (cacheEntry === undefined) {
-      return undefined;
-    }
-
-    if (cacheEntry.expiresAt < Date.now()) {
-      await this.delete(key);
-      return undefined;
-    }
-
-    return cacheEntry.value;
+    const result = await this.mget([key]);
+    return result[key];
   }
 
   async set(
@@ -110,20 +105,7 @@ export class StateCache implements ICache<Serializable | undefined> {
     value: Serializable,
     ttlMilliseconds = Number.MAX_SAFE_INTEGER,
   ): Promise<void> {
-    this.#validateTtlOrThrow(ttlMilliseconds);
-
-    await this.#state.update((stateValue) => {
-      const cacheStore = stateValue[this.prefix] ?? {};
-      cacheStore[key] = {
-        value,
-        expiresAt: Math.min(
-          Date.now() + ttlMilliseconds,
-          Number.MAX_SAFE_INTEGER,
-        ),
-      };
-      stateValue[this.prefix] = cacheStore;
-      return stateValue;
-    });
+    await this.mset([{ key, value, ttlMilliseconds }]);
   }
 
   #validateTtlOrThrow(ttlMilliseconds?: number): void {
@@ -145,20 +127,8 @@ export class StateCache implements ICache<Serializable | undefined> {
   }
 
   async delete(key: string): Promise<boolean> {
-    const stateValue = await this.#state.get();
-    const cacheStore = stateValue[this.prefix];
-    const cacheEntry = cacheStore?.[key];
-
-    if (cacheEntry === undefined) {
-      return false;
-    }
-
-    await this.#state.update((_stateValue) => {
-      delete _stateValue[this.prefix]?.[key];
-      return _stateValue;
-    });
-
-    return true;
+    const result = await this.mdelete([key]);
+    return result[key] ?? false;
   }
 
   async clear(): Promise<void> {
@@ -169,11 +139,8 @@ export class StateCache implements ICache<Serializable | undefined> {
   }
 
   async has(key: string): Promise<boolean> {
-    const stateValue = await this.#state.get();
-    const cacheStore = stateValue[this.prefix];
-    const cacheEntry = cacheStore?.[key];
-
-    return cacheEntry !== undefined;
+    const result = await this.get(key);
+    return result !== undefined;
   }
 
   async keys(): Promise<string[]> {
@@ -203,17 +170,29 @@ export class StateCache implements ICache<Serializable | undefined> {
   ): Promise<Record<string, Serializable | undefined>> {
     const stateValue = await this.#state.get();
     const cacheStore = stateValue[this.prefix];
-    const cacheKeysAndValues: [string, CacheEntry | undefined][] = keys.map(
-      (key) => [key, cacheStore?.[key]],
+
+    const keysAndValues = Object.entries(cacheStore ?? {}).filter(([key]) =>
+      keys.includes(key),
     );
 
-    return cacheKeysAndValues.reduce<Record<string, Serializable | undefined>>(
+    const expiredKeys = keysAndValues.filter(
+      ([_, cacheEntry]) => cacheEntry && cacheEntry.expiresAt < Date.now(),
+    );
+
+    await this.mdelete(expiredKeys.map(([key]) => key));
+
+    return keysAndValues.reduce<Record<string, Serializable | undefined>>(
       (acc, [key, cacheEntry]) => {
         if (cacheEntry === undefined) {
           return acc;
         }
 
-        acc[key] = cacheEntry.value;
+        if (cacheEntry.expiresAt < Date.now()) {
+          acc[key] = undefined;
+        } else {
+          acc[key] = cacheEntry.value;
+        }
+
         return acc;
       },
       {},
@@ -241,5 +220,25 @@ export class StateCache implements ICache<Serializable | undefined> {
       stateValue[this.prefix] = cacheStore;
       return stateValue;
     });
+  }
+
+  async mdelete(keys: string[]): Promise<Record<string, boolean>> {
+    const result: Record<string, boolean> = {};
+
+    await this.#state.update((stateValue) => {
+      const cacheStore = stateValue[this.prefix] ?? {};
+      keys.forEach((key) => {
+        if (cacheStore[key] === undefined) {
+          result[key] = false;
+        } else {
+          delete cacheStore[key];
+          result[key] = true;
+        }
+      });
+      stateValue[this.prefix] = cacheStore;
+      return stateValue;
+    });
+
+    return result;
   }
 }
