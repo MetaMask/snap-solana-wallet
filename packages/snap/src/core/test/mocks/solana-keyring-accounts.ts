@@ -32,7 +32,6 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
   type: 'solana:data-account',
   id: '4b445722-6766-4f99-ade5-c2c9295f21d0',
   options: {
-    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -61,7 +60,6 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174001',
   options: {
-    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -85,7 +83,6 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174002',
   options: {
-    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -109,7 +106,6 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174003',
   options: {
-    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -133,7 +129,6 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174004',
   options: {
-    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [
@@ -157,7 +152,6 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174005',
   options: {
-    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     imported: false,
   },
   methods: [

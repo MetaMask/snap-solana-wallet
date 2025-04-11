@@ -42,6 +42,7 @@ import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
+import { listEntropySources } from '../../utils/interface';
 import type { ILogger } from '../../utils/logger';
 import {
   DeleteAccountStruct,
@@ -173,25 +174,18 @@ export class SolanaKeyring implements Keyring {
     const id = crypto.randomUUID();
 
     try {
-      const entropySource = options?.entropySource;
+      const entropySource =
+        options?.entropySource ?? (await this.#getDefaultEntropySource());
 
-      if (!entropySource) {
-        throw new Error('No entropy source provided');
-      }
+      const isImportedAccount =
+        options?.importedAccount && typeof options?.index === 'number';
 
-      // Find the account index
-      let index: number;
-      if (options?.importedAccount && typeof options.index === 'number') {
-        // Use the provided index for imported accounts
-        index = options.index;
-      } else {
-        // Get the lowest unused index for new accounts
-        const keyringAccounts = await this.listAccounts();
-        index = this.#getLowestUnusedKeyringAccountIndex(
-          keyringAccounts,
-          entropySource,
-        );
-      }
+      const index = isImportedAccount
+        ? (options?.index as number)
+        : this.#getLowestUnusedKeyringAccountIndex(
+            await this.listAccounts(),
+            entropySource,
+          );
 
       const { publicKeyBytes } = await deriveSolanaKeypair({
         index,
@@ -274,6 +268,19 @@ export class SolanaKeyring implements Keyring {
 
       throw new Error(`Error creating account: ${error.message}`);
     }
+  }
+
+  async #getDefaultEntropySource(): Promise<EntropySourceId> {
+    const entropySources = await listEntropySources();
+    const defaultEntropySource = entropySources.find(({ primary }) => primary);
+
+    if (!defaultEntropySource) {
+      throw new Error(
+        'No default entropy source found - this can never happen',
+      );
+    }
+
+    return defaultEntropySource.id;
   }
 
   async #deleteAccountFromState(accountId: string): Promise<void> {

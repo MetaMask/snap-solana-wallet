@@ -1,6 +1,7 @@
 import type {
   ComponentOrElement,
   DialogResult,
+  EntropySource,
   GetClientStatusResult,
   GetInterfaceStateResult,
   Json,
@@ -188,5 +189,16 @@ export async function scheduleBackgroundEvent({
         params,
       },
     },
+  });
+}
+
+/**
+ * List all entropy sources.
+ *
+ * @returns An array of entropy sources.
+ */
+export async function listEntropySources(): Promise<EntropySource[]> {
+  return await snap.request({
+    method: 'snap_listEntropySources',
   });
 }
