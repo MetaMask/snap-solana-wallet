@@ -1,5 +1,11 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type { Rpc, SimulateTransactionApi } from '@solana/kit';
-import { address, blockhash } from '@solana/kit';
+import {
+  address,
+  blockhash,
+  getComputeUnitEstimateForTransactionMessageFactory,
+  SolanaError,
+} from '@solana/kit';
 
 import { Network } from '../constants/solana';
 import { createMockConnection } from '../services/mocks/mockConnection';
@@ -15,6 +21,11 @@ import {
   setTransactionMessageFeePayerIfMissing,
   setTransactionMessageLifetimeUsingBlockhashIfMissing,
 } from './transaction-messages';
+
+jest.mock('@solana/kit', () => ({
+  ...jest.requireActual('@solana/kit'),
+  getComputeUnitEstimateForTransactionMessageFactory: jest.fn(),
+}));
 
 describe('transaction-messages', () => {
   let rpc: Rpc<SimulateTransactionApi>;
@@ -413,6 +424,48 @@ describe('transaction-messages', () => {
         programAddress: address('ComputeBudget111111111111111111111111111111'),
         data: Uint8Array.from([2, 62, 9, 0, 0]),
       });
+    });
+
+    it('returns the units consumed from the error if the transaction simulation failed', async () => {
+      jest
+        .mocked(getComputeUnitEstimateForTransactionMessageFactory)
+        .mockReturnValue(
+          jest.fn().mockRejectedValue(
+            // This code is the specific error code for failed transaction simulation when estimating the compute unit limit.
+            // It ensures that the error includes the units consumed.
+            new SolanaError(5663019, {
+              unitsConsumed: 150,
+            }),
+          ),
+        );
+
+      const result = await estimateAndOverrideComputeUnitLimit(
+        transactionMessageWithNoComputeUnitLimit,
+        rpc,
+      );
+
+      expect(result.instructions[0]).toStrictEqual({
+        programAddress: address('ComputeBudget111111111111111111111111111111'),
+        data: Uint8Array.from([2, 150, 0, 0, 0]), // 150 units
+      });
+    });
+
+    it('returns the original transaction message if the compute unit limit cannot be estimated', async () => {
+      jest
+        .mocked(getComputeUnitEstimateForTransactionMessageFactory)
+        .mockReturnValue(
+          jest.fn().mockRejectedValue(
+            // Some other error code not related to compute unit limit estimation. The error doesn't contain the units consumed.
+            new SolanaError(8190003),
+          ),
+        );
+
+      const result = await estimateAndOverrideComputeUnitLimit(
+        transactionMessageWithNoComputeUnitLimit,
+        rpc,
+      );
+
+      expect(result.instructions).toHaveLength(0);
     });
   });
 });
