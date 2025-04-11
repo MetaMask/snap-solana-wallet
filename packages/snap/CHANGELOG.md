@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.20.0]
+
+### Uncategorized
+
+- Fix/handle failing tx when estimating compute units limit ([#297](https://github.com/MetaMask/snap-solana-wallet/pull/297))
+- feat: add header for rpc latency ([#295](https://github.com/MetaMask/snap-solana-wallet/pull/295))
+- Enable onassetsconversion ([#291](https://github.com/MetaMask/snap-solana-wallet/pull/291))
+
 ## [1.19.0]
 
 ### Added
@@ -401,7 +409,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.19.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.20.0...HEAD
+[1.20.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.19.0...v1.20.0
 [1.19.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...v1.19.0
 [1.18.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...v1.18.1
 [1.18.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.17.0...v1.18.0
