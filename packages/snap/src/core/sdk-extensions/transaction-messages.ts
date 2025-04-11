@@ -195,7 +195,10 @@ export const setComputeUnitLimitInstructionIfMissing = <
  * Estimate the compute unit limit for the transaction message and set it,
  * overriding the existing compute unit limit instruction.
  *
- * If the estimate fails, return the original transaction message unchanged.
+ * If the transaction fails to simulate, we recover the units consumed from the error,
+ * and consider that as the compute unit limit.
+ *
+ * If the estimate fails for any other reason, return the original transaction message unchanged.
  *
  * @param transactionMessage - The transaction message to estimate the compute unit limit for.
  * @param rpc - The RPC to use to estimate the compute unit limit.
