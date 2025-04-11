@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.20.0]
 
-### Uncategorized
+### Added
 
-- Fix/handle failing tx when estimating compute units limit ([#297](https://github.com/MetaMask/snap-solana-wallet/pull/297))
-- feat: add header for rpc latency ([#295](https://github.com/MetaMask/snap-solana-wallet/pull/295))
-- Enable onassetsconversion ([#291](https://github.com/MetaMask/snap-solana-wallet/pull/291))
+- `onAssetsConversion` now suports market data ([#291](https://github.com/MetaMask/snap-solana-wallet/pull/291))
+- Add header for RPC latency ([#295](https://github.com/MetaMask/snap-solana-wallet/pull/295))
+
+### Fixed
+
+- Support estimating compute units limit for tailing transactions ([#297](https://github.com/MetaMask/snap-solana-wallet/pull/297))
 
 ## [1.19.0]
 
