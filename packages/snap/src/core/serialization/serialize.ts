@@ -3,6 +3,8 @@ import type { Json } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 import { cloneDeepWith } from 'lodash';
 
+import type { Serializable } from './types';
+
 /**
  * Serializes the passed value to a JSON object so it can be stored in JSON-serializable storage like the snap state and interface context.
  * It transforms non-JSON-serializable values into a specific JSON-serializable representation that can be deserialized later.
@@ -11,9 +13,7 @@ import { cloneDeepWith } from 'lodash';
  * @returns The serialized value.
  * @throws If an unsupported case is encountered. This indicates a missing implementation.
  */
-export const serialize = <TValue extends object>(
-  value: TValue,
-): Record<string, Json> =>
+export const serialize = (value: Serializable): Record<string, Json> =>
   cloneDeepWith(value, (val) => {
     if (val === undefined) {
       return {

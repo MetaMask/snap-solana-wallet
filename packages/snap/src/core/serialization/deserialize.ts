@@ -1,6 +1,8 @@
 import type { Json } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 
+import type { Serializable } from './types';
+
 /**
  * Deserializes the passed value from a JSON object to an object with its the original values.
  * It transforms the JSON-serializable representation of non-JSON-serializable values back into their original values.
@@ -8,9 +10,7 @@ import BigNumber from 'bignumber.js';
  * @param serializedValue - The value to deserialize.
  * @returns The deserialized value.
  */
-export const deserialize = <TValue extends object>(
-  serializedValue: Record<string, Json>,
-): TValue =>
+export const deserialize = (serializedValue: Json): Serializable =>
   JSON.parse(JSON.stringify(serializedValue), (_key, value) => {
     if (!value) {
       return value;

@@ -9,6 +9,7 @@ import type { SpotPrice } from '../../clients/price-api/structs';
 import type { FiatTicker } from '../../clients/price-api/types';
 import { isFiat } from '../../utils/isFiat';
 import logger, { type ILogger } from '../../utils/logger';
+import type { HistoricalPrice } from './types';
 
 export class TokenPricesService {
   readonly #priceApiClient: PriceApiClient;
@@ -207,5 +208,25 @@ export class TokenPricesService {
     };
 
     return marketDataInToCurrency;
+  }
+
+  /**
+   * Get the historical price of an asset pair.
+   *
+   * @param from - The CAIP-19 ID of the asset to convert from.
+   * @param to - The CAIP-19 ID of the asset to convert to.
+   * @returns The historical price of the asset pair.
+   */
+  async getHistoricalPrice(
+    from: CaipAssetType,
+    to: CaipAssetType,
+  ): Promise<HistoricalPrice> {
+    const historicalPrice: HistoricalPrice = {
+      intervals: {},
+      updateTime: 0,
+      expirationTime: 0,
+    };
+
+    return historicalPrice;
   }
 }

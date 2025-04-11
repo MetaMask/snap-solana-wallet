@@ -8,6 +8,7 @@ import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/ty
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { deserialize } from '../../serialization/deserialize';
 import { serialize } from '../../serialization/serialize';
+import type { Serializable } from '../../serialization/types';
 import { safeMerge } from '../../utils/safeMerge';
 import type { IStateManager } from './IStateManager';
 
@@ -37,10 +38,12 @@ export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
   tokenPrices: {},
 };
 
-export type StateConfig<TStateValue extends object> = {
+export type StateConfig<TValue extends Record<string, Serializable>> = {
   encrypted: boolean;
-  defaultState: TStateValue;
+  defaultState: TValue;
 };
+
+// export type StateValue = Record<string, Serializable>;
 
 /**
  * This class is a layer on top the the `snap_manageState` API that facilitates its usage:
@@ -57,12 +60,12 @@ export type StateConfig<TStateValue extends object> = {
  * - It  merges the default state with the underlying snap state to ensure that we always have default values,
  * letting us avoid a ton of null checks everywhere.
  */
-export class State<TStateValue extends object>
-  implements IStateManager<TStateValue>
+export class State<TValue extends Record<string, Serializable>>
+  implements IStateManager<TValue>
 {
-  #config: StateConfig<TStateValue>;
+  #config: StateConfig<TValue>;
 
-  constructor(config: StateConfig<TStateValue>) {
+  constructor(config: StateConfig<TValue>) {
     this.#config = config;
   }
 
@@ -71,7 +74,7 @@ export class State<TStateValue extends object>
    *
    * @returns The state of the snap.
    */
-  async get(): Promise<TStateValue> {
+  async get(): Promise<TValue> {
     const state = await snap.request({
       method: 'snap_manageState',
       params: {
@@ -80,7 +83,7 @@ export class State<TStateValue extends object>
       },
     });
 
-    const stateDeserialized = deserialize<TStateValue>(state ?? {});
+    const stateDeserialized = deserialize(state ?? {}) as TValue;
 
     // Merge the default state with the underlying snap state
     // to ensure that we always have default values. It lets us avoid a ton of null checks everywhere.
@@ -98,9 +101,7 @@ export class State<TStateValue extends object>
    * @param callback - A function that returns the new state.
    * @returns The new state.
    */
-  async update(
-    callback: (state: TStateValue) => TStateValue,
-  ): Promise<TStateValue> {
+  async update(callback: (state: TValue) => TValue): Promise<TValue> {
     return this.get().then(async (state) => {
       const newState = callback(state);
 

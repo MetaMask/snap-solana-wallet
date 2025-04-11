@@ -1,61 +1,40 @@
+/* eslint-disable jest/prefer-strict-equal */
 /* eslint-disable @typescript-eslint/naming-convention */
 import BigNumber from 'bignumber.js';
 
 import { serialize } from './serialize';
 
 describe('serialize', () => {
-  it('leaves regular values unchanged', () => {
-    const input = {
-      string: 'test',
-      number: 42,
-      boolean: true,
-      null: null,
-      array: [1, 2, 3],
-      object: { a: 1, b: 2 },
-    };
-
-    const result = serialize(input);
-
-    expect(result).toStrictEqual(input);
+  it('serializes primitive values', () => {
+    expect(serialize('test')).toBe('test');
+    expect(serialize(42)).toBe(42);
+    expect(serialize(true)).toBe(true);
+    expect(serialize(null)).toBeNull();
+    expect(serialize(undefined)).toStrictEqual({ __type: 'undefined' });
   });
 
-  it('serializes undefined values', () => {
-    const input = {
-      value: undefined,
-    };
-
-    const result = serialize(input);
-
-    expect(result).toStrictEqual({
-      value: { __type: 'undefined' },
+  it('serializes special types', () => {
+    expect(serialize(BigInt(9007199254740991))).toStrictEqual({
+      __type: 'bigint',
+      value: '9007199254740991',
+    });
+    expect(serialize(new BigNumber('123456789.123456789'))).toStrictEqual({
+      __type: 'BigNumber',
+      value: '123456789.123456789',
     });
   });
 
-  it('serializes BigNumber values', () => {
-    const input = {
-      value: new BigNumber('123456789.123456789'),
-    };
-
+  it('serializes arrays with mixed types', () => {
+    const input = [undefined, new BigNumber('123'), BigInt('456')];
     const result = serialize(input);
-
-    expect(result).toStrictEqual({
-      value: { __type: 'BigNumber', value: '123456789.123456789' },
-    });
+    expect(result).toStrictEqual([
+      { __type: 'undefined' },
+      { __type: 'BigNumber', value: '123' },
+      { __type: 'bigint', value: '456' },
+    ]);
   });
 
-  it('serializes bigint values', () => {
-    const input = {
-      value: BigInt('9007199254740991'),
-    };
-
-    const result = serialize(input);
-
-    expect(result).toStrictEqual({
-      value: { __type: 'bigint', value: '9007199254740991' },
-    });
-  });
-
-  it('handles nested objects with special values', () => {
+  it('serializes objects with nested structures', () => {
     const input = {
       nested: {
         bigNumber: new BigNumber('123.456'),
@@ -80,23 +59,7 @@ describe('serialize', () => {
     });
   });
 
-  it('handles arrays with special values', () => {
-    const input = {
-      array: [undefined, new BigNumber('123'), BigInt('456')],
-    };
-
-    const result = serialize(input);
-
-    expect(result).toStrictEqual({
-      array: [
-        { __type: 'undefined' },
-        { __type: 'BigNumber', value: '123' },
-        { __type: 'bigint', value: '456' },
-      ],
-    });
-  });
-
-  it('handles empty objects and arrays', () => {
+  it('serializes empty objects and arrays', () => {
     const input = {
       emptyObject: {},
       emptyArray: [],
@@ -107,7 +70,7 @@ describe('serialize', () => {
     expect(result).toStrictEqual(input);
   });
 
-  it('handles deeply nested structures', () => {
+  it('serializes deeply nested structures', () => {
     const input = {
       level1: {
         level2: {
