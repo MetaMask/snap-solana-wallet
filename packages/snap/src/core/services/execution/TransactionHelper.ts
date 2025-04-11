@@ -32,6 +32,7 @@ import {
 } from '../../sdk-extensions/codecs';
 import {
   estimateAndOverrideComputeUnitLimit,
+  isTransactionMessageWithComputeUnitLimitInstruction,
   isTransactionMessageWithComputeUnitPriceInstruction,
   setComputeUnitPriceInstructionIfMissing,
   setTransactionMessageFeePayerIfMissing,
@@ -336,11 +337,22 @@ export class TransactionHelper {
       ? transactionMessage.lifetimeConstraint // Use any value, it won't be used
       : await this.getLatestBlockhash(scope);
 
-    const hadComputeUnitPrice =
+    const hasComputeUnitPrice =
       isTransactionMessageWithComputeUnitPriceInstruction(transactionMessage);
 
     const microLamports =
       TransactionHelper.defaultComputeUnitPriceInMicroLamportsPerComputeUnit;
+
+    const hasComputeUnitLimit =
+      isTransactionMessageWithComputeUnitLimitInstruction(transactionMessage);
+
+    /**
+     * We add a compute unit limit if it's missing, but also if we the compute unit price is missing.
+     * Why? Because we will add an extra instruction for the compute unit price, which incidentally increases
+     * the compute unit consumed by the transaction. So we need to re-estimate the compute unit limit and override it.
+     */
+    const shouldSetComputeUnitLimit =
+      !hasComputeUnitLimit || !hasComputeUnitPrice;
 
     const compilableTransactionMessage = await pipe(
       transactionMessage,
@@ -353,12 +365,12 @@ export class TransactionHelper {
         }),
       // If the transaction message had no compute unit price, we just added one, so we need to recompute the compute unit limit
       async (tx) =>
-        hadComputeUnitPrice
-          ? tx
-          : estimateAndOverrideComputeUnitLimit(
+        shouldSetComputeUnitLimit
+          ? estimateAndOverrideComputeUnitLimit(
               tx,
               this.#connection.getRpc(scope),
-            ),
+            )
+          : tx,
     );
 
     // Attach the signers to the transaction message

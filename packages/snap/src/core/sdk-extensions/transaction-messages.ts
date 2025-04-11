@@ -21,10 +21,12 @@ import type {
 } from '@solana/kit';
 import {
   getComputeUnitEstimateForTransactionMessageFactory,
+  isSolanaError,
   isTransactionMessageWithBlockhashLifetime,
   prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
+  SOLANA_ERROR__TRANSACTION__FAILED_WHEN_SIMULATING_TO_ESTIMATE_COMPUTE_LIMIT,
 } from '@solana/kit';
 import { cloneDeep } from 'lodash';
 
@@ -193,6 +195,11 @@ export const setComputeUnitLimitInstructionIfMissing = <
  * Estimate the compute unit limit for the transaction message and set it,
  * overriding the existing compute unit limit instruction.
  *
+ * If the transaction fails to simulate, we recover the units consumed from the error,
+ * and consider that as the compute unit limit.
+ *
+ * If the estimate fails for any other reason, return the original transaction message unchanged.
+ *
  * @param transactionMessage - The transaction message to estimate the compute unit limit for.
  * @param rpc - The RPC to use to estimate the compute unit limit.
  * @param config - Optional config for the compute unit limit instruction.
@@ -206,22 +213,43 @@ export const estimateAndOverrideComputeUnitLimit = async (
     programAddress?: Address;
   },
 ): Promise<CompilableTransactionMessage> => {
-  const instructions = transactionMessage.instructions.filter(Boolean);
+  try {
+    const instructions = transactionMessage.instructions.filter(Boolean);
 
-  const getComputeUnitEstimate =
-    getComputeUnitEstimateForTransactionMessageFactory({
-      rpc,
-    });
-  const units = await getComputeUnitEstimate(transactionMessage);
+    const getComputeUnitEstimate =
+      getComputeUnitEstimateForTransactionMessageFactory({
+        rpc,
+      });
 
-  // Recreate the transaction message, replacing the compute unit limit instruction with the new one.
-  return {
-    ...cloneDeep(transactionMessage),
-    instructions: [
-      ...instructions.filter(
-        (instruction) => !isComputeUnitLimitInstruction(instruction),
-      ),
-      getSetComputeUnitLimitInstruction({ units }, config),
-    ],
-  } as CompilableTransactionMessage;
+    const units = await getComputeUnitEstimate(transactionMessage).catch(
+      (error) => {
+        // If the transaction simulation failed, we recover the units consumed from the error, and consider that as the compute unit limit.
+        if (
+          isSolanaError(
+            error,
+            SOLANA_ERROR__TRANSACTION__FAILED_WHEN_SIMULATING_TO_ESTIMATE_COMPUTE_LIMIT,
+          )
+        ) {
+          return error.context.unitsConsumed;
+        }
+
+        // Otherwise it's an unexpected error. Rethrow.
+        throw error;
+      },
+    );
+
+    // Recreate the transaction message, replacing the compute unit limit instruction with the new one.
+    return {
+      ...cloneDeep(transactionMessage),
+      instructions: [
+        ...instructions.filter(
+          (instruction) => !isComputeUnitLimitInstruction(instruction),
+        ),
+        getSetComputeUnitLimitInstruction({ units }, config),
+      ],
+    } as CompilableTransactionMessage;
+  } catch (error) {
+    // If the estimate fails, return the original transaction message unchanged.
+    return transactionMessage;
+  }
 };
