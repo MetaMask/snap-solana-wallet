@@ -348,7 +348,7 @@ export class TransactionHelper {
 
     /**
      * We add a compute unit limit if it's missing, but also if we the compute unit price is missing.
-     * Why? Because we will add an extra instruction for the compute unit price, we incidently increases
+     * Why? Because we will add an extra instruction for the compute unit price, which incidently increases
      * the compute unit consumed by the transaction. So we need to re-estimate the compute unit limit and override it.
      */
     const shouldSetComputeUnitLimit =
