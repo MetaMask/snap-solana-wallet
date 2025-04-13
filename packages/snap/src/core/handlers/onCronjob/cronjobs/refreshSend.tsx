@@ -1,12 +1,12 @@
 import type { CaipAssetType, OnCronjobHandler } from '@metamask/snaps-sdk';
-
 import { type SpotPrices } from 'src/core/clients/price-api/types';
+
 import { DEFAULT_SEND_CONTEXT } from '../../../../features/send/render';
 import { Send } from '../../../../features/send/Send';
 import type { SendContext } from '../../../../features/send/types';
 import { priceApiClient, state } from '../../../../snapContext';
 import {
-  getInterfaceContext,
+  getInterfaceContextOrThrow,
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   updateInterface,
@@ -64,16 +64,9 @@ export const refreshSend: OnCronjobHandler = async () => {
       // If the interface is open, update the context
       if (sendFormInterfaceId) {
         // Get the current context
-        const interfaceContext = (await getInterfaceContext(
+        const interfaceContext = await getInterfaceContextOrThrow<SendContext>(
           sendFormInterfaceId,
-        )) as SendContext;
-
-        if (!interfaceContext) {
-          logger.info(
-            `[${CronjobMethod.RefreshSend}] No interface context found`,
-          );
-          return;
-        }
+        );
 
         // we only want to refresh the token prices when the user is in the transaction confirmation stage
         if (interfaceContext.stage !== 'transaction-confirmation') {
@@ -88,9 +81,8 @@ export const refreshSend: OnCronjobHandler = async () => {
           return;
         }
 
-        const updatedInterfaceContextFinal = (await getInterfaceContext(
-          sendFormInterfaceId,
-        )) as SendContext;
+        const updatedInterfaceContextFinal =
+          await getInterfaceContextOrThrow<SendContext>(sendFormInterfaceId);
 
         // Update the current context with the new rates
         const updatedInterfaceContext = {

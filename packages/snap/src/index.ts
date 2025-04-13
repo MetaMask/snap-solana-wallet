@@ -26,12 +26,16 @@ import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
-import { getClientStatus, getInterfaceContext } from './core/utils/interface';
+import {
+  getClientStatus,
+  getInterfaceContextOrThrow,
+} from './core/utils/interface';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { eventHandlers as confirmSignInEvents } from './features/confirmation/views/ConfirmSignIn/events';
 import { eventHandlers as confirmSignMessageEvents } from './features/confirmation/views/ConfirmSignMessage/events';
 import { eventHandlers as confirmSignAndSendTransactionEvents } from './features/confirmation/views/ConfirmTransactionRequest/events';
+import type { SendContext } from './features/send/types';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
 import snapContext, { keyring } from './snapContext';
@@ -159,7 +163,7 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
     return;
   }
 
-  const context = await getInterfaceContext(id);
+  const context = await getInterfaceContextOrThrow<SendContext>(id);
 
   await handler({ id, event, context, snapContext });
 };

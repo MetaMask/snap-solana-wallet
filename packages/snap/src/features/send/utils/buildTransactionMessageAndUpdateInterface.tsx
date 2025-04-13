@@ -8,7 +8,7 @@ import { fromCompilableTransactionMessageToBase64String } from '../../../core/sd
 import { withoutConcurrency } from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import {
-  getInterfaceContext,
+  getInterfaceContextOrThrow,
   updateInterface,
 } from '../../../core/utils/interface';
 import { sendFieldsAreValid } from '../../../core/validation/form';
@@ -115,9 +115,9 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
       buildingTransaction: false,
     };
 
-    const latestContext = (await getInterfaceContext(
+    const latestContext = await getInterfaceContextOrThrow<SendContext>(
       interfaceId,
-    )) as SendContext;
+    );
 
     await updateInterface(
       interfaceId,
@@ -135,9 +135,9 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
       buildingTransaction: false,
     };
 
-    const latestContext = (await getInterfaceContext(
+    const latestContext = await getInterfaceContextOrThrow<SendContext>(
       interfaceId,
-    )) as SendContext;
+    );
 
     await updateInterface(
       interfaceId,

@@ -5,7 +5,7 @@ import type { ConfirmTransactionRequestContext } from '../../../../features/conf
 import { state, transactionScanService } from '../../../../snapContext';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
-  getInterfaceContext,
+  getInterfaceContextOrThrow,
   updateInterface,
 } from '../../../utils/interface';
 import logger from '../../../utils/logger';
@@ -27,16 +27,10 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     try {
       if (confirmationInterfaceId) {
         // Get the current context
-        const interfaceContext = (await getInterfaceContext(
-          confirmationInterfaceId,
-        )) as ConfirmTransactionRequestContext;
-
-        if (!interfaceContext) {
-          logger.info(
-            `[${CronjobMethod.RefreshConfirmationEstimation}] No interface context found`,
+        const interfaceContext =
+          await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+            confirmationInterfaceId,
           );
-          return;
-        }
 
         if (
           !interfaceContext.account?.address ||
@@ -76,9 +70,10 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
           scope: interfaceContext.scope,
         });
 
-        const updatedInterfaceContextFinal = (await getInterfaceContext(
-          confirmationInterfaceId,
-        )) as ConfirmTransactionRequestContext;
+        const updatedInterfaceContextFinal =
+          await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+            confirmationInterfaceId,
+          );
 
         // Update the current context with the new rates
         const updatedInterfaceContext = {
@@ -109,9 +104,11 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
         return;
       }
 
-      const fetchedInterfaceContext = (await getInterfaceContext(
-        confirmationInterfaceId,
-      )) as ConfirmTransactionRequestContext;
+      const fetchedInterfaceContext =
+        await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+          confirmationInterfaceId,
+        );
+
       const fetchingConfirmationContext = {
         ...fetchedInterfaceContext,
         scanFetchStatus: 'fetched',
