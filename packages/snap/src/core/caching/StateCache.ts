@@ -48,6 +48,10 @@ export type StateValue = {
  *      key1: value1,
  *      key2: value2,
  *    },
+ *    __cache__my-prefix: {
+ *      key3: value3,
+ *      key4: value4,
+ *    },
  * }
  * ```
  *
@@ -71,15 +75,6 @@ export type StateValue = {
  * //     key1: value1,
  * //   },
  * // }
- * ```
- *
- * Instead of using the `StateCache` class directly, you can use the `@Cache` decorator to cache the result of a method.
- * @example
- * ```ts
- * @Cache({ ttlMilliseconds: 1000 }, snapContext.cache)
- * getSomething() {
- *   return 'something';
- * }
  * ```
  */
 export class StateCache implements ICache<Serializable | undefined> {
