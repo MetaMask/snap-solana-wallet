@@ -10,8 +10,18 @@ import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { UrlStruct } from '../../validation/structs';
-import type { SpotPrices, VsCurrencyParam } from './structs';
-import { SpotPricesStruct, VsCurrencyParamStruct } from './structs';
+import type {
+  GetHistoricalPricesParams,
+  GetHistoricalPricesResponse,
+  SpotPrices,
+  VsCurrencyParam,
+} from './structs';
+import {
+  GetHistoricalPricesParamsStruct,
+  GetHistoricalPricesResponseStruct,
+  SpotPricesStruct,
+  VsCurrencyParamStruct,
+} from './structs';
 import type { ExchangeRate, FiatTicker } from './types';
 
 export class PriceApiClient {
@@ -125,5 +135,43 @@ export class PriceApiClient {
       this.#logger.error(error, 'Error fetching spot prices');
       throw error;
     }
+  }
+
+  /**
+   * Get historical prices for a token by calling the Price API.
+   *
+   * @see https://price.uat-api.cx.metamask.io/docs#/Historical%20Prices/PriceController_getHistoricalPricesByCaipAssetId
+   * @param params - The parameters for the request.
+   * @param params.assetType - The asset type of the token.
+   * @param params.timePeriod - The time period for the historical prices.
+   * @param params.from - The start date for the historical prices.
+   * @param params.to - The end date for the historical prices.
+   * @param params.vsCurrency - The currency to convert the prices to.
+   * @returns The historical prices for the token.
+   */
+  async getHistoricalPrices(
+    params: GetHistoricalPricesParams,
+  ): Promise<GetHistoricalPricesResponse> {
+    assert(params, GetHistoricalPricesParamsStruct);
+
+    const url = buildUrl({
+      baseUrl: this.#baseUrl,
+      path: '/v3/historical-prices/{assetType}',
+      pathParams: {
+        assetType: params.assetType,
+      },
+      queryParams: {
+        ...(params.timePeriod && { timePeriod: params.timePeriod }),
+        ...(params.from && { from: params.from.toString() }),
+        ...(params.to && { to: params.to.toString() }),
+        ...(params.vsCurrency && { vsCurrency: params.vsCurrency }),
+      },
+    });
+
+    const response = await this.#fetch(url);
+    const historicalPrices = await response.json();
+
+    assert(historicalPrices, GetHistoricalPricesResponseStruct);
+    return historicalPrices;
   }
 }

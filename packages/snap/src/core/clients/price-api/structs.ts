@@ -1,5 +1,6 @@
 import type { Infer } from '@metamask/superstruct';
 import {
+  array,
   boolean,
   enums,
   min,
@@ -7,8 +8,10 @@ import {
   number,
   object,
   optional,
+  pattern,
   record,
   string,
+  tuple,
 } from '@metamask/superstruct';
 import { CaipAssetTypeStruct } from '@metamask/utils';
 
@@ -149,3 +152,25 @@ export const VsCurrencyParamStruct = enums([
 ]);
 
 export type VsCurrencyParam = Infer<typeof VsCurrencyParamStruct>;
+
+export const GetHistoricalPricesParamsStruct = object({
+  assetType: CaipAssetTypeStruct,
+  timePeriod: optional(pattern(string(), /^[1-9][0-9]*[dmy]$/u)), // Supports days, months, years
+  from: optional(min(number(), 0)),
+  to: optional(min(number(), 0)),
+  vsCurrency: optional(VsCurrencyParamStruct),
+});
+
+export type GetHistoricalPricesParams = Infer<
+  typeof GetHistoricalPricesParamsStruct
+>;
+
+export const GetHistoricalPricesResponseStruct = object({
+  prices: array(tuple([number(), number()])),
+  marketCaps: array(tuple([number(), number()])),
+  totalVolumes: array(tuple([number(), number()])),
+});
+
+export type GetHistoricalPricesResponse = Infer<
+  typeof GetHistoricalPricesResponseStruct
+>;

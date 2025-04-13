@@ -2,30 +2,45 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
 
+import type { ICache } from '../../caching/ICache';
 import { KnownCaip19Id } from '../../constants/solana';
+import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
 import { mockLogger } from '../../services/mocks/logger';
 import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
+import { MOCK_HISTORICAL_PRICES } from './mocks/historical-prices';
 import { MOCK_SPOT_PRICES } from './mocks/spot-prices';
 import { PriceApiClient } from './PriceApiClient';
 import type { SpotPrices, VsCurrencyParam } from './structs';
 
 describe('PriceApiClient', () => {
-  const mockFetch = jest.fn();
-
-  const mockConfigProvider: ConfigProvider = {
-    get: jest.fn().mockReturnValue({
-      priceApi: {
-        baseUrl: 'https://some-mock-url.com',
-        chunkSize: 50,
-      },
-    }),
-  } as unknown as ConfigProvider;
-
-  const client = new PriceApiClient(mockConfigProvider, mockFetch, mockLogger);
+  let mockFetch: jest.Mock;
+  let mockCache: ICache<Serializable>;
+  let client: PriceApiClient;
 
   beforeEach(() => {
-    mockFetch.mockClear();
+    mockFetch = jest.fn();
+
+    const mockConfigProvider: ConfigProvider = {
+      get: jest.fn().mockReturnValue({
+        priceApi: {
+          baseUrl: 'https://some-mock-url.com',
+          chunkSize: 50,
+        },
+      }),
+    } as unknown as ConfigProvider;
+
+    mockCache = {
+      mget: jest.fn(),
+      mset: jest.fn(),
+    } as unknown as ICache<Serializable>;
+
+    client = new PriceApiClient(
+      mockConfigProvider,
+      mockCache,
+      mockFetch,
+      mockLogger,
+    );
   });
 
   describe('getFiatExchangeRates', () => {
@@ -180,7 +195,13 @@ describe('PriceApiClient', () => {
       } as unknown as ConfigProvider;
 
       expect(
-        () => new PriceApiClient(invalidConfigProvider, mockFetch, mockLogger),
+        () =>
+          new PriceApiClient(
+            invalidConfigProvider,
+            mockCache,
+            mockFetch,
+            mockLogger,
+          ),
       ).toThrow('URL must use http or https protocol');
     });
 
@@ -232,6 +253,27 @@ describe('PriceApiClient', () => {
           'usd\x00\x1F' as VsCurrencyParam, // Adding null and unit separator characters
         ),
       ).rejects.toThrow(/Expected one of/u);
+    });
+  });
+
+  describe('getHistoricalPrices', () => {
+    it('fetches historical prices successfully', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce(MOCK_HISTORICAL_PRICES),
+      });
+
+      await client.getHistoricalPrices({
+        assetType: KnownCaip19Id.SolMainnet,
+        timePeriod: '5d',
+        from: 123,
+        to: 456,
+        vsCurrency: 'usd',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://some-mock-url.com/v3/historical-prices/solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501?timePeriod=5d&from=123&to=456&vsCurrency=usd',
+      );
     });
   });
 });
