@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { installSnap } from '@metamask/snaps-jest';
 
-import type { SpotPrices } from '../../core/clients/price-api/structs';
+import type { SpotPrices } from 'src/core/clients/price-api/types';
 import {
   KnownCaip19Id,
   Network,

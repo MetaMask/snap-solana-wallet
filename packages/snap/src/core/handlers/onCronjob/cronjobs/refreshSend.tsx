@@ -1,10 +1,10 @@
 import type { CaipAssetType, OnCronjobHandler } from '@metamask/snaps-sdk';
 
+import { type SpotPrices } from 'src/core/clients/price-api/types';
 import { DEFAULT_SEND_CONTEXT } from '../../../../features/send/render';
 import { Send } from '../../../../features/send/Send';
 import type { SendContext } from '../../../../features/send/types';
 import { priceApiClient, state } from '../../../../snapContext';
-import { type SpotPrices } from '../../../clients/price-api/structs';
 import {
   getInterfaceContext,
   getPreferences,

@@ -3,7 +3,7 @@ import { assert } from '@metamask/superstruct';
 import { cloneDeep } from 'lodash';
 
 import { MOCK_SPOT_PRICES } from './mocks/spot-prices';
-import { SpotPricesStruct } from './structs';
+import { SpotPricesStruct } from './types';
 
 describe('structs', () => {
   describe('SpotPricesFromPriceApiWithIncludeMarketDataFalseStruct', () => {

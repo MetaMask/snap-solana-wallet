@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import type { SpotPrice } from 'src/core/clients/price-api/types';
 import { MOCK_SPOT_PRICES } from '../../clients/price-api/mocks/spot-prices';
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
-import type { SpotPrice } from '../../clients/price-api/structs';
 import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
 import { TokenPricesService } from './TokenPrices';
 

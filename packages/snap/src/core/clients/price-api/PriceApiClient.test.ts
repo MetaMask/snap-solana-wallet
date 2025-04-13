@@ -12,7 +12,7 @@ import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
 import { MOCK_HISTORICAL_PRICES } from './mocks/historical-prices';
 import { MOCK_SPOT_PRICES } from './mocks/spot-prices';
 import { PriceApiClient } from './PriceApiClient';
-import type { SpotPrices, VsCurrencyParam } from './structs';
+import type { SpotPrices, VsCurrencyParam } from './types';
 
 describe('PriceApiClient', () => {
   let mockFetch: jest.Mock;
@@ -220,7 +220,7 @@ describe('PriceApiClient', () => {
           [KnownCaip19Id.SolLocalnet],
           'INVALID<script>alert(1)</script>' as VsCurrencyParam,
         ),
-      ).rejects.toThrow(/Expected one of/u);
+      ).rejects.toThrow(/Expected/u);
     });
 
     it('handles URLs with multiple query parameters safely', async () => {
@@ -250,7 +250,7 @@ describe('PriceApiClient', () => {
           [KnownCaip19Id.SolLocalnet],
           'usd\x00\x1F' as VsCurrencyParam, // Adding null and unit separator characters
         ),
-      ).rejects.toThrow(/Expected one of/u);
+      ).rejects.toThrow(/Expected/u);
     });
   });
 

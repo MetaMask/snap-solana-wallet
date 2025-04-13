@@ -12,18 +12,19 @@ import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { UrlStruct } from '../../validation/structs';
 import type {
+  ExchangeRate,
+  FiatTicker,
   GetHistoricalPricesParams,
   GetHistoricalPricesResponse,
   SpotPrices,
   VsCurrencyParam,
-} from './structs';
+} from './types';
 import {
   GetHistoricalPricesParamsStruct,
   GetHistoricalPricesResponseStruct,
   SpotPricesStruct,
   VsCurrencyParamStruct,
-} from './structs';
-import type { ExchangeRate, FiatTicker } from './types';
+} from './types';
 
 export class PriceApiClient {
   readonly #fetch: typeof globalThis.fetch;

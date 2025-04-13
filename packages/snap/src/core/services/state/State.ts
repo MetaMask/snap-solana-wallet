@@ -3,7 +3,7 @@
 import type { Balance, Transaction } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
 
-import type { SpotPrices } from '../../clients/price-api/structs';
+import type { SpotPrices } from 'src/core/clients/price-api/types';
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { deserialize } from '../../serialization/deserialize';

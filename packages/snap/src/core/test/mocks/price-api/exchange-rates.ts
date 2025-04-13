@@ -1,4 +1,6 @@
-export const MOCK_EXCHANGE_RATES = {
+import type { ExchangeRate, Ticker } from '../../../clients/price-api/types';
+
+export const MOCK_EXCHANGE_RATES: Record<Ticker, ExchangeRate> = {
   btc: {
     name: 'Bitcoin',
     ticker: 'btc',

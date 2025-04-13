@@ -1,4 +1,4 @@
-import type { SpotPrices } from '../structs';
+import type { SpotPrices } from '../types';
 
 export const MOCK_SPOT_PRICES: SpotPrices = {
   'bip122:000000000019d6689c085ae165831e93/slip44:0': {
