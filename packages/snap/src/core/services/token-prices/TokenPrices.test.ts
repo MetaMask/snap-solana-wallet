@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { SpotPrice } from 'src/core/clients/price-api/types';
+import type { ICache } from '../../caching/ICache';
+import { InMemoryCache } from '../../caching/InMemoryCache';
+import { MOCK_HISTORICAL_PRICES } from '../../clients/price-api/mocks/historical-prices';
 import { MOCK_SPOT_PRICES } from '../../clients/price-api/mocks/spot-prices';
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
+import type { SpotPrice } from '../../clients/price-api/types';
+import type { Serializable } from '../../serialization/types';
 import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
 import { TokenPricesService } from './TokenPrices';
 
@@ -22,36 +26,40 @@ describe('TokenPricesService', () => {
   const UNKNOWN_FIAT_1 = 'swift:0/iso4217:AAA';
   const UNKNOWN_FIAT_2 = 'swift:0/iso4217:ZZZ';
 
+  let tokenPricesService: TokenPricesService;
+  let mockPriceApiClient: PriceApiClient;
+  let mockCache: ICache<Serializable>;
+
+  beforeEach(() => {
+    mockPriceApiClient = {
+      getFiatExchangeRates: jest.fn().mockResolvedValue(MOCK_EXCHANGE_RATES),
+      getMultipleSpotPrices: jest.fn().mockResolvedValue({
+        [BTC]: {
+          ...MOCK_SPOT_PRICES[BTC],
+          price: 100000,
+        },
+        [ETH]: {
+          ...MOCK_SPOT_PRICES[ETH],
+          price: 3000,
+        },
+        [SOL]: {
+          ...MOCK_SPOT_PRICES[SOL],
+          price: 200,
+        },
+        [USDC]: {
+          ...MOCK_SPOT_PRICES[USDC],
+          price: 0.99991,
+        },
+      }),
+      getHistoricalPrices: jest.fn().mockResolvedValue(MOCK_HISTORICAL_PRICES),
+    } as unknown as PriceApiClient;
+
+    mockCache = new InMemoryCache();
+
+    tokenPricesService = new TokenPricesService(mockPriceApiClient, mockCache);
+  });
+
   describe('getMultipleTokenConversions', () => {
-    let tokenPricesService: TokenPricesService;
-    let mockPriceApiClient: PriceApiClient;
-
-    beforeEach(() => {
-      mockPriceApiClient = {
-        getFiatExchangeRates: jest.fn().mockResolvedValue(MOCK_EXCHANGE_RATES),
-        getMultipleSpotPrices: jest.fn().mockResolvedValue({
-          [BTC]: {
-            ...MOCK_SPOT_PRICES[BTC],
-            price: 100000,
-          },
-          [ETH]: {
-            ...MOCK_SPOT_PRICES[ETH],
-            price: 3000,
-          },
-          [SOL]: {
-            ...MOCK_SPOT_PRICES[SOL],
-            price: 200,
-          },
-          [USDC]: {
-            ...MOCK_SPOT_PRICES[USDC],
-            price: 0.99991,
-          },
-        }),
-      } as unknown as PriceApiClient;
-
-      tokenPricesService = new TokenPricesService(mockPriceApiClient);
-    });
-
     it('returns empty object when no conversions provided', async () => {
       const result = await tokenPricesService.getMultipleTokenConversions([]);
       expect(result).toStrictEqual({});
@@ -367,6 +375,49 @@ describe('TokenPricesService', () => {
           PT1H: -0.4456714429821922,
         });
       });
+    });
+  });
+
+  describe('getHistoricalPrice', () => {
+    it('returns historical prices for a token', async () => {
+      const result = await tokenPricesService.getHistoricalPrice(BTC, USD);
+      // We use the same prices for all time periods for simplicity
+      const expectedPrices = MOCK_HISTORICAL_PRICES.prices.map((price) => [
+        price[0],
+        price[1]!.toString(),
+      ]);
+
+      expect(result).toStrictEqual({
+        intervals: {
+          P1D: expectedPrices,
+          P7D: expectedPrices,
+          P1M: expectedPrices,
+          P3M: expectedPrices,
+          P1Y: expectedPrices,
+        },
+        updateTime: expect.any(Number),
+        expirationTime: expect.any(Number),
+      });
+    });
+
+    it('returns data from cache when available', async () => {
+      const mockCacheValue = {
+        intervals: {
+          P1D: MOCK_HISTORICAL_PRICES.prices,
+          P7D: MOCK_HISTORICAL_PRICES.prices,
+          P1M: MOCK_HISTORICAL_PRICES.prices,
+          P3M: MOCK_HISTORICAL_PRICES.prices,
+          P1Y: MOCK_HISTORICAL_PRICES.prices,
+        },
+        updateTime: 1234567890,
+        expirationTime: 1234567890 + 1000 * 60 * 60 * 24,
+      };
+      jest.spyOn(mockCache, 'get').mockResolvedValue(mockCacheValue);
+
+      const result = await tokenPricesService.getHistoricalPrice(BTC, USD);
+
+      expect(result).toStrictEqual(mockCacheValue);
+      expect(mockPriceApiClient.getHistoricalPrices).not.toHaveBeenCalled();
     });
   });
 });

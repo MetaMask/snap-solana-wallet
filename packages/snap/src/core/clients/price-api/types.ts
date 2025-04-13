@@ -205,3 +205,10 @@ export const GetHistoricalPricesResponseStruct = object({
 export type GetHistoricalPricesResponse = Infer<
   typeof GetHistoricalPricesResponseStruct
 >;
+
+export const GET_HISTORICAL_PRICES_RESPONSE_NULL_OBJECT: GetHistoricalPricesResponse =
+  {
+    prices: [],
+    marketCaps: [],
+    totalVolumes: [],
+  };
