@@ -4,6 +4,7 @@ import { array, assert } from '@metamask/superstruct';
 import { CaipAssetTypeStruct } from '@metamask/utils';
 
 import type { ICache } from '../../caching/ICache';
+import { UseCache } from '../../caching/UseCache';
 import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
@@ -149,6 +150,10 @@ export class PriceApiClient {
    * @param params.vsCurrency - The currency to convert the prices to.
    * @returns The historical prices for the token.
    */
+  @UseCache({
+    ttlMilliseconds: 1000,
+    getCache: (instance) => instance.#cache,
+  })
   async getHistoricalPrices(
     params: GetHistoricalPricesParams,
   ): Promise<GetHistoricalPricesResponse> {
@@ -170,8 +175,8 @@ export class PriceApiClient {
 
     const response = await this.#fetch(url);
     const historicalPrices = await response.json();
-
     assert(historicalPrices, GetHistoricalPricesResponseStruct);
+
     return historicalPrices;
   }
 }

@@ -3,6 +3,7 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
 
 import type { ICache } from '../../caching/ICache';
+import { InMemoryCache } from '../../caching/InMemoryCache';
 import { KnownCaip19Id } from '../../constants/solana';
 import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
@@ -30,10 +31,7 @@ describe('PriceApiClient', () => {
       }),
     } as unknown as ConfigProvider;
 
-    mockCache = {
-      mget: jest.fn(),
-      mset: jest.fn(),
-    } as unknown as ICache<Serializable>;
+    mockCache = new InMemoryCache();
 
     client = new PriceApiClient(
       mockConfigProvider,
@@ -257,23 +255,56 @@ describe('PriceApiClient', () => {
   });
 
   describe('getHistoricalPrices', () => {
-    it('fetches historical prices successfully', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValueOnce(MOCK_HISTORICAL_PRICES),
-      });
+    describe('when the data is not cached', () => {
+      it('fetches historical prices successfully', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValueOnce(MOCK_HISTORICAL_PRICES),
+        });
 
-      await client.getHistoricalPrices({
-        assetType: KnownCaip19Id.SolMainnet,
-        timePeriod: '5d',
-        from: 123,
-        to: 456,
-        vsCurrency: 'usd',
-      });
+        const cacheSetSpy = jest.spyOn(mockCache, 'set');
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://some-mock-url.com/v3/historical-prices/solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501?timePeriod=5d&from=123&to=456&vsCurrency=usd',
-      );
+        await client.getHistoricalPrices({
+          assetType: KnownCaip19Id.SolMainnet,
+          timePeriod: '5d',
+          from: 123,
+          to: 456,
+          vsCurrency: 'usd',
+        });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://some-mock-url.com/v3/historical-prices/solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501?timePeriod=5d&from=123&to=456&vsCurrency=usd',
+        );
+        expect(cacheSetSpy).toHaveBeenCalledWith(
+          'PriceApiClient:getHistoricalPrices:{"assetType":"solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501","timePeriod":"5d","from":123,"to":456,"vsCurrency":"usd"}',
+          MOCK_HISTORICAL_PRICES,
+          1000,
+        );
+      });
+    });
+
+    describe('when the data is cached', () => {
+      it('returns the cached data', async () => {
+        jest
+          .spyOn(mockCache, 'get')
+          .mockResolvedValueOnce(MOCK_HISTORICAL_PRICES);
+
+        const cacheGetSpy = jest.spyOn(mockCache, 'get');
+        const cacheSetSpy = jest.spyOn(mockCache, 'set');
+
+        const result = await client.getHistoricalPrices({
+          assetType: KnownCaip19Id.SolMainnet,
+          timePeriod: '5d',
+          from: 123,
+          to: 456,
+          vsCurrency: 'usd',
+        });
+
+        expect(cacheGetSpy).toHaveBeenCalled();
+        expect(mockFetch).not.toHaveBeenCalled();
+        expect(result).toStrictEqual(MOCK_HISTORICAL_PRICES);
+        expect(cacheSetSpy).not.toHaveBeenCalled();
+      });
     });
   });
 });
