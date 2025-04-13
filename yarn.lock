@@ -4773,6 +4773,7 @@ __metadata:
     jest: ^29.7.0
     jest-transform-stub: ^2.0.0
     lodash: ^4.17.21
+    reflect-metadata: ^0.2.2
     rimraf: ^6.0.1
     ts-jest: ^29.2.0
   languageName: unknown
@@ -22237,6 +22238,13 @@ __metadata:
   dependencies:
     "@babel/runtime": "npm:^7.9.2"
   checksum: f63b9060c3a1d930ae775252bb6e579b42415aee7a23c4114e21a0b4ba7ec12f0ec76936c00f546893f06e139819f0e2855e0d55ebfce34ca9c026241a6950dd
+  languageName: node
+  linkType: hard
+
+"reflect-metadata@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "reflect-metadata@npm:0.2.2"
+  checksum: a66c7b583e4efdd8f3c3124fbff33da2d0c86d8280617516308b32b2159af7a3698c961db3246387f56f6316b1d33a608f39bb2b49d813316dfc58f6d3bf3210
   languageName: node
   linkType: hard
 

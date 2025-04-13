@@ -11,6 +11,7 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "es2023"
+    "target": "es2023",
+    "experimentalDecorators": true
   }
 }
