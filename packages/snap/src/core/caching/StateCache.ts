@@ -2,6 +2,7 @@
 
 import type { Serializable } from '../serialization/types';
 import type { IStateManager } from '../services/state/IStateManager';
+import type { ILogger } from '../utils/logger';
 import type { ICache } from './ICache';
 
 export type TimestampMilliseconds = number;
@@ -82,11 +83,15 @@ export class StateCache implements ICache<Serializable | undefined> {
 
   public readonly prefix: CachePrefix;
 
+  public readonly logger: ILogger;
+
   constructor(
     state: IStateManager<StateValue>,
+    logger: ILogger,
     prefix: CachePrefix = '__cache__default',
   ) {
     this.#state = state;
+    this.logger = logger;
     this.prefix = prefix;
   }
 
@@ -179,12 +184,15 @@ export class StateCache implements ICache<Serializable | undefined> {
     return keysAndValues.reduce<Record<string, Serializable | undefined>>(
       (acc, [key, cacheEntry]) => {
         if (cacheEntry === undefined) {
+          this.logger.info(`[StateCache] ❌ Cache miss for key "${key}"`);
           return acc;
         }
 
         if (cacheEntry.expiresAt < Date.now()) {
+          this.logger.info(`[StateCache] ⌛ Cache expired for key "${key}"`);
           acc[key] = undefined;
         } else {
+          this.logger.info(`[StateCache] 🎉 Cache hit for key "${key}"`);
           acc[key] = cacheEntry.value;
         }
 

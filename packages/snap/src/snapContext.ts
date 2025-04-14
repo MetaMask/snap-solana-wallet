@@ -64,7 +64,7 @@ const state = new State({
   defaultState: DEFAULT_UNENCRYPTED_STATE,
 });
 
-const cache = new StateCache(state);
+const cache = new StateCache(state, logger);
 
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);

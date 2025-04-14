@@ -7,7 +7,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../../core/test/mocks/solana-keyring-accounts';
 import {
-  getInterfaceContext,
+  getInterfaceContextOrThrow,
   updateInterface,
 } from '../../../core/utils/interface';
 import { sendFieldsAreValid } from '../../../core/validation/form';
@@ -69,7 +69,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
       transactionHelper.getFeeFromBase64StringInLamports as jest.Mock
     ).mockResolvedValue(5000);
 
-    (getInterfaceContext as jest.Mock).mockResolvedValue(mockContext);
+    (getInterfaceContextOrThrow as jest.Mock).mockResolvedValue(mockContext);
   });
 
   describe('buildTransactionMessageAndUpdateInterface_INTERNAL', () => {
