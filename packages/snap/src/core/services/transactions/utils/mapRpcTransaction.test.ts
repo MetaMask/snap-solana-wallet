@@ -1,6 +1,7 @@
 import { address as asAddress } from '@solana/kit';
 
 import { Network, Networks } from '../../../constants/solana';
+import { EXPECTED_CREATE_ASSOCIATED_TOKEN_ACCOUNT_DATA } from '../../../test/mocks/transactions-data/create-associated-token-account';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer-to-self';
 import { EXPECTED_SEND_JUP_TRANSFER_CHECKED_DATA } from '../../../test/mocks/transactions-data/send-jup-transfer-checked-to-self';
@@ -454,6 +455,59 @@ describe('mapRpcTransaction', () => {
         },
       ],
       events: [{ status: 'confirmed', timestamp: 1742387710 }],
+    });
+  });
+
+  it.only('maps SPL token transfers - as creation of a new token account in receivers name', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Mainnet,
+      address: asAddress('DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa'),
+      transactionData: EXPECTED_CREATE_ASSOCIATED_TOKEN_ACCOUNT_DATA,
+    });
+
+    console.log(JSON.stringify(result));
+
+    expect(result).toStrictEqual({
+      id: '4c5dH6XVzPUYtjE9RCQavfyuvPtsdf69N8YqbNSHBnBYze9itnyCKCbRg8jxReyATg2vc81SkMUuG4H5qJB5jHwz',
+      account: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+      timestamp: 1744359653,
+      chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      status: 'confirmed',
+      type: 'receive',
+      from: [
+        {
+          address: 'DAXnAudMEqiD1sS1rFn4ds3pdybRYJd9J58PqCncVVqS',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:J1Wpmugrooj1yMyQKrdZ2vwRXG5rhfx3vTnYE39gpump',
+            unit: '',
+            amount: '0.00203928',
+          },
+        },
+      ],
+      to: [
+        {
+          address: 'Jp8xRDtkd8LQwGvPV8z4DdARsCy23Vi9m2dqyqNsszG',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:J1Wpmugrooj1yMyQKrdZ2vwRXG5rhfx3vTnYE39gpump',
+            unit: 'SOL',
+            amount: '0.00203928',
+          },
+        },
+      ],
+      fees: [
+        {
+          type: 'base',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+            amount: '0.000005',
+          },
+        },
+      ],
+      events: [{ status: 'confirmed', timestamp: 1744359653 }],
     });
   });
 

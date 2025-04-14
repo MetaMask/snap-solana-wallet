@@ -56,7 +56,7 @@ export function mapRpcTransaction({
   let from = [...nativeFrom, ...splFrom];
   let to = [...nativeTo, ...splTo];
 
-  let type = evaluateTransactionType({
+  const type = evaluateTransactionType({
     address,
     from,
     to,
@@ -71,11 +71,6 @@ export function mapRpcTransaction({
   if (type === TransactionType.Receive) {
     // if user receives, we don't need to show the fees as they were not paid by the user
     fees = [];
-  }
-
-  if (from.length === 0 || to.length === 0) {
-    // if we are unable to determine the type of transaction, we should set it to unknown
-    type = TransactionType.Unknown;
   }
 
   const status =
@@ -120,6 +115,10 @@ function evaluateTransactionType({
   from: Transaction['from'];
   to: Transaction['to'];
 }): TransactionType {
+  if (from.length === 0 || to.length === 0) {
+    return TransactionType.Unknown;
+  }
+
   const userSentItems = from.filter((fromItem) => fromItem.address === address);
   const userReceivedItems = to.filter((toItem) => toItem.address === address);
 
