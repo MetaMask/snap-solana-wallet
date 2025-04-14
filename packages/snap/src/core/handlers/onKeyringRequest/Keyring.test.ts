@@ -50,7 +50,18 @@ jest.mock('../../utils/getBip32Entropy', () => ({
 
 const NON_EXISTENT_ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174009';
 
-(globalThis as any).snap = {};
+(globalThis as any).snap = {
+  request: jest.fn().mockImplementation(async ({ method }) => {
+    if (method === 'snap_listEntropySources') {
+      return Promise.resolve([
+        { id: MOCK_SEED_PHRASE_ENTROPY_SOURCE, primary: true },
+        { id: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE, primary: false },
+      ]);
+    }
+
+    return Promise.resolve({});
+  }),
+};
 
 describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
@@ -242,15 +253,9 @@ describe('SolanaKeyring', () => {
     });
 
     it('creates new accounts with increasing indices', async () => {
-      const firstAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
-      const secondAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
-      const thirdAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
+      const firstAccount = await keyring.createAccount();
+      const secondAccount = await keyring.createAccount();
+      const thirdAccount = await keyring.createAccount();
 
       const accounts = Object.values(
         (await mockEncryptedState.get()).keyringAccounts,
@@ -276,21 +281,11 @@ describe('SolanaKeyring', () => {
     });
 
     it('recreates accounts with missing indices, in order', async () => {
-      const firstAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
-      const secondAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
-      const thirdAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
-      const fourthAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
-      const fifthAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
+      const firstAccount = await keyring.createAccount();
+      const secondAccount = await keyring.createAccount();
+      const thirdAccount = await keyring.createAccount();
+      const fourthAccount = await keyring.createAccount();
+      const fifthAccount = await keyring.createAccount();
 
       await mockEncryptedState.update((state) => {
         const updatedState = cloneDeep(state);
@@ -300,15 +295,9 @@ describe('SolanaKeyring', () => {
         return updatedState;
       });
 
-      const regeneratedSecondAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
-      const regeneratedFourthAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
-      const sixthAccount = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-      });
+      const regeneratedSecondAccount = await keyring.createAccount();
+      const regeneratedFourthAccount = await keyring.createAccount();
+      const sixthAccount = await keyring.createAccount();
 
       const accounts = Object.values(
         (await mockEncryptedState.get()).keyringAccounts,
@@ -353,7 +342,6 @@ describe('SolanaKeyring', () => {
     it('uses accountNameSuggestion if it is provided, and tells the client not to display the suggestion dialog', async () => {
       const emitEventSpy = jest.spyOn(keyring, 'emitEvent');
       const account = await keyring.createAccount({
-        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
         accountNameSuggestion: 'My Cool Account Name',
       });
       expect(emitEventSpy).toHaveBeenCalledWith('notify:accountCreated', {
@@ -407,11 +395,7 @@ describe('SolanaKeyring', () => {
         return Promise.reject(new Error('Error deriving address'));
       });
 
-      await expect(
-        keyring.createAccount({
-          entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-        }),
-      ).rejects.toThrow(
+      await expect(keyring.createAccount()).rejects.toThrow(
         'Error creating account: Error: Error deriving address',
       );
     });
@@ -421,11 +405,9 @@ describe('SolanaKeyring', () => {
         .spyOn(mockEncryptedState, 'get')
         .mockRejectedValueOnce(new Error('State error'));
 
-      await expect(
-        keyring.createAccount({
-          entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-        }),
-      ).rejects.toThrow('Error creating account: Error listing accounts');
+      await expect(keyring.createAccount()).rejects.toThrow(
+        'Error creating account: Error listing accounts',
+      );
     });
   });
 
