@@ -12,7 +12,11 @@ describe('StateCache', () => {
     });
 
     it('uses the specified prefix if provided', () => {
-      const cache = new StateCache(new InMemoryState({}), '__cache__my-prefix');
+      const cache = new StateCache(
+        new InMemoryState({}),
+        undefined,
+        '__cache__my-prefix',
+      );
 
       expect(cache.prefix).toBe('__cache__my-prefix');
     });

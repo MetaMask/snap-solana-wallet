@@ -87,7 +87,7 @@ export class StateCache implements ICache<Serializable | undefined> {
 
   constructor(
     state: IStateManager<StateValue>,
-    logger: ILogger,
+    logger: ILogger = console,
     prefix: CachePrefix = '__cache__default',
   ) {
     this.#state = state;
