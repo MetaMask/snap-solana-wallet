@@ -13,6 +13,7 @@ import {
 import {
   KnownCaip19Id,
   Network,
+  TOKEN_2022_PROGRAM_ID,
   TokenMetadata,
 } from '../../../constants/solana';
 import {
@@ -109,13 +110,13 @@ describe('SendSplTokenBuilder', () => {
         .mockResolvedValue(mockTokenAccount);
 
       const transactionMessage =
-        await sendSplTokenBuilder.buildTransactionMessage(
-          mockFrom,
-          mockTo,
-          mockMint,
-          mockAmount,
-          mockNetwork,
-        );
+        await sendSplTokenBuilder.buildTransactionMessage({
+          from: mockFrom,
+          to: mockTo,
+          mint: mockMint,
+          amountInToken: mockAmount,
+          network: mockNetwork,
+        });
 
       // Verify the transaction message
       expect(transactionMessage).toStrictEqual({
@@ -189,17 +190,20 @@ describe('SendSplTokenBuilder', () => {
         exists: true,
         address: 'mockAddress' as Address,
       } as unknown as MaybeAccount<any> & Exists;
+      const mockTokenProgram = TOKEN_2022_PROGRAM_ID;
 
       jest
         .spyOn(sendSplTokenBuilder, 'getAssociatedTokenAccount')
         .mockResolvedValue(mockAccount);
 
       const result =
-        await sendSplTokenBuilder.getOrCreateAssociatedTokenAccount(
-          mockMint,
-          mockOwner,
-          mockNetwork,
-        );
+        await sendSplTokenBuilder.getOrCreateAssociatedTokenAccount({
+          mint: mockMint,
+          owner: mockOwner,
+          network: mockNetwork,
+          tokenProgram: mockTokenProgram,
+          payer: mockPayer,
+        });
 
       expect(result).toStrictEqual(mockAccount);
     });
@@ -214,6 +218,8 @@ describe('SendSplTokenBuilder', () => {
         address: 'mockNewAddress' as Address,
       } as unknown as MaybeAccount<any> & Exists;
 
+      const mockTokenProgram = TOKEN_2022_PROGRAM_ID;
+
       jest
         .spyOn(sendSplTokenBuilder, 'getAssociatedTokenAccount')
         .mockResolvedValueOnce(mockNonExistingAccount);
@@ -223,12 +229,13 @@ describe('SendSplTokenBuilder', () => {
         .mockResolvedValue(mockNewAccount);
 
       const result =
-        await sendSplTokenBuilder.getOrCreateAssociatedTokenAccount(
-          mockMint,
-          mockOwner,
-          mockNetwork,
-          mockPayer,
-        );
+        await sendSplTokenBuilder.getOrCreateAssociatedTokenAccount({
+          mint: mockMint,
+          owner: mockOwner,
+          network: mockNetwork,
+          payer: mockPayer,
+          tokenProgram: mockTokenProgram,
+        });
 
       expect(result).toStrictEqual(mockNewAccount);
     });
@@ -237,17 +244,19 @@ describe('SendSplTokenBuilder', () => {
       const mockNonExistingAccount = {
         exists: false,
       } as unknown as MaybeAccount<any>;
+      const mockTokenProgram = TOKEN_2022_PROGRAM_ID;
 
       jest
         .spyOn(sendSplTokenBuilder, 'getAssociatedTokenAccount')
         .mockResolvedValue(mockNonExistingAccount);
 
       await expect(
-        sendSplTokenBuilder.getOrCreateAssociatedTokenAccount(
-          mockMint,
-          mockOwner,
-          mockNetwork,
-        ),
+        sendSplTokenBuilder.getOrCreateAssociatedTokenAccount({
+          mint: mockMint,
+          owner: mockOwner,
+          network: mockNetwork,
+          tokenProgram: mockTokenProgram,
+        }),
       ).rejects.toThrow('Payer is required to create associated token account');
     });
   });
@@ -262,16 +271,18 @@ describe('SendSplTokenBuilder', () => {
         exists: true,
         address: 'mockAddress' as Address,
       } as unknown as MaybeAccount<any>;
+      const mockTokenProgram = TOKEN_2022_PROGRAM_ID;
 
       jest
         .spyOn(sendSplTokenBuilder, 'getTokenAccount')
         .mockResolvedValue(mockAccount);
 
-      const result = await sendSplTokenBuilder.getAssociatedTokenAccount(
-        mockMint,
-        mockOwner,
-        mockNetwork,
-      );
+      const result = await sendSplTokenBuilder.getAssociatedTokenAccount({
+        mint: mockMint,
+        owner: mockOwner,
+        network: mockNetwork,
+        tokenProgram: mockTokenProgram,
+      });
 
       expect(result).toStrictEqual(mockAccount);
     });
@@ -280,16 +291,18 @@ describe('SendSplTokenBuilder', () => {
       const mockNonExistingAccount = {
         exists: false,
       } as unknown as MaybeAccount<any>;
+      const mockTokenProgram = TOKEN_2022_PROGRAM_ID;
 
       jest
         .spyOn(sendSplTokenBuilder, 'getTokenAccount')
         .mockResolvedValue(mockNonExistingAccount);
 
-      const result = await sendSplTokenBuilder.getAssociatedTokenAccount(
-        mockMint,
-        mockOwner,
-        mockNetwork,
-      );
+      const result = await sendSplTokenBuilder.getAssociatedTokenAccount({
+        mint: mockMint,
+        owner: mockOwner,
+        network: mockNetwork,
+        tokenProgram: mockTokenProgram,
+      });
       expect(result).toStrictEqual(mockNonExistingAccount);
     });
   });
@@ -298,6 +311,7 @@ describe('SendSplTokenBuilder', () => {
     const mockMint = address('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
     const mockOwner = address(MOCK_SOLANA_KEYRING_ACCOUNTS[0].address);
     const mockNetwork = Network.Localnet;
+    const mockTokenProgram = TOKEN_2022_PROGRAM_ID;
 
     it('creates new associated token account', async () => {
       const mockPayer = await createKeyPairSignerFromPrivateKeyBytes(
@@ -334,12 +348,13 @@ describe('SendSplTokenBuilder', () => {
         .spyOn(mockTransactionHelper, 'getLatestBlockhash')
         .mockResolvedValue(mockBlockhash);
 
-      const result = await sendSplTokenBuilder.createAssociatedTokenAccount(
-        mockMint,
-        mockOwner,
-        mockNetwork,
-        mockPayer,
-      );
+      const result = await sendSplTokenBuilder.createAssociatedTokenAccount({
+        mint: mockMint,
+        owner: mockOwner,
+        network: mockNetwork,
+        payer: mockPayer,
+        tokenProgram: mockTokenProgram,
+      });
 
       expect(result).toStrictEqual(mockNewAccount);
     });
@@ -359,12 +374,13 @@ describe('SendSplTokenBuilder', () => {
         .mockResolvedValue(mockExistingAccount);
 
       await expect(
-        sendSplTokenBuilder.createAssociatedTokenAccount(
-          mockMint,
-          mockOwner,
-          mockNetwork,
-          mockPayer,
-        ),
+        sendSplTokenBuilder.createAssociatedTokenAccount({
+          mint: mockMint,
+          owner: mockOwner,
+          network: mockNetwork,
+          payer: mockPayer,
+          tokenProgram: mockTokenProgram,
+        }),
       ).rejects.toThrow('Token account exists');
     });
   });
@@ -392,10 +408,10 @@ describe('SendSplTokenBuilder', () => {
       );
       fetchJsonParsedAccountSpy.mockResolvedValue(mockTokenAccount);
 
-      const result = await sendSplTokenBuilder.getTokenAccount(
-        mockMint,
-        mockNetwork,
-      );
+      const result = await sendSplTokenBuilder.getTokenAccount({
+        mint: mockMint,
+        network: mockNetwork,
+      });
 
       expect(result).toStrictEqual(mockTokenAccount);
       expect(mockConnection.getRpc).toHaveBeenCalledWith(mockNetwork);
@@ -417,10 +433,10 @@ describe('SendSplTokenBuilder', () => {
       );
       fetchJsonParsedAccountSpy.mockResolvedValue(mockNonExistingAccount);
 
-      const result = await sendSplTokenBuilder.getTokenAccount(
-        mockMint,
-        mockNetwork,
-      );
+      const result = await sendSplTokenBuilder.getTokenAccount({
+        mint: mockMint,
+        network: mockNetwork,
+      });
 
       expect(result).toStrictEqual(mockNonExistingAccount);
       expect(mockConnection.getRpc).toHaveBeenCalledWith(mockNetwork);
