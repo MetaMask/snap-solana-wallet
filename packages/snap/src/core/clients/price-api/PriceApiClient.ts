@@ -95,7 +95,6 @@ export class PriceApiClient {
 
       const uniqueTokenCaip19Ids = [...new Set(tokenCaip19Ids)];
 
-        `PriceApiClient:getMultipleSpotPrices:${tokenCaip19Id}:${vsCurrency}`;
       // Split uniqueTokenCaip19Ids into chunks
       const chunks: CaipAssetType[][] = [];
       for (let i = 0; i < uniqueTokenCaip19Ids.length; i += this.#chunkSize) {
