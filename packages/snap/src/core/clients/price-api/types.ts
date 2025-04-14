@@ -16,8 +16,6 @@ import {
 } from '@metamask/superstruct';
 import { CaipAssetTypeStruct } from '@metamask/utils';
 
-import { PercentNumberStruct } from '../../validation/structs';
-
 export type PriceApiClientConfig = {
   baseUrl: string;
 };
@@ -127,15 +125,15 @@ export const SpotPriceStruct = object({
   low1d: optional(nullable(min(number(), 0))),
   circulatingSupply: optional(nullable(min(number(), 0))),
   dilutedMarketCap: optional(nullable(min(number(), 0))),
-  marketCapPercentChange1d: optional(nullable(PercentNumberStruct)),
+  marketCapPercentChange1d: optional(nullable(number())),
   priceChange1d: optional(nullable(number())),
-  pricePercentChange1h: optional(nullable(PercentNumberStruct)),
-  pricePercentChange1d: optional(nullable(PercentNumberStruct)),
-  pricePercentChange7d: optional(nullable(PercentNumberStruct)),
-  pricePercentChange14d: optional(nullable(PercentNumberStruct)),
-  pricePercentChange30d: optional(nullable(PercentNumberStruct)),
-  pricePercentChange200d: optional(nullable(PercentNumberStruct)),
-  pricePercentChange1y: optional(nullable(PercentNumberStruct)),
+  pricePercentChange1h: optional(nullable(number())),
+  pricePercentChange1d: optional(nullable(number())),
+  pricePercentChange7d: optional(nullable(number())),
+  pricePercentChange14d: optional(nullable(number())),
+  pricePercentChange30d: optional(nullable(number())),
+  pricePercentChange200d: optional(nullable(number())),
+  pricePercentChange1y: optional(nullable(number())),
   bondingCurveProgressPercent: optional(nullable(number())),
   liquidity: optional(nullable(number())),
   totalSupply: optional(nullable(number())),

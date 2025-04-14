@@ -6,7 +6,6 @@ import {
   enums,
   integer,
   nullable,
-  number,
   object,
   optional,
   pattern,
@@ -27,13 +26,6 @@ export const PositiveNumberStringStruct = pattern(
   string(),
   /^(?!0\d)(\d+(\.\d+)?)$/u,
 );
-
-export const PercentNumberStruct = refine(number(), 'percentage', (value) => {
-  if (value < -100 || value > 100) {
-    return `Expected a percentage between -100 and 100 but received ${value}`;
-  }
-  return true;
-});
 
 /**
  * Validates that a string is a valid and safe URL. Accepts http and https protocols.
