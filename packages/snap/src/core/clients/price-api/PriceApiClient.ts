@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-restricted-globals */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
 import { CaipAssetTypeStruct } from '@metamask/utils';
 
 import type { ICache } from '../../caching/ICache';
-import { UseCache } from '../../caching/UseCache';
+import { useCacheFunction } from '../../caching/useCacheFunction';
 import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
@@ -36,6 +37,12 @@ export class PriceApiClient {
   readonly #chunkSize: number;
 
   readonly #cache: ICache<Serializable>;
+
+  readonly #cacheTtlsMilliseconds = {
+    fiatExchangeRates: 1000 * 60 * 60, // 1 hour
+    spotPrices: 1000 * 60 * 60, // 1 hour
+    historicalPrices: 1000 * 60 * 60, // 1 hour
+  };
 
   constructor(
     configProvider: ConfigProvider,
@@ -85,10 +92,28 @@ export class PriceApiClient {
         return {};
       }
 
+      const uniqueTokenCaip19Ids = [...new Set(tokenCaip19Ids)];
+
+      const toCacheKey = (tokenCaip19Id: CaipAssetType) =>
+        `PriceApiClient:getMultipleSpotPrices:${tokenCaip19Id}:${vsCurrency}`;
+
+      const cachedSpotPricesRecord = await this.#cache.mget(
+        uniqueTokenCaip19Ids.map(toCacheKey),
+      );
+
+      const nonCachedTokenCaip19Ids = uniqueTokenCaip19Ids.filter(
+        (tokenCaip19Id) =>
+          cachedSpotPricesRecord[toCacheKey(tokenCaip19Id)] === undefined,
+      );
+
       // Split tokenCaip19Ids into chunks
       const chunks: CaipAssetType[][] = [];
-      for (let i = 0; i < tokenCaip19Ids.length; i += this.#chunkSize) {
-        chunks.push(tokenCaip19Ids.slice(i, i + this.#chunkSize));
+      for (
+        let i = 0;
+        i < nonCachedTokenCaip19Ids.length;
+        i += this.#chunkSize
+      ) {
+        chunks.push(nonCachedTokenCaip19Ids.slice(i, i + this.#chunkSize));
       }
 
       // Make parallel requests for each chunk
@@ -128,7 +153,7 @@ export class PriceApiClient {
         tokenCaip19Ids.map((tokenCaip19Id) => ({
           key: `PriceApiClient:getMultipleSpotPrices:${tokenCaip19Id}:${vsCurrency}`,
           value: spotPrices[tokenCaip19Id],
-          ttlMilliseconds: 60 * 5 * 1000, // 5 minutes
+          ttlMilliseconds: 1000 * 60 * 5, // 5 minutes
         })),
       );
 
@@ -139,23 +164,7 @@ export class PriceApiClient {
     }
   }
 
-  /**
-   * Get historical prices for a token by calling the Price API.
-   *
-   * @see https://price.uat-api.cx.metamask.io/docs#/Historical%20Prices/PriceController_getHistoricalPricesByCaipAssetId
-   * @param params - The parameters for the request.
-   * @param params.assetType - The asset type of the token.
-   * @param params.timePeriod - The time period for the historical prices.
-   * @param params.from - The start date for the historical prices.
-   * @param params.to - The end date for the historical prices.
-   * @param params.vsCurrency - The currency to convert the prices to.
-   * @returns The historical prices for the token.
-   */
-  @UseCache({
-    ttlMilliseconds: 1000,
-    getCache: (instance) => instance.#cache,
-  })
-  async getHistoricalPrices(
+  async #getHistoricalPrices_INTERNAL(
     params: GetHistoricalPricesParams,
   ): Promise<GetHistoricalPricesResponse> {
     assert(params, GetHistoricalPricesParamsStruct);
@@ -179,5 +188,31 @@ export class PriceApiClient {
     assert(historicalPrices, GetHistoricalPricesResponseStruct);
 
     return historicalPrices;
+  }
+
+  /**
+   * Get historical prices for a token by calling the Price API.
+   * It caches the results for 1 hour.
+   *
+   * @see https://price.uat-api.cx.metamask.io/docs#/Historical%20Prices/PriceController_getHistoricalPricesByCaipAssetId
+   * @param params - The parameters for the request.
+   * @param params.assetType - The asset type of the token.
+   * @param params.timePeriod - The time period for the historical prices.
+   * @param params.from - The start date for the historical prices.
+   * @param params.to - The end date for the historical prices.
+   * @param params.vsCurrency - The currency to convert the prices to.
+   * @returns The historical prices for the token.
+   */
+  async getHistoricalPrices(
+    params: GetHistoricalPricesParams,
+  ): Promise<GetHistoricalPricesResponse> {
+    return useCacheFunction(
+      this.#getHistoricalPrices_INTERNAL.bind(this),
+      this.#cache,
+      {
+        functionName: 'PriceApiClient:getHistoricalPrices',
+        ttlMilliseconds: this.#cacheTtlsMilliseconds.historicalPrices,
+      },
+    )(params);
   }
 }

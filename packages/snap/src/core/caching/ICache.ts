@@ -13,6 +13,8 @@ export type ICache<TValue> = {
 
   /**
    * Stores a value in the cache with an optional TTL.
+   * - If a value is undefined, it will not be stored in the cache.
+   * - If a value is null, it will be stored in the cache.
    * @param key - The key to store the value under
    * @param value - The value to store
    * @param ttlMilliseconds - Optional time-to-live in milliseconds. If not provided, the value will not expire.
@@ -67,6 +69,8 @@ export type ICache<TValue> = {
 
   /**
    * Stores multiple values in the cache in a single operation.
+   * - If a value is undefined, it will not be stored in the cache.
+   * - If a value is null, it will be stored in the cache.
    * @param entries - Array of entries to store, each with key, value, and optional TTL (if not provided, the value will not expire)
    * @throws Error if any entry's ttlMilliseconds is not a number, is negative, or is greater than 2^53 - 1
    */

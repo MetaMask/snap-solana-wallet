@@ -264,7 +264,7 @@ describe('PriceApiClient', () => {
 
         const cacheSetSpy = jest.spyOn(mockCache, 'set');
 
-        await client.getHistoricalPrices({
+        const result = await client.getHistoricalPrices({
           assetType: KnownCaip19Id.SolMainnet,
           timePeriod: '5d',
           from: 123,
@@ -278,8 +278,9 @@ describe('PriceApiClient', () => {
         expect(cacheSetSpy).toHaveBeenCalledWith(
           'PriceApiClient:getHistoricalPrices:{"assetType":"solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501","timePeriod":"5d","from":123,"to":456,"vsCurrency":"usd"}',
           MOCK_HISTORICAL_PRICES,
-          1000,
+          3600000,
         );
+        expect(result).toStrictEqual(MOCK_HISTORICAL_PRICES);
       });
     });
 

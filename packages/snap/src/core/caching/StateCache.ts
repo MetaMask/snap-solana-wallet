@@ -204,6 +204,9 @@ export class StateCache implements ICache<Serializable | undefined> {
     await this.#state.update((stateValue) => {
       const cacheStore = stateValue[this.prefix] ?? {};
       entries.forEach(({ key, value, ttlMilliseconds }) => {
+        if (value === undefined) {
+          return;
+        }
         cacheStore[key] = {
           value,
           expiresAt: Math.min(

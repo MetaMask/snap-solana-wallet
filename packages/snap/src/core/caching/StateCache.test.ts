@@ -589,6 +589,47 @@ describe('StateCache', () => {
       });
     });
 
+    it('does not store undefined values in the cache', async () => {
+      const stateWithCache = new InMemoryState({});
+      const cache = new StateCache(stateWithCache);
+
+      await cache.mset([
+        { key: 'someKey', value: 'someValue' },
+        { key: 'undefinedKey', value: undefined },
+      ]);
+
+      const result = await cache.mget(['someKey', 'undefinedKey']);
+
+      expect(result).toEqual({
+        someKey: 'someValue',
+        undefinedKey: undefined,
+      });
+
+      // Verify the undefined value was not stored in the cache
+      const stateValue = await stateWithCache.get();
+      expect(stateValue).toStrictEqual({
+        __cache__default: {
+          someKey: {
+            value: 'someValue',
+            expiresAt: Number.MAX_SAFE_INTEGER,
+          },
+        },
+      });
+    });
+
+    it('stores null values in the cache', async () => {
+      const stateWithCache = new InMemoryState({});
+      const cache = new StateCache(stateWithCache);
+
+      await cache.mset([{ key: 'someKey', value: null }]);
+
+      const result = await cache.mget(['someKey']);
+
+      expect(result).toStrictEqual({
+        someKey: null,
+      });
+    });
+
     it('does not throw an error if the cache is not initialized', async () => {
       const stateWithCache = new InMemoryState({});
       const cache = new StateCache(stateWithCache);
@@ -615,6 +656,35 @@ describe('StateCache', () => {
           },
         ]),
       ).rejects.toThrow('TTL must be a number');
+    });
+
+    it('does not affect other keys in the cache', async () => {
+      const stateWithCache = new InMemoryState({
+        __cache__default: {
+          someKey0: {
+            value: 'someValue0',
+            expiresAt: Number.MAX_SAFE_INTEGER,
+          },
+          someKey1: {
+            value: 'someValue1',
+            expiresAt: Number.MAX_SAFE_INTEGER,
+          },
+        },
+      });
+      const cache = new StateCache(stateWithCache);
+
+      await cache.mset([
+        { key: 'someKey0', value: 'someValue0Overwritten' },
+        { key: 'someKey2', value: 'someValue2' },
+      ]);
+
+      const result = await cache.mget(['someKey0', 'someKey1', 'someKey2']);
+
+      expect(result).toStrictEqual({
+        someKey0: 'someValue0Overwritten',
+        someKey1: 'someValue1',
+        someKey2: 'someValue2',
+      });
     });
   });
 
