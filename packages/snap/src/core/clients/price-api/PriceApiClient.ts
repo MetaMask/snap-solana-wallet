@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-globals */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
-import { CaipAssetTypeStruct } from '@metamask/utils';
+import { CaipAssetTypeStruct, Duration } from '@metamask/utils';
 import { mapKeys } from 'lodash';
 
 import type { ICache } from '../../caching/ICache';
@@ -40,9 +40,9 @@ export class PriceApiClient {
   readonly #cache: ICache<Serializable>;
 
   readonly #cacheTtlsMilliseconds = {
-    fiatExchangeRates: 1000 * 60 * 60, // 1 hour
-    spotPrices: 1000 * 60 * 60, // 1 hour
-    historicalPrices: 1000 * 60 * 60, // 1 hour
+    fiatExchangeRates: Duration.Hour,
+    spotPrices: Duration.Hour,
+    historicalPrices: Duration.Hour,
   };
 
   constructor(

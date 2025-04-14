@@ -6,7 +6,7 @@ import type {
   MarketData,
 } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
-import { parseCaipAssetType } from '@metamask/utils';
+import { Duration, parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { pick } from 'lodash';
 
@@ -32,7 +32,8 @@ export class TokenPricesService {
   readonly #cache: ICache<Serializable>;
 
   readonly #cacheTtlsMilliseconds = {
-    historicalPrice: 1000 * 60 * 60, // 1 hour
+    historicalPrice: Duration.Hour,
+    tokenConversion: Duration.Hour,
   };
 
   constructor(
@@ -62,7 +63,7 @@ export class TokenPricesService {
     return fiatTicker as FiatTicker;
   }
 
-  async getMultipleTokenConversions(
+  async #getMultipleTokenConversions_INTERNAL(
     conversions: { from: CaipAssetType; to: CaipAssetType }[],
     includeMarketData = false,
   ): Promise<
@@ -167,14 +168,33 @@ export class TokenPricesService {
           ? this.#computeMarketData(cryptoPrices[from], toUsdRate)
           : undefined;
 
+      const now = Date.now();
+
       result[from][to] = {
         rate,
-        conversionTime: Date.now(),
+        conversionTime: now,
+        expirationTime: now + this.#cacheTtlsMilliseconds.tokenConversion,
         ...(includeMarketData && marketData ? { marketData } : {}), // Convoluted syntax enforced by TS config 'exactOptionalPropertyTypes: true'
       };
     });
 
     return result;
+  }
+
+  async getMultipleTokenConversions(
+    conversions: { from: CaipAssetType; to: CaipAssetType }[],
+    includeMarketData = false,
+  ): Promise<
+    Record<CaipAssetType, Record<CaipAssetType, AssetConversion | null>>
+  > {
+    return useCache(
+      this.#getMultipleTokenConversions_INTERNAL.bind(this),
+      this.#cache,
+      {
+        functionName: 'TokenPricesService:getMultipleTokenConversions',
+        ttlMilliseconds: this.#cacheTtlsMilliseconds.tokenConversion,
+      },
+    )(conversions, includeMarketData);
   }
 
   /**
