@@ -39,7 +39,7 @@ export class PriceApiClient {
 
   readonly #cache: ICache<Serializable>;
 
-  readonly #cacheTtlsMilliseconds = {
+  public static readonly cacheTtlsMilliseconds = {
     fiatExchangeRates: Duration.Hour,
     spotPrices: Duration.Hour,
     historicalPrices: Duration.Hour,
@@ -81,6 +81,13 @@ export class PriceApiClient {
     }
   }
 
+  /**
+   * Business logic for `getMultipleSpotPrices`.
+   *
+   * @param tokenCaip19Ids - The CAIP-19 IDs of the tokens to get the spot prices for.
+   * @param vsCurrency - The currency to convert the prices to.
+   * @returns The spot prices for the tokens.
+   */
   async #getMultipleSpotPrices_INTERNAL(
     tokenCaip19Ids: CaipAssetType[],
     vsCurrency: VsCurrencyParam | string = 'usd',
@@ -138,7 +145,7 @@ export class PriceApiClient {
         tokenCaip19Ids.map((tokenCaip19Id) => ({
           key: `PriceApiClient:getMultipleSpotPrices:${tokenCaip19Id}:${vsCurrency}`,
           value: spotPrices[tokenCaip19Id],
-          ttlMilliseconds: this.#cacheTtlsMilliseconds.spotPrices,
+          ttlMilliseconds: PriceApiClient.cacheTtlsMilliseconds.spotPrices,
         })),
       );
 
@@ -150,14 +157,16 @@ export class PriceApiClient {
   }
 
   /**
-   * Get multiple spot prices for a list of tokens.
-   * It caches the results for 1 hour.
+   * Internal caching logic for `getMultipleSpotPrices`:
+   * - Uses mget/mset for batch operations.
+   * - Handles proper cache key management.
+   * - Handles partial cache hits (fetches only non-cached conversions).
    *
    * @param tokenCaip19Types - The CAIP-19 IDs of the tokens to get the spot prices for.
    * @param vsCurrency - The currency to convert the prices to.
    * @returns The spot prices for the tokens.
    */
-  async getMultipleSpotPrices(
+  async #getMultipleSpotPrices_CACHE(
     tokenCaip19Types: CaipAssetType[],
     vsCurrency: VsCurrencyParam | string = 'usd',
   ): Promise<SpotPrices> {
@@ -165,7 +174,7 @@ export class PriceApiClient {
 
     const cacheKeyPrefix = 'PriceApiClient:getMultipleSpotPrices';
 
-    // Generates the cache key
+    // Shorthand method to generate the cache key
     const toCacheKey = (tokenCaip19Id: CaipAssetType) =>
       `${cacheKeyPrefix}:${tokenCaip19Id}:${vsCurrency}`;
 
@@ -213,7 +222,7 @@ export class PriceApiClient {
       Object.entries(nonCachedSpotPrices).map(([tokenCaip19Id, spotPrice]) => ({
         key: toCacheKey(tokenCaip19Id as CaipAssetType),
         value: spotPrice,
-        ttlMilliseconds: this.#cacheTtlsMilliseconds.spotPrices,
+        ttlMilliseconds: PriceApiClient.cacheTtlsMilliseconds.spotPrices,
       })),
     );
 
@@ -223,6 +232,32 @@ export class PriceApiClient {
     };
   }
 
+  /**
+   * Get multiple spot prices for a list of tokens.
+   * It caches the results for 1 hour.
+   *
+   * @param tokenCaip19Types - The CAIP-19 IDs of the tokens to get the spot prices for.
+   * @param vsCurrency - The currency to convert the prices to.
+   * @returns The spot prices for the tokens.
+   */
+  async getMultipleSpotPrices(
+    tokenCaip19Types: CaipAssetType[],
+    vsCurrency: VsCurrencyParam | string = 'usd',
+  ): Promise<SpotPrices> {
+    return this.#getMultipleSpotPrices_CACHE(tokenCaip19Types, vsCurrency);
+  }
+
+  /**
+   * Business logic for `getHistoricalPrices`.
+   *
+   * @param params - The parameters for the request.
+   * @param params.assetType - The asset type of the token.
+   * @param params.timePeriod - The time period for the historical prices.
+   * @param params.from - The start date for the historical prices.
+   * @param params.to - The end date for the historical prices.
+   * @param params.vsCurrency - The currency to convert the prices to.
+   * @returns The historical prices for the token.
+   */
   async #getHistoricalPrices_INTERNAL(
     params: GetHistoricalPricesParams,
   ): Promise<GetHistoricalPricesResponse> {
@@ -270,7 +305,7 @@ export class PriceApiClient {
       this.#cache,
       {
         functionName: 'PriceApiClient:getHistoricalPrices',
-        ttlMilliseconds: this.#cacheTtlsMilliseconds.historicalPrices,
+        ttlMilliseconds: PriceApiClient.cacheTtlsMilliseconds.historicalPrices,
       },
     )(params);
   }

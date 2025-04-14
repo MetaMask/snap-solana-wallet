@@ -120,7 +120,7 @@ const keyring = new SolanaKeyring({
   confirmationHandler,
 });
 
-const tokenPricesService = new TokenPricesService(priceApiClient, cache);
+const tokenPricesService = new TokenPricesService(priceApiClient);
 
 const snapContext: SnapExecutionContext = {
   configProvider,

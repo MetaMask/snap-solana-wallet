@@ -6,20 +6,17 @@ import type {
   MarketData,
 } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
-import { Duration, parseCaipAssetType } from '@metamask/utils';
+import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { pick } from 'lodash';
 
-import type { ICache } from '../../caching/ICache';
-import { useCache } from '../../caching/useCache';
-import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
+import { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import type { SpotPrice } from '../../clients/price-api/types';
 import {
   GET_HISTORICAL_PRICES_RESPONSE_NULL_OBJECT,
   VsCurrencyParamStruct,
   type FiatTicker,
 } from '../../clients/price-api/types';
-import type { Serializable } from '../../serialization/types';
 import { isFiat } from '../../utils/isFiat';
 import logger, { type ILogger } from '../../utils/logger';
 import type { HistoricalPrice } from './types';
@@ -29,21 +26,9 @@ export class TokenPricesService {
 
   readonly #logger: ILogger;
 
-  readonly #cache: ICache<Serializable>;
-
-  readonly #cacheTtlsMilliseconds = {
-    historicalPrice: Duration.Hour,
-    tokenConversion: Duration.Hour,
-  };
-
-  constructor(
-    priceApiClient: PriceApiClient,
-    cache: ICache<Serializable>,
-    _logger: ILogger = logger,
-  ) {
+  constructor(priceApiClient: PriceApiClient, _logger: ILogger = logger) {
     this.#priceApiClient = priceApiClient;
     this.#logger = _logger;
-    this.#cache = cache;
   }
 
   /**
@@ -63,7 +48,15 @@ export class TokenPricesService {
     return fiatTicker as FiatTicker;
   }
 
-  async #getMultipleTokenConversions_INTERNAL(
+  /**
+   * Get the token conversions for a list of asset pairs.
+   * It caches the results for 1 hour.
+   *
+   * @param conversions - The asset pairs to get the conversions for.
+   * @param includeMarketData - Whether to include market data in the response.
+   * @returns The token conversions.
+   */
+  async getMultipleTokenConversions(
     conversions: { from: CaipAssetType; to: CaipAssetType }[],
     includeMarketData = false,
   ): Promise<
@@ -173,28 +166,13 @@ export class TokenPricesService {
       result[from][to] = {
         rate,
         conversionTime: now,
-        expirationTime: now + this.#cacheTtlsMilliseconds.tokenConversion,
+        expirationTime:
+          now + PriceApiClient.cacheTtlsMilliseconds.historicalPrices,
         ...(includeMarketData && marketData ? { marketData } : {}), // Convoluted syntax enforced by TS config 'exactOptionalPropertyTypes: true'
       };
     });
 
     return result;
-  }
-
-  async getMultipleTokenConversions(
-    conversions: { from: CaipAssetType; to: CaipAssetType }[],
-    includeMarketData = false,
-  ): Promise<
-    Record<CaipAssetType, Record<CaipAssetType, AssetConversion | null>>
-  > {
-    return useCache(
-      this.#getMultipleTokenConversions_INTERNAL.bind(this),
-      this.#cache,
-      {
-        functionName: 'TokenPricesService:getMultipleTokenConversions',
-        ttlMilliseconds: this.#cacheTtlsMilliseconds.tokenConversion,
-      },
-    )(conversions, includeMarketData);
   }
 
   /**
@@ -254,7 +232,7 @@ export class TokenPricesService {
     return marketDataInToCurrency;
   }
 
-  async #getHistoricalPrice_INTERNAL(
+  async getHistoricalPrice(
     from: CaipAssetType,
     to: CaipAssetType,
   ): Promise<HistoricalPrice> {
@@ -311,30 +289,10 @@ export class TokenPricesService {
     const result: HistoricalPrice = {
       intervals,
       updateTime: now,
-      expirationTime: now + this.#cacheTtlsMilliseconds.historicalPrice,
+      expirationTime:
+        now + PriceApiClient.cacheTtlsMilliseconds.historicalPrices,
     };
 
     return result;
-  }
-
-  /**
-   * Get the historical price of an asset pair.
-   * It caches the results for 1 hour.
-   *
-   * @param from - The CAIP-19 ID of the asset to convert from.
-   * @param to - The CAIP-19 ID of the asset to convert to. Must be one of the supported Price API `vsCurrency` in endpoint [`getHistoricalPricesByCaipAssetId`](https://price.uat-api.cx.metamask.io/docs#/Historical%20Prices/PriceController_getHistoricalPricesByCaipAssetId).
-   * @returns The historical price of the asset pair.
-   * @throws If the `from` asset is not a valid CAIP-19 ID.
-   * @throws If the `to` asset is not a valid CAIP-19 ID.
-   * @throws If the `to` asset is not one of the supported Price API `vsCurrency`.
-   */
-  async getHistoricalPrice(
-    from: CaipAssetType,
-    to: CaipAssetType,
-  ): Promise<HistoricalPrice> {
-    return useCache(this.#getHistoricalPrice_INTERNAL.bind(this), this.#cache, {
-      functionName: 'TokenPricesService:getHistoricalPrice',
-      ttlMilliseconds: this.#cacheTtlsMilliseconds.historicalPrice,
-    })(from, to);
   }
 }
