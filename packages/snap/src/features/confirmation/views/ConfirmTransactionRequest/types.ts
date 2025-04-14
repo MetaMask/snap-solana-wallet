@@ -1,6 +1,6 @@
 import type { SolMethod } from '@metamask/keyring-api';
 
-import type { SpotPrices } from 'src/core/clients/price-api/types';
+import type { SpotPrices } from '../../../../core/clients/price-api/types';
 import type { Network } from '../../../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../../../core/handlers/onKeyringRequest/Keyring';
 import type { TransactionScanResult } from '../../../../core/services/transaction-scan/types';
