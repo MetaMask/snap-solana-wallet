@@ -5,7 +5,7 @@ import { array, assert } from '@metamask/superstruct';
 import { CaipAssetTypeStruct } from '@metamask/utils';
 
 import type { ICache } from '../../caching/ICache';
-import { useCacheFunction } from '../../caching/useCacheFunction';
+import { useCache } from '../../caching/useCache';
 import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
@@ -206,7 +206,7 @@ export class PriceApiClient {
   async getHistoricalPrices(
     params: GetHistoricalPricesParams,
   ): Promise<GetHistoricalPricesResponse> {
-    return useCacheFunction(
+    return useCache(
       this.#getHistoricalPrices_INTERNAL.bind(this),
       this.#cache,
       {

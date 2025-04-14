@@ -11,7 +11,7 @@ import BigNumber from 'bignumber.js';
 import { pick } from 'lodash';
 
 import type { ICache } from '../../caching/ICache';
-import { useCacheFunction } from '../../caching/useCacheFunction';
+import { useCache } from '../../caching/useCache';
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import type { SpotPrice } from '../../clients/price-api/types';
 import {
@@ -286,9 +286,12 @@ export class TokenPricesService {
       {},
     );
 
+    const now = Date.now();
+
     const result: HistoricalPrice = {
       intervals,
-      updateTime: Date.now(),
+      updateTime: now,
+      expirationTime: now + this.#cacheTtlsMilliseconds.historicalPrice,
     };
 
     return result;
@@ -309,21 +312,9 @@ export class TokenPricesService {
     from: CaipAssetType,
     to: CaipAssetType,
   ): Promise<HistoricalPrice> {
-    const result = await useCacheFunction(
-      this.#getHistoricalPrice_INTERNAL.bind(this),
-      this.#cache,
-      {
-        functionName: 'TokenPricesService:getHistoricalPrice',
-        ttlMilliseconds: this.#cacheTtlsMilliseconds.historicalPrice,
-      },
-    )(from, to);
-
-    const now = Date.now();
-
-    return {
-      ...result,
-      updateTime: now,
-      expirationTime: now + this.#cacheTtlsMilliseconds.historicalPrice,
-    };
+    return useCache(this.#getHistoricalPrice_INTERNAL.bind(this), this.#cache, {
+      functionName: 'TokenPricesService:getHistoricalPrice',
+      ttlMilliseconds: this.#cacheTtlsMilliseconds.historicalPrice,
+    })(from, to);
   }
 }

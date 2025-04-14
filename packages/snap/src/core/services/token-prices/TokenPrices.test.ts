@@ -410,7 +410,7 @@ describe('TokenPricesService', () => {
           P1Y: MOCK_HISTORICAL_PRICES.prices,
         },
         updateTime: 1234567890,
-        expirationTime: 1234567890 + 1000 * 60 * 60 * 24,
+        expirationTime: 1234567890 + 1000 * 60 * 60,
       };
       jest.spyOn(mockCache, 'get').mockResolvedValue(mockCacheValue);
 

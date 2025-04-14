@@ -45,10 +45,7 @@ const defaultGenerateCacheKey = (functionName: string, args: any[]) =>
  * @param options.generateCacheKey - Optional function to generate the cache key.
  * @returns A new asynchronous function with caching behavior.
  */
-export const useCacheFunction = <
-  TArgs extends any[],
-  TResult extends Serializable,
->(
+export const useCache = <TArgs extends any[], TResult extends Serializable>(
   fn: (...args: TArgs) => Promise<TResult>,
   cache: ICache<Serializable>,
   { ttlMilliseconds, functionName, generateCacheKey }: CacheOptions,

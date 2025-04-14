@@ -1,8 +1,8 @@
 import type { Serializable } from '../serialization/types';
 import type { ICache } from './ICache';
-import { useCacheFunction, type CacheOptions } from './useCacheFunction';
+import { useCache, type CacheOptions } from './useCache';
 
-describe('useCacheFunction', () => {
+describe('useCache', () => {
   // Spy to check if the original function was executed or not
   let actualExecutionSpy: jest.Mock;
 
@@ -55,17 +55,17 @@ describe('useCacheFunction', () => {
       actualExecutionSpy(obj);
 
     // Create cached versions
-    cachedTestFunction = useCacheFunction(testFunction, cache, {
+    cachedTestFunction = useCache(testFunction, cache, {
       ...cacheOptions,
       functionName: 'testFunction',
     });
 
-    cachedTestFunctionWithArgs = useCacheFunction(testFunctionWithArgs, cache, {
+    cachedTestFunctionWithArgs = useCache(testFunctionWithArgs, cache, {
       ...cacheOptions,
       functionName: 'testFunctionWithArgs',
     });
 
-    cachedTestFunctionWithComplexArgs = useCacheFunction(
+    cachedTestFunctionWithComplexArgs = useCache(
       testFunctionWithComplexArgs,
       cache,
       {
@@ -170,7 +170,7 @@ describe('useCacheFunction', () => {
     it('should use a custom key generator if provided', async () => {
       const customKeyGenerator = jest.fn().mockReturnValue('custom-key');
 
-      const customCachedFunction = useCacheFunction(testFunction, cache, {
+      const customCachedFunction = useCache(testFunction, cache, {
         ...cacheOptions,
         generateCacheKey: customKeyGenerator,
       });
@@ -188,11 +188,9 @@ describe('useCacheFunction', () => {
       const anonymousFunction = async () => actualExecutionSpy();
       Object.defineProperty(anonymousFunction, 'name', { value: null });
 
-      const cachedAnonymousFunction = useCacheFunction(
-        anonymousFunction,
-        cache,
-        { ttlMilliseconds: 1000 },
-      );
+      const cachedAnonymousFunction = useCache(anonymousFunction, cache, {
+        ttlMilliseconds: 1000,
+      });
 
       await cachedAnonymousFunction();
 
@@ -202,7 +200,7 @@ describe('useCacheFunction', () => {
 
   describe('function name override', () => {
     it('should use the provided function name if given', async () => {
-      const cachedWithCustomName = useCacheFunction(testFunction, cache, {
+      const cachedWithCustomName = useCache(testFunction, cache, {
         ttlMilliseconds: 1000,
         functionName: 'customFunctionName',
       });
