@@ -3,12 +3,12 @@ import { address as addressValidator } from '@solana/kit';
 import {
   getBalance,
   getIsNativeToken,
+  getNativeTokenBalance,
   getTokenAmount,
 } from '../../features/send/selectors';
 import type { SendContext } from '../../features/send/types';
 import { SendFormNames } from '../../features/send/types';
 import { validation } from '../../features/send/views/SendForm/validation';
-import { Networks } from '../constants/solana';
 import type {
   FieldValidationFunction,
   ValidationFunction,
@@ -128,12 +128,16 @@ export const amountInput = (context: SendContext) => {
   const {
     minimumBalanceForRentExemptionSol,
     preferences: { locale },
-    scope,
     feeEstimatedInSol,
   } = context;
   const translate = i18n(locale);
 
   return (value: string) => {
+    // If the value is empty string, it's invalid but we don't want to show an error
+    if (value === '') {
+      return { message: '', value };
+    }
+
     const tokenAmount = getTokenAmount({ ...context, amount: value });
     const tokenAmountLamports = solToLamports(tokenAmount);
 
@@ -151,10 +155,21 @@ export const amountInput = (context: SendContext) => {
       return { message: '', value };
     }
 
+    // If you try to send more than your balance, it's invalid
     const isAmountGreaterThanBalance = tokenAmountLamports.gt(balanceLamports);
     if (isAmountGreaterThanBalance) {
       return {
         message: translate('send.insufficientBalance'),
+        value,
+      };
+    }
+
+    // If you have 0 SOL, you can't pay for the fee, it's invalid
+    const solBalance = getNativeTokenBalance(context);
+    const solBalanceLamports = solToLamports(solBalance);
+    if (solBalanceLamports.isZero()) {
+      return {
+        message: translate('send.insuffientSolToCoverFee'),
         value,
       };
     }
@@ -194,12 +209,6 @@ export const amountInput = (context: SendContext) => {
       }
     } else {
       // If the SOL balance is lower than the fee, it's invalid
-      const solBalance = getBalance({
-        ...context,
-        tokenCaipId: Networks[scope].nativeToken.caip19Id,
-      });
-      const solBalanceLamports = solToLamports(solBalance);
-
       const isFeeGreaterThanSolBalance =
         feeEstimatedInLamports.gt(solBalanceLamports);
 
