@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.0]
+
+### Uncategorized
+
+- fix: simplify caching ([#302](https://github.com/MetaMask/snap-solana-wallet/pull/302))
+- fix: validate that SOL balance is > 0 ([#303](https://github.com/MetaMask/snap-solana-wallet/pull/303))
+- Sol 265 snap price chart in on asset historical price ([#300](https://github.com/MetaMask/snap-solana-wallet/pull/300))
+- feat: support sending Token2022 SPL tokens ([#285](https://github.com/MetaMask/snap-solana-wallet/pull/285))
+- chore(keyring:createAccount): make `entropySource` optional again ([#299](https://github.com/MetaMask/snap-solana-wallet/pull/299))
+
 ## [1.20.0]
 
 ### Added
@@ -412,7 +422,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.20.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.21.0...HEAD
+[1.21.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.20.0...v1.21.0
 [1.20.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.19.0...v1.20.0
 [1.19.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...v1.19.0
 [1.18.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...v1.18.1
