@@ -12,16 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support sending Token2022 SPL tokens ([#285](https://github.com/MetaMask/snap-solana-wallet/pull/285))
+- Support `onAssetHistoricalPrice` to return price chart ([#300](https://github.com/MetaMask/snap-solana-wallet/pull/300))
 
 ### Changed
 
-- chore(keyring:createAccount): make `entropySource` optional again ([#299](https://github.com/MetaMask/snap-solana-wallet/pull/299))
+- Make `entropySource` optional when creating a Solana account ([#299](https://github.com/MetaMask/snap-solana-wallet/pull/299))
 
 ### Fixed
 
 - Simplify caching ([#302](https://github.com/MetaMask/snap-solana-wallet/pull/302))
-- Validate that SOL balance is > 0 to cover transaction fees before simulation ([#303](https://github.com/MetaMask/snap-solana-wallet/pull/303)) - _Note: I slightly improved the description here for clarity based on our previous conversation._
-- Sol 265 snap price chart in on asset historical price ([#300](https://github.com/MetaMask/snap-solana-wallet/pull/300))
+- Validate that SOL balance is > 0 to cover transaction fees before simulation ([#303](https://github.com/MetaMask/snap-solana-wallet/pull/303))
 
 ## [1.20.0]
 
