@@ -13,79 +13,106 @@ import {
   validateField,
 } from './form';
 
-describe('validateField', () => {
-  const validation: Partial<Record<'test', FieldValidationFunction[]>> = {
-    test: [required('send.fromRequiredError')],
-  };
+describe('send form validation', () => {
+  describe('validateField', () => {
+    const validation: Partial<Record<'test', FieldValidationFunction[]>> = {
+      test: [required('send.fromRequiredError')],
+    };
 
-  it('returns no error for a valid account', () => {
-    const result = validateField('test', 'validAccount', validation);
-    expect(result).toBeNull();
-  });
+    it('returns no error for a valid account', () => {
+      const result = validateField('test', 'validAccount', validation);
+      expect(result).toBeNull();
+    });
 
-  it('returns required error for an empty account', () => {
-    const result = validateField('test', '', validation);
-    expect(result).toStrictEqual({
-      message: 'Account is required',
-      value: '',
+    it('returns required error for an empty account', () => {
+      const result = validateField('test', '', validation);
+      expect(result).toStrictEqual({
+        message: 'Account is required',
+        value: '',
+      });
+    });
+
+    it('returns null if no validation functions are provided', () => {
+      const result = validateField('', '', {});
+      expect(result).toBeNull();
     });
   });
 
-  it('returns null if no validation functions are provided', () => {
-    const result = validateField('', '', {});
-    expect(result).toBeNull();
-  });
-});
-
-describe('sendFieldsAreValid', () => {
-  it('returns true when all fields are valid', () => {
-    const context = {
-      preferences: {
-        locale: 'en',
-      },
-      tokenCaipId: KnownCaip19Id.SolTestnet,
-      fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
-      amount: '100',
-      balances: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          [KnownCaip19Id.SolTestnet]: {
-            amount: '123', // sender has 123 SOL, more than the amount to send
+  describe('sendFieldsAreValid', () => {
+    it('returns true when all fields are valid', () => {
+      const context = {
+        preferences: {
+          locale: 'en',
+        },
+        tokenCaipId: KnownCaip19Id.SolTestnet,
+        fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+        amount: '100',
+        balances: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+            [KnownCaip19Id.SolTestnet]: {
+              amount: '123', // sender has 123 SOL, more than the amount to send
+            },
           },
         },
-      },
-      currencyType: SendCurrencyType.TOKEN,
-      minimumBalanceForRentExemptionSol: '0.002',
-      scope: Network.Testnet,
-    } as unknown as SendContext;
+        currencyType: SendCurrencyType.TOKEN,
+        minimumBalanceForRentExemptionSol: '0.002',
+        scope: Network.Testnet,
+      } as unknown as SendContext;
 
-    const result = sendFieldsAreValid(context);
-    expect(result).toBe(true);
-  });
+      const result = sendFieldsAreValid(context);
+      expect(result).toBe(true);
+    });
 
-  it('returns false when any field is invalid', () => {
-    const context = {
-      preferences: {
-        locale: 'en',
-      },
-      tokenCaipId: KnownCaip19Id.SolTestnet,
-      fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
-      amount: '', // amount is invalid
-      balances: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          [KnownCaip19Id.SolTestnet]: {
-            amount: '123',
+    it('returns false when any field is invalid', () => {
+      const context = {
+        preferences: {
+          locale: 'en',
+        },
+        tokenCaipId: KnownCaip19Id.SolTestnet,
+        fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+        amount: '', // amount is invalid
+        balances: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+            [KnownCaip19Id.SolTestnet]: {
+              amount: '123',
+            },
           },
         },
-      },
-      currencyType: SendCurrencyType.TOKEN,
-      minimumBalanceForRentExemptionSol: '0.002',
-      scope: Network.Testnet,
-    } as unknown as SendContext;
+        currencyType: SendCurrencyType.TOKEN,
+        minimumBalanceForRentExemptionSol: '0.002',
+        scope: Network.Testnet,
+      } as unknown as SendContext;
 
-    const result = sendFieldsAreValid(context);
-    expect(result).toBe(false);
+      const result = sendFieldsAreValid(context);
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the amount is greater than the balance', () => {
+      const contextWithInvalidBalance = {
+        preferences: {
+          locale: 'en',
+        },
+        tokenCaipId: KnownCaip19Id.SolTestnet,
+        fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+        amount: '100',
+        balances: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+            [KnownCaip19Id.SolTestnet]: {
+              amount: '5', // sender has 5 SOL, but we're trying to send 100
+            },
+          },
+        },
+        currencyType: SendCurrencyType.TOKEN,
+        minimumBalanceForRentExemptionSol: '0.002',
+        scope: Network.Testnet,
+      } as unknown as SendContext;
+
+      const result = sendFieldsAreValid(contextWithInvalidBalance);
+      expect(result).toBe(false);
+    });
   });
 
   describe('amountInput', () => {
@@ -109,6 +136,15 @@ describe('sendFieldsAreValid', () => {
           ...overrides,
         } as unknown as SendContext);
 
+      it('returns an error with no message when the amount is empty string', () => {
+        const context = createSolContext();
+        const validator = amountInput(context);
+        expect(validator('')).toStrictEqual({
+          message: '',
+          value: '',
+        });
+      });
+
       it('returns null when the amount is valid', () => {
         const context = createSolContext();
         const validator = amountInput(context);
@@ -124,21 +160,21 @@ describe('sendFieldsAreValid', () => {
         });
       });
 
-      it('returns an error when the amount is less than the minimum balance for rent exemption', () => {
-        const context = createSolContext();
-        const validator = amountInput(context);
-        expect(validator('0.001')).toStrictEqual({
-          message: 'Amount must be greater than 0.002',
-          value: '0.001',
-        });
-      });
-
       it('returns an error when the amount is greater than the balance', () => {
         const context = createSolContext();
         const validator = amountInput(context);
         expect(validator('1.5')).toStrictEqual({
           message: 'Insufficient balance',
           value: '1.5',
+        });
+      });
+
+      it('returns an error when the amount is less than the minimum balance for rent exemption', () => {
+        const context = createSolContext();
+        const validator = amountInput(context);
+        expect(validator('0.001')).toStrictEqual({
+          message: 'Amount must be greater than 0.002',
+          value: '0.001',
         });
       });
 
@@ -189,6 +225,15 @@ describe('sendFieldsAreValid', () => {
           },
           ...overrides,
         } as unknown as SendContext);
+
+      it('returns an error with no message when the amount is empty string', () => {
+        const context = createSplContext();
+        const validator = amountInput(context);
+        expect(validator('')).toStrictEqual({
+          message: '',
+          value: '',
+        });
+      });
 
       it('returns null when the amount is valid', () => {
         const context = createSplContext();
@@ -242,30 +287,5 @@ describe('sendFieldsAreValid', () => {
         });
       });
     });
-  });
-
-  it('returns false when the amount is greater than the balance', () => {
-    const contextWithInvalidBalance = {
-      preferences: {
-        locale: 'en',
-      },
-      tokenCaipId: KnownCaip19Id.SolTestnet,
-      fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
-      amount: '100',
-      balances: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          [KnownCaip19Id.SolTestnet]: {
-            amount: '5', // sender has 5 SOL, but we're trying to send 100
-          },
-        },
-      },
-      currencyType: SendCurrencyType.TOKEN,
-      minimumBalanceForRentExemptionSol: '0.002',
-      scope: Network.Testnet,
-    } as unknown as SendContext;
-
-    const result = sendFieldsAreValid(contextWithInvalidBalance);
-    expect(result).toBe(false);
   });
 });

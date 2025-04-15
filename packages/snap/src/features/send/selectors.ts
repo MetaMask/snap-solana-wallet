@@ -58,3 +58,10 @@ export const getIsNativeToken = (context: SendContext) => {
   const { tokenCaipId, scope } = context;
   return tokenCaipId === Networks[scope]?.nativeToken?.caip19Id;
 };
+
+export const getNativeTokenBalance = (context: SendContext) => {
+  return getBalance({
+    ...context,
+    tokenCaipId: Networks[context.scope].nativeToken.caip19Id,
+  });
+};
