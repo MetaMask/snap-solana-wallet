@@ -72,7 +72,9 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
       index: from.index,
+      entropySource: from.entropySource,
     });
+
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );

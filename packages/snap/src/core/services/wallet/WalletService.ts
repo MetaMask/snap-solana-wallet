@@ -308,7 +308,9 @@ export class WalletService {
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
       index: account.index,
+      entropySource: account.entropySource,
     });
+
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );
@@ -417,7 +419,9 @@ export class WalletService {
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
       index: account.index,
+      entropySource: account.entropySource,
     });
+
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );
