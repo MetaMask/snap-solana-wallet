@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.22.0]
+
+### Uncategorized
+
+- fix: make account creation idempotent ([#306](https://github.com/MetaMask/snap-solana-wallet/pull/306))
+- fix: use correct entropy source everywhere ([#305](https://github.com/MetaMask/snap-solana-wallet/pull/305))
+
 ## [1.21.0]
 
 ### Added
@@ -428,7 +435,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.21.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.22.0...HEAD
+[1.22.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.21.0...v1.22.0
 [1.21.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.20.0...v1.21.0
 [1.20.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.19.0...v1.20.0
 [1.19.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...v1.19.0
