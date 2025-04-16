@@ -23,6 +23,7 @@ import { buildUrl } from '../../../../snap/src/core/utils/buildUrl';
 import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
+import { EntropySourceBadge } from '../EntropySourceBadge/EntropySourceBadge';
 import { toaster } from '../Toaster/Toaster';
 import { buildNoOpWithHelloWorldData } from './builders/buildNoOpWithHelloWorldData';
 import { buildSendSolTransactionMessage } from './builders/buildSendSolTransactionMessage';
@@ -329,6 +330,11 @@ export const AccountRow = ({
 
   return (
     <Table.Row key={account.id}>
+      <Table.Cell>
+        <EntropySourceBadge
+          entropySource={account.options?.entropySource?.toString()}
+        />
+      </Table.Cell>
       <Table.Cell fontFamily="monospace">
         <RouterLink to={`/${account.id}`}>
           {account.address.slice(0, 6)}...{account.address.slice(-4)}
@@ -359,19 +365,17 @@ export const AccountRow = ({
       </Table.Cell>
       <Table.Cell>{balance} SOL </Table.Cell>
       <Table.Cell textAlign="end">
-        <Button marginLeft="3" onClick={fetchBalance}>
-          Fetch
-        </Button>
+        <Button onClick={fetchBalance}>Fetch</Button>
         <Button
           colorPalette="purple"
-          marginLeft="3"
+          marginLeft="1"
           onClick={async () => handleSend(account.id)}
         >
           Send
         </Button>
         <Menu.Root>
           <Menu.Trigger asChild>
-            <Button marginLeft="3" colorPalette="cyan">
+            <Button marginLeft="1" colorPalette="cyan">
               Sign & Send Tx
             </Button>
           </Menu.Trigger>
@@ -400,7 +404,7 @@ export const AccountRow = ({
         </Menu.Root>
         <Menu.Root>
           <Menu.Trigger asChild>
-            <Button marginLeft="3" colorPalette="pink">
+            <Button marginLeft="1" colorPalette="pink">
               Sign Tx
             </Button>
           </Menu.Trigger>
@@ -429,18 +433,18 @@ export const AccountRow = ({
         </Menu.Root>
         <Button
           colorPalette="orange"
-          marginLeft="3"
+          marginLeft="1"
           onClick={handleSignMessage}
         >
           Sign msg
         </Button>
-        <Button colorPalette="green" marginLeft="3" onClick={handleSignIn}>
+        <Button colorPalette="green" marginLeft="1" onClick={handleSignIn}>
           Sign In
         </Button>
         <Button
           variant="ghost"
           colorPalette="purple"
-          marginLeft="3"
+          marginLeft="1"
           size="xs"
           onClick={() => onRemove(account.id)}
         >

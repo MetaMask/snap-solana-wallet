@@ -170,27 +170,39 @@ export class SolanaKeyring implements Keyring {
       [key: string]: Json | undefined;
     } & MetaMaskOptions,
   ): Promise<KeyringAccount> {
-    // eslint-disable-next-line no-restricted-globals
-    const id = crypto.randomUUID();
+    const id = globalThis.crypto.randomUUID();
 
     try {
-      const entropySource =
-        options?.entropySource ?? (await this.#getDefaultEntropySource());
-
       const isImportedAccount =
         options?.importedAccount && typeof options?.index === 'number';
 
+      const accounts = await this.listAccounts();
+
+      const sameIndexAccount = accounts.find(
+        (account) =>
+          account.index === options?.index &&
+          account.entropySource === options?.entropySource,
+      );
+
+      if (sameIndexAccount) {
+        this.#logger.warn(
+          '[🔑 Keyring] Account already exists with the same index and entropy source. Skipping account creation.',
+        );
+        return sameIndexAccount;
+      }
+
+      const entropySource =
+        options?.entropySource ?? (await this.#getDefaultEntropySource());
+
       const index = isImportedAccount
         ? (options?.index as number)
-        : this.#getLowestUnusedKeyringAccountIndex(
-            await this.listAccounts(),
-            entropySource,
-          );
+        : this.#getLowestUnusedKeyringAccountIndex(accounts, entropySource);
 
       const { publicKeyBytes } = await deriveSolanaKeypair({
         index,
         entropySource,
       });
+
       const accountAddress = getAddressDecoder().decode(
         publicKeyBytes.slice(1),
       );

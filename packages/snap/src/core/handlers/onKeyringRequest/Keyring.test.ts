@@ -15,14 +15,10 @@ import type {
   EncryptedStateValue,
   UnencryptedStateValue,
 } from '../../services/state/State';
-import type { TokenMetadataService } from '../../services/token-metadata/TokenMetadata';
 import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
 import type { WalletService } from '../../services/wallet/WalletService';
-import {
-  SOLANA_MOCK_TOKEN,
-  SOLANA_MOCK_TOKEN_METADATA,
-} from '../../test/mocks/solana-assets';
+import { SOLANA_MOCK_TOKEN } from '../../test/mocks/solana-assets';
 import {
   MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
   MOCK_SEED_PHRASE_ENTROPY_SOURCE,
@@ -67,7 +63,6 @@ describe('SolanaKeyring', () => {
   let keyring: SolanaKeyring;
   let mockEncryptedState: IStateManager<EncryptedStateValue>;
   let mockState: IStateManager<UnencryptedStateValue>;
-  let mockTokenMetadataService: TokenMetadataService;
   let mockWalletService: WalletService;
   let mockAssetsService: AssetsService;
   let mockConfirmationHandler: ConfirmationHandler;
@@ -95,20 +90,10 @@ describe('SolanaKeyring', () => {
       tokenPrices: {},
     });
 
-    mockTokenMetadataService = {
-      getTokensMetadata: jest.fn().mockResolvedValue({}),
-    } as unknown as TokenMetadataService;
-
     mockAssetsService = {
       listAccountAssets: jest.fn(),
       getAccountBalances: jest.fn(),
     } as unknown as AssetsService;
-
-    mockTokenMetadataService = {
-      getTokensMetadata: jest
-        .fn()
-        .mockResolvedValue(SOLANA_MOCK_TOKEN_METADATA),
-    } as unknown as TokenMetadataService;
 
     mockWalletService = {
       resolveAccountAddress: jest.fn(),
@@ -337,6 +322,23 @@ describe('SolanaKeyring', () => {
         ...MOCK_SOLANA_KEYRING_ACCOUNT_5,
         id: sixthAccount.id,
       });
+    });
+
+    it('skips creation if the account already exists and returns the existing account', async () => {
+      const existingAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+      jest.spyOn(mockEncryptedState, 'get').mockResolvedValueOnce({
+        keyringAccounts: {
+          [existingAccount.id]: existingAccount,
+        },
+      });
+      const options = {
+        index: existingAccount.index,
+        entropySource: existingAccount.entropySource,
+      };
+
+      const account = await keyring.createAccount(options);
+
+      expect(account).toEqual(existingAccount);
     });
 
     it('uses accountNameSuggestion if it is provided, and tells the client not to display the suggestion dialog', async () => {
