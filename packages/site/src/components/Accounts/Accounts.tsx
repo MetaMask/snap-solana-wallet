@@ -10,9 +10,9 @@ export const Accounts = () => {
   const invokeKeyring = useInvokeKeyring();
 
   const fetchAccounts = async () => {
-    const accountList = (await invokeKeyring({
+    const accountList = ((await invokeKeyring({
       method: KeyringRpcMethod.ListAccounts,
-    })) as KeyringAccount[];
+    })) || []) as KeyringAccount[];
 
     const sortedByEntropySource = accountList.sort((a, b) => {
       if (a.options?.entropySource && b.options?.entropySource) {
