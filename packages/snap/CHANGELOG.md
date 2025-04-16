@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.22.0]
 
-### Uncategorized
+### Added
 
-- fix: make account creation idempotent ([#306](https://github.com/MetaMask/snap-solana-wallet/pull/306))
-- fix: use correct entropy source everywhere ([#305](https://github.com/MetaMask/snap-solana-wallet/pull/305))
+- Account creation is now idempotent ([#306](https://github.com/MetaMask/snap-solana-wallet/pull/306))
+
+### Fixed
+
+- Use the proper entropy when signing transactions ([#305](https://github.com/MetaMask/snap-solana-wallet/pull/305))
+- Properly export the handler `onAssetHistoricalPrice` ([#305](https://github.com/MetaMask/snap-solana-wallet/pull/305))
 
 ## [1.21.0]
 
