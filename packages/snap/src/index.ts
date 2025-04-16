@@ -1,6 +1,7 @@
 import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
 import type {
   Json,
+  OnAssetHistoricalPriceHandler,
   OnAssetsConversionHandler,
   OnAssetsLookupHandler,
   OnCronjobHandler,
@@ -16,6 +17,7 @@ import {
 import { assert, enums } from '@metamask/superstruct';
 import BigNumber from 'bignumber.js';
 
+import { onAssetHistoricalPrice as onAssetHistoricalPriceHandler } from './core/handlers/onAssetHistoricalPrice/onAssetHistoricalPrice';
 import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
 import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';
 import { handlers as onCronjobHandlers } from './core/handlers/onCronjob';
@@ -208,3 +210,6 @@ export const onAssetsConversion: OnAssetsConversionHandler =
 
 export const onProtocolRequest: OnProtocolRequestHandler =
   onProtocolRequestHandler;
+
+export const onAssetHistoricalPrice: OnAssetHistoricalPriceHandler =
+  onAssetHistoricalPriceHandler;
