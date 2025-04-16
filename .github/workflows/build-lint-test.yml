@@ -62,7 +62,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
-      - run: yarn --immutable --immutable-cache
+      - run: yarn --immutable --immutable-cache || yarn install
       - run: |
           npm rebuild --verbose sharp
           yarn build
@@ -97,7 +97,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
-      - run: yarn --immutable --immutable-cache
+      - run: yarn --immutable --immutable-cache || yarn install
       - run: yarn lint
       - name: Require clean working directory
         shell: bash
