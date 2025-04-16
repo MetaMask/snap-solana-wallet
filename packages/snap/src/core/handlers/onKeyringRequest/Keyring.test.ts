@@ -335,10 +335,12 @@ describe('SolanaKeyring', () => {
         index: existingAccount.index,
         entropySource: existingAccount.entropySource,
       };
+      const stateUpdateSpy = jest.spyOn(mockEncryptedState, 'update');
 
       const account = await keyring.createAccount(options);
 
       expect(account).toEqual(existingAccount);
+      expect(stateUpdateSpy).not.toHaveBeenCalled();
     });
 
     it('uses accountNameSuggestion if it is provided, and tells the client not to display the suggestion dialog', async () => {
