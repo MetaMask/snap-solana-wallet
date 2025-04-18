@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   Button,
   IconButton,
@@ -30,10 +31,6 @@ import { buildSendSolTransactionMessage } from './builders/buildSendSolTransacti
 
 const SOLANA_TOKEN = 'slip44:501';
 
-type InvokeResponse = {
-  result: object | null;
-};
-
 export const AccountRow = ({
   account,
   onRemove,
@@ -59,23 +56,17 @@ export const AccountRow = ({
     setBalance(response?.[`${network}/${SOLANA_TOKEN}`]?.amount ?? '0');
   };
 
-  const handleInvokeResponse = (
-    response: InvokeResponse,
+  const handleInvokeSuccess = (
     title: React.ReactNode,
+    description?: string,
     action?: { label: string; onClick: () => void },
   ) => {
-    if (response.result === null) {
-      toaster.create({
-        title: 'Rejected the confirmation',
-        type: 'info',
-      });
-    } else {
-      toaster.create({
-        title,
-        type: 'success',
-        action: action as any,
-      });
-    }
+    toaster.create({
+      title,
+      description,
+      type: 'success',
+      action: action as any,
+    });
   };
 
   const handleInvokeError = (error: any) => {
@@ -87,17 +78,13 @@ export const AccountRow = ({
   };
 
   const handleSend = async (id: string) => {
-    try {
-      await invokeSnap({
-        method: RpcRequestMethod.StartSendTransactionFlow,
-        params: {
-          scope: network,
-          account: id,
-        },
-      });
-    } catch (error) {
-      handleInvokeError(error);
-    }
+    await invokeSnap({
+      method: RpcRequestMethod.StartSendTransactionFlow,
+      params: {
+        scope: network,
+        account: id,
+      },
+    });
   };
 
   const getLifiQuote = async () => {
@@ -183,9 +170,9 @@ export const AccountRow = ({
         },
       });
 
-      handleInvokeResponse(
-        response as InvokeResponse,
+      handleInvokeSuccess(
         'Transaction signed and sent successfully',
+        undefined,
         {
           label: 'View',
           onClick: () => {
@@ -231,9 +218,9 @@ export const AccountRow = ({
         },
       });
 
-      handleInvokeResponse(
-        response as InvokeResponse,
+      handleInvokeSuccess(
         'Transaction signed successfully',
+        `Signed transaction: ${(response as any).result.signedTransaction}`,
       );
     } catch (error) {
       handleInvokeError(error);
@@ -264,9 +251,9 @@ export const AccountRow = ({
         },
       });
 
-      handleInvokeResponse(
-        response as InvokeResponse,
+      handleInvokeSuccess(
         'Message signed successfully',
+        `Signature: ${(response as any).result.signature}`,
       );
     } catch (error) {
       handleInvokeError(error);
@@ -307,9 +294,9 @@ export const AccountRow = ({
         },
       });
 
-      handleInvokeResponse(
-        response as InvokeResponse,
+      handleInvokeSuccess(
         'Signed in successfully',
+        `Signature: ${(response as any).result.signature}`,
       );
     } catch (error) {
       handleInvokeError(error);
