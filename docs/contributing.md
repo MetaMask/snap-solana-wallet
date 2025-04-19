@@ -2,9 +2,14 @@
 
 Thank you for your interest in contributing to the Snap Solana Wallet project! This guide will help you get started with development and understand our contribution workflow.
 
-## Quick Start
+## Prerequisites
 
-Here's the minimal setup to get started:
+- [MetaMask Flask](https://consensyssoftware.atlassian.net/wiki/x/IQCOB10) is required for testing the snap locally
+- [NVM](https://github.com/creationix/nvm) to manage Node.js and avoid compatibility issues between different projects
+- Node.js `21.7.3` as specified in `.nvmrc`
+- Yarn `3.8.6` is required due to MetaMask package compatibility
+
+## 🚀 Quick Start
 
 ```bash
 # Clone and setup
@@ -21,68 +26,25 @@ cp packages/site/.env.development.sample packages/site/.env.development
 yarn start
 ```
 
-> [!NOTE]
-> For a complete setup with all prerequisites and detailed instructions, continue reading below.
+At this point, you should have these running:
 
-## Development Setup
+- Snap server on local port `8080`
+- Test dapp at http://localhost:3000
 
-### Prerequisites
+## 🧪 Testing Your Changes
 
-- [MetaMask Flask](https://consensyssoftware.atlassian.net/wiki/x/IQCOB10) is required for testing the snap locally
-- Node.js `21.7.3` as specified in `.nvmrc`
-- Yarn `3.8.6` is required due to MetaMask package compatibility
+### Manual Testing
 
-> [!IMPORTANT]
-> We strongly recommend using [NVM](https://github.com/creationix/nvm) to manage Node.js versions and avoid compatibility issues between different projects.
-> After installing NVM, install Yarn globally with `npm i -g yarn`.
+#### Setting up MetaMask Flask
 
-### Initial Setup
-
-1. Clone the repository:
-
-   ```bash
-   git clone git@github.com:MetaMask/snap-solana-wallet.git
-   cd snap-solana-wallet
-   ```
-
-2. Set up the development environment:
-
-   ```bash
-   nvm use
-   yarn
-   ```
-
-3. Configure environment variables:
-
-   ```bash
-   # Copy and configure snap environment variables
-   cp packages/snap/.env.sample packages/snap/.env
-   # Get the actual values from: https://my.1password.com/app#/gebbq4jvzj7iexnbirelfitv2y/AllItems/gebbq4jvzj7iexnbirelfitv2yvis64f7yhxuoi277r3hagj7ndi
-   # Make sure to set the environment to 'local' in your .env file
-
-   # Copy and configure site environment variables
-   cp packages/site/.env.development.sample packages/site/.env.development
-   # Get the actual values from: https://my.1password.com/app#/gebbq4jvzj7iexnbirelfitv2y/AllItems/gebbq4jvzj7iexnbirelfitv2ywvxnnmeq2y3mkp57zlmirfhrwi
-   ```
-
-4. Start the development servers:
-   ```bash
-   yarn start
-   ```
-   This will run:
-   - Snap server at http://localhost:8080/. For more details, read [packages/snap/README.md](../packages/snap/README.md).
-   - Test dapp at http://localhost:3000/. For more details, read [packages/site/README.md](../packages/site/README.md).
-
-## Testing Your Changes
-
-### Setting up MetaMask Flask
+To test the snap manually, you will need to install it in MetaMask Flask. Follow these steps to set up MetaMask Flask:
 
 1. Locate the directory [`./metamask-extension-overrides`](./metamask-extension-overrides)
 2. Copy all files from there to the corresponding locations in your `metamask-extension` repository. Make sure you remove the `.txt` extension from the file name. These overrides are for local development only - do not commit them.
 3. Start MetaMask Flask with `yarn:start:flask` in your local `metamask-extension` repository
 4. Install the development version in your browser
 
-### Manual Testing
+#### Installing the snap in MetaMask Flask
 
 1. Ensure your snap `.env` file is configured with `ENVIRONMENT=local`
 2. Start both the snap and test dapp with `yarn start`
@@ -91,13 +53,15 @@ yarn start
 5. Open the test dapp in your browser at http://localhost:3000/
 6. Click the `Reconnect` button to install the locally running snap into MetaMask Flask. This overrides the preinstalled Solana snap.
 
+🎉 Congratulations, you're now ready to test your changes locally! You can interact with your snap through the test dapp and through the extension, and verify that everything works as expected.
+
 ### Unit Tests
 
 1. Configure your snap `.env` file with `ENVIRONMENT=test`
 2. Ensure the snap is running with `yarn start`
 3. Run the test suite with `yarn test`
 
-## Contribution Workflow
+## 🧑‍💻 Contribution Workflow
 
 ### Branch Management
 
@@ -106,16 +70,12 @@ yarn start
 
 ### Commit Guidelines
 
-We use `commitlint` to enforce the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format. This helps maintain a clean changelog and consistent commit history.
+We use `commitlint` to enforce the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format. This helps maintain a clean changelog and consistent commit history. For a clean changelog, prefer using `feat` and `fix` commit types.
 
-> [!IMPORTANT]
-> Git hooks are configured to automatically:
->
-> - Lint your commit messages
-> - Fix formatting and linting issues
+Git hooks are configured to automatically:
 
-> [!TIP]
-> For a clean changelog, prefer using `feat` and `fix` commit types.
+- Lint your commit messages
+- Fix formatting and linting issues
 
 ### Pull Requests
 
