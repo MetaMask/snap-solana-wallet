@@ -12,6 +12,8 @@ The dapp serves as a development sandbox, enabling thorough testing of Solana-ba
 
 This project was bootstrapped with [Gatsby](https://www.gatsbyjs.com/).
 
+![Site UI](./docs/site-ui.png)
+
 ## Available Scripts
 
 In the project directory, you can run:
