@@ -21,16 +21,13 @@ cp packages/snap/.env.example packages/snap/.env
 yarn workspace @metamask/solana-wallet-snap start
 ```
 
-> [!WARNING]  
-> When snap updates you will need to still reconnect from the dapp to see changes
+> [!WARNING] When snap updates you will need to still reconnect from the dapp to see changes
 
-> [!TIP]
-> Alternatively you can build and serve the snap manually. This can sometimes be more stable than watch mode but requires a manual rebuild and serve anytime there is a change on the snap.
+> [!TIP] Alternatively you can build and serve the snap manually. This can sometimes be more stable than watch mode but requires a manual rebuild and serve anytime there is a change on the snap.
 
 ## Changing env vars
 
-> [!WARNING]  
-> The `.env` values are bundled into the built snap and affect its [shasum](./snap.manifest.json#L10). To avoid build failures in CI, make sure your local `.env` file matches exactly with the CI repository secrets. Any mismatch will cause the CI to reject the build due to different checksums.
+> [!WARNING] The `.env` values are bundled into the built snap and affect its [shasum](./snap.manifest.json#L10). To avoid build failures in CI, make sure your local `.env` file matches exactly with the CI repository secrets. Any mismatch will cause the CI to reject the build due to different checksums.
 
 If you need to change the environment variables, follow this checklist:
 
