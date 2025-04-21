@@ -71,8 +71,8 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
     this.#logger.log('Build transfer SPL token transaction message');
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
-      index: from.index,
       entropySource: from.entropySource,
+      derivationPath: from.derivationPath,
     });
 
     const signer = await createKeyPairSignerFromPrivateKeyBytes(

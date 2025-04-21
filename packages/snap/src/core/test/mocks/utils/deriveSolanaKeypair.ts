@@ -1,12 +1,20 @@
 import {
+  MOCK_SEED_PHRASE_ENTROPY_SOURCE,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
 } from '../solana-keyring-accounts';
 
 export const deriveSolanaKeypairMock = jest
   .fn()
-  .mockImplementation(({ index }) => {
-    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[index];
+  .mockImplementation((params) => {
+    const { entropySource = MOCK_SEED_PHRASE_ENTROPY_SOURCE, derivationPath } =
+      params;
+
+    const account = MOCK_SOLANA_KEYRING_ACCOUNTS.find(
+      (currentAccount) =>
+        entropySource === currentAccount.entropySource &&
+        derivationPath === currentAccount.derivationPath,
+    );
 
     if (!account) {
       throw new Error('[deriveSolanaAddress] Not enough mocked indices');

@@ -24,18 +24,35 @@ describe('getBip32Entropy', () => {
     });
   });
 
-  it('calls snap.request with correct parameters', async () => {
-    const path = ['m', "44'", "501'"];
-    const curve = 'ed25519';
+  describe('when we have a valid path and we get a response from the Extension', () => {
+    it('returns the correct entropy', async () => {
+      const path = ['m', "44'", "501'"];
+      const curve = 'ed25519';
 
-    await getBip32Entropy({ path, curve });
+      await getBip32Entropy({ path, curve });
 
-    expect(snap.request).toHaveBeenCalledWith({
-      method: 'snap_getBip32Entropy',
-      params: {
-        path,
-        curve,
-      },
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_getBip32Entropy',
+        params: {
+          path,
+          curve,
+        },
+      });
+    });
+  });
+
+  describe('when we have a valid entropy source and path and we get a response from the Extension', () => {
+    it('returns the correct entropy', async () => {
+      const entropySource = '01JR0PT6PNGBN7MRM3MPEVQPC0';
+      const path = ['m', "44'", "501'"];
+      const curve = 'ed25519';
+
+      await getBip32Entropy({ entropySource, path, curve });
+
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_getBip32Entropy',
+        params: { source: entropySource, path, curve },
+      });
     });
   });
 });

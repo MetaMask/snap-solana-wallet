@@ -307,8 +307,8 @@ export class WalletService {
     const messageUtf8 = getUtf8Codec().decode(messageBytes);
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
-      index: account.index,
       entropySource: account.entropySource,
+      derivationPath: account.derivationPath,
     });
 
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
@@ -418,8 +418,8 @@ export class WalletService {
     assert(messageBase64, Base64Struct);
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
-      index: account.index,
       entropySource: account.entropySource,
+      derivationPath: account.derivationPath,
     });
 
     const signer = await createKeyPairSignerFromPrivateKeyBytes(

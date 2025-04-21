@@ -29,6 +29,8 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
+  MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1,
 } from '../../test/mocks/solana-keyring-accounts';
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
@@ -237,161 +239,286 @@ describe('SolanaKeyring', () => {
       });
     });
 
-    it('creates new accounts with increasing indices', async () => {
-      const firstAccount = await keyring.createAccount();
-      const secondAccount = await keyring.createAccount();
-      const thirdAccount = await keyring.createAccount();
+    describe('when no parameters are provided', () => {
+      it('creates new accounts with increasing indices', async () => {
+        const firstAccount = await keyring.createAccount();
+        const secondAccount = await keyring.createAccount();
+        const thirdAccount = await keyring.createAccount();
 
-      const accounts = Object.values(
-        (await mockEncryptedState.get()).keyringAccounts,
-      );
-      expect(accounts).toHaveLength(3);
+        const accounts = Object.values(
+          (await mockEncryptedState.get()).keyringAccounts,
+        );
+        expect(accounts).toHaveLength(3);
 
-      const accountIndex0 = accounts.find((acc) => acc.index === 0);
-      const accountIndex1 = accounts.find((acc) => acc.index === 1);
-      const accountIndex2 = accounts.find((acc) => acc.index === 2);
+        const accountIndex0 = accounts.find((acc) => acc.index === 0);
+        const accountIndex1 = accounts.find((acc) => acc.index === 1);
+        const accountIndex2 = accounts.find((acc) => acc.index === 2);
 
-      expect(accountIndex0).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        id: firstAccount.id,
-      });
-      expect(accountIndex1).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        id: secondAccount.id,
-      });
-      expect(accountIndex2).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
-        id: thirdAccount.id,
-      });
-    });
-
-    it('recreates accounts with missing indices, in order', async () => {
-      const firstAccount = await keyring.createAccount();
-      const secondAccount = await keyring.createAccount();
-      const thirdAccount = await keyring.createAccount();
-      const fourthAccount = await keyring.createAccount();
-      const fifthAccount = await keyring.createAccount();
-
-      await mockEncryptedState.update((state) => {
-        const updatedState = cloneDeep(state);
-        delete updatedState.keyringAccounts[secondAccount.id];
-        delete updatedState.keyringAccounts[fourthAccount.id];
-
-        return updatedState;
+        expect(accountIndex0).toStrictEqual({
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          id: firstAccount.id,
+        });
+        expect(accountIndex1).toStrictEqual({
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
+          id: secondAccount.id,
+        });
+        expect(accountIndex2).toStrictEqual({
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
+          id: thirdAccount.id,
+        });
       });
 
-      const regeneratedSecondAccount = await keyring.createAccount();
-      const regeneratedFourthAccount = await keyring.createAccount();
-      const sixthAccount = await keyring.createAccount();
+      it('recreates accounts with missing indices, in order', async () => {
+        const firstAccount = await keyring.createAccount();
+        const secondAccount = await keyring.createAccount();
+        const thirdAccount = await keyring.createAccount();
+        const fourthAccount = await keyring.createAccount();
+        const fifthAccount = await keyring.createAccount();
 
-      const accounts = Object.values(
-        (await mockEncryptedState.get()).keyringAccounts,
-      );
-      expect(accounts).toHaveLength(6);
-
-      const accountIndex0 = accounts.find((acc) => acc.index === 0);
-      const accountIndex1 = accounts.find((acc) => acc.index === 1);
-      const accountIndex2 = accounts.find((acc) => acc.index === 2);
-      const accountIndex3 = accounts.find((acc) => acc.index === 3);
-      const accountIndex4 = accounts.find((acc) => acc.index === 4);
-      const accountIndex5 = accounts.find((acc) => acc.index === 5);
-
-      expect(accountIndex0).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        id: firstAccount.id,
-      });
-      expect(accountIndex2).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
-        id: thirdAccount.id,
-      });
-      expect(accountIndex4).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_4,
-        id: fifthAccount.id,
-      });
-
-      expect(accountIndex1).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        id: regeneratedSecondAccount.id,
-      });
-      expect(accountIndex3).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_3,
-        id: regeneratedFourthAccount.id,
-      });
-
-      expect(accountIndex5).toEqual({
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_5,
-        id: sixthAccount.id,
-      });
-    });
-
-    it('skips creation if the account already exists and returns the existing account', async () => {
-      const existingAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-      jest.spyOn(mockEncryptedState, 'get').mockResolvedValueOnce({
-        keyringAccounts: {
-          [existingAccount.id]: existingAccount,
-        },
-      });
-      const options = {
-        index: existingAccount.index,
-        entropySource: existingAccount.entropySource,
-      };
-      const stateUpdateSpy = jest.spyOn(mockEncryptedState, 'update');
-
-      const account = await keyring.createAccount(options);
-
-      expect(account).toEqual(existingAccount);
-      expect(stateUpdateSpy).not.toHaveBeenCalled();
-    });
-
-    it('uses accountNameSuggestion if it is provided, and tells the client not to display the suggestion dialog', async () => {
-      const emitEventSpy = jest.spyOn(keyring, 'emitEvent');
-      const account = await keyring.createAccount({
-        accountNameSuggestion: 'My Cool Account Name',
-      });
-      expect(emitEventSpy).toHaveBeenCalledWith('notify:accountCreated', {
-        accountNameSuggestion: 'My Cool Account Name',
-        displayAccountNameSuggestion: false,
-        displayConfirmation: false,
-        account,
-      });
-    });
-
-    it('uses the provided entropy source when creating an account', async () => {
-      const entropySource = MOCK_SEED_PHRASE_2_ENTROPY_SOURCE;
-      const account = await keyring.createAccount({ entropySource });
-
-      expect(getBip32Entropy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          entropySource,
-        }),
-      );
-
-      const expectedAccount = {
-        type: 'solana:data-account',
-        id: expect.any(String),
-        address: '8fi28SQKWhzCaH5c2RrHLbpgQJctNG6NFrfZyCj51rJX',
-        options: {
+        const sixthAccount = await keyring.createAccount({
           entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
-          imported: false,
-        },
-        methods: [
-          'signAndSendTransaction',
-          'signTransaction',
-          'signMessage',
-          'signIn',
-        ],
-        scopes: expect.arrayContaining([Network.Mainnet, Network.Devnet]),
-      };
+        });
+        const seventhAccount = await keyring.createAccount({
+          entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
+        });
 
-      expect(account).toBeDefined();
-      expect(account).toMatchObject(expectedAccount);
+        await mockEncryptedState.update((state) => {
+          const updatedState = cloneDeep(state);
+          delete updatedState.keyringAccounts[secondAccount.id];
+          delete updatedState.keyringAccounts[fourthAccount.id];
+          delete updatedState.keyringAccounts[sixthAccount.id];
+          return updatedState;
+        });
 
-      expect(
-        (await mockEncryptedState.get()).keyringAccounts[account.id],
-      ).toBeDefined();
-      expect(
-        (await mockEncryptedState.get()).keyringAccounts[account.id],
-      ).toMatchObject(expectedAccount);
+        const regeneratedSecondAccount = await keyring.createAccount();
+        const regeneratedFourthAccount = await keyring.createAccount();
+        const regeneratedSixthAccount = await keyring.createAccount({
+          entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
+        });
+
+        const accounts = Object.values(
+          (await mockEncryptedState.get()).keyringAccounts,
+        );
+        expect(accounts).toHaveLength(7);
+
+        const accountIndex0 = accounts.find(
+          (acc) =>
+            acc.entropySource === MOCK_SEED_PHRASE_ENTROPY_SOURCE &&
+            acc.index === 0,
+        );
+        const accountIndex1 = accounts.find(
+          (acc) =>
+            acc.entropySource === MOCK_SEED_PHRASE_ENTROPY_SOURCE &&
+            acc.index === 1,
+        );
+        const accountIndex2 = accounts.find(
+          (acc) =>
+            acc.entropySource === MOCK_SEED_PHRASE_ENTROPY_SOURCE &&
+            acc.index === 2,
+        );
+        const accountIndex3 = accounts.find(
+          (acc) =>
+            acc.entropySource === MOCK_SEED_PHRASE_ENTROPY_SOURCE &&
+            acc.index === 3,
+        );
+        const accountIndex4 = accounts.find(
+          (acc) =>
+            acc.entropySource === MOCK_SEED_PHRASE_ENTROPY_SOURCE &&
+            acc.index === 4,
+        );
+        const accountIndex5 = accounts.find(
+          (acc) =>
+            acc.entropySource === MOCK_SEED_PHRASE_2_ENTROPY_SOURCE &&
+            acc.index === 0,
+        );
+        const accountIndex6 = accounts.find(
+          (acc) =>
+            acc.entropySource === MOCK_SEED_PHRASE_2_ENTROPY_SOURCE &&
+            acc.index === 1,
+        );
+
+        /**
+         * Accounts that were created before the deletion
+         */
+        expect(accountIndex0).toStrictEqual({
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          id: firstAccount.id,
+        });
+        expect(accountIndex2).toStrictEqual({
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
+          id: thirdAccount.id,
+        });
+        expect(accountIndex4).toStrictEqual({
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_4,
+          id: fifthAccount.id,
+        });
+        expect(accountIndex6).toStrictEqual({
+          ...MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1,
+          id: seventhAccount.id,
+        });
+
+        /**
+         * Accounts that were recreated
+         */
+        expect(accountIndex1).toStrictEqual({
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
+          id: regeneratedSecondAccount.id,
+        });
+        expect(accountIndex3).toStrictEqual({
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_3,
+          id: regeneratedFourthAccount.id,
+        });
+        expect(accountIndex5).toStrictEqual({
+          ...MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0,
+          id: regeneratedSixthAccount.id,
+        });
+      });
+    });
+
+    describe('when an entropy source is provided', () => {
+      it('uses it to create a new account', async () => {
+        const entropySource = MOCK_SEED_PHRASE_2_ENTROPY_SOURCE;
+        const account = await keyring.createAccount({ entropySource });
+
+        const expectedAccount = {
+          id: expect.any(String),
+          type: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0.type,
+          options: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0.options,
+          address: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0.address,
+          scopes: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0.scopes,
+          methods: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0.methods,
+        };
+
+        const expectedStateAccount = {
+          ...MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0,
+          id: expect.any(String),
+        };
+
+        expect(account).toBeDefined();
+        expect(account).toStrictEqual(expectedAccount);
+
+        expect(
+          (await mockEncryptedState.get()).keyringAccounts[account.id],
+        ).toBeDefined();
+        expect(
+          (await mockEncryptedState.get()).keyringAccounts[account.id],
+        ).toStrictEqual(expectedStateAccount);
+      });
+    });
+
+    describe('when a derivation path is provided', () => {
+      it('uses it to create a new account', async () => {
+        const derivationPath = `m/44'/501'/1'/0'`;
+        const account = await keyring.createAccount({ derivationPath });
+
+        const expectedAccount = {
+          id: expect.any(String),
+          type: MOCK_SOLANA_KEYRING_ACCOUNT_1.type,
+          options: MOCK_SOLANA_KEYRING_ACCOUNT_1.options,
+          address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+          scopes: MOCK_SOLANA_KEYRING_ACCOUNT_1.scopes,
+          methods: MOCK_SOLANA_KEYRING_ACCOUNT_1.methods,
+        };
+
+        const expectedStateAccount = {
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
+          id: expect.any(String),
+        };
+
+        expect(account).toBeDefined();
+        expect(account).toEqual(expectedAccount);
+
+        expect(
+          (await mockEncryptedState.get()).keyringAccounts[account.id],
+        ).toBeDefined();
+        expect(
+          (await mockEncryptedState.get()).keyringAccounts[account.id],
+        ).toStrictEqual(expectedStateAccount);
+      });
+
+      it('skips creation if the account already exists', async () => {
+        const existingAccount = MOCK_SOLANA_KEYRING_ACCOUNT_1;
+        jest.spyOn(mockEncryptedState, 'get').mockResolvedValueOnce({
+          keyringAccounts: {
+            [existingAccount.id]: existingAccount,
+          },
+        });
+        const stateUpdateSpy = jest.spyOn(mockEncryptedState, 'update');
+
+        const account = await keyring.createAccount({
+          derivationPath: existingAccount.derivationPath,
+        });
+
+        expect(account).toEqual(existingAccount);
+        expect(stateUpdateSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when both an entropy source and derivation path are provided', () => {
+      it('uses them to create a new account', async () => {
+        const entropySource = MOCK_SEED_PHRASE_2_ENTROPY_SOURCE;
+        const derivationPath = `m/44'/501'/1'/0'`; // Index 1
+        const account = await keyring.createAccount({
+          entropySource,
+          derivationPath,
+        });
+
+        const expectedAccount = {
+          id: expect.any(String),
+          type: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1.type,
+          options: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1.options,
+          address: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1.address,
+          scopes: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1.scopes,
+          methods: MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1.methods,
+        };
+
+        const expectedStateAccount = {
+          ...MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1,
+          id: expect.any(String),
+        };
+
+        expect(account).toBeDefined();
+        expect(account).toStrictEqual(expectedAccount);
+
+        expect(
+          (await mockEncryptedState.get()).keyringAccounts[account.id],
+        ).toBeDefined();
+        expect(
+          (await mockEncryptedState.get()).keyringAccounts[account.id],
+        ).toStrictEqual(expectedStateAccount);
+      });
+
+      it('skips creation if the account already exists', async () => {
+        const existingAccount = MOCK_SOLANA_KEYRING_ACCOUNT_1;
+        jest.spyOn(mockEncryptedState, 'get').mockResolvedValueOnce({
+          keyringAccounts: {
+            [existingAccount.id]: existingAccount,
+          },
+        });
+        const stateUpdateSpy = jest.spyOn(mockEncryptedState, 'update');
+        const account = await keyring.createAccount({
+          entropySource: existingAccount.entropySource,
+          derivationPath: existingAccount.derivationPath,
+        });
+
+        expect(account).toEqual(existingAccount);
+        expect(stateUpdateSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when an account name suggestion is provided', () => {
+      it('uses the name suggestion and tells the client not to display the suggestion dialog', async () => {
+        const emitEventSpy = jest.spyOn(keyring, 'emitEvent');
+        const account = await keyring.createAccount({
+          accountNameSuggestion: 'My Cool Account Name',
+        });
+        expect(emitEventSpy).toHaveBeenCalledWith('notify:accountCreated', {
+          accountNameSuggestion: 'My Cool Account Name',
+          displayAccountNameSuggestion: false,
+          displayConfirmation: false,
+          account,
+        });
+      });
     });
 
     it('throws when deriving address fails', async () => {

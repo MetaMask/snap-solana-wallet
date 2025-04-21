@@ -62,54 +62,70 @@ describe('deriveSolanaKeypair', () => {
     );
   });
 
-  it('successfully derives Solana private keys', async () => {
-    const { privateKeyBytes: firstPrivateKey } = await deriveSolanaKeypair({
-      index: 0,
-    });
-    const { privateKeyBytes: secondPrivateKey } = await deriveSolanaKeypair({
-      index: 1,
-    });
-    const { privateKeyBytes: thirdPrivateKey } = await deriveSolanaKeypair({
-      index: 2,
-    });
-    const { privateKeyBytes: fourthPrivateKey } = await deriveSolanaKeypair({
-      index: 3,
-    });
-    const { privateKeyBytes: fifthPrivateKey } = await deriveSolanaKeypair({
-      index: 4,
-    });
+  describe('when the derivation path and BIP32 entropy are valid', () => {
+    it('successfully derives Solana private keys', async () => {
+      const { privateKeyBytes: firstPrivateKey } = await deriveSolanaKeypair({
+        derivationPath: `m/44'/501'/0'/0'`,
+      });
+      const { privateKeyBytes: secondPrivateKey } = await deriveSolanaKeypair({
+        derivationPath: `m/44'/501'/1'/0'`,
+      });
+      const { privateKeyBytes: thirdPrivateKey } = await deriveSolanaKeypair({
+        derivationPath: `m/44'/501'/2'/0'`,
+      });
+      const { privateKeyBytes: fourthPrivateKey } = await deriveSolanaKeypair({
+        derivationPath: `m/44'/501'/3'/0'`,
+      });
+      const { privateKeyBytes: fifthPrivateKey } = await deriveSolanaKeypair({
+        derivationPath: `m/44'/501'/4'/0'`,
+      });
 
-    expect(firstPrivateKey).toStrictEqual(
-      MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
-    );
-    expect(secondPrivateKey).toStrictEqual(
-      MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES,
-    );
-    expect(thirdPrivateKey).toStrictEqual(
-      MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES,
-    );
-    expect(fourthPrivateKey).toStrictEqual(
-      MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES,
-    );
-    expect(fifthPrivateKey).toStrictEqual(
-      MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
-    );
+      expect(firstPrivateKey).toStrictEqual(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+      );
+      expect(secondPrivateKey).toStrictEqual(
+        MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES,
+      );
+      expect(thirdPrivateKey).toStrictEqual(
+        MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES,
+      );
+      expect(fourthPrivateKey).toStrictEqual(
+        MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES,
+      );
+      expect(fifthPrivateKey).toStrictEqual(
+        MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
+      );
+    });
   });
 
-  it('throws error if unable to derive private key', async () => {
-    jest.mocked(getBip32Entropy).mockResolvedValue({} as any);
-
-    await expect(deriveSolanaKeypair({ index: 0 })).rejects.toThrow(
-      'Unable to derive private key',
-    );
+  describe('when the derivation path is not valid', () => {
+    it('throws an error', async () => {
+      await expect(
+        deriveSolanaKeypair({ derivationPath: `m/44'/1'/0'` }),
+      ).rejects.toThrow(
+        "Expected a string matching `/^m\\/44'\\/501'/` but received \"m/44'/1'/0'\"",
+      );
+    });
   });
 
-  it('throws error if getBip32Entropy fails', async () => {
-    const errorMessage = 'Failed to get entropy';
-    (getBip32Entropy as jest.Mock).mockRejectedValue(new Error(errorMessage));
+  describe('when the BIP32 entropy is invalid', () => {
+    it('throws an error', async () => {
+      (getBip32Entropy as jest.Mock).mockResolvedValue({} as any);
 
-    await expect(deriveSolanaKeypair({ index: 0 })).rejects.toThrow(
-      errorMessage,
-    );
+      await expect(
+        deriveSolanaKeypair({ derivationPath: `m/44'/501'/0'/0'` }),
+      ).rejects.toThrow('Unable to derive private key');
+    });
+  });
+
+  describe('when we are unable to get BIP32 entropy', () => {
+    it('throws an error', async () => {
+      const errorMessage = 'Failed to get entropy';
+      (getBip32Entropy as jest.Mock).mockRejectedValue(new Error(errorMessage));
+
+      await expect(
+        deriveSolanaKeypair({ derivationPath: `m/44'/501'/0'/0'` }),
+      ).rejects.toThrow(errorMessage);
+    });
   });
 });

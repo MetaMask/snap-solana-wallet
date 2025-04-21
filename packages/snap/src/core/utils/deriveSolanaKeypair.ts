@@ -1,17 +1,10 @@
 import type { EntropySourceId } from '@metamask/keyring-api';
+import { assert } from '@metamask/superstruct';
 import { hexToBytes } from '@metamask/utils';
 
+import { DerivationPathStruct } from '../validation/structs';
 import { getBip32Entropy } from './getBip32Entropy';
 import logger from './logger';
-
-/**
- * Derivations path constant
- *
- * m - stands for Master. See: https://learnmeabitcoin.com/technical/keys/hd-wallets/derivation-paths/
- * 44' - stands for BIP44. See: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
- * 501' - stands for Solana. See: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
- */
-const DERIVATION_PATH = [`m`, `44'`, `501'`];
 
 /**
  * Elliptic curve
@@ -25,8 +18,8 @@ const CURVE = 'ed25519' as const;
  * The derivation path follows Phantom wallet's standard: m/44'/501'/index'/0'.
  *
  * @param params - The parameters for the Solana key derivation.
- * @param params.index - The account index to derive. Must be a non-negative integer.
  * @param params.entropySource - The entropy source to use for key derivation.
+ * @param params.derivationPath - The derivation path to use for key derivation.
  * @returns A Promise that resolves to a Uint8Array of the private key.
  * @throws {Error} If unable to derive private key or if derivation fails.
  * @example
@@ -38,26 +31,22 @@ const CURVE = 'ed25519' as const;
  * @see {@link https://github.com/satoshilabs/slips/blob/master/slip-0044.md} SLIP-0044 for coin types.
  */
 export async function deriveSolanaKeypair({
-  index,
   entropySource,
+  derivationPath,
 }: {
-  index: number;
   entropySource?: EntropySourceId | undefined;
+  derivationPath: string;
 }): Promise<{ privateKeyBytes: Uint8Array; publicKeyBytes: Uint8Array }> {
-  logger.log({ index }, 'Generating solana wallet');
+  logger.log({ derivationPath }, 'Generating solana wallet');
 
-  /**
-   * Derivation path for Solana addresses matching Phantom
-   * https://help.phantom.app/hc/en-us/articles/12988493966227-What-derivation-paths-does-Phantom-wallet-support
-   * They already match our derivation path for Ethereum addresses.
-   * Other wallets might follow a different logic
-   */
-  const hdPath = [`${index}'`, `0'`];
+  assert(derivationPath, DerivationPathStruct);
+
+  const path = derivationPath.split('/');
 
   try {
     const node = await getBip32Entropy({
       entropySource,
-      path: [...DERIVATION_PATH, ...hdPath],
+      path,
       curve: CURVE,
     });
 
