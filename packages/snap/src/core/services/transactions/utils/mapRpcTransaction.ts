@@ -6,9 +6,19 @@ import {
 import type { Address } from '@solana/kit';
 
 import type { Network } from '../../../constants/solana';
+import {
+  MALICIOUS_TOKEN_ADDRESSES,
+  SPAM_TOKEN_ADDRESSES,
+} from '../../../constants/tokens';
 import type { SolanaTransaction } from '../../../types/solana';
 import { parseTransactionNativeTransfers } from './parseTransactionNativeTransfers';
 import { parseTransactionSplTransfers } from './parseTransactionSplTransfers';
+
+enum TransactionLegitimacy {
+  Legitimate = 'legitimate',
+  Spam = 'spam', // Advertisement transactions
+  Malicious = 'malicious', // Malicious token transactions
+}
 
 /**
  * Maps RPC transaction data to a standardized format.
@@ -56,7 +66,7 @@ export function mapRpcTransaction({
   let from = [...nativeFrom, ...splFrom];
   let to = [...nativeTo, ...splTo];
 
-  let type = evaluateTransactionType({
+  const type = evaluateTransactionType({
     address,
     from,
     to,
@@ -73,16 +83,24 @@ export function mapRpcTransaction({
     fees = [];
   }
 
-  if (from.length === 0 || to.length === 0) {
-    // if we are unable to determine the type of transaction, we should set it to unknown
-    type = TransactionType.Unknown;
-  }
-
   const status =
     transactionData.meta?.err ||
     (transactionData.meta?.status && 'Err' in transactionData.meta.status)
       ? TransactionStatus.Failed
       : TransactionStatus.Confirmed;
+
+  const legitimacy = evaluateTransactionLegitimacy({
+    address,
+    from,
+    to,
+  });
+
+  if (
+    legitimacy === TransactionLegitimacy.Spam ||
+    legitimacy === TransactionLegitimacy.Malicious
+  ) {
+    return null;
+  }
 
   return {
     id,
@@ -120,6 +138,11 @@ function evaluateTransactionType({
   from: Transaction['from'];
   to: Transaction['to'];
 }): TransactionType {
+  if (from.length === 0 || to.length === 0) {
+    // if we are unable to determine the type of transaction, we should set it to unknown
+    return TransactionType.Unknown;
+  }
+
   const userSentItems = from.filter((fromItem) => fromItem.address === address);
   const userReceivedItems = to.filter((toItem) => toItem.address === address);
 
@@ -161,4 +184,45 @@ function evaluateTransactionType({
   }
 
   return TransactionType.Receive;
+}
+
+/**
+ * Evaluates the legitimacy of a transaction based on the address and the from and to items.
+ * @param params - The options object.
+ * @param params.address - The address of the user.
+ * @param params.from - The from items.
+ * @param params.to - The to items.
+ * @returns The legitimacy of the transaction.
+ */
+function evaluateTransactionLegitimacy({
+  address,
+  from,
+  to,
+}: {
+  address: Address;
+  from: Transaction['from'];
+  to: Transaction['to'];
+}): TransactionLegitimacy {
+  const addresses = [
+    ...from.map((fromItem) => fromItem.address),
+    ...to.map((toItem) => toItem.address),
+  ];
+
+  const isSpam = addresses.some((spamTokenAddress) =>
+    SPAM_TOKEN_ADDRESSES.includes(spamTokenAddress),
+  );
+
+  const isMalicious = addresses.some((maliciousTokenAddress) =>
+    MALICIOUS_TOKEN_ADDRESSES.includes(maliciousTokenAddress),
+  );
+
+  if (isSpam) {
+    return TransactionLegitimacy.Spam;
+  }
+
+  if (isMalicious) {
+    return TransactionLegitimacy.Malicious;
+  }
+
+  return TransactionLegitimacy.Legitimate;
 }
