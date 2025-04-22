@@ -667,7 +667,7 @@ describe('SolanaKeyring', () => {
       );
     });
 
-    it('returns null if the confirmation handler returns false', async () => {
+    it('throws a SnapError if the confirmation handler returns false', async () => {
       jest
         .spyOn(mockConfirmationHandler, 'handleKeyringRequest')
         .mockResolvedValue(false);
@@ -687,9 +687,9 @@ describe('SolanaKeyring', () => {
         scope: Network.Devnet,
       };
 
-      const result = await keyring.submitRequest(request);
-
-      expect(result).toStrictEqual({ pending: false, result: null });
+      await expect(keyring.submitRequest(request)).rejects.toThrow(
+        'User rejected the request',
+      );
     });
   });
 
