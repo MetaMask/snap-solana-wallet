@@ -667,7 +667,7 @@ describe('SolanaKeyring', () => {
       );
     });
 
-    it('throws a SnapError if the confirmation handler returns false', async () => {
+    it('throws a UserRejectedRequestError if the confirmation handler returns false', async () => {
       jest
         .spyOn(mockConfirmationHandler, 'handleKeyringRequest')
         .mockResolvedValue(false);
@@ -688,7 +688,7 @@ describe('SolanaKeyring', () => {
       };
 
       await expect(keyring.submitRequest(request)).rejects.toThrow(
-        'User rejected the request',
+        'User rejected the request.',
       );
     });
   });
