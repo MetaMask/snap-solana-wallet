@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.23.0]
 
-### Uncategorized
+### Added
 
-- feat: implement account creation with configurable derivation path ([#311](https://github.com/MetaMask/snap-solana-wallet/pull/311))
-- fix: throw appropriate error when user rejects the request ([#312](https://github.com/MetaMask/snap-solana-wallet/pull/312))
-- Improve docs ([#310](https://github.com/MetaMask/snap-solana-wallet/pull/310))
-- Sol 302 error message not formatted properly when cancelling a tx from a dapp ([#309](https://github.com/MetaMask/snap-solana-wallet/pull/309))
+- Account creation with configurable derivation path ([#311](https://github.com/MetaMask/snap-solana-wallet/pull/311))
+
+### Fixed
+
+- Throw appropriate error when user rejects a request ([#312](https://github.com/MetaMask/snap-solana-wallet/pull/312))
+- Error message not formatted properly when cancelling a transaction from a dApp ([#309](https://github.com/MetaMask/snap-solana-wallet/pull/309))
 
 ## [1.22.0]
 
