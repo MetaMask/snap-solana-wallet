@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.23.0]
+
+### Uncategorized
+
+- feat: implement account creation with configurable derivation path ([#311](https://github.com/MetaMask/snap-solana-wallet/pull/311))
+- Improve docs ([#310](https://github.com/MetaMask/snap-solana-wallet/pull/310))
+- Sol 302 error message not formatted properly when cancelling a tx from a dapp ([#309](https://github.com/MetaMask/snap-solana-wallet/pull/309))
+
 ## [1.22.0]
 
 ### Added
@@ -170,7 +178,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.22.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.23.0...HEAD
+[1.23.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.22.0...v1.23.0
 [1.22.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.19.0...v1.22.0
 [1.19.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...v1.19.0
 [1.18.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...v1.18.1
