@@ -299,3 +299,10 @@ export const Base64Struct = pattern(
   string(),
   /^(?:[A-Za-z0-9+/]{4})+(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u,
 );
+
+const DERIVATION_PATH_REGEX = /^m\/44'\/501'/u;
+
+/**
+ * Validates a Solana derivation path following the format: m/44'/501'/...
+ */
+export const DerivationPathStruct = pattern(string(), DERIVATION_PATH_REGEX);

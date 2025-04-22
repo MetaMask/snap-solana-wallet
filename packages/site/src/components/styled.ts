@@ -38,7 +38,7 @@ export const CardContainer = styled.div`
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
-  max-width: 1024px;
+  max-width: 1200px;
   width: 100%;
   height: 100%;
   margin-top: 1.5rem;

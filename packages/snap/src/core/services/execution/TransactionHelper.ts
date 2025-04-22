@@ -331,8 +331,8 @@ export class TransactionHelper {
     scope: Network,
   ): Promise<Readonly<Transaction & TransactionWithLifetime>> {
     const { privateKeyBytes } = await deriveSolanaKeypair({
-      index: account.index,
       entropySource: account.entropySource,
+      derivationPath: account.derivationPath,
     });
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
@@ -416,8 +416,8 @@ export class TransactionHelper {
     account: SolanaKeyringAccount,
   ) {
     const { privateKeyBytes } = await deriveSolanaKeypair({
-      index: account.index,
       entropySource: account.entropySource,
+      derivationPath: account.derivationPath,
     });
 
     const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);

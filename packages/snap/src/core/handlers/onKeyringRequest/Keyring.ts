@@ -21,13 +21,16 @@ import {
   type Transaction,
 } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import type { Json } from '@metamask/snaps-controllers';
-import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
-import { MethodNotFoundError, SnapError } from '@metamask/snaps-sdk';
-import { assert } from '@metamask/superstruct';
+import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
+import {
+  MethodNotFoundError,
+  UserRejectedRequestError,
+} from '@metamask/snaps-sdk';
+import { assert, integer } from '@metamask/superstruct';
 import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
+import { sortBy } from 'lodash';
 
 import { type Network } from '../../constants/solana';
 import type { AssetsService } from '../../services/assets/AssetsService';
@@ -64,8 +67,9 @@ import {
  * we want to be able to restore any account with a previously used index.
  */
 export type SolanaKeyringAccount = {
-  index: number;
   entropySource: EntropySourceId;
+  derivationPath: `m/${string}`;
+  index: number;
 } & KeyringAccount;
 
 export class SolanaKeyring implements Keyring {
@@ -114,7 +118,7 @@ export class SolanaKeyring implements Keyring {
       const currentState = await this.#encryptedState.get();
       const keyringAccounts = currentState?.keyringAccounts ?? {};
 
-      return Object.values(keyringAccounts).sort((a, b) => a.index - b.index);
+      return sortBy(Object.values(keyringAccounts), ['entropySource', 'index']);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing accounts');
       throw new Error('Error listing accounts');
@@ -161,11 +165,41 @@ export class SolanaKeyring implements Keyring {
     return getLowestUnusedIndex(accountsFilteredByEntropySourceId);
   }
 
+  #getDefaultDerivationPath(index: number): `m/${string}` {
+    return `m/44'/501'/${index}'/0'`;
+  }
+
+  #getIndexFromDerivationPath(derivationPath: `m/${string}`): number {
+    const levels = derivationPath.split('/');
+    const indexLevel = levels[3];
+
+    if (!indexLevel) {
+      throw new Error('Invalid derivation path');
+    }
+
+    const index = parseInt(indexLevel.replace("'", ''), 10);
+    assert(index, integer());
+
+    return index;
+  }
+
+  async #getDefaultEntropySource(): Promise<EntropySourceId> {
+    const entropySources = await listEntropySources();
+    const defaultEntropySource = entropySources.find(({ primary }) => primary);
+
+    if (!defaultEntropySource) {
+      throw new Error(
+        'No default entropy source found - this can never happen',
+      );
+    }
+
+    return defaultEntropySource.id;
+  }
+
   async createAccount(
     options?: {
-      importedAccount?: boolean;
-      index?: number;
       entropySource?: EntropySourceId;
+      derivationPath?: `m/${string}`;
       accountNameSuggestion?: string;
       [key: string]: Json | undefined;
     } & MetaMaskOptions,
@@ -173,34 +207,39 @@ export class SolanaKeyring implements Keyring {
     const id = globalThis.crypto.randomUUID();
 
     try {
-      const isImportedAccount =
-        options?.importedAccount && typeof options?.index === 'number';
-
       const accounts = await this.listAccounts();
-
-      const sameIndexAccount = accounts.find(
-        (account) =>
-          account.index === options?.index &&
-          account.entropySource === options?.entropySource,
-      );
-
-      if (sameIndexAccount) {
-        this.#logger.warn(
-          '[🔑 Keyring] Account already exists with the same index and entropy source. Skipping account creation.',
-        );
-        return sameIndexAccount;
-      }
 
       const entropySource =
         options?.entropySource ?? (await this.#getDefaultEntropySource());
 
-      const index = isImportedAccount
-        ? (options?.index as number)
+      const index = options?.derivationPath
+        ? this.#getIndexFromDerivationPath(options.derivationPath)
         : this.#getLowestUnusedKeyringAccountIndex(accounts, entropySource);
 
+      const derivationPath = options?.derivationPath
+        ? options.derivationPath
+        : this.#getDefaultDerivationPath(index);
+
+      /**
+       * Now that we have the `entropySource` and `derivationPath` ready,
+       * we need to make sure that they do not correspond to an existing account already.
+       */
+      const sameAccount = accounts.find(
+        (account) =>
+          account.derivationPath === derivationPath &&
+          account.entropySource === entropySource,
+      );
+
+      if (sameAccount) {
+        this.#logger.warn(
+          '[🔑 Keyring] An account already exists with the same derivation path and entropy source. Skipping account creation.',
+        );
+        return sameAccount;
+      }
+
       const { publicKeyBytes } = await deriveSolanaKeypair({
-        index,
         entropySource,
+        derivationPath,
       });
 
       const accountAddress = getAddressDecoder().decode(
@@ -210,7 +249,6 @@ export class SolanaKeyring implements Keyring {
       // Filter out our special properties from options
       const {
         importedAccount,
-        index: _,
         accountNameSuggestion,
         metamask: metamaskOptions,
         ...remainingOptions
@@ -219,13 +257,20 @@ export class SolanaKeyring implements Keyring {
       const solanaKeyringAccount: SolanaKeyringAccount = {
         id,
         entropySource,
+        derivationPath,
         index,
         type: SolAccountType.DataAccount,
         address: accountAddress,
         scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
         options: {
           ...remainingOptions,
-          imported: importedAccount ?? false,
+          /**
+           * Make sure to save the `entropySource`, `derivationPath` and `index`
+           * in the keyring account options..
+           */
+          entropySource,
+          derivationPath,
+          index,
         },
         methods: [
           SolMethod.SignAndSendTransaction,
@@ -261,11 +306,15 @@ export class SolanaKeyring implements Keyring {
         accountNameSuggestion:
           accountNameSuggestion ?? `Solana Account ${index + 1}`,
         displayAccountNameSuggestion: !accountNameSuggestion,
-        // Skip account creation confirmation dialogs to make it look like a native
-        // account creation flow.
+        /**
+         * Skip account creation confirmation dialogs to make it look like a native
+         * account creation flow.
+         */
         displayConfirmation: false,
-        // Internal options to MetaMask that includes a correlation ID. We need
-        // to also emit this ID to the Snap keyring.
+        /**
+         * Internal options to MetaMask that includes a correlation ID. We need
+         * to also emit this ID to the Snap keyring.
+         */
         ...(metamaskOptions
           ? {
               metamask: metamaskOptions,
@@ -280,19 +329,6 @@ export class SolanaKeyring implements Keyring {
 
       throw new Error(`Error creating account: ${error.message}`);
     }
-  }
-
-  async #getDefaultEntropySource(): Promise<EntropySourceId> {
-    const entropySources = await listEntropySources();
-    const defaultEntropySource = entropySources.find(({ primary }) => primary);
-
-    if (!defaultEntropySource) {
-      throw new Error(
-        'No default entropy source found - this can never happen',
-      );
-    }
-
-    return defaultEntropySource.id;
   }
 
   async #deleteAccountFromState(accountId: string): Promise<void> {
@@ -428,7 +464,7 @@ export class SolanaKeyring implements Keyring {
     );
 
     if (!isConfirmed) {
-      throw new SnapError('User rejected the request');
+      throw new UserRejectedRequestError() as unknown as Error;
     }
 
     switch (method) {
@@ -590,9 +626,11 @@ export class SolanaKeyring implements Keyring {
         DiscoverAccountsRequestStruct,
       );
 
+      const derivationPath = this.#getDefaultDerivationPath(groupIndex);
+
       const keypair = await deriveSolanaKeypair({
-        index: groupIndex,
         entropySource,
+        derivationPath,
       });
       const address = getAddressDecoder().decode(
         keypair.publicKeyBytes.slice(1),
@@ -623,7 +661,7 @@ export class SolanaKeyring implements Keyring {
         {
           type: 'bip44',
           scopes,
-          derivationPath: `m/44'/501'/${groupIndex}'/0'`,
+          derivationPath,
         },
       ];
     } catch (error: any) {

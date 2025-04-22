@@ -28,11 +28,14 @@ export const ALL_SCOPES = [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet];
 export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
   address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
   entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+  derivationPath: `m/44'/501'/0'/0'`,
   index: 0,
   type: 'solana:data-account',
   id: '4b445722-6766-4f99-ade5-c2c9295f21d0',
   options: {
-    imported: false,
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+    derivationPath: `m/44'/501'/0'/0'`,
+    index: 0,
   },
   methods: [
     SolMethod.SignAndSendTransaction,
@@ -56,11 +59,14 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0_PUBLIC_KEY_BYTES = Uint8Array.from([
 export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   address: 'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo',
   entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+  derivationPath: `m/44'/501'/1'/0'`,
   index: 1,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174001',
   options: {
-    imported: false,
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+    derivationPath: `m/44'/501'/1'/0'`,
+    index: 1,
   },
   methods: [
     SolMethod.SignAndSendTransaction,
@@ -79,11 +85,14 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES = Uint8Array.from([
 export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
   address: '27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD',
   entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+  derivationPath: `m/44'/501'/2'/0'`,
   index: 2,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174002',
   options: {
-    imported: false,
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+    derivationPath: `m/44'/501'/2'/0'`,
+    index: 2,
   },
   methods: [
     SolMethod.SignAndSendTransaction,
@@ -102,11 +111,14 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES = Uint8Array.from([
 export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   address: '3SYHDFbhoxuTCYCGRw7KSL8GbwUoByjtvyy7pUZeAhh8',
   entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+  derivationPath: `m/44'/501'/3'/0'`,
   index: 3,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174003',
   options: {
-    imported: false,
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+    derivationPath: `m/44'/501'/3'/0'`,
+    index: 3,
   },
   methods: [
     SolMethod.SignAndSendTransaction,
@@ -125,11 +137,14 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES = Uint8Array.from([
 export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
   address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
   entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+  derivationPath: `m/44'/501'/4'/0'`,
   index: 4,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174004',
   options: {
-    imported: false,
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+    derivationPath: `m/44'/501'/4'/0'`,
+    index: 4,
   },
   methods: [
     SolMethod.SignAndSendTransaction,
@@ -148,11 +163,14 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES = Uint8Array.from([
 export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
   address: 'GN1DST49kafBmRDnKKwUbR6nJWoqzSJBPoHwcTXzgmkH',
   entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+  derivationPath: `m/44'/501'/5'/0'`,
   index: 5,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174005',
   options: {
-    imported: false,
+    entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+    derivationPath: `m/44'/501'/5'/0'`,
+    index: 5,
   },
   methods: [
     SolMethod.SignAndSendTransaction,
@@ -168,6 +186,62 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_5_PRIVATE_KEY_BYTES = Uint8Array.from([
   27, 142, 254, 188, 4, 157, 96, 132, 101, 35, 165, 225, 205, 245, 102,
 ]);
 
+export const MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0: SolanaKeyringAccount =
+  {
+    entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
+    derivationPath: `m/44'/501'/0'/0'`,
+    index: 0,
+    id: '123e4567-e89b-12d3-a456-426614174006',
+    type: 'solana:data-account',
+    address: '8fi28SQKWhzCaH5c2RrHLbpgQJctNG6NFrfZyCj51rJX',
+    options: {
+      entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
+      derivationPath: `m/44'/501'/0'/0'`,
+      index: 0,
+    },
+    methods: [
+      SolMethod.SignAndSendTransaction,
+      SolMethod.SignTransaction,
+      SolMethod.SignMessage,
+      SolMethod.SignIn,
+    ],
+    scopes: ALL_SCOPES,
+  };
+
+export const MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES =
+  Uint8Array.from([
+    35, 162, 118, 171, 62, 232, 249, 151, 226, 117, 248, 5, 74, 33, 76, 163,
+    204, 43, 227, 179, 113, 233, 221, 254, 63, 233, 35, 17, 13, 116, 143, 32,
+  ]);
+
+export const MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1: SolanaKeyringAccount =
+  {
+    entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
+    derivationPath: `m/44'/501'/1'/0'`,
+    index: 1,
+    id: '123e4567-e89b-12d3-a456-426614174007',
+    type: 'solana:data-account',
+    address: '4yQr5hGkYfXykkv8Q7YxAGBxkB9bd9ntLL7hJaz1tGTv',
+    options: {
+      entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
+      derivationPath: `m/44'/501'/1'/0'`,
+      index: 1,
+    },
+    methods: [
+      SolMethod.SignAndSendTransaction,
+      SolMethod.SignTransaction,
+      SolMethod.SignMessage,
+      SolMethod.SignIn,
+    ],
+    scopes: ALL_SCOPES,
+  };
+
+export const MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES =
+  Uint8Array.from([
+    242, 217, 241, 193, 39, 45, 61, 75, 78, 249, 46, 188, 251, 118, 33, 4, 86,
+    81, 250, 148, 246, 106, 109, 244, 62, 17, 240, 246, 147, 126, 37, 10,
+  ]);
+
 export const MOCK_SOLANA_KEYRING_ACCOUNTS = [
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -175,6 +249,8 @@ export const MOCK_SOLANA_KEYRING_ACCOUNTS = [
   MOCK_SOLANA_KEYRING_ACCOUNT_3,
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
+  MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1,
 ] as const;
 
 export const MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES = {
@@ -190,4 +266,8 @@ export const MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES = {
     MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
   [MOCK_SOLANA_KEYRING_ACCOUNT_5.id]:
     MOCK_SOLANA_KEYRING_ACCOUNT_5_PRIVATE_KEY_BYTES,
+  [MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0.id]:
+    MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+  [MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1.id]:
+    MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES,
 } as const;
