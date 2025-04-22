@@ -6,7 +6,7 @@ import {
 } from '@metamask/keyring-api';
 import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
-import type { SignatureBytes } from '@solana/kit';
+import type { Commitment, SignatureBytes } from '@solana/kit';
 import {
   address as asAddress,
   assertTransactionIsFullySigned,
@@ -24,6 +24,7 @@ import {
 import type { Caip10Address, Network } from '../../constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';
 import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
@@ -154,16 +155,24 @@ export class WalletService {
     assert(request.request, SolanaSignTransactionRequestStruct);
     assert(request.scope, NetworkStruct);
 
-    const { transaction, scope } = request.request.params;
+    const { transaction, scope, options } = request.request.params;
+
+    const config: DecompileTransactionMessageFetchingLookupTablesConfig =
+      options?.minContextSlot
+        ? {
+            minContextSlot: BigInt(options.minContextSlot),
+          }
+        : undefined;
 
     const partiallySignedTransaction =
       await this.#transactionHelper.partiallySignBase64String(
         transaction,
         account,
         scope,
+        config,
       );
 
-    const signedTransactionBase64 = await fromTransactionToBase64String(
+    const signedTransactionBase64 = fromTransactionToBase64String(
       partiallySignedTransaction,
     );
 
@@ -191,16 +200,24 @@ export class WalletService {
 
     const {
       request: {
-        params: { transaction: base64EncodedTransaction },
+        params: { transaction: base64EncodedTransaction, options },
       },
       scope,
     } = request;
+
+    const signConfig: DecompileTransactionMessageFetchingLookupTablesConfig =
+      options?.minContextSlot
+        ? {
+            minContextSlot: BigInt(options.minContextSlot),
+          }
+        : undefined;
 
     const partiallySignedTransaction =
       await this.#transactionHelper.partiallySignBase64String(
         base64EncodedTransaction,
         account,
         scope,
+        signConfig,
       );
 
     const signature = getSignatureFromTransaction(partiallySignedTransaction);
@@ -217,10 +234,27 @@ export class WalletService {
 
     assertTransactionIsFullySigned(partiallySignedTransaction);
 
-    await sendTransactionWithoutConfirming(partiallySignedTransaction, {
-      commitment: 'confirmed',
+    const sendConfig = {
+      ...(options?.preflightCommitment
+        ? { preflightCommitment: options.preflightCommitment }
+        : {}),
+      ...(options?.minContextSlot
+        ? { minContextSlot: BigInt(options.minContextSlot) }
+        : {}),
+      ...(options?.maxRetries
+        ? { maxRetries: BigInt(options.maxRetries) }
+        : {}),
+      // Set to 'confirmed' as required to be defined, but ignored by sendTransactionWithoutConfirming.
+      // This is because RPC Subscriptions rely on websockets, which are unavailable in the Snap environment.
+      // We compensate for this with `waitForTransactionCommitment`.
+      commitment: 'confirmed' as Commitment,
       skipPreflight: true,
-    });
+    };
+
+    await sendTransactionWithoutConfirming(
+      partiallySignedTransaction,
+      sendConfig,
+    );
 
     // Trigger the side effects that need to happen when the transaction is submitted
     await snap.request({
@@ -245,10 +279,14 @@ export class WalletService {
 
     assert(result, SolanaSignAndSendTransactionResponseStruct);
 
+    if (options?.commitment === 'processed') {
+      throw new Error('Commitment "processed" is not supported');
+    }
+
     const transaction =
       await this.#transactionHelper.waitForTransactionCommitment(
         signature,
-        'confirmed',
+        options?.commitment ?? 'confirmed',
         scope,
       );
 

@@ -40,6 +40,10 @@ export const fromCompilableTransactionMessageToBase64String = async (
     getBase64Decoder().decode,
   );
 
+export type DecompileTransactionMessageFetchingLookupTablesConfig = Parameters<
+  typeof decompileTransactionMessageFetchingLookupTables
+>[2];
+
 /**
  * Decodes a base64 encoded string to a compilable transaction message.
  *
@@ -47,18 +51,24 @@ export const fromCompilableTransactionMessageToBase64String = async (
  *
  * @param base64String - The base64 encoded string to decode.
  * @param rpc - The RPC to use to fetch lookup tables.
+ * @param config - The configuration to use to fetch lookup tables.
  * @returns The decoded compilable transaction message.
  */
 export const fromBase64StringToCompilableTransactionMessage = async (
   base64String: Infer<typeof Base64Struct>,
   rpc: Rpc<GetMultipleAccountsApi>,
+  config?: DecompileTransactionMessageFetchingLookupTablesConfig,
 ): Promise<CompilableTransactionMessage> =>
   pipe(
     base64String,
     getBase64Encoder().encode,
     getCompiledTransactionMessageDecoder().decode,
     async (decodedMessageBytes) =>
-      decompileTransactionMessageFetchingLookupTables(decodedMessageBytes, rpc),
+      decompileTransactionMessageFetchingLookupTables(
+        decodedMessageBytes,
+        rpc,
+        config,
+      ),
   );
 
 /**
@@ -68,17 +78,23 @@ export const fromBase64StringToCompilableTransactionMessage = async (
  *
  * @param messageBytes - The bytes to decode.
  * @param rpc - The RPC to use to fetch lookup tables.
+ * @param config - The configuration to use to fetch lookup tables.
  * @returns The decoded compilable transaction message.
  */
 export const fromBytesToCompilableTransactionMessage = async (
   messageBytes: TransactionMessageBytes,
   rpc: Rpc<GetMultipleAccountsApi>,
+  config?: DecompileTransactionMessageFetchingLookupTablesConfig,
 ): Promise<CompilableTransactionMessage> =>
   pipe(
     messageBytes,
     getCompiledTransactionMessageDecoder().decode,
     async (decodedMessageBytes) =>
-      decompileTransactionMessageFetchingLookupTables(decodedMessageBytes, rpc),
+      decompileTransactionMessageFetchingLookupTables(
+        decodedMessageBytes,
+        rpc,
+        config,
+      ),
   );
 
 /**
@@ -87,9 +103,9 @@ export const fromBytesToCompilableTransactionMessage = async (
  * @param transaction - The transaction to encode.
  * @returns The base64 encoded string.
  */
-export const fromTransactionToBase64String = async (
+export const fromTransactionToBase64String = (
   transaction: Transaction,
-): Promise<Infer<typeof Base64Struct>> =>
+): Infer<typeof Base64Struct> =>
   pipe(transaction, getTransactionEncoder().encode, getBase64Decoder().decode);
 
 /**
@@ -113,13 +129,15 @@ export const fromBase64StringToTransaction = async (
  *
  * @param base64String - The base64 string to decode.
  * @param rpc - The RPC to use to fetch lookup tables.
+ * @param config - The configuration to use to fetch lookup tables.
  * @returns The decoded transaction or compilable transaction message.
  */
 export const fromUnknowBase64StringToTransactionOrTransactionMessage = async (
   base64String: Infer<typeof Base64Struct>,
   rpc: Rpc<GetMultipleAccountsApi>,
+  config?: DecompileTransactionMessageFetchingLookupTablesConfig,
 ): Promise<Transaction | CompilableTransactionMessage> =>
   PromiseAny<Transaction | CompilableTransactionMessage>([
     fromBase64StringToTransaction(base64String),
-    fromBase64StringToCompilableTransactionMessage(base64String, rpc),
+    fromBase64StringToCompilableTransactionMessage(base64String, rpc, config),
   ]);

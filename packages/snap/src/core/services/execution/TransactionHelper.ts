@@ -26,6 +26,7 @@ import {
 
 import type { Network } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';
 import {
   fromBytesToCompilableTransactionMessage,
   fromUnknowBase64StringToTransactionOrTransactionMessage,
@@ -253,6 +254,7 @@ export class TransactionHelper {
    * @param base64String - The base64 encoded transaction or transaction message to sign.
    * @param account - The account to sign the transaction or transaction message with.
    * @param network - The network on which the transaction is being sent.
+   * @param config - The configuration for the request.
    * @returns The signed transaction.
    * @throws If the base64 string is not a valid transaction or transaction message.
    */
@@ -260,6 +262,7 @@ export class TransactionHelper {
     base64String: Infer<typeof Base64Struct>,
     account: SolanaKeyringAccount,
     network: Network,
+    config?: DecompileTransactionMessageFetchingLookupTablesConfig,
   ): Promise<Transaction> {
     const rpc = this.#connection.getRpc(network);
 
@@ -268,6 +271,7 @@ export class TransactionHelper {
       await fromUnknowBase64StringToTransactionOrTransactionMessage(
         base64String,
         rpc,
+        config,
       );
 
     // It's a transaction message, add all missing fields, then partially sign it.
@@ -288,7 +292,11 @@ export class TransactionHelper {
       const { messageBytes } = transactionMessageOrTransaction;
 
       const transactionMessageFromUnsignedTransaction =
-        await fromBytesToCompilableTransactionMessage(messageBytes, rpc);
+        await fromBytesToCompilableTransactionMessage(
+          messageBytes,
+          rpc,
+          config,
+        );
 
       return this.#prepareAndPartiallySignTransactionMessage(
         transactionMessageFromUnsignedTransaction,

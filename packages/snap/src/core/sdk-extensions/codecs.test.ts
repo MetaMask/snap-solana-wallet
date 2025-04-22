@@ -1,9 +1,17 @@
-import type { GetMultipleAccountsApi, Rpc } from '@solana/kit';
+import type { TransactionMessageBytes } from '@solana/kit';
+import {
+  compileTransactionMessage,
+  getCompiledTransactionMessageEncoder,
+  pipe,
+  type GetMultipleAccountsApi,
+  type Rpc,
+} from '@solana/kit';
 
 import { MOCK_EXECUTION_SCENARIOS } from '../services/execution/mocks/scenarios';
 import {
   fromBase64StringToCompilableTransactionMessage,
   fromBase64StringToTransaction,
+  fromBytesToCompilableTransactionMessage,
   fromCompilableTransactionMessageToBase64String,
   fromTransactionToBase64String,
   fromUnknowBase64StringToTransactionOrTransactionMessage,
@@ -47,9 +55,26 @@ describe('codecs', () => {
       });
     });
 
+    describe('fromBytesToCompilableTransactionMessage', () => {
+      it('decodes bytes to a compilable transaction message', async () => {
+        const transactionMessageBytes = pipe(
+          transactionMessage,
+          compileTransactionMessage,
+          getCompiledTransactionMessageEncoder().encode,
+        );
+
+        const result = await fromBytesToCompilableTransactionMessage(
+          transactionMessageBytes as TransactionMessageBytes,
+          mockRpc,
+        );
+
+        expect(result).toStrictEqual(transactionMessage);
+      });
+    });
+
     describe('fromTransactionToBase64String', () => {
-      it('encodes a transaction to a base64 string', async () => {
-        const result = await fromTransactionToBase64String(signedTransaction);
+      it('encodes a transaction to a base64 string', () => {
+        const result = fromTransactionToBase64String(signedTransaction);
 
         expect(result).toStrictEqual(signedTransactionBase64Encoded);
       });

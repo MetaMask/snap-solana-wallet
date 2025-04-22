@@ -191,6 +191,22 @@ export const setComputeUnitLimitInstructionIfMissing = <
   );
 };
 
+export type ComputeUnitEstimateForTransactionMessageConfig = Omit<
+  Parameters<
+    ReturnType<typeof getComputeUnitEstimateForTransactionMessageFactory>
+  >[1],
+  'rpc' | 'transactionMessage'
+>;
+
+export type SetComputeUnitLimitInstructionConfig = Parameters<
+  typeof getSetComputeUnitLimitInstruction
+>[1];
+
+export type EstimateAndOverrideComputeUnitLimitConfig = {
+  getComputeUnitEstimateConfig?: ComputeUnitEstimateForTransactionMessageConfig;
+  getSetComputeUnitLimitInstructionConfig?: SetComputeUnitLimitInstructionConfig;
+};
+
 /**
  * Estimate the compute unit limit for the transaction message and set it,
  * overriding the existing compute unit limit instruction.
@@ -203,14 +219,16 @@ export const setComputeUnitLimitInstructionIfMissing = <
  * @param transactionMessage - The transaction message to estimate the compute unit limit for.
  * @param rpc - The RPC to use to estimate the compute unit limit.
  * @param config - Optional config for the compute unit limit instruction.
- * @param config.programAddress - The program address to check for the compute unit limit instruction.
+ * @param config.getComputeUnitEstimateConfig - Optional config for the compute unit estimate.
+ * @param config.getSetComputeUnitLimitInstructionConfig - Optional config for the set compute unit limit instruction.
  * @returns The transaction message with the compute unit limit instruction added.
  */
 export const estimateAndOverrideComputeUnitLimit = async (
   transactionMessage: CompilableTransactionMessage,
   rpc: Rpc<SimulateTransactionApi>,
   config?: {
-    programAddress?: Address;
+    getComputeUnitEstimateConfig?: ComputeUnitEstimateForTransactionMessageConfig;
+    getSetComputeUnitLimitInstructionConfig?: SetComputeUnitLimitInstructionConfig;
   },
 ): Promise<CompilableTransactionMessage> => {
   try {
@@ -221,22 +239,23 @@ export const estimateAndOverrideComputeUnitLimit = async (
         rpc,
       });
 
-    const units = await getComputeUnitEstimate(transactionMessage).catch(
-      (error) => {
-        // If the transaction simulation failed, we recover the units consumed from the error, and consider that as the compute unit limit.
-        if (
-          isSolanaError(
-            error,
-            SOLANA_ERROR__TRANSACTION__FAILED_WHEN_SIMULATING_TO_ESTIMATE_COMPUTE_LIMIT,
-          )
-        ) {
-          return error.context.unitsConsumed;
-        }
+    const units = await getComputeUnitEstimate(
+      transactionMessage,
+      config?.getComputeUnitEstimateConfig,
+    ).catch((error) => {
+      // If the transaction simulation failed, we recover the units consumed from the error, and consider that as the compute unit limit.
+      if (
+        isSolanaError(
+          error,
+          SOLANA_ERROR__TRANSACTION__FAILED_WHEN_SIMULATING_TO_ESTIMATE_COMPUTE_LIMIT,
+        )
+      ) {
+        return error.context.unitsConsumed;
+      }
 
-        // Otherwise it's an unexpected error. Rethrow.
-        throw error;
-      },
-    );
+      // Otherwise it's an unexpected error. Rethrow.
+      throw error;
+    });
 
     // Recreate the transaction message, replacing the compute unit limit instruction with the new one.
     return {
@@ -245,7 +264,10 @@ export const estimateAndOverrideComputeUnitLimit = async (
         ...instructions.filter(
           (instruction) => !isComputeUnitLimitInstruction(instruction),
         ),
-        getSetComputeUnitLimitInstruction({ units }, config),
+        getSetComputeUnitLimitInstruction(
+          { units },
+          config?.getSetComputeUnitLimitInstructionConfig,
+        ),
       ],
     } as CompilableTransactionMessage;
   } catch (error) {

@@ -59,7 +59,10 @@ const SolanaTransactionCommitmentStruct = enums([
 ]);
 
 const SolanaSignTransactionOptionsStruct = type({
-  commitment: optional(SolanaTransactionCommitmentStruct),
+  /** Preflight commitment level. */
+  preflightCommitment: optional(SolanaTransactionCommitmentStruct),
+  /** The minimum slot that the request can be evaluated at. */
+  minContextSlot: optional(number()),
 });
 
 const SolanaSignTransactionInputStruct = type({
@@ -71,8 +74,11 @@ const SolanaSignTransactionInputStruct = type({
 
 const SolanaSignAndSendTransactionOptionsStruct = type({
   ...SolanaSignTransactionOptionsStruct.schema,
+  /** Desired commitment level. If provided, confirm the transaction after sending. */
   commitment: optional(SolanaTransactionCommitmentStruct),
+  /** Disable transaction verification at the RPC. */
   skipPreflight: optional(boolean()),
+  /** Maximum number of times for the RPC node to retry sending the transaction to the leader. */
   maxRetries: optional(number()),
 });
 
