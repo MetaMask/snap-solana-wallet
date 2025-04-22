@@ -6,6 +6,7 @@ import { EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/t
 import { EXPECTED_SEND_JUP_TRANSFER_CHECKED_DATA } from '../../../test/mocks/transactions-data/send-jup-transfer-checked-to-self';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self';
+import { EXPECTED_SPAM_TRANSACTION_DATA } from '../../../test/mocks/transactions-data/spam';
 import { EXPECTED_SWAP_USDC_TO_COBIE_DATA } from '../../../test/mocks/transactions-data/swap-usdc-to-cobie';
 import { EXPECTED_SWAP_USDC_TO_JUP_DATA } from '../../../test/mocks/transactions-data/swap-usdc-to-jup';
 import { mapRpcTransaction } from './mapRpcTransaction';
@@ -13,7 +14,7 @@ import { mapRpcTransaction } from './mapRpcTransaction';
 describe('mapRpcTransaction', () => {
   it('maps native SOL transfers - as a sender', () => {
     const result = mapRpcTransaction({
-      scope: Network.Localnet,
+      scope: Network.Mainnet,
       address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: EXPECTED_NATIVE_SOL_TRANSFER_DATA,
     });
@@ -22,7 +23,7 @@ describe('mapRpcTransaction', () => {
       id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
       account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
       timestamp: 1736500242,
-      chain: Network.Localnet,
+      chain: Network.Mainnet,
       status: 'confirmed',
       type: 'send',
       from: [
@@ -30,8 +31,8 @@ describe('mapRpcTransaction', () => {
           address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.1',
           },
         },
@@ -41,8 +42,8 @@ describe('mapRpcTransaction', () => {
           address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.1',
           },
         },
@@ -52,8 +53,8 @@ describe('mapRpcTransaction', () => {
           type: 'base',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.000005',
           },
         },
@@ -69,7 +70,7 @@ describe('mapRpcTransaction', () => {
 
   it('maps native SOL transfers - as a sender to self', () => {
     const result = mapRpcTransaction({
-      scope: Network.Localnet,
+      scope: Network.Mainnet,
       address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA,
     });
@@ -78,7 +79,7 @@ describe('mapRpcTransaction', () => {
       id: '4Ccb8PaSob6JjsyDnoFJfUpJZDJHTwcjnK7MxiyVeMtPSsBGKuaMHEVL1VsXTKWS4w26tAhbc3T78aNELjfN8Zwb',
       account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
       timestamp: 1741791493,
-      chain: Network.Localnet,
+      chain: Network.Mainnet,
       status: 'confirmed',
       type: 'send',
       from: [
@@ -86,8 +87,8 @@ describe('mapRpcTransaction', () => {
           address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.1',
           },
         },
@@ -97,8 +98,8 @@ describe('mapRpcTransaction', () => {
           address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.1',
           },
         },
@@ -108,8 +109,8 @@ describe('mapRpcTransaction', () => {
           type: 'base',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.000005',
           },
         },
@@ -125,7 +126,7 @@ describe('mapRpcTransaction', () => {
 
   it('maps native SOL transfers - as a receiver', () => {
     const result = mapRpcTransaction({
-      scope: Network.Localnet,
+      scope: Network.Mainnet,
       address: asAddress('FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK'),
       transactionData: EXPECTED_NATIVE_SOL_TRANSFER_DATA,
     });
@@ -134,7 +135,7 @@ describe('mapRpcTransaction', () => {
       id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
       account: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
       timestamp: 1736500242,
-      chain: Network.Localnet,
+      chain: Network.Mainnet,
       status: 'confirmed',
       type: 'receive',
       from: [
@@ -142,8 +143,8 @@ describe('mapRpcTransaction', () => {
           address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.1',
           },
         },
@@ -153,8 +154,8 @@ describe('mapRpcTransaction', () => {
           address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.1',
           },
         },
@@ -171,7 +172,7 @@ describe('mapRpcTransaction', () => {
 
   it('maps native SOL transfers - failure', () => {
     const result = mapRpcTransaction({
-      scope: Network.Localnet,
+      scope: Network.Mainnet,
       address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: {
         ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
@@ -194,7 +195,7 @@ describe('mapRpcTransaction', () => {
       id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
       account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
       timestamp: 1736500242,
-      chain: Network.Localnet,
+      chain: Network.Mainnet,
       status: 'failed',
       type: 'send',
       from: [
@@ -202,8 +203,8 @@ describe('mapRpcTransaction', () => {
           address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.1',
           },
         },
@@ -213,8 +214,8 @@ describe('mapRpcTransaction', () => {
           address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.1',
           },
         },
@@ -224,8 +225,8 @@ describe('mapRpcTransaction', () => {
           type: 'base',
           asset: {
             fungible: true,
-            type: Networks[Network.Localnet].nativeToken.caip19Id,
-            unit: Networks[Network.Localnet].nativeToken.symbol,
+            type: Networks[Network.Mainnet].nativeToken.caip19Id,
+            unit: Networks[Network.Mainnet].nativeToken.symbol,
             amount: '0.000005',
           },
         },
@@ -607,9 +608,19 @@ describe('mapRpcTransaction', () => {
 
   it.todo('maps swaps - failure');
 
+  it('returns null if the transaction is a spam transaction', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Mainnet,
+      address: asAddress('DAXnAudMEqiD1sS1rFn4ds3pdybRYJd9J58PqCncVVqS'),
+      transactionData: EXPECTED_SPAM_TRANSACTION_DATA,
+    });
+
+    expect(result).toBeNull();
+  });
+
   it('returns null if there is no transaction data', () => {
     const result = mapRpcTransaction({
-      scope: Network.Localnet,
+      scope: Network.Mainnet,
       address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: null,
     });
@@ -619,7 +630,7 @@ describe('mapRpcTransaction', () => {
 
   it('returns null if the transaction has no signatures', () => {
     const result = mapRpcTransaction({
-      scope: Network.Localnet,
+      scope: Network.Mainnet,
       address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: {
         ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,

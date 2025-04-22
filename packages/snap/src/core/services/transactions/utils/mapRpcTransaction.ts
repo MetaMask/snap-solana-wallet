@@ -4,8 +4,9 @@ import {
   type Transaction,
 } from '@metamask/keyring-api';
 import type { Address } from '@solana/kit';
+import { BigNumber } from 'bignumber.js';
 
-import type { Network } from '../../../constants/solana';
+import { KnownCaip19Id, type Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
 import { parseTransactionNativeTransfers } from './parseTransactionNativeTransfers';
 import { parseTransactionSplTransfers } from './parseTransactionSplTransfers';
@@ -56,7 +57,7 @@ export function mapRpcTransaction({
   let from = [...nativeFrom, ...splFrom];
   let to = [...nativeTo, ...splTo];
 
-  let type = evaluateTransactionType({
+  const type = evaluateTransactionType({
     address,
     from,
     to,
@@ -73,16 +74,22 @@ export function mapRpcTransaction({
     fees = [];
   }
 
-  if (from.length === 0 || to.length === 0) {
-    // if we are unable to determine the type of transaction, we should set it to unknown
-    type = TransactionType.Unknown;
-  }
-
   const status =
     transactionData.meta?.err ||
     (transactionData.meta?.status && 'Err' in transactionData.meta.status)
       ? TransactionStatus.Failed
       : TransactionStatus.Confirmed;
+
+  const isLegitimate = evaluateTransactionLegitimacy({
+    address,
+    from,
+    to,
+    type,
+  });
+
+  if (!isLegitimate) {
+    return null;
+  }
 
   return {
     id,
@@ -120,6 +127,11 @@ function evaluateTransactionType({
   from: Transaction['from'];
   to: Transaction['to'];
 }): TransactionType {
+  if (from.length === 0 || to.length === 0) {
+    // if we are unable to determine the type of transaction, we should set it to unknown
+    return TransactionType.Unknown;
+  }
+
   const userSentItems = from.filter((fromItem) => fromItem.address === address);
   const userReceivedItems = to.filter((toItem) => toItem.address === address);
 
@@ -161,4 +173,79 @@ function evaluateTransactionType({
   }
 
   return TransactionType.Receive;
+}
+
+/**
+ * Spam Filter #1 Check: Sufficient SOL Amount Received
+ *
+ * Checks if the received SOL amount meets a minimum threshold (0.001 SOL).
+ * Transactions receiving less than this are considered potentially spam.
+ * Returns true if the amount is sufficient or if no SOL was received.
+ *
+ * @param params - The options object.
+ * @param params.address - The address of the user.
+ * @param params.to - The transaction's destination items.
+ * @returns Whether the transaction passes the minimum SOL amount check (true = passes/legitimate).
+ */
+function passesSOLAmountThresholdCheck({
+  address,
+  to,
+}: {
+  address: Address;
+  to: Transaction['to'];
+}): boolean {
+  const { hasReceivedSOL, receivedSOLAmount } = to.reduce(
+    (acc, toItem) => {
+      if (
+        toItem.address === address &&
+        toItem.asset?.fungible && // Use optional chaining here
+        (toItem.asset.type === KnownCaip19Id.SolMainnet ||
+          toItem.asset.type === KnownCaip19Id.SolDevnet)
+      ) {
+        return {
+          hasReceivedSOL: true,
+          receivedSOLAmount: acc.receivedSOLAmount.plus(toItem.asset.amount),
+        };
+      }
+
+      return acc;
+    },
+    { hasReceivedSOL: false, receivedSOLAmount: new BigNumber(0) },
+  );
+
+  if (!hasReceivedSOL || receivedSOLAmount.isGreaterThanOrEqualTo(0.001)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Evaluates the legitimacy of a transaction based on various checks.
+ * @param params - The options object.
+ * @param params.address - The address of the user.
+ * @param params.from - The from items.
+ * @param params.to - The to items.
+ * @param params.type - The type of transaction.
+ * @returns Whether the transaction is considered legitimate (true = legitimate, false = spam).
+ */
+function evaluateTransactionLegitimacy({
+  address,
+  from,
+  to,
+  type,
+}: {
+  address: Address;
+  from: Transaction['from'];
+  to: Transaction['to'];
+  type: TransactionType;
+}): boolean {
+  if (
+    type === TransactionType.Receive &&
+    !passesSOLAmountThresholdCheck({ address, to })
+  ) {
+    return false;
+  }
+
+  return true;
 }
