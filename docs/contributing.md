@@ -23,13 +23,10 @@ cp packages/snap/.env.sample packages/snap/.env
 cp packages/site/.env.development.sample packages/site/.env.development
 
 # Start development servers
-yarn start
+yarn start # Runs snap server on local port `8080` and the test dapp at http://localhost:3000
+
+# Lastly, install the snap in MetaMask Flask by following the steps below.
 ```
-
-At this point, you should have these running:
-
-- Snap server on local port `8080`
-- Test dapp at http://localhost:3000
 
 ## 🧪 Testing Your Changes
 
@@ -81,7 +78,9 @@ Git hooks are configured to automatically:
 
 To create a successful PR:
 
-1. Ensure all automated checks pass
-2. Write a clear and detailed description
-3. Link the PR to a Jira ticket (use the "Create branch" feature from Jira)
-4. Include appropriate tests for your changes
+1. Configure your snap `.env` file with `ENVIRONMENT=production`
+2. Re-start the snap by killing your currently running `yarn start`, and running it again
+3. Ensure all automated checks pass
+4. Write a clear and detailed description
+5. Link the PR to a Jira ticket (use the "Create branch" feature from Jira)
+6. Include appropriate tests for your changes
