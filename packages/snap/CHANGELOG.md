@@ -9,11 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.24.0]
 
-### Uncategorized
+### Added
 
-- feat: automatically hide spam tokens from the transaction history ([#317](https://github.com/MetaMask/snap-solana-wallet/pull/317))
-- Sol 311 snap add transport without x bigtable ([#318](https://github.com/MetaMask/snap-solana-wallet/pull/318))
-- fix: pass request options around ([#315](https://github.com/MetaMask/snap-solana-wallet/pull/315))
+- Automatically hide spam tokens from the transaction history ([#317](https://github.com/MetaMask/snap-solana-wallet/pull/317))
+
+### Changed
+
+- Add transport without `x-bigtable` ([#318](https://github.com/MetaMask/snap-solana-wallet/pull/318))
+
+### Fixed
+
+- Pass request options in solana wallet methods ([#315](https://github.com/MetaMask/snap-solana-wallet/pull/315))
 
 ## [1.23.0]
 
