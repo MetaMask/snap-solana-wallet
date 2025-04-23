@@ -24,7 +24,7 @@ describe('createToggleInfuraBigtableLookupsTransport', () => {
     );
   });
 
-  it('should create transports with correct configurations', () => {
+  it('creates transports with correct configurations', () => {
     createToggleInfuraBigtableLookupsTransport(mockUrl);
 
     expect(createDefaultRpcTransport).toHaveBeenCalledTimes(2);
@@ -35,7 +35,7 @@ describe('createToggleInfuraBigtableLookupsTransport', () => {
     });
   });
 
-  it('should use default transport for methods that need BigTable lookups', async () => {
+  it('uses default transport for methods that need BigTable lookups', async () => {
     const transport = createToggleInfuraBigtableLookupsTransport(mockUrl);
     const mockResponse = { result: 'test' };
     mockTransportWithBigtableEnabled.mockResolvedValue(mockResponse);
@@ -49,7 +49,7 @@ describe('createToggleInfuraBigtableLookupsTransport', () => {
     expect(result).toBe(mockResponse);
   });
 
-  it('should use transport with disabled BigTable lookups for methods that do not need BigTable lookups', async () => {
+  it('uses transport with disabled BigTable lookups for methods that do not need BigTable lookups', async () => {
     const transport = createToggleInfuraBigtableLookupsTransport(mockUrl);
     const mockResponse = { result: 'test' };
     mockTransportWithBigtableDisabled.mockResolvedValue(mockResponse);
@@ -63,7 +63,7 @@ describe('createToggleInfuraBigtableLookupsTransport', () => {
     expect(result).toBe(mockResponse);
   });
 
-  it('should handle all methods that need BigTable lookups', async () => {
+  it('handles all methods that need BigTable lookups', async () => {
     const transport = createToggleInfuraBigtableLookupsTransport(mockUrl);
     const methods = ['getTransaction', 'getSignaturesForAddress'];
 
