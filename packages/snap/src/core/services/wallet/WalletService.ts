@@ -279,14 +279,26 @@ export class WalletService {
 
     assert(result, SolanaSignAndSendTransactionResponseStruct);
 
-    if (options?.commitment === 'processed') {
-      throw new Error('Commitment "processed" is not supported');
-    }
+    /**
+     * If the commitment is `processed`, we default to `confirmed`.
+     * This is because we poll the RPC with `getTransaction` to check if the
+     * transaction has been confirmed, and this method does not support
+     * `processed` as a commitment. A solution would have been to simply not
+     * wait when `processed` is provided, but this would prevents us from
+     * fetching the transaction, mapping it, and triggering all the related
+     * side effects.
+     *
+     * If the commitment is not provided, we default to `confirmed`.
+     */
+    const commitment =
+      !options?.commitment || options?.commitment === 'processed'
+        ? 'confirmed'
+        : options?.commitment;
 
     const transaction =
       await this.#transactionHelper.waitForTransactionCommitment(
         signature,
-        options?.commitment ?? 'confirmed',
+        commitment,
         scope,
       );
 

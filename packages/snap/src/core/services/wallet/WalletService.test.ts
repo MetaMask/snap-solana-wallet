@@ -312,7 +312,7 @@ describe('WalletService', () => {
           );
         });
 
-        it('rejects commitment "processed"', async () => {
+        it('defaults commitment to "confirmed" if "processed" is provided', async () => {
           const request = wrapKeyringRequest({
             method: SolMethod.SignAndSendTransaction,
             params: {
@@ -327,9 +327,15 @@ describe('WalletService', () => {
             },
           });
 
-          await expect(
-            service.signAndSendTransaction(fromAccount, request),
-          ).rejects.toThrow('Commitment "processed" is not supported');
+          await service.signAndSendTransaction(fromAccount, request);
+
+          expect(
+            mockTransactionHelper.waitForTransactionCommitment,
+          ).toHaveBeenCalledWith(
+            expect.any(String),
+            'confirmed',
+            expect.any(String),
+          );
         });
       });
     },
