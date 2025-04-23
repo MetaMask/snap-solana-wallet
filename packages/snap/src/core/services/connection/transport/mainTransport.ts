@@ -1,10 +1,23 @@
-import { createDefaultRpcTransport } from '@solana/kit';
+import { pipe } from '@solana/kit';
 
+import { createToggleInfuraBigtableLookupsTransport } from './createToggleInfuraBigtableLookupsTransports';
 import { createFailoverTransport } from './failoverTransport';
 import { createRetryingTransport } from './retryingTransport';
 
 /**
+ * A functional programming utility to iterate over an array and apply a function to each item.
+ * @param callback - The function to apply to each item.
+ * @returns An array of the results of applying the function to each item.
+ */
+const forEach =
+  <TItem, TResult>(callback: (item: TItem) => TResult) =>
+  (items: TItem[]): TResult[] =>
+    items.map(callback);
+
+/**
  * Creates the main transport for RPC calls, stacking up mutiple behaviors:
+ *
+ * - BigTable Lookups: Toggles BigTable lookups on Infura via the `x-bigtable` header.
  * - Failover: Switches to the next transport on failure.
  * - Retrying: Retries the request up to MAX_ATTEMPTS times before failing.
  *
@@ -12,14 +25,10 @@ import { createRetryingTransport } from './retryingTransport';
  * @returns The transport.
  */
 export const createMainTransport = (urls: string[]) => {
-  const config = {
-    headers: {
-      'x-bigtable': 'disabled',
-    },
-  };
-  const baseTransports = urls.map((url) =>
-    createDefaultRpcTransport({ url, ...config }),
+  return pipe(
+    urls,
+    forEach(createToggleInfuraBigtableLookupsTransport), // For each URL, create a transport that toggles BigTable lookups on Infura
+    createFailoverTransport, // Wrap the list of above transports into a single transport that fails over each wrapped transport on failure
+    createRetryingTransport, // Wrap the previous transport into a transport that retries failed requests
   );
-  const failoverTransport = createFailoverTransport(baseTransports);
-  return createRetryingTransport(failoverTransport);
 };
