@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.24.0]
+
+### Uncategorized
+
+- fix: pass request options around ([#315](https://github.com/MetaMask/snap-solana-wallet/pull/315))
+
 ## [1.23.0]
 
 ### Added
@@ -450,7 +456,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.23.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.24.0...HEAD
+[1.24.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.23.0...v1.24.0
 [1.23.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.22.0...v1.23.0
 [1.22.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.21.0...v1.22.0
 [1.21.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.20.0...v1.21.0
