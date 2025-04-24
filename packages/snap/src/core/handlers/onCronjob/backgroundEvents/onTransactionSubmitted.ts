@@ -1,7 +1,14 @@
+import {
+  KeyringEvent,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/keyring-api';
+import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { InternalError, type OnCronjobHandler } from '@metamask/snaps-sdk';
 import { assert, literal, object, string } from '@metamask/superstruct';
 
-import { analyticsService, keyring } from '../../../../snapContext';
+import { analyticsService, keyring, state } from '../../../../snapContext';
+import { mapBase64EncodedTransaction } from '../../../services/transactions/utils/mapEncodedTransaction';
 import logger from '../../../utils/logger';
 import {
   Base64Struct,
@@ -47,6 +54,51 @@ export const onTransactionSubmitted: OnCronjobHandler = async ({ request }) => {
       signature,
       scope,
     );
+
+    const transaction = (await mapBase64EncodedTransaction({
+      scope,
+      address: account.address,
+      base64EncodedTransaction,
+    })) ?? {
+      id: signature,
+      chain: scope,
+      type: TransactionType.Unknown,
+      status: TransactionStatus.Submitted,
+      account: account.id,
+      timestamp: Date.now(),
+      from: [],
+      to: [],
+      fees: [],
+      events: [
+        {
+          status: TransactionStatus.Submitted,
+          timestamp: Date.now(),
+        },
+      ],
+    };
+
+    logger.info(
+      '[onTransactionSubmitted] Adding new pending transaction to state!!!!!!!!!!!',
+    );
+
+    await state.update((current) => {
+      return {
+        ...current,
+        transactions: {
+          ...current.transactions,
+          [account.id]: [
+            ...(current.transactions[account.id] ?? []),
+            transaction,
+          ],
+        },
+      };
+    });
+
+    await emitSnapKeyringEvent(snap, KeyringEvent.AccountTransactionsUpdated, {
+      transactions: {
+        [account.id]: [transaction],
+      },
+    });
   } catch (error) {
     logger.error(error);
     throw new InternalError(error as string) as Error;

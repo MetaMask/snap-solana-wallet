@@ -152,6 +152,7 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignTransactionResponse> {
+    console.log('SIGN TRANSACTION');
     assert(request.request, SolanaSignTransactionRequestStruct);
     assert(request.scope, NetworkStruct);
 
@@ -195,6 +196,7 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignAndSendTransactionResponse> {
+    console.log('SIGN AND SEND TRANSACTION');
     assert(request.request, SolanaSignAndSendTransactionRequestStruct);
     assert(request.scope, NetworkStruct);
 
@@ -265,9 +267,9 @@ export class WalletService {
           method: ScheduleBackgroundEventMethod.OnTransactionSubmitted,
           params: {
             accountId: account.id,
-            base64EncodedTransaction,
-            signature,
             scope,
+            signature,
+            base64EncodedTransaction,
           },
         },
       },
@@ -349,6 +351,7 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignMessageResponse> {
+    console.log('SIGN MESSAGE');
     assert(request.request, SolanaSignMessageRequestStruct);
 
     // message is base64 encoded
