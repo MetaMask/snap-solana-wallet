@@ -43,9 +43,9 @@ export type SendTransation = {
 export type SendContext = {
   scope: Network;
   fromAccountId: string;
-  amount: string;
+  amount: string | null;
   tokenCaipId: CaipAssetType;
-  toAddress: string;
+  toAddress: string | null;
   accounts: SolanaKeyringAccount[];
   feeEstimatedInSol: string | null;
   feePaidInSol: string | null;
