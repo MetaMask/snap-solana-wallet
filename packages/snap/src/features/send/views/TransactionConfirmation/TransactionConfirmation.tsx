@@ -39,7 +39,7 @@ export const TransactionConfirmation = ({
     selectedTokenPrice === undefined
       ? ''
       : formatFiat(
-          tokenToFiat(tokenAmount, selectedTokenPrice),
+          tokenToFiat(tokenAmount ?? '0', selectedTokenPrice),
           currency,
           locale,
         );
@@ -52,7 +52,7 @@ export const TransactionConfirmation = ({
           backButtonName={TransactionConfirmationNames.BackButton}
         />
         <ActionHeader
-          title={formatCrypto(tokenAmount, tokenSymbol, locale)}
+          title={formatCrypto(tokenAmount ?? '0', tokenSymbol, locale)}
           subtitle={amountInUserCurrency}
           iconSrc={tokenImage}
         />
