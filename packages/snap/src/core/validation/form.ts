@@ -51,7 +51,7 @@ export function validateField<FieldNames extends string | number | symbol>(
 export function sendFieldsAreValid(context: SendContext): boolean {
   const allValidators = validation(context);
 
-  const values: Partial<Record<SendFormNames, string>> = {
+  const values: Partial<Record<SendFormNames, string | null>> = {
     [SendFormNames.SourceAccountSelector]: context.fromAccountId,
     [SendFormNames.AmountInput]: context.amount,
     [SendFormNames.DestinationAccountInput]: context.toAddress,
@@ -139,7 +139,7 @@ export const amountInput = (context: SendContext) => {
     }
 
     const tokenAmount = getTokenAmount({ ...context, amount: value });
-    const tokenAmountLamports = solToLamports(tokenAmount);
+    const tokenAmountLamports = solToLamports(tokenAmount ?? '0');
 
     const balance = getBalance(context);
     const balanceLamports = solToLamports(balance);

@@ -35,6 +35,10 @@ const buildTransactionMessage = async (context: SendContext) => {
 
   let transactionMessage: CompilableTransactionMessage | null = null;
 
+  if (!toAddress || !tokenAmount) {
+    throw new Error('Invalid transaction parameters');
+  }
+
   if (tokenCaipId === Networks[scope].nativeToken.caip19Id) {
     // Native token (SOL) transaction
     transactionMessage = await sendSolBuilder.buildTransactionMessage(

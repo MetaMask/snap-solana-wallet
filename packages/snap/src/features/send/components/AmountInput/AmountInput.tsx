@@ -13,7 +13,7 @@ import { SendCurrencyType, SendFormNames } from '../../types';
 
 type AmountInputProps = {
   name: string;
-  value: string;
+  value: string | null;
   tokenSymbol: string;
   currency: string;
   currencyType: SendCurrencyType;
@@ -46,7 +46,7 @@ export const AmountInput: SnapComponent<AmountInputProps> = ({
         min={0}
         placeholder="0"
         step={0.01}
-        value={value}
+        value={value ?? undefined}
       />
       <Box direction="horizontal" center>
         <Box direction="vertical" alignment="center">
