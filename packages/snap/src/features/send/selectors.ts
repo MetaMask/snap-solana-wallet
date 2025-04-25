@@ -20,6 +20,10 @@ export const getTokenAmount = (context: SendContext) => {
     throw new Error('Token price is undefined, cannot convert to fiat amount.');
   }
 
+  if (amount === null) {
+    return null;
+  }
+
   return BigNumber(amount).dividedBy(BigNumber(price)).toString();
 };
 

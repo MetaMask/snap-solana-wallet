@@ -26,7 +26,7 @@ export const TransactionFailure = ({ context }: TransactionFailureProps) => {
         <ActionHeader
           title={translate('send.transaction-failure.title')}
           subtitle={translate('send.transaction-failure.subtitle', {
-            amount: tokenAmount,
+            amount: tokenAmount ?? '0',
             tokenSymbol,
           })}
           iconSrc={ErrorIcon}

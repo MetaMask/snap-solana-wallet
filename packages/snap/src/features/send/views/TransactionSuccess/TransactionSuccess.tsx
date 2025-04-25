@@ -28,7 +28,7 @@ export const TransactionSuccess = ({ context }: TransactionSuccessProps) => {
         <ActionHeader
           title={translate('send.transaction-success.title')}
           subtitle={translate('send.transaction-success.subtitle', {
-            amount: formatCryptoBalance(tokenAmount, preferences.locale),
+            amount: formatCryptoBalance(tokenAmount ?? '0', preferences.locale),
             tokenSymbol,
           })}
           iconSrc={CheckIcon}
