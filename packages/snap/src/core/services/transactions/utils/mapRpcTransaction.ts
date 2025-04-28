@@ -85,6 +85,7 @@ export function mapRpcTransaction({
     from,
     to,
     type,
+    status,
   });
 
   if (!isLegitimate) {
@@ -227,6 +228,7 @@ function passesSOLAmountThresholdCheck({
  * @param params.from - The from items.
  * @param params.to - The to items.
  * @param params.type - The type of transaction.
+ * @param params.status - The status of the transaction.
  * @returns Whether the transaction is considered legitimate (true = legitimate, false = spam).
  */
 function evaluateTransactionLegitimacy({
@@ -234,14 +236,23 @@ function evaluateTransactionLegitimacy({
   from,
   to,
   type,
+  status,
 }: {
   address: Address;
   from: Transaction['from'];
   to: Transaction['to'];
   type: TransactionType;
+  status: TransactionStatus;
 }): boolean {
   if (
     type === TransactionType.Receive &&
+    !passesSOLAmountThresholdCheck({ address, to })
+  ) {
+    return false;
+  }
+
+  if (
+    status === TransactionStatus.Failed &&
     !passesSOLAmountThresholdCheck({ address, to })
   ) {
     return false;
