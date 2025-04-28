@@ -182,6 +182,28 @@ export class WalletService {
 
     assert(result, SolanaSignTransactionResponseStruct);
 
+    // TODO: This is a temporary fix to ensure that transactions signed by the
+    // extension but sent by a dApp, which is a common pattern in Solana, are
+    // found faster and added to the ActivityList. If we don't do this, users
+    // will have their transaction sent but will have to wait for the cronjob.
+
+    await snap.request({
+      method: 'snap_scheduleBackgroundEvent',
+      params: {
+        duration: 'PT3S',
+        request: {
+          method: ScheduleBackgroundEventMethod.OnTransactionFinalized,
+          params: {
+            accountId: account.id,
+            transaction: {
+              from: [],
+              to: [],
+            },
+          },
+        },
+      },
+    });
+
     return result;
   }
 
