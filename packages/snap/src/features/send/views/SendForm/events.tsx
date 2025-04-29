@@ -210,7 +210,11 @@ async function onSwapCurrencyButtonClick({
     context.amount = currentAmount.multipliedBy(price).toString();
   }
 
-  await updateInterface(id, <Send context={context} />, context);
+  await updateInterface(
+    id,
+    <Send context={context} inputAmount={context.amount} />,
+    context,
+  );
 }
 
 /**
@@ -268,7 +272,11 @@ async function onMaxAmountButtonClick({
       validation(updatedContext),
     );
 
-  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
+  await updateInterface(
+    id,
+    <Send context={updatedContext} inputAmount={updatedContext.amount} />,
+    updatedContext,
+  );
 
   await buildTransactionMessageAndUpdateInterface(id, updatedContext);
 }
@@ -344,7 +352,11 @@ async function onClearButtonClick({
 }) {
   context.toAddress = '';
   context.error = null;
-  await updateInterface(id, <Send context={context} />, context);
+  await updateInterface(
+    id,
+    <Send context={context} inputToAddress={context.toAddress} />,
+    context,
+  );
 }
 
 /**

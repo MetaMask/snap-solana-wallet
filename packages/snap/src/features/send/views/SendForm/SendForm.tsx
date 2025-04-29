@@ -23,9 +23,15 @@ import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 
 type SendFormProps = {
   context: SendContext;
+  inputToAddress?: string;
+  inputAmount?: string;
 };
 
-export const SendForm = ({ context }: SendFormProps) => {
+export const SendForm = ({
+  context,
+  inputToAddress,
+  inputAmount,
+}: SendFormProps) => {
   const {
     accounts,
     fromAccountId,
@@ -136,7 +142,7 @@ export const SendForm = ({ context }: SendFormProps) => {
           <ToAddressField
             locale={locale}
             name={SendFormNames.DestinationAccountInput}
-            value={toAddress}
+            value={inputToAddress ?? null}
             error={
               validation?.[SendFormNames.DestinationAccountInput]?.message ?? ''
             }
@@ -160,7 +166,7 @@ export const SendForm = ({ context }: SendFormProps) => {
                   currencyType={currencyType}
                   tokenSymbol={tokenSymbol}
                   currency={currency}
-                  value={amount}
+                  value={inputAmount ?? null}
                   locale={locale}
                   swapCurrencyButtonDisabled={
                     selectedTokenPriceUnavailable || balanceUndefinedOrZero

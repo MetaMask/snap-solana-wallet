@@ -1,3 +1,4 @@
+import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 import {
   Box,
   Button,
@@ -17,12 +18,12 @@ type ToAddressFieldProps = {
   locale: Locale;
 };
 
-export const ToAddressField = ({
+export const ToAddressField: SnapComponent<ToAddressFieldProps> = ({
   name,
   value,
   error,
   locale,
-}: ToAddressFieldProps) => {
+}) => {
   const translate = i18n(locale);
   const showClearButton = value ? value.length > 0 : false;
 
