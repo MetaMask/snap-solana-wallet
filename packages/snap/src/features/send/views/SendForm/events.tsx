@@ -110,12 +110,6 @@ async function onAmountInputChange({
     validation(updatedContext),
   );
 
-  console.log(
-    'amountFieldValidation',
-    amountFieldValidation,
-    updatedContext.validation[SendFormNames.AmountInput],
-  );
-
   if (
     amountFieldValidation &&
     updatedContext.validation[SendFormNames.AmountInput]?.message !==
@@ -405,9 +399,12 @@ async function onSendButtonClick({
 
   if (tokenPrices) {
     updatedContext.tokenPrices = tokenPrices;
+    await updateInterface(
+      id,
+      <Send context={updatedContext} />,
+      updatedContext,
+    );
   }
-
-  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
   // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
   await snap.request({
