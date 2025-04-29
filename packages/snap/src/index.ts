@@ -28,16 +28,12 @@ import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
-import {
-  getClientStatus,
-  getInterfaceContextOrThrow,
-} from './core/utils/interface';
+import { getClientStatus } from './core/utils/interface';
 import logger from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { eventHandlers as confirmSignInEvents } from './features/confirmation/views/ConfirmSignIn/events';
 import { eventHandlers as confirmSignMessageEvents } from './features/confirmation/views/ConfirmSignMessage/events';
 import { eventHandlers as confirmSignAndSendTransactionEvents } from './features/confirmation/views/ConfirmTransactionRequest/events';
-import type { SendContext } from './features/send/types';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
 import snapContext, { keyring } from './snapContext';
@@ -140,10 +136,15 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
  * @param args - The request handler args as object.
  * @param args.id - The interface id associated with the event.
  * @param args.event - The event object.
+ * @param args.context - The context object.
  * @returns A promise that resolves to a JSON object.
  * @throws If the request method is not valid for this snap.
  */
-export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
+export const onUserInput: OnUserInputHandler = async ({
+  id,
+  event,
+  context,
+}) => {
   logger.log('[👇 onUserInput]', id, event);
 
   // Using the name of the component, route it to the correct handler
@@ -164,8 +165,6 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
   if (!handler) {
     return;
   }
-
-  const context = await getInterfaceContextOrThrow<SendContext>(id);
 
   await handler({ id, event, context, snapContext });
 };
