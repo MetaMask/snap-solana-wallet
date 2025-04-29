@@ -7,6 +7,8 @@ import { TransactionSuccess } from './views/TransactionSuccess/TransactionSucces
 
 export type SendProps = {
   context: SendContext;
+  inputToAddress?: string;
+  inputAmount?: string;
 };
 
 /**
@@ -14,7 +16,7 @@ export type SendProps = {
  */
 export const MapStageToComponent: Record<
   SendFlowStage,
-  ({ context }: SendProps) => JSX.Element
+  ({ context, inputToAddress, inputAmount }: SendProps) => JSX.Element
 > = {
   'send-form': SendForm,
   'transaction-confirmation': TransactionConfirmation,
@@ -31,11 +33,23 @@ export const MapStageToComponent: Record<
  *
  * @param props - The props for the send flow controller.
  * @param props.context - The context for the send flow.
+ * @param props.inputToAddress - The input to address for the send flow.
+ * @param props.inputAmount - The input amount for the send flow.
  * @returns The component for the send flow stage.
  */
-export const Send = ({ context }: SendProps) => {
+export const Send = ({
+  context,
+  inputToAddress = undefined,
+  inputAmount = undefined,
+}: SendProps) => {
   const stage = context.stage ?? 'send-form';
   const Component = MapStageToComponent[stage];
 
-  return <Component context={context} />;
+  return (
+    <Component
+      context={context}
+      inputToAddress={inputToAddress as string}
+      inputAmount={inputAmount as string}
+    />
+  );
 };
