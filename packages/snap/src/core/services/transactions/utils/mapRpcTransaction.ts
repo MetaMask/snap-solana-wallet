@@ -64,13 +64,22 @@ export function mapRpcTransaction({
   });
 
   if (type === TransactionType.Swap) {
-    // if type is swap, use only show the items where the user is the sender and receiver
+    /**
+     * If the type is swap:
+     * - we don't want to include assets that were sent by other addresses
+     * - we don't want to include assets that were received by other addresses
+     */
     from = from.filter((fromItem) => fromItem.address === address);
     to = to.filter((toItem) => toItem.address === address);
   }
 
   if (type === TransactionType.Receive) {
-    // if user receives, we don't need to show the fees as they were not paid by the user
+    /**
+     * If the type is receive:
+     * - we don't want to include assets that were received by other addresses
+     * - we don't want to include fees as they were not paid by the user
+     */
+    to = to.filter((toItem) => toItem.address === address);
     fees = [];
   }
 

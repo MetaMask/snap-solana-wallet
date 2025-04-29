@@ -4,6 +4,7 @@ import { Network, Networks } from '../../../constants/solana';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer-to-self';
 import { EXPECTED_SEND_JUP_TRANSFER_CHECKED_DATA } from '../../../test/mocks/transactions-data/send-jup-transfer-checked-to-self';
+import { EXPECTED_SEND_SPL_TOKEN_AND_CREATE_TOKEN_ACCOUNT_DATA } from '../../../test/mocks/transactions-data/send-spl-token-and-create-token-account';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self';
 import { EXPECTED_SPAM_TRANSACTION_DATA } from '../../../test/mocks/transactions-data/spam';
@@ -455,6 +456,56 @@ describe('mapRpcTransaction', () => {
         },
       ],
       events: [{ status: 'confirmed', timestamp: 1742387710 }],
+    });
+  });
+
+  it('maps SPL token transfers - where sender has his token account created', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Mainnet,
+      address: asAddress('BYh4CfuGDvFMKaZp3RPmkw9y6qg3sWukA2TiGJDeLKZi'),
+      transactionData: EXPECTED_SEND_SPL_TOKEN_AND_CREATE_TOKEN_ACCOUNT_DATA,
+    });
+
+    expect(result).toStrictEqual({
+      id: '4G24SgaZ3gU92HAB8xwSVg6WXS7NcGtUpHMnQ5RTwBw9bG5x8y6co5TzqqPXbExovY2NAuPjE9393TCHFZVhS8K9',
+      account: 'BYh4CfuGDvFMKaZp3RPmkw9y6qg3sWukA2TiGJDeLKZi',
+      timestamp: 1745927033,
+      chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      status: 'confirmed',
+      type: 'receive',
+      from: [
+        {
+          address: 'EMmTjuHsYCYX7vgPcQ2QVbNwYAwcvGoSMCEaHKc19DdE',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+            amount: '0.00207408',
+          },
+        },
+        {
+          address: 'EMmTjuHsYCYX7vgPcQ2QVbNwYAwcvGoSMCEaHKc19DdE',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC',
+            unit: '',
+            amount: '0.01',
+          },
+        },
+      ],
+      to: [
+        {
+          address: 'BYh4CfuGDvFMKaZp3RPmkw9y6qg3sWukA2TiGJDeLKZi',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC',
+            unit: '',
+            amount: '0.01',
+          },
+        },
+      ],
+      fees: [],
+      events: [{ status: 'confirmed', timestamp: 1745927033 }],
     });
   });
 
