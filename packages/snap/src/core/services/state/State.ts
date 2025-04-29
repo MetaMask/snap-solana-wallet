@@ -14,15 +14,8 @@ import type { IStateManager } from './IStateManager';
 
 export type AccountId = string;
 
-export type EncryptedStateValue = {
-  keyringAccounts: Record<string, SolanaKeyringAccount>;
-};
-
-export const DEFAULT_ENCRYPTED_STATE: EncryptedStateValue = {
-  keyringAccounts: {},
-};
-
 export type UnencryptedStateValue = {
+  keyringAccounts: Record<string, SolanaKeyringAccount>;
   mapInterfaceNameToId: Record<string, string>;
   transactions: Record<AccountId, Transaction[]>;
   assets: Record<AccountId, Record<CaipAssetType, Balance>>;
@@ -31,6 +24,7 @@ export type UnencryptedStateValue = {
 };
 
 export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
+  keyringAccounts: {},
   mapInterfaceNameToId: {},
   transactions: {},
   assets: {},

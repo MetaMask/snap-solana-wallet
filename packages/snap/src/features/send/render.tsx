@@ -11,12 +11,7 @@ import {
   showDialog,
   updateInterface,
 } from '../../core/utils/interface';
-import {
-  encryptedState,
-  priceApiClient,
-  state,
-  transactionHelper,
-} from '../../snapContext';
+import { priceApiClient, state, transactionHelper } from '../../snapContext';
 import { Send } from './Send';
 import type { SendContext } from './types';
 import { SendCurrencyType } from './types';
@@ -89,9 +84,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
    * 4. Get the token metadata (from state)
    * 5. Get the token prices (from state)
    */
-  const [currentState, currentEncryptedState, preferences] = await Promise.all([
+  const [currentState, preferences] = await Promise.all([
     state.get(),
-    encryptedState.get(),
     getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),
   ]);
 
@@ -103,7 +97,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   const accountBalances = currentState.assets[context.fromAccountId] ?? {};
   context.assets = Object.keys(accountBalances) as CaipAssetType[];
 
-  context.accounts = Object.values(currentEncryptedState.keyringAccounts);
+  context.accounts = Object.values(currentState.keyringAccounts);
   context.preferences = preferences;
   context.tokenMetadata = currentState.metadata ?? {};
   context.tokenPrices = currentState.tokenPrices ?? {};

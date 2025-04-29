@@ -14,15 +14,8 @@ import { SendSolBuilder } from './core/services/execution/builders/SendSolBuilde
 import { SendSplTokenBuilder } from './core/services/execution/builders/SendSplTokenBuilder';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
 import type { IStateManager } from './core/services/state/IStateManager';
-import type {
-  EncryptedStateValue,
-  UnencryptedStateValue,
-} from './core/services/state/State';
-import {
-  DEFAULT_ENCRYPTED_STATE,
-  DEFAULT_UNENCRYPTED_STATE,
-  State,
-} from './core/services/state/State';
+import type { UnencryptedStateValue } from './core/services/state/State';
+import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
@@ -39,7 +32,6 @@ export type SnapExecutionContext = {
   connection: SolanaConnection;
   keyring: SolanaKeyring;
   priceApiClient: PriceApiClient;
-  encryptedState: IStateManager<EncryptedStateValue>;
   state: IStateManager<UnencryptedStateValue>;
   assetsService: AssetsService;
   tokenPricesService: TokenPricesService;
@@ -55,10 +47,6 @@ export type SnapExecutionContext = {
 };
 
 const configProvider = new ConfigProvider();
-const encryptedState = new State({
-  encrypted: true,
-  defaultState: DEFAULT_ENCRYPTED_STATE,
-});
 const state = new State({
   encrypted: false,
   defaultState: DEFAULT_UNENCRYPTED_STATE,
@@ -111,7 +99,6 @@ const transactionScanService = new TransactionScanService(
 const confirmationHandler = new ConfirmationHandler();
 
 const keyring = new SolanaKeyring({
-  encryptedState,
   state,
   transactionsService,
   logger,
@@ -127,7 +114,6 @@ const snapContext: SnapExecutionContext = {
   connection,
   keyring,
   priceApiClient,
-  encryptedState,
   state,
   cache,
   /* Services */
@@ -149,7 +135,6 @@ export {
   configProvider,
   confirmationHandler,
   connection,
-  encryptedState,
   keyring,
   priceApiClient,
   sendSolBuilder,
