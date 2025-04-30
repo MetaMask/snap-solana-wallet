@@ -99,14 +99,13 @@ async function onAmountInputChange({
   context: SendContext;
 }) {
   const updatedContext = { ...context };
-  const value = event.value as string;
 
-  updatedContext.amount = null;
+  updatedContext.amount = event.value as string;
   updatedContext.error = null;
 
   const amountFieldValidation = validateField<SendFormNames>(
     SendFormNames.AmountInput,
-    value,
+    updatedContext.amount,
     validation(updatedContext),
   );
 
@@ -128,7 +127,6 @@ async function onAmountInputChange({
 
   if (amountFieldValidation === null) {
     updatedContext.validation[SendFormNames.AmountInput] = null;
-    updatedContext.amount = value;
     await updateInterface(
       id,
       <Send context={updatedContext} />,
@@ -293,13 +291,12 @@ async function onDestinationAccountInputValueChange({
 }) {
   const updatedContext = { ...context };
 
-  const value = event.value as string;
-  updatedContext.toAddress = null;
+  updatedContext.toAddress = event.value as string;
   updatedContext.error = null;
 
   const toAddressValidation = validateField<SendFormNames>(
     SendFormNames.DestinationAccountInput,
-    value,
+    updatedContext.toAddress,
     validation(updatedContext),
   );
 
@@ -321,7 +318,6 @@ async function onDestinationAccountInputValueChange({
 
   if (toAddressValidation === null) {
     updatedContext.validation[SendFormNames.DestinationAccountInput] = null;
-    updatedContext.toAddress = value;
     await updateInterface(
       id,
       <Send context={updatedContext} />,
