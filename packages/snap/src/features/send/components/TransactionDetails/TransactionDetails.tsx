@@ -40,7 +40,6 @@ export const TransactionDetails = ({ context }: TransactionDetailsProps) => {
     ?.address as string;
 
   const fromAddressCaip2 = addressToCaip10(scope, fromAddress);
-  const toAddressCaip2 = addressToCaip10(scope, toAddress as string);
 
   const networkName = network.name;
   const networkSymbol = network.nativeToken.symbol;
@@ -64,13 +63,16 @@ export const TransactionDetails = ({ context }: TransactionDetailsProps) => {
           </Link>
         </Row>
 
-        <Row label={translate('send.confirmation.recipient')}>
-          <Link
-            href={getSolanaExplorerUrl(scope, 'address', toAddress as string)}
-          >
-            <Address address={toAddressCaip2} displayName />
-          </Link>
-        </Row>
+        {toAddress ? (
+          <Row label={translate('send.confirmation.recipient')}>
+            <Link href={getSolanaExplorerUrl(scope, 'address', toAddress)}>
+              <Address
+                address={addressToCaip10(scope, toAddress)}
+                displayName
+              />
+            </Link>
+          </Row>
+        ) : null}
       </Section>
 
       <Section>
