@@ -94,6 +94,8 @@ export const SendForm = ({
     !isNullOrUndefined(context.transactionMessage) &&
     context.transactionMessage !== '';
 
+  const showClearAddressButton = Boolean(toAddress && toAddress.length > 0);
+
   const canReview =
     fromAccountId.length > 0 &&
     (amount ? amount.length > 0 : false) &&
@@ -143,6 +145,7 @@ export const SendForm = ({
             locale={locale}
             name={SendFormNames.DestinationAccountInput}
             value={inputToAddress ?? null}
+            showClearButton={showClearAddressButton}
             error={
               validation?.[SendFormNames.DestinationAccountInput]?.message ?? ''
             }
