@@ -463,6 +463,7 @@ describe('TokenPricesService', () => {
           P1M: expectedPrices,
           P3M: expectedPrices,
           P1Y: expectedPrices,
+          P1000Y: expectedPrices,
         },
         updateTime: expect.any(Number),
         expirationTime: expect.any(Number),
