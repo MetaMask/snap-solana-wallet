@@ -211,23 +211,29 @@ export class TokenPricesService {
       return value === null || value === undefined ? {} : { [key]: value };
     };
 
+    // Variations in percent don't need to be converted, they are independent of the currency
+    const pricePercentChange = {
+      ...includeIfDefined('PT1H', marketDataInUsd.pricePercentChange1h),
+      ...includeIfDefined('P1D', marketDataInUsd.pricePercentChange1d),
+      ...includeIfDefined('P7D', marketDataInUsd.pricePercentChange7d),
+      ...includeIfDefined('P14D', marketDataInUsd.pricePercentChange14d),
+      ...includeIfDefined('P30D', marketDataInUsd.pricePercentChange30d),
+      ...includeIfDefined('P200D', marketDataInUsd.pricePercentChange200d),
+      ...includeIfDefined('P1Y', marketDataInUsd.pricePercentChange1y),
+    };
+
     const marketDataInToCurrency = {
       marketCap: toCurrency(marketDataInUsd.marketCap),
       totalVolume: toCurrency(marketDataInUsd.totalVolume),
       circulatingSupply: (marketDataInUsd.circulatingSupply ?? 0).toString(), // Circulating supply counts the number of tokens in circulation, so we don't convert
       allTimeHigh: toCurrency(marketDataInUsd.allTimeHigh),
       allTimeLow: toCurrency(marketDataInUsd.allTimeLow),
-      // Variations in percent don't need to be converted, they are independent of the currency
-      pricePercentChange: {
-        ...includeIfDefined('PT1H', marketDataInUsd.pricePercentChange1h),
-        ...includeIfDefined('P1D', marketDataInUsd.pricePercentChange1d),
-        ...includeIfDefined('P7D', marketDataInUsd.pricePercentChange7d),
-        ...includeIfDefined('P14D', marketDataInUsd.pricePercentChange14d),
-        ...includeIfDefined('P30D', marketDataInUsd.pricePercentChange30d),
-        ...includeIfDefined('P200D', marketDataInUsd.pricePercentChange200d),
-        ...includeIfDefined('P1Y', marketDataInUsd.pricePercentChange1y),
-      },
-    };
+      pricePercentChange,
+      /**
+       * TODO: Remove this type cast when [this type](https://github.com/MetaMask/snaps/blob/main/packages/snaps-sdk/src/types/handlers/assets-conversion.ts#L15-L24) is updated in the SDK to support optional pricePercentChange,
+       * so that is matches [its related struct](https://github.com/MetaMask/snaps/blob/main/packages/snaps-utils/src/handlers/assets-conversion.ts#L24-L34).
+       */
+    } as MarketData;
 
     return marketDataInToCurrency;
   }
