@@ -9,14 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.25.0]
 
-### Uncategorized
+### Added
 
-- fix(send): improved typing performance ([#321](https://github.com/MetaMask/snap-solana-wallet/pull/321))
-- feat: add transactions scanning after signing a transaction in case it gets broadcast by dApps ([#324](https://github.com/MetaMask/snap-solana-wallet/pull/324))
-- fix: move accounts to non-encrypted state ([#326](https://github.com/MetaMask/snap-solana-wallet/pull/326))
-- fix: filter out assets received by other addresses when a transaction is a Receive ([#325](https://github.com/MetaMask/snap-solana-wallet/pull/325))
-- chore: simplify SPL Tokens send instructions ([#323](https://github.com/MetaMask/snap-solana-wallet/pull/323))
-- feat: hide spam transactions with status `failed` ([#322](https://github.com/MetaMask/snap-solana-wallet/pull/322))
+- Add transactions scanning after signing a transaction in case it gets broadcast by dApps ([#324](https://github.com/MetaMask/snap-solana-wallet/pull/324))
+- Hide spam transactions with status `failed` ([#322](https://github.com/MetaMask/snap-solana-wallet/pull/322))
+
+### Changed
+
+- Improved typing performance ([#321](https://github.com/MetaMask/snap-solana-wallet/pull/321))
+- Move accounts to non-encrypted state ([#326](https://github.com/MetaMask/snap-solana-wallet/pull/326))
+- Simplify SPL Tokens send instructions ([#323](https://github.com/MetaMask/snap-solana-wallet/pull/323))
+
+### Fixed
+
+- Filter out assets received by other addresses when a transaction is a Receive ([#325](https://github.com/MetaMask/snap-solana-wallet/pull/325))
 
 ## [1.24.0]
 
