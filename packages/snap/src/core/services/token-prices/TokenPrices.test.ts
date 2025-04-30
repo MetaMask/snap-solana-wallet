@@ -418,6 +418,32 @@ describe('TokenPricesService', () => {
           PT1H: -0.4456714429821922,
         });
       });
+
+      it('does not include price percent change field if Price API does not return any values', async () => {
+        jest
+          .spyOn(mockPriceApiClient, 'getMultipleSpotPrices')
+          .mockResolvedValue({
+            [BTC]: {
+              ...MOCK_SPOT_PRICES[BTC],
+              pricePercentChange1h: null,
+              pricePercentChange1d: null,
+              pricePercentChange7d: null,
+              pricePercentChange14d: null,
+              pricePercentChange30d: null,
+              pricePercentChange200d: null,
+              pricePercentChange1y: null,
+            } as SpotPrice,
+          });
+
+        const result = await tokenPricesService.getMultipleTokenConversions(
+          [{ from: BTC, to: USD }],
+          includeMarketData,
+        );
+
+        expect(
+          result[BTC]?.[USD]?.marketData?.pricePercentChange,
+        ).toBeUndefined();
+      });
     });
   });
 

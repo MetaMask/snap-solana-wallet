@@ -228,7 +228,10 @@ export class TokenPricesService {
       circulatingSupply: (marketDataInUsd.circulatingSupply ?? 0).toString(), // Circulating supply counts the number of tokens in circulation, so we don't convert
       allTimeHigh: toCurrency(marketDataInUsd.allTimeHigh),
       allTimeLow: toCurrency(marketDataInUsd.allTimeLow),
-      pricePercentChange,
+      //   Add pricePercentChange field only if it has values
+      ...(Object.keys(pricePercentChange).length > 0
+        ? { pricePercentChange }
+        : {}),
       /**
        * TODO: Remove this type cast when [this type](https://github.com/MetaMask/snaps/blob/main/packages/snaps-sdk/src/types/handlers/assets-conversion.ts#L15-L24) is updated in the SDK to support optional pricePercentChange,
        * so that is matches [its related struct](https://github.com/MetaMask/snaps/blob/main/packages/snaps-utils/src/handlers/assets-conversion.ts#L24-L34).
