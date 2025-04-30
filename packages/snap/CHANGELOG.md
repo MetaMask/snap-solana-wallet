@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.25.1]
 
-### Uncategorized
+### Fixed
 
-- fix: show clear button ([#331](https://github.com/MetaMask/snap-solana-wallet/pull/331))
+- Bring back clear button to `ToAddress` ([#331](https://github.com/MetaMask/snap-solana-wallet/pull/331))
 
 ## [1.25.0]
 
