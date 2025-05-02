@@ -6,7 +6,6 @@ import { assert } from '@metamask/superstruct';
 import type { GetTransactionApi, JsonParsedTokenAccount } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 
-import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { Network } from '../../constants/solana';
 import {
   Networks,
@@ -189,7 +188,6 @@ export class AssetsService {
     assets: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
     const balances = new Map<CaipAssetType, Balance>();
-    const metadata = new Map<CaipAssetType, SolanaTokenMetadata>();
 
     const assetsByNetwork = assets.reduce<Record<Network, CaipAssetType[]>>(
       (groups, asset) => {
@@ -219,11 +217,6 @@ export class AssetsService {
       ]);
 
       for (const asset of networkAssets) {
-        // update token metadata if exist
-        if (tokenMetadata[asset]) {
-          metadata.set(asset, tokenMetadata[asset]);
-        }
-
         if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
           // update native asset balance
           balances.set(asset, {
@@ -251,10 +244,6 @@ export class AssetsService {
         assets: {
           ...(state?.assets ?? {}),
           [account.id]: result,
-        },
-        metadata: {
-          ...(state?.metadata ?? {}),
-          ...Object.fromEntries(metadata.entries()),
         },
       };
     });

@@ -2,6 +2,7 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 import { getImageComponent } from '@metamask/snaps-sdk';
 
 import type { TokenMetadataClient } from '../../clients/token-metadata-client/TokenMetadataClient';
+import type { SolanaLegitimateTokenMetadata } from '../../clients/token-metadata-client/types';
 import QUESTION_MARK_SVG from '../../img/question-mark.svg';
 import type { ILogger } from '../../utils/logger';
 
@@ -26,50 +27,37 @@ export class TokenMetadataService {
       return {};
     }
 
-    const tokenMetadata =
+    const existingTokenMetadata =
       await this.#tokenMetadataClient.getTokenMetadataFromAddresses(
         tokensCaipIds,
       );
+    const newTokenMetadata: Record<
+      CaipAssetType,
+      SolanaLegitimateTokenMetadata
+    > = {};
 
-    const imagePromises = Object.keys(tokenMetadata).map(
-      async (tokenCaipId) => {
-        const caipAssetType = tokenCaipId as CaipAssetType;
-        try {
-          if (!tokenMetadata[caipAssetType]?.iconUrl) {
+    await Promise.all(
+      Object.entries(existingTokenMetadata).map(
+        async ([tokenCaipId, metadata]) => {
+          if (!metadata?.iconUrl) {
             this.#logger.warn(`No metadata for ${tokenCaipId}`);
             return;
           }
 
-          const imageSvg = await this.generateImageComponent(
-            tokenMetadata[caipAssetType].iconUrl,
-          );
+          const imageSvg = await this.generateImageComponent(metadata.iconUrl);
 
-          if (!imageSvg) {
-            this.#logger.warn(`Unable to generate image for ${tokenCaipId}`);
-            return;
-          }
-
-          if (tokenMetadata[caipAssetType]) {
-            tokenMetadata[caipAssetType].imageSvg = imageSvg;
-          } else {
-            this.#logger.warn(`No metadata for ${tokenCaipId}`);
-          }
-        } catch (error) {
-          this.#logger.error(error);
-        }
-      },
+          newTokenMetadata[tokenCaipId as CaipAssetType] = {
+            ...metadata,
+            imageSvg,
+          };
+        },
+      ),
     );
 
-    await Promise.all(imagePromises);
-
-    return tokenMetadata;
+    return newTokenMetadata;
   }
 
-  async generateImageComponent(imageUrl?: string, width = 48, height = 48) {
-    if (!imageUrl) {
-      return QUESTION_MARK_SVG;
-    }
-
+  async generateImageComponent(imageUrl: string, width = 48, height = 48) {
     return getImageComponent(imageUrl, { width, height })
       .then((image) => image.value)
       .catch(() => QUESTION_MARK_SVG);

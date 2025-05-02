@@ -9,4 +9,8 @@ export type SolanaTokenMetadata = FungibleAssetMetadata & {
   imageSvg?: string;
 };
 
+export type SolanaLegitimateTokenMetadata = FungibleAssetMetadata & {
+  imageSvg: string;
+};
+
 export type TokenMetadata = Infer<typeof TokenMetadataStruct>;
