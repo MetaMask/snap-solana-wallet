@@ -16,6 +16,7 @@ type ToAddressFieldProps = {
   value: string | null;
   error: string;
   locale: Locale;
+  showClearButton: boolean;
 };
 
 export const ToAddressField: SnapComponent<ToAddressFieldProps> = ({
@@ -23,9 +24,9 @@ export const ToAddressField: SnapComponent<ToAddressFieldProps> = ({
   value,
   error,
   locale,
+  showClearButton,
 }) => {
   const translate = i18n(locale);
-  const showClearButton = value ? value.length > 0 : false;
 
   return (
     <Field label={translate('send.toField')} error={error}>
@@ -34,13 +35,13 @@ export const ToAddressField: SnapComponent<ToAddressFieldProps> = ({
         placeholder={translate('send.toPlaceholder')}
         value={value ?? undefined}
       />
-      {showClearButton && (
+      {showClearButton ? (
         <Box>
           <Button name={SendFormNames.ClearButton}>
             <Icon name={IconName.Close} color="primary" />
           </Button>
         </Box>
-      )}
+      ) : null}
     </Field>
   );
 };

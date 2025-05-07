@@ -140,7 +140,7 @@ export class PriceApiClient {
         {},
       );
 
-      // Cache the spot prices for 5 minutes
+      // Store in the cache
       await this.#cache.mset(
         tokenCaip19Ids.map((tokenCaip19Id) => ({
           key: `PriceApiClient:getMultipleSpotPrices:${tokenCaip19Id}:${vsCurrency}`,

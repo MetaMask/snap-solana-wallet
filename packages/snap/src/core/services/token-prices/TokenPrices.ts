@@ -251,7 +251,7 @@ export class TokenPricesService {
     const toTicker = parseCaipAssetType(to).assetReference.toLowerCase();
     assert(toTicker, VsCurrencyParamStruct);
 
-    const timePeriodsToFetch = ['1d', '7d', '1m', '3m', '1y'];
+    const timePeriodsToFetch = ['1d', '7d', '1m', '3m', '1y', '1000y'];
 
     // For each time period, call the Price API to fetch the historical prices
     const promises = timePeriodsToFetch.map(async (timePeriod) =>

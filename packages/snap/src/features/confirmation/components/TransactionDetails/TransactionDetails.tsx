@@ -82,7 +82,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
         {feeInSol ? (
           <Box direction="horizontal" alignment="center">
             {pricesFetching ? (
-              <Skeleton />
+              <Skeleton width={80} />
             ) : (
               <Text color="muted">{feeInFiat}</Text>
             )}
