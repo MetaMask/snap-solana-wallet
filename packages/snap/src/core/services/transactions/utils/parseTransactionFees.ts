@@ -1,22 +1,30 @@
+/* eslint-disable no-bitwise */
 import type { Transaction } from '@metamask/keyring-api';
 import {
   COMPUTE_BUDGET_PROGRAM_ADDRESS,
   SET_COMPUTE_UNIT_LIMIT_DISCRIMINATOR,
   SET_COMPUTE_UNIT_PRICE_DISCRIMINATOR,
 } from '@solana-program/compute-budget';
+import { lamports, type Lamports } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 import bs58 from 'bs58';
 
 import type { Network } from '../../../constants/solana';
-import { LAMPORTS_PER_SOL, Networks } from '../../../constants/solana';
+import {
+  LAMPORTS_PER_SOL,
+  MICRO_LAMPORTS_PER_LAMPORT,
+  Networks,
+} from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
 
 /**
- * Parses transaction fees from RPC transaction data.
+ * Parses transaction fees from RPC transaction data and returns them in the format expected by the keyring API.
+ * NOTE: In the returned format, the fee amount is in SOL, as defined by the keyring API.
+ *
  * @param options0 - The options object.
  * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
  * @param options0.transactionData - The raw transaction data containing fee information.
- * @returns The parsed fee information including the fee amount in lamports.
+ * @returns The parsed fee information including the fee amount in SOL.
  */
 export function parseTransactionFees({
   scope,
@@ -25,9 +33,26 @@ export function parseTransactionFees({
   scope: Network;
   transactionData: SolanaTransaction;
 }): Transaction['fees'] {
-  const totalFee = getTransactionTotalFee(transactionData);
-  const priorityFee = getTransactionPriorityFee(transactionData);
-  const baseFee = totalFee.minus(priorityFee ?? 0);
+  const totalFeeLamports = getTotalFee(transactionData);
+  const totalFeeLamportsBigNumber = new BigNumber(totalFeeLamports.toString());
+  const totalFeeMicroLamportsBigNumber = totalFeeLamportsBigNumber.multipliedBy(
+    MICRO_LAMPORTS_PER_LAMPORT,
+  );
+
+  const priorityFeeMicroLamports = getPriorityFeeMicroLamports(transactionData);
+  const priorityFeeMicroLamportsBigNumber = new BigNumber(
+    priorityFeeMicroLamports.toString(),
+  );
+  const priorityFeeSolBigNumber = priorityFeeMicroLamportsBigNumber
+    .dividedBy(MICRO_LAMPORTS_PER_LAMPORT)
+    .dividedBy(LAMPORTS_PER_SOL);
+
+  const baseFeeMicroLamportsBigNumber = totalFeeMicroLamportsBigNumber.minus(
+    priorityFeeMicroLamportsBigNumber,
+  );
+  const baseFeeSolBigNumber = baseFeeMicroLamportsBigNumber
+    .dividedBy(MICRO_LAMPORTS_PER_LAMPORT)
+    .dividedBy(LAMPORTS_PER_SOL);
 
   const fees: Transaction['fees'] = [
     {
@@ -36,19 +61,19 @@ export function parseTransactionFees({
         fungible: true,
         type: Networks[scope].nativeToken.caip19Id,
         unit: Networks[scope].nativeToken.symbol,
-        amount: baseFee.toString(),
+        amount: baseFeeSolBigNumber.toString(),
       },
     },
   ];
 
-  if (priorityFee?.isGreaterThan(0)) {
+  if (priorityFeeSolBigNumber.isGreaterThan(0)) {
     fees.push({
       type: 'priority',
       asset: {
         fungible: true,
         type: Networks[scope].nativeToken.caip19Id,
         unit: Networks[scope].nativeToken.symbol,
-        amount: priorityFee.toString(),
+        amount: priorityFeeSolBigNumber.toString(),
       },
     });
   }
@@ -61,35 +86,31 @@ export function parseTransactionFees({
  * @param transactionData - The raw transaction data.
  * @returns The total fee in lamports.
  */
-function getTransactionTotalFee(transactionData: SolanaTransaction): BigNumber {
-  const feeLamports = new BigNumber(
-    transactionData.meta?.fee?.toString() ?? '0',
-  );
-  const feeAmount = feeLamports.dividedBy(LAMPORTS_PER_SOL);
-  return feeAmount;
+function getTotalFee(transactionData: SolanaTransaction): Lamports {
+  return transactionData.meta?.fee ?? lamports(0n);
 }
 
 /**
- * Parses priority fee from transaction data.
+ * Extracts the priority fees in micro-lamports from transaction data.
  * Priority fee = Compute Units Limit * Compute Unit Price.
  *
  * @param transactionData - The raw transaction data.
- * @returns The priority fee in lamports.
+ * @returns The priority fee in microLamports-lamports.
  */
-function getTransactionPriorityFee(
+function getPriorityFeeMicroLamports(
   transactionData: SolanaTransaction,
-): BigNumber | null {
+): bigint {
   const computeBudgetProgramAccountIndex =
     transactionData.transaction.message.accountKeys.findIndex(
       (accountKey) => accountKey === COMPUTE_BUDGET_PROGRAM_ADDRESS,
     );
 
   if (!computeBudgetProgramAccountIndex) {
-    return null;
+    return lamports(0n);
   }
 
   let computeUnitLimit = null;
-  let computeUnitPrice = null;
+  let computeUnitPriceMicroLamportPerCu = null;
   let nonComputeBudgetProgramInstructions = 0;
 
   for (const instruction of transactionData.transaction.message.instructions) {
@@ -107,15 +128,15 @@ function getTransactionPriorityFee(
       }
 
       if (opcode === SET_COMPUTE_UNIT_PRICE_DISCRIMINATOR) {
-        computeUnitPrice = decodeComputeUnitPrice(data);
+        computeUnitPriceMicroLamportPerCu = decodeComputeUnitPrice(data);
       }
     } else {
       nonComputeBudgetProgramInstructions += 1;
     }
   }
 
-  if (!computeUnitPrice) {
-    return null;
+  if (!computeUnitPriceMicroLamportPerCu) {
+    return lamports(0n);
   }
 
   if (!computeUnitLimit) {
@@ -124,32 +145,38 @@ function getTransactionPriorityFee(
     );
   }
 
-  const priorityFee = computeUnitPrice
-    .multipliedBy(computeUnitLimit)
-    .dividedBy(LAMPORTS_PER_SOL)
-    .decimalPlaces(9, BigNumber.ROUND_UP);
+  const computeUnitLimitBigNumber = new BigNumber(computeUnitLimit.toString());
+  const computeUnitPriceMicroLamportPerCuBigNumber = new BigNumber(
+    computeUnitPriceMicroLamportPerCu.toString(),
+  );
 
-  return priorityFee;
+  const priorityFeeMicroLamports = BigInt(
+    computeUnitPriceMicroLamportPerCuBigNumber
+      .multipliedBy(computeUnitLimitBigNumber)
+      .toString(),
+  );
+
+  return priorityFeeMicroLamports;
 }
 
 /**
- * Decodes the Compute Unit Price instruction returning the value in lamports.
+ * Decodes the Compute Unit Price instruction in microLamports per compute unit.
  *
  * @param data - The data of the instruction.
- * @returns The compute unit price in lamports.
+ * @returns The compute unit price in micro-lamports per compute unit.
  */
-function decodeComputeUnitPrice(data: Uint8Array) {
+function decodeComputeUnitPrice(data: Uint8Array): bigint {
   /**
    * setComputeUnitPrice instruction has a fixed length of 9 bytes.
-   * opcode (1 byte) + computeUnitPriceMicroLamports (8 bytes)
+   * opcode (1 byte) + cuPriceInMicroLamportPerCu (8 bytes)
    */
-  let raw = BigInt(0);
+  let computeUnitPriceInMicroLamportPerCu = BigInt(0);
   for (let i = 0; i < 8; i++) {
-    // eslint-disable-next-line no-bitwise
-    raw |= BigInt(data[1 + i] ?? 0) << BigInt(8 * i);
+    computeUnitPriceInMicroLamportPerCu |=
+      BigInt(data[1 + i] ?? 0) << BigInt(8 * i);
   }
 
-  return BigNumber(raw.toString()).dividedBy(1e6);
+  return computeUnitPriceInMicroLamportPerCu;
 }
 
 /**
@@ -157,7 +184,7 @@ function decodeComputeUnitPrice(data: Uint8Array) {
  * @param data - The data of the instruction.
  * @returns The compute unit limit.
  */
-function decodeComputeUnitLimit(data: Uint8Array) {
+function decodeComputeUnitLimit(data: Uint8Array): bigint {
   /**
    * setComputeUnitLimit instruction has a fixed length of 5 bytes.
    * opcode (1 byte) + computeUnitLimit (4 bytes)
@@ -168,5 +195,5 @@ function decodeComputeUnitLimit(data: Uint8Array) {
     raw |= BigInt(data[1 + i] ?? 0) << BigInt(8 * i);
   }
 
-  return BigNumber(raw.toString());
+  return raw;
 }

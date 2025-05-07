@@ -56,7 +56,7 @@ describe('parseTransactionFees', () => {
           fungible: true,
           type: Networks[Network.Mainnet].nativeToken.caip19Id,
           unit: Networks[Network.Mainnet].nativeToken.symbol,
-          amount: '0.000005',
+          amount: '0.000005001',
         },
       },
       {
@@ -65,7 +65,7 @@ describe('parseTransactionFees', () => {
           fungible: true,
           type: Networks[Network.Mainnet].nativeToken.caip19Id,
           unit: Networks[Network.Mainnet].nativeToken.symbol,
-          amount: '0.000069798',
+          amount: '0.000069797',
         },
       },
     ]);
