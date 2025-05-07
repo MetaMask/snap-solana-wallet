@@ -11,7 +11,7 @@ import { address, blockhash, lamports } from '@solana/kit';
 import type { SolanaTransaction } from '../../../types/solana';
 
 /**
- * Mainnet - Swap A16Z to USDT via Jupiter Aggregator V6
+ * Mainnet - Swap A16Z -> USDT -> SOL via Jupiter Aggregator V6
  * Transaction: JiqYGkWcYu8GxPZsMdXDnA8tkZvHnHVmNuKr4JYBErm4rgQWssdHCkbe8MzwwNGndyvyNYaaY5vvMhUMPNiQX9u
  *
  * Accounts involved:
@@ -19,7 +19,7 @@ import type { SolanaTransaction } from '../../../types/solana';
  * - Jupiter V6 Program: routeUGWgWzqBWFcrCfv8tritsqukccJPu3q5GPP3xS
  * - Various AMM pools and token accounts involved in the swap route.
  */
-export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
+export const EXPECTED_SWAP_A16Z_USDT_SOL_DATA: SolanaTransaction = {
   blockTime: 1745425114n as UnixTimestamp,
   meta: {
     computeUnitsConsumed: 242108n,
@@ -28,56 +28,65 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
     fee: lamports(22342n),
     innerInstructions: [
       {
-        index: 0,
+        index: 0, // Means that these are the inner instructions for transaction.message.instructions[0]
         instructions: [
+          // #1.1 - Raydium Concentrated Liquidity: SwapV2
           {
             accounts: [0, 18, 7, 15, 5, 8, 14, 1, 30, 31, 25, 22, 20, 16, 6, 9],
             data: 'ASCsAbe1UnEFMJQbPShDspA4Mtrgik54fGtKfUGEGt7vQU77d7XfBrbz' as Base58EncodedBytes,
             programIdIndex: 29,
             stackHeight: 2,
           },
+          // #1.2 - Token 2022 Program: TransferChecked
           {
             accounts: [15, 22, 8, 0],
             data: 'hHi4Sy5CUXcNU' as Base58EncodedBytes,
             programIdIndex: 31,
             stackHeight: 3,
           },
+          // #1.3 - Token Program: TransferChecked
           {
             accounts: [14, 20, 5, 7],
             data: 'hvZoChyXb9GHj' as Base58EncodedBytes,
             programIdIndex: 30,
             stackHeight: 3,
           },
+          // #1.4 - Associated Token Account Program: Create
           {
             accounts: [0, 17, 0, 23, 27, 30],
-            data: '1' as Base58EncodedBytes,
-            programIdIndex: 28,
+            data: '1' as Base58EncodedBytes, // '0' for 'Create' and '1' for 'CreateIdempotent'
+            programIdIndex: 28, // Associated Token Account Program
             stackHeight: 2,
           },
+          // #1.5 - Token Program: GetAccountDataSize
           {
-            accounts: [23],
+            accounts: [23], // WSOL Mint
             data: '84eT' as Base58EncodedBytes,
-            programIdIndex: 30,
+            programIdIndex: 30, // Token Program
             stackHeight: 3,
           },
+          // #1.6 - System Program: CreateAccount
           {
             accounts: [0, 17],
             data: '11119os1e9qSs2u7TsThXqkBSRVFxhmYaFKFZ1waB2X7armDmvK3p5GmLdUxYdg3h7QSrL' as Base58EncodedBytes,
-            programIdIndex: 27,
+            programIdIndex: 27, // System Program
             stackHeight: 3,
           },
+          // #1.7 - Token Program: InitializeImmutableOwner
           {
             accounts: [17],
             data: 'P' as Base58EncodedBytes,
-            programIdIndex: 30,
+            programIdIndex: 30, // Token Program
             stackHeight: 3,
           },
+          // #1.8 - Token Program: InitializeAccount3
           {
             accounts: [17, 23],
             data: '6bY9pNeU2qwkJgSyHZ9tDZHS8MKeAVk2hkGBGD7vwkPE4' as Base58EncodedBytes,
-            programIdIndex: 30,
+            programIdIndex: 30, // Token Program
             stackHeight: 3,
           },
+          // #1.9 - Raydium Concentrated Liquidity: SwapV2
           {
             accounts: [
               0, 19, 21, 5, 17, 2, 10, 3, 30, 31, 25, 20, 23, 4, 11, 13, 12,
@@ -86,12 +95,14 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
             programIdIndex: 29,
             stackHeight: 2,
           },
+          // #1.10 - Token Program: TransferChecked
           {
             accounts: [5, 20, 2, 0],
             data: 'hvZoChyXb9GHj' as Base58EncodedBytes,
             programIdIndex: 30,
             stackHeight: 3,
           },
+          // #1.11 - Token Program: TransferChecked
           {
             accounts: [10, 23, 17, 21],
             data: 'gDAuq2Hq93qJY' as Base58EncodedBytes,
@@ -101,8 +112,9 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
         ],
       },
       {
-        index: 1,
+        index: 1, // Means that these are the inner instructions for transaction.message.instructions[1]
         instructions: [
+          // #2.1 - Token Program: CloseAccount
           {
             accounts: [17, 0, 0],
             data: 'A' as Base58EncodedBytes,
@@ -334,7 +346,7 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
     preTokenBalances: [
       {
         accountIndex: 2,
-        mint: address('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), // USDT
+        mint: address('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), // USDT Mint
         owner: address('ExcBWu8fGPdJiaF1b1z3iEef38sjQJks8xvj6M85pPY6'),
         programId: address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         uiTokenAmount: {
@@ -346,7 +358,7 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
       },
       {
         accountIndex: 5,
-        mint: address('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), // USDT
+        mint: address('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), // USDT Mint
         owner: address('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'), // User wallet
         programId: address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         uiTokenAmount: {
@@ -358,7 +370,7 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
       },
       {
         accountIndex: 8,
-        mint: address('HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'), // A16Z
+        mint: address('HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'), // A16Z Mint
         owner: address('4RyuSgGdYeE7Qd4eKsuauTevWRreSfGScYqaygMEJXSq'),
         programId: address('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'),
         uiTokenAmount: {
@@ -370,7 +382,7 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
       },
       {
         accountIndex: 10,
-        mint: address('So11111111111111111111111111111111111111112'), // WSOL
+        mint: address('So11111111111111111111111111111111111111112'), // WSOL Mint
         owner: address('ExcBWu8fGPdJiaF1b1z3iEef38sjQJks8xvj6M85pPY6'),
         programId: address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         uiTokenAmount: {
@@ -382,7 +394,7 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
       },
       {
         accountIndex: 14,
-        mint: address('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), // USDT
+        mint: address('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), // USDT Mint
         owner: address('4RyuSgGdYeE7Qd4eKsuauTevWRreSfGScYqaygMEJXSq'),
         programId: address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         uiTokenAmount: {
@@ -394,7 +406,7 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
       },
       {
         accountIndex: 15,
-        mint: address('HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'), // A16Z
+        mint: address('HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'), // A16Z Mint
         owner: address('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'), // User wallet
         programId: address('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'),
         uiTokenAmount: {
@@ -414,39 +426,39 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
   transaction: {
     message: {
       accountKeys: [
-        address('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
-        address('2omU3uDsWJJjcM7XZ8BrELuN1RysYk9Gc3pYUZNTYav4'),
-        address('2w6WUGXVeUPeGpJTUSNu4btbpMkFtmjrQgpKi149it7K'),
-        address('3AsJZQY3jtZwqBfbTUQ4xKDVwmdz2ufdKMsnxN9K5L3S'),
-        address('3xVTGrrbWLtPC2qRiHyiVbKEDY2UUYN9kwJWmPH2n8wW'),
-        address('3zWrWv3hu6fJfqpZech7sPLrF4Lm7qx1mmfMaHdJZyTP'),
-        address('4odFEFnsNWHdj7P7RZ7fVWS86NJyB1LVG8U1Bec1eJSD'),
-        address('4RyuSgGdYeE7Qd4eKsuauTevWRreSfGScYqaygMEJXSq'),
-        address('5M3c33wKLoPRBUN24dCp9xrug6RvgB57ccQAwsmHBtvn'),
-        address('6B9u2WAAqr7GExuCPfXQ159EeAoebtJKEawr84GVoy1n'),
-        address('7CoLodcm9h4EAFKpcPbT34yk3MkpeWjsBqXVidfbrfQ7'),
-        address('9dz29uZsFQWkwgMGcPYqrWo8DiGjErDo7uNULWRGfNR8'),
-        address('9KgS9EwmhKp1aiGHYXFLv3qSgp2HHtFtNP5tKsVRDCp2'),
-        address('AtTKYTWtb2nPF7B9RUYb3FXQn8Er9bCFnupMsXy5MKci'),
-        address('BfrpfwfvvRbswT5jPqy4Ey9iek9PsBCXssF4hCa4UZ7u'),
-        address('C9JRr8XMCatQ9kSii8VNHLMHQWfcA1pHCzhR5M1xAYUv'),
-        address('ChSvYbQCjvpHhCsZRm8rFJGbSWYE6csJp1bNsTrYZtNS'),
-        address('CUGD6t9tqqdQnq35Cr28S3yQLxw3ecLGSGgk6HoSxtDA'),
-        address('DrdecJVzkaRsf1TQu1g7iFncaokikVTHqpzPjenjRySY'),
-        address('EdPxg8QaeFSrTYqdWJn6Kezwy9McWncTYueD9eMGCuzR'),
-        address('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), // USDT Mint
-        address('ExcBWu8fGPdJiaF1b1z3iEef38sjQJks8xvj6M85pPY6'),
-        address('HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'), // A16Z Mint
-        address('So11111111111111111111111111111111111111112'), // WSOL Mint
-        address('ComputeBudget111111111111111111111111111111'),
-        address('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'),
-        address('routeUGWgWzqBWFcrCfv8tritsqukccJPu3q5GPP3xS'), // Jupiter V6 Router
+        address('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'), // Index 0. User wallet
+        address('2omU3uDsWJJjcM7XZ8BrELuN1RysYk9Gc3pYUZNTYav4'), // Index 1.
+        address('2w6WUGXVeUPeGpJTUSNu4btbpMkFtmjrQgpKi149it7K'), // Index 2.
+        address('3AsJZQY3jtZwqBfbTUQ4xKDVwmdz2ufdKMsnxN9K5L3S'), // Index 3.
+        address('3xVTGrrbWLtPC2qRiHyiVbKEDY2UUYN9kwJWmPH2n8wW'), // Index 4.
+        address('3zWrWv3hu6fJfqpZech7sPLrF4Lm7qx1mmfMaHdJZyTP'), // Index 5. User USDT ATA
+        address('4odFEFnsNWHdj7P7RZ7fVWS86NJyB1LVG8U1Bec1eJSD'), // Index 6.
+        address('4RyuSgGdYeE7Qd4eKsuauTevWRreSfGScYqaygMEJXSq'), // Index 7.
+        address('5M3c33wKLoPRBUN24dCp9xrug6RvgB57ccQAwsmHBtvn'), // Index 8.
+        address('6B9u2WAAqr7GExuCPfXQ159EeAoebtJKEawr84GVoy1n'), // Index 9.
+        address('7CoLodcm9h4EAFKpcPbT34yk3MkpeWjsBqXVidfbrfQ7'), // Index 10.
+        address('9dz29uZsFQWkwgMGcPYqrWo8DiGjErDo7uNULWRGfNR8'), // Index 11.
+        address('9KgS9EwmhKp1aiGHYXFLv3qSgp2HHtFtNP5tKsVRDCp2'), // Index 12.
+        address('AtTKYTWtb2nPF7B9RUYb3FXQn8Er9bCFnupMsXy5MKci'), // Index 13.
+        address('BfrpfwfvvRbswT5jPqy4Ey9iek9PsBCXssF4hCa4UZ7u'), // Index 14.
+        address('C9JRr8XMCatQ9kSii8VNHLMHQWfcA1pHCzhR5M1xAYUv'), // Index 15. User A16Z ATA
+        address('ChSvYbQCjvpHhCsZRm8rFJGbSWYE6csJp1bNsTrYZtNS'), // Index 16.
+        address('CUGD6t9tqqdQnq35Cr28S3yQLxw3ecLGSGgk6HoSxtDA'), // Index 17. User WSOL ATA. Is created to temporarily hold the WSOLs from the swap. Is closed at the end of the transaction and all WSOLs are redeemed to the user wallet as SOL.
+        address('DrdecJVzkaRsf1TQu1g7iFncaokikVTHqpzPjenjRySY'), // Index 18.
+        address('EdPxg8QaeFSrTYqdWJn6Kezwy9McWncTYueD9eMGCuzR'), // Index 19.
+        address('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'), // Index 20. USDT Mint
+        address('ExcBWu8fGPdJiaF1b1z3iEef38sjQJks8xvj6M85pPY6'), // Index 21. User wallet
+        address('HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'), // Index 22. A16Z Mint
+        address('So11111111111111111111111111111111111111112'), // Index 23. WSOL Mint
+        address('ComputeBudget111111111111111111111111111111'), // Index 24.
+        address('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'), // Index 25.
+        address('routeUGWgWzqBWFcrCfv8tritsqukccJPu3q5GPP3xS'), // Index 26. Jupiter V6 Router
         // Lookup Table accounts start here (indices relative to lookup table, not accountKeys)
-        address('11111111111111111111111111111111'), // System Program (LUT index 0)
-        address('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'), // Associated Token Program (LUT index 1)
-        address('CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK'), // Orca Whirlpool Program (LUT index 2)
-        address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), // Token Program (LUT index 3)
-        address('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'), // Token Extensions Program (LUT index ?) - This seems missing in LUT data but used by inner instructions
+        address('11111111111111111111111111111111'), // Index 27. System Program
+        address('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'), // Index 28. Associated Token Account Program
+        address('CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK'), // Index 29. Orca Whirlpool Program (LUT index 2)
+        address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), // Index 30. Token Program (LUT index 3)
+        address('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'), // Index 31. Token Extensions Program (LUT index ?) - This seems missing in LUT data but used by inner instructions
       ] as Address[],
       addressTableLookups: [
         {
@@ -461,16 +473,17 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
         numRequiredSignatures: 1,
       },
       instructions: [
+        // Jupiter V6 instruction
+        // #1 - Raydium AMM Routing: Unknown
         {
-          // Jupiter V6 instruction
           accounts: [
             30, // Token Program
             31, // Token Extensions Program
-            28, // Associated Token Program
+            28, // Associated Token Account Program
             27, // System Program
-            0, // User Wallet (signer)
+            0, // User Wallet (signer)/
             15, // User A16Z ATA (source)
-            17, // User USDT ATA (destination - to be created)
+            17, // User WSOL ATA
             29, // Orca Whirlpool Program
             5, // User USDT ATA (owner for creation check?) - Seems redundant
             22, // A16Z Mint
@@ -486,7 +499,7 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
             9, // Orca Pool WSOL Vault ATA? (derived)
             // Duplicated accounts for second leg of swap?
             29, // Orca Whirlpool Program
-            17, // User USDT ATA (now exists)
+            17, // User WSOL ATA (now exists)
             20, // USDT Mint
             23, // WSOL Mint
             19, // Orca Whirlpool USDT/WSOL Pool State?
@@ -506,27 +519,28 @@ export const EXPECTED_SWAP_A16Z_TO_USDT_DATA: SolanaTransaction = {
         },
         {
           // Jupiter V6 close empty ATA instruction
+          // #2 - Raydium AMM Routing: Unknown
           accounts: [
             0, // User Wallet (rent receiver)
-            17, // User USDT ATA (the one created, might be empty if swap failed?)
+            17, // User WSOL ATA
             0, // Owner (user wallet again)
             30, // Token Program
-            28, // Associated Token Program
+            28, // Associated Token Account Program
             27, // System Program
           ],
           data: '7' as Base58EncodedBytes,
           programIdIndex: 26, // Jupiter V6 Router
           stackHeight: null,
         },
+        // #3 - Compute Budget: SetComputeUnitPrice
         {
-          // Compute Budget: Set Compute Unit Limit
           accounts: [],
           data: '3ounyg1gTkfR' as Base58EncodedBytes,
           programIdIndex: 24, // Compute Budget Program
           stackHeight: null,
         },
+        // #4 - Compute Budget: SetComputeUnitLimit
         {
-          // Compute Budget: Set Compute Unit Price
           accounts: [],
           data: 'EM4xLX' as Base58EncodedBytes,
           programIdIndex: 24, // Compute Budget Program

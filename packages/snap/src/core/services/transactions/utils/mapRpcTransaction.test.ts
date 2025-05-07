@@ -8,7 +8,7 @@ import { EXPECTED_SEND_SPL_TOKEN_AND_CREATE_TOKEN_ACCOUNT_DATA } from '../../../
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self';
 import { EXPECTED_SPAM_TRANSACTION_DATA } from '../../../test/mocks/transactions-data/spam';
-import { EXPECTED_SWAP_A16Z_TO_USDT_DATA } from '../../../test/mocks/transactions-data/swap-a16z-to-usdt';
+import { EXPECTED_SWAP_A16Z_USDT_SOL_DATA } from '../../../test/mocks/transactions-data/swap-a16z-usdt-sol';
 import { EXPECTED_SWAP_USDC_TO_COBIE_DATA } from '../../../test/mocks/transactions-data/swap-usdc-to-cobie';
 import { EXPECTED_SWAP_USDC_TO_JUP_DATA } from '../../../test/mocks/transactions-data/swap-usdc-to-jup';
 import { mapRpcTransaction } from './mapRpcTransaction';
@@ -662,11 +662,8 @@ describe('mapRpcTransaction', () => {
     const result = mapRpcTransaction({
       scope: Network.Mainnet,
       address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
-      transactionData: EXPECTED_SWAP_A16Z_TO_USDT_DATA,
+      transactionData: EXPECTED_SWAP_A16Z_USDT_SOL_DATA,
     });
-
-    console.log('RESULT');
-    console.log(result);
 
     expect(result).toStrictEqual({
       id: 'JiqYGkWcYu8GxPZsMdXDnA8tkZvHnHVmNuKr4JYBErm4rgQWssdHCkbe8MzwwNGndyvyNYaaY5vvMhUMPNiQX9u',
@@ -693,7 +690,7 @@ describe('mapRpcTransaction', () => {
             fungible: true,
             type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
             unit: 'SOL',
-            amount: '0.000005826',
+            amount: '0.00002816',
           },
         },
       ],

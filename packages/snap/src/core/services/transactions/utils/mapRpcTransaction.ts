@@ -3,7 +3,7 @@ import {
   TransactionType,
   type Transaction,
 } from '@metamask/keyring-api';
-import type { Address } from '@solana/kit';
+import { type Address } from '@solana/kit';
 import { BigNumber } from 'bignumber.js';
 
 import { KnownCaip19Id, type Network } from '../../../constants/solana';

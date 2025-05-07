@@ -9,7 +9,6 @@ import {
   type Network,
 } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
-import { lamportsToSol } from '../../../utils/conversion';
 import { parseTransactionFees } from './parseTransactionFees';
 
 /**
@@ -80,37 +79,35 @@ export function parseTransactionNativeTransfers({
     const preBalance = preBalances.get(accountIndex) ?? new BigNumber(0);
     const postBalance = postBalances.get(accountIndex) ?? new BigNumber(0);
 
+    const isFeePayer = accountIndex === 0;
+    const totalFees = new BigNumber(transactionData.meta?.fee?.toString() ?? 0);
+
     /**
-     * Calculate the delta between the balances and convert from lamports to SOL.
+     * Calculate the delta between the balances using the formula below, and convert from lamports to SOL.
+     * When the account is the fee payer, we separate the fees from the balance difference.
+     *
+     * Formula:
+     * `preBalance = postBalance + totalFees + balanceDiff`
+     *
+     * Therefore:
+     * `balanceDiff = preBalance - postBalance - totalFees`
      */
-    let balanceDiff = postBalance
-      .minus(preBalance)
-      .absoluteValue()
+    const balanceDiff = preBalance
+      .minus(postBalance)
+      .minus(isFeePayer ? totalFees : new BigNumber(0))
       .dividedBy(new BigNumber(LAMPORTS_PER_SOL));
-
-    /**
-     * For the fee payer, subtract the fees from the balance difference
-     * since we are counting them separately.
-     */
-    if (accountIndex === 0) {
-      const totalFees = lamportsToSol(transactionData.meta?.fee ?? 0);
-
-      balanceDiff = balanceDiff
-        .minus(totalFees)
-        .decimalPlaces(8, BigNumber.ROUND_DOWN);
-    }
 
     if (balanceDiff.isZero()) {
       continue;
     }
 
-    const amount = balanceDiff.toString();
+    const amount = balanceDiff.absoluteValue().toString();
 
     /**
-     * If the pre-balance is greater than the post-balance, it means that the account
-     * has lost SOL, so it's a sender.
+     * If the balance difference is positive, it means that there were more SOL in the account before the transaction than after.
+     * So it's a sender.
      */
-    if (preBalance.isGreaterThan(postBalance)) {
+    if (balanceDiff.isPositive()) {
       from.push({
         address,
         asset: {
@@ -123,10 +120,10 @@ export function parseTransactionNativeTransfers({
     }
 
     /**
-     * If the pre-balance is less than the post-balance, it means that the account
-     * has gained SOL, so it's a receiver.
+     * If the balance difference is negative, it means that there were less SOL in the account after the transaction than before.
+     * So it's a receiver.
      */
-    if (preBalance.isLessThan(postBalance)) {
+    if (balanceDiff.isNegative()) {
       to.push({
         address,
         asset: {
