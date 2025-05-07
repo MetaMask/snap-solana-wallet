@@ -555,6 +555,15 @@ describe('mapRpcTransaction', () => {
           address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
           asset: {
             fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+            amount: '0.000000008',
+          },
+        },
+        {
+          address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+          asset: {
+            fungible: true,
             type: `${Network.Mainnet}/token:HaMv3cdfDW6357yjpDur6kb6w52BUPJrMJpR76tjpump`,
             unit: '',
             amount: '2583.728601',
@@ -690,7 +699,7 @@ describe('mapRpcTransaction', () => {
             fungible: true,
             type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
             unit: 'SOL',
-            amount: '0.00002816',
+            amount: '0.000028168',
           },
         },
       ],
