@@ -12,7 +12,6 @@ export function decodeSplTransferAmount(data: Uint8Array): BigNumber {
    * 8 bytes - Transfer amount unsigned int 64
    */
   let raw = BigInt(0);
-  console.log(data[0]);
 
   for (let i = 1; i < 9; i++) {
     // eslint-disable-next-line no-bitwise

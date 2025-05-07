@@ -94,14 +94,16 @@ export function parseTransactionNativeTransfers({
      */
     const balanceDiff = preBalance
       .minus(postBalance)
-      .minus(isFeePayer ? totalFees : new BigNumber(0))
-      .dividedBy(new BigNumber(LAMPORTS_PER_SOL));
+      .minus(isFeePayer ? totalFees : new BigNumber(0));
 
     if (balanceDiff.isZero()) {
       continue;
     }
 
-    const amount = balanceDiff.absoluteValue().toString();
+    const amountSol = balanceDiff
+      .absoluteValue()
+      .dividedBy(LAMPORTS_PER_SOL)
+      .toString();
 
     /**
      * If the balance difference is positive, it means that there were more SOL in the account before the transaction than after.
@@ -114,7 +116,7 @@ export function parseTransactionNativeTransfers({
           fungible: true,
           type: Networks[scope].nativeToken.caip19Id,
           unit: Networks[scope].nativeToken.symbol,
-          amount,
+          amount: amountSol,
         },
       });
     }
@@ -130,7 +132,7 @@ export function parseTransactionNativeTransfers({
           fungible: true,
           type: Networks[scope].nativeToken.caip19Id,
           unit: Networks[scope].nativeToken.symbol,
-          amount,
+          amount: amountSol,
         },
       });
     }
