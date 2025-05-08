@@ -1,4 +1,4 @@
-import type { CaipAssetType } from '@metamask/keyring-api';
+import { type CaipAssetType } from '@metamask/keyring-api';
 import type {
   Address,
   Base58EncodedBytes,

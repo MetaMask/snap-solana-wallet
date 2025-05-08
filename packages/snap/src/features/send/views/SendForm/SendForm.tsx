@@ -1,8 +1,10 @@
 import {
+  AssetSelector,
   Banner,
   Box,
   Button,
   Container,
+  Field,
   Footer,
   Form,
   Text,
@@ -10,13 +12,13 @@ import {
 import { isNullOrUndefined } from '@metamask/utils';
 
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
+import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCrypto } from '../../../../core/utils/formatCrypto';
 import { formatFiat } from '../../../../core/utils/formatFiat';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
 import { AmountInput } from '../../components/AmountInput/AmountInput';
-import { AssetSelector } from '../../components/AssetsSelector/AssetsSelector';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
 import { getNativeTokenPrice, getSelectedTokenPrice } from '../../selectors';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
@@ -43,7 +45,6 @@ export const SendForm = ({
     scope,
     balances,
     tokenPricesFetchStatus,
-    tokenMetadata,
     buildingTransaction,
     error,
     preferences: { locale, currency },
@@ -54,6 +55,13 @@ export const SendForm = ({
   const tokenBalance = selectedToken?.amount;
   const tokenSymbol = selectedToken?.unit ?? '';
   const isBalanceDefined = tokenBalance !== undefined;
+
+  const selectedAccount = accounts.find(
+    (account) => account.id === fromAccountId,
+  );
+  const selectedAccountAddress = selectedAccount?.address
+    ? addressToCaip10(scope, selectedAccount.address)
+    : '';
 
   const nativePrice = getNativeTokenPrice(context);
   const selectedTokenPrice = getSelectedTokenPrice(context);
@@ -156,13 +164,16 @@ export const SendForm = ({
               <Box>{null}</Box>
               <Box>{null}</Box>
               <Box direction="horizontal">
-                <AssetSelector
-                  tokenCaipId={tokenCaipId}
-                  tokenMetadata={tokenMetadata}
-                  selectedAccountId={fromAccountId}
-                  balances={balances}
-                  locale={locale}
-                />
+                <Field label={translate('send.assetField')}>
+                  <AssetSelector
+                    chainIds={[scope]}
+                    value={tokenCaipId}
+                    name={SendFormNames.AssetSelector}
+                    addresses={
+                      selectedAccountAddress ? [selectedAccountAddress] : []
+                    }
+                  />
+                </Field>
                 <AmountInput
                   name={SendFormNames.AmountInput}
                   error={validation?.[SendFormNames.AmountInput]?.message ?? ''}

@@ -23,6 +23,9 @@ export class TokenMetadataService {
 
   async getTokensMetadata(tokensCaipIds: CaipAssetType[]) {
     if (tokensCaipIds.length === 0) {
+      this.#logger.warn(
+        `No tokens to get metadata for ${tokensCaipIds.join(', ')}`,
+      );
       return {};
     }
 
@@ -30,37 +33,6 @@ export class TokenMetadataService {
       await this.#tokenMetadataClient.getTokenMetadataFromAddresses(
         tokensCaipIds,
       );
-
-    const imagePromises = Object.keys(tokenMetadata).map(
-      async (tokenCaipId) => {
-        const caipAssetType = tokenCaipId as CaipAssetType;
-        try {
-          if (!tokenMetadata[caipAssetType]?.iconUrl) {
-            this.#logger.warn(`No metadata for ${tokenCaipId}`);
-            return;
-          }
-
-          const imageSvg = await this.generateImageComponent(
-            tokenMetadata[caipAssetType].iconUrl,
-          );
-
-          if (!imageSvg) {
-            this.#logger.warn(`Unable to generate image for ${tokenCaipId}`);
-            return;
-          }
-
-          if (tokenMetadata[caipAssetType]) {
-            tokenMetadata[caipAssetType].imageSvg = imageSvg;
-          } else {
-            this.#logger.warn(`No metadata for ${tokenCaipId}`);
-          }
-        } catch (error) {
-          this.#logger.error(error);
-        }
-      },
-    );
-
-    await Promise.all(imagePromises);
 
     return tokenMetadata;
   }

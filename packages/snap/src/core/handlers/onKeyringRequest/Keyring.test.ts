@@ -134,7 +134,6 @@ describe('SolanaKeyring', () => {
         mapInterfaceNameToId: {},
         assets: {},
         transactions: {},
-        metadata: {},
         tokenPrices: {},
       });
 
@@ -441,7 +440,6 @@ describe('SolanaKeyring', () => {
           mapInterfaceNameToId: {},
           assets: {},
           transactions: {},
-          metadata: {},
           tokenPrices: {},
         });
         const stateUpdateSpy = jest.spyOn(mockState, 'update');
@@ -498,7 +496,6 @@ describe('SolanaKeyring', () => {
           mapInterfaceNameToId: {},
           assets: {},
           transactions: {},
-          metadata: {},
           tokenPrices: {},
         });
         const stateUpdateSpy = jest.spyOn(mockState, 'update');
@@ -688,7 +685,6 @@ describe('SolanaKeyring', () => {
         mapInterfaceNameToId: {},
         assets: {},
         transactions: {},
-        metadata: {},
         tokenPrices: {},
       });
 
@@ -724,7 +720,6 @@ describe('SolanaKeyring', () => {
         mapInterfaceNameToId: {},
         assets: {},
         transactions: {},
-        metadata: {},
         tokenPrices: {},
       });
 
@@ -779,7 +774,6 @@ describe('SolanaKeyring', () => {
         mapInterfaceNameToId: {},
         assets: {},
         transactions: {},
-        metadata: {},
         tokenPrices: {},
       });
 

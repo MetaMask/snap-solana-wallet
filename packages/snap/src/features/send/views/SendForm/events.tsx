@@ -1,9 +1,9 @@
-import type { CaipAssetType } from '@metamask/keyring-api';
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 
 import { SOL_TRANSFER_FEE_LAMPORTS } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
+import { buildUrl } from '../../../../core/utils/buildUrl';
 import {
   lamportsToSol,
   solToLamports,
@@ -18,7 +18,12 @@ import {
   sendFieldsAreValid,
   validateField,
 } from '../../../../core/validation/form';
-import { priceApiClient, state } from '../../../../snapContext';
+import {
+  configProvider,
+  priceApiClient,
+  state,
+  tokenMetadataService,
+} from '../../../../snapContext';
 import { getBalance, getIsNativeToken } from '../../selectors';
 import { Send } from '../../Send';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
@@ -154,7 +159,18 @@ async function onAssetSelectorValueChange({
   event: InputChangeEvent;
   context: SendContext;
 }) {
-  context.tokenCaipId = event.value as CaipAssetType;
+  if (typeof event.value !== 'object' || !('asset' in event.value)) {
+    return;
+  }
+
+  context.tokenCaipId = event.value.asset;
+  context.selectedTokenMetadata = {
+    symbol: event.value.symbol,
+    name: event.value.name,
+    asset: event.value.asset,
+    imageSvg: null,
+  };
+
   context.amount = '';
   context.error = null;
 
@@ -388,13 +404,33 @@ async function onSendButtonClick({
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
-  const tokenPrices = await priceApiClient
-    .getMultipleSpotPrices(context.assets, context.preferences.currency)
-    .then((prices) => prices)
-    .catch(() => null);
+  const [tokenPrices, tokenImage] = await Promise.all([
+    priceApiClient
+      .getMultipleSpotPrices(context.assets, context.preferences.currency)
+      .then((prices) => prices)
+      .catch(() => null),
+    context.selectedTokenMetadata
+      ? tokenMetadataService.generateImageComponent(
+          buildUrl({
+            baseUrl: configProvider.get().staticApi.baseUrl,
+            path: '/api/v2/tokenIcons/assets/{assetId}.png',
+            pathParams: {
+              assetId: context.selectedTokenMetadata?.asset.replace(/:/gu, '/'),
+            },
+          }),
+        )
+      : null,
+  ]);
 
-  if (tokenPrices) {
+  if (tokenPrices && tokenImage) {
     updatedContext.tokenPrices = tokenPrices;
+    updatedContext.selectedTokenMetadata = context.selectedTokenMetadata
+      ? {
+          ...context.selectedTokenMetadata,
+          imageSvg: tokenImage,
+        }
+      : null;
+
     await updateInterface(
       id,
       <Send context={updatedContext} />,

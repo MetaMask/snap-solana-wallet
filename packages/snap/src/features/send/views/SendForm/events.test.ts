@@ -91,7 +91,7 @@ describe('SendForm events', () => {
     feePaidInSol: '0',
     tokenCaipId: KnownCaip19Id.SolLocalnet,
     assets: [KnownCaip19Id.SolLocalnet],
-    tokenMetadata: {},
+    selectedTokenMetadata: null,
     buildingTransaction: false,
     transactionMessage: null,
     error: null,

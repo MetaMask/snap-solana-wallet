@@ -11,7 +11,12 @@ import {
   showDialog,
   updateInterface,
 } from '../../core/utils/interface';
-import { priceApiClient, state, transactionHelper } from '../../snapContext';
+import {
+  priceApiClient,
+  state,
+  tokenMetadataService,
+  transactionHelper,
+} from '../../snapContext';
 import { Send } from './Send';
 import type { SendContext } from './types';
 import { SendCurrencyType } from './types';
@@ -32,8 +37,8 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   balances: {},
   assets: [],
   tokenPrices: {},
+  selectedTokenMetadata: null,
   tokenPricesFetchStatus: 'initial',
-  tokenMetadata: {},
   preferences: {
     locale: 'en',
     currency: 'usd',
@@ -81,8 +86,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
    * 1. Get the current state (from snap)
    * 2. Get the accounts (from state)
    * 3. Get the preferences (from state)
-   * 4. Get the token metadata (from state)
-   * 5. Get the token prices (from state)
+   * 4. Get the token prices (from state)
    */
   const [currentState, preferences] = await Promise.all([
     state.get(),
@@ -99,12 +103,29 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   context.accounts = Object.values(currentState.keyringAccounts);
   context.preferences = preferences;
-  context.tokenMetadata = currentState.metadata ?? {};
   context.tokenPrices = currentState.tokenPrices ?? {};
 
   const id = await createInterface(<Send context={context} />, context);
 
   const dialogPromise = showDialog(id);
+
+  const tokenMetadataPromise = tokenMetadataService
+    .getTokensMetadata([context.tokenCaipId])
+    .then((metadata) => {
+      const tokenMetadata = metadata[context.tokenCaipId];
+
+      if (!tokenMetadata?.symbol || !tokenMetadata?.name) {
+        return;
+      }
+
+      context.selectedTokenMetadata = {
+        symbol: tokenMetadata.symbol,
+        name: tokenMetadata.name,
+        asset: context.tokenCaipId,
+        imageSvg: null,
+      };
+    })
+    .catch(() => null);
 
   let tokenPricesPromise;
 
@@ -137,10 +158,12 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   /**
    * 6. Refresh token prices (from api)
-   * 7. Get the minimum balance for rent exemption (from api)
+   * 7. Get selected token metadata (from api)
+   * 8. Get the minimum balance for rent exemption (from api)
    */
   await Promise.all([
     tokenPricesPromise,
+    tokenMetadataPromise,
     minimumBalanceForRentExemptionPromise,
   ]);
 

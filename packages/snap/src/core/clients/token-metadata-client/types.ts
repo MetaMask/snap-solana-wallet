@@ -5,8 +5,6 @@ import type { Infer } from '@metamask/superstruct';
 
 import type { TokenMetadataStruct } from './structs';
 
-export type SolanaTokenMetadata = FungibleAssetMetadata & {
-  imageSvg?: string;
-};
+export type SolanaTokenMetadata = FungibleAssetMetadata;
 
 export type TokenMetadata = Infer<typeof TokenMetadataStruct>;

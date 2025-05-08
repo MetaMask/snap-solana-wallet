@@ -18,7 +18,6 @@ import {
   MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE,
   MOCK_SOLANA_RPC_SIMULATE_TRANSACTION_RESPONSE,
 } from '../../core/services/mocks/mockSolanaRpcResponses';
-import { SOL_IMAGE_SVG } from '../../core/test/mocks/solana-image-svg';
 import {
   MOCK_SEED_PHRASE,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -152,22 +151,6 @@ const mockContext: SendContext = {
     [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
   },
   tokenPrices: mockSpotPrices,
-  tokenMetadata: {
-    [KnownCaip19Id.SolLocalnet]: {
-      name: 'Solana',
-      symbol: 'SOL',
-      iconUrl: SOL_IMAGE_URL,
-      imageSvg: SOL_IMAGE_SVG,
-      fungible: true,
-      units: [
-        {
-          name: 'Solana',
-          symbol: 'SOL',
-          decimals: 9,
-        },
-      ],
-    },
-  },
 };
 
 describe('Send', () => {
@@ -204,16 +187,6 @@ describe('Send', () => {
         assets: {
           [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
           [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
-        },
-        metadata: {
-          [KnownCaip19Id.SolLocalnet]: {
-            assetId: KnownCaip19Id.SolLocalnet,
-            name: 'Solana',
-            symbol: 'SOL',
-            iconUrl: SOL_IMAGE_URL,
-            imageSvg: SOL_IMAGE_SVG,
-            decimals: 9,
-          },
         },
       },
     });

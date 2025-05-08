@@ -1,7 +1,6 @@
 import type { Balance, CaipAssetType } from '@metamask/keyring-api';
 
 import type { SpotPrices } from '../../core/clients/price-api/types';
-import type { SolanaTokenMetadata } from '../../core/clients/token-metadata-client/types';
 import type { Network } from '../../core/constants/solana';
 import type { SolanaKeyringAccount } from '../../core/handlers/onKeyringRequest/Keyring';
 import type { FormFieldError } from '../../core/types/error';
@@ -40,6 +39,13 @@ export type SendTransation = {
   signature: string | null;
 };
 
+export type SendTokenMetadata = {
+  symbol: string;
+  name: string;
+  asset: CaipAssetType;
+  imageSvg: string | null;
+};
+
 export type SendContext = {
   scope: Network;
   fromAccountId: string;
@@ -55,7 +61,7 @@ export type SendContext = {
   assets: CaipAssetType[];
   tokenPrices: SpotPrices;
   tokenPricesFetchStatus: FetchStatus;
-  tokenMetadata: Record<CaipAssetType, SolanaTokenMetadata>;
+  selectedTokenMetadata: SendTokenMetadata | null;
   transaction: SendTransation | null;
   buildingTransaction: boolean;
   transactionMessage: string | null;

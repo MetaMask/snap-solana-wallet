@@ -71,15 +71,11 @@ describe('Send selectors', () => {
     },
     tokenCaipId: mockTokenCaipId,
     currencyType: SendCurrencyType.TOKEN,
-    tokenMetadata: {
-      [mockTokenCaipId]: {
-        symbol: 'USDC',
-        imageSvg: 'test-image.svg',
-        name: 'USD Coin',
-        fungible: true,
-        iconUrl: 'test-image.svg',
-        units: [{ symbol: 'USDC', name: 'USD Coin', decimals: 6 }],
-      },
+    selectedTokenMetadata: {
+      symbol: 'USDC',
+      imageSvg: 'test-image.svg',
+      name: 'USD Coin',
+      asset: mockTokenCaipId,
     },
     scope: Network.Mainnet,
   };
@@ -116,7 +112,7 @@ describe('Send selectors', () => {
     it('returns token metadata with required fields', () => {
       const result = getSelectedTokenMetadata(mockContext);
       expect(result).toStrictEqual({
-        ...mockContext.tokenMetadata[mockTokenCaipId],
+        ...mockContext.selectedTokenMetadata,
         tokenSymbol: 'USDC',
         tokenImage: 'test-image.svg',
       });
@@ -125,7 +121,7 @@ describe('Send selectors', () => {
     it('returns default values when token metadata is missing', () => {
       const noMetadataContext = {
         ...mockContext,
-        tokenMetadata: {},
+        selectedTokenMetadata: null,
       };
       const result = getSelectedTokenMetadata(noMetadataContext);
       expect(result).toStrictEqual({

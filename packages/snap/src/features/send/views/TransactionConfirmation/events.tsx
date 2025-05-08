@@ -32,7 +32,15 @@ async function onBackButtonClick({
     stage: 'send-form',
   };
 
-  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
+  await updateInterface(
+    id,
+    <Send
+      context={updatedContext}
+      inputAmount={context.amount ?? ''}
+      inputToAddress={context.toAddress ?? ''}
+    />,
+    updatedContext,
+  );
 }
 
 /**

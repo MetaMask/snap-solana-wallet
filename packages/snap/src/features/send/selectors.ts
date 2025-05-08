@@ -28,14 +28,12 @@ export const getTokenAmount = (context: SendContext) => {
 };
 
 export const getSelectedTokenMetadata = (context: SendContext) => {
-  const { tokenCaipId, tokenMetadata } = context;
-
-  const metadata = tokenMetadata[tokenCaipId];
+  const { selectedTokenMetadata } = context;
 
   return {
-    ...(metadata ?? {}),
-    tokenSymbol: metadata?.symbol ?? 'UNKNOWN',
-    tokenImage: metadata?.imageSvg ?? QUESTION_MARK_SVG,
+    ...(selectedTokenMetadata ?? {}),
+    tokenSymbol: selectedTokenMetadata?.symbol ?? 'UNKNOWN',
+    tokenImage: selectedTokenMetadata?.imageSvg ?? QUESTION_MARK_SVG,
   };
 };
 

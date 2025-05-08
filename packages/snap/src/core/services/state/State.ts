@@ -4,7 +4,6 @@ import type { Balance, Transaction } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
 
 import type { SpotPrices } from '../../clients/price-api/types';
-import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import { deserialize } from '../../serialization/deserialize';
 import { serialize } from '../../serialization/serialize';
@@ -19,7 +18,6 @@ export type UnencryptedStateValue = {
   mapInterfaceNameToId: Record<string, string>;
   transactions: Record<AccountId, Transaction[]>;
   assets: Record<AccountId, Record<CaipAssetType, Balance>>;
-  metadata: Record<CaipAssetType, SolanaTokenMetadata>;
   tokenPrices: SpotPrices;
 };
 
@@ -28,7 +26,6 @@ export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
   mapInterfaceNameToId: {},
   transactions: {},
   assets: {},
-  metadata: {},
   tokenPrices: {},
 };
 

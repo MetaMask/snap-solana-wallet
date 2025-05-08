@@ -18,6 +18,7 @@ describe('TokenMetadataService', () => {
 
     logger = {
       error: jest.fn(),
+      warn: jest.fn(),
     } as unknown as ILogger;
 
     tokenMetadataService = new TokenMetadataService({
