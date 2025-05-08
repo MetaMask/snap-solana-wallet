@@ -117,7 +117,7 @@ export type ExchangeRate = {
 export const SpotPriceStruct = object({
   id: string(),
   price: min(number(), 0),
-  marketCap: min(number(), 0),
+  marketCap: optional(nullable(min(number(), 0))),
   allTimeHigh: optional(nullable(min(number(), 0))),
   allTimeLow: optional(nullable(min(number(), 0))),
   totalVolume: optional(nullable(min(number(), 0))),
