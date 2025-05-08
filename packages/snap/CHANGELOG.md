@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.26.1]
 
-### Uncategorized
+### Fixed
 
-- fix: transaction after interaction ([#339](https://github.com/MetaMask/snap-solana-wallet/pull/339))
-- fix: make `marketCap` optional ([#338](https://github.com/MetaMask/snap-solana-wallet/pull/338))
+- Transaction after interaction ([#339](https://github.com/MetaMask/snap-solana-wallet/pull/339))
+- Make `marketCap` optional ([#338](https://github.com/MetaMask/snap-solana-wallet/pull/338))
 
 ## [1.26.0]
 
