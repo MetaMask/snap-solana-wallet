@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.26.0]
+
+### Uncategorized
+
+- feat(send): integrate asset selector ([#336](https://github.com/MetaMask/snap-solana-wallet/pull/336))
+- fix: Provide skeleton width ([#335](https://github.com/MetaMask/snap-solana-wallet/pull/335))
+- fix: add "all" time range to historical prices returned ([#333](https://github.com/MetaMask/snap-solana-wallet/pull/333))
+
 ## [1.25.1]
 
 ### Fixed
@@ -487,7 +495,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.25.1...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.26.0...HEAD
+[1.26.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.25.1...v1.26.0
 [1.25.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.25.0...v1.25.1
 [1.25.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.24.0...v1.25.0
 [1.24.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.23.0...v1.24.0
