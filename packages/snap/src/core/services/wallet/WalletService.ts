@@ -192,13 +192,9 @@ export class WalletService {
       params: {
         duration: 'PT3S',
         request: {
-          method: ScheduleBackgroundEventMethod.OnTransactionFinalized,
+          method: ScheduleBackgroundEventMethod.OnSignTransaction,
           params: {
             accountId: account.id,
-            transaction: {
-              from: [],
-              to: [],
-            },
           },
         },
       },

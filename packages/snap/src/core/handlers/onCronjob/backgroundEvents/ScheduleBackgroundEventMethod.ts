@@ -9,4 +9,6 @@ export enum ScheduleBackgroundEventMethod {
   OnTransactionFinalized = 'onTransactionFinalized',
   /** Triggered when a transaction is rejected */
   OnTransactionRejected = 'onTransactionRejected',
+  /** Triggered when a transaction is signed */
+  OnSignTransaction = 'onSignTransaction',
 }

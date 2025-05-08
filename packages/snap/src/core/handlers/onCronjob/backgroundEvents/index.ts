@@ -1,5 +1,6 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
+import { onSignTransaction } from './onSignTransaction';
 import { onTransactionAdded } from './onTransactionAdded';
 import { onTransactionApproved } from './onTransactionApproved';
 import { onTransactionFinalized } from './onTransactionFinalized';
@@ -18,4 +19,5 @@ export const handlers: Record<ScheduleBackgroundEventMethod, OnCronjobHandler> =
       onTransactionFinalized,
     [ScheduleBackgroundEventMethod.OnTransactionRejected]:
       onTransactionRejected,
+    [ScheduleBackgroundEventMethod.OnSignTransaction]: onSignTransaction,
   };
