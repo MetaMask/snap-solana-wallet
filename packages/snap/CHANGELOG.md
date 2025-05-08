@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.26.0]
 
-### Uncategorized
+### Added
 
-- feat(send): integrate asset selector ([#336](https://github.com/MetaMask/snap-solana-wallet/pull/336))
-- fix: Provide skeleton width ([#335](https://github.com/MetaMask/snap-solana-wallet/pull/335))
-- fix: add "all" time range to historical prices returned ([#333](https://github.com/MetaMask/snap-solana-wallet/pull/333))
+- Integrate `AssetSelector` in Send ([#336](https://github.com/MetaMask/snap-solana-wallet/pull/336))
+
+### Fixed
+
+- Provide skeleton width ([#335](https://github.com/MetaMask/snap-solana-wallet/pull/335))
+- Add "all" time range to historical prices ([#333](https://github.com/MetaMask/snap-solana-wallet/pull/333))
 
 ## [1.25.1]
 
