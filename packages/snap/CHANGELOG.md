@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.27.0]
 
-### Uncategorized
+### Fixed
 
-- fix: down cache to a minute ([#341](https://github.com/MetaMask/snap-solana-wallet/pull/341))
+- Decrease cache time to a minute ([#341](https://github.com/MetaMask/snap-solana-wallet/pull/341))
 
 ## [1.26.1]
 
