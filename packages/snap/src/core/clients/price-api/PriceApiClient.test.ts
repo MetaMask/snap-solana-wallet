@@ -312,7 +312,7 @@ describe('PriceApiClient', () => {
       await expect(
         client.getMultipleSpotPrices(
           [KnownCaip19Id.SolLocalnet],
-          'usd\x00\x1F' as VsCurrencyParam, // Adding null and unit separator characters
+          'usd\x00\x1F' as VsCurrencyParam,
         ),
       ).rejects.toThrow(/Expected/u);
     });
