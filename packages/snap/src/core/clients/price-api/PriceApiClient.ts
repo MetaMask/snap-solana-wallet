@@ -40,9 +40,9 @@ export class PriceApiClient {
   readonly #cache: ICache<Serializable>;
 
   public static readonly cacheTtlsMilliseconds = {
-    fiatExchangeRates: Duration.Hour,
-    spotPrices: Duration.Hour,
-    historicalPrices: Duration.Hour,
+    fiatExchangeRates: Duration.Minute,
+    spotPrices: Duration.Minute,
+    historicalPrices: Duration.Minute,
   };
 
   constructor(
