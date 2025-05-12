@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.28.0]
 
-### Uncategorized
+### Added
 
-- New Crowdin translations by Github Action ([#344](https://github.com/MetaMask/snap-solana-wallet/pull/344))
-- [HOTFIX] Multiple improvements before we ship the final build ([#343](https://github.com/MetaMask/snap-solana-wallet/pull/343))
+- New translations ([#344](https://github.com/MetaMask/snap-solana-wallet/pull/344))
+
+### Fixed
+
+- Disabled Devnet ([#343](https://github.com/MetaMask/snap-solana-wallet/pull/343))
+- Transaction mapping ([#343](https://github.com/MetaMask/snap-solana-wallet/pull/343))
 
 ## [1.27.0]
 
