@@ -53,7 +53,7 @@ export class TransactionsService {
   }
 
   async fetchLatestAddressTransactions(address: Address, limit: number) {
-    const scopes = [Network.Mainnet, Network.Devnet];
+    const scopes = this.#configProvider.get().activeNetworks;
 
     const transactions = (
       await Promise.all(

@@ -12,6 +12,12 @@ import {
 import { Network, Networks } from '../../constants/solana';
 import { UrlStruct } from '../../validation/structs';
 
+const ENVIRONMENT_TO_ACTIVE_NETWORKS = {
+  production: [Network.Mainnet],
+  local: [Network.Mainnet, Network.Devnet],
+  test: [Network.Localnet],
+};
+
 const CommaSeparatedListOfUrlsStruct = coerce(
   array(UrlStruct),
   string(),
@@ -132,10 +138,7 @@ export class ConfigProvider {
         },
       ],
       explorerBaseUrl: environment.EXPLORER_BASE_URL,
-      activeNetworks:
-        environment.ENVIRONMENT === 'test'
-          ? [Network.Localnet]
-          : [Network.Mainnet, Network.Devnet],
+      activeNetworks: ENVIRONMENT_TO_ACTIVE_NETWORKS[environment.ENVIRONMENT],
       priceApi: {
         baseUrl:
           environment.ENVIRONMENT === 'test'
