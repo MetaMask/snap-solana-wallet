@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.1]
+
+### Uncategorized
+
+- [HOTFIX] Multiple improvements before we ship the final build ([#343](https://github.com/MetaMask/snap-solana-wallet/pull/343))
+
 ## [1.27.0]
 
 ### Fixed
@@ -511,7 +517,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.27.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.27.1...HEAD
+[1.27.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.27.0...v1.27.1
 [1.27.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.26.1...v1.27.0
 [1.26.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.26.0...v1.26.1
 [1.26.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.25.1...v1.26.0
