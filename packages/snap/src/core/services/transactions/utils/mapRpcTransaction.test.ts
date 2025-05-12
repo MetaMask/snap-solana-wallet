@@ -1,6 +1,7 @@
 import { address as asAddress } from '@solana/kit';
 
 import { Network, Networks } from '../../../constants/solana';
+import { EXPECTED_FAILED_SWAP_DATA } from '../../../test/mocks/transactions-data/failed-swap';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer-to-self';
 import { EXPECTED_SEND_JUP_TRANSFER_CHECKED_DATA } from '../../../test/mocks/transactions-data/send-jup-transfer-checked-to-self';
@@ -779,7 +780,45 @@ describe('mapRpcTransaction', () => {
     });
   });
 
-  it.todo('maps swaps - failure');
+  it('maps swaps - failure', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Mainnet,
+      address: asAddress('8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5'),
+      transactionData: EXPECTED_FAILED_SWAP_DATA,
+    });
+
+    expect(result).toStrictEqual({
+      id: '43VK3TtYjN21VG13f2EPvNJxmML38GB8QbTDVtFifzeDW3LQpmLtFdLjERAKwy3k4RUe4Hizmdrj4Nyjm5vYKDBx',
+      account: '8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5',
+      timestamp: 1747040326,
+      chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      status: 'failed',
+      type: 'unknown',
+      from: [],
+      to: [],
+      fees: [
+        {
+          type: 'base',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+            amount: '0.000005',
+          },
+        },
+        {
+          type: 'priority',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+            amount: '0.000515451',
+          },
+        },
+      ],
+      events: [{ status: 'failed', timestamp: 1747040326 }],
+    });
+  });
 
   it('returns null if the transaction is a spam transaction', () => {
     const result = mapRpcTransaction({
