@@ -41,7 +41,7 @@
       "message": "金额必须大于 {minimumValue}"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "SOL 余额不足，无法支付交易费"
     },
     "send.toRequiredError": {
       "message": "接收者地址为必填项"
@@ -179,58 +179,58 @@
       "message": "安全建议提供商："
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "签署消息"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "消息"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "登录请求"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "网站要求您登录以验证账户所有权。"
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "请求来自"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "未知域名"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "使用以下方式登录"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "此网站要求您使用错误的账户登录。"
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "消息"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "声明"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "版本"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "链 ID"
     },
     "confirmation.signIn.nonce": {
-      "message": "Nonce"
+      "message": "唯一交易标识号"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "签发时间："
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "有效期"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "不早于"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "请求 ID"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "资源"
     }
   }
 }

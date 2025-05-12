@@ -41,7 +41,7 @@
       "message": "Le montant doit être supérieur à {minimumValue}"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "Solde de SOL insuffisant pour couvrir les frais de transaction"
     },
     "send.toRequiredError": {
       "message": "L’adresse du destinataire est requise"
@@ -179,58 +179,58 @@
       "message": "Conseils de sécurité fournis par"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "Signer le message"
     },
     "confirmation.signMessage.message": {
       "message": "Message"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "Demande de connexion"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "Un site vous demande de vous connecter pour prouver que vous êtes le titulaire de ce compte."
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "Demande de la part de"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "Domaine inconnu"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "Se connecter avec"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "Ce site vous demande de vous connecter en utilisant le mauvais compte."
     },
     "confirmation.signIn.message": {
       "message": "Message"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "Déclaration"
     },
     "confirmation.signIn.version": {
       "message": "Version"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "ID de chaîne"
     },
     "confirmation.signIn.nonce": {
       "message": "Nonce"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "Émis à"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "Délai d’expiration"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "Pas avant"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "ID de la demande"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "Ressources"
     }
   }
 }

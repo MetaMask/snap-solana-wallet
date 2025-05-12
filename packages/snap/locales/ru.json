@@ -41,7 +41,7 @@
       "message": "Сумма должна быть больше {minimumValue}"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "Недостаточный баланс SOL для покрытия комиссии за транзакцию"
     },
     "send.toRequiredError": {
       "message": "Требуется адрес получателя"
@@ -179,58 +179,58 @@
       "message": "Совет по безопасности от"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "Подписать сообщение"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "Сообщение"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "Запрос на вход"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета."
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "Запрос от"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "Неизвестный домен"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "Вход через"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "Этот сайт просит вас войти в систему, используя неправильный счет."
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "Сообщение"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "Выписка"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "Версия"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "ID блокчейна"
     },
     "confirmation.signIn.nonce": {
-      "message": "Nonce"
+      "message": "Одноразовый код"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "Выпущено в"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "Срок экспирации"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "Не раньше"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "ID запроса"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "Ресурсы"
     }
   }
 }

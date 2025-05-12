@@ -41,7 +41,7 @@
       "message": "राशि {minimumValue} से ज़्यादा होनी चाहिए"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "ट्रांसेक्शन शुल्क को कवर करने के लिए अपर्याप्त SOL बैलेंस"
     },
     "send.toRequiredError": {
       "message": "जिसको भेजा जा रहा है उसका एड्रेस होना चाहिए"
@@ -179,58 +179,58 @@
       "message": "की ओर से सुरक्षा सलाह"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "साइन मैसेज"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "मैसेज"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "साइन-इन का अनुरोध"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "एक साइट चाहती है कि आप यह साबित करने के लिए साइन इन करें कि यह अकाउंट आपका है।"
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "इनसे मिला अनुरोध"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "अज्ञात डोमेन"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "के साथ साइन इन किया जा रहा है"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "यह साइट आपसे गलत अकाउंट का उपयोग करके साइन इन करने के लिए कह रही है।"
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "मैसेज"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "कथन"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "वर्शन"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "चेन ID"
     },
     "confirmation.signIn.nonce": {
       "message": "Nonce"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "में जारी किया गया"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "एक्सपायर होने का समय"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "पहले नहीं"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "रिक्वेस्ट ID"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "संसाधन"
     }
   }
 }

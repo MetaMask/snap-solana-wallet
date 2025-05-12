@@ -41,7 +41,7 @@
       "message": "Miktar şundan fazla olmalıdır: {minimumValue}"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "İşlem ücretini karşılamak için SOL bakiyesi yetersiz"
     },
     "send.toRequiredError": {
       "message": "Alıcı adres gereklidir"
@@ -179,58 +179,58 @@
       "message": "Güvenlik önerisi:"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "Mesajı imzala"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "Mesaj"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "Giriş talebi"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "Bir site, bu hesabın size ait olduğunu kanıtlamanız için giriş yapmanızı istiyor."
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "Talebi gönderen"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "Bilinmeyen alan"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "Şununla giriş yapılıyor:"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "Bu site sizden yanlış hesabı kullanarak giriş yapmanızı istiyor."
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "Mesaj"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "Beyan"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "Sürüm"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "Zincir Kimliği"
     },
     "confirmation.signIn.nonce": {
       "message": "Nonce"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "Düzenlenme tarihi:"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "Son geçerlilik tarihi:"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "En erken"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "Talep Kimliği"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "Kaynaklar"
     }
   }
 }

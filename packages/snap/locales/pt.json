@@ -41,7 +41,7 @@
       "message": "O valor deve ser maior que {minimumValue}"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "Saldo em SOL insuficiente para cobrir a taxa de transação"
     },
     "send.toRequiredError": {
       "message": "O endereço é obrigatório"
@@ -179,58 +179,58 @@
       "message": "Conselhos de segurança de"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "Assinar mensagem"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "Mensagem"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "Solicitação de login"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "Um site deseja que você faça login para comprovar que você é o titular desta conta."
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "Solicitação de"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "Domínio desconhecido"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "Fazendo login com"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "Este site solicita que você faça login usando a conta incorreta."
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "Mensagem"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "Declaração"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "Versão"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "ID da cadeia"
     },
     "confirmation.signIn.nonce": {
       "message": "Nonce"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "Emitido às"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "Prazo de validade"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "Não antes de"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "ID da solicitação"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "Recursos"
     }
   }
 }

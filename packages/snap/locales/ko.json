@@ -41,7 +41,7 @@
       "message": "금액은 {minimumValue}보다 커야 합니다"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "트랜잭션 수수료를 지불하기에 SOL 잔액이 부족합니다"
     },
     "send.toRequiredError": {
       "message": "수신 주소는 필수입니다"
@@ -179,58 +179,58 @@
       "message": "보안 권고 제공:"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "메시지 서명"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "메시지"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "로그인 요청"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "회원님이 이 계정을 소유하고 있음을 확인하기 위해 로그인을 요청하는 사이트가 있습니다."
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "요청자:"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "알 수 없는 도메인"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "다음으로 로그인 중"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "이 사이트는 잘못된 계정으로 로그인하도록 요청하고 있습니다."
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "메시지"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "확인 문구"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "버전"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "체인 ID"
     },
     "confirmation.signIn.nonce": {
-      "message": "Nonce"
+      "message": "논스"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "발급 시각:"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "만료 시각:"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "다음 이후:"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "요청 ID"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "리소스"
     }
   }
 }

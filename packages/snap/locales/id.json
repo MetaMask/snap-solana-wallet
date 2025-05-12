@@ -41,7 +41,7 @@
       "message": "Jumlah harus lebih besar dari {minimumValue}"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "Saldo SOL tidak cukup untuk menutupi biaya transaksi"
     },
     "send.toRequiredError": {
       "message": "Alamat kirim diperlukan"
@@ -179,58 +179,58 @@
       "message": "Saran keamanan dari"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "Tanda tangani pesan"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "Pesan"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "Permintaan masuk"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini."
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "Permintaan dari"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "Domain tak dikenal"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "Masuk dengan"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "Situs ini meminta Anda masuk menggunakan akun yang salah."
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "Pesan"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "Laporan"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "Versi"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "ID Chain"
     },
     "confirmation.signIn.nonce": {
       "message": "Nonce"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "Diterbitkan pada"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "Waktu kedaluwarsa"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "Tidak sebelum"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "ID Permintaan"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "Sumber daya"
     }
   }
 }

@@ -41,7 +41,7 @@
       "message": "金額は{minimumValue}より大きくする必要があります"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "トランザクション手数料の支払いに十分なSOL残高がありません"
     },
     "send.toRequiredError": {
       "message": "送り先のアドレスが必要です"
@@ -179,58 +179,58 @@
       "message": "セキュリティアドバイスの提供元:"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "メッセージに署名"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "メッセージ"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "サインイン要求"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。"
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "要求元"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "不明なドメイン"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "サインイン方法"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "このサイトは正しくないアカウントでのサインインを求めています。"
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "メッセージ"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "声明"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "バージョン"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "チェーンID"
     },
     "confirmation.signIn.nonce": {
-      "message": "Nonce"
+      "message": "ナンス"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "発行日時"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "有効期限"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "以前ではない"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "要求ID"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "リソース"
     }
   }
 }

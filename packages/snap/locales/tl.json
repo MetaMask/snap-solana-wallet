@@ -41,7 +41,7 @@
       "message": "Ang halaga ay dapat na mas malaki sa {minimumValue}"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "Hindi sapat ang balanse na SOL para mabayaran ang transaksyon"
     },
     "send.toRequiredError": {
       "message": "Kinakailangan ang address na pupuntahan"
@@ -179,58 +179,58 @@
       "message": "Abiso sa seguridad ng"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "Pirmahan ang mensahe"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "Mensahe"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "Kahilingan sa pag-sign in"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "Nais ng isang site na mag-sign in ka upang patunayan na pag-aari mo ang account na ito."
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "Kahilingan mula sa/kay"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "Hindi kilalang domain"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "Nagsa-sign in gamit ang"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "Hinihiling ng site na ito na mag-sign in ka gamit ang maling account."
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "Mensahe"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "Pahayag"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "Bersyon"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "ID ng Chain"
     },
     "confirmation.signIn.nonce": {
       "message": "Nonce"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "Inisyu sa"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "Oras ng pag-expire"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "Hindi lalampas sa"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "Humiling ng ID"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "Mga Mapagkukunan"
     }
   }
 }

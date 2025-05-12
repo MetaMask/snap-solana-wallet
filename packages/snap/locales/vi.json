@@ -41,7 +41,7 @@
       "message": "Số lượng phải lớn hơn {minimumValue}"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "Số dư SOL không đủ để thanh toán phí giao dịch"
     },
     "send.toRequiredError": {
       "message": "Bắt buộc nhập địa chỉ gửi đến"
@@ -179,58 +179,58 @@
       "message": "Lời khuyên bảo mật bởi"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "Ký tin nhắn"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "Tin nhắn"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "Yêu cầu đăng nhập"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này."
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "Yêu cầu từ"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "Miền không xác định"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "Đăng nhập bằng"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "Trang web này yêu cầu bạn đăng nhập bằng tài khoản không đúng."
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "Tin nhắn"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "Tuyên bố"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "Phiên bản"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "ID Chuỗi"
     },
     "confirmation.signIn.nonce": {
-      "message": "Nonce"
+      "message": "Số Nonce"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "Phát hành vào"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "Thời gian hết hạn"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "Không trước"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "ID yêu cầu"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "Tài nguyên"
     }
   }
 }

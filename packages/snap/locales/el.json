@@ -41,7 +41,7 @@
       "message": "Το ποσό πρέπει να είναι μεγαλύτερο από {minimumValue}"
     },
     "send.insuffientSolToCoverFee": {
-      "message": "Insufficient SOL balance to cover the transaction fee"
+      "message": "Ανεπαρκές υπόλοιπο στη Solana (SOL) για την κάλυψη των τελών συναλλαγής"
     },
     "send.toRequiredError": {
       "message": "Απαιτείται η διεύθυνση"
@@ -179,58 +179,58 @@
       "message": "Συμβουλές ασφαλείας από"
     },
     "confirmation.signMessage.title": {
-      "message": "Sign message"
+      "message": "Υπογραφή μηνύματος"
     },
     "confirmation.signMessage.message": {
-      "message": "Message"
+      "message": "Μήνυμα"
     },
     "confirmation.signIn.title": {
-      "message": "Sign-in request"
+      "message": "Αίτημα σύνδεσης"
     },
     "confirmation.signIn.description": {
-      "message": "A site wants you to sign in to prove you own this account."
+      "message": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού."
     },
     "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+      "message": "Ζητήθηκε από"
     },
     "confirmation.signIn.unknownDomain": {
-      "message": "Unknown domain"
+      "message": "Άγνωστος τομέας"
     },
     "confirmation.signIn.signingInWith": {
-      "message": "Signing in with"
+      "message": "Σύνδεση με"
     },
     "confirmation.signIn.badAccount": {
-      "message": "This site is asking you to sign in using the wrong account."
+      "message": "Αυτός ο ιστότοπος σας ζητάει να συνδεθείτε χρησιμοποιώντας λάθος λογαριασμό."
     },
     "confirmation.signIn.message": {
-      "message": "Message"
+      "message": "Μήνυμα"
     },
     "confirmation.signIn.statement": {
-      "message": "Statement"
+      "message": "Δήλωση"
     },
     "confirmation.signIn.version": {
-      "message": "Version"
+      "message": "Έκδοση"
     },
     "confirmation.signIn.chainId": {
-      "message": "Chain ID"
+      "message": "Αναγνωριστικό αλυσίδας"
     },
     "confirmation.signIn.nonce": {
       "message": "Nonce"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Issued at"
+      "message": "Εκδόθηκε στις"
     },
     "confirmation.signIn.expirationTime": {
-      "message": "Expiration time"
+      "message": "Χρόνος λήξης"
     },
     "confirmation.signIn.notBefore": {
-      "message": "Not before"
+      "message": "Όχι πριν από"
     },
     "confirmation.signIn.requestId": {
-      "message": "Request ID"
+      "message": "Αναγνωριστικό αιτήματος"
     },
     "confirmation.signIn.resources": {
-      "message": "Resources"
+      "message": "Πόροι"
     }
   }
 }
