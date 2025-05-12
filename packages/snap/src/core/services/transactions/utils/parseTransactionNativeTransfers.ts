@@ -83,8 +83,8 @@ export function parseTransactionNativeTransfers({
     /**
      * Calculate the delta between the balances and convert from lamports to SOL.
      */
-    let balanceDiff = postBalance
-      .minus(preBalance)
+    const balanceDiff = postBalance.minus(preBalance);
+    let absoluteBalanceDiff = balanceDiff
       .absoluteValue()
       .dividedBy(new BigNumber(LAMPORTS_PER_SOL));
 
@@ -93,18 +93,27 @@ export function parseTransactionNativeTransfers({
      * since we are counting them separately.
      */
     if (accountIndex === 0) {
+      console.log(`BALANCE DIFF: ${balanceDiff.toString()}`);
+      console.log(`ABSOLUTE BALANCE DIFF: ${absoluteBalanceDiff.toString()}`);
+
       const totalFees = lamportsToSol(transactionData.meta?.fee ?? 0);
 
-      balanceDiff = balanceDiff
+      console.log(`TOTAL FEES: ${totalFees.toString()}`);
+
+      absoluteBalanceDiff = absoluteBalanceDiff
         .minus(totalFees)
         .decimalPlaces(8, BigNumber.ROUND_DOWN);
+
+      console.log(
+        `[FEE PAYER] NEW BALANCE DIFF: ${absoluteBalanceDiff.toString()}`,
+      );
     }
 
-    if (balanceDiff.isZero()) {
+    if (absoluteBalanceDiff.isZero()) {
       continue;
     }
 
-    const amount = balanceDiff.toString();
+    const amount = absoluteBalanceDiff.toString();
 
     /**
      * If the pre-balance is greater than the post-balance, it means that the account

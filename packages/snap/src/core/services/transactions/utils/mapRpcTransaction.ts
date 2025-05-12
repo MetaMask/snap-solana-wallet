@@ -68,9 +68,36 @@ export function mapRpcTransaction({
      * If the type is swap:
      * - we don't want to include assets that were sent by other addresses
      * - we don't want to include assets that were received by other addresses
+     * - if there are SPL tokens AND SOL in the from and to arrays, we want to remove the SOL
      */
     from = from.filter((fromItem) => fromItem.address === address);
     to = to.filter((toItem) => toItem.address === address);
+
+    /**
+     * FIXME: Due to the way Solana can sometimes give you SOL back when you open or close
+     * token accounts, we need to remove SOL from the from and to arrays to avoid messing up
+     * our mapping logic.
+     */
+    const hasMultipleFromAssets = from.length > 1;
+    const hasMultipleToAssets = to.length > 1;
+
+    if (hasMultipleFromAssets) {
+      from = from.filter(
+        (fromItem) =>
+          fromItem.asset?.fungible &&
+          fromItem.asset?.type !== KnownCaip19Id.SolMainnet &&
+          fromItem.asset?.type !== KnownCaip19Id.SolDevnet,
+      );
+    }
+
+    if (hasMultipleToAssets) {
+      to = to.filter(
+        (toItem) =>
+          toItem.asset?.fungible &&
+          toItem.asset?.type !== KnownCaip19Id.SolMainnet &&
+          toItem.asset?.type !== KnownCaip19Id.SolDevnet,
+      );
+    }
   }
 
   if (type === TransactionType.Receive) {
