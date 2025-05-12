@@ -666,8 +666,6 @@ describe('mapRpcTransaction', () => {
       transactionData: EXPECTED_SWAP_A16Z_USDT_SOL_DATA,
     });
 
-    console.log(JSON.stringify(result));
-
     expect(result).toStrictEqual({
       id: 'JiqYGkWcYu8GxPZsMdXDnA8tkZvHnHVmNuKr4JYBErm4rgQWssdHCkbe8MzwwNGndyvyNYaaY5vvMhUMPNiQX9u',
       account: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
@@ -727,8 +725,6 @@ describe('mapRpcTransaction', () => {
       address: asAddress('8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5'),
       transactionData: EXPECTED_SWAP_TRUMP_TO_JUP_DATA,
     });
-
-    console.log(JSON.stringify(result));
 
     expect(result).toStrictEqual({
       id: '4VhDRLUK5QDZ6kgN9PCeEoztUraCibwYA3XaLZUKhfwWxqeN96Qg7Ep4w2j5C1VtggbuU6dqkGczGC537byu9hG3',
