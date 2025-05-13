@@ -75,7 +75,9 @@ export type SolanaKeyringAccount = {
  * @param account - A Solana keyring account.
  * @returns A strict keyring account (with no additional fields).
  */
-function asStrictKeyringAccount(account: SolanaKeyringAccount): KeyringAccount {
+export function asStrictKeyringAccount(
+  account: SolanaKeyringAccount,
+): KeyringAccount {
   const { type, id, address, options, methods, scopes } = account;
   return {
     type,
