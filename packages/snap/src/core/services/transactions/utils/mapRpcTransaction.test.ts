@@ -8,8 +8,10 @@ import { EXPECTED_SEND_JUP_TRANSFER_CHECKED_DATA } from '../../../test/mocks/tra
 import { EXPECTED_SEND_SPL_TOKEN_AND_CREATE_TOKEN_ACCOUNT_DATA } from '../../../test/mocks/transactions-data/send-spl-token-and-create-token-account';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self';
+import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_2_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self-2';
 import { EXPECTED_SPAM_TRANSACTION_DATA } from '../../../test/mocks/transactions-data/spam';
 import { EXPECTED_SWAP_A16Z_USDT_SOL_DATA } from '../../../test/mocks/transactions-data/swap-a16z-usdt-sol';
+import { EXPECTED_SWAP_SOL_TO_SAHUR_DATA } from '../../../test/mocks/transactions-data/swap-sol-to-sahur';
 import { EXPECTED_SWAP_TRUMP_TO_JUP_DATA } from '../../../test/mocks/transactions-data/swap-trump-to-jup';
 import { EXPECTED_SWAP_USDC_TO_COBIE_DATA } from '../../../test/mocks/transactions-data/swap-usdc-to-cobie';
 import { EXPECTED_SWAP_USDC_TO_JUP_DATA } from '../../../test/mocks/transactions-data/swap-usdc-to-jup';
@@ -356,6 +358,84 @@ describe('mapRpcTransaction', () => {
     });
   });
 
+  it('maps SPL token transfers - as a sender to self II', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Devnet,
+      address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
+      transactionData: EXPECTED_SEND_USDC_TRANSFER_TO_SELF_2_DATA,
+    });
+
+    expect(result).toStrictEqual({
+      id: 'LPaVYsnhx2q9yTeU7bf5vLESBdm6BYatMSdZqt6CYy8wcX5YFm6rNKZLXJqRA7jyq2w3nbEqfB4qgCFSGS1L6GT',
+      account: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+      timestamp: 1747059490,
+      chain: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+      status: 'confirmed',
+      type: 'send',
+      from: [
+        {
+          address: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+          asset: {
+            fungible: true,
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            unit: '',
+            amount: '1',
+          },
+        },
+        {
+          address: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+          asset: {
+            amount: '0.00203928',
+            fungible: true,
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501',
+            unit: 'SOL',
+          },
+        },
+      ],
+      to: [
+        {
+          address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
+          asset: {
+            fungible: true,
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            unit: '',
+            amount: '1',
+          },
+        },
+        {
+          address: 'FrbudWWrsiv5deKG483U91njmeFPV45s3DQUfjhDD2BZ',
+          asset: {
+            amount: '0.00203928',
+            fungible: true,
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501',
+            unit: 'SOL',
+          },
+        },
+      ],
+      fees: [
+        {
+          type: 'base',
+          asset: {
+            fungible: true,
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501',
+            unit: 'SOL',
+            amount: '0.000005',
+          },
+        },
+        {
+          type: 'priority',
+          asset: {
+            fungible: true,
+            type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501',
+            unit: 'SOL',
+            amount: '0.00000027',
+          },
+        },
+      ],
+      events: [{ status: 'confirmed', timestamp: 1747059490 }],
+    });
+  });
+
   it('maps SPL token transfers - as a receiver', () => {
     const result = mapRpcTransaction({
       scope: Network.Devnet,
@@ -481,18 +561,18 @@ describe('mapRpcTransaction', () => {
           address: 'EMmTjuHsYCYX7vgPcQ2QVbNwYAwcvGoSMCEaHKc19DdE',
           asset: {
             fungible: true,
-            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-            unit: 'SOL',
-            amount: '0.00207408',
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC',
+            unit: '',
+            amount: '0.01',
           },
         },
         {
           address: 'EMmTjuHsYCYX7vgPcQ2QVbNwYAwcvGoSMCEaHKc19DdE',
           asset: {
             fungible: true,
-            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC',
-            unit: '',
-            amount: '0.01',
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+            amount: '0.00207408',
           },
         },
       ],
@@ -549,6 +629,15 @@ describe('mapRpcTransaction', () => {
             type: `${Network.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
             unit: '',
             amount: '0.01',
+          },
+        },
+        {
+          address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+          asset: {
+            amount: '0.000000008',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
           },
         },
       ],
@@ -744,6 +833,15 @@ describe('mapRpcTransaction', () => {
             amount: '0.05',
           },
         },
+        {
+          address: '8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5',
+          asset: {
+            amount: '0.00203928',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+          },
+        },
       ],
       to: [
         {
@@ -777,6 +875,66 @@ describe('mapRpcTransaction', () => {
         },
       ],
       events: [{ status: 'confirmed', timestamp: 1746657467 }],
+    });
+  });
+
+  it('maps swaps - #5 SOL -> Sahur, uses swap balance to swap as well as create ATA', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Mainnet,
+      address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
+      transactionData: EXPECTED_SWAP_SOL_TO_SAHUR_DATA,
+    });
+
+    expect(result).toStrictEqual({
+      id: 'QfFVu1P4ji8EFTor4BcRYS84wipv2RJDhyzi3w3YQgv1D8mxz2RhF9cKxi4k6DZdtzDRPL6a346HboDUAsSUCfV',
+      account: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+      timestamp: 1747062836,
+      chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      status: 'confirmed',
+      type: 'swap',
+      from: [
+        {
+          address: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+            amount: '0.01203928',
+          },
+        },
+      ],
+      to: [
+        {
+          address: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:DNrmDMs2czDaAwgzg2BmvM7Jn5ZqA6VN5huRqCrSpump',
+            unit: '',
+            amount: '4036.960523',
+          },
+        },
+      ],
+      fees: [
+        {
+          type: 'base',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+            amount: '0.000005',
+          },
+        },
+        {
+          type: 'priority',
+          asset: {
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+            amount: '0.000006785',
+          },
+        },
+      ],
+      events: [{ status: 'confirmed', timestamp: 1747062836 }],
     });
   });
 

@@ -3,7 +3,7 @@ import {
   TransactionType,
   type Transaction,
 } from '@metamask/keyring-api';
-import type { Address } from '@solana/kit';
+import { type Address } from '@solana/kit';
 import { BigNumber } from 'bignumber.js';
 
 import { KnownCaip19Id, type Network } from '../../../constants/solana';
@@ -54,8 +54,8 @@ export function mapRpcTransaction({
     transactionData,
   });
 
-  let from = [...nativeFrom, ...splFrom];
-  let to = [...nativeTo, ...splTo];
+  let from = [...splFrom, ...nativeFrom];
+  let to = [...splTo, ...nativeTo];
 
   const type = evaluateTransactionType({
     address,
@@ -72,32 +72,6 @@ export function mapRpcTransaction({
      */
     from = from.filter((fromItem) => fromItem.address === address);
     to = to.filter((toItem) => toItem.address === address);
-
-    /**
-     * FIXME: Due to the way Solana can sometimes give you SOL back when you open or close
-     * token accounts, we need to remove SOL from the from and to arrays to avoid messing up
-     * our mapping logic.
-     */
-    const hasMultipleFromAssets = from.length > 1;
-    const hasMultipleToAssets = to.length > 1;
-
-    if (hasMultipleFromAssets) {
-      from = from.filter(
-        (fromItem) =>
-          fromItem.asset?.fungible &&
-          fromItem.asset?.type !== KnownCaip19Id.SolMainnet &&
-          fromItem.asset?.type !== KnownCaip19Id.SolDevnet,
-      );
-    }
-
-    if (hasMultipleToAssets) {
-      to = to.filter(
-        (toItem) =>
-          toItem.asset?.fungible &&
-          toItem.asset?.type !== KnownCaip19Id.SolMainnet &&
-          toItem.asset?.type !== KnownCaip19Id.SolDevnet,
-      );
-    }
   }
 
   if (type === TransactionType.Receive) {
