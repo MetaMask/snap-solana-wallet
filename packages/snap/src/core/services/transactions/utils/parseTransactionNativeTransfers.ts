@@ -89,16 +89,16 @@ export function parseTransactionNativeTransfers({
     /**
      * Calculate the delta between the balances and convert from lamports to SOL.
      */
-    const balanceDiff = preBalance
+    const balanceDiffSol = preBalance
       .minus(postBalance)
       .dividedBy(new BigNumber(LAMPORTS_PER_SOL))
       .minus(paidFees);
 
-    if (balanceDiff.isZero()) {
+    if (balanceDiffSol.isZero()) {
       continue;
     }
 
-    const amount = balanceDiff.absoluteValue().toString();
+    const amount = balanceDiffSol.absoluteValue().toString();
 
     /**
      * If the pre-balance is greater than the post-balance, it means that the account
