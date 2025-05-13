@@ -81,7 +81,7 @@ export function parseTransactionNativeTransfers({
     const postBalance = postBalances.get(accountIndex) ?? new BigNumber(0);
 
     // Account 0 is the fee payer
-    const paidFees =
+    const paidFeesSol =
       accountIndex === 0
         ? lamportsToSol(transactionData.meta?.fee ?? 0)
         : new BigNumber(0);
@@ -92,7 +92,7 @@ export function parseTransactionNativeTransfers({
     const balanceDiffSol = preBalance
       .minus(postBalance)
       .dividedBy(new BigNumber(LAMPORTS_PER_SOL))
-      .minus(paidFees);
+      .minus(paidFeesSol);
 
     if (balanceDiffSol.isZero()) {
       continue;
