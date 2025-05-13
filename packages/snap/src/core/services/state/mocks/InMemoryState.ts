@@ -1,3 +1,5 @@
+import { set } from 'lodash';
+
 import type { IStateManager } from '../IStateManager';
 
 /**
@@ -14,6 +16,10 @@ export class InMemoryState<TStateValue extends object>
 
   async get(): Promise<TStateValue> {
     return this.#state;
+  }
+
+  async set(key: string, value: TStateValue[keyof TStateValue]): Promise<void> {
+    set(this.#state, key, value); // Use lodash to set the value using a json path
   }
 
   async update(

@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
+import { assert } from '@metamask/utils';
+
 import type { Serializable } from '../serialization/types';
 import type { IStateManager } from '../services/state/IStateManager';
 import type { ILogger } from '../utils/logger';
@@ -105,7 +107,15 @@ export class StateCache implements ICache<Serializable | undefined> {
     value: Serializable,
     ttlMilliseconds = Number.MAX_SAFE_INTEGER,
   ): Promise<void> {
-    await this.mset([{ key, value, ttlMilliseconds }]);
+    this.#validateTtlOrThrow(ttlMilliseconds);
+
+    await this.#state.set(`${this.prefix}.${key}`, {
+      value,
+      expiresAt: Math.min(
+        Date.now() + (ttlMilliseconds ?? Number.MAX_SAFE_INTEGER),
+        Number.MAX_SAFE_INTEGER,
+      ),
+    });
   }
 
   #validateTtlOrThrow(ttlMilliseconds?: number): void {
@@ -132,10 +142,7 @@ export class StateCache implements ICache<Serializable | undefined> {
   }
 
   async clear(): Promise<void> {
-    await this.#state.update((stateValue) => {
-      stateValue[this.prefix] = {};
-      return stateValue;
-    });
+    await this.#state.set(this.prefix, {});
   }
 
   async has(key: string): Promise<boolean> {
@@ -205,6 +212,17 @@ export class StateCache implements ICache<Serializable | undefined> {
   async mset(
     entries: { key: string; value: Serializable; ttlMilliseconds?: number }[],
   ): Promise<void> {
+    if (entries.length === 0) {
+      return;
+    }
+
+    if (entries.length === 1) {
+      assert(entries[0]); // Enfore type narrowing as TS cannot infer that entries[0] is defined
+      const { key, value, ttlMilliseconds } = entries[0];
+      await this.set(key, value, ttlMilliseconds);
+      return;
+    }
+
     entries.forEach(({ ttlMilliseconds }) => {
       this.#validateTtlOrThrow(ttlMilliseconds);
     });

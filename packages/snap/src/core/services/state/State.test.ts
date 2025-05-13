@@ -55,8 +55,8 @@ describe('State', () => {
       const stateValue = await state.get();
 
       expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_manageState',
-        params: { operation: 'get', encrypted: false },
+        method: 'snap_getState',
+        params: { encrypted: false },
       });
       expect(stateValue).toStrictEqual(mockUnderlyingState);
     });
@@ -163,8 +163,8 @@ describe('State', () => {
       }));
 
       expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_manageState',
-        params: { operation: 'get', encrypted: false },
+        method: 'snap_getState',
+        params: { encrypted: false },
       });
 
       expect(snap.request).toHaveBeenCalledWith({

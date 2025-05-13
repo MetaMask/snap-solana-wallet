@@ -49,12 +49,12 @@ export type StateConfig<TValue extends Record<string, Serializable>> = {
  * - It  merges the default state with the underlying snap state to ensure that we always have default values,
  * letting us avoid a ton of null checks everywhere.
  */
-export class State<TValue extends Record<string, Serializable>>
-  implements IStateManager<TValue>
+export class State<TStateValue extends Record<string, Serializable>>
+  implements IStateManager<TStateValue>
 {
-  #config: StateConfig<TValue>;
+  #config: StateConfig<TStateValue>;
 
-  constructor(config: StateConfig<TValue>) {
+  constructor(config: StateConfig<TStateValue>) {
     this.#config = config;
   }
 
@@ -63,16 +63,15 @@ export class State<TValue extends Record<string, Serializable>>
    *
    * @returns The state of the snap.
    */
-  async get(): Promise<TValue> {
+  async get(): Promise<TStateValue> {
     const state = await snap.request({
-      method: 'snap_manageState',
+      method: 'snap_getState',
       params: {
-        operation: 'get',
         encrypted: this.#config.encrypted,
       },
     });
 
-    const stateDeserialized = deserialize(state ?? {}) as TValue;
+    const stateDeserialized = deserialize(state ?? {}) as TStateValue;
 
     // Merge the default state with the underlying snap state
     // to ensure that we always have default values. It lets us avoid a ton of null checks everywhere.
@@ -85,12 +84,38 @@ export class State<TValue extends Record<string, Serializable>>
   }
 
   /**
-   * Updates the state of the snap.
+   * Sets the value of a key in the snap state.
+   *
+   * @param key - The key to set.
+   * @param value - The value to set.
+   * @returns The state.
+   */
+  async set(key: string, value: Serializable): Promise<void> {
+    await snap.request({
+      method: 'snap_setState',
+      params: {
+        key,
+        value: serialize(value),
+        encrypted: this.#config.encrypted,
+      },
+    });
+  }
+
+  /**
+   * Updates the whole state of the snap.
+   *
+   * WARNING: Use with caution because:
+   * - it will override the whole state.
+   * - it transfers the whole state to the snap, which might contain a lot of data.
+   *
+   * Typically used for bulk updates.
    *
    * @param callback - A function that returns the new state.
    * @returns The new state.
    */
-  async update(callback: (state: TValue) => TValue): Promise<TValue> {
+  async update(
+    callback: (state: TStateValue) => TStateValue,
+  ): Promise<TStateValue> {
     return this.get().then(async (state) => {
       const newState = callback(state);
 

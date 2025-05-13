@@ -690,6 +690,35 @@ describe('StateCache', () => {
         someKey2: 'someValue2',
       });
     });
+
+    it('no-ops if no entries are provided', async () => {
+      const stateWithCache = new InMemoryState({});
+      const cache = new StateCache(stateWithCache);
+      const updateSpy = jest.spyOn(stateWithCache, 'update');
+
+      await cache.mset([]);
+
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+
+    it('defers to set if there is only one entry', async () => {
+      const stateWithCache = new InMemoryState({});
+      const cache = new StateCache(stateWithCache);
+      const setSpy = jest.spyOn(cache, 'set');
+
+      const singleEntry = {
+        key: 'someKey',
+        value: 'someValue',
+        ttlMilliseconds: 1000,
+      };
+      await cache.mset([singleEntry]);
+
+      expect(setSpy).toHaveBeenCalledWith(
+        singleEntry.key,
+        singleEntry.value,
+        singleEntry.ttlMilliseconds,
+      );
+    });
   });
 
   describe('mdelete', () => {
