@@ -80,39 +80,25 @@ export function parseTransactionNativeTransfers({
     const preBalance = preBalances.get(accountIndex) ?? new BigNumber(0);
     const postBalance = postBalances.get(accountIndex) ?? new BigNumber(0);
 
+    // Account 0 is the fee payer
+    const paidFees =
+      accountIndex === 0
+        ? lamportsToSol(transactionData.meta?.fee ?? 0)
+        : new BigNumber(0);
+
     /**
      * Calculate the delta between the balances and convert from lamports to SOL.
      */
-    const balanceDiff = postBalance.minus(preBalance);
-    let absoluteBalanceDiff = balanceDiff
-      .absoluteValue()
-      .dividedBy(new BigNumber(LAMPORTS_PER_SOL));
+    const balanceDiff = preBalance
+      .minus(postBalance)
+      .dividedBy(new BigNumber(LAMPORTS_PER_SOL))
+      .minus(paidFees);
 
-    /**
-     * For the fee payer, subtract the fees from the balance difference
-     * since we are counting them separately.
-     */
-    if (accountIndex === 0 && balanceDiff.isNegative()) {
-      const totalFees = lamportsToSol(transactionData.meta?.fee ?? 0);
-      absoluteBalanceDiff = absoluteBalanceDiff
-        .minus(totalFees)
-        .decimalPlaces(8, BigNumber.ROUND_DOWN);
-    }
-
-    /**
-     * EXCEPT, if the final balance is positive, then we need to add the fees back
-     * since we don't want them to be counted negatively.
-     */
-    if (accountIndex === 0 && balanceDiff.isPositive()) {
-      const totalFees = lamportsToSol(transactionData.meta?.fee ?? 0);
-      absoluteBalanceDiff = absoluteBalanceDiff.plus(totalFees);
-    }
-
-    if (absoluteBalanceDiff.isZero()) {
+    if (balanceDiff.isZero()) {
       continue;
     }
 
-    const amount = absoluteBalanceDiff.toString();
+    const amount = balanceDiff.absoluteValue().toString();
 
     /**
      * If the pre-balance is greater than the post-balance, it means that the account
