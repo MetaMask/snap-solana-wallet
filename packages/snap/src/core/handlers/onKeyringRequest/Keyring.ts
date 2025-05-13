@@ -69,6 +69,24 @@ export type SolanaKeyringAccount = {
   index: number;
 } & KeyringAccount;
 
+/**
+ * Converts a Solana keyring account to its stricter form (required by the Keyring API).
+ *
+ * @param account - A Solana keyring account.
+ * @returns A strict keyring account (with no additional fields).
+ */
+function asStrictKeyringAccount(account: SolanaKeyringAccount): KeyringAccount {
+  const { type, id, address, options, methods, scopes } = account;
+  return {
+    type,
+    id,
+    address,
+    options,
+    methods,
+    scopes,
+  };
+}
+
 export class SolanaKeyring implements Keyring {
   readonly #state: IStateManager<UnencryptedStateValue>;
 
@@ -226,7 +244,7 @@ export class SolanaKeyring implements Keyring {
         this.#logger.warn(
           '[🔑 Keyring] An account already exists with the same derivation path and entropy source. Skipping account creation.',
         );
-        return sameAccount;
+        return asStrictKeyringAccount(sameAccount);
       }
 
       const { publicKeyBytes } = await deriveSolanaKeypair({
@@ -280,14 +298,8 @@ export class SolanaKeyring implements Keyring {
         },
       }));
 
-      const keyringAccount: KeyringAccount = {
-        type: solanaKeyringAccount.type,
-        id: solanaKeyringAccount.id,
-        address: solanaKeyringAccount.address,
-        options: solanaKeyringAccount.options,
-        methods: solanaKeyringAccount.methods,
-        scopes: solanaKeyringAccount.scopes,
-      };
+      const keyringAccount: KeyringAccount =
+        asStrictKeyringAccount(solanaKeyringAccount);
 
       await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
