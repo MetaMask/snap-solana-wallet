@@ -5,7 +5,6 @@ import type { SpotPrices } from '../../core/clients/price-api/types';
 import {
   KnownCaip19Id,
   Network,
-  SOL_IMAGE_URL,
   SOL_SYMBOL,
 } from '../../core/constants/solana';
 import { RpcRequestMethod } from '../../core/handlers/onRpcRequest/types';
@@ -151,6 +150,7 @@ const mockContext: SendContext = {
     [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
   },
   tokenPrices: mockSpotPrices,
+  loading: false,
 };
 
 describe('Send', () => {

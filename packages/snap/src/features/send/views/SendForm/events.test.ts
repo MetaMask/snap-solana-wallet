@@ -96,6 +96,7 @@ describe('SendForm events', () => {
     transactionMessage: null,
     error: null,
     minimumBalanceForRentExemptionSol: mockMinimumBalanceForRentExemptionSol,
+    loading: true,
   };
 
   describe('onSwapCurrencyButtonClick', () => {
