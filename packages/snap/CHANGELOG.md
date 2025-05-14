@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.28.1]
+
+### Uncategorized
+
+- fix: send form address input not triggering amount pickup ([#352](https://github.com/MetaMask/snap-solana-wallet/pull/352))
+- fix: fully respect `activeNetworks` set in the ConfigProvider ([#351](https://github.com/MetaMask/snap-solana-wallet/pull/351))
+- fix: fix createAccount idempotency ([#350](https://github.com/MetaMask/snap-solana-wallet/pull/350))
+- refactor: simplify some code ([#347](https://github.com/MetaMask/snap-solana-wallet/pull/347))
+
 ## [1.28.0]
 
 ### Added
@@ -522,7 +531,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.1...HEAD
+[1.28.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.0...v1.28.1
 [1.28.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.27.0...v1.28.0
 [1.27.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.26.1...v1.27.0
 [1.26.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.26.0...v1.26.1
