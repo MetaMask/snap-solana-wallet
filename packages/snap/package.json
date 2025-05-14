@@ -1,6 +1,6 @@
 {
   "name": "@metamask/solana-wallet-snap",
-  "version": "1.28.2",
+  "version": "1.28.3",
   "description": "A Solana wallet Snap.",
   "repository": {
     "type": "git",
