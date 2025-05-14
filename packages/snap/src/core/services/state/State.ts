@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Balance, Transaction } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
+import { unset } from 'lodash';
 
 import type { SpotPrices } from '../../clients/price-api/types';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
@@ -58,11 +59,6 @@ export class State<TStateValue extends Record<string, Serializable>>
     this.#config = config;
   }
 
-  /**
-   * Gets the state of the snap.
-   *
-   * @returns The state of the snap.
-   */
   async get(): Promise<TStateValue> {
     const state = await snap.request({
       method: 'snap_getState',
@@ -83,13 +79,6 @@ export class State<TStateValue extends Record<string, Serializable>>
     return stateWithDefaults;
   }
 
-  /**
-   * Sets the value of a key in the snap state.
-   *
-   * @param key - The key to set.
-   * @param value - The value to set.
-   * @returns The state.
-   */
   async set(key: string, value: Serializable): Promise<void> {
     await snap.request({
       method: 'snap_setState',
@@ -101,23 +90,11 @@ export class State<TStateValue extends Record<string, Serializable>>
     });
   }
 
-  /**
-   * Updates the whole state of the snap.
-   *
-   * WARNING: Use with caution because:
-   * - it will override the whole state.
-   * - it transfers the whole state to the snap, which might contain a lot of data.
-   *
-   * Typically used for bulk updates.
-   *
-   * @param callback - A function that returns the new state.
-   * @returns The new state.
-   */
   async update(
-    callback: (state: TStateValue) => TStateValue,
+    updaterFunction: (state: TStateValue) => TStateValue,
   ): Promise<TStateValue> {
     return this.get().then(async (state) => {
-      const newState = callback(state);
+      const newState = updaterFunction(state);
 
       await snap.request({
         method: 'snap_manageState',
@@ -129,6 +106,14 @@ export class State<TStateValue extends Record<string, Serializable>>
       });
 
       return newState;
+    });
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.update((state) => {
+      // Using lodash's unset to leverage the json path capabilities
+      unset(state, key);
+      return state;
     });
   }
 }

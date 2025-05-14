@@ -4,7 +4,6 @@ import type { KeyringRequest } from '@metamask/keyring-api';
 import { SolMethod } from '@metamask/keyring-api';
 import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { signature } from '@solana/kit';
-import { cloneDeep } from 'lodash';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { AssetsService } from '../../services/assets/AssetsService';
@@ -279,13 +278,9 @@ describe('SolanaKeyring', () => {
           entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
         });
 
-        await mockState.update((state) => {
-          const updatedState = cloneDeep(state);
-          delete updatedState.keyringAccounts[secondAccount.id];
-          delete updatedState.keyringAccounts[fourthAccount.id];
-          delete updatedState.keyringAccounts[sixthAccount.id];
-          return updatedState;
-        });
+        await mockState.delete(`keyringAccounts.${secondAccount.id}`);
+        await mockState.delete(`keyringAccounts.${fourthAccount.id}`);
+        await mockState.delete(`keyringAccounts.${sixthAccount.id}`);
 
         const regeneratedSecondAccount = await keyring.createAccount();
         const regeneratedFourthAccount = await keyring.createAccount();
@@ -569,7 +564,7 @@ describe('SolanaKeyring', () => {
 
     it('throws an error if state fails to be updated', async () => {
       jest
-        .spyOn(mockState, 'update')
+        .spyOn(mockState, 'delete')
         .mockRejectedValueOnce(new Error('State error'));
 
       await expect(

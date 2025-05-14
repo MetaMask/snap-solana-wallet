@@ -1,4 +1,4 @@
-import { set } from 'lodash';
+import { set, unset } from 'lodash';
 
 import type { IStateManager } from '../IStateManager';
 
@@ -18,7 +18,7 @@ export class InMemoryState<TStateValue extends object>
     return this.#state;
   }
 
-  async set(key: string, value: TStateValue[keyof TStateValue]): Promise<void> {
+  async set(key: string, value: object): Promise<void> {
     set(this.#state, key, value); // Use lodash to set the value using a json path
   }
 
@@ -28,5 +28,10 @@ export class InMemoryState<TStateValue extends object>
     this.#state = callback(this.#state);
 
     return this.#state;
+  }
+
+  async delete(key: string): Promise<void> {
+    // Using lodash's unset to leverage the json path capabilities
+    unset(this.#state, key);
   }
 }

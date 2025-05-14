@@ -227,6 +227,7 @@ export class StateCache implements ICache<Serializable | undefined> {
       this.#validateTtlOrThrow(ttlMilliseconds);
     });
 
+    // Using `state.update` is preferred for bulk `set`s, because it's more efficient and atomic.
     await this.#state.update((stateValue) => {
       const cacheStore = stateValue[this.prefix] ?? {};
       entries.forEach(({ key, value, ttlMilliseconds }) => {
@@ -249,6 +250,7 @@ export class StateCache implements ICache<Serializable | undefined> {
   async mdelete(keys: string[]): Promise<Record<string, boolean>> {
     const result: Record<string, boolean> = {};
 
+    // Using `state.update` is preferred for bulk `delete`s, because it's more efficient and atomic.
     await this.#state.update((stateValue) => {
       const cacheStore = stateValue[this.prefix] ?? {};
       keys.forEach((key) => {

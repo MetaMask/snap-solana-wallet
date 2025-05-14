@@ -272,13 +272,10 @@ export class SolanaKeyring implements Keyring {
         ],
       };
 
-      await this.#state.update((state) => ({
-        ...state,
-        keyringAccounts: {
-          ...(state?.keyringAccounts ?? {}),
-          [solanaKeyringAccount.id]: solanaKeyringAccount,
-        },
-      }));
+      await this.#state.set(
+        `keyringAccounts.${solanaKeyringAccount.id}`,
+        solanaKeyringAccount,
+      );
 
       const keyringAccount: KeyringAccount = {
         type: solanaKeyringAccount.type,
@@ -325,19 +322,9 @@ export class SolanaKeyring implements Keyring {
 
   async #deleteAccountFromState(accountId: string): Promise<void> {
     await Promise.all([
-      this.#state.update((state) => {
-        if (state?.keyringAccounts?.[accountId]) {
-          delete state?.keyringAccounts?.[accountId];
-        }
-
-        return state;
-      }),
-      this.#state.update((state) => {
-        delete state?.transactions?.[accountId];
-        delete state?.assets?.[accountId];
-
-        return state;
-      }),
+      this.#state.delete(`keyringAccounts.${accountId}`),
+      this.#state.delete(`transactions.${accountId}`),
+      this.#state.delete(`assets.${accountId}`),
     ]);
   }
 
@@ -517,13 +504,10 @@ export class SolanaKeyring implements Keyring {
           account: keyringAccount.id,
         }));
 
-        await this.#state.update((state) => ({
-          ...state,
-          transactions: {
-            ...(state?.transactions ?? {}),
-            [keyringAccount.id]: transactions,
-          },
-        }));
+        await this.#state.set(
+          `transactions.${keyringAccount.id}`,
+          transactions,
+        );
 
         return {
           data: transactions,

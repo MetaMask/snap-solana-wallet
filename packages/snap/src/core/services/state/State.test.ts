@@ -299,4 +299,36 @@ describe('State', () => {
       });
     });
   });
+
+  describe('delete', () => {
+    it('deletes a key', async () => {
+      await state.delete('users');
+
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_setState',
+        params: {
+          key: 'users',
+          value: {
+            __type: 'undefined',
+          },
+          encrypted: false,
+        },
+      });
+    });
+
+    it('deletes a nested key', async () => {
+      await state.delete('users[0].age');
+
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_setState',
+        params: {
+          key: 'users[0].age',
+          value: {
+            __type: 'undefined',
+          },
+          encrypted: false,
+        },
+      });
+    });
+  });
 });

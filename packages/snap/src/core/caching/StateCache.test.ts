@@ -25,7 +25,7 @@ describe('StateCache', () => {
   describe('get', () => {
     it('returns undefined if the cache is not initialized', async () => {
       const stateWithNoCache = new InMemoryState({
-        name: 'John', // State has some data this is not related to the cache
+        name: 'John', // State has some data that is not related to the cache
         // __cache__default: {}   // State has not been initialized with cached data
       });
       const cache = new StateCache(stateWithNoCache);
