@@ -57,6 +57,7 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   transaction: null,
   stage: 'send-form',
   minimumBalanceForRentExemptionSol: '0.002', // Pessimistic default value. Will only be used if we cannot fetch the actual minimum balance for rent exemption.
+  loading: true,
 };
 
 /**
@@ -75,11 +76,12 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   const tokenCaipId =
     (params.assetId as CaipAssetType) ?? Networks[scope].nativeToken.caip19Id;
 
-  const context = {
+  const context: SendContext = {
     ...DEFAULT_SEND_CONTEXT,
     scope,
     fromAccountId: account,
     tokenCaipId,
+    loading: true,
   };
 
   /**
@@ -155,6 +157,13 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     .catch(() => {
       // Do nothing, the value set on default context will be used.
     });
+
+  context.loading = true;
+
+  await updateInterface(id, <Send context={context} />, context);
+
+  // eslint-disable-next-line require-atomic-updates
+  context.loading = false;
 
   /**
    * 6. Refresh token prices (from api)

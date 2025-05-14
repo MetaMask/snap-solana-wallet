@@ -47,6 +47,7 @@ export const SendForm = ({
     tokenPricesFetchStatus,
     buildingTransaction,
     error,
+    loading,
     preferences: { locale, currency },
   } = context;
 
@@ -151,6 +152,7 @@ export const SendForm = ({
           <Box>{null}</Box>
           <ToAddressField
             locale={locale}
+            disabled={loading}
             name={SendFormNames.DestinationAccountInput}
             value={inputToAddress ?? null}
             showClearButton={showClearAddressButton}
