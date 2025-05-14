@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.28.3]
 
-### Uncategorized
+### Fixed
 
-- fix: more transaction mapping inaccuracies ([#349](https://github.com/MetaMask/snap-solana-wallet/pull/349))
-- fix: temporarily hide "max"' button in send form ([#356](https://github.com/MetaMask/snap-solana-wallet/pull/356))
+- More transaction mapping inaccuracies ([#349](https://github.com/MetaMask/snap-solana-wallet/pull/349))
+- Temporarily hide "max"' button in send form ([#356](https://github.com/MetaMask/snap-solana-wallet/pull/356))
 
 ## [1.28.2]
 
