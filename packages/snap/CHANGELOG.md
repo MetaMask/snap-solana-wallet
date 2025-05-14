@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.28.1]
 
-### Uncategorized
+### Fixed
 
-- fix: send form address input not triggering amount pickup ([#352](https://github.com/MetaMask/snap-solana-wallet/pull/352))
-- fix: fully respect `activeNetworks` set in the ConfigProvider ([#351](https://github.com/MetaMask/snap-solana-wallet/pull/351))
-- fix: fix createAccount idempotency ([#350](https://github.com/MetaMask/snap-solana-wallet/pull/350))
-- refactor: simplify some code ([#347](https://github.com/MetaMask/snap-solana-wallet/pull/347))
+- Send form address input not triggering amount pickup ([#352](https://github.com/MetaMask/snap-solana-wallet/pull/352))
+- Fully respect `activeNetworks` set in the ConfigProvider ([#351](https://github.com/MetaMask/snap-solana-wallet/pull/351))
+- `createAccount` idempotency ([#350](https://github.com/MetaMask/snap-solana-wallet/pull/350))
+
+### Changed
+
+- Simplify mapping fee ([#347](https://github.com/MetaMask/snap-solana-wallet/pull/347))
 
 ## [1.28.0]
 
