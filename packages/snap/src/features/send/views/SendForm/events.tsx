@@ -316,29 +316,12 @@ async function onDestinationAccountInputValueChange({
     validation(updatedContext),
   );
 
-  if (
-    toAddressValidation &&
-    updatedContext.validation[SendFormNames.DestinationAccountInput]
-      ?.message !== toAddressValidation?.message
-  ) {
-    updatedContext.validation[SendFormNames.DestinationAccountInput] =
-      toAddressValidation;
-    await updateInterface(
-      id,
-      <Send context={updatedContext} />,
-      updatedContext,
-    );
+  updatedContext.validation[SendFormNames.DestinationAccountInput] =
+    toAddressValidation;
 
-    return;
-  }
+  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
   if (toAddressValidation === null) {
-    updatedContext.validation[SendFormNames.DestinationAccountInput] = null;
-    await updateInterface(
-      id,
-      <Send context={updatedContext} />,
-      updatedContext,
-    );
     await buildTransactionMessageAndUpdateInterface(id, updatedContext);
   }
 }
