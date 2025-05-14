@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.28.2]
 
-### Uncategorized
+### Fixed
 
-- fix: block to address until data is ready on send ([#354](https://github.com/MetaMask/snap-solana-wallet/pull/354))
+- Block to address until data is ready on send ([#354](https://github.com/MetaMask/snap-solana-wallet/pull/354))
 
 ## [1.28.1]
 
