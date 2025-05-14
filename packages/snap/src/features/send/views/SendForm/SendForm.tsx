@@ -195,13 +195,14 @@ export const SendForm = ({
                 ) : (
                   <Box>{null}</Box>
                 )}
-                <Button
+                {/* TODO: Temporary disabled max amount button as a quick fix for https://github.com/MetaMask/metamask-extension/issues/32299 */}
+                {/* <Button
                   size="sm"
                   name={SendFormNames.MaxAmountButton}
                   disabled={balanceUndefinedOrZero}
                 >
                   {translate('send.maxButton')}
-                </Button>
+                </Button> */}
               </Box>
             </Box>
           )}
