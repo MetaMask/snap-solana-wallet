@@ -58,7 +58,7 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
    *
    * ⚠️ WARNING: Use with caution because:
    * - it will override the whole state.
-   * - it transfers the whole state to the snap, which might contain a lot of data.
+   * - it transfers the whole state back and forth the data store, which might consume a lot of bandwidth.
    *
    * For single updates, use instead `setKey` or `deleteKey`.
    *
