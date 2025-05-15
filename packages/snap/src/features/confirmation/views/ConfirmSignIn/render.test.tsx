@@ -29,7 +29,7 @@ describe('render', () => {
     const { onKeyringRequest, mockJsonRpc } = await installSnap();
 
     mockJsonRpc({
-      method: 'snap_manageState',
+      method: 'snap_getState',
       result: {
         keyringAccounts: {
           [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,

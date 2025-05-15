@@ -5,7 +5,6 @@ import type { SpotPrices } from '../../core/clients/price-api/types';
 import {
   KnownCaip19Id,
   Network,
-  SOL_IMAGE_URL,
   SOL_SYMBOL,
 } from '../../core/constants/solana';
 import { RpcRequestMethod } from '../../core/handlers/onRpcRequest/types';
@@ -178,7 +177,7 @@ describe('Send', () => {
     });
 
     mockJsonRpc({
-      method: 'snap_manageState',
+      method: 'snap_getState',
       result: {
         keyringAccounts: {
           [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
