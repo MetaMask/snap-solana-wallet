@@ -238,7 +238,7 @@ export class AssetsService {
     }
     const result = Object.fromEntries(balances.entries());
 
-    await this.#state.set(`assets.${account.id}`, result);
+    await this.#state.setKey(`assets.${account.id}`, result);
 
     return result;
   }
@@ -323,7 +323,7 @@ export class AssetsService {
           },
         });
 
-        await this.#state.set(`assets.${account.id}`, accountBalances);
+        await this.#state.setKey(`assets.${account.id}`, accountBalances);
       }
     }
   }

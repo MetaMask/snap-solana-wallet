@@ -185,9 +185,8 @@ describe('SolanaKeyring', () => {
     });
 
     it('returns undefined if account is not found', async () => {
-      await expect(keyring.getAccount(NON_EXISTENT_ACCOUNT_ID)).rejects.toThrow(
-        `Account "${NON_EXISTENT_ACCOUNT_ID}" not found`,
-      );
+      const account = await keyring.getAccount(NON_EXISTENT_ACCOUNT_ID);
+      expect(account).toBeUndefined();
     });
 
     it('throws an error if state fails to be retrieved', async () => {
@@ -276,9 +275,9 @@ describe('SolanaKeyring', () => {
           entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
         });
 
-        await mockState.delete(`keyringAccounts.${secondAccount.id}`);
-        await mockState.delete(`keyringAccounts.${fourthAccount.id}`);
-        await mockState.delete(`keyringAccounts.${sixthAccount.id}`);
+        await mockState.deleteKey(`keyringAccounts.${secondAccount.id}`);
+        await mockState.deleteKey(`keyringAccounts.${fourthAccount.id}`);
+        await mockState.deleteKey(`keyringAccounts.${sixthAccount.id}`);
 
         const regeneratedSecondAccount = await keyring.createAccount();
         const regeneratedFourthAccount = await keyring.createAccount();
@@ -540,11 +539,10 @@ describe('SolanaKeyring', () => {
 
       await keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id);
 
-      await expect(
-        keyring.getAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id),
-      ).rejects.toThrow(
-        `Account "${MOCK_SOLANA_KEYRING_ACCOUNT_1.id}" not found`,
+      const accountAfterDeletion = await keyring.getAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
       );
+      expect(accountAfterDeletion).toBeUndefined();
     });
 
     it('throws an error if account provided is not a uuid', async () => {
@@ -555,7 +553,7 @@ describe('SolanaKeyring', () => {
 
     it('throws an error if state fails to be updated', async () => {
       jest
-        .spyOn(mockState, 'delete')
+        .spyOn(mockState, 'deleteKey')
         .mockRejectedValueOnce(new Error('State error'));
 
       await expect(

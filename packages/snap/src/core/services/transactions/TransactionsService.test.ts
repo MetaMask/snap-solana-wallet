@@ -113,7 +113,7 @@ describe('TransactionsService', () => {
 
     describe('when no accounts are passed', () => {
       it('skips the run', async () => {
-        const setSpy = jest.spyOn(mockState, 'set');
+        const setSpy = jest.spyOn(mockState, 'setKey');
 
         await service.refreshTransactions([]);
 
@@ -178,7 +178,7 @@ describe('TransactionsService', () => {
           },
         } as unknown as UnencryptedStateValue;
 
-        await mockState.set('transactions', initialState.transactions);
+        await mockState.setKey('transactions', initialState.transactions);
 
         const mockAccounts = [firstAccount, secondAccount];
 
@@ -402,7 +402,7 @@ describe('TransactionsService', () => {
           },
         } as unknown as UnencryptedStateValue;
 
-        await mockState.set('transactions', initialState.transactions);
+        await mockState.setKey('transactions', initialState.transactions);
 
         const mockAccounts = [firstAccount, secondAccount];
 
@@ -437,11 +437,11 @@ describe('TransactionsService', () => {
             return Promise.resolve(filteredData);
           });
 
-        const setSpy = jest.spyOn(mockState, 'set');
+        const setKeySpy = jest.spyOn(mockState, 'setKey');
 
         await service.refreshTransactions(mockAccounts);
 
-        expect(setSpy).toHaveBeenCalledTimes(1);
+        expect(setKeySpy).toHaveBeenCalledTimes(1);
 
         const expectedSignatureCalls = [
           [Network.Mainnet, firstAccount.address, 50],

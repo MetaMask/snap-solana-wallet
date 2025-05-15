@@ -27,7 +27,7 @@ export class InMemoryState<TStateValue extends Record<string, Serializable>>
     return value as TResponse | undefined;
   }
 
-  async set(key: string, value: Serializable): Promise<void> {
+  async setKey(key: string, value: Serializable): Promise<void> {
     set(this.#state, key, value); // Use lodash to set the value using a json path
   }
 
@@ -39,7 +39,7 @@ export class InMemoryState<TStateValue extends Record<string, Serializable>>
     return this.#state;
   }
 
-  async delete(key: string): Promise<void> {
+  async deleteKey(key: string): Promise<void> {
     // Using lodash's unset to leverage the json path capabilities
     unset(this.#state, key);
   }

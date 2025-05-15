@@ -24,6 +24,7 @@ import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
   MethodNotFoundError,
+  SnapError,
   UserRejectedRequestError,
 } from '@metamask/snaps-sdk';
 import { assert, integer } from '@metamask/superstruct';
@@ -129,14 +130,10 @@ export class SolanaKeyring implements Keyring {
         `keyringAccounts.${accountId}`,
       );
 
-      if (!account) {
-        throw new Error(`Account "${accountId}" not found`);
-      }
-
       return account;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account');
-      throw new Error('Error getting account');
+      throw new SnapError(error);
     }
   }
 
@@ -275,7 +272,7 @@ export class SolanaKeyring implements Keyring {
         ],
       };
 
-      await this.#state.set(
+      await this.#state.setKey(
         `keyringAccounts.${solanaKeyringAccount.id}`,
         solanaKeyringAccount,
       );
@@ -325,9 +322,9 @@ export class SolanaKeyring implements Keyring {
 
   async #deleteAccountFromState(accountId: string): Promise<void> {
     await Promise.all([
-      this.#state.delete(`keyringAccounts.${accountId}`),
-      this.#state.delete(`transactions.${accountId}`),
-      this.#state.delete(`assets.${accountId}`),
+      this.#state.deleteKey(`keyringAccounts.${accountId}`),
+      this.#state.deleteKey(`transactions.${accountId}`),
+      this.#state.deleteKey(`assets.${accountId}`),
     ]);
   }
 
@@ -509,7 +506,7 @@ export class SolanaKeyring implements Keyring {
           account: keyringAccount.id,
         }));
 
-        await this.#state.set(
+        await this.#state.setKey(
           `transactions.${keyringAccount.id}`,
           transactions,
         );

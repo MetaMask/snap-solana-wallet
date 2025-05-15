@@ -173,6 +173,21 @@ describe('State', () => {
     });
   });
 
+  describe('setKey', () => {
+    it('sets the value of a key', async () => {
+      await state.setKey('users.1.name', 'Bob');
+
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_setState',
+        params: {
+          key: 'users.1.name',
+          value: 'Bob',
+          encrypted: false,
+        },
+      });
+    });
+  });
+
   describe('update', () => {
     it('updates the state', async () => {
       await state.update((currentState) => ({
@@ -323,9 +338,9 @@ describe('State', () => {
     });
   });
 
-  describe('delete', () => {
+  describe('deleteKey', () => {
     it('deletes a key', async () => {
-      await state.delete('users');
+      await state.deleteKey('users');
 
       expect(snap.request).toHaveBeenCalledWith({
         method: 'snap_manageState',
@@ -338,7 +353,7 @@ describe('State', () => {
     });
 
     it('deletes a nested key', async () => {
-      await state.delete('users[0].age');
+      await state.deleteKey('users[0].age');
 
       expect(snap.request).toHaveBeenCalledWith({
         method: 'snap_manageState',

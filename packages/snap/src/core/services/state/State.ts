@@ -97,7 +97,7 @@ export class State<TStateValue extends Record<string, Serializable>>
     return deserialize(value) as TResponse;
   }
 
-  async set(key: string, value: Serializable): Promise<void> {
+  async setKey(key: string, value: Serializable): Promise<void> {
     await snap.request({
       method: 'snap_setState',
       params: {
@@ -127,7 +127,7 @@ export class State<TStateValue extends Record<string, Serializable>>
     });
   }
 
-  async delete(key: string): Promise<void> {
+  async deleteKey(key: string): Promise<void> {
     await this.update((state) => {
       // Using lodash's unset to leverage the json path capabilities
       unset(state, key);

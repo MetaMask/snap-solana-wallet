@@ -47,7 +47,7 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
    * @param key - The key to set, which is a json path to the location.
    * @param value - The value to set.
    */
-  set(key: string, value: any): Promise<void>;
+  setKey(key: string, value: any): Promise<void>;
   /**
    * Updates the whole state object.
    *
@@ -60,7 +60,7 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
    * - it will override the whole state.
    * - it transfers the whole state to the snap, which might contain a lot of data.
    *
-   * For single updates, use instead {@link IStateManager.set} or {@link IStateManager.delete}.
+   * For single updates, use instead `setKey` or `deleteKey`.
    *
    * @param updaterFunction - The function that updates the state.
    * @returns The updated state.
@@ -77,9 +77,9 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
    * const state = await stateManager.get();
    * // state is { users: [ { name: 'Alice', age: 20 }, { name: 'Bob', age: 25 } ] }
    *
-   * await stateManager.delete('users.1');
+   * await stateManager.deleteKey('users.1');
    * // state is now { users: [ { name: 'Alice', age: 20 } ] }
    * ```
    */
-  delete(key: string): Promise<void>;
+  deleteKey(key: string): Promise<void>;
 };

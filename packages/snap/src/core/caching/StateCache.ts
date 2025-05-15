@@ -109,7 +109,7 @@ export class StateCache implements ICache<Serializable | undefined> {
   ): Promise<void> {
     this.#validateTtlOrThrow(ttlMilliseconds);
 
-    await this.#state.set(`${this.prefix}.${key}`, {
+    await this.#state.setKey(`${this.prefix}.${key}`, {
       value,
       expiresAt: Math.min(
         Date.now() + (ttlMilliseconds ?? Number.MAX_SAFE_INTEGER),
@@ -142,7 +142,7 @@ export class StateCache implements ICache<Serializable | undefined> {
   }
 
   async clear(): Promise<void> {
-    await this.#state.set(this.prefix, {});
+    await this.#state.setKey(this.prefix, {});
   }
 
   async has(key: string): Promise<boolean> {

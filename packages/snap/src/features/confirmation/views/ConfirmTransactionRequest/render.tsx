@@ -201,7 +201,7 @@ export async function render(
     updatedContext2,
   );
 
-  await state.set(
+  await state.setKey(
     `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
     id,
   );

@@ -77,7 +77,7 @@ async function onCancelButtonClick({
   });
 
   await resolveInterface(id, false);
-  await state.delete(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
+  await state.deleteKey(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
 }
 
 /**

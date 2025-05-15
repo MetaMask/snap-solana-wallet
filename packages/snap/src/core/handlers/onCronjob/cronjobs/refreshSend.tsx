@@ -41,7 +41,7 @@ export const refreshSend: OnCronjobHandler = async () => {
       );
 
       // Then, update the state
-      await state.set('tokenPrices', tokenPrices);
+      await state.setKey('tokenPrices', tokenPrices);
 
       logger.info(
         `[${CronjobMethod.RefreshSend}] ✅ Token prices were properly refreshed and saved in the state.`,
