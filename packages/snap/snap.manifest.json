@@ -74,13 +74,15 @@
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
           "methods": [
             "getGenesisHash",
-            "getLatestBlockhash"
+            "getLatestBlockhash",
+            "getMinimumBalanceForRentExemption"
           ]
         },
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": {
           "methods": [
             "getGenesisHash",
-            "getLatestBlockhash"
+            "getLatestBlockhash",
+            "getMinimumBalanceForRentExemption"
           ]
         }
       }
