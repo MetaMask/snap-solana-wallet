@@ -40,6 +40,7 @@ describe('State', () => {
       encrypted: false,
       defaultState: DEFAULT_STATE,
     });
+
     jest.clearAllMocks();
   });
 
@@ -305,12 +306,10 @@ describe('State', () => {
       await state.delete('users');
 
       expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_setState',
+        method: 'snap_manageState',
         params: {
-          key: 'users',
-          value: {
-            __type: 'undefined',
-          },
+          operation: 'update',
+          newState: {},
           encrypted: false,
         },
       });
@@ -320,11 +319,19 @@ describe('State', () => {
       await state.delete('users[0].age');
 
       expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_setState',
+        method: 'snap_manageState',
         params: {
-          key: 'users[0].age',
-          value: {
-            __type: 'undefined',
+          operation: 'update',
+          newState: {
+            users: [
+              {
+                name: 'John',
+              },
+              {
+                name: 'Jane',
+                age: 25,
+              },
+            ],
           },
           encrypted: false,
         },

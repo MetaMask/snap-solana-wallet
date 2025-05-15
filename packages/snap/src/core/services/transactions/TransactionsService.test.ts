@@ -21,8 +21,12 @@ import { ADDRESS_2_TRANSACTION_4_DATA } from '../../test/mocks/transactions-data
 import { ConfigProvider } from '../config';
 import { SolanaConnection } from '../connection/SolanaConnection';
 import { mockLogger } from '../mocks/logger';
+import { InMemoryState } from '../state/InMemoryState';
 import type { IStateManager } from '../state/IStateManager';
-import type { UnencryptedStateValue } from '../state/State';
+import {
+  DEFAULT_UNENCRYPTED_STATE,
+  type UnencryptedStateValue,
+} from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from './TransactionsService';
 
@@ -53,10 +57,7 @@ describe('TransactionsService', () => {
       getTokensMetadata: jest.fn(),
     } as unknown as TokenMetadataService;
 
-    mockState = {
-      get: jest.fn(),
-      update: jest.fn(),
-    } as unknown as IStateManager<UnencryptedStateValue>;
+    mockState = new InMemoryState(DEFAULT_UNENCRYPTED_STATE);
 
     service = new TransactionsService({
       connection,
@@ -104,11 +105,6 @@ describe('TransactionsService', () => {
 
   describe('refreshTransactions', () => {
     beforeEach(() => {
-      jest.spyOn(mockState, 'get').mockResolvedValue({
-        transactions: {
-          storageLimit: 50,
-        },
-      } as any);
       jest.spyOn(service, 'fetchLatestSignatures').mockResolvedValue([]);
       jest
         .spyOn(service, 'getTransactionsDataFromSignatures')
@@ -117,12 +113,12 @@ describe('TransactionsService', () => {
 
     describe('when no accounts are passed', () => {
       it('skips the run', async () => {
-        const updateSpy = jest.spyOn(mockState, 'update');
+        const setSpy = jest.spyOn(mockState, 'set');
 
         await service.refreshTransactions([]);
 
         expect(service.fetchLatestSignatures).not.toHaveBeenCalled();
-        expect(updateSpy).not.toHaveBeenCalled();
+        expect(setSpy).not.toHaveBeenCalled();
       });
     });
 
@@ -182,9 +178,9 @@ describe('TransactionsService', () => {
           },
         } as unknown as UnencryptedStateValue;
 
-        const mockAccounts = [firstAccount, secondAccount];
+        await mockState.set('transactions', initialState.transactions);
 
-        jest.spyOn(mockState, 'get').mockResolvedValue(initialState);
+        const mockAccounts = [firstAccount, secondAccount];
 
         jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
           transactions: {
@@ -260,12 +256,10 @@ describe('TransactionsService', () => {
         });
 
         // Verify final state
-        const finalUpdateCall = (mockState.update as jest.Mock).mock
-          .calls[0][0];
-        const finalState = finalUpdateCall(initialState);
-
-        const firstAccountTxs = finalState.transactions[firstAccount.id];
-        const secondAccountTxs = finalState.transactions[secondAccount.id];
+        const finalState = await mockState.get();
+        const firstAccountTxs = finalState.transactions[firstAccount.id] ?? [];
+        const secondAccountTxs =
+          finalState.transactions[secondAccount.id] ?? [];
 
         // Verify all transactions are present
         expect(firstAccountTxs).toHaveLength(4);
@@ -408,7 +402,7 @@ describe('TransactionsService', () => {
           },
         } as unknown as UnencryptedStateValue;
 
-        jest.spyOn(mockState, 'get').mockResolvedValue(initialState);
+        await mockState.set('transactions', initialState.transactions);
 
         const mockAccounts = [firstAccount, secondAccount];
 
@@ -443,11 +437,11 @@ describe('TransactionsService', () => {
             return Promise.resolve(filteredData);
           });
 
-        const updateSpy = jest.spyOn(mockState, 'update');
+        const setSpy = jest.spyOn(mockState, 'set');
 
         await service.refreshTransactions(mockAccounts);
 
-        expect(updateSpy).toHaveBeenCalledTimes(1);
+        expect(setSpy).toHaveBeenCalledTimes(1);
 
         const expectedSignatureCalls = [
           [Network.Mainnet, firstAccount.address, 50],
@@ -487,12 +481,10 @@ describe('TransactionsService', () => {
         });
 
         // Verify final state
-        const finalUpdateCall = (mockState.update as jest.Mock).mock
-          .calls[0][0];
-        const finalState = finalUpdateCall(initialState);
-
-        const firstAccountTxs = finalState.transactions[firstAccount.id];
-        const secondAccountTxs = finalState.transactions[secondAccount.id];
+        const finalState = await mockState.get();
+        const firstAccountTxs = finalState.transactions[firstAccount.id] ?? [];
+        const secondAccountTxs =
+          finalState.transactions[secondAccount.id] ?? [];
 
         // Verify all transactions are present (both old and new)
         expect(firstAccountTxs).toHaveLength(4);

@@ -36,16 +36,8 @@ export const refreshSend: OnCronjobHandler = async () => {
         preferences.currency,
       );
 
-      // then, update the state
-      await state.update((currentState) => {
-        return {
-          ...currentState,
-          tokenPrices: {
-            ...currentState.tokenPrices,
-            ...tokenPrices,
-          },
-        };
-      });
+      // Then, update the state
+      await state.set('tokenPrices', tokenPrices);
 
       logger.info(
         `[${CronjobMethod.RefreshSend}] ✅ Token prices were properly refreshed and saved in the state.`,
@@ -59,7 +51,7 @@ export const refreshSend: OnCronjobHandler = async () => {
 
     try {
       const sendFormInterfaceId =
-        stateValue?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
+        stateValue.mapInterfaceNameToId[SEND_FORM_INTERFACE_NAME];
 
       // If the interface is open, update the context
       if (sendFormInterfaceId) {

@@ -239,10 +239,7 @@ export class TransactionsService {
         newTransactionsByAccount,
       });
 
-      await this.#state.update((oldState) => ({
-        ...oldState,
-        transactions: updatedTransactionsByAccount,
-      }));
+      await this.#state.set('transactions', updatedTransactionsByAccount);
     } catch (error) {
       this.#logger.error(
         '[TransactionsService] Error. Releasing lock...',

@@ -238,15 +238,7 @@ export class AssetsService {
     }
     const result = Object.fromEntries(balances.entries());
 
-    await this.#state.update((state) => {
-      return {
-        ...state,
-        assets: {
-          ...(state?.assets ?? {}),
-          [account.id]: result,
-        },
-      };
-    });
+    await this.#state.set(`assets.${account.id}`, result);
 
     return result;
   }
@@ -329,13 +321,7 @@ export class AssetsService {
           },
         });
 
-        await this.#state.update((_state) => ({
-          ..._state,
-          assets: {
-            ..._state.assets,
-            [account.id]: accountBalances,
-          },
-        }));
+        await this.#state.set(`assets.${account.id}`, accountBalances);
       }
     }
   }

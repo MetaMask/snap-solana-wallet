@@ -39,11 +39,7 @@ import { validation } from './validation';
  */
 async function onBackButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
-  await state.update((_state) => {
-    delete _state?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
-
-    return _state;
-  });
+  await state.delete(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
 }
 
 /**
@@ -372,11 +368,7 @@ async function onClearButtonClick({
  */
 async function onCancelButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
-  await state.update((_state) => {
-    delete _state?.mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
-
-    return _state;
-  });
+  await state.delete(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
 }
 
 /**

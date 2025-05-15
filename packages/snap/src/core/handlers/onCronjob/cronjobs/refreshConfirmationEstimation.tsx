@@ -19,7 +19,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
     const stateValue = await state.get();
     const confirmationInterfaceId =
-      stateValue?.mapInterfaceNameToId?.[
+      stateValue.mapInterfaceNameToId[
         CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME
       ];
 

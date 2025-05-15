@@ -201,15 +201,10 @@ export async function render(
     updatedContext2,
   );
 
-  await state.update((_state) => {
-    return {
-      ..._state,
-      mapInterfaceNameToId: {
-        ...(_state?.mapInterfaceNameToId ?? {}),
-        [CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME]: id,
-      },
-    };
-  });
+  await state.set(
+    `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
+    id,
+  );
 
   return dialogPromise;
 }

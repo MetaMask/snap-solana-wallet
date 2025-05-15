@@ -169,15 +169,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   await updateInterface(id, <Send context={context} />, context);
 
-  await state.update((_state) => {
-    return {
-      ..._state,
-      mapInterfaceNameToId: {
-        ...(_state?.mapInterfaceNameToId ?? {}),
-        [SEND_FORM_INTERFACE_NAME]: id,
-      },
-    };
-  });
+  await state.set(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`, id);
 
   return dialogPromise;
 };
