@@ -27,6 +27,7 @@ const dappPermissions = isDev
       // RPC methods
       RpcRequestMethod.StartSendTransactionFlow,
       RpcRequestMethod.GetFeeForTransaction,
+      RpcRequestMethod.GetMinimumBalanceForRentExemption,
       // Protocol methods
       SolanaProtocolRequestMethod.GetGenesisHash,
       SolanaProtocolRequestMethod.GetLatestBlockhash,
@@ -48,6 +49,7 @@ const metamaskPermissions = new Set([
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
   RpcRequestMethod.GetFeeForTransaction,
+  RpcRequestMethod.GetMinimumBalanceForRentExemption,
   // Protocol methods
   SolanaProtocolRequestMethod.GetGenesisHash,
   SolanaProtocolRequestMethod.GetLatestBlockhash,

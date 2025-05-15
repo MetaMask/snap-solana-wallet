@@ -269,6 +269,16 @@ export const GetFeeForTransactionResponseStruct = object({
   value: nullable(PositiveNumberStringStruct),
 });
 
+export const GetMinimumBalanceForRentExemptionParamsStruct = object({
+  scope: enums(Object.values(Network)),
+  accountSize: nullable(PositiveNumberStringStruct),
+});
+
+export const GetMinimumBalanceForRentExemptionResponseStruct = object({
+  value: nullable(PositiveNumberStringStruct),
+});
+
+
 /**
  * Validates if a string is Base58 encoded.
  * Base58 uses alphanumeric characters excluding 0, O, I, and l.
