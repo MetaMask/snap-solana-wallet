@@ -217,7 +217,7 @@ export class StateCache implements ICache<Serializable | undefined> {
     }
 
     if (entries.length === 1) {
-      assert(entries[0]); // Enfore type narrowing as TS cannot infer that entries[0] is defined
+      assert(entries[0]); // Enforce type narrowing as TS cannot infer that entries[0] is defined
       const { key, value, ttlMilliseconds } = entries[0];
       await this.set(key, value, ttlMilliseconds);
       return;
