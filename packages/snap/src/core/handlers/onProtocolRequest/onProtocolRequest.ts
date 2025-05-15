@@ -8,6 +8,7 @@ import { NetworkStruct } from '../../validation/structs';
 import {
   SolanaGetGenesisHashRequestStruct,
   SolanaGetLatestBlockhashRequestStruct,
+  SolanaGetMinimumBalanceForRentExemptionRequestStruct,
   SolanaProtocolRequestMethod,
 } from './structs';
 
@@ -29,6 +30,18 @@ export const onProtocolRequest: OnProtocolRequestHandler = async ({
         .getLatestBlockhash()
         .send();
       return latestBlockhash.value.blockhash;
+
+    case SolanaProtocolRequestMethod.GetMinimumBalanceForRentExemption:
+      assert(request, SolanaGetMinimumBalanceForRentExemptionRequestStruct);
+      const minimumBalance = await connection
+        .getRpc(scope)
+        .getMinimumBalanceForRentExemption(
+          BigInt(request.params[0]),
+          request.params[1],
+        )
+        .send();
+
+      return minimumBalance.toString();
 
     default:
       throw new Error(`Unsupported method: ${request.method}`);
