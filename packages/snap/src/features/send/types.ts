@@ -73,4 +73,5 @@ export type SendContext = {
     link?: string;
   } | null;
   minimumBalanceForRentExemptionSol: string;
+  loading: boolean;
 };

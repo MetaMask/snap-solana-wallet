@@ -65,17 +65,19 @@ export const TransactionAlert: SnapComponent<TransactionAlertProps> = ({
   /**
    * Displays a warning banner if the transaction scan fails.
    */
-  if (error?.code) {
+  if (error) {
     return (
       <Banner
         title={translate('confirmation.simulationErrorTitle')}
         severity="warning"
       >
-        <Text>
-          {translate('confirmation.simulationErrorSubtitle', {
-            reason: error.code,
-          })}
-        </Text>
+        {error?.code ? (
+          <Text>
+            {translate('confirmation.simulationErrorSubtitle', {
+              reason: error.code,
+            })}
+          </Text>
+        ) : null}
       </Banner>
     );
   }

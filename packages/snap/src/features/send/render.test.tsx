@@ -150,6 +150,7 @@ const mockContext: SendContext = {
     [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
   },
   tokenPrices: mockSpotPrices,
+  loading: false,
 };
 
 describe('Send', () => {

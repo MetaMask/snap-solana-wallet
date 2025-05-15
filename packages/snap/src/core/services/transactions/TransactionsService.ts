@@ -202,6 +202,8 @@ export class TransactionsService {
         return;
       }
 
+      const scopes = this.#configProvider.get().activeNetworks;
+
       const transactionsByAccount =
         (await this.#state.getKey<UnencryptedStateValue['transactions']>(
           'transactions',
@@ -212,12 +214,14 @@ export class TransactionsService {
       );
 
       const newSignaturesMapping = await this.#collectNewTransactionSignatures({
+        scopes,
         accounts,
         existingSignatures,
       });
 
       const newTransactionsByAccount =
         await this.#fetchAndMapTransactionsPerAccount({
+          scopes,
           accounts,
           newSignaturesMapping,
         });

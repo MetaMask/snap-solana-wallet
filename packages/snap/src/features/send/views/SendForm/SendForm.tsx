@@ -47,6 +47,7 @@ export const SendForm = ({
     tokenPricesFetchStatus,
     buildingTransaction,
     error,
+    loading,
     preferences: { locale, currency },
   } = context;
 
@@ -151,6 +152,7 @@ export const SendForm = ({
           <Box>{null}</Box>
           <ToAddressField
             locale={locale}
+            disabled={loading}
             name={SendFormNames.DestinationAccountInput}
             value={inputToAddress ?? null}
             showClearButton={showClearAddressButton}
@@ -195,13 +197,14 @@ export const SendForm = ({
                 ) : (
                   <Box>{null}</Box>
                 )}
-                <Button
+                {/* TODO: Temporary disabled max amount button as a quick fix for https://github.com/MetaMask/metamask-extension/issues/32299 */}
+                {/* <Button
                   size="sm"
                   name={SendFormNames.MaxAmountButton}
                   disabled={balanceUndefinedOrZero}
                 >
                   {translate('send.maxButton')}
-                </Button>
+                </Button> */}
               </Box>
             </Box>
           )}

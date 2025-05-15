@@ -34,7 +34,7 @@ import {
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
-import { SolanaKeyring } from './Keyring';
+import { asStrictKeyringAccount, SolanaKeyring } from './Keyring';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   ...jest.requireActual('@metamask/keyring-snap-sdk'),
@@ -439,7 +439,7 @@ describe('SolanaKeyring', () => {
           derivationPath: existingAccount.derivationPath,
         });
 
-        expect(account).toEqual(existingAccount);
+        expect(account).toEqual(asStrictKeyringAccount(existingAccount));
         expect(stateUpdateSpy).not.toHaveBeenCalled();
       });
     });
@@ -489,7 +489,7 @@ describe('SolanaKeyring', () => {
           derivationPath: existingAccount.derivationPath,
         });
 
-        expect(account).toEqual(existingAccount);
+        expect(account).toEqual(asStrictKeyringAccount(existingAccount));
         expect(stateUpdateSpy).not.toHaveBeenCalled();
       });
     });
