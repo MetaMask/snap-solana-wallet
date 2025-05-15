@@ -4,6 +4,9 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
   /**
    * Gets the whole state object.
    *
+   * ⚠️ WARNING: Use with caution because it transfers the whole state, which might contain a lot of data.
+   * If you need to retrieve only a specific part of the state, use {@link IStateManager.getKey} instead.
+   *
    * @example
    * ```typescript
    * // state is { users: [ { name: 'Alice', age: 20 }, { name: 'Bob', age: 25 } ], countries: ['Spain', 'France'] }
@@ -13,6 +16,22 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
    * ```
    */
   get(): Promise<TStateValue>;
+  /**
+   * Gets the value of passed key in the state object.
+   * The key is the json path to the value to get.
+   *
+   * @example
+   * ```typescript
+   *  // state is { users: [ { name: 'Alice', age: 20 }, { name: 'Bob', age: 25 } ], countries: ['Spain', 'France'] }
+   *
+   * const value = await stateManager.getKey('users.1.name');
+   * // value is 'Bob'
+   *
+   * @returns The value of the key, or undefined if the key does not exist.
+   */
+  getKey<TResponse extends Serializable>(
+    key: string,
+  ): Promise<TResponse | undefined>;
   /**
    * Sets the value of passed key in the state object.
    * The key is a json path to the value to set.
@@ -37,11 +56,11 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
    * - Performance: Making multiple individual `state.set` or `state.delete` calls would require multiple round trips to the state storage system, causing potential overheads.
    * - State Consistency: Maintains better state consistency by reading the state once, making all modifications in memory and writing the complete updated state back.
    *
-   * WARNING: Use with caution because:
+   * ⚠️ WARNING: Use with caution because:
    * - it will override the whole state.
    * - it transfers the whole state to the snap, which might contain a lot of data.
    *
-   * If not for bulk updates, prefer using `state.set` or `state.delete` for each key.
+   * For single updates, use instead {@link IStateManager.set} or {@link IStateManager.delete}.
    *
    * @param updaterFunction - The function that updates the state.
    * @returns The updated state.

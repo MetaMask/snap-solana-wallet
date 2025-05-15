@@ -314,17 +314,11 @@ describe('AssetsService', () => {
 
     it('emits events when assets list changes', async () => {
       // Mock initial state
-      jest.spyOn(mockState, 'get').mockResolvedValueOnce({
-        assets: {
-          [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
-            [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-          },
+      jest.spyOn(mockState, 'getKey').mockResolvedValueOnce({
+        [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
+          [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
         },
-        keyringAccounts: {
-          [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[0],
-          [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: MOCK_SOLANA_KEYRING_ACCOUNTS[1],
-        },
-      } as unknown as UnencryptedStateValue);
+      });
 
       // Mock new assets being discovered for both accounts
       jest

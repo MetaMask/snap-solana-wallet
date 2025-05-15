@@ -79,6 +79,24 @@ export class State<TStateValue extends Record<string, Serializable>>
     return stateWithDefaults;
   }
 
+  async getKey<TResponse extends Serializable>(
+    key: string,
+  ): Promise<TResponse | undefined> {
+    const value = await snap.request({
+      method: 'snap_getState',
+      params: {
+        key,
+        encrypted: this.#config.encrypted,
+      },
+    });
+
+    if (value === null) {
+      return undefined;
+    }
+
+    return deserialize(value) as TResponse;
+  }
+
   async set(key: string, value: Serializable): Promise<void> {
     await snap.request({
       method: 'snap_setState',

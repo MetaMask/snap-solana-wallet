@@ -3,6 +3,7 @@ import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 import { ConfirmTransactionRequest } from '../../../../features/confirmation/views/ConfirmTransactionRequest/ConfirmTransactionRequest';
 import type { ConfirmTransactionRequestContext } from '../../../../features/confirmation/views/ConfirmTransactionRequest/types';
 import { state, transactionScanService } from '../../../../snapContext';
+import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
   getInterfaceContextOrThrow,
@@ -17,11 +18,13 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       `[${CronjobMethod.RefreshConfirmationEstimation}] Cronjob triggered`,
     );
 
-    const stateValue = await state.get();
+    const mapInterfaceNameToId =
+      (await state.getKey<UnencryptedStateValue['mapInterfaceNameToId']>(
+        'mapInterfaceNameToId',
+      )) ?? {};
+
     const confirmationInterfaceId =
-      stateValue.mapInterfaceNameToId[
-        CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME
-      ];
+      mapInterfaceNameToId[CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME];
 
     // Update the interface context with the new rates.
     try {

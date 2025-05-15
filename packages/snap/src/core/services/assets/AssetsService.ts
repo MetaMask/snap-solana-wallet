@@ -257,14 +257,16 @@ export class AssetsService {
       `[AssetsService] Refreshing assets for ${accounts.length} accounts`,
     );
 
-    const currentState = await this.#state.get();
+    const assets =
+      (await this.#state.getKey<UnencryptedStateValue['assets']>('assets')) ??
+      {};
 
     for (const account of accounts) {
       this.#logger.log(
         `[AssetsService] Fetching all assets for ${account.address} in all networks`,
       );
       const accountAssets = await this.listAccountAssets(account);
-      const previousAssets = currentState.assets[account.id];
+      const previousAssets = assets[account.id];
       const previousCaip19Assets = Object.keys(previousAssets ?? {});
       const currentCaip19Assets = accountAssets ?? {};
 
@@ -296,7 +298,7 @@ export class AssetsService {
         accountAssets,
       );
 
-      const previousBalances = currentState.assets[account.id];
+      const previousBalances = assets[account.id];
 
       // Check if balances have changed
       const {

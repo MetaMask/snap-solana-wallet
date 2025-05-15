@@ -68,20 +68,14 @@ describe('render', () => {
         return res.json(MOCK_SECURITY_ALERTS_API_SCAN_TRANSACTIONS_RESPONSE);
       });
 
-      const { onKeyringRequest, mockJsonRpc } = await installSnap();
-
-      mockJsonRpc({
-        method: 'snap_getState',
-        result: {
-          keyringAccounts: {
-            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-              ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-              scopes: [Network.Localnet],
-            },
-            [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
+      const initialState = {
+        keyringAccounts: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+            ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+            scopes: [Network.Localnet],
           },
         },
-      });
+      };
 
       const mockPreferences: Preferences = {
         locale: 'en',
@@ -96,9 +90,11 @@ describe('render', () => {
         useNftDetection: true,
       };
 
-      mockJsonRpc({
-        method: 'snap_getPreferences',
-        result: mockPreferences,
+      const { onKeyringRequest, mockJsonRpc } = await installSnap({
+        options: {
+          ...mockPreferences,
+          unencryptedState: initialState,
+        },
       });
 
       mockJsonRpc({
@@ -169,20 +165,16 @@ describe('render', () => {
   describe('when all preferences are disabled', () => {
     it('renders the confirmation dialog', async () => {
       const { mockResolvedResult } = mockSolanaRpc;
-      const { onKeyringRequest, mockJsonRpc } = await installSnap();
 
-      mockJsonRpc({
-        method: 'snap_getState',
-        result: {
-          keyringAccounts: {
-            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-              ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-              scopes: [Network.Localnet],
-            },
-            [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
+      const initialState = {
+        keyringAccounts: {
+          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+            ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+            scopes: [Network.Localnet],
           },
+          [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
         },
-      });
+      };
 
       const mockPreferences: Preferences = {
         locale: 'en',
@@ -197,9 +189,11 @@ describe('render', () => {
         useNftDetection: true,
       };
 
-      mockJsonRpc({
-        method: 'snap_getPreferences',
-        result: mockPreferences,
+      const { onKeyringRequest, mockJsonRpc } = await installSnap({
+        options: {
+          ...mockPreferences,
+          unencryptedState: initialState,
+        },
       });
 
       mockJsonRpc({

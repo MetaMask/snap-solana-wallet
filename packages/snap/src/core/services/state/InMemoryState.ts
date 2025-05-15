@@ -1,4 +1,4 @@
-import { set, unset } from 'lodash';
+import { get, set, unset } from 'lodash';
 
 import type { Serializable } from '../../serialization/types';
 import type { IStateManager } from './IStateManager';
@@ -17,6 +17,14 @@ export class InMemoryState<TStateValue extends Record<string, Serializable>>
 
   async get(): Promise<TStateValue> {
     return this.#state;
+  }
+
+  async getKey<TResponse extends Serializable>(
+    key: string,
+  ): Promise<TResponse | undefined> {
+    const value = get(this.#state, key);
+
+    return value as TResponse | undefined;
   }
 
   async set(key: string, value: Serializable): Promise<void> {

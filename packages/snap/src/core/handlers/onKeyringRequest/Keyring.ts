@@ -107,8 +107,10 @@ export class SolanaKeyring implements Keyring {
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
-      const currentState = await this.#state.get();
-      const keyringAccounts = currentState?.keyringAccounts ?? {};
+      const keyringAccounts =
+        (await this.#state.getKey<UnencryptedStateValue['keyringAccounts']>(
+          'keyringAccounts',
+        )) ?? {};
 
       return sortBy(Object.values(keyringAccounts), ['entropySource', 'index']);
     } catch (error: any) {
@@ -123,17 +125,18 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, GetAccountStruct);
 
-      const currentState = await this.#state.get();
-      const keyringAccounts = currentState?.keyringAccounts ?? {};
+      const account = await this.#state.getKey<SolanaKeyringAccount>(
+        `keyringAccounts.${accountId}`,
+      );
 
-      if (!keyringAccounts[accountId]) {
+      if (!account) {
         throw new Error(`Account "${accountId}" not found`);
       }
 
-      return keyringAccounts?.[accountId];
+      return account;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account');
-      throw error;
+      throw new Error('Error getting account');
     }
   }
 
@@ -486,8 +489,10 @@ export class SolanaKeyring implements Keyring {
         throw new Error('Account not found');
       }
 
-      const currentState = await this.#state.get();
-      const allTransactions = currentState?.transactions?.[accountId] ?? [];
+      const allTransactions =
+        (await this.#state.getKey<Transaction[]>(
+          `transactions.${accountId}`,
+        )) ?? [];
 
       /**
        * If we don't have any transactions, we might need to bootstrap them as this may be the first call.

@@ -151,22 +151,19 @@ export class StateCache implements ICache<Serializable | undefined> {
   }
 
   async keys(): Promise<string[]> {
-    const stateValue = await this.#state.get();
-    const cacheStore = stateValue[this.prefix];
+    const cacheStore = await this.#state.getKey(this.prefix);
 
     return Object.keys(cacheStore ?? {});
   }
 
   async size(): Promise<number> {
-    const stateValue = await this.#state.get();
-    const cacheStore = stateValue[this.prefix];
+    const cacheStore = await this.#state.getKey(this.prefix);
 
     return Object.keys(cacheStore ?? {}).length;
   }
 
   async peek(key: string): Promise<Serializable | undefined> {
-    const stateValue = await this.#state.get();
-    const cacheStore = stateValue[this.prefix];
+    const cacheStore = await this.#state.getKey<CacheStore>(this.prefix);
     const cacheEntry = cacheStore?.[key];
 
     return cacheEntry?.value;
@@ -175,8 +172,7 @@ export class StateCache implements ICache<Serializable | undefined> {
   async mget(
     keys: string[],
   ): Promise<Record<string, Serializable | undefined>> {
-    const stateValue = await this.#state.get();
-    const cacheStore = stateValue[this.prefix];
+    const cacheStore = await this.#state.getKey(this.prefix);
 
     const keysAndValues = Object.entries(cacheStore ?? {}).filter(([key]) =>
       keys.includes(key),

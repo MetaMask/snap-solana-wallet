@@ -202,9 +202,11 @@ export class TransactionsService {
         return;
       }
 
-      const currentState = await this.#state.get();
+      const transactionsByAccount =
+        (await this.#state.getKey<UnencryptedStateValue['transactions']>(
+          'transactions',
+        )) ?? {};
 
-      const transactionsByAccount = currentState.transactions;
       const existingSignatures = this.#mapExistingSignaturesSet(
         transactionsByAccount,
       );

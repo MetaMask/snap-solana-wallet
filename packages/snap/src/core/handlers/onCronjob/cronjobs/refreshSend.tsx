@@ -5,6 +5,7 @@ import { DEFAULT_SEND_CONTEXT } from '../../../../features/send/render';
 import { Send } from '../../../../features/send/Send';
 import type { SendContext } from '../../../../features/send/types';
 import { priceApiClient, state } from '../../../../snapContext';
+import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
   getInterfaceContextOrThrow,
   getPreferences,
@@ -15,15 +16,18 @@ import logger from '../../../utils/logger';
 import { CronjobMethod } from './CronjobMethod';
 
 export const refreshSend: OnCronjobHandler = async () => {
-  const [stateValue, preferences] = await Promise.all([
-    state.get(),
+  const [assets, mapInterfaceNameToId, preferences] = await Promise.all([
+    state.getKey<UnencryptedStateValue['assets']>('assets'),
+    state.getKey<UnencryptedStateValue['mapInterfaceNameToId']>(
+      'mapInterfaceNameToId',
+    ),
     getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),
   ]);
 
   try {
     logger.info(`[${CronjobMethod.RefreshSend}] Cronjob triggered`);
 
-    const assetsFromAllAccounts = Object.values(stateValue.assets).flatMap(
+    const assetsFromAllAccounts = Object.values(assets ?? {}).flatMap(
       (accountAssets) => Object.keys(accountAssets),
     ) as CaipAssetType[];
 
@@ -51,7 +55,7 @@ export const refreshSend: OnCronjobHandler = async () => {
 
     try {
       const sendFormInterfaceId =
-        stateValue.mapInterfaceNameToId[SEND_FORM_INTERFACE_NAME];
+        mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
 
       // If the interface is open, update the context
       if (sendFormInterfaceId) {

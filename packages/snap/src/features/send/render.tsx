@@ -82,28 +82,24 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     tokenCaipId,
   };
 
-  /**
-   * 1. Get the current state (from snap)
-   * 2. Get the accounts (from state)
-   * 3. Get the preferences (from state)
-   * 4. Get the token prices (from state)
-   */
-  const [currentState, preferences] = await Promise.all([
+  const [stateValue, preferences] = await Promise.all([
     state.get(),
     getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),
   ]);
 
+  const { assets, keyringAccounts, tokenPrices } = stateValue;
+
   context.balances = getBalancesInScope({
     scope,
-    balances: currentState.assets,
+    balances: assets,
   });
 
-  const accountBalances = currentState.assets[context.fromAccountId] ?? {};
+  const accountBalances = assets[context.fromAccountId] ?? {};
   context.assets = Object.keys(accountBalances) as CaipAssetType[];
 
-  context.accounts = Object.values(currentState.keyringAccounts);
+  context.accounts = Object.values(keyringAccounts);
   context.preferences = preferences;
-  context.tokenPrices = currentState.tokenPrices ?? {};
+  context.tokenPrices = tokenPrices ?? {};
 
   const id = await createInterface(<Send context={context} />, context);
 

@@ -151,6 +151,28 @@ describe('State', () => {
     });
   });
 
+  describe('getKey', () => {
+    it('calls the snap_getState method with the correct parameters', async () => {
+      const mockUnderlyingState = DEFAULT_STATE;
+      snap.request.mockResolvedValue(mockUnderlyingState);
+
+      await state.getKey('users.1.name');
+
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_getState',
+        params: { key: 'users.1.name', encrypted: false },
+      });
+    });
+
+    it('returns undefined if the key does not exist', async () => {
+      snap.request.mockResolvedValue(null);
+
+      const value = await state.getKey('users.1.name');
+
+      expect(value).toBeUndefined();
+    });
+  });
+
   describe('update', () => {
     it('updates the state', async () => {
       await state.update((currentState) => ({

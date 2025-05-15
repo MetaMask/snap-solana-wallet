@@ -172,23 +172,16 @@ describe('Send', () => {
       return res.json(mockSpotPrices);
     });
 
-    const { request, mockJsonRpc } = await installSnap({
-      options: { secretRecoveryPhrase: MOCK_SEED_PHRASE },
-    });
-
-    mockJsonRpc({
-      method: 'snap_getState',
-      result: {
-        keyringAccounts: {
-          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
-          [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
-        },
-        assets: {
-          [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
-          [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
-        },
+    const initialState = {
+      keyringAccounts: {
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
       },
-    });
+      assets: {
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
+        [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
+      },
+    };
 
     const mockPreferences: Preferences = {
       locale: 'en',
@@ -203,16 +196,11 @@ describe('Send', () => {
       useNftDetection: true,
     };
 
-    mockJsonRpc({
-      method: 'snap_getPreferences',
-      result: mockPreferences,
-    });
-
-    mockJsonRpc({
-      method: 'snap_manageAccounts',
-      result: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
+    const { request, mockJsonRpc } = await installSnap({
+      options: {
+        ...mockPreferences,
+        secretRecoveryPhrase: MOCK_SEED_PHRASE,
+        unencryptedState: initialState,
       },
     });
 
