@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.29.0]
 
-### Uncategorized
+### Changed
 
-- fix(send): loading button while fetching icon ([#361](https://github.com/MetaMask/snap-solana-wallet/pull/361))
-- Nnt 328 snap performance move from manage state to get set state ([#359](https://github.com/MetaMask/snap-solana-wallet/pull/359))
+- `snap_manageState` to `snap_setState` ([#359](https://github.com/MetaMask/snap-solana-wallet/pull/359))
+
+### Fixed
+
+- Transaction confirmation loading button while fetching icon ([#361](https://github.com/MetaMask/snap-solana-wallet/pull/361))
 
 ## [1.28.3]
 
