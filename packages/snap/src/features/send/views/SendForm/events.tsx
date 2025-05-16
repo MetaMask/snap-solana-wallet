@@ -376,6 +376,7 @@ async function onSendButtonClick({
 
   const updatedContext: SendContext = { ...context };
   updatedContext.stage = 'transaction-confirmation';
+  updatedContext.loading = true;
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
@@ -405,13 +406,11 @@ async function onSendButtonClick({
           imageSvg: tokenImage,
         }
       : null;
-
-    await updateInterface(
-      id,
-      <Send context={updatedContext} />,
-      updatedContext,
-    );
   }
+
+  updatedContext.loading = false;
+
+  await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
   // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
   await snap.request({

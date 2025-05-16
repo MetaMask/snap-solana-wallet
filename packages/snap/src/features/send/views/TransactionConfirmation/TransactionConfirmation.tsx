@@ -62,7 +62,11 @@ export const TransactionConfirmation = ({
         <Button name={TransactionConfirmationNames.CancelButton}>
           {translate('send.confirmation.cancelButton')}
         </Button>
-        <Button name={TransactionConfirmationNames.ConfirmButton}>
+        <Button
+          name={TransactionConfirmationNames.ConfirmButton}
+          loading={context.loading}
+          disabled={context.loading}
+        >
           {translate('send.confirmation.sendButton')}
         </Button>
       </Footer>
