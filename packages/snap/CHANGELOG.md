@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.29.0]
+
+### Uncategorized
+
+- fix(send): loading button while fetching icon ([#361](https://github.com/MetaMask/snap-solana-wallet/pull/361))
+- Nnt 328 snap performance move from manage state to get set state ([#359](https://github.com/MetaMask/snap-solana-wallet/pull/359))
+
 ## [1.28.3]
 
 ### Fixed
@@ -547,7 +554,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.3...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.29.0...HEAD
+[1.29.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.3...v1.29.0
 [1.28.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.2...v1.28.3
 [1.28.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.1...v1.28.2
 [1.28.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.0...v1.28.1
