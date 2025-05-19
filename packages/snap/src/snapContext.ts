@@ -13,6 +13,7 @@ import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { SendSolBuilder } from './core/services/execution/builders/SendSolBuilder';
 import { SendSplTokenBuilder } from './core/services/execution/builders/SendSplTokenBuilder';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
+import { NftService } from './core/services/nft/NftService';
 import type { IStateManager } from './core/services/state/IStateManager';
 import type { UnencryptedStateValue } from './core/services/state/State';
 import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
@@ -44,6 +45,7 @@ export type SnapExecutionContext = {
   analyticsService: AnalyticsService;
   confirmationHandler: ConfirmationHandler;
   cache: ICache<Serializable>;
+  nftService: NftService;
 };
 
 const configProvider = new ConfigProvider();
@@ -109,6 +111,8 @@ const keyring = new SolanaKeyring({
 
 const tokenPricesService = new TokenPricesService(priceApiClient);
 
+const nftService = new NftService(connection, logger);
+
 const snapContext: SnapExecutionContext = {
   configProvider,
   connection,
@@ -127,6 +131,7 @@ const snapContext: SnapExecutionContext = {
   transactionScanService,
   analyticsService,
   confirmationHandler,
+  nftService,
 };
 
 export {
@@ -136,6 +141,7 @@ export {
   confirmationHandler,
   connection,
   keyring,
+  nftService,
   priceApiClient,
   sendSolBuilder,
   sendSplTokenBuilder,
