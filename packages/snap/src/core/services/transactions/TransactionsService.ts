@@ -156,8 +156,7 @@ export class TransactionsService {
   async fetchLatestSignatures(
     scope: Network,
     address: Address,
-    limit?: number,
-    minContextSlot?: bigint,
+    limit: number,
   ): Promise<Signature[]> {
     this.#logger.log(
       `[TransactionsService.fetchAllSignatures] Fetching all signatures for ${address} on ${scope}`,
@@ -166,8 +165,7 @@ export class TransactionsService {
     const signatureResponses = await this.#connection
       .getRpc(scope)
       .getSignaturesForAddress(address, {
-        ...(minContextSlot ? { minContextSlot } : {}),
-        ...(limit ? { limit } : {}),
+        limit,
       })
       .send();
     const signatures = signatureResponses.map(({ signature }) => signature);

@@ -41,8 +41,6 @@ export const refreshAccounts: OnCronjobHandler = async () => {
         `[refreshAccounts] Latest signature for account ${account.address} is ${latestSignature}`,
       );
 
-      console.log(JSON.stringify(signatures));
-
       return {
         account,
         didChange:
@@ -53,11 +51,6 @@ export const refreshAccounts: OnCronjobHandler = async () => {
 
     const accountsWithChangeCheck = await Promise.all(
       accountsWithChangeCheckPromises,
-    );
-
-    console.log(
-      '[refreshAccounts] accountsWithChangeCheck',
-      accountsWithChangeCheck,
     );
 
     const accountsWithChanges = accountsWithChangeCheck
