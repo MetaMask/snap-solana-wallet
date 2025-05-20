@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.30.1]
 
-### Uncategorized
+### Fixed
 
-- Fix/nft ([#369](https://github.com/MetaMask/snap-solana-wallet/pull/369))
+- Rollback `fungible` check ([#369](https://github.com/MetaMask/snap-solana-wallet/pull/369))
 
 ## [1.30.0]
 
