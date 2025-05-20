@@ -61,16 +61,9 @@
           }
         },
         {
-          "expression": "* * * * *",
+          "expression": "*/5 * * * *",
           "request": {
-            "method": "refreshTransactions",
-            "params": {}
-          }
-        },
-        {
-          "expression": "* * * * *",
-          "request": {
-            "method": "refreshAssets",
+            "method": "refreshAccounts",
             "params": {}
           }
         }

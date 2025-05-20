@@ -96,6 +96,13 @@ export class TransactionsService {
         .send()
     ).map(({ signature }) => signature);
 
+    const existingSinatures =
+      (await this.#state.getKey<Signature[]>(`signatures.${address}`)) ?? [];
+
+    await this.#state.setKey(`signatures.${address}`, [
+      ...new Set([...existingSinatures, ...signatures]),
+    ]);
+
     /**
      * Now fetch their transaction data
      */
@@ -149,7 +156,8 @@ export class TransactionsService {
   async fetchLatestSignatures(
     scope: Network,
     address: Address,
-    limit: number,
+    limit?: number,
+    minContextSlot?: bigint,
   ): Promise<Signature[]> {
     this.#logger.log(
       `[TransactionsService.fetchAllSignatures] Fetching all signatures for ${address} on ${scope}`,
@@ -158,10 +166,18 @@ export class TransactionsService {
     const signatureResponses = await this.#connection
       .getRpc(scope)
       .getSignaturesForAddress(address, {
-        limit,
+        ...(minContextSlot ? { minContextSlot } : {}),
+        ...(limit ? { limit } : {}),
       })
       .send();
     const signatures = signatureResponses.map(({ signature }) => signature);
+
+    const existingSinatures =
+      (await this.#state.getKey<Signature[]>(`signatures.${address}`)) ?? [];
+
+    await this.#state.setKey(`signatures.${address}`, [
+      ...new Set([...existingSinatures, ...signatures]),
+    ]);
 
     return signatures;
   }
