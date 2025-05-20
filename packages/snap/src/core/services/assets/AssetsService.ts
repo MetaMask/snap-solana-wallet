@@ -254,7 +254,7 @@ export class AssetsService {
     // Else, it's a SPL token
     const mintAddress = asAddress(parseCaipAssetType(asset).assetReference);
 
-    // Get the mint account and store it in the cache. Its data doesn't often.
+    // Get the mint account and store it in the cache. Its data doesn't change often.
     const mintAccount = await useCache(fetchMint, this.#cache, {
       functionName: 'fetchMint',
       ttlMilliseconds: AssetsService.cacheTtlsMilliseconds.mintAccount,
