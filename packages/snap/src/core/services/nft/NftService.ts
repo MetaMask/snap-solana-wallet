@@ -38,6 +38,7 @@ export class NftService {
     const { tokenAmount } = token;
     const { decimals } = tokenAmount;
 
-    return decimals === 0;
+    // return decimals === 0;
+    return true;
   }
 }
