@@ -148,7 +148,7 @@ describe('SolanaKeyring', () => {
     it('calls the assets service', async () => {
       jest
         .spyOn(mockAssetsService, 'listAccountAssets')
-        .mockResolvedValue([SOLANA_MOCK_TOKEN.address]);
+        .mockResolvedValue([SOLANA_MOCK_TOKEN.assetType]);
 
       await keyring.listAccountAssets(MOCK_SOLANA_KEYRING_ACCOUNT_0.id);
 

@@ -1,12 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
+import { fetchMint, fetchToken } from '@solana-program/token';
 
+import { KnownCaip19Id, Network } from '../../constants/solana';
 import {
-  KnownCaip19Id,
-  Network,
-  SolanaCaip19Tokens,
-} from '../../constants/solana';
-import {
+  MOCK_FETCH_MINT_RESPONSES,
   SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN,
   SOLANA_MOCK_TOKEN_METADATA,
@@ -30,6 +29,12 @@ import { AssetsService } from './AssetsService';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   emitSnapKeyringEvent: jest.fn(),
+}));
+
+jest.mock('@solana-program/token', () => ({
+  ...jest.requireActual('@solana-program/token'),
+  fetchMint: jest.fn(),
+  fetchToken: jest.fn(),
 }));
 
 describe('AssetsService', () => {
@@ -78,9 +83,9 @@ describe('AssetsService', () => {
       const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
       const assets = await assetsService.listAccountAssets(mockAccount);
       expect(assets).toStrictEqual([
-        SOLANA_MOCK_TOKEN.address,
-        ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.address),
-        ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.address),
+        SOLANA_MOCK_TOKEN.assetType,
+        ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.assetType),
+        ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.assetType),
       ]);
     });
   });
@@ -90,61 +95,35 @@ describe('AssetsService', () => {
       const { address } = MOCK_SOLANA_KEYRING_ACCOUNT_1;
       const scope = Network.Localnet;
 
-      const mockSend = jest.fn().mockReturnValue({
+      // First send is when we getTokenAccountsByOwner for programId: TOKEN_PROGRAM_ADDRESS
+      const mockFirstSend = jest.fn().mockReturnValue({
         context: {
           slot: 302900219n,
         },
-        value: [
-          ...MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value,
-          // adding a 0 balance token to the response in purpose
-          // to test the filtering of zero balance tokens
-          {
-            account: {
-              data: {
-                parsed: {
-                  info: {
-                    mint: 'tokenAddress1',
-                    owner: 'owner1',
-                    isNative: false,
-                    tokenAmount: {
-                      amount: '0',
-                      decimals: 6,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        ],
+        value:
+          MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value,
+      });
+
+      // First send is when we getTokenAccountsByOwner for programId: TOKEN_2022_PROGRAM_ADDRESS
+      const mockSecondSend = jest.fn().mockResolvedValue({
+        context: {
+          slot: 302900219n,
+        },
+        value: [],
       });
 
       const mockGetTokenAccountsByOwner = jest
         .fn()
-        .mockReturnValue({ send: mockSend });
+        .mockReturnValueOnce({ send: mockFirstSend })
+        .mockReturnValueOnce({ send: mockSecondSend });
+
       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
         getTokenAccountsByOwner: mockGetTokenAccountsByOwner,
       } as any);
 
       const tokens = await assetsService.discoverTokens(address, scope);
 
-      expect(tokens).toStrictEqual([
-        ...SOLANA_MOCK_SPL_TOKENS,
-        {
-          address: 'solana:123456789abcdef/token:tokenAddress1',
-          balance: '0',
-          decimals: 6,
-          native: false,
-          scope: Network.Localnet,
-        },
-        ...SOLANA_MOCK_SPL_TOKENS,
-        {
-          address: 'solana:123456789abcdef/token:tokenAddress1',
-          balance: '0',
-          decimals: 6,
-          native: false,
-          scope: Network.Localnet,
-        },
-      ]);
+      expect(tokens).toStrictEqual(SOLANA_MOCK_SPL_TOKENS);
     });
 
     it('throws an error if the RPC call fails', async () => {
@@ -246,7 +225,7 @@ describe('AssetsService', () => {
   describe('getAccountBalances', () => {
     it('gets account balance', async () => {
       const accountBalance = await assetsService.getAccountBalances(
-        MOCK_SOLANA_KEYRING_ACCOUNT_1,
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
         [KnownCaip19Id.SolLocalnet],
       );
       expect(accountBalance).toStrictEqual({
@@ -258,26 +237,56 @@ describe('AssetsService', () => {
     });
 
     it('gets account and token balances', async () => {
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getBalance: jest.fn().mockReturnValue({
+          send: jest.fn().mockResolvedValue({
+            value: 1250006150n,
+          }),
+        }),
+      } as any);
+
+      jest
+        .mocked(fetchMint)
+        .mockResolvedValueOnce(
+          MOCK_FETCH_MINT_RESPONSES[KnownCaip19Id.UsdcLocalnet]!,
+        )
+        .mockResolvedValueOnce(
+          MOCK_FETCH_MINT_RESPONSES[KnownCaip19Id.Ai16zLocalnet]!,
+        );
+
+      jest
+        .mocked(fetchToken)
+        .mockResolvedValueOnce({
+          data: {
+            amount: 17552148n,
+          },
+        } as any)
+        .mockResolvedValueOnce({
+          data: {
+            amount: 21898077n,
+          },
+        } as any);
+
       const accountBalance = await assetsService.getAccountBalances(
-        MOCK_SOLANA_KEYRING_ACCOUNT_1,
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
         [
-          `${Network.Localnet}/${SolanaCaip19Tokens.SOL}`,
-          `${Network.Localnet}/token:address1`,
-          `${Network.Localnet}/token:address2`,
+          KnownCaip19Id.SolLocalnet,
+          KnownCaip19Id.UsdcLocalnet,
+          KnownCaip19Id.Ai16zLocalnet,
         ],
       );
       expect(accountBalance).toStrictEqual({
-        [`${Network.Localnet}/${SolanaCaip19Tokens.SOL}`]: {
-          amount: '0.123456789',
+        [KnownCaip19Id.SolLocalnet]: {
+          amount: '1.25000615',
           unit: 'SOL',
         },
-        [`${Network.Localnet}/token:address1`]: {
-          amount: '0.123456789',
-          unit: 'MOCK1',
+        [KnownCaip19Id.UsdcLocalnet]: {
+          amount: '17.552148',
+          unit: 'USDC',
         },
-        [`${Network.Localnet}/token:address2`]: {
-          amount: '0.987654321',
-          unit: 'MOCK2',
+        [KnownCaip19Id.Ai16zLocalnet]: {
+          amount: '0.021898077',
+          unit: 'AI16Z',
         },
       });
     });
@@ -293,7 +302,7 @@ describe('AssetsService', () => {
       } as any);
 
       await expect(
-        assetsService.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_1, [
+        assetsService.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_0, [
           KnownCaip19Id.SolMainnet,
         ]),
       ).rejects.toThrow('Error getting assets');

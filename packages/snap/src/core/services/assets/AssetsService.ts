@@ -1,26 +1,29 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Balance } from '@metamask/keyring-api';
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
-import type { GetTransactionApi, JsonParsedTokenAccount } from '@solana/kit';
+import { parseCaipAssetType } from '@metamask/utils';
+import {
+  fetchMint,
+  fetchToken,
+  findAssociatedTokenPda,
+  TOKEN_PROGRAM_ADDRESS,
+} from '@solana-program/token';
+import type { JsonParsedTokenAccount } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 
 import type { Network } from '../../constants/solana';
 import {
-  Networks,
-  SOL_SYMBOL,
   SolanaCaip19Tokens,
-  TOKEN_2022_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ADDRESS,
 } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import type { SolanaAsset } from '../../types/solana';
-import { lamportsToSol } from '../../utils/conversion';
 import { diffArrays } from '../../utils/diffArrays';
 import { diffObjects } from '../../utils/diffObjects';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
-import { getAccountIdFromAddress } from '../../utils/getAccountIdFromAddress';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
@@ -87,9 +90,9 @@ export class AssetsService {
       Promise.all(tokensResponsePromises),
     ]);
 
-    const nativeAssets = nativeResponses.map((response) => response.address);
+    const nativeAssets = nativeResponses.map((response) => response.assetType);
     const tokenAssets = tokensResponses.flatMap((response) =>
-      response.map((token) => token.address),
+      response.map((token) => token.assetType),
     );
     return [...nativeAssets, ...tokenAssets] as CaipAssetType[];
   }
@@ -110,7 +113,7 @@ export class AssetsService {
     assert(response, GetBalanceResponseStruct);
     return {
       scope,
-      address: `${scope}/${SolanaCaip19Tokens.SOL}`,
+      assetType: `${scope}/${SolanaCaip19Tokens.SOL}`,
       balance: response.value.toString(),
       decimals: 9,
       native: true,
@@ -126,7 +129,7 @@ export class AssetsService {
             .getTokenAccountsByOwner(
               asAddress(address),
               {
-                programId: TOKEN_PROGRAM_ID,
+                programId: TOKEN_PROGRAM_ADDRESS,
               },
               {
                 encoding: 'jsonParsed',
@@ -138,7 +141,7 @@ export class AssetsService {
             .getTokenAccountsByOwner(
               asAddress(address),
               {
-                programId: TOKEN_2022_PROGRAM_ID,
+                programId: TOKEN_2022_PROGRAM_ADDRESS,
               },
               {
                 encoding: 'jsonParsed',
@@ -170,7 +173,7 @@ export class AssetsService {
   ): SolanaAsset {
     return {
       scope,
-      address: tokenAddressToCaip19(scope, token.mint),
+      assetType: tokenAddressToCaip19(scope, token.mint),
       balance: token.tokenAmount.amount,
       decimals: token.tokenAmount.decimals,
       native: token.isNative,
@@ -187,60 +190,85 @@ export class AssetsService {
     account: SolanaKeyringAccount,
     assets: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
-    const balances = new Map<CaipAssetType, Balance>();
+    console.log('[💰 getAccountBalances:: started]', account, assets);
 
-    const assetsByNetwork = assets.reduce<Record<Network, CaipAssetType[]>>(
-      (groups, asset) => {
-        const network = getNetworkFromToken(asset);
-        if (!groups[network]) {
-          groups[network] = [];
-        }
-        groups[network].push(asset);
-        return groups;
-      },
-      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
-      {} as Record<Network, CaipAssetType[]>,
+    const tokensMetadata = await this.#tokenMetadataService.getTokensMetadata(
+      assets,
     );
+    console.log('[💰 getAccountBalances:: metadata]', tokensMetadata);
 
-    for (const network of Object.keys(assetsByNetwork)) {
-      const currentNetwork = network as Network;
-      const networkAssets = assetsByNetwork[currentNetwork];
+    const balances: Record<CaipAssetType, Balance> = {};
 
-      const [nativeAsset, tokenAssets] = await Promise.all([
-        this.getNativeAsset(account.address, currentNetwork),
-        this.discoverTokens(account.address, currentNetwork),
-      ]);
+    const promises = assets.map(async (asset) => {
+      const balance = await this.getBalance(account, asset);
+      const metadata = tokensMetadata[asset];
+      const amount = fromTokenUnits(balance, metadata?.units[0]?.decimals ?? 9);
+      const unit = metadata?.symbol ?? 'UNKNOWN';
+      console.log('[💰 getAccountBalances:: balance]', asset, balance);
+      balances[asset] = {
+        amount,
+        unit,
+      };
+    });
 
-      const tokenMetadata = await this.#tokenMetadataService.getTokensMetadata([
-        nativeAsset.address,
-        ...tokenAssets.map((token) => token.address),
-      ]);
+    await Promise.all(promises);
 
-      for (const asset of networkAssets) {
-        if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
-          // update native asset balance
-          balances.set(asset, {
-            amount: lamportsToSol(nativeAsset.balance).toString(),
-            unit: SOL_SYMBOL,
-          });
-        } else {
-          const splToken = tokenAssets.find((token) => token.address === asset);
+    await this.#state.setKey(`assets.${account.id}`, balances);
 
-          // update spl token balance if exist
-          if (splToken) {
-            balances.set(asset, {
-              amount: fromTokenUnits(splToken.balance, splToken.decimals),
-              unit: tokenMetadata[splToken.address]?.symbol ?? 'UNKNOWN',
-            });
-          }
-        }
-      }
+    console.log('[💰 getAccountBalances:: finished]', balances);
+    return balances;
+  }
+
+  /**
+   * Fetches the balance of the given asset (native or SPL token) for the given account.
+   *
+   * @param account - The account to get the balance for.
+   * @param asset - The CAIP-19 type of the asset to get the balance for.
+   * @returns The balance of the asset for the given account, as a bigint.
+   */
+  async getBalance(
+    account: SolanaKeyringAccount,
+    asset: CaipAssetType,
+  ): Promise<bigint> {
+    console.log('[💰 getBalance:: asset]', asset);
+    const accountAddress = asAddress(account.address);
+
+    const network = getNetworkFromToken(asset);
+    const rpc = this.#connection.getRpc(network);
+
+    if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
+      console.log('[💰 getBalance:: isSol]');
+      const response = await this.#connection
+        .getRpc(network)
+        .getBalance(accountAddress)
+        .send();
+
+      return response.value;
     }
-    const result = Object.fromEntries(balances.entries());
 
-    await this.#state.setKey(`assets.${account.id}`, result);
+    // Else, it's a SPL token
+    console.log('[💰 getBalance:: isSplToken]');
+    const mintAddress = asAddress(parseCaipAssetType(asset).assetReference);
+    console.log('[💰 getBalance:: mintAddress]', mintAddress);
 
-    return result;
+    // Get the mint account
+    const mintAccount = await fetchMint(rpc, mintAddress);
+    console.log('[💰 getBalance:: mintAccount]', mintAccount);
+
+    // Get the associated token account address
+    const ataAddress = (
+      await findAssociatedTokenPda({
+        mint: mintAccount.address,
+        owner: accountAddress,
+        tokenProgram: mintAccount.programAddress,
+      })
+    )[0];
+
+    // Get the token account
+    const tokenAccount = await fetchToken(rpc, ataAddress);
+    console.log('[💰 getBalance:: tokenAccount]', tokenAccount);
+
+    return tokenAccount.data.amount;
   }
 
   /**
@@ -326,57 +354,5 @@ export class AssetsService {
         await this.#state.setKey(`assets.${account.id}`, accountBalances);
       }
     }
-  }
-
-  /**
-   * Updates native token balances for accounts based on transaction data.
-   * @param scope - The network scope.
-   * @param transactionData - The transaction data containing balance information.
-   * @param currentAccounts - The current accounts in the keyring.
-   * @param currentBalances - The current balances to update (modified in-place).
-   * @returns The updated balances (same reference as currentBalances).
-   */
-  #updateNativeTokenBalances(
-    scope: Network,
-    transactionData: ReturnType<GetTransactionApi['getTransaction']>,
-    currentAccounts: SolanaKeyringAccount[],
-    currentBalances: Record<string, Record<CaipAssetType, Balance>>,
-  ): Record<string, Record<CaipAssetType, Balance>> {
-    if (!transactionData?.meta) {
-      return currentBalances;
-    }
-    const allAccountAddresses = [
-      ...transactionData.transaction.message.accountKeys,
-      ...(transactionData.meta?.loadedAddresses?.writable ?? []),
-      ...(transactionData.meta?.loadedAddresses?.readonly ?? []),
-    ];
-    const { postBalances, preBalances } = transactionData.meta;
-    for (let i = 0; i < postBalances.length; i++) {
-      const address = allAccountAddresses[i];
-      const preBalance = BigInt(preBalances[i] ?? 0);
-      const postBalance = BigInt(postBalances[i] ?? 0);
-      if (preBalance === postBalance) {
-        continue;
-      }
-      const accountId = getAccountIdFromAddress(
-        currentAccounts,
-        address as string,
-      );
-      if (!accountId) {
-        continue;
-      }
-      const newBalance = lamportsToSol(Number(postBalance)).toString();
-      if (!currentBalances[accountId]) {
-        currentBalances[accountId] = {};
-      }
-      currentBalances[accountId] = {
-        ...currentBalances[accountId],
-        [Networks[scope].nativeToken.caip19Id]: {
-          amount: newBalance,
-          unit: Networks[scope].nativeToken.symbol,
-        },
-      };
-    }
-    return currentBalances;
   }
 }
