@@ -202,12 +202,9 @@ export class AssetsService {
     account: SolanaKeyringAccount,
     assets: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
-    console.log('[💰 getAccountBalances:: started]', account, assets);
-
     const tokensMetadata = await this.#tokenMetadataService.getTokensMetadata(
       assets,
     );
-    console.log('[💰 getAccountBalances:: metadata]', tokensMetadata);
 
     const balances: Record<CaipAssetType, Balance> = {};
 
@@ -216,7 +213,6 @@ export class AssetsService {
       const metadata = tokensMetadata[asset];
       const amount = fromTokenUnits(balance, metadata?.units[0]?.decimals ?? 9);
       const unit = metadata?.symbol ?? 'UNKNOWN';
-      console.log('[💰 getAccountBalances:: balance]', asset, balance);
       balances[asset] = {
         amount,
         unit,
@@ -227,7 +223,6 @@ export class AssetsService {
 
     await this.#state.setKey(`assets.${account.id}`, balances);
 
-    console.log('[💰 getAccountBalances:: finished]', balances);
     return balances;
   }
 
@@ -242,14 +237,12 @@ export class AssetsService {
     account: SolanaKeyringAccount,
     asset: CaipAssetType,
   ): Promise<bigint> {
-    console.log('[💰 getBalance:: asset]', asset);
     const accountAddress = asAddress(account.address);
 
     const network = getNetworkFromToken(asset);
     const rpc = this.#connection.getRpc(network);
 
     if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
-      console.log('[💰 getBalance:: isSol]');
       const response = await this.#connection
         .getRpc(network)
         .getBalance(accountAddress)
@@ -259,9 +252,7 @@ export class AssetsService {
     }
 
     // Else, it's a SPL token
-    console.log('[💰 getBalance:: isSplToken]');
     const mintAddress = asAddress(parseCaipAssetType(asset).assetReference);
-    console.log('[💰 getBalance:: mintAddress]', mintAddress);
 
     // Get the mint account and store it in the cache. Its data doesn't often.
     const mintAccount = await useCache(fetchMint, this.#cache, {
@@ -269,7 +260,6 @@ export class AssetsService {
       ttlMilliseconds: AssetsService.cacheTtlsMilliseconds.mintAccount,
       generateCacheKey: (functionName) => `${functionName}:${asset}`,
     })(rpc, mintAddress);
-    console.log('[💰 getBalance:: mintAccount]', mintAccount);
 
     // Get the associated token account address
     const ataAddress = (
@@ -282,7 +272,6 @@ export class AssetsService {
 
     // Get the token account
     const tokenAccount = await fetchToken(rpc, ataAddress);
-    console.log('[💰 getBalance:: tokenAccount]', tokenAccount);
 
     return tokenAccount.data.amount;
   }
