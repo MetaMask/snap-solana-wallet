@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.29.1]
 
-### Uncategorized
+### Changed
 
-- feat: replace refresh assets and transactions with refresh accounts ([#365](https://github.com/MetaMask/snap-solana-wallet/pull/365))
-- Fix/optimize get account balances ([#364](https://github.com/MetaMask/snap-solana-wallet/pull/364))
-- fix: set correct fungible flag using quick check ([#363](https://github.com/MetaMask/snap-solana-wallet/pull/363))
+- Replace `refreshAssets` and `refreshTransaction` with `refreshAccounts` ([#365](https://github.com/MetaMask/snap-solana-wallet/pull/365))
+- Optimize get account balances ([#364](https://github.com/MetaMask/snap-solana-wallet/pull/364))
+
+### Fixed
+
+- Set correct NFT fungible flag using quick check ([#363](https://github.com/MetaMask/snap-solana-wallet/pull/363))
 
 ## [1.29.0]
 
