@@ -16,7 +16,7 @@
   "send.toRequiredError": "To address is required",
   "send.toInvalidError": "Invalid Solana address",
   "send.insufficientBalance": "Insufficient balance",
-  "send.simulationTitleError": "Transaction simulation failed",
+  "send.simulationTitleError": "Transaction simulation not available",
   "send.simulationMessageError": "This transaction was reverted during simulation.",
   "send.selectedTokenPriceNotAvailable": "Prices for tokens in {currency} are currently not available. You are still able to send tokens.",
   "send.confirmation.title": "Review",
@@ -75,5 +75,7 @@
   "confirmation.signIn.expirationTime": "Expiration time",
   "confirmation.signIn.notBefore": "Not before",
   "confirmation.signIn.requestId": "Request ID",
-  "confirmation.signIn.resources": "Resources"
+  "confirmation.signIn.resources": "Resources",
+  "errors.accountAlreadyInUse": "An account with the same address already exists",
+  "errors.insufficientSol": "Account does not have enough SOL to perform the operation"
 }

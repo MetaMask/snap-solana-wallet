@@ -231,6 +231,12 @@
     },
     "confirmation.signIn.resources": {
       "message": "Resources"
+    },
+    "errors.accountAlreadyInUse": {
+      "message": "An account with the same address already exists"
+    },
+    "errors.insufficientSol": {
+      "message": "Account does not have enough SOL to perform the operation"
     }
   }
 }

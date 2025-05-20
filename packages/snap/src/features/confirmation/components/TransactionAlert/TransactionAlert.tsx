@@ -13,6 +13,7 @@ import type {
   TransactionScanValidation,
 } from '../../../../core/services/transaction-scan/types';
 import type { FetchStatus, Preferences } from '../../../../core/types/snap';
+import { getErrorMessage } from '../../../../core/utils/errorMessages';
 import { i18n } from '../../../../core/utils/i18n';
 
 type TransactionAlertProps = {
@@ -72,12 +73,12 @@ export const TransactionAlert: SnapComponent<TransactionAlertProps> = ({
         severity="warning"
       >
         {error?.code ? (
-          <Text>
-            {translate('confirmation.simulationErrorSubtitle', {
-              reason: error.code,
-            })}
-          </Text>
-        ) : null}
+        <Text>
+        {translate('confirmation.simulationErrorSubtitle', {
+          reason: getErrorMessage(error.code, preferences),
+        })}
+      </Text>
+    ) : null}
       </Banner>
     );
   }
