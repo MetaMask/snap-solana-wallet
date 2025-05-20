@@ -3,7 +3,10 @@ import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { fetchMint, fetchToken } from '@solana-program/token';
 
+import type { ICache } from '../../caching/ICache';
+import { InMemoryCache } from '../../caching/InMemoryCache';
 import { KnownCaip19Id, Network } from '../../constants/solana';
+import type { Serializable } from '../../serialization/types';
 import {
   MOCK_FETCH_MINT_RESPONSES,
   SOLANA_MOCK_SPL_TOKENS,
@@ -44,8 +47,10 @@ describe('AssetsService', () => {
   let mockTokenMetadataService: TokenMetadataService;
   let mockState: IStateManager<UnencryptedStateValue>;
   let stateUpdateSpy: jest.SpyInstance;
+  let mockCache: ICache<Serializable>;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockConnection = createMockConnection();
 
     mockConfigProvider = {
@@ -62,6 +67,8 @@ describe('AssetsService', () => {
 
     mockState = new InMemoryState(DEFAULT_UNENCRYPTED_STATE);
 
+    mockCache = new InMemoryCache();
+
     stateUpdateSpy = jest.spyOn(mockState, 'update');
 
     const snap = {
@@ -75,6 +82,7 @@ describe('AssetsService', () => {
       configProvider: mockConfigProvider,
       state: mockState,
       tokenMetadataService: mockTokenMetadataService,
+      cache: mockCache,
     });
   });
 
@@ -306,6 +314,38 @@ describe('AssetsService', () => {
           KnownCaip19Id.SolMainnet,
         ]),
       ).rejects.toThrow('Error getting assets');
+    });
+
+    it('uses the cache for the mint account', async () => {
+      jest
+        .mocked(fetchMint)
+        .mockResolvedValue(
+          MOCK_FETCH_MINT_RESPONSES[KnownCaip19Id.UsdcLocalnet]!,
+        );
+      jest.mocked(fetchToken).mockResolvedValue({
+        data: {
+          amount: 17552148n,
+        },
+      } as any);
+
+      // Call once
+      await assetsService.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_0, [
+        KnownCaip19Id.UsdcLocalnet,
+      ]);
+      const cacheKey = `fetchMint:${KnownCaip19Id.UsdcLocalnet}`;
+      const cacheValue = await mockCache.get(cacheKey);
+
+      expect(cacheValue).toStrictEqual(
+        MOCK_FETCH_MINT_RESPONSES[KnownCaip19Id.UsdcLocalnet],
+      );
+
+      // Call again
+      await assetsService.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_0, [
+        KnownCaip19Id.UsdcLocalnet,
+      ]);
+
+      // fetchMint should have been called once in total
+      expect(fetchMint).toHaveBeenCalledTimes(1);
     });
   });
 

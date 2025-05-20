@@ -78,6 +78,7 @@ const assetsService = new AssetsService({
   configProvider,
   state,
   tokenMetadataService,
+  cache,
 });
 
 const transactionsService = new TransactionsService({

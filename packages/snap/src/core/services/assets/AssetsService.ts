@@ -4,7 +4,7 @@ import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
-import { parseCaipAssetType } from '@metamask/utils';
+import { Duration, parseCaipAssetType } from '@metamask/utils';
 import {
   fetchMint,
   fetchToken,
@@ -14,12 +14,15 @@ import {
 import type { JsonParsedTokenAccount } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 
+import type { ICache } from '../../caching/ICache';
+import { useCache } from '../../caching/useCache';
 import type { Network } from '../../constants/solana';
 import {
   SolanaCaip19Tokens,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import type { Serializable } from '../../serialization/types';
 import type { SolanaAsset } from '../../types/solana';
 import { diffArrays } from '../../utils/diffArrays';
 import { diffObjects } from '../../utils/diffObjects';
@@ -48,24 +51,33 @@ export class AssetsService {
 
   readonly #tokenMetadataService: TokenMetadataService;
 
+  readonly #cache: ICache<Serializable>;
+
+  public static readonly cacheTtlsMilliseconds = {
+    mintAccount: Duration.Hour,
+  };
+
   constructor({
     connection,
     logger,
     configProvider,
     state,
     tokenMetadataService,
+    cache,
   }: {
     connection: SolanaConnection;
     logger: ILogger;
     configProvider: ConfigProvider;
     state: IStateManager<UnencryptedStateValue>;
     tokenMetadataService: TokenMetadataService;
+    cache: ICache<Serializable>;
   }) {
     this.#logger = logger;
     this.#connection = connection;
     this.#configProvider = configProvider;
     this.#state = state;
     this.#tokenMetadataService = tokenMetadataService;
+    this.#cache = cache;
   }
 
   /**
@@ -251,8 +263,12 @@ export class AssetsService {
     const mintAddress = asAddress(parseCaipAssetType(asset).assetReference);
     console.log('[💰 getBalance:: mintAddress]', mintAddress);
 
-    // Get the mint account
-    const mintAccount = await fetchMint(rpc, mintAddress);
+    // Get the mint account and store it in the cache. Its data doesn't often.
+    const mintAccount = await useCache(fetchMint, this.#cache, {
+      functionName: 'fetchMint',
+      ttlMilliseconds: AssetsService.cacheTtlsMilliseconds.mintAccount,
+      generateCacheKey: (functionName) => `${functionName}:${asset}`,
+    })(rpc, mintAddress);
     console.log('[💰 getBalance:: mintAccount]', mintAccount);
 
     // Get the associated token account address
