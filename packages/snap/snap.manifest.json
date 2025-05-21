@@ -1,5 +1,5 @@
 {
-  "version": "1.29.0",
+  "version": "1.30.3",
   "description": "Manage Solana using MetaMask",
   "proposedName": "Solana",
   "repository": {
@@ -61,16 +61,9 @@
           }
         },
         {
-          "expression": "* * * * *",
+          "expression": "*/5 * * * *",
           "request": {
-            "method": "refreshTransactions",
-            "params": {}
-          }
-        },
-        {
-          "expression": "* * * * *",
-          "request": {
-            "method": "refreshAssets",
+            "method": "refreshAccounts",
             "params": {}
           }
         }

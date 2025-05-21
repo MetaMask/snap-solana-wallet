@@ -29,6 +29,7 @@ export enum KnownCaip19Id {
   EurcMainnet = `${Network.Mainnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   EurcDevnet = `${Network.Devnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   EurcLocalnet = `${Network.Localnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
+  Ai16zLocalnet = `${Network.Localnet}/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC`,
 }
 
 export const NETWORK_TO_EXPLORER_CLUSTER = {
@@ -96,11 +97,7 @@ export const TokenMetadata = {
 
 export const SOL_TRANSFER_FEE_LAMPORTS = 5000;
 
-export const TOKEN_PROGRAM_ID = address(
-  'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-);
-
-export const TOKEN_2022_PROGRAM_ID = address(
+export const TOKEN_2022_PROGRAM_ADDRESS = address(
   'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
 );
 

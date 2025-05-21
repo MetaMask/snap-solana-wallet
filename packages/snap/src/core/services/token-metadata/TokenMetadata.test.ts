@@ -42,7 +42,7 @@ describe('TokenMetadataService', () => {
         .mockResolvedValue(mockMetadata);
 
       const result = await tokenMetadataService.getTokensMetadata(
-        tokens.map((token) => token.address),
+        tokens.map((token) => token.assetType),
       );
 
       expect(result).toStrictEqual(mockMetadata);
@@ -58,7 +58,7 @@ describe('TokenMetadataService', () => {
 
       await expect(
         tokenMetadataService.getTokensMetadata(
-          tokens.map((token) => token.address),
+          tokens.map((token) => token.assetType),
         ),
       ).rejects.toThrow('Error fetching token metadata');
     });
