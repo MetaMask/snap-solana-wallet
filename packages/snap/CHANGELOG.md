@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.30.2]
+
+### Uncategorized
+
+- Hotfix/get balances ([#372](https://github.com/MetaMask/snap-solana-wallet/pull/372))
+- test: add spam failed transaction case to the mapping tests ([#371](https://github.com/MetaMask/snap-solana-wallet/pull/371))
+
 ## [1.30.1]
 
 ### Fixed
@@ -574,7 +581,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.1...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.2...HEAD
+[1.30.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.1...v1.30.2
 [1.30.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.0...v1.30.1
 [1.30.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.29.0...v1.30.0
 [1.29.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.3...v1.29.0
