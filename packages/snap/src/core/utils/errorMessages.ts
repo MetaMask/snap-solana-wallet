@@ -10,10 +10,10 @@ export const ERROR_MESSAGES: Record<string, string> = {
 };
 
 /**
- * Gets a user-friendly message for an error code
- * @param errorCode - The error code to get a message for
- * @param preferences - The user preferences containing locale information
- * @returns A user-friendly error message, or the original error code if no mapping exists
+ * Gets a user-friendly message for an error code.
+ * @param errorCode - The error code to get a message for.
+ * @param preferences - The user preferences containing locale information.
+ * @returns A user-friendly error message, or the original error code if no mapping exists.
  */
 export function getErrorMessage(
   errorCode: string,
