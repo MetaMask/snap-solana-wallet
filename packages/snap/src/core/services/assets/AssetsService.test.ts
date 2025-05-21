@@ -246,34 +246,18 @@ describe('AssetsService', () => {
 
     it('gets account and token balances', async () => {
       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getTokenAccountsByOwner: jest.fn().mockReturnValue({
+          send: jest.fn().mockResolvedValue({
+            value:
+              MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value,
+          }),
+        }),
         getBalance: jest.fn().mockReturnValue({
           send: jest.fn().mockResolvedValue({
             value: 1250006150n,
           }),
         }),
       } as any);
-
-      jest
-        .mocked(fetchMint)
-        .mockResolvedValueOnce(
-          MOCK_FETCH_MINT_RESPONSES[KnownCaip19Id.UsdcLocalnet]!,
-        )
-        .mockResolvedValueOnce(
-          MOCK_FETCH_MINT_RESPONSES[KnownCaip19Id.Ai16zLocalnet]!,
-        );
-
-      jest
-        .mocked(fetchToken)
-        .mockResolvedValueOnce({
-          data: {
-            amount: 17552148n,
-          },
-        } as any)
-        .mockResolvedValueOnce({
-          data: {
-            amount: 21898077n,
-          },
-        } as any);
 
       const accountBalance = await assetsService.getAccountBalances(
         MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -289,11 +273,11 @@ describe('AssetsService', () => {
           unit: 'SOL',
         },
         [KnownCaip19Id.UsdcLocalnet]: {
-          amount: '17.552148',
+          amount: '123.456789',
           unit: 'USDC',
         },
         [KnownCaip19Id.Ai16zLocalnet]: {
-          amount: '0.021898077',
+          amount: '0.987654321',
           unit: 'AI16Z',
         },
       });
@@ -314,38 +298,6 @@ describe('AssetsService', () => {
           KnownCaip19Id.SolMainnet,
         ]),
       ).rejects.toThrow('Error getting assets');
-    });
-
-    it('uses the cache for the mint account', async () => {
-      jest
-        .mocked(fetchMint)
-        .mockResolvedValue(
-          MOCK_FETCH_MINT_RESPONSES[KnownCaip19Id.UsdcLocalnet]!,
-        );
-      jest.mocked(fetchToken).mockResolvedValue({
-        data: {
-          amount: 17552148n,
-        },
-      } as any);
-
-      // Call once
-      await assetsService.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_0, [
-        KnownCaip19Id.UsdcLocalnet,
-      ]);
-      const cacheKey = `fetchMint:${KnownCaip19Id.UsdcLocalnet}`;
-      const cacheValue = await mockCache.get(cacheKey);
-
-      expect(cacheValue).toStrictEqual(
-        MOCK_FETCH_MINT_RESPONSES[KnownCaip19Id.UsdcLocalnet],
-      );
-
-      // Call again
-      await assetsService.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_0, [
-        KnownCaip19Id.UsdcLocalnet,
-      ]);
-
-      // fetchMint should have been called once in total
-      expect(fetchMint).toHaveBeenCalledTimes(1);
     });
   });
 
