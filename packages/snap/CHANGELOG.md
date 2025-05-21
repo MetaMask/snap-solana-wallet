@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.30.3]
 
-### Uncategorized
+### Fixed
 
-- fix: send state ([#375](https://github.com/MetaMask/snap-solana-wallet/pull/375))
+- Rollback send state ([#375](https://github.com/MetaMask/snap-solana-wallet/pull/375))
 
 ## [1.30.2]
 
