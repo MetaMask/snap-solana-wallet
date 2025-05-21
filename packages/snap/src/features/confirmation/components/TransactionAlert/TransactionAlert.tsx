@@ -44,14 +44,10 @@ export const TransactionAlert: SnapComponent<TransactionAlertProps> = ({
   if (scanFetchStatus === 'error') {
     return (
       <Banner
-        title={translate('confirmation.simulationErrorTitle')}
-        severity="warning"
+        title={translate('send.simulationTitleAPIError')}
+        severity="danger"
       >
-        <Text>
-          {translate('confirmation.simulationErrorSubtitle', {
-            reason: 'Unknown',
-          })}
-        </Text>
+        <Text>{translate('send.simulationMessageError')}</Text>
       </Banner>
     );
   }
@@ -73,12 +69,12 @@ export const TransactionAlert: SnapComponent<TransactionAlertProps> = ({
         severity="warning"
       >
         {error?.code ? (
-        <Text>
-        {translate('confirmation.simulationErrorSubtitle', {
-          reason: getErrorMessage(error.code, preferences),
-        })}
-      </Text>
-    ) : null}
+          <Text>
+            {translate('confirmation.simulationErrorSubtitle', {
+              reason: getErrorMessage(error.code, preferences),
+            })}
+          </Text>
+        ) : null}
       </Banner>
     );
   }

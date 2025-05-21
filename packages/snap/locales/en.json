@@ -52,6 +52,9 @@
     "send.insufficientBalance": {
       "message": "Insufficient balance"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Transaction simulation not available"
+    },
     "send.simulationTitleError": {
       "message": "Transaction simulation failed"
     },
