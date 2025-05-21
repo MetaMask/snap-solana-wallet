@@ -5,19 +5,14 @@ import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
-import {
-  fetchMint,
-  fetchToken,
-  findAssociatedTokenPda,
-  TOKEN_PROGRAM_ADDRESS,
-} from '@solana-program/token';
-import type { JsonParsedTokenAccount } from '@solana/kit';
+import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
+import type { Address, JsonParsedTokenAccount } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
+import { map, uniq } from 'lodash';
 
 import type { ICache } from '../../caching/ICache';
-import { useCache } from '../../caching/useCache';
-import type { Network } from '../../constants/solana';
 import {
+  Network,
   SolanaCaip19Tokens,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '../../constants/solana';
@@ -193,87 +188,110 @@ export class AssetsService {
   }
 
   /**
+   * Discovers all token accounts owned by the given address on the specified networks and program ids
+   * by calling the `getTokenAccountsByOwner` RPC method.
+   *
+   * @param owner - The owner of the token accounts.
+   * @param programIds - The program ids to fetch the token accounts for.
+   * @param scopes - The networks to fetch the token accounts for.
+   * @returns The token accounts augmented with the scope and the caip-19 asset type for convenience.
+   */
+  async getTokenAccountsByOwner(
+    owner: Address,
+    programIds: Address[] = [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+    scopes: Network[] = [Network.Mainnet],
+  ) {
+    // Create all pairs of scope and program id
+    const pairs = scopes.flatMap((scope) =>
+      programIds.map((programId) => ({ scope, programId })),
+    );
+
+    const responses = await Promise.all(
+      pairs.map(async ({ scope, programId }) => {
+        const response = await this.#connection
+          .getRpc(scope)
+          .getTokenAccountsByOwner(
+            owner,
+            { programId },
+            { encoding: 'jsonParsed' },
+          )
+          .send();
+
+        // Attach the scope and the caip-19 asset type to each token account for easier future reference
+        return response.value.map((token) => ({
+          ...token,
+          scope,
+          assetType: tokenAddressToCaip19(
+            scope,
+            token.account.data.parsed.info.mint,
+          ),
+        }));
+      }),
+    );
+
+    return responses.flat();
+  }
+
+  /**
    * Returns the balances and metadata of the given account for the given assets.
+   *
    * @param account - The account to get the balances for.
-   * @param assets - The assets to get the balances for (CAIP-19 ids).
+   * @param assetTypes - The asset types to get the balances for (CAIP-19 ids).
    * @returns The balances and metadata of the account for the given assets.
    */
   async getAccountBalances(
     account: SolanaKeyringAccount,
-    assets: CaipAssetType[],
+    assetTypes: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
+    const accountAddress = asAddress(account.address);
     const tokensMetadata = await this.#tokenMetadataService.getTokensMetadata(
-      assets,
+      assetTypes,
+    );
+
+    const scopes = uniq(map(assetTypes, getNetworkFromToken));
+    const programIds = [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS];
+    const tokenAccounts = await this.getTokenAccountsByOwner(
+      accountAddress,
+      programIds,
+      scopes,
     );
 
     const balances: Record<CaipAssetType, Balance> = {};
 
-    const promises = assets.map(async (asset) => {
-      const balance = await this.getBalance(account, asset);
-      const metadata = tokensMetadata[asset];
+    // For each requested asset type, retrieve the balance and metadata, and store that in the balances object
+    const promises = assetTypes.map(async (assetType) => {
+      const { chainId } = parseCaipAssetType(assetType);
+      const isNative = assetType.endsWith(SolanaCaip19Tokens.SOL);
+
+      let balance: bigint;
+
+      if (isNative) {
+        balance = (
+          await this.#connection
+            .getRpc(chainId as Network)
+            .getBalance(accountAddress)
+            .send()
+        ).value;
+      } else {
+        const tokenAccount = tokenAccounts.find(
+          (item) => item.assetType === assetType,
+        );
+
+        balance = tokenAccount
+          ? BigInt(tokenAccount.account.data.parsed.info.tokenAmount.amount)
+          : BigInt(0); // If the user has no token account linked to a requested mint, default to 0
+      }
+
+      const metadata = tokensMetadata[assetType];
+
       const amount = fromTokenUnits(balance, metadata?.units[0]?.decimals ?? 9);
-      const unit = metadata?.symbol ?? 'UNKNOWN';
-      balances[asset] = {
-        amount,
-        unit,
-      };
+
+      balances[assetType] = { amount, unit: metadata?.symbol ?? 'UNKNOWN' };
     });
 
     await Promise.all(promises);
 
-    await this.#state.setKey(`assets.${account.id}`, balances);
-
     return balances;
-  }
-
-  /**
-   * Fetches the balance of the given asset (native or SPL token) for the given account.
-   *
-   * @param account - The account to get the balance for.
-   * @param asset - The CAIP-19 type of the asset to get the balance for.
-   * @returns The balance of the asset for the given account, as a bigint.
-   */
-  async getBalance(
-    account: SolanaKeyringAccount,
-    asset: CaipAssetType,
-  ): Promise<bigint> {
-    const accountAddress = asAddress(account.address);
-
-    const network = getNetworkFromToken(asset);
-    const rpc = this.#connection.getRpc(network);
-
-    if (asset.endsWith(SolanaCaip19Tokens.SOL)) {
-      const response = await this.#connection
-        .getRpc(network)
-        .getBalance(accountAddress)
-        .send();
-
-      return response.value;
-    }
-
-    // Else, it's a SPL token
-    const mintAddress = asAddress(parseCaipAssetType(asset).assetReference);
-
-    // Get the mint account and store it in the cache. Its data doesn't change often.
-    const mintAccount = await useCache(fetchMint, this.#cache, {
-      functionName: 'fetchMint',
-      ttlMilliseconds: AssetsService.cacheTtlsMilliseconds.mintAccount,
-      generateCacheKey: (functionName) => `${functionName}:${asset}`,
-    })(rpc, mintAddress);
-
-    // Get the associated token account address
-    const ataAddress = (
-      await findAssociatedTokenPda({
-        mint: mintAccount.address,
-        owner: accountAddress,
-        tokenProgram: mintAccount.programAddress,
-      })
-    )[0];
-
-    // Get the token account
-    const tokenAccount = await fetchToken(rpc, ataAddress);
-
-    return tokenAccount.data.amount;
   }
 
   /**
