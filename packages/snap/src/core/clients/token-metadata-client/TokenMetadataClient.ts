@@ -3,6 +3,7 @@ import { array, assert } from '@metamask/superstruct';
 import { CaipAssetTypeStruct } from '@metamask/utils';
 
 import type { ConfigProvider } from '../../services/config';
+import { NftService } from '../../services/nft/NftService';
 import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
@@ -97,7 +98,9 @@ export class TokenMetadataClient {
         tokenMetadataMap.set(metadata.assetId, {
           name: tokenNameOrSymbol,
           symbol: tokenSymbol,
-          fungible: true,
+          fungible: !NftService.isMaybeNonFungible({
+            tokenAmount: { decimals: tokenDecimals },
+          }) as unknown as true, // TODO: Remove this cast once the changes in https://github.com/MetaMask/SIPs/pull/174 are implemented on the snap SDK
           iconUrl:
             metadata?.iconUrl ??
             buildUrl({

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Balance, Transaction } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
+import type { Address, Signature } from '@solana/kit';
 import { unset } from 'lodash';
 
 import type { SpotPrices } from '../../clients/price-api/types';
@@ -18,6 +19,9 @@ export type UnencryptedStateValue = {
   keyringAccounts: Record<string, SolanaKeyringAccount>;
   mapInterfaceNameToId: Record<string, string>;
   transactions: Record<AccountId, Transaction[]>;
+  // we need to store the exhaustive list of signatures (including spam)
+  // to keep track of the transactions per account. The field transactions above only stores non-spam transactions, which break the refreshAccounts cronjob logic.
+  signatures: Record<Address, Signature[]>;
   assets: Record<AccountId, Record<CaipAssetType, Balance>>;
   tokenPrices: SpotPrices;
 };
@@ -26,6 +30,7 @@ export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
   keyringAccounts: {},
   mapInterfaceNameToId: {},
   transactions: {},
+  signatures: {},
   assets: {},
   tokenPrices: {},
 };

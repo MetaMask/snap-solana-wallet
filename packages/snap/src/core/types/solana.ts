@@ -17,7 +17,7 @@ import type { Network } from '../constants/solana';
 
 export type SolanaAsset = {
   scope: Network;
-  address: CaipAssetType;
+  assetType: CaipAssetType;
   balance: string;
   decimals: number;
   native: boolean;

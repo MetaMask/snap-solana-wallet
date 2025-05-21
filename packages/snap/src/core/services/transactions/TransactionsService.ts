@@ -96,6 +96,13 @@ export class TransactionsService {
         .send()
     ).map(({ signature }) => signature);
 
+    const existingSinatures =
+      (await this.#state.getKey<Signature[]>(`signatures.${address}`)) ?? [];
+
+    await this.#state.setKey(`signatures.${address}`, [
+      ...new Set([...existingSinatures, ...signatures]),
+    ]);
+
     /**
      * Now fetch their transaction data
      */
@@ -162,6 +169,13 @@ export class TransactionsService {
       })
       .send();
     const signatures = signatureResponses.map(({ signature }) => signature);
+
+    const existingSinatures =
+      (await this.#state.getKey<Signature[]>(`signatures.${address}`)) ?? [];
+
+    await this.#state.setKey(`signatures.${address}`, [
+      ...new Set([...existingSinatures, ...signatures]),
+    ]);
 
     return signatures;
   }

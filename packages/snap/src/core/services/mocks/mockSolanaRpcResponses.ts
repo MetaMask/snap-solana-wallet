@@ -1,6 +1,8 @@
 import type { GetLatestBlockhashApi } from '@solana/kit';
 import { blockhash, lamports, type GetBalanceApi } from '@solana/kit';
 
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+
 /**
  * Sample response from the Solana RPC `getBalance` method
  * This is the response are received in JSON from the RPC.
@@ -126,12 +128,12 @@ export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
           data: {
             parsed: {
               info: {
-                mint: 'address1',
-                owner: 'owner1',
+                mint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU', // USDC
+                owner: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
                 isNative: false,
                 tokenAmount: {
                   amount: '123456789',
-                  decimals: 9,
+                  decimals: 6,
                 },
               },
             },
@@ -143,8 +145,8 @@ export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
           data: {
             parsed: {
               info: {
-                mint: 'address2',
-                owner: 'owner2',
+                mint: 'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC', // ai16z
+                owner: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
                 isNative: false,
                 tokenAmount: {
                   amount: '987654321',

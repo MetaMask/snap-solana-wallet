@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.30.3]
+
+### Fixed
+
+- Rollback send state ([#375](https://github.com/MetaMask/snap-solana-wallet/pull/375))
+
+## [1.30.2]
+
+### Fixed
+
+- Hotfix: get balances ([#372](https://github.com/MetaMask/snap-solana-wallet/pull/372))
+- Add spam failed transaction case to the mapping tests ([#371](https://github.com/MetaMask/snap-solana-wallet/pull/371))
+
+## [1.30.1]
+
+### Fixed
+
+- Rollback `fungible` check ([#369](https://github.com/MetaMask/snap-solana-wallet/pull/369))
+
+## [1.30.0]
+
+### Changed
+
+- Replace `refreshAssets` and `refreshTransactions` with `refreshAccounts` ([#365](https://github.com/MetaMask/snap-solana-wallet/pull/365))
+- Optimize get account balances ([#364](https://github.com/MetaMask/snap-solana-wallet/pull/364))
+
+### Fixed
+
+- Set correct fungible flag using quick check ([#363](https://github.com/MetaMask/snap-solana-wallet/pull/363))
+
 ## [1.29.0]
 
 ### Changed
@@ -557,7 +587,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.29.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.3...HEAD
+[1.30.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.2...v1.30.3
+[1.30.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.1...v1.30.2
+[1.30.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.0...v1.30.1
+[1.30.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.29.0...v1.30.0
 [1.29.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.3...v1.29.0
 [1.28.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.2...v1.28.3
 [1.28.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.28.1...v1.28.2
