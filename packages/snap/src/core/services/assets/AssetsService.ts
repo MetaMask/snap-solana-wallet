@@ -327,6 +327,7 @@ export class AssetsService {
     );
 
     await this.#cache.mdelete(cacheKeysToDelete);
+    await this.#state.setKey(`assets.${account.id}`, balances);
 
     return balances;
   }
