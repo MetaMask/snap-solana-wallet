@@ -10,6 +10,7 @@ import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactio
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self';
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_2_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self-2';
 import { EXPECTED_SPAM_TRANSACTION_DATA } from '../../../test/mocks/transactions-data/spam';
+import { EXPECTED_SPAM_TRANSACTION_DATA_2 } from '../../../test/mocks/transactions-data/spam-2';
 import { EXPECTED_SWAP_A16Z_USDT_SOL_DATA } from '../../../test/mocks/transactions-data/swap-a16z-usdt-sol';
 import { EXPECTED_SWAP_SOL_TO_SAHUR_DATA } from '../../../test/mocks/transactions-data/swap-sol-to-sahur';
 import { EXPECTED_SWAP_TRUMP_TO_JUP_DATA } from '../../../test/mocks/transactions-data/swap-trump-to-jup';
@@ -983,6 +984,17 @@ describe('mapRpcTransaction', () => {
       scope: Network.Mainnet,
       address: asAddress('DAXnAudMEqiD1sS1rFn4ds3pdybRYJd9J58PqCncVVqS'),
       transactionData: EXPECTED_SPAM_TRANSACTION_DATA,
+    });
+
+    expect(result).toBeNull();
+  });
+
+  // TODO: This should be enabled when we support the filtering of spam transactions
+  it.skip('returns null if the transaction is a spam transaction - #2', () => {
+    const result = mapRpcTransaction({
+      scope: Network.Mainnet,
+      address: asAddress('DAXnAudMEqiD1sS1rFn4ds3pdybRYJd9J58PqCncVVqS'),
+      transactionData: EXPECTED_SPAM_TRANSACTION_DATA_2,
     });
 
     expect(result).toBeNull();
