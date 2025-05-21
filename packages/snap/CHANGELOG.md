@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.30.2]
 
-### Uncategorized
+### Fixed
 
-- Hotfix/get balances ([#372](https://github.com/MetaMask/snap-solana-wallet/pull/372))
-- test: add spam failed transaction case to the mapping tests ([#371](https://github.com/MetaMask/snap-solana-wallet/pull/371))
+- Hotfix: get balances ([#372](https://github.com/MetaMask/snap-solana-wallet/pull/372))
+- Add spam failed transaction case to the mapping tests ([#371](https://github.com/MetaMask/snap-solana-wallet/pull/371))
 
 ## [1.30.1]
 
