@@ -1,7 +1,8 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
-import { CaipAssetTypeStruct } from '@metamask/utils';
+import { CaipAssetTypeStruct, parseCaipAssetType } from '@metamask/utils';
 
+import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import { NftService } from '../../services/nft/NftService';
 import { buildUrl } from '../../utils/buildUrl';
@@ -21,6 +22,8 @@ export class TokenMetadataClient {
   readonly #chunkSize: number;
 
   readonly #tokenIconBaseUrl: string;
+
+  public static readonly supportedNetworks = [Network.Mainnet, Network.Devnet];
 
   constructor(
     configProvider: ConfigProvider,
@@ -66,15 +69,31 @@ export class TokenMetadataClient {
   }
 
   async getTokenMetadataFromAddresses(
-    caip19Ids: CaipAssetType[],
+    assetTypes: CaipAssetType[],
   ): Promise<Record<CaipAssetType, SolanaTokenMetadata>> {
     try {
-      assert(caip19Ids, array(CaipAssetTypeStruct));
+      assert(assetTypes, array(CaipAssetTypeStruct));
+
+      // The Token API only supports the networks in TokenMetadataClient.supportedNetworks
+      const supportedAssetTypes = assetTypes.filter((assetType) => {
+        const { chainId } = parseCaipAssetType(assetType);
+        return TokenMetadataClient.supportedNetworks.includes(
+          chainId as Network,
+        );
+      });
+
+      if (supportedAssetTypes.length !== assetTypes.length) {
+        this.#logger.warn(
+          `[TokenMetadataClient] Received some asset types on networks that the Token API doesn't support. They will be ignored. Supported networks: ${TokenMetadataClient.supportedNetworks.join(
+            ', ',
+          )}`,
+        );
+      }
 
       // Split addresses into chunks
       const chunks: CaipAssetType[][] = [];
-      for (let i = 0; i < caip19Ids.length; i += this.#chunkSize) {
-        chunks.push(caip19Ids.slice(i, i + this.#chunkSize));
+      for (let i = 0; i < supportedAssetTypes.length; i += this.#chunkSize) {
+        chunks.push(supportedAssetTypes.slice(i, i + this.#chunkSize));
       }
 
       // Fetch metadata for each chunk

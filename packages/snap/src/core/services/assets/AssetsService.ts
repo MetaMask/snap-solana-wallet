@@ -78,6 +78,7 @@ export class AssetsService {
 
   /**
    * Returns the list of assets for the given account in all Solana networks. Includes native and token assets.
+   *
    * @param account - The account to get the assets for.
    * @returns CAIP-19 assets ids.
    */
@@ -249,6 +250,7 @@ export class AssetsService {
 
   /**
    * Fetches the assets for the given accounts and updates the state accordingly. Also emits events for any changes.
+   *
    * @param accounts - The accounts to refresh the assets for.
    */
   async refreshAssets(accounts: SolanaKeyringAccount[]): Promise<void> {
