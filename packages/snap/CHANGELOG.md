@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.30.4]
 
-### Uncategorized
+### Fixed
 
-- fix: spread cronjob load time randomly per user ([#379](https://github.com/MetaMask/snap-solana-wallet/pull/379))
+- Spread cronjob load time randomly per user ([#379](https://github.com/MetaMask/snap-solana-wallet/pull/379))
 
 ## [1.30.3]
 
