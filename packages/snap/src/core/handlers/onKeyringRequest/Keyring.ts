@@ -300,9 +300,6 @@ export class SolanaKeyring implements Keyring {
       const keyringAccount: KeyringAccount =
         asStrictKeyringAccount(solanaKeyringAccount);
 
-      const assets = await this.listAccountAssets(solanaKeyringAccount.id);
-      await this.getAccountBalances(solanaKeyringAccount.id, assets);
-
       await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
          * We can't pass the `keyringAccount` object because it contains the index
