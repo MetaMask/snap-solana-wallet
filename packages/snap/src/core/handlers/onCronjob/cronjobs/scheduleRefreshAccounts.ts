@@ -1,5 +1,6 @@
 import { type OnCronjobHandler } from '@metamask/snaps-sdk';
 
+import { state } from '../../../../snapContext';
 import logger from '../../../utils/logger';
 import { ScheduleBackgroundEventMethod } from '../backgroundEvents/ScheduleBackgroundEventMethod';
 
@@ -16,13 +17,20 @@ export const scheduleRefreshAccounts: OnCronjobHandler = async () => {
   logger.info('[scheduleRefreshAccounts] Cronjob triggered');
 
   // Get a random sleep time when this method is called
-  const RANDOM_SLEEP_MINUTES = Math.random() * REFRESH_INTERVAL_MINUTES;
 
-  // Then schedule the next refresh with a random delay
+  let refreshAccountsInterval = await state.getKey<number>(
+    'refreshAccountsInterval',
+  );
+
+  if (!refreshAccountsInterval) {
+    refreshAccountsInterval = Math.random() * REFRESH_INTERVAL_MINUTES;
+    await state.setKey('refreshAccountsInterval', refreshAccountsInterval);
+  }
+
   await snap.request({
     method: 'snap_scheduleBackgroundEvent',
     params: {
-      duration: `PT${RANDOM_SLEEP_MINUTES}M`,
+      duration: `PT${refreshAccountsInterval}M`,
       request: {
         method: ScheduleBackgroundEventMethod.OnAccountsRefresh,
         params: {},
@@ -31,6 +39,6 @@ export const scheduleRefreshAccounts: OnCronjobHandler = async () => {
   });
 
   logger.info(
-    `[scheduleRefreshAccounts] Scheduling next refresh in ${RANDOM_SLEEP_MINUTES} minutes`,
+    `[scheduleRefreshAccounts] Scheduling next refresh in ${refreshAccountsInterval} minutes`,
   );
 };
