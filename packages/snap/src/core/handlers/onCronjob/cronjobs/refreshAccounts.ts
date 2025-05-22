@@ -10,9 +10,9 @@ import {
 } from '../../../../snapContext';
 import { Network } from '../../../constants/solana';
 import logger from '../../../utils/logger';
+import { ScheduleBackgroundEventMethod } from '../backgroundEvents/ScheduleBackgroundEventMethod';
 
-const REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes in milliseconds
-const RANDOM_SLEEP = Math.floor(Math.random() * REFRESH_INTERVAL);
+const REFRESH_INTERVAL = 2 * 60 * 1000;
 
 /**
  * Performs a "smart" refresh of accounts' transactions and assets.
@@ -25,9 +25,22 @@ export const refreshAccounts: OnCronjobHandler = async () => {
   try {
     logger.info('[refreshAccounts] Cronjob triggered');
 
-    // Go to sleep for a random amount of time to spread load
-    await new Promise((resolve) => setTimeout(resolve, RANDOM_SLEEP));
-    logger.info(`[refreshAccounts] Slept for ${RANDOM_SLEEP}ms to spread load`);
+    // Get a random sleep time when this method is called
+    const RANDOM_SLEEP = Math.floor(Math.random() * REFRESH_INTERVAL);
+
+    // Then schedule the next refresh with a random delay
+    await snap.request({
+      method: 'snap_scheduleBackgroundEvent',
+      params: {
+        duration: `PT${Math.floor(RANDOM_SLEEP / 1000)}S`,
+        request: {
+          method: ScheduleBackgroundEventMethod.OnAccountsRefreshed,
+          params: {},
+        },
+      },
+    });
+
+    logger.info(`[refreshAccounts] Scheduling next refresh in ${RANDOM_SLEEP}ms`);
 
     const accounts = await keyring.listAccounts();
 
