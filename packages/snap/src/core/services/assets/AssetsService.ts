@@ -244,6 +244,8 @@ export class AssetsService {
 
     await this.#state.setKey(`assets.${account.id}`, balances);
 
+    console.log('⛺ balances for', account.address, balances);
+
     return balances;
   }
 

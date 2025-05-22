@@ -300,6 +300,9 @@ export class SolanaKeyring implements Keyring {
       const keyringAccount: KeyringAccount =
         asStrictKeyringAccount(solanaKeyringAccount);
 
+      const assets = await this.listAccountAssets(solanaKeyringAccount.id);
+      await this.getAccountBalances(solanaKeyringAccount.id, assets);
+
       await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
          * We can't pass the `keyringAccount` object because it contains the index
@@ -362,6 +365,7 @@ export class SolanaKeyring implements Keyring {
    */
   async listAccountAssets(accountId: string): Promise<CaipAssetType[]> {
     try {
+      console.log('🍋 Keyring.listAccountAssets: start', accountId);
       validateRequest({ accountId }, ListAccountAssetsStruct);
 
       const account = await this.getAccountOrThrow(accountId);
@@ -369,7 +373,7 @@ export class SolanaKeyring implements Keyring {
       const result = await this.#assetsService.listAccountAssets(account);
 
       validateResponse(result, ListAccountAssetsResponseStruct);
-
+      console.log('🍋 Keyring.listAccountAssets: end', accountId, result);
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account assets');
@@ -388,6 +392,7 @@ export class SolanaKeyring implements Keyring {
     assets: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
     try {
+      console.log('⛺ Keyring.getAccountBalances: start', accountId, assets);
       validateRequest({ accountId, assets }, GetAccountBalancesStruct);
 
       const account = await this.getAccountOrThrow(accountId);
@@ -397,6 +402,7 @@ export class SolanaKeyring implements Keyring {
       );
 
       validateResponse(result, GetAccounBalancesResponseStruct);
+      console.log('⛺ Keyring.getAccountBalances: end', accountId, result);
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account balances');
