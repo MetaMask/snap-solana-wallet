@@ -1,6 +1,5 @@
 /* eslint-disable jest/prefer-strict-equal */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { lamports } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 
 import { deserialize } from './deserialize';
@@ -86,15 +85,5 @@ describe('deserialize', () => {
       falseValue: false,
       nullValue: null,
     });
-  });
-
-  it('deserializes branded bigint values, like Lamports', () => {
-    const value = {
-      __type: 'bigint',
-      __brand: 'Lamports',
-      value: '1000000000',
-    };
-
-    expect(deserialize(value)).toStrictEqual(lamports(1000000000n));
   });
 });

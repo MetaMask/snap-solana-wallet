@@ -146,7 +146,6 @@ export class AssetsService {
       }),
     );
 
-    console.log('🍪', responses.flat());
     return responses.flat();
   }
 

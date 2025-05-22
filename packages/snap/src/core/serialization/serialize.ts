@@ -28,14 +28,6 @@ export const serialize = (value: Serializable): Record<string, Json> =>
       };
     }
 
-    // if (isLamports(val)) {
-    //   return {
-    //     __type: 'bigint',
-    //     __brand: 'Lamports',
-    //     value: val.toString(),
-    //   };
-    // }
-
     if (typeof val === 'bigint') {
       return {
         __type: 'bigint',

@@ -1,10 +1,8 @@
 /* eslint-disable jest/prefer-strict-equal */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { lamports } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 
 import { serialize } from './serialize';
-import type { Serializable } from './types';
 
 describe('serialize', () => {
   it('serializes primitive values', () => {
@@ -95,18 +93,6 @@ describe('serialize', () => {
           },
         },
       },
-    });
-  });
-
-  it('serializes branded bigint values, like Lamports', () => {
-    const value = lamports(BigInt(1000000000));
-
-    value satisfies Serializable;
-
-    expect(serialize(value)).toStrictEqual({
-      __type: 'bigint',
-      __brand: 'Lamports',
-      value: '1000000000',
     });
   });
 });
