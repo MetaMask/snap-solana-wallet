@@ -1,0 +1,36 @@
+import { type OnCronjobHandler } from '@metamask/snaps-sdk';
+
+import logger from '../../../utils/logger';
+import { ScheduleBackgroundEventMethod } from '../backgroundEvents/ScheduleBackgroundEventMethod';
+
+const REFRESH_INTERVAL_MINUTES = 3;
+
+/**
+ * Schedules a refresh of accounts at random intervals.
+ *
+ * This is used to smooth out the load of the cronjob, avoiding multiple cronjobs to run at the same time.
+ * Otherwise, all client all over the world would trigger RPC requests at the very same time, causing
+ * spike traffic on the RPC nodes.
+ */
+export const scheduleRefreshAccounts: OnCronjobHandler = async () => {
+  logger.info('[scheduleRefreshAccounts] Cronjob triggered');
+
+  // Get a random sleep time when this method is called
+  const RANDOM_SLEEP_MINUTES = Math.random() * REFRESH_INTERVAL_MINUTES;
+
+  // Then schedule the next refresh with a random delay
+  await snap.request({
+    method: 'snap_scheduleBackgroundEvent',
+    params: {
+      duration: `PT${RANDOM_SLEEP_MINUTES}M`,
+      request: {
+        method: ScheduleBackgroundEventMethod.OnAccountsRefresh,
+        params: {},
+      },
+    },
+  });
+
+  logger.info(
+    `[scheduleRefreshAccounts] Scheduling next refresh in ${RANDOM_SLEEP_MINUTES} minutes`,
+  );
+};

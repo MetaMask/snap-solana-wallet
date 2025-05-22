@@ -1,6 +1,6 @@
-import type { Transaction } from '@metamask/keyring-api';
 import { type OnCronjobHandler } from '@metamask/snaps-sdk';
-import { address, type Signature } from '@solana/kit';
+import type { Signature } from '@solana/kit';
+import { address } from '@solana/kit';
 
 import {
   assetsService,
@@ -10,9 +10,6 @@ import {
 } from '../../../../snapContext';
 import { Network } from '../../../constants/solana';
 import logger from '../../../utils/logger';
-import { ScheduleBackgroundEventMethod } from '../backgroundEvents/ScheduleBackgroundEventMethod';
-
-const REFRESH_INTERVAL = 2 * 60 * 1000;
 
 /**
  * Performs a "smart" refresh of accounts' transactions and assets.
@@ -21,26 +18,9 @@ const REFRESH_INTERVAL = 2 * 60 * 1000;
  * - If the account had new signatures, it refreshes its transactions and assets
  * - If not, it simply skips.
  */
-export const refreshAccounts: OnCronjobHandler = async () => {
+export const onAccountsRefresh: OnCronjobHandler = async () => {
   try {
-    logger.info('[refreshAccounts] Cronjob triggered');
-
-    // Get a random sleep time when this method is called
-    const RANDOM_SLEEP = Math.floor(Math.random() * REFRESH_INTERVAL);
-
-    // Then schedule the next refresh with a random delay
-    await snap.request({
-      method: 'snap_scheduleBackgroundEvent',
-      params: {
-        duration: `PT${Math.floor(RANDOM_SLEEP / 1000)}S`,
-        request: {
-          method: ScheduleBackgroundEventMethod.OnAccountsRefreshed,
-          params: {},
-        },
-      },
-    });
-
-    logger.info(`[refreshAccounts] Scheduling next refresh in ${RANDOM_SLEEP}ms`);
+    logger.info('[onAccountsRefresh] Cronjob triggered');
 
     const accounts = await keyring.listAccounts();
 
@@ -58,7 +38,7 @@ export const refreshAccounts: OnCronjobHandler = async () => {
       );
 
       logger.log(
-        `[refreshAccounts] Latest signature for account ${account.address} is ${latestSignature}`,
+        `[onAccountsRefresh] Latest signature for account ${account.address} is ${latestSignature}`,
       );
 
       return {
@@ -79,13 +59,13 @@ export const refreshAccounts: OnCronjobHandler = async () => {
 
     if (accountsWithChanges.length === 0) {
       logger.info(
-        '[refreshAccounts] No accounts with changes, skipping refresh',
+        '[onAccountsRefresh] No accounts with changes, skipping refresh',
       );
       return;
     }
 
     logger.info(
-      `[refreshAccounts] Found ${accountsWithChanges.length} accounts with changes`,
+      `[onAccountsRefresh] Found ${accountsWithChanges.length} accounts with changes`,
     );
 
     /**
@@ -97,22 +77,22 @@ export const refreshAccounts: OnCronjobHandler = async () => {
       .refreshTransactions(accountsWithChanges)
       .catch((error) => {
         logger.warn(
-          '[refreshAccounts] Caught error while refreshing transactions',
+          '[onAccountsRefresh] Caught error while refreshing transactions',
           error,
         );
       });
 
     await assetsService.refreshAssets(accountsWithChanges).catch((error) => {
       logger.warn(
-        '[refreshAccounts] Caught error while refreshing assets',
+        '[onAccountsRefresh] Caught error while refreshing assets',
         error,
       );
     });
 
     logger.info(
-      `[refreshAccounts] Successfully refreshed ${accountsWithChanges.length} accounts`,
+      `[onAccountsRefresh] Successfully refreshed ${accountsWithChanges.length} accounts`,
     );
   } catch (error) {
-    logger.error('[refreshAccounts] Error', error);
+    logger.error('[onAccountsRefresh] Error', error);
   }
 };
