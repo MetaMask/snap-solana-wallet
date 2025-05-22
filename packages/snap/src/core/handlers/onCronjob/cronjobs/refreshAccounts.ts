@@ -11,6 +11,9 @@ import {
 import { Network } from '../../../constants/solana';
 import logger from '../../../utils/logger';
 
+const REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes in milliseconds
+const RANDOM_SLEEP = Math.floor(Math.random() * REFRESH_INTERVAL);
+
 /**
  * Performs a "smart" refresh of accounts' transactions and assets.
  *
@@ -21,6 +24,10 @@ import logger from '../../../utils/logger';
 export const refreshAccounts: OnCronjobHandler = async () => {
   try {
     logger.info('[refreshAccounts] Cronjob triggered');
+
+    // Go to sleep for a random amount of time to spread load
+    await new Promise((resolve) => setTimeout(resolve, RANDOM_SLEEP));
+    logger.info(`[refreshAccounts] Slept for ${RANDOM_SLEEP}ms to spread load`);
 
     const accounts = await keyring.listAccounts();
 
