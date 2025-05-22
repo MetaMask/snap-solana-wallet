@@ -1,13 +1,10 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Balance } from '@metamask/keyring-api';
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import type { CaipAssetType } from '@metamask/snaps-sdk';
-import { assert } from '@metamask/superstruct';
+import type { CaipAssetType } from '@metamask/utils';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
-import type { Address, JsonParsedTokenAccount } from '@solana/kit';
+import type { Address } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 import { map, uniq } from 'lodash';
 
@@ -19,30 +16,35 @@ import {
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '../../constants/solana';
 import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import type {
+  GetTokenAccountsByOwnerResponse,
+  TokenAccountInfoWithJsonData,
+} from '../../sdk-extensions/rpc-api';
 import type { Serializable } from '../../serialization/types';
-import type { SolanaAsset } from '../../types/solana';
 import { diffArrays } from '../../utils/diffArrays';
 import { diffObjects } from '../../utils/diffObjects';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
-import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
-import {
-  GetBalanceResponseStruct,
-  GetTokenAccountsByOwnerResponseStruct,
-} from '../connection/structs';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
+
+/**
+ * Extends a token account as returned by the `getTokenAccountsByOwner` RPC method with the scope and the caip-19 asset type for convenience.
+ */
+type TokenAccountWithMetadata =
+  GetTokenAccountsByOwnerResponse<TokenAccountInfoWithJsonData>[number] & {
+    scope: Network;
+    assetType: CaipAssetType;
+  } & Serializable;
 
 export class AssetsService {
   readonly #logger: ILogger;
 
   readonly #connection: SolanaConnection;
-
-  readonly #configProvider: ConfigProvider;
 
   readonly #state: IStateManager<UnencryptedStateValue>;
 
@@ -57,21 +59,18 @@ export class AssetsService {
   constructor({
     connection,
     logger,
-    configProvider,
     state,
     tokenMetadataService,
     cache,
   }: {
     connection: SolanaConnection;
     logger: ILogger;
-    configProvider: ConfigProvider;
     state: IStateManager<UnencryptedStateValue>;
     tokenMetadataService: TokenMetadataService;
     cache: ICache<Serializable>;
   }) {
     this.#logger = logger;
     this.#connection = connection;
-    this.#configProvider = configProvider;
     this.#state = state;
     this.#tokenMetadataService = tokenMetadataService;
     this.#cache = cache;
@@ -85,135 +84,59 @@ export class AssetsService {
   async listAccountAssets(
     account: SolanaKeyringAccount,
   ): Promise<CaipAssetType[]> {
-    const { activeNetworks } = this.#configProvider.get();
+    const { scopes } = account;
 
-    const nativeResponsePromises = activeNetworks.map(async (network) =>
-      this.getNativeAsset(account.address, network),
+    const nativeAssetTypes = scopes.map(
+      (scope) => `${scope}/${SolanaCaip19Tokens.SOL}` as CaipAssetType,
     );
 
-    const tokensResponsePromises = this.getTokenAccountsByOwnerMultiple_CACHED(
-      asAddress(account.address),
-      [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-      activeNetworks,
-    );
+    const tokenAssetTypes = (
+      await this.#getTokenAccountsByOwnerMultiple(
+        asAddress(account.address),
+        [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+        scopes as Network[],
+      )
+    ).flatMap((response) => response.assetType);
 
-    const [nativeResponses, tokensResponses] = await Promise.all([
-      Promise.all(nativeResponsePromises),
-      tokensResponsePromises,
-    ]);
-
-    const nativeAssets = nativeResponses.map((response) => response.assetType);
-    const tokenAssets = tokensResponses.flatMap(
-      (response: any) => response.assetType,
-    );
-    return [...nativeAssets, ...tokenAssets] as CaipAssetType[];
-  }
-
-  async discoverTokens(
-    address: string,
-    scope: Network,
-  ): Promise<SolanaAsset[]> {
-    const tokens = await this.#getAddressTokenAccounts(address, scope);
-    return tokens;
-  }
-
-  async getNativeAsset(address: string, scope: Network): Promise<SolanaAsset> {
-    const response = await this.#connection
-      .getRpc(scope)
-      .getBalance(asAddress(address))
-      .send();
-    assert(response, GetBalanceResponseStruct);
-    return {
-      scope,
-      assetType: `${scope}/${SolanaCaip19Tokens.SOL}`,
-      balance: response.value.toString(),
-      decimals: 9,
-      native: true,
-    };
-  }
-
-  async #getAddressTokenAccounts(address: string, scope: Network) {
-    try {
-      const [tokenProgramResponse, token2022ProgramResponse] =
-        await Promise.all([
-          this.#connection
-            .getRpc(scope)
-            .getTokenAccountsByOwner(
-              asAddress(address),
-              {
-                programId: TOKEN_PROGRAM_ADDRESS,
-              },
-              {
-                encoding: 'jsonParsed',
-              },
-            )
-            .send(),
-          this.#connection
-            .getRpc(scope)
-            .getTokenAccountsByOwner(
-              asAddress(address),
-              {
-                programId: TOKEN_2022_PROGRAM_ADDRESS,
-              },
-              {
-                encoding: 'jsonParsed',
-              },
-            )
-            .send(),
-        ]);
-      assert(tokenProgramResponse, GetTokenAccountsByOwnerResponseStruct);
-      assert(token2022ProgramResponse, GetTokenAccountsByOwnerResponseStruct);
-
-      const tokenProgramAccounts = tokenProgramResponse.value.map((token) =>
-        this.#mapRpcSolanaToken(token.account.data.parsed.info, scope),
-      );
-
-      const token2022ProgramAccounts = token2022ProgramResponse.value.map(
-        (token) =>
-          this.#mapRpcSolanaToken(token.account.data.parsed.info, scope),
-      );
-      return [...tokenProgramAccounts, ...token2022ProgramAccounts];
-    } catch (error) {
-      this.#logger.error(error, 'Error fetching token accounts');
-      throw error;
-    }
-  }
-
-  #mapRpcSolanaToken(
-    token: JsonParsedTokenAccount,
-    scope: Network,
-  ): SolanaAsset {
-    return {
-      scope,
-      assetType: tokenAddressToCaip19(scope, token.mint),
-      balance: token.tokenAmount.amount,
-      decimals: token.tokenAmount.decimals,
-      native: token.isNative,
-    };
+    return [...nativeAssetTypes, ...tokenAssetTypes];
   }
 
   /**
-   * Discovers all token accounts owned by the given address on the specified networks and program ids
-   * by calling the `getTokenAccountsByOwner` RPC method.
+   * Matrix-fetches all token accounts owned by the given address on the specified networks and program ids,
+   * and merges the results into a single array. Each individual token is augmented with the scope and the caip-19 asset type for convenience.
+   *
+   * It caches the results for each pair of scope and program id.
    *
    * @param owner - The owner of the token accounts.
    * @param programIds - The program ids to fetch the token accounts for.
    * @param scopes - The networks to fetch the token accounts for.
    * @returns The token accounts augmented with the scope and the caip-19 asset type for convenience.
    */
-  async getTokenAccountsByOwnerMultiple_CACHED(
+  async #getTokenAccountsByOwnerMultiple(
     owner: Address,
     programIds: Address[] = [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
     scopes: Network[] = [Network.Mainnet],
-  ): Promise<any> {
+  ): Promise<TokenAccountWithMetadata[]> {
+    if (programIds.length === 0 || scopes.length === 0) {
+      return [];
+    }
+
     // Create all pairs of scope and program id
     const pairs = scopes.flatMap((scope) =>
       programIds.map((programId) => ({ scope, programId })),
     );
 
+    const getTokenAccountsByOwnerCached = useCache<
+      [Address, Address, Network],
+      TokenAccountWithMetadata[]
+    >(this.#getTokenAccountsByOwner.bind(this), this.#cache, {
+      functionName: 'AssetsService:getTokenAccountsByOwner',
+      ttlMilliseconds: AssetsService.cacheTtlsMilliseconds.tokenAccountsByOwner,
+    });
+
     const responses = await Promise.all(
       pairs.map(async ({ scope, programId }) => {
-        const response = await this.#getTokenAccountsByOwner_CACHED(
+        const response = await getTokenAccountsByOwnerCached(
           owner,
           programId,
           scope,
@@ -222,39 +145,42 @@ export class AssetsService {
       }),
     );
 
+    console.log('🍪', responses.flat());
     return responses.flat();
   }
 
-  async getTokenAccountsByOwner(
+  /**
+   * Fetches the token accounts for the given owner and program id on the specified scope.
+   *
+   * @param owner - The owner of the token accounts.
+   * @param programId - The program id to fetch the token accounts for.
+   * @param scope - The scope to fetch the token accounts for.
+   * @returns The token accounts augmented with the scope and the caip-19 asset type for convenience.
+   */
+  async #getTokenAccountsByOwner(
     owner: Address,
     programId: Address = TOKEN_PROGRAM_ADDRESS,
     scope: Network = Network.Mainnet,
-  ): Promise<any> {
+  ): Promise<TokenAccountWithMetadata[]> {
     const response = await this.#connection
       .getRpc(scope)
       .getTokenAccountsByOwner(owner, { programId }, { encoding: 'jsonParsed' })
       .send();
 
-    // Attach the scope and the caip-19 asset type to each token account for easier future reference
-    return response.value.map((token) => ({
-      ...token,
-      scope,
-      assetType: tokenAddressToCaip19(
-        scope,
-        token.account.data.parsed.info.mint,
-      ),
-    }));
-  }
+    const tokens = response.value;
 
-  async #getTokenAccountsByOwner_CACHED(
-    owner: Address,
-    programId: Address = TOKEN_PROGRAM_ADDRESS,
-    scope: Network = Network.Mainnet,
-  ): Promise<any> {
-    return useCache(this.getTokenAccountsByOwner.bind(this), this.#cache, {
-      functionName: 'AssetsService:getTokenAccountsByOwner',
-      ttlMilliseconds: AssetsService.cacheTtlsMilliseconds.tokenAccountsByOwner,
-    })(owner, programId, scope);
+    // Attach the scope and the caip-19 asset type to each token account for easier future reference
+    return tokens.map(
+      (token) =>
+        ({
+          ...token,
+          scope,
+          assetType: tokenAddressToCaip19(
+            scope,
+            token.account.data.parsed.info.mint,
+          ),
+        } as TokenAccountWithMetadata),
+    );
   }
 
   /**
@@ -275,7 +201,7 @@ export class AssetsService {
 
     const scopes = uniq(map(assetTypes, getNetworkFromToken));
     const programIds = [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS];
-    const tokenAccounts = await this.getTokenAccountsByOwnerMultiple_CACHED(
+    const tokenAccounts = await this.#getTokenAccountsByOwnerMultiple(
       accountAddress,
       programIds,
       scopes,
@@ -316,17 +242,6 @@ export class AssetsService {
 
     await Promise.all(promises);
 
-    // Create all pairs of scope and program id
-    const pairs = scopes.flatMap((scope) =>
-      programIds.map((programId) => ({ scope, programId })),
-    );
-
-    const cacheKeysToDelete = pairs.map(
-      ({ scope, programId }) =>
-        `AssetsService:getTokenAccountsByOwner:"${accountAddress}":"${programId}":"${scope}"`, // Default cache key generated by useCache uses, which add double quotes around the keys
-    );
-
-    await this.#cache.mdelete(cacheKeysToDelete);
     await this.#state.setKey(`assets.${account.id}`, balances);
 
     return balances;
@@ -356,7 +271,9 @@ export class AssetsService {
       );
       const accountAssets = await this.listAccountAssets(account);
       const previousAssets = assets[account.id];
-      const previousCaip19Assets = Object.keys(previousAssets ?? {});
+      const previousCaip19Assets = Object.keys(
+        previousAssets ?? {},
+      ) as CaipAssetType[];
       const currentCaip19Assets = accountAssets ?? {};
 
       // Check if account assets have changed
@@ -375,8 +292,8 @@ export class AssetsService {
         await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
           assets: {
             [account.id]: {
-              added: assetsAdded as CaipAssetType[],
-              removed: assetsDeleted as CaipAssetType[],
+              added: assetsAdded,
+              removed: assetsDeleted,
             },
           },
         });

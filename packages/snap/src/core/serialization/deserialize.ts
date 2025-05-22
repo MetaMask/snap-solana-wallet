@@ -24,6 +24,10 @@ export const deserialize = (serializedValue: Json): Serializable =>
       return new BigNumber(value.value);
     }
 
+    // if (value.__type === 'bigint' && value.__brand === 'Lamports') {
+    //   return lamports(BigInt(value.value));
+    // }
+
     if (value.__type === 'bigint') {
       return BigInt(value.value);
     }
