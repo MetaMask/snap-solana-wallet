@@ -26,15 +26,6 @@ export const onAccountsRefresh: OnCronjobHandler = async () => {
 
     const scope = Network.Mainnet;
 
-    // Refresh all accounts assets
-    await assetsService.refreshAssets(accounts).catch((error) => {
-      logger.warn(
-        '[onAccountsRefresh] Caught error while refreshing assets',
-        error,
-      );
-    });
-
-    // Refresh all accounts transactions, but only for accounts that have new signatures
     const accountsWithChangeCheckPromises = accounts.map(async (account) => {
       const signatures =
         (await state.getKey<Signature[]>(`signatures.${account.address}`)) ??
@@ -81,6 +72,13 @@ export const onAccountsRefresh: OnCronjobHandler = async () => {
      * The two following calls cannot run in parallel, because
      * if they did, they would hit rate limits on the Token API
      */
+
+    await assetsService.refreshAssets(accounts).catch((error) => {
+      logger.warn(
+        '[onAccountsRefresh] Caught error while refreshing assets',
+        error,
+      );
+    });
 
     await transactionsService
       .refreshTransactions(accountsWithChanges)
