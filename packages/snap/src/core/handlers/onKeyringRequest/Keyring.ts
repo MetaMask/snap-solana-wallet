@@ -494,6 +494,11 @@ export class SolanaKeyring implements Keyring {
     data: Transaction[];
     next: Signature | null;
   }> {
+    console.log(
+      '🔮 Keyring.listAccountTransactions: start',
+      accountId,
+      pagination,
+    );
     try {
       validateRequest({ accountId, pagination }, ListAccountTransactionsStruct);
 
@@ -551,6 +556,13 @@ export class SolanaKeyring implements Keyring {
         ? (allTransactions[startIndex + pagination.limit]?.id as Signature) ??
           null
         : null;
+
+      console.log(
+        '🔮 Keyring.listAccountTransactions: end',
+        accountId,
+        accountTransactions,
+        nextSignature,
+      );
 
       return {
         data: accountTransactions,

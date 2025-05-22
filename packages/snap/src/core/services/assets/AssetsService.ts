@@ -77,7 +77,7 @@ export class AssetsService {
   }
 
   /**
-   * Returns the list of assets for the given account in all Solana networks. Includes native and token assets.
+   * Fetches and returns the list of assets for the given account in all Solana networks. Includes native and token assets.
    *
    * @param account - The account to get the assets for.
    * @returns CAIP-19 assets ids.
@@ -184,7 +184,7 @@ export class AssetsService {
   }
 
   /**
-   * Returns the balances and metadata of the given account for the given assets.
+   * Fetches and returns the balances and metadata of the given account for the given assets.
    *
    * @param account - The account to get the balances for.
    * @param assetTypes - The asset types to get the balances for (CAIP-19 ids).
@@ -243,8 +243,6 @@ export class AssetsService {
     await Promise.all(promises);
 
     await this.#state.setKey(`assets.${account.id}`, balances);
-
-    console.log('⛺ balances for', account.address, balances);
 
     return balances;
   }
