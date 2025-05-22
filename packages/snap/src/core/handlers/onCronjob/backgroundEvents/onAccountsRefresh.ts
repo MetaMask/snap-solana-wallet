@@ -26,6 +26,15 @@ export const onAccountsRefresh: OnCronjobHandler = async () => {
 
     const scope = Network.Mainnet;
 
+    // Refresh all accounts assets
+    await assetsService.refreshAssets(accounts).catch((error) => {
+      logger.warn(
+        '[onAccountsRefresh] Caught error while refreshing assets',
+        error,
+      );
+    });
+
+    // Refresh all accounts transactions, but only for accounts that have new signatures
     const accountsWithChangeCheckPromises = accounts.map(async (account) => {
       const signatures =
         (await state.getKey<Signature[]>(`signatures.${account.address}`)) ??
@@ -81,13 +90,6 @@ export const onAccountsRefresh: OnCronjobHandler = async () => {
           error,
         );
       });
-
-    await assetsService.refreshAssets(accountsWithChanges).catch((error) => {
-      logger.warn(
-        '[onAccountsRefresh] Caught error while refreshing assets',
-        error,
-      );
-    });
 
     logger.info(
       `[onAccountsRefresh] Successfully refreshed ${accountsWithChanges.length} accounts`,
