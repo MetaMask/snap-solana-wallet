@@ -44,15 +44,15 @@ export class TokenMetadataClient {
   }
 
   async #fetchTokenMetadataBatch(
-    caip19Ids: CaipAssetType[],
+    assetTypes: CaipAssetType[],
   ): Promise<TokenMetadata[]> {
-    assert(caip19Ids, array(CaipAssetTypeStruct));
+    assert(assetTypes, array(CaipAssetTypeStruct));
 
     const url = buildUrl({
       baseUrl: this.#baseUrl,
       path: '/v3/assets',
       queryParams: {
-        assetIds: caip19Ids.join(','),
+        assetIds: assetTypes.join(','),
       },
     });
 
