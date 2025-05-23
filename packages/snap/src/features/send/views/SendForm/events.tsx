@@ -159,6 +159,12 @@ async function onAssetSelectorValueChange({
     return;
   }
 
+  const isSameSelectedAsset = context.tokenCaipId === event.value.asset;
+
+  if (isSameSelectedAsset) {
+    return;
+  }
+
   context.tokenCaipId = event.value.asset;
   context.selectedTokenMetadata = {
     symbol: event.value.symbol,
@@ -170,7 +176,11 @@ async function onAssetSelectorValueChange({
   context.amount = '';
   context.error = null;
 
-  await updateInterface(id, <Send context={context} />, context);
+  await updateInterface(
+    id,
+    <Send context={context} inputAmount={''} />,
+    context,
+  );
 
   await buildTransactionMessageAndUpdateInterface(id, context);
 }
