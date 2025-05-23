@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { Json } from '@metamask/snaps-sdk';
 import type BigNumber from 'bignumber.js';
 
