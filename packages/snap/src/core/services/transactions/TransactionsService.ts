@@ -58,7 +58,7 @@ export class TransactionsService {
     const transactions = (
       await Promise.all(
         scopes.map(async (scope) =>
-          this.fetchAddressTransactions(scope, address, {
+          this.#fetchAddressTransactions(scope, address, {
             limit,
           }),
         ),
@@ -70,7 +70,7 @@ export class TransactionsService {
     return transactions;
   }
 
-  async fetchAddressTransactions(
+  async #fetchAddressTransactions(
     scope: Network,
     address: Address,
     pagination: { limit: number; next?: Signature | null },
