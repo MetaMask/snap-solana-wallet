@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type { Json } from '@metamask/snaps-sdk';
-import type { Lamports } from '@solana/kit';
 import type BigNumber from 'bignumber.js';
 
 /**
@@ -11,7 +10,6 @@ export type Serializable =
   | undefined
   | null
   | bigint
-  | Lamports
   | BigNumber
   | Serializable[]
   | {

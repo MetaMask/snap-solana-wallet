@@ -75,6 +75,7 @@ const tokenMetadataService = new TokenMetadataService({
 const assetsService = new AssetsService({
   connection,
   logger,
+  configProvider,
   state,
   tokenMetadataService,
   cache,

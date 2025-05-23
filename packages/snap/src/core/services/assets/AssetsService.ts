@@ -27,6 +27,7 @@ import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
+import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
@@ -46,6 +47,8 @@ export class AssetsService {
 
   readonly #connection: SolanaConnection;
 
+  readonly #configProvider: ConfigProvider;
+
   readonly #state: IStateManager<UnencryptedStateValue>;
 
   readonly #tokenMetadataService: TokenMetadataService;
@@ -59,18 +62,21 @@ export class AssetsService {
   constructor({
     connection,
     logger,
+    configProvider,
     state,
     tokenMetadataService,
     cache,
   }: {
     connection: SolanaConnection;
     logger: ILogger;
+    configProvider: ConfigProvider;
     state: IStateManager<UnencryptedStateValue>;
     tokenMetadataService: TokenMetadataService;
     cache: ICache<Serializable>;
   }) {
     this.#logger = logger;
     this.#connection = connection;
+    this.#configProvider = configProvider;
     this.#state = state;
     this.#tokenMetadataService = tokenMetadataService;
     this.#cache = cache;
@@ -85,17 +91,17 @@ export class AssetsService {
   async listAccountAssets(
     account: SolanaKeyringAccount,
   ): Promise<CaipAssetType[]> {
-    const { scopes } = account;
+    const { activeNetworks } = this.#configProvider.get();
 
-    const nativeAssetTypes = scopes.map(
-      (scope) => `${scope}/${SolanaCaip19Tokens.SOL}` as CaipAssetType,
+    const nativeAssetTypes = activeNetworks.map(
+      (network) => `${network}/${SolanaCaip19Tokens.SOL}` as CaipAssetType,
     );
 
     const tokenAssetTypes = (
       await this.#getTokenAccountsByOwnerMultiple(
         asAddress(account.address),
         [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-        scopes as Network[],
+        activeNetworks,
       )
     ).flatMap((response) => response.assetType);
 

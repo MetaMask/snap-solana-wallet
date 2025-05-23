@@ -16,6 +16,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
+import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import { createMockConnection } from '../mocks/mockConnection';
 import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/mockSolanaRpcResponses';
@@ -39,6 +40,7 @@ jest.mock('@solana-program/token', () => ({
 describe('AssetsService', () => {
   let assetsService: AssetsService;
   let mockConnection: SolanaConnection;
+  let mockConfigProvider: ConfigProvider;
   let mockTokenMetadataService: TokenMetadataService;
   let mockState: IStateManager<UnencryptedStateValue>;
   let stateUpdateSpy: jest.SpyInstance;
@@ -47,6 +49,12 @@ describe('AssetsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockConnection = createMockConnection();
+
+    mockConfigProvider = {
+      get: jest.fn().mockReturnValue({
+        activeNetworks: [Network.Localnet],
+      }),
+    } as unknown as ConfigProvider;
 
     mockTokenMetadataService = {
       getTokensMetadata: jest
@@ -68,6 +76,7 @@ describe('AssetsService', () => {
     assetsService = new AssetsService({
       connection: mockConnection,
       logger,
+      configProvider: mockConfigProvider,
       state: mockState,
       tokenMetadataService: mockTokenMetadataService,
       cache: mockCache,
@@ -88,17 +97,6 @@ describe('AssetsService', () => {
         ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.assetType),
         ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.assetType),
       ]);
-    });
-
-    it('returns empty array if account has no scopes', async () => {
-      const mockAccount = {
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        scopes: [],
-      };
-
-      const assets = await assetsService.listAccountAssets(mockAccount);
-
-      expect(assets).toStrictEqual([]);
     });
   });
 
