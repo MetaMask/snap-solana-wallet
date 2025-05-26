@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.30.4]
+
+### Fixed
+
+- Spread cronjob load time randomly per user ([#379](https://github.com/MetaMask/snap-solana-wallet/pull/379))
+
 ## [1.30.3]
 
 ### Fixed
@@ -587,7 +593,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.3...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.4...HEAD
+[1.30.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.3...v1.30.4
 [1.30.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.2...v1.30.3
 [1.30.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.1...v1.30.2
 [1.30.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.0...v1.30.1

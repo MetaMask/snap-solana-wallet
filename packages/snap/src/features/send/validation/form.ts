@@ -1,20 +1,24 @@
 import { address as addressValidator } from '@solana/kit';
 
+import type {
+  FieldValidationFunction,
+  ValidationFunction,
+} from '../../../core/types/form';
+import { solToLamports } from '../../../core/utils/conversion';
+import {
+  i18n,
+  type Locale,
+  type LocalizedMessage,
+} from '../../../core/utils/i18n';
 import {
   getBalance,
   getIsNativeToken,
   getNativeTokenBalance,
   getTokenAmount,
-} from '../../features/send/selectors';
-import type { SendContext } from '../../features/send/types';
-import { SendFormNames } from '../../features/send/types';
-import { validation } from '../../features/send/views/SendForm/validation';
-import type {
-  FieldValidationFunction,
-  ValidationFunction,
-} from '../types/form';
-import { solToLamports } from '../utils/conversion';
-import { i18n, type Locale, type LocalizedMessage } from '../utils/i18n';
+} from '../selectors';
+import type { SendContext } from '../types';
+import { SendFormNames } from '../types';
+import { validation } from '../views/SendForm/validation';
 
 /**
  * Validates a field value based on the provided validation functions.
@@ -208,11 +212,12 @@ export const amountInput = (context: SendContext) => {
         };
       }
     } else {
-      // If the SOL balance is lower than the fee, it's invalid
-      const isFeeGreaterThanSolBalance =
-        feeEstimatedInLamports.gt(solBalanceLamports);
+      // If user has less SOL than the fee + rent, it's invalid. Even if the user has enough SOL to pay for the fee, the balance after tx cannot drop below the rent.
+      const isSolBalanceLowerThanFeePlusRent = feeEstimatedInLamports
+        .plus(minimumBalanceForRentExemptionLamports)
+        .gt(solBalanceLamports);
 
-      if (isFeeGreaterThanSolBalance) {
+      if (isSolBalanceLowerThanFeePlusRent) {
         return {
           message: translate('send.insuffientSolToCoverFee'),
           value,

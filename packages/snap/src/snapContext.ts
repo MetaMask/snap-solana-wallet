@@ -10,8 +10,6 @@ import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
 import { ConfirmationHandler } from './core/services/confirmation/ConfirmationHandler';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
-import { SendSolBuilder } from './core/services/execution/builders/SendSolBuilder';
-import { SendSplTokenBuilder } from './core/services/execution/builders/SendSplTokenBuilder';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
 import { NftService } from './core/services/nft/NftService';
 import type { IStateManager } from './core/services/state/IStateManager';
@@ -23,6 +21,8 @@ import { TransactionScanService } from './core/services/transaction-scan/Transac
 import { TransactionsService } from './core/services/transactions/TransactionsService';
 import { WalletService } from './core/services/wallet/WalletService';
 import logger from './core/utils/logger';
+import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
+import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
 
 /**
  * Initializes all the services using dependency injection.
@@ -58,7 +58,7 @@ const cache = new StateCache(state, logger);
 
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);
-const sendSolBuilder = new SendSolBuilder(transactionHelper, logger);
+const sendSolBuilder = new SendSolBuilder(connection, logger);
 const sendSplTokenBuilder = new SendSplTokenBuilder(
   connection,
   transactionHelper,

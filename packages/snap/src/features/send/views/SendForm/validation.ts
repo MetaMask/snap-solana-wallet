@@ -3,14 +3,10 @@ import { CaipAssetTypeStruct } from '@metamask/utils';
 
 import { Network } from '../../../../core/constants/solana';
 import type { FieldValidationFunction } from '../../../../core/types/form';
-import {
-  address,
-  amountInput,
-  required,
-} from '../../../../core/validation/form';
 import { UuidStruct } from '../../../../core/validation/structs';
 import type { SendContext } from '../../types';
 import { SendFormNames } from '../../types';
+import { address, amountInput, required } from '../../validation/form';
 
 export const StartSendTransactionFlowParamsStruct = object({
   scope: enums([...Object.values(Network)]),

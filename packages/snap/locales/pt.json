@@ -200,7 +200,7 @@
       "message": "Fazendo login com"
     },
     "confirmation.signIn.badAccount": {
-      "message": "Este site solicita que você faça login usando a conta incorreta."
+      "message": "Este site está solicitando que você faça login usando a conta incorreta."
     },
     "confirmation.signIn.message": {
       "message": "Mensagem"
@@ -218,7 +218,7 @@
       "message": "Nonce"
     },
     "confirmation.signIn.issuedAt": {
-      "message": "Emitido às"
+      "message": "Emitida às"
     },
     "confirmation.signIn.expirationTime": {
       "message": "Prazo de validade"

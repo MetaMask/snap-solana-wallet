@@ -1,7 +1,8 @@
 import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
+import { merge } from 'lodash';
 
-import { SOL_TRANSFER_FEE_LAMPORTS } from '../../../../core/constants/solana';
+import { Networks } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { buildUrl } from '../../../../core/utils/buildUrl';
 import {
@@ -15,19 +16,19 @@ import {
 } from '../../../../core/utils/interface';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import {
-  sendFieldsAreValid,
-  validateField,
-} from '../../../../core/validation/form';
-import {
   configProvider,
   priceApiClient,
+  sendSolBuilder,
+  sendSplTokenBuilder,
   state,
   tokenMetadataService,
 } from '../../../../snapContext';
 import { getBalance, getIsNativeToken } from '../../selectors';
 import { Send } from '../../Send';
+import { SendFeeCalculator } from '../../transactions/SendFeeCalculator';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 import { buildTransactionMessageAndUpdateInterface } from '../../utils/buildTransactionMessageAndUpdateInterface';
+import { sendFieldsAreValid, validateField } from '../../validation/form';
 import { validation } from './validation';
 
 /**
@@ -159,18 +160,43 @@ async function onAssetSelectorValueChange({
     return;
   }
 
-  context.tokenCaipId = event.value.asset;
-  context.selectedTokenMetadata = {
-    symbol: event.value.symbol,
-    name: event.value.name,
-    asset: event.value.asset,
-    imageSvg: null,
+  const caipAssetType = event.value.asset;
+
+  const isSameSelectedAsset = context.tokenCaipId === caipAssetType;
+
+  if (isSameSelectedAsset) {
+    return;
+  }
+
+  const builder =
+    caipAssetType === Networks[context.scope].nativeToken.caip19Id
+      ? sendSolBuilder
+      : sendSplTokenBuilder;
+
+  const sendFeeCalculator = new SendFeeCalculator(builder);
+  const feeInLamports = sendFeeCalculator.getFee();
+  const feeEstimatedInSol = lamportsToSol(feeInLamports).toString();
+
+  const contextUpdates: Partial<SendContext> = {
+    tokenCaipId: caipAssetType,
+    feeEstimatedInSol,
+    selectedTokenMetadata: {
+      symbol: event.value.symbol,
+      name: event.value.name,
+      asset: event.value.asset,
+      imageSvg: null,
+    },
+    amount: '',
+    error: null,
   };
 
-  context.amount = '';
-  context.error = null;
+  const newContext = merge(context, contextUpdates);
 
-  await updateInterface(id, <Send context={context} />, context);
+  await updateInterface(
+    id,
+    <Send context={newContext} inputAmount={''} />,
+    newContext,
+  );
 
   await buildTransactionMessageAndUpdateInterface(id, context);
 }
@@ -234,7 +260,12 @@ async function onMaxAmountButtonClick({
   id: string;
   context: SendContext;
 }) {
-  const { currencyType, minimumBalanceForRentExemptionSol } = context;
+  const {
+    currencyType,
+    minimumBalanceForRentExemptionSol,
+    tokenCaipId,
+    tokenPrices,
+  } = context;
   const updatedContext: SendContext = { ...context };
   const tokenBalance = getBalance(context);
   const isNativeToken = getIsNativeToken(context);
@@ -242,27 +273,40 @@ async function onMaxAmountButtonClick({
   if (isNativeToken) {
     /**
      * For a SOL transfer, the maximum amount we can send is the balance minus
-     * - the transfer fee
-     * - plus the minimum balance for rent exemption, because the account cannot fall below this amount
+     * - the base fee
+     * - the priority fee
+     * - the minimum balance for rent exemption, because the account cannot fall below this amount
      */
     const balanceInLamports = solToLamports(tokenBalance);
+
+    const builder = sendSolBuilder;
+
+    const sendFeeCalculator = new SendFeeCalculator(builder);
+    const feeInLamports = sendFeeCalculator.getFee().toString();
 
     const minimumBalanceForRentExemptionLamports = solToLamports(
       minimumBalanceForRentExemptionSol,
     );
 
     const balanceInLamportsAfterCost = balanceInLamports
-      .minus(SOL_TRANSFER_FEE_LAMPORTS)
-      .minus(minimumBalanceForRentExemptionLamports);
+      .minus(feeInLamports)
+      .minus(minimumBalanceForRentExemptionLamports)
+      .minus(1); // Subtract 1 extra lamport to compensate for rounding
 
-    const balanceInSolAfterCost = lamportsToSol(balanceInLamportsAfterCost);
-    updatedContext.amount = balanceInSolAfterCost.toString();
+    const maxAmountLamports = BigNumber.maximum(
+      balanceInLamportsAfterCost,
+      BigNumber(0),
+    );
+
+    const maxAmountSol = lamportsToSol(maxAmountLamports);
+
+    updatedContext.amount = maxAmountSol.toString();
   } else {
     updatedContext.amount = tokenBalance;
   }
 
   if (currencyType === SendCurrencyType.FIAT) {
-    const { price } = context.tokenPrices[context.tokenCaipId] ?? { price: 0 };
+    const { price } = tokenPrices[tokenCaipId] ?? { price: 0 };
     updatedContext.amount = tokenToFiat(updatedContext.amount, price);
   }
 

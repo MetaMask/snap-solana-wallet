@@ -48,6 +48,7 @@ export const SendForm = ({
     buildingTransaction,
     error,
     loading,
+    transactionMessage,
     preferences: { locale, currency },
   } = context;
 
@@ -100,8 +101,7 @@ export const SendForm = ({
     isNullOrUndefined(validation?.[SendFormNames.DestinationAccountInput]);
 
   const isTransactionMessageSuccessfullyBuild =
-    !isNullOrUndefined(context.transactionMessage) &&
-    context.transactionMessage !== '';
+    !isNullOrUndefined(transactionMessage) && transactionMessage !== '';
 
   const showClearAddressButton = Boolean(toAddress && toAddress.length > 0);
 
@@ -197,14 +197,13 @@ export const SendForm = ({
                 ) : (
                   <Box>{null}</Box>
                 )}
-                {/* TODO: Temporary disabled max amount button as a quick fix for https://github.com/MetaMask/metamask-extension/issues/32299 */}
-                {/* <Button
+                <Button
                   size="sm"
                   name={SendFormNames.MaxAmountButton}
                   disabled={balanceUndefinedOrZero}
                 >
                   {translate('send.maxButton')}
-                </Button> */}
+                </Button>
               </Box>
             </Box>
           )}

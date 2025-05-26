@@ -1,5 +1,5 @@
 import { parseCaipAssetType } from '@metamask/utils';
-import { address, type CompilableTransactionMessage } from '@solana/kit';
+import { address } from '@solana/kit';
 import debounce from 'lodash/fp/debounce';
 import pipe from 'lodash/fp/pipe';
 
@@ -11,16 +11,17 @@ import {
   getInterfaceContextOrThrow,
   updateInterface,
 } from '../../../core/utils/interface';
-import { sendFieldsAreValid } from '../../../core/validation/form';
+import logger from '../../../core/utils/logger';
 import {
   keyring,
   sendSolBuilder,
   sendSplTokenBuilder,
-  transactionHelper,
 } from '../../../snapContext';
 import { getTokenAmount } from '../selectors';
 import { Send } from '../Send';
+import { SendFeeCalculator } from '../transactions/SendFeeCalculator';
 import { type SendContext } from '../types';
+import { sendFieldsAreValid } from '../validation/form';
 
 /**
  * Builds a transaction message for the send form.
@@ -33,43 +34,31 @@ const buildTransactionMessage = async (context: SendContext) => {
   const tokenAmount = getTokenAmount(context);
   const account = await keyring.getAccountOrThrow(fromAccountId);
 
-  let transactionMessage: CompilableTransactionMessage | null = null;
-
   if (!toAddress || !tokenAmount) {
     throw new Error('Invalid transaction parameters');
   }
 
-  if (tokenCaipId === Networks[scope].nativeToken.caip19Id) {
-    // Native token (SOL) transaction
-    transactionMessage = await sendSolBuilder.buildTransactionMessage(
-      address(account.address),
-      address(toAddress),
-      tokenAmount,
-      scope,
-    );
-  } else {
-    // SPL token transaction
-    transactionMessage = await sendSplTokenBuilder.buildTransactionMessage({
-      from: account,
-      to: address(toAddress),
-      mint: address(parseCaipAssetType(tokenCaipId).assetReference),
-      amountInToken: tokenAmount,
-      network: scope,
-    });
-  }
+  const isNative = tokenCaipId === Networks[scope].nativeToken.caip19Id;
 
-  if (!transactionMessage) {
-    throw new Error('Unable to generate transaction message');
-  }
+  const builder = isNative ? sendSolBuilder : sendSplTokenBuilder;
+  const feeCalculator = new SendFeeCalculator(builder);
+
+  const params = {
+    from: account,
+    to: address(toAddress),
+    amount: tokenAmount,
+    network: scope,
+    ...(isNative
+      ? {}
+      : { mint: address(parseCaipAssetType(tokenCaipId).assetReference) }),
+  };
+
+  const transactionMessage = await builder.buildTransactionMessage(params);
 
   const base64EncodedTransactionMessage =
     await fromCompilableTransactionMessageToBase64String(transactionMessage);
 
-  const feeInLamports =
-    await transactionHelper.getFeeFromBase64StringInLamports(
-      base64EncodedTransactionMessage,
-      scope,
-    );
+  const feeInLamports = feeCalculator.getFee();
 
   return {
     feeInLamports,
@@ -129,6 +118,8 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
       { ...latestContext, ...contextUpdatesAfterBuild },
     );
   } catch (error) {
+    logger.error('Could not build the send transaction', error);
+
     const contextUpdatesAfterError: Partial<SendContext> = {
       error: {
         title: 'send.simulationTitleError',

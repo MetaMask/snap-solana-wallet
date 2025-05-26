@@ -198,7 +198,6 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
   }
 
   const handler = onCronjobHandlers[method];
-
   return handler({ request });
 };
 
