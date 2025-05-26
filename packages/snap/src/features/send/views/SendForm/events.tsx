@@ -161,10 +161,8 @@ async function onAssetSelectorValueChange({
   }
 
   const caipAssetType = event.value.asset;
-  console.log('🪭caipAssetType', caipAssetType);
 
   const isSameSelectedAsset = context.tokenCaipId === caipAssetType;
-  console.log('🪭isSameSelectedAsset', isSameSelectedAsset);
 
   if (isSameSelectedAsset) {
     return;
@@ -174,13 +172,10 @@ async function onAssetSelectorValueChange({
     caipAssetType === Networks[context.scope].nativeToken.caip19Id
       ? sendSolBuilder
       : sendSplTokenBuilder;
-  console.log('🪭builder', builder);
 
   const sendFeeCalculator = new SendFeeCalculator(builder);
   const feeInLamports = sendFeeCalculator.getFee();
-  console.log('🪭feeInLamports', feeInLamports);
   const feeEstimatedInSol = lamportsToSol(feeInLamports).toString();
-  console.log('🪭feeEstimatedInSol', feeEstimatedInSol);
 
   const contextUpdates: Partial<SendContext> = {
     tokenCaipId: caipAssetType,
@@ -283,20 +278,14 @@ async function onMaxAmountButtonClick({
      * - the minimum balance for rent exemption, because the account cannot fall below this amount
      */
     const balanceInLamports = solToLamports(tokenBalance);
-    console.log('🔮balanceInLamports', balanceInLamports.toString());
 
     const builder = sendSolBuilder;
 
     const sendFeeCalculator = new SendFeeCalculator(builder);
     const feeInLamports = sendFeeCalculator.getFee().toString();
-    console.log('🔮feeInLamports', feeInLamports);
 
     const minimumBalanceForRentExemptionLamports = solToLamports(
       minimumBalanceForRentExemptionSol,
-    );
-    console.log(
-      '🔮minimumBalanceForRentExemptionLamports',
-      minimumBalanceForRentExemptionLamports.toString(),
     );
 
     const balanceInLamportsAfterCost = balanceInLamports
@@ -304,19 +293,12 @@ async function onMaxAmountButtonClick({
       .minus(minimumBalanceForRentExemptionLamports)
       .minus(1); // Subtract 1 extra lamport to compensate for rounding
 
-    console.log(
-      '🔮balanceInLamportsAfterCost',
-      balanceInLamportsAfterCost.toString(),
-    );
-
     const maxAmountLamports = BigNumber.maximum(
       balanceInLamportsAfterCost,
       BigNumber(0),
     );
-    console.log('🔮maxAmountLamports', maxAmountLamports.toString());
 
     const maxAmountSol = lamportsToSol(maxAmountLamports);
-    console.log('🔮maxAmountSol', maxAmountSol.toString());
 
     updatedContext.amount = maxAmountSol.toString();
   } else {

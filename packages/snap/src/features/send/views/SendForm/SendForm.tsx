@@ -52,18 +52,11 @@ export const SendForm = ({
     preferences: { locale, currency },
   } = context;
 
-  console.log('🍋transactionMessage', transactionMessage);
-
-  console.log('🍋balances', balances);
   const translate = i18n(locale);
   const selectedToken = balances[fromAccountId]?.[tokenCaipId];
-  console.log('🍋selectedToken', selectedToken);
   const tokenBalance = selectedToken?.amount;
-  console.log('🍋tokenBalance', tokenBalance);
   const tokenSymbol = selectedToken?.unit ?? '';
-  console.log('🍋tokenSymbol', tokenSymbol);
   const isBalanceDefined = tokenBalance !== undefined;
-  console.log('🍋isBalanceDefined', isBalanceDefined);
 
   const selectedAccount = accounts.find(
     (account) => account.id === fromAccountId,
