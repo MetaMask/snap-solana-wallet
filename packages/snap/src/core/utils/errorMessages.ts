@@ -7,6 +7,8 @@ import { i18n } from './i18n';
 export const ERROR_MESSAGES: Record<string, string> = {
   AccountAlreadyInUse: 'errors.accountAlreadyInUse',
   ResultWithNegativeLamports: 'errors.insufficientSol',
+  SlippageToleranceExceeded: 'errors.slippageToleranceExceeded', // Jupiter
+  ExceededDesiredSlippageLimit: 'errors.slippageToleranceExceeded', // Raydium
 };
 
 /**
