@@ -9,12 +9,12 @@ import {
   KnownCaip19Id,
   Network,
   TokenMetadata,
-} from '../../../constants/solana';
-import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../test/mocks/solana-keyring-accounts';
-import { deriveSolanaKeypairMock } from '../../../test/mocks/utils/deriveSolanaKeypair';
-import { mockLogger } from '../../mocks/logger';
-import { createMockConnection } from '../../mocks/mockConnection';
-import type { TransactionHelper } from '../TransactionHelper';
+} from '../../../core/constants/solana';
+import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
+import { mockLogger } from '../../../core/services/mocks/logger';
+import { createMockConnection } from '../../../core/services/mocks/mockConnection';
+import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../core/test/mocks/solana-keyring-accounts';
+import { deriveSolanaKeypairMock } from '../../../core/test/mocks/utils/deriveSolanaKeypair';
 import type { Exists, MaybeHasDecimals } from './SendSplTokenBuilder';
 import { SendSplTokenBuilder } from './SendSplTokenBuilder';
 
@@ -26,7 +26,7 @@ jest.mock('@solana/kit', () => ({
     .mockReturnValue(() => jest.fn()),
 }));
 
-jest.mock('../../../utils/deriveSolanaKeypair', () => ({
+jest.mock('../../../core/utils/deriveSolanaKeypair', () => ({
   deriveSolanaKeypair: deriveSolanaKeypairMock,
 }));
 
@@ -100,7 +100,7 @@ describe('SendSplTokenBuilder', () => {
           from: mockFrom,
           to: mockTo,
           mint: mockMint,
-          amountInToken: mockAmount,
+          amount: mockAmount,
           network: mockNetwork,
         });
 
@@ -116,7 +116,11 @@ describe('SendSplTokenBuilder', () => {
         },
         instructions: [
           {
-            data: Uint8Array.from([2, 64, 13, 3, 0]),
+            data: new Uint8Array([2, 48, 117, 0, 0]),
+            programAddress: 'ComputeBudget111111111111111111111111111111',
+          },
+          {
+            data: new Uint8Array([3, 16, 39, 0, 0, 0, 0, 0, 0]),
             programAddress: 'ComputeBudget111111111111111111111111111111',
           },
           {

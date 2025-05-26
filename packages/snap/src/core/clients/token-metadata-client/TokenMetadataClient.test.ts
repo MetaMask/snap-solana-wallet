@@ -27,7 +27,8 @@ const MOCK_METADATA_RESPONSE = [
 describe('TokenMetadataClient', () => {
   const mockFetch = jest.fn();
   const mockLogger = {
-    error: jest.fn(),
+    error: jest.fn(console.error),
+    warn: jest.fn(console.error),
   } as unknown as ILogger;
 
   let client: TokenMetadataClient;
@@ -71,14 +72,14 @@ describe('TokenMetadataClient', () => {
   describe('getTokenMetadataFromAddresses', () => {
     it('fetches and parses token metadata', async () => {
       const tokenAddresses = [
-        tokenAddressToCaip19(Network.Localnet, 'address1'),
-        tokenAddressToCaip19(Network.Localnet, 'address2'),
+        tokenAddressToCaip19(Network.Devnet, 'address1'),
+        tokenAddressToCaip19(Network.Devnet, 'address2'),
       ];
-
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValueOnce(MOCK_METADATA_RESPONSE),
       });
+
       const metadata = await client.getTokenMetadataFromAddresses(
         tokenAddresses,
       );
@@ -119,7 +120,7 @@ describe('TokenMetadataClient', () => {
 
     it('handles addresses in chunks when more than the limit is provided', async () => {
       const tokenAddresses = Array.from({ length: 60 }, (_, i) =>
-        tokenAddressToCaip19(Network.Localnet, `address${i}`),
+        tokenAddressToCaip19(Network.Devnet, `address${i}`),
       );
 
       mockFetch.mockResolvedValue({
@@ -155,8 +156,8 @@ describe('TokenMetadataClient', () => {
 
     it('throws an error if fetch fails', async () => {
       const tokenAddresses = [
-        tokenAddressToCaip19(Network.Localnet, 'address1'),
-        tokenAddressToCaip19(Network.Localnet, 'address2'),
+        tokenAddressToCaip19(Network.Devnet, 'address1'),
+        tokenAddressToCaip19(Network.Devnet, 'address2'),
       ];
 
       const errorMessage = 'Error fetching token metadata';
@@ -173,8 +174,8 @@ describe('TokenMetadataClient', () => {
 
     it('throws an error if the response includes an invalid assetId', async () => {
       const tokenAddresses = [
-        tokenAddressToCaip19(Network.Localnet, 'address1'),
-        tokenAddressToCaip19(Network.Localnet, 'address2'),
+        tokenAddressToCaip19(Network.Devnet, 'address1'),
+        tokenAddressToCaip19(Network.Devnet, 'address2'),
       ];
 
       mockFetch.mockResolvedValueOnce({
@@ -194,6 +195,29 @@ describe('TokenMetadataClient', () => {
       ).rejects.toThrow(
         'At path: 0.assetId -- Expected a value of type `CaipAssetType`, but received: `"bad-asset-id"`',
       );
+    });
+
+    it('ignores asset types that are not supported by the Token API', async () => {
+      const supportedAssetType = tokenAddressToCaip19(
+        Network.Mainnet,
+        '1GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr',
+      );
+      const unsupportedAssetType = tokenAddressToCaip19(
+        Network.Localnet,
+        'address1',
+      );
+      const tokenAddresses = [supportedAssetType, unsupportedAssetType];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce([MOCK_METADATA_RESPONSE[0]]),
+      });
+
+      const metadata = await client.getTokenMetadataFromAddresses(
+        tokenAddresses,
+      );
+
+      expect(metadata[supportedAssetType]).toBeDefined();
+      expect(metadata[unsupportedAssetType]).toBeUndefined();
     });
   });
 });

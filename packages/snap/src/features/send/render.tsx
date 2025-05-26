@@ -12,10 +12,10 @@ import {
   updateInterface,
 } from '../../core/utils/interface';
 import {
+  connection,
   priceApiClient,
   state,
   tokenMetadataService,
-  transactionHelper,
 } from '../../snapContext';
 import { Send } from './Send';
 import type { SendContext } from './types';
@@ -144,8 +144,10 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     context.tokenPricesFetchStatus = 'fetched';
   }
 
-  const minimumBalanceForRentExemptionPromise = transactionHelper
-    .getMinimumBalanceForRentExemption(scope)
+  const minimumBalanceForRentExemptionPromise = connection
+    .getRpc(scope)
+    .getMinimumBalanceForRentExemption(BigInt(0))
+    .send()
     .then((balance) => {
       context.minimumBalanceForRentExemptionSol =
         lamportsToSol(balance).toString();

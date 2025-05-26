@@ -2,10 +2,8 @@ import type { Infer } from '@metamask/superstruct';
 import { assert } from '@metamask/superstruct';
 import type {
   BaseTransactionMessage,
-  Commitment,
   CompilableTransactionMessage,
   GetTransactionApi,
-  Lamports,
   Transaction,
   TransactionMessageBytesBase64,
   TransactionWithLifetime,
@@ -51,10 +49,6 @@ import type { SolanaConnection } from '../connection';
  * Only define here methods that are not specific to any particular transaction type.
  * If you need to define a method that is specific to a particular transaction type,
  * create a new helper class for that transaction type, and inject this transaction helper into it.
- *
- * @example
- * const transactionHelper = new TransactionHelper(connection, logger);
- * const sendSolBuilder = new SendSolBuilder(transactionHelper, logger);
  */
 export class TransactionHelper {
   readonly #connection: SolanaConnection;
@@ -219,29 +213,6 @@ export class TransactionHelper {
         delayMs: 200,
       },
     );
-  }
-
-  /**
-   * Returns minimum balance required to make account rent exempt.
-   *
-   * @param network - The network on which the transaction is being sent.
-   * @param accountSize - The Account's data length.
-   * @param config - The configuration for the request.
-   * @param config.commitment - The commitment level to use.
-   * @returns The minimum balance in lamports required to make account rent exempt.
-   */
-  async getMinimumBalanceForRentExemption(
-    network: Network,
-    accountSize = BigInt(0),
-    config?: {
-      commitment?: Commitment;
-    },
-  ): Promise<Lamports> {
-    const rpc = this.#connection.getRpc(network);
-    const minimumBalance = await rpc
-      .getMinimumBalanceForRentExemption(accountSize, config)
-      .send();
-    return minimumBalance;
   }
 
   /**

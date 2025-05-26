@@ -11,4 +11,6 @@ export enum ScheduleBackgroundEventMethod {
   OnTransactionRejected = 'onTransactionRejected',
   /** Triggered when a transaction is signed */
   OnSignTransaction = 'onSignTransaction',
+  /** Triggered when the snap needs to refresh the user's accounts */
+  OnAccountsRefresh = 'onAccountsRefresh',
 }

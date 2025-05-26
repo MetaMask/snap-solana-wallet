@@ -312,7 +312,7 @@ describe('Send', () => {
     const updatedContext4: SendContext = {
       ...updatedContext3,
       stage: 'transaction-confirmation',
-      feeEstimatedInSol: '0.000015',
+      feeEstimatedInSol: '0.000005',
     };
 
     expect(screen4).toRender(<Send context={updatedContext4} />);
@@ -324,7 +324,7 @@ describe('Send', () => {
     const updatedContext5: SendContext = {
       ...updatedContext4,
       stage: 'transaction-success',
-      feePaidInSol: '0.000015',
+      feePaidInSol: '0.000005',
       transaction: {
         result: 'success',
         signature: MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result.signature,

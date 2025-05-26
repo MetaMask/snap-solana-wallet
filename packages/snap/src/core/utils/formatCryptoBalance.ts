@@ -16,9 +16,10 @@ function formatAmount(locale: string, value: number | BigNumber): string {
   const bigNumberValue = new BigNumber(value);
   const numberOfDecimals = bigNumberValue.decimalPlaces();
   const formattedValue = bigNumberValue.toFixed(numberOfDecimals ?? 0);
+  const [localeCode] = locale.split('_');
 
   const [integerPart, fractionalPart] = formattedValue.split('.');
-  const formattedIntegerPart = new Intl.NumberFormat(locale).format(
+  const formattedIntegerPart = new Intl.NumberFormat(localeCode).format(
     integerPart as unknown as number,
   );
 
@@ -38,6 +39,8 @@ export function formatCryptoBalance(
   amount: number | string | BigNumber,
   locale: string,
 ) {
+  const [localeCode] = locale.split('_');
+
   try {
     const bignumberAmount = new BigNumber(amount);
 
@@ -54,7 +57,7 @@ export function formatCryptoBalance(
     }
 
     if (bignumberAmount.abs().lt(1)) {
-      return new Intl.NumberFormat(locale, {
+      return new Intl.NumberFormat(localeCode, {
         maximumSignificantDigits: MAX_SIGNIFICANT_DECIMAL_PLACES,
       } as Intl.NumberFormatOptions).format(
         Number(bignumberAmount.toFixed(DEFAULT_PRECISION ?? 0)),

@@ -21,18 +21,16 @@ export class TokenMetadataService {
     this.#logger = logger;
   }
 
-  async getTokensMetadata(tokensCaipIds: CaipAssetType[]) {
-    if (tokensCaipIds.length === 0) {
+  async getTokensMetadata(assetTypes: CaipAssetType[]) {
+    if (assetTypes.length === 0) {
       this.#logger.warn(
-        `No tokens to get metadata for ${tokensCaipIds.join(', ')}`,
+        `No tokens to get metadata for ${assetTypes.join(', ')}`,
       );
       return {};
     }
 
     const tokenMetadata =
-      await this.#tokenMetadataClient.getTokenMetadataFromAddresses(
-        tokensCaipIds,
-      );
+      await this.#tokenMetadataClient.getTokenMetadataFromAddresses(assetTypes);
 
     return tokenMetadata;
   }

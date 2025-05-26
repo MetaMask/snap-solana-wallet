@@ -1,11 +1,11 @@
-import type { SendContext } from '../../features/send/types';
-import { SendCurrencyType } from '../../features/send/types';
-import { KnownCaip19Id, Network } from '../constants/solana';
+import { KnownCaip19Id, Network } from '../../../core/constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
-} from '../test/mocks/solana-keyring-accounts';
-import type { FieldValidationFunction } from '../types/form';
+} from '../../../core/test/mocks/solana-keyring-accounts';
+import type { FieldValidationFunction } from '../../../core/types/form';
+import type { SendContext } from '../types';
+import { SendCurrencyType } from '../types';
 import {
   amountInput,
   required,
@@ -278,6 +278,27 @@ describe('send form validation', () => {
             },
           },
           feeEstimatedInSol: '0.00001',
+        });
+
+        const validator = amountInput(context);
+        expect(validator('50')).toStrictEqual({
+          message: 'Insufficient SOL balance to cover the transaction fee',
+          value: '50',
+        });
+      });
+
+      it('returns an error when paying the fee would drop the balance below the minimum balance for rent exemption', () => {
+        const context = createSplContext({
+          balances: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [KnownCaip19Id.EurcDevnet]: {
+                amount: '100',
+              },
+              [KnownCaip19Id.SolTestnet]: {
+                amount: '0.002', // Enough SOL to pay for the fee, but balance would drop below the rent (fee = 0.000005 SOL, rent exemption = 0.002 SOL)
+              },
+            },
+          },
         });
 
         const validator = amountInput(context);

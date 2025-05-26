@@ -15,8 +15,9 @@ export function formatFiat(
 ): string {
   const bigAmount = new BigNumber(amount);
   const amountNumber = bigAmount.toNumber();
+  const [localeCode] = locale.split('_');
 
-  return amountNumber.toLocaleString(locale, {
+  return amountNumber.toLocaleString(localeCode, {
     style: 'currency',
     currency,
     maximumFractionDigits: 2,

@@ -71,12 +71,6 @@ jobs:
         with:
           path: ./packages/snap/dist
           key: snap-${{ runner.os }}-${{ github.sha }}
-      - name: Cache site build
-        if: github.ref == 'refs/heads/main'
-        uses: actions/cache@v3
-        with:
-          path: ./packages/site/public
-          key: site-${{ runner.os }}-${{ github.sha }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -112,7 +106,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - prepare
-      - build
     env:
       ENVIRONMENT: test
       RPC_URL_MAINNET_LIST: ${{ secrets.RPC_URL_MAINNET_LIST }}

@@ -369,7 +369,6 @@ export class SolanaKeyring implements Keyring {
       const result = await this.#assetsService.listAccountAssets(account);
 
       validateResponse(result, ListAccountAssetsResponseStruct);
-
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account assets');
