@@ -1,18 +1,18 @@
+import { lamports } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 
 import {
   KnownCaip19Id,
   LAMPORTS_PER_SOL,
   Network,
-  SOL_TRANSFER_FEE_LAMPORTS,
 } from '../../../../core/constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import { solToLamports } from '../../../../core/utils/conversion';
 import { updateInterface } from '../../../../core/utils/interface';
-import { amountInput } from '../../../../core/validation/form';
 import { keyring } from '../../../../snapContext';
 import type { SendContext } from '../../types';
 import { SendCurrencyType, SendFormNames } from '../../types';
+import { amountInput } from '../../validation/form';
 import { eventHandlers } from './events';
 
 jest.mock('../../../../core/utils/interface');
@@ -23,7 +23,8 @@ describe('SendForm events', () => {
   const mockToAddress = 'destination-address';
   const mockBalanceInSol = '1.5'; // 1.5 SOL
   const mockSolPrice = '20'; // $20 per SOL
-  const mockCostInLamports = SOL_TRANSFER_FEE_LAMPORTS; // 0.000005 SOL
+  const mockBaseFeeInLamports = lamports(5000n); // 0.000005 SOL
+  const mockPriorityFeeInLamports = lamports(4n); //  Integer(450 * 10000n / MICRO_LAMPORTS_PER_LAMPORTS)
   const mockMinimumBalanceForRentExemptionSol = '0.002';
   const mockMinimumBalanceForRentExemptionLamports = solToLamports(
     mockMinimumBalanceForRentExemptionSol,
@@ -167,11 +168,13 @@ describe('SendForm events', () => {
         context,
       });
 
-      // Expected SOL amount: (1.5 SOL * LAMPORTS_PER_SOL - 5000 - 2000) / LAMPORTS_PER_SOL
+      // Expected SOL amount: (1.5 SOL * LAMPORTS_PER_SOL - 5000 - 4 - 2000 - 1) / LAMPORTS_PER_SOL
       const expectedAmount = BigNumber(mockBalanceInSol)
         .multipliedBy(LAMPORTS_PER_SOL)
-        .minus(mockCostInLamports)
+        .minus(mockBaseFeeInLamports.toString())
+        .minus(mockPriorityFeeInLamports.toString())
         .minus(mockMinimumBalanceForRentExemptionLamports)
+        .minus(1)
         .dividedBy(LAMPORTS_PER_SOL)
         .toString();
 
@@ -204,7 +207,7 @@ describe('SendForm events', () => {
         context,
       });
 
-      const expectedAmount = '1.00909412';
+      const expectedAmount = '1.009094115';
       expect(updateInterface).toHaveBeenCalledWith(
         mockId,
         expect.anything(),
@@ -232,11 +235,13 @@ describe('SendForm events', () => {
         context,
       });
 
-      // Expected FIAT amount: ((1.5 SOL * LAMPORTS_PER_SOL - 5000 - 2000) / LAMPORTS_PER_SOL) * $20
+      // Expected FIAT amount: ((1.5 SOL * LAMPORTS_PER_SOL - 5000 - 4 - 2000 - 1) / LAMPORTS_PER_SOL) * $20
       const expectedAmount = BigNumber(mockBalanceInSol)
         .multipliedBy(LAMPORTS_PER_SOL)
-        .minus(mockCostInLamports)
+        .minus(mockBaseFeeInLamports.toString())
+        .minus(mockPriorityFeeInLamports.toString())
         .minus(mockMinimumBalanceForRentExemptionLamports)
+        .minus(1)
         .dividedBy(LAMPORTS_PER_SOL)
         .multipliedBy(mockSolPrice)
         .toString();

@@ -1,4 +1,4 @@
-import { address } from '@solana/kit';
+/* eslint-disable camelcase */
 
 import { KnownCaip19Id, Network } from '../../../core/constants/solana';
 import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../../../core/services/execution/mocks/scenarios/sendSol';
@@ -10,7 +10,6 @@ import {
   getInterfaceContextOrThrow,
   updateInterface,
 } from '../../../core/utils/interface';
-import { sendFieldsAreValid } from '../../../core/validation/form';
 import {
   keyring,
   sendSolBuilder,
@@ -19,12 +18,12 @@ import {
 } from '../../../snapContext';
 import { DEFAULT_SEND_CONTEXT } from '../render';
 import { SendCurrencyType, type SendContext } from '../types';
-// eslint-disable-next-line camelcase
+import { sendFieldsAreValid } from '../validation/form';
 import { buildTransactionMessageAndUpdateInterface_INTERNAL } from './buildTransactionMessageAndUpdateInterface';
 
 // Mock dependencies
 jest.mock('../../../core/utils/interface');
-jest.mock('../../../core/validation/form');
+jest.mock('../validation/form');
 jest.mock('../../../snapContext');
 jest.mock('lodash', () => ({
   debounce: (fn: any) => fn, // Make debounce synchronous for testing
@@ -61,9 +60,15 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
       address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
     });
 
-    (sendSolBuilder.buildTransactionMessage as jest.Mock).mockResolvedValue(
-      MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessage,
-    );
+    jest
+      .mocked(sendSolBuilder)
+      .buildTransactionMessage.mockResolvedValue(
+        MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessage,
+      );
+    jest.mocked(sendSolBuilder).getComputeUnitLimit.mockReturnValue(450);
+    jest
+      .mocked(sendSolBuilder)
+      .getComputeUnitPriceMicroLamportsPerComputeUnit.mockReturnValue(10000n);
 
     (
       transactionHelper.getFeeFromBase64StringInLamports as jest.Mock
@@ -91,12 +96,12 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
         mockContext,
       );
 
-      expect(sendSolBuilder.buildTransactionMessage).toHaveBeenCalledWith(
-        address(MOCK_SOLANA_KEYRING_ACCOUNT_0.address),
-        address(MOCK_SOLANA_KEYRING_ACCOUNT_1.address),
-        '1.0',
-        Network.Testnet,
-      );
+      expect(sendSolBuilder.buildTransactionMessage).toHaveBeenCalledWith({
+        from: { address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address },
+        to: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+        amount: '1.0',
+        network: Network.Testnet,
+      });
       expect(updateInterface).toHaveBeenCalledTimes(2);
     });
 
@@ -148,7 +153,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
         mockId,
         expect.anything(),
         expect.objectContaining({
-          feeEstimatedInSol: '0.000005',
+          feeEstimatedInSol: '0.000005004', // Base fee of 5000 + priority fee of 4
           transactionMessage:
             MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded,
           buildingTransaction: false,

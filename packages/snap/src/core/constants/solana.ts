@@ -4,6 +4,7 @@ import { address } from '@solana/kit';
 export const SOL_SYMBOL = 'SOL';
 export const SOL_IMAGE_URL =
   'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png';
+export const MICRO_LAMPORTS_PER_LAMPORTS = 1_000_000n;
 export const LAMPORTS_PER_SOL = 1_000_000_000;
 export const DEFAULT_NETWORK_BLOCK_EXPLORER_URL = 'https://solscan.io';
 
@@ -94,8 +95,6 @@ export const TokenMetadata = {
     decimals: 6,
   },
 } as const;
-
-export const SOL_TRANSFER_FEE_LAMPORTS = 5000;
 
 export const TOKEN_2022_PROGRAM_ADDRESS = address(
   'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',

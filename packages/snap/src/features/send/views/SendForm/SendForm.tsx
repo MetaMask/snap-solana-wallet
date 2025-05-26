@@ -48,14 +48,22 @@ export const SendForm = ({
     buildingTransaction,
     error,
     loading,
+    transactionMessage,
     preferences: { locale, currency },
   } = context;
 
+  console.log('🍋transactionMessage', transactionMessage);
+
+  console.log('🍋balances', balances);
   const translate = i18n(locale);
   const selectedToken = balances[fromAccountId]?.[tokenCaipId];
+  console.log('🍋selectedToken', selectedToken);
   const tokenBalance = selectedToken?.amount;
+  console.log('🍋tokenBalance', tokenBalance);
   const tokenSymbol = selectedToken?.unit ?? '';
+  console.log('🍋tokenSymbol', tokenSymbol);
   const isBalanceDefined = tokenBalance !== undefined;
+  console.log('🍋isBalanceDefined', isBalanceDefined);
 
   const selectedAccount = accounts.find(
     (account) => account.id === fromAccountId,
@@ -100,8 +108,7 @@ export const SendForm = ({
     isNullOrUndefined(validation?.[SendFormNames.DestinationAccountInput]);
 
   const isTransactionMessageSuccessfullyBuild =
-    !isNullOrUndefined(context.transactionMessage) &&
-    context.transactionMessage !== '';
+    !isNullOrUndefined(transactionMessage) && transactionMessage !== '';
 
   const showClearAddressButton = Boolean(toAddress && toAddress.length > 0);
 
@@ -197,14 +204,13 @@ export const SendForm = ({
                 ) : (
                   <Box>{null}</Box>
                 )}
-                {/* TODO: Temporary disabled max amount button as a quick fix for https://github.com/MetaMask/metamask-extension/issues/32299 */}
-                {/* <Button
+                <Button
                   size="sm"
                   name={SendFormNames.MaxAmountButton}
                   disabled={balanceUndefinedOrZero}
                 >
                   {translate('send.maxButton')}
-                </Button> */}
+                </Button>
               </Box>
             </Box>
           )}

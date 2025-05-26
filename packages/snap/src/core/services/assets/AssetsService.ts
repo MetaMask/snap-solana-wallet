@@ -248,7 +248,15 @@ export class AssetsService {
 
     await Promise.all(promises);
 
-    await this.#state.setKey(`assets.${account.id}`, balances);
+    const previousAssets = await this.#state.getKey<
+      UnencryptedStateValue['assets']
+    >(`assets.${account.id}`);
+
+    const updatedAssets = {
+      ...previousAssets,
+      ...balances,
+    };
+    await this.#state.setKey(`assets.${account.id}`, updatedAssets);
 
     return balances;
   }

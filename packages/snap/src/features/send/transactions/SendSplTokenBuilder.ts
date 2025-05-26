@@ -1,4 +1,8 @@
-import { getSetComputeUnitLimitInstruction } from '@solana-program/compute-budget';
+import { assert } from '@metamask/utils';
+import {
+  getSetComputeUnitLimitInstruction,
+  getSetComputeUnitPriceInstruction,
+} from '@solana-program/compute-budget';
 import {
   findAssociatedTokenPda,
   getCreateAssociatedTokenIdempotentInstruction,
@@ -19,23 +23,32 @@ import {
   type MaybeAccount,
   type MaybeEncodedAccount,
 } from '@solana/kit';
-import type BigNumber from 'bignumber.js';
 
-import type { Network } from '../../../constants/solana';
-import type { SolanaKeyringAccount } from '../../../handlers/onKeyringRequest/Keyring';
-import { deriveSolanaKeypair } from '../../../utils/deriveSolanaKeypair';
-import type { ILogger } from '../../../utils/logger';
-import { toTokenUnits } from '../../../utils/toTokenUnit';
-import type { SolanaConnection } from '../../connection';
-import type { TransactionHelper } from '../TransactionHelper';
-import type { ITransactionMessageBuilder } from './ITransactionMessageBuilder';
+import { type Network } from '../../../core/constants/solana';
+import type { SolanaConnection } from '../../../core/services/connection';
+import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
+import { deriveSolanaKeypair } from '../../../core/utils/deriveSolanaKeypair';
+import type { ILogger } from '../../../core/utils/logger';
+import { toTokenUnits } from '../../../core/utils/toTokenUnit';
+import type {
+  BuildSendTransactionParams,
+  ISendTransactionBuilder,
+} from './ISendTransactionBuilder';
 
-export class SendSplTokenBuilder implements ITransactionMessageBuilder {
+export class SendSplTokenBuilder implements ISendTransactionBuilder {
   readonly #connection: SolanaConnection;
 
   readonly #transactionHelper: TransactionHelper;
 
   readonly #logger: ILogger;
+
+  /**
+   * The transaction built here always consumes less than 30,000 compute units,
+   * even in the case where we need to create the recepient's associated token account.
+   */
+  readonly #computeUnitLimit = 30_000;
+
+  readonly #computeUnitPriceMicroLamportsPerComputeUnit = 10000n;
 
   constructor(
     connection: SolanaConnection,
@@ -47,25 +60,20 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
     this.#logger = logger;
   }
 
-  async buildTransactionMessage({
-    from,
-    to,
-    mint,
-    amountInToken,
-    network,
-  }: {
-    from: SolanaKeyringAccount;
-    to: Address;
-    mint: Address;
-    amountInToken: string | number | bigint | BigNumber;
-    network: Network;
-  }): Promise<CompilableTransactionMessage> {
+  async buildTransactionMessage(
+    params: BuildSendTransactionParams,
+  ): Promise<CompilableTransactionMessage> {
     this.#logger.log('Build transfer SPL token transaction message');
+
+    const { from, to, mint, amount, network } = params;
+
+    assert(mint, 'Mint is required');
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
       entropySource: from.entropySource,
       derivationPath: from.derivationPath,
     });
+
     const signer = await createKeyPairSignerFromPrivateKeyBytes(
       privateKeyBytes,
     );
@@ -78,7 +86,7 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
 
     const tokenProgram = splTokenTokenAccount.programAddress;
     const decimals = this.getDecimals(splTokenTokenAccount);
-    const amountInTokenUnits = toTokenUnits(amountInToken, decimals);
+    const amountInTokenUnits = toTokenUnits(amount, decimals);
 
     const [fromTokenAccountAddress, toTokenAccountAddress] = await Promise.all([
       SendSplTokenBuilder.deriveAssociatedTokenAccountAddress({
@@ -127,14 +135,13 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
         ),
     );
 
-    const estimatedComputeUnits =
-      await this.#transactionHelper.getComputeUnitEstimate(
-        transactionMessage,
-        network,
-      );
-
     const budgetedTransactionMessage = prependTransactionMessageInstructions(
-      [getSetComputeUnitLimitInstruction({ units: estimatedComputeUnits })],
+      [
+        getSetComputeUnitLimitInstruction({ units: this.#computeUnitLimit }),
+        getSetComputeUnitPriceInstruction({
+          microLamports: this.#computeUnitPriceMicroLamportsPerComputeUnit,
+        }),
+      ],
       transactionMessage,
     );
 
@@ -270,6 +277,14 @@ export class SendSplTokenBuilder implements ITransactionMessageBuilder {
     if (!SendSplTokenBuilder.isAccountDecoded(tokenAccount)) {
       throw new Error('Token account is encoded. Implement a decoder.');
     }
+  }
+
+  getComputeUnitLimit(): number {
+    return this.#computeUnitLimit;
+  }
+
+  getComputeUnitPriceMicroLamportsPerComputeUnit(): bigint {
+    return this.#computeUnitPriceMicroLamportsPerComputeUnit;
   }
 }
 
