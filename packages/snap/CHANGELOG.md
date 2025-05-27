@@ -9,18 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.31.0]
 
-### Uncategorized
+### Added
 
-- fix: decrease non-active cronjob time to 30min ([#390](https://github.com/MetaMask/snap-solana-wallet/pull/390))
-- fix: prevent inactive client from executing cronjobs ([#388](https://github.com/MetaMask/snap-solana-wallet/pull/388))
-- fix: prevent empty accounts from refreshing ([#387](https://github.com/MetaMask/snap-solana-wallet/pull/387))
-- chore: remove additional get context on refresh send ([#385](https://github.com/MetaMask/snap-solana-wallet/pull/385))
-- fix: restore max button in send flow ([#384](https://github.com/MetaMask/snap-solana-wallet/pull/384))
-- fix: fix number formatting when locale is composed ([#382](https://github.com/MetaMask/snap-solana-wallet/pull/382))
-- feat: enable getminimumbalanceforrentexemption ([#360](https://github.com/MetaMask/snap-solana-wallet/pull/360))
-- New Crowdin translations by Github Action ([#348](https://github.com/MetaMask/snap-solana-wallet/pull/348))
-- Fix/clean up asset service ([#380](https://github.com/MetaMask/snap-solana-wallet/pull/380))
-- fix: changing asset in the Send flow disabled Continue button ([#374](https://github.com/MetaMask/snap-solana-wallet/pull/374))
+- Enable `getMinimumBalanceForRentExemption` ([#360](https://github.com/MetaMask/snap-solana-wallet/pull/360))
+- New translations ([#348](https://github.com/MetaMask/snap-solana-wallet/pull/348))
+
+### Changed
+
+- Restore max button in send flow ([#384](https://github.com/MetaMask/snap-solana-wallet/pull/384))
+- Remove additional get context on refresh send ([#385](https://github.com/MetaMask/snap-solana-wallet/pull/385))
+- Clean up `AssetService` ([#380](https://github.com/MetaMask/snap-solana-wallet/pull/380))
+
+### Fixed
+
+- Decrease non-active cronjob time to 30min ([#390](https://github.com/MetaMask/snap-solana-wallet/pull/390))
+- Prevent inactive client from executing cronjobs ([#388](https://github.com/MetaMask/snap-solana-wallet/pull/388))
+- Prevent empty accounts from refreshing ([#387](https://github.com/MetaMask/snap-solana-wallet/pull/387))
+- Fix number formatting when locale is composed ([#382](https://github.com/MetaMask/snap-solana-wallet/pull/382))
+- Changing asset in the Send flow disabled Continue button ([#374](https://github.com/MetaMask/snap-solana-wallet/pull/374))
 
 ## [1.30.4]
 
