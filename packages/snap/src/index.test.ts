@@ -16,6 +16,10 @@ jest.mock('./snapContext', () => ({
     listAccounts: jest.fn(),
     createAccount: jest.fn(),
   },
+  state: {
+    getKey: jest.fn().mockResolvedValue(Date.now()),
+    setKey: jest.fn(),
+  },
 }));
 
 describe('onRpcRequest', () => {
