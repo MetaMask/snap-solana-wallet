@@ -16,7 +16,7 @@
   "send.toRequiredError": "To address is required",
   "send.toInvalidError": "Invalid Solana address",
   "send.insufficientBalance": "Insufficient balance",
-  "send.simulationTitleAPIError": "Transaction simulation not available",
+  "send.simulationTitleAPIError": "Because of an error, we couldn't check for security alerts. Only continue if you trust every address involved.",
   "send.simulationTitleError": "Transaction simulation failed",
   "send.simulationMessageError": "This transaction was reverted during simulation.",
   "send.selectedTokenPriceNotAvailable": "Prices for tokens in {currency} are currently not available. You are still able to send tokens.",
