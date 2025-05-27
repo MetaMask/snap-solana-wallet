@@ -90,7 +90,7 @@ describe('onCronjob', () => {
     expect(handler).toHaveBeenCalled();
   });
 
-  it('does not call the handler when the snap is locked', async () => {
+  it('does not call the handler when the client is locked', async () => {
     const handler = jest.fn();
     handlers[CronjobMethod.RefreshSend] = handler;
 
@@ -109,5 +109,47 @@ describe('onCronjob', () => {
     });
 
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('does not call the handler when the client is inactive', async () => {
+    const handler = jest.fn();
+    handlers[CronjobMethod.RefreshSend] = handler;
+
+    const snap = {
+      request: jest.fn().mockResolvedValue({ active: false }),
+    };
+
+    (globalThis as any).snap = snap;
+
+    await onCronjob({
+      request: {
+        id: '1',
+        jsonrpc: '2.0',
+        method: CronjobMethod.RefreshSend,
+      },
+    });
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('does call the handler when the client is unlocked and active', async () => {
+    const handler = jest.fn();
+    handlers[CronjobMethod.RefreshSend] = handler;
+
+    const snap = {
+      request: jest.fn().mockResolvedValue({ locked: false, active: true }),
+    };
+
+    (globalThis as any).snap = snap;
+
+    await onCronjob({
+      request: {
+        id: '1',
+        jsonrpc: '2.0',
+        method: CronjobMethod.RefreshSend,
+      },
+    });
+
+    expect(handler).toHaveBeenCalled();
   });
 });

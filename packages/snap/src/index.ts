@@ -1,5 +1,6 @@
 import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
 import type {
+  GetClientStatusResult,
   Json,
   OnAssetHistoricalPriceHandler,
   OnAssetsConversionHandler,
@@ -7,6 +8,7 @@ import type {
   OnCronjobHandler,
   OnKeyringRequestHandler,
   OnProtocolRequestHandler,
+  OnUpdateHandler,
   OnUserInputHandler,
 } from '@metamask/snaps-sdk';
 import {
@@ -36,7 +38,7 @@ import { eventHandlers as confirmSignMessageEvents } from './features/confirmati
 import { eventHandlers as confirmSignAndSendTransactionEvents } from './features/confirmation/views/ConfirmTransactionRequest/events';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
-import snapContext, { keyring } from './snapContext';
+import snapContext, { keyring, state } from './snapContext';
 
 installPolyfills();
 
@@ -190,10 +192,20 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
     ]),
   );
 
-  // Don't run cronjobs if client is locked
-  // This assumes we don't want to run cronjobs while the client is locked
-  const { locked } = await getClientStatus();
+  // Don't run cronjobs if client is locked or inactive
+  // This assumes we don't want to run cronjobs while the client is locked or inactive
+  const { locked, active } =
+    (await getClientStatus()) as GetClientStatusResult & {
+      active: boolean | undefined; // FIXME: Remove this once the snap SDK is updated
+    };
+
+  logger.log('[🔑 onCronjob] Client status', { locked, active });
+
   if (locked) {
+    return Promise.resolve();
+  }
+
+  if (active === false) {
     return Promise.resolve();
   }
 
@@ -211,3 +223,10 @@ export const onProtocolRequest: OnProtocolRequestHandler =
 
 export const onAssetHistoricalPrice: OnAssetHistoricalPriceHandler =
   onAssetHistoricalPriceHandler;
+
+export const onUpdate: OnUpdateHandler = async () => {
+  logger.log('[🔄 onUpdate]');
+  // removing the refreshAccountsInterval key to force a new random interval
+  await state.setKey('refreshAccountsInterval', null);
+  logger.log('[🔄 onUpdate] end');
+};

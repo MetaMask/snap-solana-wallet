@@ -4,7 +4,7 @@ import { state } from '../../../../snapContext';
 import logger from '../../../utils/logger';
 import { ScheduleBackgroundEventMethod } from '../backgroundEvents/ScheduleBackgroundEventMethod';
 
-const REFRESH_INTERVAL_MINUTES = 3;
+const REFRESH_INTERVAL_MINUTES = 2;
 
 /**
  * Schedules a refresh of accounts at random intervals.
@@ -23,7 +23,8 @@ export const scheduleRefreshAccounts: OnCronjobHandler = async () => {
   );
 
   if (!refreshAccountsInterval) {
-    refreshAccountsInterval = Math.random() * REFRESH_INTERVAL_MINUTES;
+    refreshAccountsInterval =
+      (Math.random() || Number.MIN_VALUE) * REFRESH_INTERVAL_MINUTES;
     await state.setKey('refreshAccountsInterval', refreshAccountsInterval);
   }
 
