@@ -17,15 +17,16 @@ export const scheduleRefreshAccounts: OnCronjobHandler = async () => {
   logger.info('[scheduleRefreshAccounts] Cronjob triggered');
 
   // Get a random sleep time when this method is called
-
+  const didUpdate = await state.getKey<boolean>('didUpdate');
   let refreshAccountsInterval = await state.getKey<number>(
     'refreshAccountsInterval',
   );
 
-  if (!refreshAccountsInterval) {
+  if (!refreshAccountsInterval || !didUpdate) {
     refreshAccountsInterval =
       (Math.random() || Number.MIN_VALUE) * REFRESH_INTERVAL_MINUTES;
     await state.setKey('refreshAccountsInterval', refreshAccountsInterval);
+    await state.setKey('didUpdate', true);
   }
 
   await snap.request({

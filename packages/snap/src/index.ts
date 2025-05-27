@@ -244,10 +244,3 @@ export const onProtocolRequest: OnProtocolRequestHandler =
 
 export const onAssetHistoricalPrice: OnAssetHistoricalPriceHandler =
   onAssetHistoricalPriceHandler;
-
-export const onUpdate: OnUpdateHandler = async () => {
-  logger.log('[🔄 onUpdate]');
-  // removing the refreshAccountsInterval key to force a new random interval
-  await state.setKey('refreshAccountsInterval', null);
-  logger.log('[🔄 onUpdate] end');
-};
