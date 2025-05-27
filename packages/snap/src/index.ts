@@ -192,8 +192,11 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
     ]),
   );
 
-  // Don't run cronjobs if client is locked or inactive
-  // This assumes we don't want to run cronjobs while the client is locked or inactive
+  /**
+   * Don't run cronjobs if client is locked or inactive
+   * - We dont want to call cronjobs if the client is locked
+   * - We Dont want to call cronjobs if the client is inactive (except if we havent run a cronjob in the last 15 minutes)
+   */
   const { locked, active } =
     (await getClientStatus()) as GetClientStatusResult & {
       active: boolean | undefined; // FIXME: Remove this once the snap SDK is updated
@@ -205,9 +208,27 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
     return Promise.resolve();
   }
 
+  // explicit check for non-undefined active
+  // to make sure the cronjob is executed if `active` is undefined
   if (active === false) {
-    return Promise.resolve();
+    const lastCronjobRun = await state.getKey<number>('lastCronjobRun');
+    const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+    logger.log('[🔑 onCronjob] Last cronjob run', { lastCronjobRun });
+
+    // Only skip if we've run a cronjob in the last 15 minutes
+    if (lastCronjobRun && Date.now() - lastCronjobRun < FIFTEEN_MINUTES) {
+      logger.log(
+        '[🔑 onCronjob] Skipping cronjob because it has been run in the last 15 minutes',
+      );
+      return Promise.resolve();
+    }
+    // if `lastCronjobRun` is undefined, we can run the cronjob
   }
+
+  await state.setKey('lastCronjobRun', Date.now());
+
+  logger.log('[🔑 onCronjob] Running cronjob', { method });
 
   const handler = onCronjobHandlers[method];
   return handler({ request });
