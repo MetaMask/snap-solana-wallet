@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.31.0]
+
+### Uncategorized
+
+- fix: handle json rpc errors globally ([#386](https://github.com/MetaMask/snap-solana-wallet/pull/386))
+
 ## [1.22.0]
 
 ### Added
@@ -170,8 +176,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.23.0...HEAD
-[1.23.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.22.0...v1.23.0
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.0...HEAD
+[1.31.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.22.0...v1.31.0
 [1.22.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.19.0...v1.22.0
 [1.19.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...v1.19.0
 [1.18.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.0...v1.18.1
