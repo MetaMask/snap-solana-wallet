@@ -212,14 +212,14 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
   // to make sure the cronjob is executed if `active` is undefined
   if (active === false) {
     const lastCronjobRun = await state.getKey<number>('lastCronjobRun');
-    const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+    const THIRTY_MINUTES = 30 * 60 * 1000; // 30 minutes in milliseconds
 
     logger.log('[🔑 onCronjob] Last cronjob run', { lastCronjobRun });
 
-    // Only skip if we've run a cronjob in the last 15 minutes
-    if (lastCronjobRun && Date.now() - lastCronjobRun < FIFTEEN_MINUTES) {
+    // Only skip if we've run a cronjob in the last 30 minutes
+    if (lastCronjobRun && Date.now() - lastCronjobRun < THIRTY_MINUTES) {
       logger.log(
-        '[🔑 onCronjob] Skipping cronjob because it has been run in the last 15 minutes',
+        '[🔑 onCronjob] Skipping cronjob because it has been run in the last 30 minutes',
       );
       return Promise.resolve();
     }
