@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.31.1]
+
+### Uncategorized
+
+- fix: remove lifecycle update ([#393](https://github.com/MetaMask/snap-solana-wallet/pull/393))
+- fix: match storage limit with expected page size for transactions coming from the snap ([#392](https://github.com/MetaMask/snap-solana-wallet/pull/392))
+
 ## [1.31.0]
 
 ### Added
@@ -614,7 +621,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.1...HEAD
+[1.31.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.0...v1.31.1
 [1.31.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.4...v1.31.0
 [1.30.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.3...v1.30.4
 [1.30.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.2...v1.30.3
