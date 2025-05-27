@@ -77,14 +77,11 @@ export const refreshSend: OnCronjobHandler = async () => {
           return;
         }
 
-        const updatedInterfaceContextFinal =
-          await getInterfaceContextOrThrow<SendContext>(sendFormInterfaceId);
-
         // Update the current context with the new rates
         const updatedInterfaceContext = {
-          ...updatedInterfaceContextFinal,
+          ...interfaceContext,
           tokenPrices: {
-            ...updatedInterfaceContextFinal.tokenPrices,
+            ...interfaceContext.tokenPrices,
             ...tokenPrices,
           },
         };

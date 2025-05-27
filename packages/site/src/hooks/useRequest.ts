@@ -10,7 +10,7 @@ export type Request = (params: RequestArguments) => Promise<unknown | null>;
  * @returns The `request` function.
  */
 export const useRequest = () => {
-  const { provider } = useMetaMaskContext();
+  const { provider, setError } = useMetaMaskContext();
 
   /**
    * `provider.request` wrapper.
@@ -21,13 +21,18 @@ export const useRequest = () => {
    * @returns The result of the request.
    */
   const request: Request = async ({ method, params }) => {
-    const data =
-      (await provider?.request({
-        method,
-        params,
-      } as RequestArguments)) ?? null;
+    try {
+      const data =
+        (await provider?.request({
+          method,
+          params,
+        } as RequestArguments)) ?? null;
 
-    return data;
+      return data;
+    } catch (error) {
+      setError(error as Error);
+      return null;
+    }
   };
 
   return request;
