@@ -24,6 +24,7 @@ import { buildUrl } from '../../../../snap/src/core/utils/buildUrl';
 import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
+import { useShowToasterForResponse } from '../../hooks/useToasterForResponse';
 import { EntropySourceBadge } from '../EntropySourceBadge/EntropySourceBadge';
 import { toaster } from '../Toaster/Toaster';
 import { buildNoOpWithHelloWorldData } from './builders/buildNoOpWithHelloWorldData';
@@ -44,6 +45,8 @@ export const AccountRow = ({
 
   const [balance, setBalance] = useState('0');
 
+  const { showToasterForResponse } = useShowToasterForResponse();
+
   const fetchBalance = async () => {
     const response = (await invokeKeyring({
       method: KeyringRpcMethod.GetAccountBalances,
@@ -54,27 +57,6 @@ export const AccountRow = ({
     })) as Record<string, Balance>;
 
     setBalance(response?.[`${network}/${SOLANA_TOKEN}`]?.amount ?? '0');
-  };
-
-  const handleInvokeSuccess = (
-    title: React.ReactNode,
-    description?: string,
-    action?: { label: string; onClick: () => void },
-  ) => {
-    toaster.create({
-      title,
-      description,
-      type: 'success',
-      action: action as any,
-    });
-  };
-
-  const handleInvokeError = (error: any) => {
-    toaster.create({
-      title: 'Error from the snap',
-      description: error.message,
-      type: 'error',
-    });
   };
 
   const handleSend = async (id: string) => {
@@ -148,159 +130,143 @@ export const AccountRow = ({
   const handleSignAndSendTransaction = async (
     builder: () => Promise<string>,
   ) => {
-    try {
-      const transactionMessageBase64 = await builder();
+    const transactionMessageBase64 = await builder();
 
-      const response = await invokeKeyring({
-        method: KeyringRpcMethod.SubmitRequest,
-        params: {
-          id: crypto.randomUUID(),
-          scope: network,
-          account: account.id,
-          request: {
-            method: SolMethod.SignAndSendTransaction,
-            params: {
-              transaction: transactionMessageBase64,
-              scope: network,
-              account: {
-                address: account.address,
-              },
+    const response = await invokeKeyring({
+      method: KeyringRpcMethod.SubmitRequest,
+      params: {
+        id: crypto.randomUUID(),
+        scope: network,
+        account: account.id,
+        request: {
+          method: SolMethod.SignAndSendTransaction,
+          params: {
+            transaction: transactionMessageBase64,
+            scope: network,
+            account: {
+              address: account.address,
             },
           },
         },
-      });
+      },
+    });
 
-      handleInvokeSuccess(
-        'Transaction signed and sent successfully',
-        undefined,
-        {
-          label: 'View',
-          onClick: () => {
-            window.open(
-              getSolanaExplorerUrl(
-                network as Network,
-                'tx',
-                (response as any).result.signature,
-              ),
-              '_blank',
-            );
-          },
+    showToasterForResponse(response, {
+      title: 'Transaction signed and sent successfully',
+      action: {
+        label: 'View',
+        onClick: () => {
+          window.open(
+            getSolanaExplorerUrl(
+              network as Network,
+              'tx',
+              (response as any)?.result?.signature,
+            ),
+          );
         },
-      );
-    } catch (error) {
-      handleInvokeError(error);
-    }
+      },
+    });
   };
 
   const handleSignTransaction = async (builder: () => Promise<string>) => {
-    try {
-      const transactionMessageBase64 = await builder();
+    const transactionMessageBase64 = await builder();
 
-      const response = await invokeKeyring({
-        method: KeyringRpcMethod.SubmitRequest,
-        params: {
-          id: crypto.randomUUID(),
-          scope: network,
-          account: account.id,
-          request: {
-            method: SolMethod.SignTransaction,
-            params: {
-              account: {
-                address: account.address,
-              },
-              transaction: transactionMessageBase64,
-              scope: network,
-              options: {
-                commitment: 'finalized',
-              },
+    const response = await invokeKeyring({
+      method: KeyringRpcMethod.SubmitRequest,
+      params: {
+        id: crypto.randomUUID(),
+        scope: network,
+        account: account.id,
+        request: {
+          method: SolMethod.SignTransaction,
+          params: {
+            account: {
+              address: account.address,
+            },
+            transaction: transactionMessageBase64,
+            scope: network,
+            options: {
+              commitment: 'finalized',
             },
           },
         },
-      });
+      },
+    });
 
-      handleInvokeSuccess(
-        'Transaction signed successfully',
-        `Signed transaction: ${(response as any).result.signedTransaction}`,
-      );
-    } catch (error) {
-      handleInvokeError(error);
-    }
+    showToasterForResponse(response, {
+      title: 'Transaction signed successfully',
+      description: `Signed transaction: ${
+        (response as any)?.result?.signedTransaction
+      }`,
+    });
   };
 
   const handleSignMessage = async () => {
-    try {
-      const messageUtf8 =
-        "This is the message you are signing. This message might contain something like what the dapp might be able to do once you sign. It also might tell the user why they need or why they should sign this message. Maybe the user will sign the message or maybe they won't. At the end of the day its their choice.";
-      const messageBase64 = btoa(messageUtf8);
+    const messageUtf8 =
+      "This is the message you are signing. This message might contain something like what the dapp might be able to do once you sign. It also might tell the user why they need or why they should sign this message. Maybe the user will sign the message or maybe they won't. At the end of the day its their choice.";
+    const messageBase64 = btoa(messageUtf8);
 
-      const response = await invokeKeyring({
-        method: KeyringRpcMethod.SubmitRequest,
-        params: {
-          id: crypto.randomUUID(),
-          scope: network,
-          account: account.id,
-          request: {
-            method: SolMethod.SignMessage,
-            params: {
-              message: messageBase64,
-              account: {
-                address: account.address,
-              },
+    const response = await invokeKeyring({
+      method: KeyringRpcMethod.SubmitRequest,
+      params: {
+        id: crypto.randomUUID(),
+        scope: network,
+        account: account.id,
+        request: {
+          method: SolMethod.SignMessage,
+          params: {
+            message: messageBase64,
+            account: {
+              address: account.address,
             },
           },
         },
-      });
+      },
+    });
 
-      handleInvokeSuccess(
-        'Message signed successfully',
-        `Signature: ${(response as any).result.signature}`,
-      );
-    } catch (error) {
-      handleInvokeError(error);
-    }
+    showToasterForResponse(response, {
+      title: 'Message signed successfully',
+      description: `Signature: ${(response as any)?.result?.signature}`,
+    });
   };
 
   const handleSignIn = async () => {
-    try {
-      const requestId = crypto.randomUUID();
-      const params = {
-        domain: 'example.com',
-        address: 'Sol11111111111111111111111111111111111111112',
-        statement: 'I accept the terms of service',
-        uri: 'https://example.com/login',
-        version: '1',
-        chainId: 'solana:101',
-        nonce: '32891756',
-        issuedAt: '2024-01-01T00:00:00.000Z',
-        expirationTime: '2024-01-02T00:00:00.000Z',
-        notBefore: '2023-12-31T00:00:00.000Z',
-        requestId,
-        resources: [
-          'ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/',
-          'https://example.com/my-web2-claim.json',
-        ],
-      };
+    const requestId = crypto.randomUUID();
+    const params = {
+      domain: 'example.com',
+      address: 'Sol11111111111111111111111111111111111111112',
+      statement: 'I accept the terms of service',
+      uri: 'https://example.com/login',
+      version: '1',
+      chainId: 'solana:101',
+      nonce: '32891756',
+      issuedAt: '2024-01-01T00:00:00.000Z',
+      expirationTime: '2024-01-02T00:00:00.000Z',
+      notBefore: '2023-12-31T00:00:00.000Z',
+      requestId,
+      resources: [
+        'ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/',
+        'https://example.com/my-web2-claim.json',
+      ],
+    };
 
-      const response = await invokeKeyring({
-        method: KeyringRpcMethod.SubmitRequest,
-        params: {
-          id: requestId,
-          scope: network,
-          account: account.id,
-          request: {
-            method: SolMethod.SignIn,
-            params,
-          },
+    const response = await invokeKeyring({
+      method: KeyringRpcMethod.SubmitRequest,
+      params: {
+        id: requestId,
+        scope: network,
+        account: account.id,
+        request: {
+          method: SolMethod.SignIn,
+          params,
         },
-      });
+      },
+    });
 
-      handleInvokeSuccess(
-        'Signed in successfully',
-        `Signature: ${(response as any).result.signature}`,
-      );
-    } catch (error) {
-      handleInvokeError(error);
-    }
+    showToasterForResponse(response, {
+      title: 'Signed in successfully',
+      description: `Signature: ${(response as any)?.result?.signature}`,
+    });
   };
 
   useEffect(() => {

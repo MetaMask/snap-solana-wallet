@@ -19,6 +19,7 @@ export const PageTemplate = ({ children }: PageTemplateProps) => {
   const { error } = useMetaMaskContext();
   const { isFlask, snapsDetected } = useMetaMask();
 
+  // Handle JSON-RPC errors globally by showing a toaster
   useEffect(() => {
     if (error) {
       toaster.create({
