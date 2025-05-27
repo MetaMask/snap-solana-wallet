@@ -5,9 +5,9 @@ import { Card, InstallFlaskButton } from '../components';
 import { NetworkSelector } from '../components/NetworkSelector/NetworkSelector';
 import { SolanaLogo } from '../components/SolanaLogo';
 import { CardContainer, Container, Heading, Span } from '../components/styled';
-import { toaster } from '../components/Toaster/Toaster';
 import { defaultSnapOrigin } from '../config';
 import { useMetaMask, useMetaMaskContext } from '../hooks';
+import { useShowToasterForResponse } from '../hooks/useToasterForResponse';
 import { isLocalSnap } from '../utils';
 
 type PageTemplateProps = {
@@ -20,14 +20,13 @@ export const PageTemplate = ({ children }: PageTemplateProps) => {
   const { isFlask, snapsDetected } = useMetaMask();
 
   // Handle JSON-RPC errors globally by showing a toaster
+  const { showToasterForResponse } = useShowToasterForResponse();
+
   useEffect(() => {
-    if (error) {
-      toaster.create({
-        title: 'Error',
-        description: error.message,
-        type: 'error',
-      });
-    }
+    showToasterForResponse({ error }, undefined, {
+      title: 'Error',
+      description: error?.message,
+    });
   }, [error]);
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)

@@ -2,16 +2,7 @@ import { useCallback } from 'react';
 
 import { toaster } from '../components/Toaster/Toaster';
 
-type JsonRpcResponse =
-  | {
-      result: object | null;
-      error: Error | null;
-    }
-  | unknown;
-
-type SuccessToasterConfig = Omit<Parameters<typeof toaster.create>[0], 'type'>;
-
-type ErrorToasterConfig = Omit<Parameters<typeof toaster.create>[0], 'type'>;
+type ToasterConfig = Omit<Parameters<typeof toaster.create>[0], 'type'>;
 
 /**
  * Hook to show the result of a JSON-RPC response in a toaster.
@@ -19,34 +10,30 @@ type ErrorToasterConfig = Omit<Parameters<typeof toaster.create>[0], 'type'>;
  * @returns A function to show a toaster for a JSON-RPC response.
  */
 export const useShowToasterForResponse = () => {
-  const showSuccessToaster = useCallback((config: SuccessToasterConfig) => {
+  const showSuccessToaster = useCallback((config: ToasterConfig) => {
     toaster.create({
-      title: config.title,
-      description: config.description,
+      ...config,
       type: 'success',
-      action: config.action as any,
     });
   }, []);
 
-  const showErrorToaster = useCallback((config: ErrorToasterConfig) => {
+  const showErrorToaster = useCallback((config: ToasterConfig) => {
     toaster.create({
-      title: config.title,
-      description: config.description,
+      ...config,
       type: 'error',
     });
   }, []);
 
   const showToasterForResponse = useCallback(
     (
-      response: JsonRpcResponse,
-      successConfig?: SuccessToasterConfig,
-      errorConfig?: ErrorToasterConfig,
+      response: unknown,
+      successConfig?: ToasterConfig,
+      errorConfig?: ToasterConfig,
     ) => {
-      const responseResult = response as { result: object | null };
-      if (responseResult?.result) {
-        successConfig && showSuccessToaster(successConfig);
-      } else {
-        errorConfig && showErrorToaster(errorConfig);
+      if (successConfig && (response as any)?.result) {
+        showSuccessToaster(successConfig);
+      } else if (errorConfig && (response as any)?.error) {
+        showErrorToaster(errorConfig);
       }
     },
     [showSuccessToaster, showErrorToaster],
