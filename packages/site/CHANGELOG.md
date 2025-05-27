@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.31.0]
 
-### Uncategorized
+### Fixed
 
-- fix: handle json rpc errors globally ([#386](https://github.com/MetaMask/snap-solana-wallet/pull/386))
+- Handle json rpc errors globally ([#386](https://github.com/MetaMask/snap-solana-wallet/pull/386))
 
 ## [1.22.0]
 
