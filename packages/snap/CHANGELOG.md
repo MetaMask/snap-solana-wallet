@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.31.1]
 
-### Uncategorized
+### Fixed
 
-- fix: remove lifecycle update ([#393](https://github.com/MetaMask/snap-solana-wallet/pull/393))
-- fix: match storage limit with expected page size for transactions coming from the snap ([#392](https://github.com/MetaMask/snap-solana-wallet/pull/392))
+- Remove lifecycle update ([#393](https://github.com/MetaMask/snap-solana-wallet/pull/393))
+- Match storage limit with expected page size for transactions coming from the snap ([#392](https://github.com/MetaMask/snap-solana-wallet/pull/392))
 
 ## [1.31.0]
 
