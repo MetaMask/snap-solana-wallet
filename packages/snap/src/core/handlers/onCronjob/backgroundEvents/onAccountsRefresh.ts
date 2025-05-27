@@ -43,9 +43,8 @@ export const onAccountsRefresh: OnCronjobHandler = async () => {
 
       return {
         account,
-        didChange:
-          !latestSignature ||
-          signatures.every((signature) => signature !== latestSignature),
+        // If we found the latest signature and it's not in the list of signatures, then we consider it as a change
+        didChange: latestSignature && !signatures.includes(latestSignature),
       };
     });
 
@@ -73,7 +72,7 @@ export const onAccountsRefresh: OnCronjobHandler = async () => {
      * if they did, they would hit rate limits on the Token API
      */
 
-    await assetsService.refreshAssets(accounts).catch((error) => {
+    await assetsService.refreshAssets(accountsWithChanges).catch((error) => {
       logger.warn(
         '[onAccountsRefresh] Caught error while refreshing assets',
         error,
