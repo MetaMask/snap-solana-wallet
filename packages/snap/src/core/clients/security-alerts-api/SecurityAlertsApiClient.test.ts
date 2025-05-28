@@ -43,6 +43,7 @@ describe('SecurityAlertsApiClient', () => {
         transactions: ['transaction'],
         scope: Network.Mainnet,
         options: ['simulation', 'validation'],
+        origin: 'https://metamask.io',
       });
 
       expect(scanResult).toStrictEqual(mockResponse);
@@ -59,6 +60,7 @@ describe('SecurityAlertsApiClient', () => {
           transactions: ['transaction'],
           scope: Network.Mainnet,
           options: ['simulation', 'validation'],
+          origin: 'https://metamask.io',
         }),
       ).rejects.toThrow(mockError);
     });
@@ -78,6 +80,7 @@ describe('SecurityAlertsApiClient', () => {
           transactions: ['transaction'],
           scope: Network.Mainnet,
           options: ['simulation', 'validation'],
+          origin: 'https://metamask.io',
         }),
       ).rejects.toThrow('HTTP error! status: 404');
     });

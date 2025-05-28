@@ -30,6 +30,7 @@ describe('SendForm events', () => {
     mockMinimumBalanceForRentExemptionSol,
   );
   const baseContext: SendContext = {
+    origin: 'https://metamask.io',
     fromAccountId: mockAccount.id,
     toAddress: mockToAddress,
     balances: {
