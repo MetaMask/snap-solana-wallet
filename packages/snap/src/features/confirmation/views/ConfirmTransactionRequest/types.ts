@@ -23,6 +23,7 @@ export type ConfirmTransactionRequestContext = {
   tokenPricesFetchStatus: FetchStatus;
   scan: TransactionScanResult | null;
   scanFetchStatus: FetchStatus;
+  origin: string;
   advanced: {
     shown: boolean;
     instructions: SolanaInstruction[];
