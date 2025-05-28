@@ -39,12 +39,14 @@ export class SecurityAlertsApiClient {
     accountAddress,
     transactions,
     scope,
+    origin,
     options,
   }: {
     method: string;
     accountAddress: string;
     transactions: string[];
     scope: Network;
+    origin: string;
     options: string[];
   }): Promise<SecurityAlertSimulationValidationResponse> {
     const base64AccountAddress = Buffer.from(
@@ -64,7 +66,7 @@ export class SecurityAlertsApiClient {
         encoding: 'base64',
         account_address: base64AccountAddress,
         metadata: {
-          url: 'https://metamask.io', // FIXME: Add the correct url
+          url: origin,
         },
         chain: SCOPE_TO_CHAIN[scope],
         transactions,

@@ -44,6 +44,7 @@ describe('TransactionScan', () => {
         accountAddress: 'accountAddress',
         transaction: 'transaction',
         scope: Network.Mainnet,
+        origin: 'https://metamask.io',
       });
 
       expect(result).toMatchObject({
@@ -61,6 +62,7 @@ describe('TransactionScan', () => {
         accountAddress: 'accountAddress',
         transaction: 'transaction',
         scope: Network.Mainnet,
+        origin: 'https://metamask.io',
       });
 
       expect(result).toBeNull();

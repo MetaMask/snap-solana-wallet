@@ -31,6 +31,7 @@ export class TransactionScanService {
    * @param params.accountAddress - The address of the account.
    * @param params.transaction - The transaction to scan.
    * @param params.scope - The scope of the transaction.
+   * @param params.origin - The origin of the transaction.
    * @param params.options - The options for the scan.
    * @returns The result of the scan.
    */
@@ -39,12 +40,14 @@ export class TransactionScanService {
     accountAddress,
     transaction,
     scope,
+    origin,
     options = ['simulation', 'validation'],
   }: {
     method: string;
     accountAddress: string;
     transaction: string;
     scope: Network;
+    origin: string;
     options?: string[];
   }): Promise<TransactionScanResult | null> {
     try {
@@ -53,6 +56,7 @@ export class TransactionScanService {
         accountAddress,
         transactions: [transaction],
         scope,
+        origin,
         options,
       });
 
