@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Insufficient balance"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Because of an error, we couldn't check for security alerts."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Only continue if you trust every address involved."
+    },
     "send.simulationTitleError": {
       "message": "Transaction simulation failed"
     },
@@ -231,6 +237,15 @@
     },
     "confirmation.signIn.resources": {
       "message": "Resources"
+    },
+    "errors.accountAlreadyInUse": {
+      "message": "An account with the same address already exists"
+    },
+    "errors.insufficientSol": {
+      "message": "Account does not have enough SOL to perform the operation"
+    },
+    "errors.slippageToleranceExceeded": {
+      "message": "The transaction was reverted because the slippage tolerance was exceeded."
     }
   }
 }
