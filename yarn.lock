@@ -4426,15 +4426,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-cli@npm:^7.2.0":
-  version: 7.2.0
-  resolution: "@metamask/snaps-cli@npm:7.2.0"
+"@metamask/snaps-cli@npm:7.1.0":
+  version: 7.1.0
+  resolution: "@metamask/snaps-cli@npm:7.1.0"
   dependencies:
-    "@metamask/snaps-rpc-methods": ^12.4.0
     "@metamask/snaps-sandbox": ^1.0.0
-    "@metamask/snaps-sdk": ^7.1.0
-    "@metamask/snaps-utils": ^9.4.0
-    "@metamask/snaps-webpack-plugin": ^4.3.0
+    "@metamask/snaps-sdk": ^6.22.0
+    "@metamask/snaps-utils": ^9.2.0
+    "@metamask/snaps-webpack-plugin": ^4.2.1
     "@metamask/superstruct": ^3.2.1
     "@metamask/utils": ^11.4.0
     "@swc/core": 1.3.78
@@ -4475,7 +4474,7 @@ __metadata:
     yargs: ^17.7.1
   bin:
     mm-snap: ./dist/main.mjs
-  checksum: b20072fe65f81e9c95fedfbe78d895fb946fd2b2ba7365dce1d1907b6b40e022f57694f3d3e953860cdd902178d067311ce79644f6250981b207066594b05768
+  checksum: 3e9dbbb9f54206b4ab947c757ce325f0ce0ff2fd2363c50d9f80b2c2493fa6a03581f55b2003c84b39473e6653d3cc7c56a935e510c770024c37504d1cb5b61f
   languageName: node
   linkType: hard
 
@@ -4625,6 +4624,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/snaps-sdk@npm:^6.22.0":
+  version: 6.24.0
+  resolution: "@metamask/snaps-sdk@npm:6.24.0"
+  dependencies:
+    "@metamask/key-tree": ^10.1.1
+    "@metamask/providers": ^22.1.0
+    "@metamask/rpc-errors": ^7.0.2
+    "@metamask/superstruct": ^3.2.1
+    "@metamask/utils": ^11.4.0
+  checksum: 818001180eae49cea54f194cdebf4efdddb531e55d46c6fb8007fd221fe1ed0902d138bd64fa6b028545fa13d445b40f3b1f8ca87eba9a93295eab4ff299df74
+  languageName: node
+  linkType: hard
+
 "@metamask/snaps-sdk@npm:^7.0.0, @metamask/snaps-sdk@npm:^7.1.0":
   version: 7.1.0
   resolution: "@metamask/snaps-sdk@npm:7.1.0"
@@ -4696,7 +4708,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-utils@npm:^9.4.0":
+"@metamask/snaps-utils@npm:^9.2.0, @metamask/snaps-utils@npm:^9.4.0":
   version: 9.4.0
   resolution: "@metamask/snaps-utils@npm:9.4.0"
   dependencies:
@@ -4728,7 +4740,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-webpack-plugin@npm:^4.3.0":
+"@metamask/snaps-webpack-plugin@npm:^4.2.1":
   version: 4.3.0
   resolution: "@metamask/snaps-webpack-plugin@npm:4.3.0"
   dependencies:
@@ -4751,7 +4763,7 @@ __metadata:
     "@metamask/key-tree": 9.1.2
     "@metamask/keyring-api": ^18.0.0
     "@metamask/keyring-snap-sdk": ^4.0.0
-    "@metamask/snaps-cli": ^7.2.0
+    "@metamask/snaps-cli": 7.1.0
     "@metamask/snaps-jest": 8.12.0
     "@metamask/snaps-sdk": ^7.1.0
     "@metamask/superstruct": ^3.1.0
