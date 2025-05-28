@@ -210,6 +210,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
 
   // explicit check for non-undefined active
   // to make sure the cronjob is executed if `active` is undefined
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
   if (active === false) {
     const lastCronjobRun = await state.getKey<number>('lastCronjobRun');
     const THIRTY_MINUTES = 30 * 60 * 1000; // 30 minutes in milliseconds
