@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.31.1]
+
+### Fixed
+
+- Remove lifecycle update ([#393](https://github.com/MetaMask/snap-solana-wallet/pull/393))
+- Match storage limit with expected page size for transactions coming from the snap ([#392](https://github.com/MetaMask/snap-solana-wallet/pull/392))
+
+## [1.31.0]
+
+### Added
+
+- Enable `getMinimumBalanceForRentExemption` ([#360](https://github.com/MetaMask/snap-solana-wallet/pull/360))
+- New translations ([#348](https://github.com/MetaMask/snap-solana-wallet/pull/348))
+
+### Changed
+
+- Restore max button in send flow ([#384](https://github.com/MetaMask/snap-solana-wallet/pull/384))
+- Remove additional get context on refresh send ([#385](https://github.com/MetaMask/snap-solana-wallet/pull/385))
+- Clean up `AssetService` ([#380](https://github.com/MetaMask/snap-solana-wallet/pull/380))
+
+### Fixed
+
+- Decrease non-active cronjob time to 30min ([#390](https://github.com/MetaMask/snap-solana-wallet/pull/390))
+- Prevent inactive client from executing cronjobs ([#388](https://github.com/MetaMask/snap-solana-wallet/pull/388))
+- Prevent empty accounts from refreshing ([#387](https://github.com/MetaMask/snap-solana-wallet/pull/387))
+- Fix number formatting when locale is composed ([#382](https://github.com/MetaMask/snap-solana-wallet/pull/382))
+- Changing asset in the Send flow disabled Continue button ([#374](https://github.com/MetaMask/snap-solana-wallet/pull/374))
+
 ## [1.30.4]
 
 ### Fixed
@@ -593,7 +621,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.4...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.1...HEAD
+[1.31.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.0...v1.31.1
+[1.31.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.4...v1.31.0
 [1.30.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.3...v1.30.4
 [1.30.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.2...v1.30.3
 [1.30.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.1...v1.30.2

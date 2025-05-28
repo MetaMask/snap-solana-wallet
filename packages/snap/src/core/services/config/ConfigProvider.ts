@@ -157,7 +157,7 @@ export class ConfigProvider {
         baseUrl: environment.STATIC_API_BASE_URL,
       },
       transactions: {
-        storageLimit: 20,
+        storageLimit: 10,
       },
       securityAlertsApi: {
         baseUrl:
