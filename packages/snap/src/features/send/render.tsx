@@ -58,7 +58,6 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
   stage: 'send-form',
   minimumBalanceForRentExemptionSol: '0.002', // Pessimistic default value. Will only be used if we cannot fetch the actual minimum balance for rent exemption.
   loading: true,
-  origin: '',
 };
 
 /**
@@ -84,7 +83,6 @@ export const renderSend: OnRpcRequestHandler = async ({ origin, request }) => {
     fromAccountId: account,
     tokenCaipId,
     loading: true,
-    origin,
   };
 
   const [stateValue, preferences] = await Promise.all([
