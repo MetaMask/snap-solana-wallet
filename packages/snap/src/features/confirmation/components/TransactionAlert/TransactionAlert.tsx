@@ -47,7 +47,7 @@ export const TransactionAlert: SnapComponent<TransactionAlertProps> = ({
         title={translate('send.simulationTitleAPIError')}
         severity="danger"
       >
-        <Text>{translate('send.simulationMessageError')}</Text>
+        <Text>{translate('send.simulationMessageAPIError')}</Text>
       </Banner>
     );
   }

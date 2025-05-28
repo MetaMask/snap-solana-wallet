@@ -210,7 +210,7 @@ export const SendForm = ({
           {error && (
             <Box>
               <Box>{null}</Box>
-              <Banner title={translate(error.title)} severity="danger">
+              <Banner title={translate(error.title)} severity="warning">
                 <Text>{translate(error.message)}</Text>
               </Banner>
             </Box>

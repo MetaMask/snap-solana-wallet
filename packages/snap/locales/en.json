@@ -53,7 +53,10 @@
       "message": "Insufficient balance"
     },
     "send.simulationTitleAPIError": {
-      "message": "Because of an error, we couldn't check for security alerts. Only continue if you trust every address involved."
+      "message": "Because of an error, we couldn't check for security alerts."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Only continue if you trust every address involved."
     },
     "send.simulationTitleError": {
       "message": "Transaction simulation failed"
