@@ -185,7 +185,7 @@ export class AssetsService {
             scope,
             token.account.data.parsed.info.mint,
           ),
-        } as TokenAccountWithMetadata),
+        }) as TokenAccountWithMetadata,
     );
   }
 
@@ -201,9 +201,8 @@ export class AssetsService {
     assetTypes: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
     const accountAddress = asAddress(account.address);
-    const tokensMetadata = await this.#tokenMetadataService.getTokensMetadata(
-      assetTypes,
-    );
+    const tokensMetadata =
+      await this.#tokenMetadataService.getTokensMetadata(assetTypes);
 
     const scopes = uniq(map(assetTypes, getNetworkFromToken));
     const programIds = [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS];

@@ -98,5 +98,6 @@
     "snap_dialog": {},
     "snap_getPreferences": {}
   },
+  "platformVersion": "7.1.0",
   "manifestVersion": "0.1"
 }
