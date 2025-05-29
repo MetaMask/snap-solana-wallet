@@ -131,6 +131,7 @@ describe('render', () => {
             },
           },
         },
+        origin: TEST_ORIGIN,
       };
 
       const response = onKeyringRequest({
@@ -230,6 +231,7 @@ describe('render', () => {
             },
           },
         },
+        origin: TEST_ORIGIN,
       };
 
       const response = onKeyringRequest({

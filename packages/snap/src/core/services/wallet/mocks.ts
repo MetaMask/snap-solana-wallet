@@ -33,6 +33,7 @@ export const wrapKeyringRequest = <Request extends KeyringRequest['request']>(
     request,
     account: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
     scope: Network.Localnet,
+    origin: 'https://metamask.io',
   } as const);
 
 /**

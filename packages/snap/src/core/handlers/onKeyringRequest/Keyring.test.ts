@@ -682,6 +682,7 @@ describe('SolanaKeyring', () => {
             },
           },
           scope: Network.Localnet,
+          origin: 'https://metamask.io',
         }),
       ).rejects.toThrow(
         `Method "${SolMethod.SignAndSendTransaction}" is not allowed for this account`,
@@ -711,6 +712,7 @@ describe('SolanaKeyring', () => {
             },
           },
           scope: Network.Devnet,
+          origin: 'https://metamask.io',
         }),
       ).rejects.toThrow(
         `Scope "${Network.Devnet}" is not allowed for this account`,
@@ -733,6 +735,7 @@ describe('SolanaKeyring', () => {
             },
           },
           scope: Network.Mainnet,
+          origin: 'https://metamask.io',
         }),
       ).rejects.toThrow(
         `Scope "${Network.Mainnet}" does not match "${Network.Devnet}" in request.params`,
@@ -761,6 +764,7 @@ describe('SolanaKeyring', () => {
           },
         },
         scope: Network.Devnet,
+        origin: 'https://metamask.io',
       };
 
       await keyring.submitRequest(request);
@@ -794,6 +798,7 @@ describe('SolanaKeyring', () => {
           },
         },
         scope: Network.Devnet,
+        origin: 'https://metamask.io',
       };
 
       await expect(keyring.submitRequest(request)).rejects.toThrow(
