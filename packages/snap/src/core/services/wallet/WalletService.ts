@@ -369,6 +369,8 @@ export class WalletService {
   ): Promise<SolanaSignMessageResponse> {
     assert(request.request, SolanaSignMessageRequestStruct);
 
+    console.log('@@ origin: ', request.origin);
+
     // message is base64 encoded
     const { message } = request.request.params;
     const messageBytes = getBase64Codec().encode(message);

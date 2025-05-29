@@ -44,6 +44,7 @@ export async function render(
 
   const id = await createInterface(
     <ConfirmSignMessage
+      origin={request.origin}
       message={messageUtf8}
       account={account}
       scope={scope}

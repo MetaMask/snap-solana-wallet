@@ -1,3 +1,4 @@
+import { SubmitRequestRequestStruct } from '@metamask/keyring-api';
 import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
 import type {
   Json,
@@ -105,8 +106,20 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
   try {
     logger.log('[🔑 onKeyringRequest]', request.method, request);
 
+    logger.log('[🔑 onKeyringRequest] validating..');
     validateOrigin(origin, request.method);
 
+    logger.log('[🔑 onKeyringRequest] dispatching..');
+    logger.log('[🔑 onKeyringRequest] request: ', SubmitRequestRequestStruct);
+    try {
+      assert(request, SubmitRequestRequestStruct);
+    } catch (error: any) {
+      logger.error(
+        '[🔑 onKeyringRequest] WHAT?!: ',
+        JSON.stringify(error, null, 2),
+      );
+    }
+    logger.log('[🔑 onKeyringRequest] request: ', SubmitRequestRequestStruct);
     return (await handleKeyringRequest(
       keyring,
       request,

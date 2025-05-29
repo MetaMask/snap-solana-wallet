@@ -20,6 +20,7 @@ import { i18n } from '../../../../core/utils/i18n';
 import { ConfirmSignMessageFormNames } from './events';
 
 export type ConfirmSignMessageProps = {
+  origin: string;
   message: string;
   account: SolanaKeyringAccount;
   scope: Network;
@@ -28,6 +29,7 @@ export type ConfirmSignMessageProps = {
 };
 
 export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
+  origin,
   message,
   account,
   scope,
@@ -47,6 +49,15 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
             {translate('confirmation.signMessage.title')}
           </Heading>
         </Box>
+
+        <Section>
+          <Box direction="horizontal" center>
+            <Text fontWeight="medium">{'Origin'}</Text>
+          </Box>
+          <Box alignment="space-between">
+            <Text>{origin}</Text>
+          </Box>
+        </Section>
 
         <Section>
           <Box direction="horizontal" center>
