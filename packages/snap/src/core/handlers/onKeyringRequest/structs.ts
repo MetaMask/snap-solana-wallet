@@ -19,6 +19,7 @@ export const SolanaKeyringRequestStruct = object({
   scope: NetworkStruct,
   account: UuidStruct,
   request: SolanaWalletRequestStruct,
+  origin: string(),
 });
 
 export type SolanaKeyringRequest = Infer<typeof SolanaKeyringRequestStruct>;

@@ -59,6 +59,7 @@ describe('render', () => {
       scope: Network.Testnet,
       account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       request: MOCK_SIGN_IN_REQUEST,
+      origin: TEST_ORIGIN,
     };
 
     const response = onKeyringRequest({

@@ -145,6 +145,7 @@ async function onConfirmButtonClick({
       id: globalThis.crypto.randomUUID(),
       scope,
       account: fromAccountId,
+      origin: 'snap',
       request: {
         method: SolMethod.SignAndSendTransaction,
         params: {

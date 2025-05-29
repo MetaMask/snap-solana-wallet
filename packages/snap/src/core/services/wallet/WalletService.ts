@@ -439,6 +439,7 @@ export class WalletService {
       id: globalThis.crypto.randomUUID(),
       scope: request.scope,
       account: account.id,
+      origin: request.origin,
       request: {
         method: SolMethod.SignMessage,
         params: {
