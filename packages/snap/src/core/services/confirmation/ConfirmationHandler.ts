@@ -101,6 +101,7 @@ export class ConfirmationHandler {
       ...DEFAULT_CONFIRMATION_CONTEXT,
       scope,
       method,
+      origin: request.origin,
       transaction: base64EncodedTransaction,
       account,
     });
