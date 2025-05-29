@@ -64,11 +64,10 @@ export const DEFAULT_SEND_CONTEXT: SendContext = {
  * Renders the send form interface.
  *
  * @param params - The parameters for rendering the send form interface.
- * @param params.origin - The origin of the request.
  * @param params.request - The request object.
  * @returns A promise that resolves when the interface is created.
  */
-export const renderSend: OnRpcRequestHandler = async ({ origin, request }) => {
+export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   const { params } = request;
   assert(params, StartSendTransactionFlowParamsStruct);
 
