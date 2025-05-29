@@ -4165,18 +4165,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^17.4.0":
-  version: 17.5.0
-  resolution: "@metamask/keyring-api@npm:17.5.0"
-  dependencies:
-    "@metamask/keyring-utils": ^3.0.0
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.1.0
-    bech32: ^2.0.0
-  checksum: 68e496ea72a6b231c21688084cf90a052113e88e31405839d5ba4389e10b519542533827220925a43d1955ecf2ead9ee9783c5432a11bc5e4af38c272b50cbd1
-  languageName: node
-  linkType: hard
-
 "@metamask/keyring-api@npm:^18.0.0":
   version: 18.0.0
   resolution: "@metamask/keyring-api@npm:18.0.0"
@@ -4787,7 +4775,7 @@ __metadata:
     "@chakra-ui/react": ^3.0.2
     "@emotion/react": ^11.13.3
     "@metamask/eslint-config-browser": ^12.1.0
-    "@metamask/keyring-api": ^17.4.0
+    "@metamask/keyring-api": ^18.0.0
     "@metamask/providers": ^18.1.0
     "@solana-program/compute-budget": ^0.7.0
     "@solana-program/system": ^0.7.0
