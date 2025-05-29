@@ -8,7 +8,6 @@ import type {
   OnCronjobHandler,
   OnKeyringRequestHandler,
   OnProtocolRequestHandler,
-  OnUpdateHandler,
   OnUserInputHandler,
 } from '@metamask/snaps-sdk';
 import {
