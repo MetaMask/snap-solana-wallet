@@ -60,9 +60,8 @@ export const refreshSend: OnCronjobHandler = async () => {
       // If the interface is open, update the context
       if (sendFormInterfaceId) {
         // Get the current context
-        const interfaceContext = await getInterfaceContextOrThrow<SendContext>(
-          sendFormInterfaceId,
-        );
+        const interfaceContext =
+          await getInterfaceContextOrThrow<SendContext>(sendFormInterfaceId);
 
         // we only want to refresh the token prices when the user is in the transaction confirmation stage
         if (interfaceContext.stage !== 'transaction-confirmation') {

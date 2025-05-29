@@ -74,9 +74,8 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
       derivationPath: from.derivationPath,
     });
 
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
+    const signer =
+      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
     const splTokenTokenAccount = await this.getTokenAccount<MaybeHasDecimals>({
       mint,
@@ -101,9 +100,8 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
       }),
     ]);
 
-    const latestBlockhash = await this.#transactionHelper.getLatestBlockhash(
-      network,
-    );
+    const latestBlockhash =
+      await this.#transactionHelper.getLatestBlockhash(network);
 
     const transactionMessage = pipe(
       createTransactionMessage({ version: 0 }),

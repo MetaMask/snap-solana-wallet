@@ -139,4 +139,4 @@ const createMockGetRpc = () =>
 export const createMockConnection = (): SolanaConnection =>
   ({
     getRpc: createMockGetRpc(),
-  } as unknown as SolanaConnection);
+  }) as unknown as SolanaConnection;

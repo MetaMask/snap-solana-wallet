@@ -144,7 +144,7 @@ export class TransactionsService {
 
     const next =
       signatures.length === pagination.limit
-        ? signatures[signatures.length - 1] ?? null
+        ? (signatures[signatures.length - 1] ?? null)
         : null;
 
     return {
@@ -491,9 +491,8 @@ export class TransactionsService {
       ),
     ];
 
-    const tokenMetadata = await this.#tokenMetadataService.getTokensMetadata(
-      caip19Ids,
-    );
+    const tokenMetadata =
+      await this.#tokenMetadataService.getTokensMetadata(caip19Ids);
 
     Object.keys(transactionsByAccount).forEach((accountId) => {
       transactionsByAccount[accountId]?.forEach((transaction) => {

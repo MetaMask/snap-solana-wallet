@@ -379,9 +379,8 @@ export class WalletService {
       derivationPath: account.derivationPath,
     });
 
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
+    const signer =
+      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
     const signableMessage = createSignableMessage(messageUtf8);
 
@@ -491,9 +490,8 @@ export class WalletService {
       derivationPath: account.derivationPath,
     });
 
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
+    const signer =
+      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
     const signatureBytes = getBase58Codec().encode(
       signatureBase58,
