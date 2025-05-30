@@ -13,7 +13,7 @@ import { lamportsToSol } from '../../../utils/conversion';
 import { parseTransactionFees } from './parseTransactionFees';
 
 /**
- * Parses native SOL token transfers from a transaction.
+ * Parses native SOL token transfers from a transaction using its balance changes.
  * @param options0 - The options object.
  * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
  * @param options0.transactionData - The raw transaction data containing balance changes.

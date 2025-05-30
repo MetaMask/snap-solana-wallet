@@ -9,6 +9,7 @@ import { BigNumber } from 'bignumber.js';
 import { KnownCaip19Id, type Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
 import { parseTransactionNativeTransfers } from './parseTransactionNativeTransfers';
+import { parseTransactionNativeTransfersV2 } from './parseTransactionNativeTransfersV2';
 import { parseTransactionSplTransfers } from './parseTransactionSplTransfers';
 
 /**
@@ -40,14 +41,31 @@ export function mapRpcTransaction({
 
   const id = firstSignature as string;
   const timestamp = Number(transactionData.blockTime);
+  const status = evaluateTransactionStatus(transactionData);
 
-  const nativeTransfers = parseTransactionNativeTransfers({
+  let fees: Transaction['fees'] = [];
+  let nativeFrom: Transaction['from'] = [];
+  let nativeTo: Transaction['to'] = [];
+
+  /**
+   * If a transaction fails we don't really have access to meaningful `preBalances`
+   * and `postBalances` values, since nothing really happened. To extract information
+   * from it we have created this second version of the native transfers parser which
+   * reads instructions directly, instead of relying on balance differences.
+   */
+  const parser =
+    status === TransactionStatus.Failed
+      ? parseTransactionNativeTransfersV2
+      : parseTransactionNativeTransfers;
+
+  const nativeTransfers = parser({
     scope,
     transactionData,
   });
 
-  let { fees } = nativeTransfers;
-  const { from: nativeFrom, to: nativeTo } = nativeTransfers;
+  fees = nativeTransfers.fees;
+  nativeFrom = nativeTransfers.from;
+  nativeTo = nativeTransfers.to;
 
   const { from: splFrom, to: splTo } = parseTransactionSplTransfers({
     scope,
@@ -59,6 +77,7 @@ export function mapRpcTransaction({
 
   const type = evaluateTransactionType({
     address,
+    status,
     from,
     to,
   });
@@ -84,12 +103,6 @@ export function mapRpcTransaction({
     fees = [];
   }
 
-  const status =
-    transactionData.meta?.err ||
-    (transactionData.meta?.status && 'Err' in transactionData.meta.status)
-      ? TransactionStatus.Failed
-      : TransactionStatus.Confirmed;
-
   const isLegitimate = evaluateTransactionLegitimacy({
     address,
     from,
@@ -100,6 +113,17 @@ export function mapRpcTransaction({
 
   if (!isLegitimate) {
     return null;
+  }
+
+  /**
+   * We cannot do this filtering earlier because we need to use the incomplete
+   * mapped `from` and `to` arrays to determine the transaction's legitimacy.
+   * For failed transactions, we need to first check if they are not spam before
+   * finally clearing out what we had mapped to `from` and `to`.
+   */
+  if (status === TransactionStatus.Failed) {
+    from = [];
+    to = [];
   }
 
   return {
@@ -122,24 +146,49 @@ export function mapRpcTransaction({
 }
 
 /**
+ * Evaluates the status of a transaction based on the transaction data.
+ * @param transactionData - The transaction data.
+ * @returns The status of the transaction.
+ */
+function evaluateTransactionStatus(
+  transactionData: SolanaTransaction,
+): TransactionStatus {
+  const isError =
+    transactionData.meta?.err ||
+    (transactionData.meta?.status && 'Err' in transactionData.meta.status);
+
+  const status = isError
+    ? TransactionStatus.Failed
+    : TransactionStatus.Confirmed;
+
+  return status;
+}
+
+/**
  * Evaluates the type of transaction based on the address and the from and to items.
  * @param params - The options object.
  * @param params.address - The address of the user.
  * @param params.from - The from items.
  * @param params.to - The to items.
+ * @param params.status - The status of the transaction.
  * @returns The type of transaction.
  */
 function evaluateTransactionType({
   address,
+  status,
   from,
   to,
 }: {
   address: Address;
+  status: TransactionStatus;
   from: Transaction['from'];
   to: Transaction['to'];
 }): TransactionType {
-  if (from.length === 0 || to.length === 0) {
-    // if we are unable to determine the type of transaction, we should set it to unknown
+  if (
+    from.length === 0 ||
+    to.length === 0 ||
+    status === TransactionStatus.Failed
+  ) {
     return TransactionType.Unknown;
   }
 
@@ -203,13 +252,13 @@ function passesSOLAmountThresholdCheck({
   to,
 }: {
   address: Address;
-  to: Transaction['to'];
+  to: Transaction['from'];
 }): boolean {
   const { hasReceivedSOL, receivedSOLAmount } = to.reduce(
     (acc, toItem) => {
       if (
         toItem.address === address &&
-        toItem.asset?.fungible && // Use optional chaining here
+        toItem.asset?.fungible &&
         (toItem.asset.type === KnownCaip19Id.SolMainnet ||
           toItem.asset.type === KnownCaip19Id.SolDevnet)
       ) {

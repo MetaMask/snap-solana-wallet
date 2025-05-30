@@ -206,29 +206,9 @@ describe('mapRpcTransaction', () => {
       timestamp: 1736500242,
       chain: Network.Mainnet,
       status: 'failed',
-      type: 'send',
-      from: [
-        {
-          address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
-          asset: {
-            fungible: true,
-            type: Networks[Network.Mainnet].nativeToken.caip19Id,
-            unit: Networks[Network.Mainnet].nativeToken.symbol,
-            amount: '0.1',
-          },
-        },
-      ],
-      to: [
-        {
-          address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
-          asset: {
-            fungible: true,
-            type: Networks[Network.Mainnet].nativeToken.caip19Id,
-            unit: Networks[Network.Mainnet].nativeToken.symbol,
-            amount: '0.1',
-          },
-        },
-      ],
+      type: 'unknown',
+      from: [],
+      to: [],
       fees: [
         {
           type: 'base',
@@ -1115,11 +1095,10 @@ describe('mapRpcTransaction', () => {
     expect(result).toBeNull();
   });
 
-  // TODO: This should be enabled when we support the filtering of spam transactions
-  it.skip('returns null if the transaction is a spam transaction - #2', () => {
+  it('returns null if the transaction is a spam transaction - #2', () => {
     const result = mapRpcTransaction({
       scope: Network.Mainnet,
-      address: asAddress('DAXnAudMEqiD1sS1rFn4ds3pdybRYJd9J58PqCncVVqS'),
+      address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
       transactionData: EXPECTED_SPAM_TRANSACTION_DATA_2,
     });
 
