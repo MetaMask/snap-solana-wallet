@@ -27,6 +27,7 @@ type TransactionDetailsProps = {
   fetchingPricesStatus: FetchStatus;
   preferences: Preferences;
   networkImage: string | null;
+  origin: string;
 };
 
 export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
@@ -37,6 +38,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   fetchingPricesStatus,
   preferences,
   networkImage,
+  origin,
 }) => {
   const { currency, locale } = preferences;
   const translate = i18n(locale);
@@ -61,6 +63,15 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
           displayName
           avatar
         />
+      </Box>
+      <Box>{null}</Box>
+      <Box alignment="space-between" direction="horizontal">
+        <Text fontWeight="medium" color="alternative">
+          {translate('confirmation.origin')}
+        </Text>
+        <Box direction="horizontal" alignment="center">
+          <Text>{origin}</Text>
+        </Box>
       </Box>
       <Box>{null}</Box>
       <Box alignment="space-between" direction="horizontal">

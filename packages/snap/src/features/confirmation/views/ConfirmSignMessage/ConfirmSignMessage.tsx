@@ -25,6 +25,7 @@ export type ConfirmSignMessageProps = {
   scope: Network;
   locale: Locale;
   networkImage: string | null;
+  origin: string;
 };
 
 export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
@@ -33,6 +34,7 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
   scope,
   locale,
   networkImage,
+  origin,
 }) => {
   const translate = i18n(locale);
   const { address } = account;
@@ -56,6 +58,17 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
           </Box>
           <Box alignment="space-between">
             <Text>{message}</Text>
+          </Box>
+        </Section>
+
+        <Section>
+          <Box direction="horizontal" center>
+            <Text fontWeight="medium">
+              {translate('confirmation.signMessage.origin')}
+            </Text>
+          </Box>
+          <Box alignment="space-between">
+            <Text>{origin}</Text>
           </Box>
         </Section>
 

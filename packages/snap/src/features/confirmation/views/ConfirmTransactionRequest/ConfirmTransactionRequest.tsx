@@ -4,6 +4,7 @@ import {
   Container,
   Footer,
   Heading,
+  Text,
 } from '@metamask/snaps-sdk/jsx';
 
 import { Networks } from '../../../../core/constants/solana';
@@ -42,6 +43,7 @@ export const ConfirmTransactionRequest = ({
           <Box>{null}</Box>
           <Heading size="lg">{translate('confirmation.title')}</Heading>
           <Box>{null}</Box>
+          <Text>{context.origin}</Text>
         </Box>
         {context.preferences.simulateOnChainActions ? (
           <EstimatedChanges
@@ -59,6 +61,7 @@ export const ConfirmTransactionRequest = ({
           fetchingPricesStatus={context.tokenPricesFetchStatus}
           preferences={context.preferences}
           networkImage={context.networkImage}
+          origin={context.origin}
         />
         <Advanced
           instructions={context.advanced.instructions}

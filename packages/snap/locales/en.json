@@ -163,6 +163,9 @@
     "confirmation.fee": {
       "message": "Network fee"
     },
+    "confirmation.origin": {
+      "message": "Origin"
+    },
     "confirmation.feeError": {
       "message": "Unable to estimate fee"
     },
@@ -190,8 +193,14 @@
     "confirmation.signMessage.message": {
       "message": "Message"
     },
+    "confirmation.signMessage.origin": {
+      "message": "Origin"
+    },
     "confirmation.signIn.title": {
       "message": "Sign-in request"
+    },
+    "confirmation.signIn.origin": {
+      "message": "Origin"
     },
     "confirmation.signIn.description": {
       "message": "A site wants you to sign in to prove you own this account."

@@ -49,6 +49,7 @@ export async function render(
       scope={scope}
       locale={locale}
       networkImage={SOL_IMAGE_SVG}
+      origin={origin}
     />,
     {},
   );

@@ -77,6 +77,7 @@ describe('render', () => {
         scope={Network.Testnet}
         preferences={mockPreferences}
         networkImage={SOL_IMAGE_SVG}
+        origin={TEST_ORIGIN}
       />,
     );
   });

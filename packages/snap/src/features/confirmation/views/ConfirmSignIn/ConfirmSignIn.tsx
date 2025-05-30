@@ -41,6 +41,7 @@ export type ConfirmSignInProps = {
   scope: Network;
   preferences: Preferences;
   networkImage: string | null;
+  origin: string;
 };
 
 export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
@@ -49,6 +50,7 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
   scope,
   preferences,
   networkImage,
+  origin,
 }) => {
   const translate = i18n(preferences.locale);
 
@@ -153,6 +155,11 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
               />
             </Box>
           ) : null}
+
+          <BasicNullableField
+            label={translate('confirmation.signIn.origin')}
+            value={origin}
+          />
 
           <BasicNullableField
             label={translate('confirmation.signIn.version')}
