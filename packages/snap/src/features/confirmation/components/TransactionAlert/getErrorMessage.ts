@@ -1,10 +1,11 @@
-import type { Preferences } from '../types/snap';
-import { i18n } from './i18n';
+import type { TransactionScanError } from '../../../../core/services/transaction-scan/types';
+import type { Preferences } from '../../../../core/types/snap';
+import { i18n } from '../../../../core/utils/i18n';
 
 /**
  * Maps error codes to user-friendly messages
  */
-export const ERROR_MESSAGES: Record<string, string> = {
+const ERROR_MESSAGES: Record<string, string> = {
   AccountAlreadyInUse: 'errors.accountAlreadyInUse',
   ResultWithNegativeLamports: 'errors.insufficientSol',
   SlippageToleranceExceeded: 'errors.slippageToleranceExceeded', // Jupiter
@@ -12,20 +13,26 @@ export const ERROR_MESSAGES: Record<string, string> = {
 };
 
 /**
- * Gets a user-friendly message for an error code.
- * @param errorCode - The error code to get a message for.
+ * Gets a user-friendly message from a transaction scan error.
+ * @param error - The error of the transaction scan.
  * @param preferences - The user preferences containing locale information.
  * @returns A user-friendly error message, or the original error code if no mapping exists.
  */
 export function getErrorMessage(
-  errorCode: string,
+  error: TransactionScanError,
   preferences: Preferences,
 ): string {
   const translate = i18n(preferences.locale);
-  const translationKey = ERROR_MESSAGES[errorCode];
+  const { code } = error;
+
+  if (!code) {
+    return 'errors.unknownError';
+  }
+
+  const translationKey = ERROR_MESSAGES[code];
 
   if (!translationKey) {
-    return errorCode;
+    return 'errors.unknownError';
   }
 
   return translate(translationKey as keyof typeof translate);
