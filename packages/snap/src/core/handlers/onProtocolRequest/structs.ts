@@ -6,8 +6,7 @@ import {
   tuple,
   number,
 } from '@metamask/superstruct';
-
-import { UuidStruct } from '../../validation/structs';
+import { JsonRpcIdStruct, JsonRpcVersionStruct } from '@metamask/utils';
 
 export enum SolanaProtocolRequestMethod {
   GetGenesisHash = 'getGenesisHash',
@@ -16,21 +15,21 @@ export enum SolanaProtocolRequestMethod {
 }
 
 export const SolanaGetGenesisHashRequestStruct = object({
-  jsonrpc: literal('2.0'),
-  id: UuidStruct,
+  jsonrpc: JsonRpcVersionStruct,
+  id: JsonRpcIdStruct,
   method: literal(SolanaProtocolRequestMethod.GetGenesisHash),
   params: optional(array()),
 });
 
 export const SolanaGetLatestBlockhashRequestStruct = object({
-  jsonrpc: literal('2.0'),
-  id: UuidStruct,
+  jsonrpc: JsonRpcVersionStruct,
+  id: JsonRpcIdStruct,
   method: literal(SolanaProtocolRequestMethod.GetLatestBlockhash),
 });
 
 export const SolanaGetMinimumBalanceForRentExemptionRequestStruct = object({
-  jsonrpc: literal('2.0'),
-  id: UuidStruct,
+  jsonrpc: JsonRpcVersionStruct,
+  id: JsonRpcIdStruct,
   method: literal(
     SolanaProtocolRequestMethod.GetMinimumBalanceForRentExemption,
   ),
