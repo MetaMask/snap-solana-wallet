@@ -238,14 +238,17 @@
     "confirmation.signIn.resources": {
       "message": "Resources"
     },
-    "errors.accountAlreadyInUse": {
+    "transactionScan.errors.accountAlreadyInUse": {
       "message": "An account with the same address already exists."
     },
-    "errors.insufficientSol": {
+    "transactionScan.errors.insufficientSol": {
       "message": "Account does not have enough SOL to perform the operation."
     },
-    "errors.slippageToleranceExceeded": {
+    "transactionScan.errors.slippageToleranceExceeded": {
       "message": "The transaction was reverted because the slippage tolerance was exceeded."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

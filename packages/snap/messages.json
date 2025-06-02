@@ -78,7 +78,8 @@
   "confirmation.signIn.notBefore": "Not before",
   "confirmation.signIn.requestId": "Request ID",
   "confirmation.signIn.resources": "Resources",
-  "errors.accountAlreadyInUse": "An account with the same address already exists.",
-  "errors.insufficientSol": "Account does not have enough SOL to perform the operation.",
-  "errors.slippageToleranceExceeded": "The transaction was reverted because the slippage tolerance was exceeded."
+  "transactionScan.errors.accountAlreadyInUse": "An account with the same address already exists.",
+  "transactionScan.errors.insufficientSol": "Account does not have enough SOL to perform the operation.",
+  "transactionScan.errors.slippageToleranceExceeded": "The transaction was reverted because the slippage tolerance was exceeded.",
+  "transactionScan.errors.unknownError": "An unknown error occurred."
 }

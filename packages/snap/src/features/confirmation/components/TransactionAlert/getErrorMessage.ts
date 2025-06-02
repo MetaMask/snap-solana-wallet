@@ -6,10 +6,11 @@ import { i18n } from '../../../../core/utils/i18n';
  * Maps error codes to user-friendly messages
  */
 const ERROR_MESSAGES: Record<string, string> = {
-  AccountAlreadyInUse: 'errors.accountAlreadyInUse',
-  ResultWithNegativeLamports: 'errors.insufficientSol',
-  SlippageToleranceExceeded: 'errors.slippageToleranceExceeded', // Jupiter
-  ExceededDesiredSlippageLimit: 'errors.slippageToleranceExceeded', // Raydium
+  AccountAlreadyInUse: 'transactionScan.errors.accountAlreadyInUse',
+  ResultWithNegativeLamports: 'transactionScan.errors.insufficientSol',
+  SlippageToleranceExceeded: 'transactionScan.errors.slippageToleranceExceeded', // Jupiter
+  ExceededDesiredSlippageLimit:
+    'transactionScan.errors.slippageToleranceExceeded', // Raydium
 };
 
 /**
@@ -26,14 +27,11 @@ export function getErrorMessage(
   const { code } = error;
 
   if (!code) {
-    return 'errors.unknownError';
+    return 'transactionScan.errors.unknownError';
   }
 
-  const translationKey = ERROR_MESSAGES[code];
-
-  if (!translationKey) {
-    return 'errors.unknownError';
-  }
+  const translationKey =
+    ERROR_MESSAGES[code] ?? 'transactionScan.errors.unknownError';
 
   return translate(translationKey as keyof typeof translate);
 }
