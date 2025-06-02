@@ -9,12 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.31.2]
 
-### Uncategorized
+### Changed
 
-- fix: transaction scan messages ([#401](https://github.com/MetaMask/snap-solana-wallet/pull/401))
-- feat: disable continue button on scan error ([#400](https://github.com/MetaMask/snap-solana-wallet/pull/400))
-- chore: svg image size fix ([#397](https://github.com/MetaMask/snap-solana-wallet/pull/397))
-- chore: improves messages ([#367](https://github.com/MetaMask/snap-solana-wallet/pull/367))
+- Transaction scan messages ([#401](https://github.com/MetaMask/snap-solana-wallet/pull/401))
+- Disable continue button on scan error ([#400](https://github.com/MetaMask/snap-solana-wallet/pull/400))
+- Resize unkown svg image ([#397](https://github.com/MetaMask/snap-solana-wallet/pull/397))
+- Improve scan messages ([#367](https://github.com/MetaMask/snap-solana-wallet/pull/367))
 
 ## [1.31.1]
 
