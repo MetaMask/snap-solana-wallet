@@ -10,7 +10,7 @@ import { Networks } from '../../../../core/constants/solana';
 import { i18n } from '../../../../core/utils/i18n';
 import { Advanced } from '../../components/Advanced/Advanced';
 import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';
-import { TransactionAlert } from '../../components/TransactionAlert/TransactionAlert';
+import { TransactionAlert } from '../../components/TransactionAlert';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
 import { ConfirmSignAndSendTransactionFormNames } from './events';
 import { type ConfirmTransactionRequestContext } from './types';
@@ -25,7 +25,9 @@ export const ConfirmTransactionRequest = ({
   const feeInSol = context.feeEstimatedInSol;
   const { nativeToken } = Networks[context.scope];
   const nativePrice = context.tokenPrices[nativeToken.caip19Id]?.price ?? null;
-  const scanIsFetching = context.scanFetchStatus === 'fetching';
+
+  const shouldDisableConfirmButton =
+    context.scanFetchStatus === 'fetching' || context.scan?.status === 'ERROR';
 
   return (
     <Container>
@@ -73,7 +75,7 @@ export const ConfirmTransactionRequest = ({
         </Button>
         <Button
           name={ConfirmSignAndSendTransactionFormNames.Confirm}
-          disabled={scanIsFetching}
+          disabled={shouldDisableConfirmButton}
         >
           {translate('confirmation.confirmButton')}
         </Button>

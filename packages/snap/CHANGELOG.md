@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.31.2]
+
+### Changed
+
+- Transaction scan messages ([#401](https://github.com/MetaMask/snap-solana-wallet/pull/401))
+- Disable continue button on scan error ([#400](https://github.com/MetaMask/snap-solana-wallet/pull/400))
+- Resize unkown svg image ([#397](https://github.com/MetaMask/snap-solana-wallet/pull/397))
+- Improve scan messages ([#367](https://github.com/MetaMask/snap-solana-wallet/pull/367))
+
 ## [1.31.1]
 
 ### Fixed
@@ -621,7 +630,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.1...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.2...HEAD
+[1.31.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.1...v1.31.2
 [1.31.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.0...v1.31.1
 [1.31.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.4...v1.31.0
 [1.30.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.3...v1.30.4

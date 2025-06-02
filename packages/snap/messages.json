@@ -55,7 +55,7 @@
   "confirmation.fee": "Network fee",
   "confirmation.feeError": "Unable to estimate fee",
   "confirmation.simulationErrorTitle": "This transaction was reverted during simulation.",
-  "confirmation.simulationErrorSubtitle": "Reason: {reason}",
+  "confirmation.simulationErrorSubtitle": "{reason}",
   "confirmation.validationErrorTitle": "This is a deceptive request",
   "confirmation.validationErrorSubtitle": "If you approve this request, a third party known for scams will take all your assets.",
   "confirmation.validationErrorLearnMore": "Learn more",
@@ -78,7 +78,8 @@
   "confirmation.signIn.notBefore": "Not before",
   "confirmation.signIn.requestId": "Request ID",
   "confirmation.signIn.resources": "Resources",
-  "errors.accountAlreadyInUse": "An account with the same address already exists",
-  "errors.insufficientSol": "Account does not have enough SOL to perform the operation",
-  "errors.slippageToleranceExceeded": "The transaction was reverted because the slippage tolerance was exceeded."
+  "transactionScan.errors.accountAlreadyInUse": "An account with the same address already exists.",
+  "transactionScan.errors.insufficientSol": "Account does not have enough SOL to perform the operation.",
+  "transactionScan.errors.slippageToleranceExceeded": "The transaction was reverted because the slippage tolerance was exceeded.",
+  "transactionScan.errors.unknownError": "An unknown error occurred."
 }
