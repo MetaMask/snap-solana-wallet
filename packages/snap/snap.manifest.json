@@ -1,5 +1,5 @@
 {
-  "version": "1.30.4",
+  "version": "1.31.2",
   "description": "Manage Solana using MetaMask",
   "proposedName": "Solana",
   "repository": {
@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "yJTRNME9ToJUjYVC3LUJRoTk2MzEPYqXkHZScTJ56TU=",
+    "shasum": "eBi0+K2mctngR9lOseF7P8ZD0pdRIPxqVn/7uERyND8=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -61,7 +61,7 @@
           }
         },
         {
-          "expression": "*/3 * * * *",
+          "expression": "*/2 * * * *",
           "request": {
             "method": "scheduleRefreshAccounts",
             "params": {}
