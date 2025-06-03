@@ -29,6 +29,7 @@ export const Advanced: SnapComponent<AdvancedProps> = ({
     <Box alignment="start">
       <Button name={ConfirmSignAndSendTransactionFormNames.ShowAdvanced}>
         {translate(`confirmation.advanced.${showInstructionsMode}`)}
+        {'&nbsp;'}
         <Icon name={instructionsModeIcon} color="primary" />
       </Button>
       {showInstructions && (
