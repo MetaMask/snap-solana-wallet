@@ -1,10 +1,13 @@
-import { SnapError, type Json, type JsonRpcRequest } from '@metamask/snaps-sdk';
+import { type Json, type JsonRpcRequest } from '@metamask/snaps-sdk';
 import { assert, enums } from '@metamask/superstruct';
 
 import type { ILogger } from '../../utils/logger';
 import type { SignAndSendTransactionWithIntentUseCase } from './SignAndSendTransactionWithIntentUseCase';
 import type { ClientRequestUseCase } from './types';
-import { ClientRequestMethod } from './types';
+import {
+  ClientRequestMethod,
+  SignAndSendTransactionWithIntentParamsStruct,
+} from './types';
 
 export class ClientRequestHandler {
   readonly #methodToUseCase: Record<ClientRequestMethod, ClientRequestUseCase>;
@@ -31,18 +34,23 @@ export class ClientRequestHandler {
    * @returns The response to the JSON-RPC request.
    */
   async handle(request: JsonRpcRequest): Promise<Json> {
-    try {
-      this.#logger.log('[onClientRequest] Handling client request...', request);
+    this.#logger.log('[onClientRequest] Handling client request...', request);
 
-      const { method } = request;
-      assert(method, enums(Object.values(ClientRequestMethod)));
+    const { method, params } = request;
+    assert(method, enums(Object.values(ClientRequestMethod)));
 
-      const useCase = this.#methodToUseCase[method];
-
-      return useCase.execute(request);
-    } catch (error: any) {
-      this.#logger.error(error, 'Error handling client request');
-      throw new SnapError(error);
+    // Parse and validate parameters based on method
+    let parsedParams: any;
+    switch (method) {
+      case ClientRequestMethod.SignAndSendTransactionWithIntent:
+        assert(params, SignAndSendTransactionWithIntentParamsStruct);
+        parsedParams = params;
+        break;
+      default:
+        throw new Error(`Unsupported method: ${method}`);
     }
+
+    const useCase = this.#methodToUseCase[method];
+    return useCase.execute(parsedParams);
   }
 }

@@ -1,8 +1,9 @@
-import { object, string, union } from '@metamask/superstruct';
-import type { Json, JsonRpcRequest } from '@metamask/utils';
+import type { Infer } from '@metamask/superstruct';
+import { object, string } from '@metamask/superstruct';
+import type { Json } from '@metamask/utils';
 import { CaipAssetTypeStruct } from '@metamask/utils';
 
-import { NetworkStruct, UuidStruct } from '../../validation/structs';
+import { Base64Struct, UuidStruct } from '../../validation/structs';
 
 export enum ClientRequestMethod {
   SignAndSendTransactionWithIntent = 'signAndSendTransactionWithIntent',
@@ -13,34 +14,24 @@ export const IntentStruct = object({
   timestamp: string(),
   from: object({
     asset: CaipAssetTypeStruct,
-    amount: string(), // Keep as string to preserve precision
+    amount: string(),
   }),
   to: object({
     asset: CaipAssetTypeStruct,
-    amount: string(), // Keep as string to preserve precision
+    amount: string(),
   }),
 });
 
 export const SignAndSendTransactionWithIntentParamsStruct = object({
   intent: IntentStruct,
-  tx: string(), // Base64 encoded transaction
-  signature: string(), // Backend signature for verification
+  tx: Base64Struct, // TODO: What type?
+  signature: string(), // TODO: What type?
 });
 
-export const SignAndSendTransactionWithIntentRequestStruct = object({
-  id: UuidStruct,
-  scope: NetworkStruct,
-  account: UuidStruct,
-  request: SignAndSendTransactionWithIntentParamsStruct,
-});
+export type SignAndSendTransactionWithIntentParams = Infer<
+  typeof SignAndSendTransactionWithIntentParamsStruct
+>;
 
-export const ClientRequestStruct = object({
-  id: UuidStruct,
-  scope: NetworkStruct,
-  account: UuidStruct,
-  request: union([SignAndSendTransactionWithIntentRequestStruct]),
-});
-
-export type ClientRequestUseCase = {
-  execute: (request: JsonRpcRequest) => Promise<Json>;
+export type ClientRequestUseCase<TParams = any> = {
+  execute: (params: TParams) => Promise<Json>;
 };

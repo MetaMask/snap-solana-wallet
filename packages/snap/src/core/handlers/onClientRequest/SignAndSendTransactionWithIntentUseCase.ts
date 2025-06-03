@@ -1,19 +1,18 @@
 import { SolMethod } from '@metamask/keyring-api';
-import { assert, literal, object } from '@metamask/superstruct';
-import type { Json, JsonRpcRequest } from '@metamask/utils';
+import { assert, object } from '@metamask/superstruct';
+import type { Json } from '@metamask/utils';
 
 import { Network } from '../../constants/solana';
 import type { WalletService } from '../../services/wallet/WalletService';
 import type { ILogger } from '../../utils/logger';
 import type { SolanaKeyring } from '../onKeyringRequest/Keyring';
-import type { ClientRequestUseCase } from './types';
-import {
-  ClientRequestMethod,
-  SignAndSendTransactionWithIntentParamsStruct,
+import type {
+  ClientRequestUseCase,
+  SignAndSendTransactionWithIntentParams,
 } from './types';
 
 export class SignAndSendTransactionWithIntentUseCase
-  implements ClientRequestUseCase
+  implements ClientRequestUseCase<SignAndSendTransactionWithIntentParams>
 {
   #keyring: SolanaKeyring;
 
@@ -36,27 +35,18 @@ export class SignAndSendTransactionWithIntentUseCase
    * This allows swap/bridge transactions to be executed without user confirmation
    * when they match a verified intent from the backend.
    *
-   * @param request - The JSON-RPC request containing the intent, transaction, and signature.
+   * @param params - The validated parameters containing intent, transaction, and signature.
    * @returns The transaction signature if successful.
    */
-  async execute(request: JsonRpcRequest): Promise<Json> {
+  async execute(params: SignAndSendTransactionWithIntentParams): Promise<Json> {
     this.#logger.log(
       '[SignAndSendTransactionWithIntentUseCase] execute',
-      request,
+      params,
     );
-
-    const { method, params } = request;
-
-    assert(
-      method,
-      literal(ClientRequestMethod.SignAndSendTransactionWithIntent),
-    );
-    assert(params, SignAndSendTransactionWithIntentParamsStruct);
 
     const { intent, tx, signature } = params;
 
-    // TODO: Implement signature verification
-    // This should verify that the backend signed the intent and transaction
+    // Verify that the backend signed the intent (and transaction?)
     // to ensure the transaction came from our backend and matches the user's intent
     const isValidSignature = await this.#verifyBackendSignature(
       intent,
@@ -68,8 +58,7 @@ export class SignAndSendTransactionWithIntentUseCase
       throw new Error('Invalid backend signature');
     }
 
-    // TODO: Implement transaction vs intent verification
-    // This should verify that the transaction actually performs the swap/bridge
+    // Verify that the transaction actually performs the swap/bridge
     // described in the intent (correct amounts, assets, etc.)
     const transactionMatchesIntent = await this.#verifyTransactionMatchesIntent(
       intent,
@@ -81,12 +70,11 @@ export class SignAndSendTransactionWithIntentUseCase
     }
 
     // Get the user's account
-    // For now, we'll use the first account, but this should be determined
-    // based on the intent's from address
-    const account = (await this.#keyring.listAccounts())[0];
+    // TODO: How do we know which account to use? For now, we'll use the first account
+    const account = (await this.#keyring.listAccounts())[0]; // TODO: We should move account CRUDs to an AccountService
     assert(account, object());
 
-    // TODO: Determine the correct network from the intent
+    // TODO: How do we know the correct network?
     // For now, defaulting to mainnet
     const scope: Network = Network.Mainnet;
 
