@@ -1,0 +1,192 @@
+{
+  "openrpc": "1.0.0",
+  "info": {
+    "title": "MetaMask Solana Wallet Snap JSON-RPC API",
+    "description": "JSON-RPC API of the MetaMask Solana Wallet Snap. This snap brings official Solana support to MetaMask. Create accounts, check balances, and use Solana dApps right from your MetaMask wallet. Simple, secure, and seamless.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "New Networks Team"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "name": "MetaMask Solana Wallet Snap",
+      "url": "snap://npm:@metamask/solana-wallet-snap"
+    }
+  ],
+  "methods": [
+    {
+      "name": "client_signAndSendTransactionWithIntent",
+      "summary": "Sign and send a transaction with verified intent",
+      "description": "Allows the client (MetaMask) to request the snap to sign and send a transaction with verified intent.\n\n**Process:**\n\n1. **Verify Backend Signature** - Ensures the payload `{ intent, signature }` was signed by the trusted Swaps API\n2. **Match Transaction to Intent** - Verifies the transaction performs exactly what the intent describes\n3. **Sign Transaction** - If all validation pass, signs the transaction with the user's account specified in the intent\n4. **Send Transaction** - Sends the transaction to the Solana network",
+      "params": [
+        {
+          "name": "intent",
+          "summary": "The user's intent describing the desired swap/bridge operation",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Intent"
+          }
+        },
+        {
+          "name": "transaction",
+          "summary": "The base64-encoded transaction to sign and send",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "signature",
+          "summary": "The result of signing the payload `{intent, transaction}` using <TODO SIGNING ALGORITHM> with the Swaps API's private key.",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "SignAndSendTransactionWithIntentResult",
+        "summary": "The result of signing and sending a transaction with intent",
+        "schema": {
+          "$ref": "#/components/schemas/SignAndSendTransactionWithIntentResult"
+        }
+      },
+      "examples": [
+        {
+          "name": "signAndSendTransactionWithIntentExample",
+          "description": "Example of signing and sending a transaction with intent, where user wants to swap 1 SOL for 161.18 USDC.",
+          "params": [
+            {
+              "name": "intent",
+              "value": {
+                "id": "c76b3834-b9a8-4dfd-91da-72c26a216fb2",
+                "timestamp": "2021-01-01T00:00:00Z",
+                "accountId": "9ce0cc70-9c04-48f7-a3dc-d9c1496ac229",
+                "from": {
+                  "assetType": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
+                  "amount": "1000000000"
+                },
+                "to": {
+                  "assetType": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                  "amount": "161180000"
+                }
+              }
+            },
+            {
+              "name": "transaction",
+              "value": "gAEAChfds67pR0IYlL1XKFGjzC+zBZIA7vT1dj7nUBTUwAs7rBn3hrWmXImk+UetGwvWumZpcEhF+xT5THD5os2Svp67H8GdfJ4jkOslaYOff/X0SeF33Cha5Ij9DKlo3QaosfIhtgnDmdJAVdjfmyv5dEGsSWgYEYPaqW8v8hSJozhYIzcQa4p5MinFjNMq4vDm+n249hE5Vmwe+Adkq87GTDegPbdaVhuqlrT5hZnIkdcW67eCFvm9ZzXM9jeWm2GwnLBGfnLp6qHLD5IgtqLXr5clzwoa2ns4KdysosGA2yFHt2dBBA/kB6qwUEagfnGzH2GY12XE3va/gn3W4Loqy/D+gP5PMjWwL4nGY8i3EGxqLHt/i3x/EskcO1ftQjYqQtqMVVDE+U/Vngb6x6+HbBOGrDQOx73j0k813TrK9dmptLgHDBoOIz6tGmWT+r9wa3YtqouLIv01/IKynGlc4TnE0M2MheikqA6gkuj1PhXVDgPc7eSLCseVMCy/WUgTmKbXmnZ/QcH3X8YTJ//GR4yvL7LCHdfHPhS8B+4hpoFusQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKD0N0oI1T+8K47DiJ9N82JyiZvsX3fj3y3zO++Tr3FVRPixdukLDvYMw2r2DTumX5VA1ifoAVfXgkOTnLswDEoyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAC0P/on9df2SnTAmx8pWHneSwmrNt/J3VFLMhqns4zl6LwHxW5grT0/F3OC6sZUj7of0yz9kMoCs+fPoYX9znOYyUOdJ8PoWqEFw7H8n7xwkhg1P1tPfo1/6arncTl4PJkEedVb8jHAbu50xW7OaBUH/bGy3qP0jlECsc2iVrwTjwan1RcYx3TJKFZjmGkdXraLXrijm0ttXHNVWyEAAAAA0LlMW0o1bBeKH7IjSDuI9G0a+7kgVaW9ubbU+rklS9sFDgIWFAkAi8sXoE0wggARAAUCuIEWABEACAMgoQcAAAAAEAYACAATDS0BARVDLQ8ABgUECCoTFRUSFSslKyIjBQooKiQrDy0tKSsMAwEVKyErHB0KBygsHisPLS0pKx8gFScPJhsHBBcZGi0JGAILFSzBIJszQdacgQMDAAAAJmQAASZkAQIaZAIDQEIPAAAAAAC78khRAQAAADIAAANOgLKSmCyUmuksqMclFoVdtmiFizz7/yF11zNd6VSAxgUkIB4dIwIhIrYRAfelfqMdEh4JHXx6VS3GXpyeWhNKQlBsx9m2I8c+BhMSEBEUWgDdfctSzc+t7n0tohMIoz7S6USQkKhKDRCUSx6C3SjhJQQJAg8EBgoMCwYQBw=="
+            },
+            {
+              "name": "signature",
+              "value": "DuvWiKG54eKcB1s777TgaZWtF9R23sVuEaugRufdXyqhCf6owy5hYqxeL8sa6zoCPVQu3NxxhjWuz91CKgLE6SB"
+            }
+          ],
+          "result": {
+            "name": "signAndSendTransactionWithIntentResult",
+            "value": {
+              "signature": "DuvWiKG54eKcB1s777TgaZWtF9R23sVuEaugRufdXyqhCf6owy5hYqxeL8sa6zoCPVQu3NxxhjWuz91CKgLE6SB",
+              "intent": {
+                "id": "c76b3834-b9a8-4dfd-91da-72c26a216fb2",
+                "timestamp": "2021-01-01T00:00:00Z",
+                "accountId": "9ce0cc70-9c04-48f7-a3dc-d9c1496ac229",
+                "from": {
+                  "assetType": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
+                  "amount": "1000000000"
+                },
+                "to": {
+                  "assetType": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                  "amount": "161180000"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Iso8601Timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "An ISO 8601 timestamp",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+        "examples": ["2021-01-01T00:00:00Z", "2021-01-01T00:00:00.000Z"]
+      },
+      "UuidV4": {
+        "type": "string",
+        "format": "uuid",
+        "description": "A UUID version 4 identifier",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+        "examples": [
+          "550e8400-e29b-41d4-a716-446655440000",
+          "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        ]
+      },
+      "Intent": {
+        "type": "object",
+        "description": "Represents a user's intent to perform a swap or bridge operation",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV4",
+            "description": "Unique identifier for the intent"
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/Iso8601Timestamp",
+            "description": "ISO 8601 timestamp when the intent was created"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "The identifier of the account to sign the transaction with"
+          },
+          "from": {
+            "$ref": "#/components/schemas/AssetAmount",
+            "description": "The asset and amount the user wants to send"
+          },
+          "to": {
+            "$ref": "#/components/schemas/AssetAmount",
+            "description": "The asset and amount the user expects to receive"
+          }
+        },
+        "required": ["id", "timestamp", "accountId", "from", "to"],
+        "additionalProperties": false
+      },
+      "AssetAmount": {
+        "type": "object",
+        "description": "Represents an asset and its amount",
+        "properties": {
+          "assetType": {
+            "type": "string",
+            "description": "CAIP-19 asset type (e.g., 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' for SOL)"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount in the asset's smallest unit (e.g., lamports for SOL)"
+          }
+        },
+        "required": ["assetType", "amount"],
+        "additionalProperties": false
+      },
+      "SignAndSendTransactionWithIntentResult": {
+        "type": "object",
+        "description": "Result of signing and sending a transaction with intent",
+        "properties": {
+          "signature": {
+            "type": "string",
+            "description": "The transaction signature returned after successful execution on Solana"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/Intent",
+            "description": "The original intent that was fulfilled, returned for assurance that the intent was fulfilled"
+          }
+        },
+        "required": ["signature", "intent"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { type Json, type JsonRpcRequest } from '@metamask/snaps-sdk';
+import type { Struct } from '@metamask/superstruct';
 import { assert, enums } from '@metamask/superstruct';
 
 import type { ILogger } from '../../utils/logger';
@@ -12,6 +13,8 @@ import {
 export class ClientRequestHandler {
   readonly #methodToUseCase: Record<ClientRequestMethod, ClientRequestUseCase>;
 
+  readonly #methodToParamsStruct: Record<ClientRequestMethod, Struct<any, any>>;
+
   readonly #logger: ILogger;
 
   constructor(
@@ -21,6 +24,11 @@ export class ClientRequestHandler {
     this.#methodToUseCase = {
       [ClientRequestMethod.SignAndSendTransactionWithIntent]:
         signAndSendTransactionWithIntentUseCase,
+    };
+
+    this.#methodToParamsStruct = {
+      [ClientRequestMethod.SignAndSendTransactionWithIntent]:
+        SignAndSendTransactionWithIntentParamsStruct,
     };
 
     this.#logger = logger;
@@ -39,18 +47,10 @@ export class ClientRequestHandler {
     const { method, params } = request;
     assert(method, enums(Object.values(ClientRequestMethod)));
 
-    // Parse and validate parameters based on method
-    let parsedParams: any;
-    switch (method) {
-      case ClientRequestMethod.SignAndSendTransactionWithIntent:
-        assert(params, SignAndSendTransactionWithIntentParamsStruct);
-        parsedParams = params;
-        break;
-      default:
-        throw new Error(`Unsupported method: ${method}`);
-    }
+    const paramsStruct = this.#methodToParamsStruct[method];
+    assert(params, paramsStruct);
 
     const useCase = this.#methodToUseCase[method];
-    return useCase.execute(parsedParams);
+    return useCase.execute(params);
   }
 }

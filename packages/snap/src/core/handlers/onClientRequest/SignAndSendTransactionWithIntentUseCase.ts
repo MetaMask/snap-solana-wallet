@@ -1,13 +1,12 @@
 import { SolMethod } from '@metamask/keyring-api';
-import { assert, object } from '@metamask/superstruct';
-import type { Json } from '@metamask/utils';
+import { parseCaipAssetType, type Json } from '@metamask/utils';
 
-import { Network } from '../../constants/solana';
 import type { WalletService } from '../../services/wallet/WalletService';
 import type { ILogger } from '../../utils/logger';
 import type { SolanaKeyring } from '../onKeyringRequest/Keyring';
 import type {
   ClientRequestUseCase,
+  Intent,
   SignAndSendTransactionWithIntentParams,
 } from './types';
 
@@ -31,8 +30,8 @@ export class SignAndSendTransactionWithIntentUseCase
   }
 
   /**
-   * Handles the signAndSendTransactionWithIntent method for client requests.
-   * This allows swap/bridge transactions to be executed without user confirmation
+   * Handles the request client_signAndSendTransactionWithIntent.
+   * This allows transactions to be executed without user confirmation
    * when they match a verified intent from the backend.
    *
    * @param params - The validated parameters containing intent, transaction, and signature.
@@ -44,13 +43,14 @@ export class SignAndSendTransactionWithIntentUseCase
       params,
     );
 
-    const { intent, tx, signature } = params;
+    const { intent, transaction, signature } = params;
+    const { accountId, from } = intent;
 
-    // Verify that the backend signed the intent (and transaction?)
-    // to ensure the transaction came from our backend and matches the user's intent
+    // Verify that the backend signed the payload { intent, transaction }
+    // to ensure the transaction came from our backend.
     const isValidSignature = await this.#verifyBackendSignature(
       intent,
-      tx,
+      transaction,
       signature,
     );
 
@@ -58,25 +58,22 @@ export class SignAndSendTransactionWithIntentUseCase
       throw new Error('Invalid backend signature');
     }
 
-    // Verify that the transaction actually performs the swap/bridge
-    // described in the intent (correct amounts, assets, etc.)
+    // Verify that the transaction actually performs what is described in the intent
+    // (correct amounts, assets, etc.)
     const transactionMatchesIntent = await this.#verifyTransactionMatchesIntent(
       intent,
-      tx,
+      transaction,
     );
 
     if (!transactionMatchesIntent) {
       throw new Error('Transaction does not match intent');
     }
 
-    // Get the user's account
-    // TODO: How do we know which account to use? For now, we'll use the first account
-    const account = (await this.#keyring.listAccounts())[0]; // TODO: We should move account CRUDs to an AccountService
-    assert(account, object());
+    // Get the user's account from the accountId specified in the intent
+    const account = await this.#keyring.getAccountOrThrow(accountId);
 
-    // TODO: How do we know the correct network?
-    // For now, defaulting to mainnet
-    const scope: Network = Network.Mainnet;
+    // Get the scope from the intent
+    const scope = parseCaipAssetType(from.assetType).chainId;
 
     // Sign and send the transaction
     const response = await this.#walletService.signAndSendTransaction(account, {
@@ -86,7 +83,7 @@ export class SignAndSendTransactionWithIntentUseCase
       request: {
         method: SolMethod.SignAndSendTransaction,
         params: {
-          transaction: tx,
+          transaction,
           scope,
           account: {
             address: account.address,
@@ -111,13 +108,13 @@ export class SignAndSendTransactionWithIntentUseCase
    * This ensures the request came from our trusted backend.
    *
    * @param intent - The swap/bridge intent.
-   * @param tx - The base64 encoded transaction.
+   * @param transaction - The base64 encoded transaction.
    * @param signature - The backend signature to verify.
    * @returns True if the signature is valid.
    */
   async #verifyBackendSignature(
     intent: any,
-    tx: string,
+    transaction: string,
     signature: string,
   ): Promise<boolean> {
     // TODO: Implement actual signature verification
@@ -138,12 +135,12 @@ export class SignAndSendTransactionWithIntentUseCase
    * This ensures the transaction matches what the user expects.
    *
    * @param intent - The swap/bridge intent.
-   * @param tx - The base64 encoded transaction.
+   * @param transaction - The base64 encoded transaction.
    * @returns True if the transaction matches the intent.
    */
   async #verifyTransactionMatchesIntent(
-    intent: any,
-    tx: string,
+    intent: Intent,
+    transaction: string,
   ): Promise<boolean> {
     // TODO: Implement transaction verification
     // This should:

@@ -6,27 +6,31 @@ import { CaipAssetTypeStruct } from '@metamask/utils';
 import { Base64Struct, UuidStruct } from '../../validation/structs';
 
 export enum ClientRequestMethod {
-  SignAndSendTransactionWithIntent = 'signAndSendTransactionWithIntent',
+  SignAndSendTransactionWithIntent = 'client_signAndSendTransactionWithIntent',
 }
+
+export const AssetAmountStruct = object({
+  assetType: CaipAssetTypeStruct,
+  amount: string(),
+});
 
 export const IntentStruct = object({
   id: UuidStruct,
   timestamp: string(),
-  from: object({
-    asset: CaipAssetTypeStruct,
-    amount: string(),
-  }),
-  to: object({
-    asset: CaipAssetTypeStruct,
-    amount: string(),
-  }),
+  accountId: string(),
+  from: AssetAmountStruct,
+  to: AssetAmountStruct,
 });
 
 export const SignAndSendTransactionWithIntentParamsStruct = object({
   intent: IntentStruct,
-  tx: Base64Struct, // TODO: What type?
-  signature: string(), // TODO: What type?
+  transaction: Base64Struct,
+  signature: string(),
 });
+
+export type AssetAmount = Infer<typeof AssetAmountStruct>;
+
+export type Intent = Infer<typeof IntentStruct>;
 
 export type SignAndSendTransactionWithIntentParams = Infer<
   typeof SignAndSendTransactionWithIntentParamsStruct
