@@ -1,3 +1,3 @@
 export enum ClientRequestMethod {
-  SignAndSendTransactionWithIntent = 'client_signAndSendTransactionWithIntent',
+  SignAndSendTransactionWithIntent = 'signAndSendTransactionWithIntent',
 }

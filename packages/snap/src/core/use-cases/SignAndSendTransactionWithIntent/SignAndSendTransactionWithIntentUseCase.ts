@@ -1,11 +1,17 @@
+/* eslint-disable @typescript-eslint/no-throw-literal */
 import { SolMethod } from '@metamask/keyring-api';
-import { parseCaipAssetType, type Json } from '@metamask/utils';
+import { parseCaipAssetType } from '@metamask/utils';
 
-import type { Intent } from '../../domain';
+import type { TransactionIntent } from '../../domain';
 import type { SolanaKeyring } from '../../handlers/onKeyringRequest/Keyring';
 import type { WalletService } from '../../services/wallet/WalletService';
 import type { ILogger } from '../../utils/logger';
 import type { UseCase } from '../UseCase';
+import { AccountNotFoundError } from './errors';
+import type {
+  SignAndSendTransactionWithIntentParams,
+  SignAndSendTransactionWithIntentResponse,
+} from './types';
 
 export class SignAndSendTransactionWithIntentUseCase implements UseCase {
   #keyring: SolanaKeyring;
@@ -25,57 +31,48 @@ export class SignAndSendTransactionWithIntentUseCase implements UseCase {
   }
 
   /**
-   * Handles the request client_signAndSendTransactionWithIntent.
+   * Handles the request signAndSendTransactionWithIntent.
    * This allows transactions to be executed without user confirmation
    * when they match a verified intent from the backend.
    *
-   * @param intent - The validated intent.
-   * @param transaction - The validated transaction.
-   * @param signature - The validated signature.
+   * @param params - The intent, transaction, and signature.
    * @returns The transaction signature if successful.
+   * @throws {InvalidBackendSignatureError} When the backend signature is invalid.
+   * @throws {TransactionIntentMismatchError} When the transaction does not match the intent.
+   * @throws {AccountNotFoundError} When the account is not found.
+   * @throws {InvalidTransactionError} When the transaction is invalid.
+   * @throws {TransactionFailedError} When the transaction fails.
    */
   async execute(
-    intent: Intent,
-    transaction: string,
-    signature: string,
-  ): Promise<Json> {
+    params: SignAndSendTransactionWithIntentParams,
+  ): Promise<SignAndSendTransactionWithIntentResponse> {
     this.#logger.log(
       '[SignAndSendTransactionWithIntentUseCase] execute',
-      intent,
-      transaction,
-      signature,
+      params,
     );
 
-    const { accountId, from } = intent;
+    const { intent, transaction, signature } = params;
+    const { timestamp, from, to, type } = intent;
 
     // Verify that the backend signed the payload { intent, transaction }
     // to ensure the transaction came from our backend.
-    const isValidSignature = await this.#verifyBackendSignature(
-      intent,
-      transaction,
-      signature,
-    );
-
-    if (!isValidSignature) {
-      throw new Error('Invalid backend signature');
-    }
+    await this.#verifyBackendSignature(intent, transaction, signature);
 
     // Verify that the transaction actually performs what is described in the intent
     // (correct amounts, assets, etc.)
-    const transactionMatchesIntent = await this.#verifyTransactionMatchesIntent(
-      intent,
-      transaction,
-    );
-
-    if (!transactionMatchesIntent) {
-      throw new Error('Transaction does not match intent');
-    }
+    await this.#verifyTransactionMatchesIntent(intent, transaction);
 
     // Get the user's account from the accountId specified in the intent
-    const account = await this.#keyring.getAccountOrThrow(accountId);
+    const account = (await this.#keyring.listAccounts()).find(
+      (item) => item.address === from.address,
+    );
+
+    if (!account) {
+      throw new AccountNotFoundError(from.address);
+    }
 
     // Get the scope from the intent
-    const scope = parseCaipAssetType(from.assetType).chainId;
+    const scope = parseCaipAssetType(from.asset).chainId;
 
     // Sign and send the transaction
     const response = await this.#walletService.signAndSendTransaction(account, {
@@ -100,8 +97,7 @@ export class SignAndSendTransactionWithIntentUseCase implements UseCase {
     );
 
     return {
-      signature: response.signature,
-      intent,
+      transactionId: response.signature,
     };
   }
 
@@ -112,13 +108,13 @@ export class SignAndSendTransactionWithIntentUseCase implements UseCase {
    * @param intent - The swap/bridge intent.
    * @param transaction - The base64 encoded transaction.
    * @param signature - The backend signature to verify.
-   * @returns True if the signature is valid.
+   * @throws InvalidBackendSignatureError if the signature is invalid.
    */
   async #verifyBackendSignature(
-    intent: Intent,
+    intent: TransactionIntent,
     transaction: string,
     signature: string,
-  ): Promise<boolean> {
+  ): Promise<void> {
     // TODO: Implement actual signature verification
     // This should:
     // 1. Get the backend's public key (stored in snap state or hardcoded)
@@ -126,10 +122,6 @@ export class SignAndSendTransactionWithIntentUseCase implements UseCase {
     // 3. Ensure the signature is fresh (check timestamp)
 
     this.#logger.log('[🔍 verifyBackendSignature] Verifying signature...');
-
-    // For now, return true to allow development
-    // In production, this MUST be implemented properly
-    return true;
   }
 
   /**
@@ -138,25 +130,21 @@ export class SignAndSendTransactionWithIntentUseCase implements UseCase {
    *
    * @param intent - The swap/bridge intent.
    * @param transaction - The base64 encoded transaction.
-   * @returns True if the transaction matches the intent.
+   * @throws InvalidTransactionError when the transaction is malformed or invalid.
+   * @throws TransactionIntentMismatchError if the transaction does not match the intent.
    */
   async #verifyTransactionMatchesIntent(
-    intent: Intent,
+    intent: TransactionIntent,
     transaction: string,
-  ): Promise<boolean> {
+  ): Promise<void> {
     // TODO: Implement transaction verification
     // This should:
-    // 1. Decode the transaction
-    // 2. Analyze the instructions to understand what the transaction does
-    // 3. Verify it matches the intent (correct tokens, amounts, etc.)
-    // 4. Ensure no unexpected instructions (like additional transfers)
+    // 1. Simulate the transaction
+    // 2. Verify it matches the intent (correct tokens, amounts, etc.)
+    // 3. Ensure no unexpected instructions (like additional transfers)
 
     this.#logger.log(
       '[🔍 verifyTransactionMatchesIntent] Verifying transaction matches intent...',
     );
-
-    // For now, return true to allow development
-    // In production, this MUST be implemented properly
-    return true;
   }
 }

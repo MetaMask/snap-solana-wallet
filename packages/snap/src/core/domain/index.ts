@@ -1,1 +1,1 @@
-export * from './Intent';
+export * from './TransactionIntent';

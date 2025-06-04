@@ -19,16 +19,17 @@
   ],
   "methods": [
     {
-      "name": "client_signAndSendTransactionWithIntent",
+      "name": "signAndSendTransactionWithIntent",
       "summary": "Sign and send a transaction with verified intent",
       "description": "Allows the client (MetaMask) to request the snap to sign and send a transaction with verified intent.\n\n**Process:**\n\n1. **Verify Backend Signature** - Ensures that the payload **{ intent, signature }** was signed by the trusted Swaps API\n2. **Match Transaction to Intent** - Verifies that the transaction performs exactly what the intent describes\n3. **Sign Transaction** - If all validation pass, signs the transaction with the user's account specified in the intent\n4. **Send Transaction** - Sends the transaction to the Solana network",
+      "paramStructure": "by-name",
       "params": [
         {
           "name": "intent",
-          "summary": "The user's intent describing the desired swap/bridge operation",
+          "summary": "The user's swap intent describing the desired operation",
           "required": true,
           "schema": {
-            "$ref": "#/components/schemas/Intent"
+            "$ref": "#/components/schemas/SwapIntent"
           }
         },
         {
@@ -36,7 +37,7 @@
           "summary": "The base64-encoded transaction to sign and send",
           "required": true,
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Base64String"
           }
         },
         {
@@ -55,6 +56,29 @@
           "$ref": "#/components/schemas/SignAndSendTransactionWithIntentResult"
         }
       },
+      "errors": [
+        {
+          "$ref": "#/components/errors/MethodNotFound"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/InvalidBackendSignature"
+        },
+        {
+          "$ref": "#/components/errors/TransactionIntentMismatch"
+        },
+        {
+          "$ref": "#/components/errors/AccountNotFound"
+        },
+        {
+          "$ref": "#/components/errors/InvalidTransaction"
+        },
+        {
+          "$ref": "#/components/errors/TransactionFailed"
+        }
+      ],
       "examples": [
         {
           "name": "signAndSendTransactionWithIntentExample",
@@ -64,14 +88,17 @@
               "name": "intent",
               "value": {
                 "id": "c76b3834-b9a8-4dfd-91da-72c26a216fb2",
-                "timestamp": "2021-01-01T00:00:00Z",
-                "accountId": "9ce0cc70-9c04-48f7-a3dc-d9c1496ac229",
+                "timestamp": "2025-06-04T14:52:31.307Z",
+                "type": "swap",
+                "slippage": 0.01,
                 "from": {
-                  "assetType": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
+                  "address": "BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP",
+                  "asset": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
                   "amount": "1000000000"
                 },
                 "to": {
-                  "assetType": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                  "address": "27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD",
+                  "asset": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
                   "amount": "161180000"
                 }
               }
@@ -88,20 +115,7 @@
           "result": {
             "name": "signAndSendTransactionWithIntentResult",
             "value": {
-              "signature": "DuvWiKG54eKcB1s777TgaZWtF9R23sVuEaugRufdXyqhCf6owy5hYqxeL8sa6zoCPVQu3NxxhjWuz91CKgLE6SB",
-              "intent": {
-                "id": "c76b3834-b9a8-4dfd-91da-72c26a216fb2",
-                "timestamp": "2021-01-01T00:00:00Z",
-                "accountId": "9ce0cc70-9c04-48f7-a3dc-d9c1496ac229",
-                "from": {
-                  "assetType": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
-                  "amount": "1000000000"
-                },
-                "to": {
-                  "assetType": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-                  "amount": "161180000"
-                }
-              }
+              "transactionId": "DuvWiKG54eKcB1s777TgaZWtF9R23sVuEaugRufdXyqhCf6owy5hYqxeL8sa6zoCPVQu3NxxhjWuz91CKgLE6SB"
             }
           }
         }
@@ -114,7 +128,7 @@
         "type": "string",
         "format": "date-time",
         "description": "An ISO 8601 timestamp",
-        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$",
         "examples": ["2021-01-01T00:00:00Z", "2021-01-01T00:00:00.000Z"]
       },
       "UuidV4": {
@@ -127,9 +141,14 @@
           "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
         ]
       },
-      "Intent": {
+      "Base64String": {
+        "type": "string",
+        "description": "A base64-encoded string",
+        "pattern": "^[A-Za-z0-9+/]*={0,2}$"
+      },
+      "SwapIntent": {
         "type": "object",
-        "description": "Represents a user's intent to perform a swap or bridge operation",
+        "description": "Represents a user's intent to perform a swap operation",
         "properties": {
           "id": {
             "$ref": "#/components/schemas/UuidV4",
@@ -139,53 +158,194 @@
             "$ref": "#/components/schemas/Iso8601Timestamp",
             "description": "ISO 8601 timestamp when the intent was created"
           },
-          "accountId": {
+          "type": {
             "type": "string",
-            "description": "The identifier of the account to sign the transaction with"
+            "enum": ["swap"],
+            "description": "The type of operation - must be 'swap'"
+          },
+          "slippage": {
+            "type": "number",
+            "description": "Maximum acceptable slippage percentage",
+            "minimum": 0,
+            "maximum": 100
           },
           "from": {
-            "$ref": "#/components/schemas/AssetAmount",
+            "$ref": "#/components/schemas/AssetTransfer",
             "description": "The asset and amount the user wants to send"
           },
           "to": {
-            "$ref": "#/components/schemas/AssetAmount",
+            "$ref": "#/components/schemas/AssetTransfer",
             "description": "The asset and amount the user expects to receive"
           }
         },
-        "required": ["id", "timestamp", "accountId", "from", "to"],
+        "required": ["id", "timestamp", "type", "slippage", "from", "to"],
         "additionalProperties": false
       },
-      "AssetAmount": {
+      "AssetTransfer": {
         "type": "object",
-        "description": "Represents an asset and its amount",
+        "description": "Represents an asset transfer with address, asset type, and amount",
         "properties": {
-          "assetType": {
+          "address": {
             "type": "string",
-            "description": "CAIP-19 asset type (e.g., 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' for SOL)"
+            "description": "A CAIP-10 account address, i.e., the third part of the CAIP account ID. For example, 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'."
+          },
+          "asset": {
+            "type": "string",
+            "description": "A CAIP-19 asset type identifier, i.e., a human-readable type of asset identifier. For example, 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501'."
           },
           "amount": {
             "type": "string",
-            "description": "Amount in the asset's smallest unit (e.g., lamports for SOL)"
+            "description": "Amount in the asset's smallest unit (e.g., lamports for SOL)",
+            "pattern": "^[0-9]+$"
+          },
+          "change": {
+            "type": "object",
+            "description": "Optional change address for the transaction",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "CAIP-10 account address for change"
+              }
+            },
+            "required": ["address"],
+            "additionalProperties": false
           }
         },
-        "required": ["assetType", "amount"],
+        "required": ["address", "asset", "amount"],
         "additionalProperties": false
       },
       "SignAndSendTransactionWithIntentResult": {
         "type": "object",
         "description": "Result of signing and sending a transaction with intent",
         "properties": {
-          "signature": {
+          "transactionId": {
             "type": "string",
             "description": "The transaction signature returned after successful execution on Solana"
-          },
-          "intent": {
-            "$ref": "#/components/schemas/Intent",
-            "description": "The original intent that was fulfilled, returned for assurance that the intent was fulfilled"
           }
         },
-        "required": ["signature", "intent"],
+        "required": ["transactionId"],
         "additionalProperties": false
+      }
+    },
+    "errors": {
+      "MethodNotFound": {
+        "code": -32601,
+        "message": "The method does not exist / is not available.",
+        "data": {
+          "type": "object",
+          "description": "The requested method is not supported by this handler",
+          "properties": {
+            "method": {
+              "type": "string",
+              "description": "The method that was requested"
+            }
+          }
+        }
+      },
+      "InvalidParams": {
+        "code": -32602,
+        "message": "Invalid method parameter(s).",
+        "data": {
+          "type": "object",
+          "description": "The parameters provided do not match the expected schema"
+        }
+      },
+      "InvalidBackendSignature": {
+        "code": -32602,
+        "message": "Invalid backend signature",
+        "data": {
+          "type": "object",
+          "description": "The backend signature verification failed",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "enum": [
+                "signatureVerificationFailed",
+                "timestampExpired",
+                "invalidSignatureFormat",
+                "missingPublicKey"
+              ],
+              "description": "The specific reason why signature verification failed"
+            }
+          }
+        }
+      },
+      "TransactionIntentMismatch": {
+        "code": -32602,
+        "message": "Transaction does not match intent",
+        "data": {
+          "type": "object",
+          "description": "The transaction does not perform the operations described in the intent",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "enum": [
+                "amountMismatch",
+                "assetMismatch",
+                "addressMismatch",
+                "unexpectedInstructions",
+                "simulationFailed"
+              ],
+              "description": "The specific reason why the transaction doesn't match the intent"
+            }
+          }
+        }
+      },
+      "AccountNotFound": {
+        "code": -32602,
+        "message": "Account not found",
+        "data": {
+          "type": "object",
+          "description": "The account specified in the intent was not found in the keyring",
+          "properties": {
+            "address": {
+              "type": "string",
+              "description": "The account address that was not found"
+            }
+          }
+        }
+      },
+      "InvalidTransaction": {
+        "code": -32602,
+        "message": "Invalid transaction",
+        "data": {
+          "type": "object",
+          "description": "The transaction is malformed or cannot be processed",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "enum": [
+                "invalidBase64Encoding",
+                "malformedTransaction",
+                "invalidTransactionStructure",
+                "missingRequiredFields"
+              ],
+              "description": "The specific reason why the transaction is invalid"
+            }
+          }
+        }
+      },
+      "TransactionFailed": {
+        "code": -32603,
+        "message": "Transaction failed",
+        "data": {
+          "type": "object",
+          "description": "The transaction was rejected by the Solana network",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "enum": [
+                "insufficientBalance",
+                "blockhashExpired",
+                "accountNotFound",
+                "programError",
+                "instructionError",
+                "simulationFailed"
+              ],
+              "description": "The specific reason why the transaction failed"
+            }
+          }
+        }
       }
     }
   }

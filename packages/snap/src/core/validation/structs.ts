@@ -306,3 +306,11 @@ const DERIVATION_PATH_REGEX = /^m\/44'\/501'/u;
  * Validates a Solana derivation path following the format: m/44'/501'/...
  */
 export const DerivationPathStruct = pattern(string(), DERIVATION_PATH_REGEX);
+
+/**
+ * Validates an ISO 8601 date string.
+ */
+export const Iso8601Struct = pattern(
+  string(),
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/u,
+);
