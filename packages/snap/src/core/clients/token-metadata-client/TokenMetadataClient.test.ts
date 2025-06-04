@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type { CaipAssetType } from '@metamask/keyring-api';
 
-import { KnownCaip19Id, Network } from '../../constants/solana';
+import { KnownCaip19Id, Network } from '../../domain';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';

@@ -1,6 +1,6 @@
 import { address as asAddress } from '@solana/kit';
 
-import { Network, Networks } from '../../../constants/solana';
+import { Network, Networks } from '../../../domain';
 import { EXPECTED_FAILED_SWAP_DATA } from '../../../test/mocks/transactions-data/failed-swap';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer-to-self';

@@ -1,7 +1,7 @@
 import { SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 
-import { Network } from '../../constants/solana';
+import { Network } from '../../domain';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,

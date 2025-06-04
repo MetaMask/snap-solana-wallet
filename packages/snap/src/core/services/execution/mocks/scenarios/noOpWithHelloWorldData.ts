@@ -2,7 +2,7 @@
 import type { CompilableTransactionMessage } from '@solana/kit';
 import { address, blockhash } from '@solana/kit';
 
-import { Network } from '../../../../constants/solana';
+import { Network } from '../../../../domain';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,

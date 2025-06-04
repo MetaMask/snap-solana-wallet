@@ -1,4 +1,4 @@
-import { KnownCaip19Id, Network } from '../../../constants/solana';
+import { KnownCaip19Id, Network } from '../../../domain';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer-to-self';
 import { parseTransactionNativeTransfers } from './parseTransactionNativeTransfers';

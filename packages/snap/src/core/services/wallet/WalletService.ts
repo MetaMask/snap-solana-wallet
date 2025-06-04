@@ -21,10 +21,11 @@ import {
   verifySignature,
 } from '@solana/kit';
 
-import type { Caip10Address, Network } from '../../constants/solana';
 import {
+  type Caip10Address,
   type DecompileTransactionMessageFetchingLookupTablesConfig,
   fromTransactionToBase64String,
+  type Network,
   type SolanaKeyringAccount,
 } from '../../domain';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';

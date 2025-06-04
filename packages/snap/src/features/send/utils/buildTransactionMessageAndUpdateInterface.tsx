@@ -3,8 +3,10 @@ import { address } from '@solana/kit';
 import debounce from 'lodash/fp/debounce';
 import pipe from 'lodash/fp/pipe';
 
-import { Networks } from '../../../core/constants/solana';
-import { fromCompilableTransactionMessageToBase64String } from '../../../core/sdk-extensions/codecs';
+import {
+  fromCompilableTransactionMessageToBase64String,
+  Networks,
+} from '../../../core/domain';
 import { withoutConcurrency } from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import {

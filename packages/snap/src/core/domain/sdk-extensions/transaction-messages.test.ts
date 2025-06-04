@@ -7,8 +7,8 @@ import {
   SolanaError,
 } from '@solana/kit';
 
-import { Network } from '../../constants/solana';
 import { createMockConnection } from '../../services/mocks/mockConnection';
+import { Network } from '../constants';
 import {
   estimateAndOverrideComputeUnitLimit,
   isComputeUnitLimitInstruction,

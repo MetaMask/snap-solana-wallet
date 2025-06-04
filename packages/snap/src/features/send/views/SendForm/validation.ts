@@ -1,7 +1,7 @@
 import { enums, object, optional } from '@metamask/superstruct';
 import { CaipAssetTypeStruct } from '@metamask/utils';
 
-import { Network } from '../../../../core/constants/solana';
+import { Network } from '../../../../core/domain';
 import { UuidStruct } from '../../../../core/validation/structs';
 import type { FieldValidationFunction, SendContext } from '../../types';
 import { SendFormNames } from '../../types';

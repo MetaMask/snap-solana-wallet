@@ -5,7 +5,7 @@ import {
   KnownCaip19Id,
   LAMPORTS_PER_SOL,
   Network,
-} from '../../../../core/constants/solana';
+} from '../../../../core/domain';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import { solToLamports } from '../../../../core/utils/conversion';
 import { updateInterface } from '../../../../core/utils/interface';

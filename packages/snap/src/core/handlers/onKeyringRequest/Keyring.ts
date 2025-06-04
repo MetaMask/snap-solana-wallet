@@ -33,7 +33,6 @@ import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
 import { sortBy } from 'lodash';
 
-import { type Network } from '../../constants/solana';
 import {
   asStrictKeyringAccount,
   type SolanaKeyringAccount,

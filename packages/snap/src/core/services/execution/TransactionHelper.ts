@@ -22,9 +22,9 @@ import {
   type Blockhash,
 } from '@solana/kit';
 
-import type { Network } from '../../constants/solana';
 import type {
   DecompileTransactionMessageFetchingLookupTablesConfig,
+  Network,
   SolanaKeyringAccount,
 } from '../../domain';
 import {

@@ -10,9 +10,8 @@ import {
   Tooltip,
 } from '@metamask/snaps-sdk/jsx';
 
-import type { Network } from '../../../../core/constants/solana';
-import { Networks } from '../../../../core/constants/solana';
-import type { Preferences } from '../../../../core/domain';
+import type { Network, Preferences } from '../../../../core/domain';
+import { Networks } from '../../../../core/domain';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCrypto } from '../../../../core/utils/formatCrypto';
 import { formatFiat } from '../../../../core/utils/formatFiat';

@@ -1,6 +1,6 @@
 import { installSnap } from '@metamask/snaps-jest';
 
-import { Network } from '../../constants/solana';
+import { Network } from '../../domain';
 import { MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE } from '../../services/mocks/mockSolanaRpcResponses';
 import type { MockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';

@@ -1,8 +1,8 @@
-import type { Network } from '../constants/solana';
 import {
   DEFAULT_NETWORK_BLOCK_EXPLORER_URL,
   Networks,
-} from '../constants/solana';
+  type Network,
+} from '../domain';
 import { buildUrl } from './buildUrl';
 
 /**

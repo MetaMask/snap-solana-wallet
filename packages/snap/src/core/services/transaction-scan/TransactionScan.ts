@@ -1,6 +1,6 @@
 import type { SecurityAlertsApiClient } from '../../clients/security-alerts-api/SecurityAlertsApiClient';
 import type { SecurityAlertSimulationValidationResponse } from '../../clients/security-alerts-api/types';
-import type { Network } from '../../constants/solana';
+import type { Network } from '../../domain';
 import type { ILogger } from '../../utils/logger';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TransactionScanResult } from './types';

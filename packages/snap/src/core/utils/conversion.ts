@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 
-import { LAMPORTS_PER_SOL } from '../constants/solana';
+import { LAMPORTS_PER_SOL } from '../domain';
 
 /**
  * Converts lamports to SOL.

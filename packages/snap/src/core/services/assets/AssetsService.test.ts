@@ -4,7 +4,7 @@ import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
-import { KnownCaip19Id, Network } from '../../constants/solana';
+import { KnownCaip19Id, Network } from '../../domain';
 import type { Serializable } from '../../serialization/types';
 import {
   SOLANA_MOCK_SPL_TOKENS,

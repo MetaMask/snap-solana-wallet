@@ -4,7 +4,7 @@ import { cloneDeep } from 'lodash';
 
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
-import { KnownCaip19Id } from '../../constants/solana';
+import { KnownCaip19Id } from '../../domain';
 import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
 import { mockLogger } from '../../services/mocks/logger';

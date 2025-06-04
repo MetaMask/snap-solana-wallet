@@ -1,4 +1,4 @@
-import { KnownCaip19Id, Network, Networks } from '../../core/constants/solana';
+import { KnownCaip19Id, Network, Networks } from '../../core/domain';
 import QUESTION_MARK_SVG from '../../core/img/question-mark.svg';
 import { DEFAULT_SEND_CONTEXT } from './render';
 import {

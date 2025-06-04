@@ -1,4 +1,4 @@
-import { Network } from '../../constants/solana';
+import { Network } from '../../domain';
 import type { ConfigProvider } from '../config';
 import { SolanaConnection } from './SolanaConnection';
 

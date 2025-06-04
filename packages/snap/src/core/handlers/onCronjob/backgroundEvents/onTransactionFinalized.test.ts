@@ -1,7 +1,7 @@
 import type { Transaction } from '@metamask/keyring-api';
 
 import * as snapContext from '../../../../snapContext';
-import { Network, Networks } from '../../../constants/solana';
+import { Network, Networks } from '../../../domain';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,

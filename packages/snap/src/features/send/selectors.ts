@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 
-import { Networks } from '../../core/constants/solana';
+import { Networks } from '../../core/domain';
 import QUESTION_MARK_SVG from '../../core/img/question-mark.svg';
 import { SendCurrencyType, type SendContext } from './types';
 

@@ -1,4 +1,4 @@
-import { Network } from '../constants/solana';
+import { Network } from '../domain';
 import { getClusterFromScope } from './getClusterFromScope';
 
 describe('getClusterFromScope', () => {

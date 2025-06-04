@@ -5,8 +5,7 @@ import { SolMethod } from '@metamask/keyring-api';
 import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { signature } from '@solana/kit';
 
-import { KnownCaip19Id, Network } from '../../constants/solana';
-import { asStrictKeyringAccount } from '../../domain';
+import { asStrictKeyringAccount, KnownCaip19Id } from '../../domain';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import { InMemoryState } from '../../services/state/InMemoryState';

@@ -7,12 +7,12 @@ import {
   isTransactionMessageWithBlockhashLifetime,
 } from '@solana/kit';
 
-import { Network } from '../../constants/solana';
 import {
   fromBytesToCompilableTransactionMessage,
   isTransactionMessageWithComputeUnitLimitInstruction,
   isTransactionMessageWithComputeUnitPriceInstruction,
   isTransactionMessageWithFeePayer,
+  Network,
 } from '../../domain';
 import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';

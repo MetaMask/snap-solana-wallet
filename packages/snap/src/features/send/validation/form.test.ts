@@ -1,4 +1,4 @@
-import { KnownCaip19Id, Network } from '../../../core/constants/solana';
+import { KnownCaip19Id, Network } from '../../../core/domain';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,

@@ -2,7 +2,7 @@ import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 import { merge } from 'lodash';
 
-import { Networks } from '../../../../core/constants/solana';
+import { Networks } from '../../../../core/domain';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { buildUrl } from '../../../../core/utils/buildUrl';
 import {

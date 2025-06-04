@@ -1,5 +1,4 @@
-import { Network } from '../../../constants/solana';
-import type { SolanaTransaction } from '../../../domain';
+import { Network, type SolanaTransaction } from '../../../domain';
 import { EXPECTED_SEND_JUP_TRANSFER_CHECKED_DATA } from '../../../test/mocks/transactions-data/send-jup-transfer-checked-to-self';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self';

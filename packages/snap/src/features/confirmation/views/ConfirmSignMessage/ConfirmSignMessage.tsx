@@ -11,8 +11,8 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
-import { Networks, type Network } from '../../../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../../../core/domain';
+import type { Network, SolanaKeyringAccount } from '../../../../core/domain';
+import { Networks } from '../../../../core/domain';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import type { Locale } from '../../../../core/utils/i18n';

@@ -1,6 +1,6 @@
 import { SolMethod } from '@metamask/keyring-api';
 
-import { Network, Networks } from '../../../../core/constants/solana';
+import { Network, Networks } from '../../../../core/domain';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import { lamportsToSol } from '../../../../core/utils/conversion';
 import { parseInstructions } from '../../../../core/utils/instructions';

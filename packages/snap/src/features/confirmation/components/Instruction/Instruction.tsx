@@ -1,6 +1,6 @@
 import { Address, Box, Link, Section, Text } from '@metamask/snaps-sdk/jsx';
 
-import type { Network } from '../../../../core/constants/solana';
+import type { Network } from '../../../../core/domain';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { getSolanaExplorerUrl } from '../../../../core/utils/getSolanaExplorerUrl';
 import type { Locale } from '../../../../core/utils/i18n';
