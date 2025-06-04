@@ -8,12 +8,12 @@ import {
 } from '@solana/kit';
 
 import { Network } from '../../constants/solana';
-import { fromBytesToCompilableTransactionMessage } from '../../sdk-extensions/codecs';
 import {
+  fromBytesToCompilableTransactionMessage,
   isTransactionMessageWithComputeUnitLimitInstruction,
   isTransactionMessageWithComputeUnitPriceInstruction,
   isTransactionMessageWithFeePayer,
-} from '../../sdk-extensions/transaction-messages';
+} from '../../domain';
 import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';

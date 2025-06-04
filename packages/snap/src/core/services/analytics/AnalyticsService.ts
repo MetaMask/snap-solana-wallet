@@ -2,7 +2,7 @@ import type { Transaction } from '@metamask/keyring-api';
 import { assert } from '@metamask/superstruct';
 
 import type { Network } from '../../constants/solana';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import type { SolanaKeyringAccount } from '../../domain';
 import logger from '../../utils/logger';
 import { Base64Struct } from '../../validation/structs';
 

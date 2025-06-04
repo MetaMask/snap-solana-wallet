@@ -6,6 +6,7 @@ import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { signature } from '@solana/kit';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
+import { asStrictKeyringAccount } from '../../domain';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import { InMemoryState } from '../../services/state/InMemoryState';
@@ -34,7 +35,7 @@ import {
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
-import { asStrictKeyringAccount, SolanaKeyring } from './Keyring';
+import { SolanaKeyring } from './Keyring';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   ...jest.requireActual('@metamask/keyring-snap-sdk'),

@@ -23,20 +23,20 @@ import {
 } from '@solana/kit';
 
 import type { Network } from '../../constants/solana';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
-import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';
-import {
-  fromBytesToCompilableTransactionMessage,
-  fromUnknowBase64StringToTransactionOrTransactionMessage,
-} from '../../sdk-extensions/codecs';
+import type {
+  DecompileTransactionMessageFetchingLookupTablesConfig,
+  SolanaKeyringAccount,
+} from '../../domain';
 import {
   estimateAndOverrideComputeUnitLimit,
+  fromBytesToCompilableTransactionMessage,
+  fromUnknowBase64StringToTransactionOrTransactionMessage,
   isTransactionMessageWithComputeUnitLimitInstruction,
   isTransactionMessageWithComputeUnitPriceInstruction,
   setComputeUnitPriceInstructionIfMissing,
   setTransactionMessageFeePayerIfMissing,
   setTransactionMessageLifetimeUsingBlockhashIfMissing,
-} from '../../sdk-extensions/transaction-messages';
+} from '../../domain';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import type { ILogger } from '../../utils/logger';
 import { retry } from '../../utils/retry';

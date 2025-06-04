@@ -15,11 +15,11 @@ import {
   SolanaCaip19Tokens,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '../../constants/solana';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import type {
   GetTokenAccountsByOwnerResponse,
+  SolanaKeyringAccount,
   TokenAccountInfoWithJsonData,
-} from '../../sdk-extensions/rpc-api';
+} from '../../domain';
 import type { Serializable } from '../../serialization/types';
 import { diffArrays } from '../../utils/diffArrays';
 import { diffObjects } from '../../utils/diffObjects';

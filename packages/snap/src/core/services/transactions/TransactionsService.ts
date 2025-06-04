@@ -11,7 +11,7 @@ import {
 } from '@solana/kit';
 
 import { Network } from '../../constants/solana';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import type { SolanaKeyringAccount } from '../../domain';
 import type { ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';

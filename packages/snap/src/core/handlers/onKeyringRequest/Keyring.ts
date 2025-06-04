@@ -34,6 +34,10 @@ import { address as asAddress, getAddressDecoder } from '@solana/kit';
 import { sortBy } from 'lodash';
 
 import { type Network } from '../../constants/solana';
+import {
+  asStrictKeyringAccount,
+  type SolanaKeyringAccount,
+} from '../../domain/SolanaKeyringAccount';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { IStateManager } from '../../services/state/IStateManager';
@@ -59,36 +63,6 @@ import {
   DiscoverAccountsRequestStruct,
   SolanaKeyringRequestStruct,
 } from './structs';
-
-/**
- * We need to store the index of the KeyringAccount in the state because
- * we want to be able to restore any account with a previously used index.
- */
-export type SolanaKeyringAccount = {
-  entropySource: EntropySourceId;
-  derivationPath: `m/${string}`;
-  index: number;
-} & KeyringAccount;
-
-/**
- * Converts a Solana keyring account to its stricter form (required by the Keyring API).
- *
- * @param account - A Solana keyring account.
- * @returns A strict keyring account (with no additional fields).
- */
-export function asStrictKeyringAccount(
-  account: SolanaKeyringAccount,
-): KeyringAccount {
-  const { type, id, address, options, methods, scopes } = account;
-  return {
-    type,
-    id,
-    address,
-    options,
-    methods,
-    scopes,
-  };
-}
 
 export class SolanaKeyring implements Keyring {
   readonly #state: IStateManager<UnencryptedStateValue>;

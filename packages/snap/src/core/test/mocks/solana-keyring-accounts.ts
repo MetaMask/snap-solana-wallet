@@ -1,7 +1,7 @@
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { SolMethod, SolScope } from '@metamask/keyring-api';
 
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import type { SolanaKeyringAccount } from '../../domain';
 
 export const MOCK_SEED_PHRASE =
   'sugar interest animal afford dog imitate relief lizard width strategy embark midnight';
