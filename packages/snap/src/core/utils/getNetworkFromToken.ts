@@ -1,4 +1,4 @@
-import type { Network } from '../constants/solana';
+import type { Network } from '../domain';
 
 /**
  * Extracts the network identifier from a CAIP-19 token string.

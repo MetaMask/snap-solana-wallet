@@ -10,15 +10,15 @@ import { map, uniq } from 'lodash';
 
 import type { ICache } from '../../caching/ICache';
 import { useCache } from '../../caching/useCache';
-import {
-  Network,
-  SolanaCaip19Tokens,
-  TOKEN_2022_PROGRAM_ADDRESS,
-} from '../../constants/solana';
 import type {
   GetTokenAccountsByOwnerResponse,
   SolanaKeyringAccount,
   TokenAccountInfoWithJsonData,
+} from '../../domain';
+import {
+  Network,
+  SolanaCaip19Tokens,
+  TOKEN_2022_PROGRAM_ADDRESS,
 } from '../../domain';
 import type { Serializable } from '../../serialization/types';
 import { diffArrays } from '../../utils/diffArrays';

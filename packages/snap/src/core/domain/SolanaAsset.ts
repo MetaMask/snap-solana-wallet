@@ -1,6 +1,6 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 
-import type { Network } from '../constants/solana';
+import type { Network } from './constants';
 
 export type SolanaAsset = {
   scope: Network;

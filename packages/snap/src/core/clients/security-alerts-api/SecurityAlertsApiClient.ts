@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-globals */
 import bs58 from 'bs58';
 
-import { Network } from '../../constants/solana';
+import { Network } from '../../domain';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';

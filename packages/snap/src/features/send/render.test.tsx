@@ -2,11 +2,8 @@
 import { installSnap } from '@metamask/snaps-jest';
 
 import type { SpotPrices } from '../../core/clients/price-api/types';
-import {
-  KnownCaip19Id,
-  Network,
-  SOL_SYMBOL,
-} from '../../core/constants/solana';
+import { KnownCaip19Id, Network, SOL_SYMBOL } from '../../core/domain';
+import type { Preferences } from '../../core/domain/Preferences';
 import { RpcRequestMethod } from '../../core/handlers/onRpcRequest/types';
 import {
   MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE,
@@ -26,7 +23,6 @@ import type { MockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../core/test/mocks/transactions-data/native-sol-transfer';
 import { TEST_ORIGIN } from '../../core/test/utils';
-import type { Preferences } from '../../core/types/snap';
 import { DEFAULT_SEND_CONTEXT } from './render';
 import { Send } from './Send';
 import { type SendContext, SendCurrencyType, SendFormNames } from './types';

@@ -5,7 +5,7 @@ import {
   type SolanaRpcApi,
 } from '@solana/kit';
 
-import type { Network } from '../../constants/solana';
+import type { Network } from '../../domain';
 import { NetworkStruct } from '../../validation/structs';
 import type { ConfigProvider } from '../config/ConfigProvider';
 import { createMainTransport } from './transport';
