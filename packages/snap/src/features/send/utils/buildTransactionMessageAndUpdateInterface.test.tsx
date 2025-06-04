@@ -1,12 +1,11 @@
 /* eslint-disable camelcase */
 
+import { KnownCaip19Id, Network } from '../../../core/domain';
 import {
-  KnownCaip19Id,
   MOCK_EXECUTION_SCENARIO_SEND_SOL,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
-  Network,
-} from '../../../core/domain';
+} from '../../../core/test/mocks';
 import {
   getInterfaceContextOrThrow,
   updateInterface,

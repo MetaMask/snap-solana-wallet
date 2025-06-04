@@ -1,7 +1,7 @@
 import type { Transaction } from '@metamask/keyring-api';
 
 import * as snapContext from '../../../../snapContext';
-import { Networks } from '../../../domain';
+import { Network, Networks } from '../../../domain';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -9,7 +9,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
-} from '../../../test/mocks/solana-keyring-accounts';
+} from '../../../test/mocks';
 import { onTransactionFinalized } from './onTransactionFinalized';
 
 jest.mock('../../../../snapContext', () => ({

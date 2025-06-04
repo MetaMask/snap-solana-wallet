@@ -5,15 +5,11 @@
 import type { Blockhash, Rpc, SolanaRpcApi } from '@solana/kit';
 import { address, type Address, type MaybeAccount } from '@solana/kit';
 
-import {
-  KnownCaip19Id,
-  MOCK_SOLANA_KEYRING_ACCOUNTS,
-  Network,
-  TokenMetadata,
-} from '../../../core/domain';
+import { KnownCaip19Id, Network, TokenMetadata } from '../../../core/domain';
 import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
 import { mockLogger } from '../../../core/services/mocks/logger';
 import { createMockConnection } from '../../../core/services/mocks/mockConnection';
+import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../core/test/mocks';
 import { deriveSolanaKeypairMock } from '../../../core/test/mocks/utils/deriveSolanaKeypair';
 import type { Exists, MaybeHasDecimals } from './SendSplTokenBuilder';
 import { SendSplTokenBuilder } from './SendSplTokenBuilder';

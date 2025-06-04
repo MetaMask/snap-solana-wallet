@@ -4,9 +4,9 @@ import BigNumber from 'bignumber.js';
 import {
   KnownCaip19Id,
   LAMPORTS_PER_SOL,
-  MOCK_SOLANA_KEYRING_ACCOUNT_0,
   Network,
 } from '../../../../core/domain';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks';
 import { solToLamports } from '../../../../core/utils/conversion';
 import { updateInterface } from '../../../../core/utils/interface';
 import { keyring } from '../../../../snapContext';

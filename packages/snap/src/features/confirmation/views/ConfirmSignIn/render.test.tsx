@@ -3,12 +3,10 @@ import { KeyringRpcMethod } from '@metamask/keyring-api';
 import { installSnap } from '@metamask/snaps-jest';
 
 import type { Preferences } from '../../../../core/domain';
-import {
-  MOCK_SOLANA_KEYRING_ACCOUNT_0,
-  Network,
-} from '../../../../core/domain';
+import { Network } from '../../../../core/domain';
 import type { SolanaKeyringRequest } from '../../../../core/handlers/onKeyringRequest/structs';
 import { MOCK_SIGN_IN_REQUEST } from '../../../../core/services/wallet/mocks';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import type { MockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
