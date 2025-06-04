@@ -40,6 +40,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   preferences,
   networkImage,
 }) => {
+  const originHostname = new URL(origin).hostname;
   const { currency, locale } = preferences;
   const translate = i18n(locale);
   const originHostname = new URL(origin).hostname;
@@ -63,6 +64,13 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
             <Icon name="question" color="muted" />
           </Tooltip>
         </Box>
+        <Text>{originHostname}</Text>
+      </Box>
+      <Box>{null}</Box>
+      <Box alignment="space-between" direction="horizontal">
+        <Text fontWeight="medium" color="alternative">
+          {translate('confirmation.origin')}
+        </Text>
         <Text>{originHostname}</Text>
       </Box>
       <Box>{null}</Box>
