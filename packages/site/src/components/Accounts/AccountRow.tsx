@@ -138,6 +138,7 @@ export const AccountRow = ({
         id: crypto.randomUUID(),
         scope: network,
         account: account.id,
+        origin: 'https://example.com',
         request: {
           method: SolMethod.SignAndSendTransaction,
           params: {
@@ -177,6 +178,7 @@ export const AccountRow = ({
         id: crypto.randomUUID(),
         scope: network,
         account: account.id,
+        origin: 'https://example.com',
         request: {
           method: SolMethod.SignTransaction,
           params: {
@@ -212,6 +214,7 @@ export const AccountRow = ({
         id: crypto.randomUUID(),
         scope: network,
         account: account.id,
+        origin: 'https://example.com',
         request: {
           method: SolMethod.SignMessage,
           params: {
@@ -256,6 +259,7 @@ export const AccountRow = ({
         id: requestId,
         scope: network,
         account: account.id,
+        origin: 'https://example.com',
         request: {
           method: SolMethod.SignIn,
           params,

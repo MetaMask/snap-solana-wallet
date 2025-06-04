@@ -27,9 +27,11 @@ type TransactionDetailsProps = {
   fetchingPricesStatus: FetchStatus;
   preferences: Preferences;
   networkImage: string | null;
+  origin: string;
 };
 
 export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
+  origin,
   accountAddress,
   scope,
   feeInSol,
@@ -40,6 +42,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 }) => {
   const { currency, locale } = preferences;
   const translate = i18n(locale);
+  const originHostname = new URL(origin).hostname;
 
   const pricesFetching = fetchingPricesStatus === 'fetching';
   const pricesError = fetchingPricesStatus === 'error';
@@ -51,6 +54,18 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 
   return (
     <Section>
+      <Box alignment="space-between" direction="horizontal">
+        <Box alignment="space-between" direction="horizontal">
+          <Text fontWeight="medium" color="alternative">
+            {translate('confirmation.origin')}
+          </Text>
+          <Tooltip content={translate('confirmation.origin.tooltip')}>
+            <Icon name="question" color="muted" />
+          </Tooltip>
+        </Box>
+        <Text>{originHostname}</Text>
+      </Box>
+      <Box>{null}</Box>
       <Box alignment="space-between" direction="horizontal">
         <Text fontWeight="medium" color="alternative">
           {translate('confirmation.account')}

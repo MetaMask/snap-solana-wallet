@@ -61,6 +61,7 @@ export const ConfirmTransactionRequest = ({
           fetchingPricesStatus={context.tokenPricesFetchStatus}
           preferences={context.preferences}
           networkImage={context.networkImage}
+          origin={context.origin}
         />
         <Advanced
           instructions={context.advanced.instructions}

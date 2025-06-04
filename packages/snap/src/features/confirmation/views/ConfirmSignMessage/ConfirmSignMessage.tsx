@@ -5,9 +5,11 @@ import {
   Container,
   Footer,
   Heading,
+  Icon,
   Image,
   Section,
   Text,
+  Tooltip,
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
@@ -25,6 +27,7 @@ export type ConfirmSignMessageProps = {
   scope: Network;
   locale: Locale;
   networkImage: string | null;
+  origin: string;
 };
 
 export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
@@ -33,9 +36,11 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
   scope,
   locale,
   networkImage,
+  origin,
 }) => {
   const translate = i18n(locale);
   const { address } = account;
+  const originHostname = new URL(origin).hostname;
   const addressCaip10 = addressToCaip10(scope, address);
 
   return (
@@ -60,6 +65,17 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
         </Section>
 
         <Section>
+          <Box alignment="space-between" direction="horizontal">
+            <Box alignment="space-between" direction="horizontal">
+              <Text fontWeight="medium" color="alternative">
+                {translate('confirmation.origin')}
+              </Text>
+              <Tooltip content={translate('confirmation.origin.tooltip')}>
+                <Icon name="question" color="muted" />
+              </Tooltip>
+            </Box>
+            <Text>{originHostname}</Text>
+          </Box>
           <Box alignment="space-between" direction="horizontal">
             <Text fontWeight="medium" color="alternative">
               {translate('confirmation.account')}
