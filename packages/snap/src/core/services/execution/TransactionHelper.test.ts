@@ -12,13 +12,13 @@ import {
   isTransactionMessageWithComputeUnitLimitInstruction,
   isTransactionMessageWithComputeUnitPriceInstruction,
   isTransactionMessageWithFeePayer,
+  MOCK_EXECUTION_SCENARIO_SEND_SOL,
+  MOCK_EXECUTION_SCENARIOS,
   Network,
 } from '../../domain';
 import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
-import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
-import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from './mocks/scenarios/sendSol';
 import { TransactionHelper } from './TransactionHelper';
 
 jest.mock('@solana/kit', () => ({

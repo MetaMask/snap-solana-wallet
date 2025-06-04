@@ -1,20 +1,20 @@
 import { SolMethod } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 
-import { Network } from '../../domain';
 import {
+  MOCK_EXECUTION_SCENARIOS,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
   MOCK_SOLANA_KEYRING_ACCOUNT_3,
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
-} from '../../test/mocks/solana-keyring-accounts';
+  Network,
+} from '../../domain';
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
-import { MOCK_EXECUTION_SCENARIOS } from '../execution/mocks/scenarios';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
 import {

@@ -33,10 +33,8 @@ import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
 import { sortBy } from 'lodash';
 
-import {
-  asStrictKeyringAccount,
-  type SolanaKeyringAccount,
-} from '../../domain';
+import type { Network, SolanaKeyringAccount } from '../../domain';
+import { asStrictKeyringAccount } from '../../domain';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { IStateManager } from '../../services/state/IStateManager';

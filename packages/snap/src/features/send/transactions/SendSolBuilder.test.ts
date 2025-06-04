@@ -1,9 +1,8 @@
 import { address } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 
-import { Network } from '../../../core/domain';
+import { MOCK_SOLANA_KEYRING_ACCOUNTS, Network } from '../../../core/domain';
 import { createMockConnection } from '../../../core/services/mocks/mockConnection';
-import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../core/test/mocks/solana-keyring-accounts';
 import logger from '../../../core/utils/logger';
 import { SendSolBuilder } from './SendSolBuilder';
 

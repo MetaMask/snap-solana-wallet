@@ -1,4 +1,5 @@
 export * from './constants';
+export * from './mocks';
 export * from './Preferences';
 export * from './sdk-extensions';
 export * from './SolanaAsset';

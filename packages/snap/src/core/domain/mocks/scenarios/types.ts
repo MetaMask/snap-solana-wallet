@@ -1,6 +1,6 @@
 import type { CompilableTransactionMessage } from '@solana/kit';
 
-import type { Network, SolanaKeyringAccount } from '../../../../domain';
+import type { Network, SolanaKeyringAccount } from '../..';
 
 export type MockExecutionScenario = {
   name: string;

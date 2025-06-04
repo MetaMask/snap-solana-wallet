@@ -1,7 +1,7 @@
 import type { GetLatestBlockhashApi } from '@solana/kit';
 import { blockhash, lamports, type GetBalanceApi } from '@solana/kit';
 
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../domain';
 
 /**
  * Sample response from the Solana RPC `getBalance` method

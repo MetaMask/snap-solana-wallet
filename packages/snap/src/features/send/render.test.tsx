@@ -2,8 +2,15 @@
 import { installSnap } from '@metamask/snaps-jest';
 
 import type { SpotPrices } from '../../core/clients/price-api/types';
-import { KnownCaip19Id, Network, SOL_SYMBOL } from '../../core/domain';
-import type { Preferences } from '../../core/domain/Preferences';
+import type { Preferences } from '../../core/domain';
+import {
+  KnownCaip19Id,
+  MOCK_SEED_PHRASE,
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1,
+  Network,
+  SOL_SYMBOL,
+} from '../../core/domain';
 import { RpcRequestMethod } from '../../core/handlers/onRpcRequest/types';
 import {
   MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE,
@@ -14,11 +21,6 @@ import {
   MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE,
   MOCK_SOLANA_RPC_SIMULATE_TRANSACTION_RESPONSE,
 } from '../../core/services/mocks/mockSolanaRpcResponses';
-import {
-  MOCK_SEED_PHRASE,
-  MOCK_SOLANA_KEYRING_ACCOUNT_0,
-  MOCK_SOLANA_KEYRING_ACCOUNT_1,
-} from '../../core/test/mocks/solana-keyring-accounts';
 import type { MockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../core/test/mocks/transactions-data/native-sol-transfer';

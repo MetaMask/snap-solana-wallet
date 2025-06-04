@@ -5,7 +5,7 @@ import {
   MOCK_SEED_PHRASE_2_BYTES,
   MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
   MOCK_SEED_PHRASE_BYTES,
-} from '../solana-keyring-accounts';
+} from '../../../domain';
 
 export const getBip32EntropyMock = jest
   .fn()

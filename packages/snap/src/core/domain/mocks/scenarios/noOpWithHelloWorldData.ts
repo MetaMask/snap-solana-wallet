@@ -2,11 +2,11 @@
 import type { CompilableTransactionMessage } from '@solana/kit';
 import { address, blockhash } from '@solana/kit';
 
-import { Network } from '../../../../domain';
+import { Network } from '../..';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
-} from '../../../../test/mocks/solana-keyring-accounts';
+} from '../solana-keyring-accounts';
 import type { MockExecutionScenario } from './types';
 
 const scope = Network.Devnet;
