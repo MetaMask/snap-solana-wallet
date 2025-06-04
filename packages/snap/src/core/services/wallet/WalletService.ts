@@ -22,11 +22,11 @@ import {
 } from '@solana/kit';
 
 import type { Caip10Address, Network } from '../../constants/solana';
-import type {
-  DecompileTransactionMessageFetchingLookupTablesConfig,
-  SolanaKeyringAccount,
+import {
+  type DecompileTransactionMessageFetchingLookupTablesConfig,
+  fromTransactionToBase64String,
+  type SolanaKeyringAccount,
 } from '../../domain';
-import { fromTransactionToBase64String } from '../../domain';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
