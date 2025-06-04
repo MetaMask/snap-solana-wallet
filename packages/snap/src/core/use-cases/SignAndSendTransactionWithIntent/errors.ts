@@ -10,11 +10,9 @@ export class InvalidBackendSignatureError extends InvalidParamsError {
       | 'timestampExpired'
       | 'invalidSignatureFormat'
       | 'missingPublicKey',
-    // details?: Record<string, any>,
   ) {
     super('Invalid backend signature', {
       reason,
-      //   ...details,
     });
   }
 }
@@ -30,13 +28,9 @@ export class TransactionIntentMismatchError extends InvalidParamsError {
       | 'addressMismatch'
       | 'unexpectedInstructions'
       | 'simulationFailed',
-    // expected?: any,
-    // actual?: any,
   ) {
     super('Transaction does not match intent', {
       reason,
-      //   ...(expected && { expected }),
-      //   ...(actual && { actual }),
     });
   }
 }
@@ -79,13 +73,9 @@ export class TransactionFailedError extends InternalError {
       | 'programError'
       | 'instructionError'
       | 'simulationFailed',
-    // logs?: string[],
-    // details?: Record<string, any>,
   ) {
     super('Transaction failed', {
       reason,
-      //   ...(logs && { logs }),
-      //   ...details,
     });
   }
 }
