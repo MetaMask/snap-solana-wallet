@@ -4,7 +4,7 @@ import { CaipAccountAddressStruct, CaipAssetTypeStruct } from '@metamask/utils';
 
 import { Iso8601Struct, UuidStruct } from '../validation/structs';
 
-export const TransactionIntentCommonStruct = object({
+const TransactionIntentCommonStruct = object({
   id: UuidStruct,
   timestamp: Iso8601Struct,
   from: object({
@@ -19,13 +19,13 @@ export const TransactionIntentCommonStruct = object({
   }),
 });
 
-export const TransactionIntentSwapStruct = object({
+const TransactionIntentSwapStruct = object({
   ...TransactionIntentCommonStruct.schema,
   type: literal('swap'),
   slippage: number(),
 });
 
-export const TransactionIntentBridgeStruct = object({
+const TransactionIntentBridgeStruct = object({
   ...TransactionIntentCommonStruct.schema,
   type: literal('bridge'),
 });
