@@ -2,7 +2,7 @@ import {
   MOCK_SEED_PHRASE_ENTROPY_SOURCE,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,
-} from '../../../domain';
+} from '../solana-keyring-accounts';
 
 export const deriveSolanaKeypairMock = jest
   .fn()

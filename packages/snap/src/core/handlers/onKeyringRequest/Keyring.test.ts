@@ -5,22 +5,7 @@ import { SolMethod } from '@metamask/keyring-api';
 import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { signature } from '@solana/kit';
 
-import {
-  asStrictKeyringAccount,
-  KnownCaip19Id,
-  MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
-  MOCK_SEED_PHRASE_ENTROPY_SOURCE,
-  MOCK_SOLANA_KEYRING_ACCOUNT_0,
-  MOCK_SOLANA_KEYRING_ACCOUNT_1,
-  MOCK_SOLANA_KEYRING_ACCOUNT_2,
-  MOCK_SOLANA_KEYRING_ACCOUNT_3,
-  MOCK_SOLANA_KEYRING_ACCOUNT_4,
-  MOCK_SOLANA_KEYRING_ACCOUNT_5,
-  MOCK_SOLANA_KEYRING_ACCOUNTS,
-  MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0,
-  MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1,
-  Network,
-} from '../../domain';
+import { asStrictKeyringAccount, KnownCaip19Id, Network } from '../../domain';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import { InMemoryState } from '../../services/state/InMemoryState';
@@ -33,6 +18,19 @@ import type { TransactionsService } from '../../services/transactions/Transactio
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { SOLANA_MOCK_TOKEN } from '../../test/mocks/solana-assets';
+import {
+  MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
+  MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1,
+  MOCK_SOLANA_KEYRING_ACCOUNT_2,
+  MOCK_SOLANA_KEYRING_ACCOUNT_3,
+  MOCK_SOLANA_KEYRING_ACCOUNT_4,
+  MOCK_SOLANA_KEYRING_ACCOUNT_5,
+  MOCK_SOLANA_KEYRING_ACCOUNTS,
+  MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1,
+} from '../../test/mocks/solana-keyring-accounts';
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';

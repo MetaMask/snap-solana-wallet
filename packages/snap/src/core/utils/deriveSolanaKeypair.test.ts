@@ -8,7 +8,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
-} from '../domain';
+} from '../test/mocks';
 import { deriveSolanaKeypair } from './deriveSolanaKeypair';
 import { getBip32Entropy } from './getBip32Entropy';
 

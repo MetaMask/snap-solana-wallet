@@ -5,7 +5,7 @@ import {
   type CompilableTransactionMessage,
 } from '@solana/kit';
 
-import { Network } from '../..';
+import { Network } from '../../../domain';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNTS_PRIVATE_KEY_BYTES,

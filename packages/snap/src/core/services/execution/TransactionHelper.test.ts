@@ -12,10 +12,12 @@ import {
   isTransactionMessageWithComputeUnitLimitInstruction,
   isTransactionMessageWithComputeUnitPriceInstruction,
   isTransactionMessageWithFeePayer,
-  MOCK_EXECUTION_SCENARIO_SEND_SOL,
-  MOCK_EXECUTION_SCENARIOS,
   Network,
 } from '../../domain';
+import {
+  MOCK_EXECUTION_SCENARIO_SEND_SOL,
+  MOCK_EXECUTION_SCENARIOS,
+} from '../../test/mocks';
 import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';

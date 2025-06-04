@@ -4,13 +4,12 @@ import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
+import { KnownCaip19Id, Network } from '../../domain';
+import type { Serializable } from '../../serialization/types';
 import {
-  KnownCaip19Id,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
-  Network,
-} from '../../domain';
-import type { Serializable } from '../../serialization/types';
+} from '../../test/mocks';
 import {
   SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN,

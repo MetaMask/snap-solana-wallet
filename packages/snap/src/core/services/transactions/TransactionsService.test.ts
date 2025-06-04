@@ -2,11 +2,11 @@ import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { address as asAddress } from '@solana/kit';
 
+import { Network } from '../../domain';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
-  Network,
-} from '../../domain';
+} from '../../test/mocks/solana-keyring-accounts';
 import type { MockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { MOCK_GET_SIGNATURES_FOR_ADDRESS } from '../../test/mocks/transactions';

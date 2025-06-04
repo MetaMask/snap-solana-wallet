@@ -5,7 +5,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_3,
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNT_5,
-} from '../domain';
+} from '../test/mocks';
 import { getLowestUnusedIndex } from './getLowestUnusedIndex';
 
 describe('getLowestUnusedIndex', () => {

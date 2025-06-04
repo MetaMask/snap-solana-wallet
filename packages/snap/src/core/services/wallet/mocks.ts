@@ -6,14 +6,14 @@ import {
 } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/utils';
 
+import { Network } from '../../domain';
 import {
   MOCK_EXECUTION_SCENARIO_SEND_SOL,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
   MOCK_SOLANA_KEYRING_ACCOUNT_3,
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
-  Network,
-} from '../../domain';
+} from '../../test/mocks';
 import type {
   SolanaSignAndSendTransactionRequest,
   SolanaSignAndSendTransactionResponse,
