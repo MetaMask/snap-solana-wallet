@@ -9,11 +9,13 @@ import type { ILogger } from '../../utils/logger';
 import type { UseCase } from '../UseCase';
 import { AccountNotFoundError } from './errors';
 import type {
-  SignAndSendTransactionWithIntentParams,
-  SignAndSendTransactionWithIntentResponse,
+  SignAndSendTransactionWithoutConfirmationParams,
+  SignAndSendTransactionWithoutConfirmationResponse,
 } from './types';
 
-export class SignAndSendTransactionWithIntentUseCase implements UseCase {
+export class SignAndSendTransactionWithoutConfirmationUseCase
+  implements UseCase
+{
   #keyring: SolanaKeyring;
 
   #walletService: WalletService;
@@ -31,7 +33,7 @@ export class SignAndSendTransactionWithIntentUseCase implements UseCase {
   }
 
   /**
-   * Handles the request signAndSendTransactionWithIntent.
+   * Handles the request signAndSendTransactionWithoutConfirmation.
    * This allows transactions to be executed without user confirmation
    * when they match a verified intent from the backend.
    *
@@ -44,10 +46,10 @@ export class SignAndSendTransactionWithIntentUseCase implements UseCase {
    * @throws {TransactionFailedError} When the transaction fails.
    */
   async execute(
-    params: SignAndSendTransactionWithIntentParams,
-  ): Promise<SignAndSendTransactionWithIntentResponse> {
+    params: SignAndSendTransactionWithoutConfirmationParams,
+  ): Promise<SignAndSendTransactionWithoutConfirmationResponse> {
     this.#logger.log(
-      '[SignAndSendTransactionWithIntentUseCase] execute',
+      '[SignAndSendTransactionWithoutConfirmationUseCase] execute',
       params,
     );
 
@@ -92,7 +94,7 @@ export class SignAndSendTransactionWithIntentUseCase implements UseCase {
     });
 
     this.#logger.log(
-      '[✅ signAndSendTransactionWithIntent] Success:',
+      '[✅ signAndSendTransactionWithoutConfirmation] Success:',
       response.signature,
     );
 

@@ -19,8 +19,8 @@
   ],
   "methods": [
     {
-      "name": "signAndSendTransactionWithIntent",
-      "summary": "Sign and send a transaction with verified intent",
+      "name": "signAndSendTransactionWithoutConfirmation",
+      "summary": "Sign and send a transaction without showing a confirmation dialog",
       "description": "Allows the client (MetaMask) to request the snap to sign and send a transaction with verified intent.\n\n**Process:**\n\n1. **Verify Backend Signature** - Ensures that the payload **{ intent, signature }** was signed by the trusted Swaps API\n2. **Match Transaction to Intent** - Verifies that the transaction performs exactly what the intent describes\n3. **Sign Transaction** - If all validation pass, signs the transaction with the user's account specified in the intent\n4. **Send Transaction** - Sends the transaction to the Solana network",
       "paramStructure": "by-name",
       "params": [

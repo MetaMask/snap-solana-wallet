@@ -7,8 +7,8 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../test/mocks/solana-keyring-accounts';
 import type {
-  SignAndSendTransactionWithIntentResponse,
-  SignAndSendTransactionWithIntentUseCase,
+  SignAndSendTransactionWithoutConfirmationResponse,
+  SignAndSendTransactionWithoutConfirmationUseCase,
 } from '../../use-cases';
 import type { ILogger } from '../../utils/logger';
 import { ClientRequestHandler } from './ClientRequestHandler';
@@ -16,14 +16,14 @@ import { ClientRequestMethod } from './types';
 
 describe('ClientRequestHandler', () => {
   let handler: ClientRequestHandler;
-  let mockSignAndSendTransactionWithIntentUseCase: jest.Mocked<SignAndSendTransactionWithIntentUseCase>;
+  let mockSignAndSendTransactionWithIntentUseCase: jest.Mocked<SignAndSendTransactionWithoutConfirmationUseCase>;
   let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(() => {
     // Create mock use case
     mockSignAndSendTransactionWithIntentUseCase = {
       execute: jest.fn(),
-    } as unknown as jest.Mocked<SignAndSendTransactionWithIntentUseCase>;
+    } as unknown as jest.Mocked<SignAndSendTransactionWithoutConfirmationUseCase>;
 
     // Create mock logger
     mockLogger = console as unknown as jest.Mocked<ILogger>;
@@ -81,7 +81,7 @@ describe('ClientRequestHandler', () => {
         const validRequest: JsonRpcRequest = {
           jsonrpc: '2.0',
           id: 1,
-          method: ClientRequestMethod.SignAndSendTransactionWithIntent,
+          method: ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
           params: {
             intent: mockIntent,
             transaction: mockTransaction,
@@ -90,9 +90,10 @@ describe('ClientRequestHandler', () => {
         };
 
         it('should call the use case and return the response', async () => {
-          const expectedResponse: SignAndSendTransactionWithIntentResponse = {
-            transactionId: 'transaction-signature',
-          };
+          const expectedResponse: SignAndSendTransactionWithoutConfirmationResponse =
+            {
+              transactionId: 'transaction-signature',
+            };
           mockSignAndSendTransactionWithIntentUseCase.execute.mockResolvedValue(
             expectedResponse,
           );
@@ -126,7 +127,7 @@ describe('ClientRequestHandler', () => {
         const invalidRequest: JsonRpcRequest = {
           jsonrpc: '2.0',
           id: 1,
-          method: ClientRequestMethod.SignAndSendTransactionWithIntent,
+          method: ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
           params: {
             name: 'Alice',
           },

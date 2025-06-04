@@ -1,2 +1,2 @@
-export * from './SignAndSendTransactionWithIntent';
+export * from './SignAndSendTransactionWithoutConfirmation';
 export * from './UseCase';

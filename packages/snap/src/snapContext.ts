@@ -21,7 +21,7 @@ import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
 import { TransactionsService } from './core/services/transactions/TransactionsService';
 import { WalletService } from './core/services/wallet/WalletService';
-import { SignAndSendTransactionWithIntentUseCase } from './core/use-cases';
+import { SignAndSendTransactionWithoutConfirmationUseCase } from './core/use-cases';
 import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
@@ -117,10 +117,15 @@ const tokenPricesService = new TokenPricesService(priceApiClient);
 
 const nftService = new NftService(connection, logger);
 
-const signAndSendTransactionWithIntentUseCase =
-  new SignAndSendTransactionWithIntentUseCase(keyring, walletService, logger);
+const signAndSendTransactionWithoutConfirmationUseCase =
+  new SignAndSendTransactionWithoutConfirmationUseCase(
+    keyring,
+    walletService,
+    logger,
+  );
+
 const clientRequestHandler = new ClientRequestHandler(
-  signAndSendTransactionWithIntentUseCase,
+  signAndSendTransactionWithoutConfirmationUseCase,
   logger,
 );
 

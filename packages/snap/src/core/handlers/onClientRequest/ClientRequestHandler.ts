@@ -8,7 +8,7 @@ import type { Struct } from '@metamask/superstruct';
 import { assert, enums } from '@metamask/superstruct';
 
 import type {
-  SignAndSendTransactionWithIntentUseCase,
+  SignAndSendTransactionWithoutConfirmationUseCase,
   UseCase,
 } from '../../use-cases';
 import type { ILogger } from '../../utils/logger';
@@ -23,16 +23,16 @@ export class ClientRequestHandler {
   readonly #logger: ILogger;
 
   constructor(
-    signAndSendTransactionWithIntentUseCase: SignAndSendTransactionWithIntentUseCase,
+    signAndSendTransactionWithIntentUseCase: SignAndSendTransactionWithoutConfirmationUseCase,
     logger: ILogger,
   ) {
     this.#methodToUseCase = {
-      [ClientRequestMethod.SignAndSendTransactionWithIntent]:
+      [ClientRequestMethod.SignAndSendTransactionWithoutConfirmation]:
         signAndSendTransactionWithIntentUseCase,
     };
 
     this.#methodToParamsStruct = {
-      [ClientRequestMethod.SignAndSendTransactionWithIntent]:
+      [ClientRequestMethod.SignAndSendTransactionWithoutConfirmation]:
         SignAndSendTransactionWithIntentParamsStruct,
     };
 
