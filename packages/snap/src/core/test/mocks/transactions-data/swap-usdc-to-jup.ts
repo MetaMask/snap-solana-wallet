@@ -8,7 +8,7 @@ import type {
 } from '@solana/kit';
 import { address, blockhash, lamports } from '@solana/kit';
 
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 
 /**
  * Mainnet - Swap

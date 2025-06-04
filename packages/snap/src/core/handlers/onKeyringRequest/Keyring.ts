@@ -37,7 +37,7 @@ import { type Network } from '../../constants/solana';
 import {
   asStrictKeyringAccount,
   type SolanaKeyringAccount,
-} from '../../domain/SolanaKeyringAccount';
+} from '../../domain';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { IStateManager } from '../../services/state/IStateManager';

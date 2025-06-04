@@ -1,9 +1,5 @@
 import { address as addressValidator } from '@solana/kit';
 
-import type {
-  FieldValidationFunction,
-  ValidationFunction,
-} from '../../../core/types/form';
 import { solToLamports } from '../../../core/utils/conversion';
 import {
   i18n,
@@ -16,7 +12,11 @@ import {
   getNativeTokenBalance,
   getTokenAmount,
 } from '../selectors';
-import type { SendContext } from '../types';
+import type {
+  FieldValidationFunction,
+  SendContext,
+  ValidationFunction,
+} from '../types';
 import { SendFormNames } from '../types';
 import { validation } from '../views/SendForm/validation';
 

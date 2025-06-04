@@ -7,7 +7,7 @@ import {
   type UnixTimestamp,
 } from '@solana/kit';
 
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 
 /**
  * Devnet - Send native SOL to self

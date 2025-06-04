@@ -3,8 +3,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../../core/test/mocks/solana-keyring-accounts';
-import type { FieldValidationFunction } from '../../../core/types/form';
-import type { SendContext } from '../types';
+import type { FieldValidationFunction, SendContext } from '../types';
 import { SendCurrencyType } from '../types';
 import {
   amountInput,

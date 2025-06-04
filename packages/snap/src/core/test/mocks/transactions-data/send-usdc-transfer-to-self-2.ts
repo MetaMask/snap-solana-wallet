@@ -5,7 +5,7 @@ import type {
 } from '@solana/kit';
 import { address, blockhash, lamports, type UnixTimestamp } from '@solana/kit';
 
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 
 export const EXPECTED_SEND_USDC_TRANSFER_TO_SELF_2_DATA: SolanaTransaction = {
   blockTime: 1747059490n as UnixTimestamp,

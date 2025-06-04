@@ -1,8 +1,8 @@
 import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 import { Box, Image, Text } from '@metamask/snaps-sdk/jsx';
 
+import type { Preferences } from '../../../../core/domain';
 import type { TransactionScanAssetChange } from '../../../../core/services/transaction-scan/types';
-import type { Preferences } from '../../../../core/types/snap';
 import { formatCryptoBalance } from '../../../../core/utils/formatCryptoBalance';
 import { formatFiat } from '../../../../core/utils/formatFiat';
 

@@ -8,7 +8,7 @@ import type {
 } from '@solana/kit';
 import { blockhash, lamports, type UnixTimestamp } from '@solana/kit';
 
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 
 export const EXPECTED_SWAP_SOL_TO_OBRIC_DATA: SolanaTransaction = {
   blockTime: 1748545222n as UnixTimestamp,

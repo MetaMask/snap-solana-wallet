@@ -1,4 +1,3 @@
-import { type CaipAssetType } from '@metamask/keyring-api';
 import type {
   Address,
   Base58EncodedBytes,
@@ -13,22 +12,7 @@ import type {
   UnixTimestamp,
 } from '@solana/kit';
 
-import type { Network } from '../constants/solana';
-
-export type SolanaAsset = {
-  scope: Network;
-  assetType: CaipAssetType;
-  balance: string;
-  decimals: number;
-  native: boolean;
-};
-
-export type SolanaInstruction = {
-  accounts: readonly number[];
-  data: Base58EncodedBytes;
-  programIdIndex: number;
-  stackHeight?: number | null;
-};
+import type { SolanaInstruction } from './SolanaInstruction';
 
 export type SolanaTransaction = {
   blockTime: UnixTimestamp | null;

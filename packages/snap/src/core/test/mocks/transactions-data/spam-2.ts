@@ -1,7 +1,7 @@
 import type { Base58EncodedBytes, Lamports, UnixTimestamp } from '@solana/kit';
 import { address, blockhash, lamports } from '@solana/kit';
 
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 
 /**
  * Mainnet - Spam transaction with many small transfers

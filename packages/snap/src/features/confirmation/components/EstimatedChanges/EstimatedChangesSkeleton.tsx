@@ -1,7 +1,7 @@
 import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 import { Box, Section, Skeleton, Text } from '@metamask/snaps-sdk/jsx';
 
-import type { Preferences } from '../../../../core/types/snap';
+import type { Preferences } from '../../../../core/domain';
 import { i18n } from '../../../../core/utils/i18n';
 import { EstimatedChangesHeader } from './EstimatedChangesHeader';
 

@@ -8,7 +8,7 @@ import {
   Networks,
   type Network,
 } from '../../../constants/solana';
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 import { lamportsToSol } from '../../../utils/conversion';
 import { parseTransactionFees } from './parseTransactionFees';
 

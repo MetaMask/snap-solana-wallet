@@ -7,7 +7,7 @@ import { type Address } from '@solana/kit';
 import { BigNumber } from 'bignumber.js';
 
 import { KnownCaip19Id, type Network } from '../../../constants/solana';
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 import { parseTransactionNativeTransfers } from './parseTransactionNativeTransfers';
 import { parseTransactionNativeTransfersV2 } from './parseTransactionNativeTransfersV2';
 import { parseTransactionSplTransfers } from './parseTransactionSplTransfers';

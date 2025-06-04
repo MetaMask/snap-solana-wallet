@@ -8,7 +8,7 @@ import {
   type UnixTimestamp,
 } from '@solana/kit';
 
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 
 export const EXPECTED_FAILED_SWAP_DATA: SolanaTransaction = {
   blockTime: 1747040326n as UnixTimestamp,

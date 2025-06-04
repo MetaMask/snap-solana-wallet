@@ -1,9 +1,12 @@
 import type { Transaction } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
 
-import type { Network } from '../../../constants/solana';
-import { LAMPORTS_PER_SOL, Networks } from '../../../constants/solana';
-import type { SolanaTransaction } from '../../../types/solana';
+import {
+  LAMPORTS_PER_SOL,
+  Networks,
+  type Network,
+} from '../../../constants/solana';
+import type { SolanaTransaction } from '../../../domain';
 
 /**
  * Parses transaction fees from RPC transaction data.

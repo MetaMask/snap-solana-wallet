@@ -2,10 +2,9 @@ import type { Balance, CaipAssetType } from '@metamask/keyring-api';
 
 import type { SpotPrices } from '../../core/clients/price-api/types';
 import type { Network } from '../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../core/domain';
-import type { FormFieldError } from '../../core/types/error';
-import type { FetchStatus, Preferences } from '../../core/types/snap';
+import type { Preferences, SolanaKeyringAccount } from '../../core/domain';
 import type { LocalizedMessage } from '../../core/utils/i18n';
+import type { FetchStatus } from '../../types';
 
 export type SendFlowStage =
   | 'send-form'
@@ -75,3 +74,19 @@ export type SendContext = {
   minimumBalanceForRentExemptionSol: string;
   loading: boolean;
 };
+
+export type FormFieldError<Field = string> = {
+  message: string;
+  value: Field;
+} | null;
+
+export type FormState<FormNames extends string | number | symbol> = Record<
+  FormNames,
+  string | number | boolean | null
+>;
+
+export type FieldValidationFunction = (value: string) => FormFieldError;
+export type ValidationFunction = (
+  message: LocalizedMessage,
+  value?: any,
+) => FieldValidationFunction;

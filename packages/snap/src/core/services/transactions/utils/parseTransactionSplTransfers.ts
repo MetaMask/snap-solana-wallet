@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js';
 import bs58 from 'bs58';
 
 import { type Network } from '../../../constants/solana';
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 import { tokenAddressToCaip19 } from '../../../utils/tokenAddressToCaip19';
 
 /**

@@ -1,9 +1,9 @@
 import type { TokenMetadataClient } from '../../clients/token-metadata-client/TokenMetadataClient';
+import type { SolanaAsset } from '../../domain';
 import {
   SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN_METADATA,
 } from '../../test/mocks/solana-assets';
-import type { SolanaAsset } from '../../types/solana';
 import type { ILogger } from '../../utils/logger';
 import { TokenMetadataService } from './TokenMetadata';
 
