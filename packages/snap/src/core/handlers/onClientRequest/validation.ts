@@ -1,6 +1,6 @@
 import { object, string } from '@metamask/superstruct';
 
-import { TransactionIntentSwapStruct } from '../../domain/TransactionIntent';
+import { TransactionIntentSwapStruct } from '../../domain';
 import { Base64Struct } from '../../validation/structs';
 
 export const SignAndSendTransactionWithIntentParamsStruct = object({
