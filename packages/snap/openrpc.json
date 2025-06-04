@@ -1,7 +1,7 @@
 {
-  "openrpc": "1.0.0",
+  "openrpc": "1.2.4",
   "info": {
-    "title": "MetaMask Solana Wallet Snap JSON-RPC API",
+    "title": "MetaMask Solana Wallet Snap",
     "description": "JSON-RPC API of the MetaMask Solana Wallet Snap. This snap brings official Solana support to MetaMask. Create accounts, check balances, and use Solana dApps right from your MetaMask wallet. Simple, secure, and seamless.",
     "version": "1.0.0",
     "contact": {
@@ -21,7 +21,7 @@
     {
       "name": "client_signAndSendTransactionWithIntent",
       "summary": "Sign and send a transaction with verified intent",
-      "description": "Allows the client (MetaMask) to request the snap to sign and send a transaction with verified intent.\n\n**Process:**\n\n1. **Verify Backend Signature** - Ensures the payload `{ intent, signature }` was signed by the trusted Swaps API\n2. **Match Transaction to Intent** - Verifies the transaction performs exactly what the intent describes\n3. **Sign Transaction** - If all validation pass, signs the transaction with the user's account specified in the intent\n4. **Send Transaction** - Sends the transaction to the Solana network",
+      "description": "Allows the client (MetaMask) to request the snap to sign and send a transaction with verified intent.\n\n**Process:**\n\n1. **Verify Backend Signature** - Ensures that the payload **{ intent, signature }** was signed by the trusted Swaps API\n2. **Match Transaction to Intent** - Verifies that the transaction performs exactly what the intent describes\n3. **Sign Transaction** - If all validation pass, signs the transaction with the user's account specified in the intent\n4. **Send Transaction** - Sends the transaction to the Solana network",
       "params": [
         {
           "name": "intent",

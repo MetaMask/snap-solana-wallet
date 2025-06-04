@@ -3,10 +3,7 @@ import { StateCache } from './core/caching/StateCache';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
-import {
-  ClientRequestHandler,
-  SignAndSendTransactionWithIntentUseCase,
-} from './core/handlers/onClientRequest';
+import { ClientRequestHandler } from './core/handlers/onClientRequest';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
@@ -24,6 +21,7 @@ import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
 import { TransactionsService } from './core/services/transactions/TransactionsService';
 import { WalletService } from './core/services/wallet/WalletService';
+import { SignAndSendTransactionWithIntentUseCase } from './core/use-cases';
 import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';

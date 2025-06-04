@@ -2,16 +2,16 @@ import { type Json, type JsonRpcRequest } from '@metamask/snaps-sdk';
 import type { Struct } from '@metamask/superstruct';
 import { assert, enums } from '@metamask/superstruct';
 
+import type {
+  SignAndSendTransactionWithIntentUseCase,
+  UseCase,
+} from '../../use-cases';
 import type { ILogger } from '../../utils/logger';
-import type { SignAndSendTransactionWithIntentUseCase } from './SignAndSendTransactionWithIntentUseCase';
-import type { ClientRequestUseCase } from './types';
-import {
-  ClientRequestMethod,
-  SignAndSendTransactionWithIntentParamsStruct,
-} from './types';
+import { ClientRequestMethod } from './types';
+import { SignAndSendTransactionWithIntentParamsStruct } from './validation';
 
 export class ClientRequestHandler {
-  readonly #methodToUseCase: Record<ClientRequestMethod, ClientRequestUseCase>;
+  readonly #methodToUseCase: Record<ClientRequestMethod, UseCase>;
 
   readonly #methodToParamsStruct: Record<ClientRequestMethod, Struct<any, any>>;
 

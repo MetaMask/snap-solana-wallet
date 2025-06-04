@@ -1,18 +1,13 @@
 import { SolMethod } from '@metamask/keyring-api';
 import { parseCaipAssetType, type Json } from '@metamask/utils';
 
+import type { Intent } from '../../domain';
+import type { SolanaKeyring } from '../../handlers/onKeyringRequest/Keyring';
 import type { WalletService } from '../../services/wallet/WalletService';
 import type { ILogger } from '../../utils/logger';
-import type { SolanaKeyring } from '../onKeyringRequest/Keyring';
-import type {
-  ClientRequestUseCase,
-  Intent,
-  SignAndSendTransactionWithIntentParams,
-} from './types';
+import type { UseCase } from '../UseCase';
 
-export class SignAndSendTransactionWithIntentUseCase
-  implements ClientRequestUseCase<SignAndSendTransactionWithIntentParams>
-{
+export class SignAndSendTransactionWithIntentUseCase implements UseCase {
   #keyring: SolanaKeyring;
 
   #walletService: WalletService;
@@ -34,16 +29,23 @@ export class SignAndSendTransactionWithIntentUseCase
    * This allows transactions to be executed without user confirmation
    * when they match a verified intent from the backend.
    *
-   * @param params - The validated parameters containing intent, transaction, and signature.
+   * @param intent - The validated intent.
+   * @param transaction - The validated transaction.
+   * @param signature - The validated signature.
    * @returns The transaction signature if successful.
    */
-  async execute(params: SignAndSendTransactionWithIntentParams): Promise<Json> {
+  async execute(
+    intent: Intent,
+    transaction: string,
+    signature: string,
+  ): Promise<Json> {
     this.#logger.log(
       '[SignAndSendTransactionWithIntentUseCase] execute',
-      params,
+      intent,
+      transaction,
+      signature,
     );
 
-    const { intent, transaction, signature } = params;
     const { accountId, from } = intent;
 
     // Verify that the backend signed the payload { intent, transaction }
@@ -113,7 +115,7 @@ export class SignAndSendTransactionWithIntentUseCase
    * @returns True if the signature is valid.
    */
   async #verifyBackendSignature(
-    intent: any,
+    intent: Intent,
     transaction: string,
     signature: string,
   ): Promise<boolean> {
