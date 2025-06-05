@@ -8,7 +8,7 @@ import { KnownCaip19Id } from '../../domain';
 import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
 import { mockLogger } from '../../services/mocks/logger';
-import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
+import { MOCK_EXCHANGE_RATES } from '../../test/mocks';
 import { MOCK_HISTORICAL_PRICES } from './mocks/historical-prices';
 import { MOCK_SPOT_PRICES } from './mocks/spot-prices';
 import { PriceApiClient } from './PriceApiClient';

@@ -3,7 +3,7 @@ import type { SolanaAsset } from '../../domain';
 import {
   SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN_METADATA,
-} from '../../test/mocks/solana-assets';
+} from '../../test/mocks';
 import type { ILogger } from '../../utils/logger';
 import { TokenMetadataService } from './TokenMetadata';
 

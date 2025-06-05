@@ -15,10 +15,10 @@ import {
   Network,
 } from '../../domain';
 import {
+  deriveSolanaKeypairMock,
   MOCK_EXECUTION_SCENARIO_SEND_SOL,
   MOCK_EXECUTION_SCENARIOS,
 } from '../../test/mocks';
-import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { TransactionHelper } from './TransactionHelper';
