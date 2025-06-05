@@ -21,15 +21,15 @@
     {
       "name": "signAndSendTransactionWithoutConfirmation",
       "summary": "Sign and send a transaction without showing a confirmation dialog",
-      "description": "Allows the client (MetaMask) to request the snap to sign and send a transaction with verified intent.\n\n**Process:**\n\n1. **Verify Backend Signature** - Ensures that the payload **{ intent, signature }** was signed by the trusted Swaps API\n2. **Match Transaction to Intent** - Verifies that the transaction performs exactly what the intent describes\n3. **Sign Transaction** - If all validation pass, signs the transaction with the user's account specified in the intent\n4. **Send Transaction** - Sends the transaction to the Solana network",
+      "description": "Allows the client (MetaMask) to request the snap to sign and send a Solana transaction without showing a confirmation dialog to the user. This method validates the request parameters, finds the account in the keyring, signs the transaction, and sends it to the Solana network.",
       "paramStructure": "by-name",
       "params": [
         {
-          "name": "intent",
-          "summary": "The user's swap intent describing the desired operation",
+          "name": "account",
+          "summary": "The account to use for signing the transaction",
           "required": true,
           "schema": {
-            "$ref": "#/components/schemas/SwapIntent"
+            "$ref": "#/components/schemas/WalletAccount"
           }
         },
         {
@@ -41,81 +41,61 @@
           }
         },
         {
-          "name": "signature",
-          "summary": "The result of signing the payload `{intent, transaction}` using <TODO SIGNING ALGORITHM> with the Swaps API's private key.",
+          "name": "scope",
+          "summary": "The Solana network to send the transaction to",
           "required": true,
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Network"
+          }
+        },
+        {
+          "name": "options",
+          "summary": "Optional transaction options",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/TransactionOptions"
           }
         }
       ],
       "result": {
-        "name": "SignAndSendTransactionWithIntentResult",
-        "summary": "The result of signing and sending a transaction with intent",
+        "name": "SignAndSendTransactionResult",
+        "summary": "The result of signing and sending a transaction",
         "schema": {
-          "$ref": "#/components/schemas/SignAndSendTransactionWithIntentResult"
+          "$ref": "#/components/schemas/SignAndSendTransactionResult"
         }
       },
-      "errors": [
-        {
-          "$ref": "#/components/errors/MethodNotFound"
-        },
-        {
-          "$ref": "#/components/errors/InvalidParams"
-        },
-        {
-          "$ref": "#/components/errors/InvalidBackendSignature"
-        },
-        {
-          "$ref": "#/components/errors/TransactionIntentMismatch"
-        },
-        {
-          "$ref": "#/components/errors/AccountNotFound"
-        },
-        {
-          "$ref": "#/components/errors/InvalidTransaction"
-        },
-        {
-          "$ref": "#/components/errors/TransactionFailed"
-        }
-      ],
       "examples": [
         {
-          "name": "signAndSendTransactionWithIntentExample",
-          "description": "Example of signing and sending a transaction with intent, where user wants to swap 1 SOL for 161.18 USDC.",
+          "name": "signAndSendTransactionExample",
+          "description": "Example of signing and sending a simple SOL transfer transaction",
           "params": [
             {
-              "name": "intent",
+              "name": "account",
               "value": {
-                "id": "c76b3834-b9a8-4dfd-91da-72c26a216fb2",
-                "timestamp": "2025-06-04T14:52:31.307Z",
-                "type": "swap",
-                "slippage": 0.01,
-                "from": {
-                  "address": "BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP",
-                  "asset": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
-                  "amount": "1000000000"
-                },
-                "to": {
-                  "address": "27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD",
-                  "asset": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-                  "amount": "161180000"
-                }
+                "address": "BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP"
               }
             },
             {
               "name": "transaction",
-              "value": "gAEAChfds67pR0IYlL1XKFGjzC+zBZIA7vT1dj7nUBTUwAs7rBn3hrWmXImk+UetGwvWumZpcEhF+xT5THD5os2Svp67H8GdfJ4jkOslaYOff/X0SeF33Cha5Ij9DKlo3QaosfIhtgnDmdJAVdjfmyv5dEGsSWgYEYPaqW8v8hSJozhYIzcQa4p5MinFjNMq4vDm+n249hE5Vmwe+Adkq87GTDegPbdaVhuqlrT5hZnIkdcW67eCFvm9ZzXM9jeWm2GwnLBGfnLp6qHLD5IgtqLXr5clzwoa2ns4KdysosGA2yFHt2dBBA/kB6qwUEagfnGzH2GY12XE3va/gn3W4Loqy/D+gP5PMjWwL4nGY8i3EGxqLHt/i3x/EskcO1ftQjYqQtqMVVDE+U/Vngb6x6+HbBOGrDQOx73j0k813TrK9dmptLgHDBoOIz6tGmWT+r9wa3YtqouLIv01/IKynGlc4TnE0M2MheikqA6gkuj1PhXVDgPc7eSLCseVMCy/WUgTmKbXmnZ/QcH3X8YTJ//GR4yvL7LCHdfHPhS8B+4hpoFusQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKD0N0oI1T+8K47DiJ9N82JyiZvsX3fj3y3zO++Tr3FVRPixdukLDvYMw2r2DTumX5VA1ifoAVfXgkOTnLswDEoyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAC0P/on9df2SnTAmx8pWHneSwmrNt/J3VFLMhqns4zl6LwHxW5grT0/F3OC6sZUj7of0yz9kMoCs+fPoYX9znOYyUOdJ8PoWqEFw7H8n7xwkhg1P1tPfo1/6arncTl4PJkEedVb8jHAbu50xW7OaBUH/bGy3qP0jlECsc2iVrwTjwan1RcYx3TJKFZjmGkdXraLXrijm0ttXHNVWyEAAAAA0LlMW0o1bBeKH7IjSDuI9G0a+7kgVaW9ubbU+rklS9sFDgIWFAkAi8sXoE0wggARAAUCuIEWABEACAMgoQcAAAAAEAYACAATDS0BARVDLQ8ABgUECCoTFRUSFSslKyIjBQooKiQrDy0tKSsMAwEVKyErHB0KBygsHisPLS0pKx8gFScPJhsHBBcZGi0JGAILFSzBIJszQdacgQMDAAAAJmQAASZkAQIaZAIDQEIPAAAAAAC78khRAQAAADIAAANOgLKSmCyUmuksqMclFoVdtmiFizz7/yF11zNd6VSAxgUkIB4dIwIhIrYRAfelfqMdEh4JHXx6VS3GXpyeWhNKQlBsx9m2I8c+BhMSEBEUWgDdfctSzc+t7n0tohMIoz7S6USQkKhKDRCUSx6C3SjhJQQJAg8EBgoMCwYQBw=="
+              "value": "gAEAAgSZsAKPnZ6vMobike0KV4I/ucjxTM1cFYhLnVhPWfjfdN2zrulHQhiUvVcoUaPML7MFkgDu9PV2PudQFNTACzusAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAHWszLmyDo8VIk2P/sVmDUn34YE2+73fS1kNLCNojDEqAwMABQIsAQAAAwAJA+gDAAAAAAAAAgIAAQwCAAAAQEIPAAAAAAAA"
             },
             {
-              "name": "signature",
-              "value": "rNaqYcw7VsWYcjHALq7nqmSXhYoUQ87hWWakzdztfsny5UGWrKYoLNwFbw9jADtAhfEdXNwyBAWn6MQkYt7UXcb"
+              "name": "scope",
+              "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            },
+            {
+              "name": "options",
+              "value": {
+                "commitment": "confirmed",
+                "skipPreflight": false,
+                "maxRetries": 3
+              }
             }
           ],
           "result": {
-            "name": "signAndSendTransactionWithIntentResult",
+            "name": "signAndSendTransactionResult",
             "value": {
-              "transactionId": "DuvWiKG54eKcB1s777TgaZWtF9R23sVuEaugRufdXyqhCf6owy5hYqxeL8sa6zoCPVQu3NxxhjWuz91CKgLE6SB"
+              "signature": "2jy9nsDuajiPgRRijs7Ku4JVvTFQ224Nhoc58fe72tRoy384JAF6zVWFV2SwTt9XXykxes6LkU6VLokn6wAXTocQ"
             }
           }
         }
@@ -124,228 +104,83 @@
   ],
   "components": {
     "schemas": {
-      "Iso8601Timestamp": {
-        "type": "string",
-        "format": "date-time",
-        "description": "An ISO 8601 timestamp",
-        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$",
-        "examples": ["2021-01-01T00:00:00Z", "2021-01-01T00:00:00.000Z"]
-      },
-      "UuidV4": {
-        "type": "string",
-        "format": "uuid",
-        "description": "A UUID version 4 identifier",
-        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-        "examples": [
-          "550e8400-e29b-41d4-a716-446655440000",
-          "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        ]
-      },
       "Base64String": {
         "type": "string",
         "description": "A base64-encoded string",
         "pattern": "^[A-Za-z0-9+/]*={0,2}$"
       },
-      "SwapIntent": {
-        "type": "object",
-        "description": "Represents a user's intent to perform a swap operation",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/UuidV4",
-            "description": "Unique identifier for the intent"
-          },
-          "timestamp": {
-            "$ref": "#/components/schemas/Iso8601Timestamp",
-            "description": "ISO 8601 timestamp when the intent was created"
-          },
-          "type": {
-            "type": "string",
-            "enum": ["swap"],
-            "description": "The type of operation - must be 'swap'"
-          },
-          "slippage": {
-            "type": "number",
-            "description": "Maximum acceptable slippage percentage",
-            "minimum": 0,
-            "maximum": 100
-          },
-          "from": {
-            "$ref": "#/components/schemas/AssetTransfer",
-            "description": "The asset and amount the user wants to send"
-          },
-          "to": {
-            "$ref": "#/components/schemas/AssetTransfer",
-            "description": "The asset and amount the user expects to receive"
-          }
-        },
-        "required": ["id", "timestamp", "type", "slippage", "from", "to"],
-        "additionalProperties": false
+      "Base58String": {
+        "type": "string",
+        "description": "A base58-encoded string",
+        "pattern": "^[1-9A-HJ-NP-Za-km-z]+$"
       },
-      "AssetTransfer": {
+      "WalletAccount": {
         "type": "object",
-        "description": "Represents an asset transfer with address, asset type, and amount",
+        "description": "A wallet account containing the address",
         "properties": {
           "address": {
             "type": "string",
-            "description": "A CAIP-10 account address, i.e., the third part of the CAIP account ID. For example, 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'."
-          },
-          "asset": {
-            "type": "string",
-            "description": "A CAIP-19 asset type identifier, i.e., a human-readable type of asset identifier. For example, 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501'."
-          },
-          "amount": {
-            "type": "string",
-            "description": "Amount in the asset's smallest unit (e.g., lamports for SOL)",
-            "pattern": "^[0-9]+$"
-          },
-          "change": {
-            "type": "object",
-            "description": "Optional change address for the transaction",
-            "properties": {
-              "address": {
-                "type": "string",
-                "description": "CAIP-10 account address for change"
-              }
-            },
-            "required": ["address"],
-            "additionalProperties": false
+            "description": "The base58-encoded public key address of the account"
           }
         },
-        "required": ["address", "asset", "amount"],
+        "required": ["address"],
         "additionalProperties": false
       },
-      "SignAndSendTransactionWithIntentResult": {
+      "Network": {
+        "type": "string",
+        "description": "The Solana network identifier using CAIP-2 format",
+        "enum": [
+          "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+          "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z"
+        ]
+      },
+      "TransactionCommitment": {
+        "type": "string",
+        "description": "The commitment level for transaction confirmation",
+        "enum": ["processed", "confirmed", "finalized"],
+        "examples": ["processed", "confirmed", "finalized"]
+      },
+      "TransactionOptions": {
         "type": "object",
-        "description": "Result of signing and sending a transaction with intent",
+        "description": "Optional parameters for transaction processing",
         "properties": {
-          "transactionId": {
-            "type": "string",
+          "preflightCommitment": {
+            "$ref": "#/components/schemas/TransactionCommitment",
+            "description": "Preflight commitment level"
+          },
+          "minContextSlot": {
+            "type": "integer",
+            "description": "The minimum slot that the request can be evaluated at",
+            "minimum": 0
+          },
+          "commitment": {
+            "$ref": "#/components/schemas/TransactionCommitment",
+            "description": "Desired commitment level. If provided, confirm the transaction after sending"
+          },
+          "skipPreflight": {
+            "type": "boolean",
+            "description": "Disable transaction verification at the RPC"
+          },
+          "maxRetries": {
+            "type": "integer",
+            "description": "Maximum number of times for the RPC node to retry sending the transaction to the leader",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "SignAndSendTransactionResult": {
+        "type": "object",
+        "description": "Result of signing and sending a transaction",
+        "properties": {
+          "signature": {
+            "$ref": "#/components/schemas/Base58String",
             "description": "The transaction signature returned after successful execution on Solana"
           }
         },
-        "required": ["transactionId"],
+        "required": ["signature"],
         "additionalProperties": false
-      }
-    },
-    "errors": {
-      "MethodNotFound": {
-        "code": -32601,
-        "message": "The method does not exist / is not available.",
-        "data": {
-          "type": "object",
-          "description": "The requested method is not supported by this handler",
-          "properties": {
-            "method": {
-              "type": "string",
-              "description": "The method that was requested"
-            }
-          }
-        }
-      },
-      "InvalidParams": {
-        "code": -32602,
-        "message": "Invalid method parameter(s).",
-        "data": {
-          "type": "object",
-          "description": "The parameters provided do not match the expected schema"
-        }
-      },
-      "InvalidBackendSignature": {
-        "code": -32602,
-        "message": "Invalid backend signature",
-        "data": {
-          "type": "object",
-          "description": "The backend signature verification failed",
-          "properties": {
-            "reason": {
-              "type": "string",
-              "enum": [
-                "signatureVerificationFailed",
-                "timestampExpired",
-                "invalidSignatureFormat",
-                "missingPublicKey"
-              ],
-              "description": "The specific reason why signature verification failed"
-            }
-          }
-        }
-      },
-      "TransactionIntentMismatch": {
-        "code": -32602,
-        "message": "Transaction does not match intent",
-        "data": {
-          "type": "object",
-          "description": "The transaction does not perform the operations described in the intent",
-          "properties": {
-            "reason": {
-              "type": "string",
-              "enum": [
-                "amountMismatch",
-                "assetMismatch",
-                "addressMismatch",
-                "unexpectedInstructions",
-                "simulationFailed"
-              ],
-              "description": "The specific reason why the transaction doesn't match the intent"
-            }
-          }
-        }
-      },
-      "AccountNotFound": {
-        "code": -32602,
-        "message": "Account not found",
-        "data": {
-          "type": "object",
-          "description": "The account specified in the intent was not found in the keyring",
-          "properties": {
-            "address": {
-              "type": "string",
-              "description": "The account address that was not found"
-            }
-          }
-        }
-      },
-      "InvalidTransaction": {
-        "code": -32602,
-        "message": "Invalid transaction",
-        "data": {
-          "type": "object",
-          "description": "The transaction is malformed or cannot be processed",
-          "properties": {
-            "reason": {
-              "type": "string",
-              "enum": [
-                "invalidBase64Encoding",
-                "malformedTransaction",
-                "invalidTransactionStructure",
-                "missingRequiredFields"
-              ],
-              "description": "The specific reason why the transaction is invalid"
-            }
-          }
-        }
-      },
-      "TransactionFailed": {
-        "code": -32603,
-        "message": "Transaction failed",
-        "data": {
-          "type": "object",
-          "description": "The transaction was rejected by the Solana network",
-          "properties": {
-            "reason": {
-              "type": "string",
-              "enum": [
-                "insufficientBalance",
-                "blockhashExpired",
-                "accountNotFound",
-                "programError",
-                "instructionError",
-                "simulationFailed"
-              ],
-              "description": "The specific reason why the transaction failed"
-            }
-          }
-        }
       }
     }
   }

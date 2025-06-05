@@ -1,5 +1,6 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
 
+import { ClientRequestMethod } from './core/handlers/onClientRequest';
 import { SolanaProtocolRequestMethod } from './core/handlers/onProtocolRequest/structs';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { ConfigProvider } from './core/services/config/ConfigProvider';
@@ -51,6 +52,8 @@ const metamaskPermissions = new Set([
   // Protocol methods
   SolanaProtocolRequestMethod.GetGenesisHash,
   SolanaProtocolRequestMethod.GetLatestBlockhash,
+  // Client methods
+  ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
 ]);
 
 const metamask = 'metamask';

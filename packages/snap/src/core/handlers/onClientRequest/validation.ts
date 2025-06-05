@@ -1,12 +1,13 @@
 import { literal } from '@metamask/snaps-sdk';
-import { nullable, number, object, string, union } from '@metamask/superstruct';
+import { object } from '@metamask/superstruct';
+import { JsonRpcIdStruct, JsonRpcVersionStruct } from '@metamask/utils';
 
 import { SolanaSignAndSendTransactionInputStruct } from '../../services/wallet/structs';
 import { ClientRequestMethod } from './types';
 
 export const SignAndSendTransactionWithoutConfirmationRequestStruct = object({
-  id: nullable(union([string(), number()])),
-  jsonrpc: literal('2.0'),
+  jsonrpc: JsonRpcVersionStruct,
+  id: JsonRpcIdStruct,
   method: literal(
     ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
   ),
