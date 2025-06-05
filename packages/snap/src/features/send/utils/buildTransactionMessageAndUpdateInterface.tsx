@@ -108,9 +108,8 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
       buildingTransaction: false,
     };
 
-    const latestContext = await getInterfaceContextOrThrow<SendContext>(
-      interfaceId,
-    );
+    const latestContext =
+      await getInterfaceContextOrThrow<SendContext>(interfaceId);
 
     await updateInterface(
       interfaceId,
@@ -130,9 +129,8 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
       buildingTransaction: false,
     };
 
-    const latestContext = await getInterfaceContextOrThrow<SendContext>(
-      interfaceId,
-    );
+    const latestContext =
+      await getInterfaceContextOrThrow<SendContext>(interfaceId);
 
     await updateInterface(
       interfaceId,

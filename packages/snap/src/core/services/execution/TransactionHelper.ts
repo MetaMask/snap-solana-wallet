@@ -305,9 +305,8 @@ export class TransactionHelper {
       entropySource: account.entropySource,
       derivationPath: account.derivationPath,
     });
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
+    const signer =
+      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
     // First, make sure the transaction message has a fee payer, lifetime constraint and compute unit price
     const hasLifetimeConstraint =

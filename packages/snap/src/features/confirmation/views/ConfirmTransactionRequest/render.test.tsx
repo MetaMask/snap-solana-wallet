@@ -46,6 +46,7 @@ describe('render', () => {
     tokenPrices: mockSpotPrices,
     tokenPricesFetchStatus: 'fetched',
     scanFetchStatus: 'fetched',
+    origin: TEST_ORIGIN,
   };
 
   beforeAll(() => {
@@ -131,6 +132,7 @@ describe('render', () => {
             },
           },
         },
+        origin: TEST_ORIGIN,
       };
 
       const response = onKeyringRequest({
@@ -230,6 +232,7 @@ describe('render', () => {
             },
           },
         },
+        origin: TEST_ORIGIN,
       };
 
       const response = onKeyringRequest({

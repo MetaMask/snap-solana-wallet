@@ -71,6 +71,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
           accountAddress: interfaceContext.account.address,
           transaction: interfaceContext.transaction,
           scope: interfaceContext.scope,
+          origin: interfaceContext.origin,
         });
 
         const updatedInterfaceContextFinal =

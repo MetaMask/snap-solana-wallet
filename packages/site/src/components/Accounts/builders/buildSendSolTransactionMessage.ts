@@ -52,9 +52,8 @@ export const buildSendSolTransactionMessage = async (
       ),
   );
 
-  const transactionMessageBase64 = await base64EncodeTransaction(
-    transactionMessage,
-  );
+  const transactionMessageBase64 =
+    await base64EncodeTransaction(transactionMessage);
 
   return transactionMessageBase64;
 };

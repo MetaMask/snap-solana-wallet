@@ -134,7 +134,7 @@ describe('send form validation', () => {
             },
           },
           ...overrides,
-        } as unknown as SendContext);
+        }) as unknown as SendContext;
 
       it('returns an error with no message when the amount is empty string', () => {
         const context = createSolContext();
@@ -224,7 +224,7 @@ describe('send form validation', () => {
             },
           },
           ...overrides,
-        } as unknown as SendContext);
+        }) as unknown as SendContext;
 
       it('returns an error with no message when the amount is empty string', () => {
         const context = createSplContext();

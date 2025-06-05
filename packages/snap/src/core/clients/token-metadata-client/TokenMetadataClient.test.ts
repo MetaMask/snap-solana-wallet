@@ -80,9 +80,8 @@ describe('TokenMetadataClient', () => {
         json: jest.fn().mockResolvedValueOnce(MOCK_METADATA_RESPONSE),
       });
 
-      const metadata = await client.getTokenMetadataFromAddresses(
-        tokenAddresses,
-      );
+      const metadata =
+        await client.getTokenMetadataFromAddresses(tokenAddresses);
 
       expect(metadata).toStrictEqual({
         [`solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:1GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr`]:
@@ -212,9 +211,8 @@ describe('TokenMetadataClient', () => {
         json: jest.fn().mockResolvedValueOnce([MOCK_METADATA_RESPONSE[0]]),
       });
 
-      const metadata = await client.getTokenMetadataFromAddresses(
-        tokenAddresses,
-      );
+      const metadata =
+        await client.getTokenMetadataFromAddresses(tokenAddresses);
 
       expect(metadata[supportedAssetType]).toBeDefined();
       expect(metadata[unsupportedAssetType]).toBeUndefined();

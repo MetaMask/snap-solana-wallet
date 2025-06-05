@@ -31,6 +31,7 @@ export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmTransactionRequestContext = {
   feeEstimatedInSol: '0',
   tokenPrices: {},
   tokenPricesFetchStatus: 'fetching',
+  origin: '',
   preferences: {
     locale: 'en',
     currency: 'usd',
@@ -178,6 +179,7 @@ export async function render(
         accountAddress: updatedContext2.account?.address ?? '',
         transaction: updatedContext2.transaction,
         scope: updatedContext2.scope,
+        origin: updatedContext2.origin,
         options,
       })
       .then(async (scan) => {

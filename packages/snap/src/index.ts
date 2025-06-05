@@ -1,3 +1,4 @@
+import { KeyringRpcMethod } from '@metamask/keyring-api';
 import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
 import type {
   GetClientStatusResult,
@@ -113,6 +114,16 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
 
     validateOrigin(origin, request.method);
 
+    // This is a temporal fix to prevent the swap/bridge functionality breaking
+    // TODO: Remove this once changes in bridge-status-controller are in place
+    if (
+      request.method === KeyringRpcMethod.SubmitRequest &&
+      request.params &&
+      !('origin' in request.params)
+    ) {
+      (request.params as Record<string, Json>).origin = 'https://metamask.io';
+    }
+
     return (await handleKeyringRequest(
       keyring,
       request,
@@ -214,6 +225,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
 
   // explicit check for non-undefined active
   // to make sure the cronjob is executed if `active` is undefined
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
   if (active === false) {
     const lastCronjobRun = await state.getKey<number>('lastCronjobRun');
     const THIRTY_MINUTES = 30 * 60 * 1000; // 30 minutes in milliseconds

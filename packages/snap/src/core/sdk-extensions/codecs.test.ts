@@ -36,9 +36,10 @@ describe('codecs', () => {
 
     describe(`fromCompilableTransactionMessageToBase64String | Scenario: ${name}`, () => {
       it(`encodes a transaction message to a base64 string`, async () => {
-        const result = await fromCompilableTransactionMessageToBase64String(
-          transactionMessage,
-        );
+        const result =
+          await fromCompilableTransactionMessageToBase64String(
+            transactionMessage,
+          );
 
         expect(result).toStrictEqual(transactionMessageBase64Encoded);
       });

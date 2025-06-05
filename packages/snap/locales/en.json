@@ -166,6 +166,12 @@
     "confirmation.feeError": {
       "message": "Unable to estimate fee"
     },
+    "confirmation.origin": {
+      "message": "Request from"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
+    },
     "confirmation.simulationErrorTitle": {
       "message": "This transaction was reverted during simulation."
     },
@@ -196,8 +202,8 @@
     "confirmation.signIn.description": {
       "message": "A site wants you to sign in to prove you own this account."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Request from"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Unknown domain"

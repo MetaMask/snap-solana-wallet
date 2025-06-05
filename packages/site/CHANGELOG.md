@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.32.0]
+
+### Added
+
+- Add `origin` param to Keyring methods ([#395](https://github.com/MetaMask/snap-solana-wallet/pull/395))
+
 ## [1.31.0]
 
 ### Fixed
@@ -176,7 +182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.32.0...HEAD
+[1.32.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.0...v1.32.0
 [1.31.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.22.0...v1.31.0
 [1.22.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.19.0...v1.22.0
 [1.19.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.18.1...v1.19.0

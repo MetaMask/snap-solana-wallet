@@ -378,9 +378,8 @@ export class WalletService {
       derivationPath: account.derivationPath,
     });
 
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
+    const signer =
+      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
     const signableMessage = createSignableMessage(messageUtf8);
 
@@ -438,6 +437,7 @@ export class WalletService {
       id: globalThis.crypto.randomUUID(),
       scope: request.scope,
       account: account.id,
+      origin: request.origin,
       request: {
         method: SolMethod.SignMessage,
         params: {
@@ -489,9 +489,8 @@ export class WalletService {
       derivationPath: account.derivationPath,
     });
 
-    const signer = await createKeyPairSignerFromPrivateKeyBytes(
-      privateKeyBytes,
-    );
+    const signer =
+      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
     const signatureBytes = getBase58Codec().encode(
       signatureBase58,

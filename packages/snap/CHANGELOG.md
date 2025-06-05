@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.32.0]
+
+### Added
+
+- Pass origin param to Blockaid ([#395](https://github.com/MetaMask/snap-solana-wallet/pull/395))
+- Display origin param in confirmation screens ([#408](https://github.com/MetaMask/snap-solana-wallet/pull/408))
+- Add Swaps failling test case where we end up with only positive balance changes ([#398](https://github.com/MetaMask/snap-solana-wallet/pull/398))
+
+### Fixed
+
+- Spam filter was not triggered on failed transactions ([#399](https://github.com/MetaMask/snap-solana-wallet/pull/399))
+- Add space to "Advanced details" button ([#407](https://github.com/MetaMask/snap-solana-wallet/pull/407))
+- Replace viewbox on question mark image ([#404](https://github.com/MetaMask/snap-solana-wallet/pull/404))
+- Fix `onProtocolRequest` validation ([#403](https://github.com/MetaMask/snap-solana-wallet/pull/403))
+
 ## [1.31.2]
 
 ### Changed
@@ -630,7 +645,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.2...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.32.0...HEAD
+[1.32.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.2...v1.32.0
 [1.31.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.1...v1.31.2
 [1.31.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.0...v1.31.1
 [1.31.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.30.4...v1.31.0

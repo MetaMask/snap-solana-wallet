@@ -551,8 +551,8 @@ export class SolanaKeyring implements Keyring {
       // Determine the next signature for pagination
       const hasMore = startIndex + pagination.limit < allTransactions.length;
       const nextSignature = hasMore
-        ? (allTransactions[startIndex + pagination.limit]?.id as Signature) ??
-          null
+        ? ((allTransactions[startIndex + pagination.limit]?.id as Signature) ??
+          null)
         : null;
 
       return {

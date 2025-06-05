@@ -59,6 +59,7 @@ describe('render', () => {
       scope: Network.Testnet,
       account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       request: MOCK_SIGN_IN_REQUEST,
+      origin: TEST_ORIGIN,
     };
 
     const response = onKeyringRequest({
@@ -76,6 +77,7 @@ describe('render', () => {
         scope={Network.Testnet}
         preferences={mockPreferences}
         networkImage={SOL_IMAGE_SVG}
+        origin={TEST_ORIGIN}
       />,
     );
   });
