@@ -31,6 +31,7 @@ export async function render(
       params: { message: messageBase64 },
     },
     scope,
+    origin,
   } = request;
 
   const messageBytes = getBase64Codec().encode(messageBase64);
@@ -49,6 +50,7 @@ export async function render(
       scope={scope}
       locale={locale}
       networkImage={SOL_IMAGE_SVG}
+      origin={origin}
     />,
     {},
   );

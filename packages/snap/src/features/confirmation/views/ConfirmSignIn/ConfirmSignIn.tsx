@@ -37,6 +37,7 @@ export type ConfirmSignInProps = {
     requestId: string;
     resources: string[];
   }>;
+  origin: string;
   account: SolanaKeyringAccount;
   scope: Network;
   preferences: Preferences;
@@ -45,12 +46,14 @@ export type ConfirmSignInProps = {
 
 export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
   params,
+  origin,
   account,
   scope,
   preferences,
   networkImage,
 }) => {
   const translate = i18n(preferences.locale);
+  const originHostname = origin ? new URL(origin).hostname : null;
 
   const {
     domain,
@@ -93,7 +96,15 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
         ) : null}
 
         <Section>
-          <Row label={translate('confirmation.signIn.requestFrom')}>
+          {originHostname ? (
+            <Row
+              label={translate('confirmation.origin')}
+              tooltip={translate('confirmation.origin.tooltip')}
+            >
+              <Text>{originHostname}</Text>
+            </Row>
+          ) : null}
+          <Row label={translate('confirmation.signIn.domain')}>
             <Text>
               {domain ?? translate('confirmation.signIn.unknownDomain')}
             </Text>

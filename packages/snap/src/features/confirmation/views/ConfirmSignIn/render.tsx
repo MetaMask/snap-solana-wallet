@@ -28,6 +28,7 @@ export async function render(
   const {
     request: { params },
     scope,
+    origin,
   } = request;
 
   const preferences = await getPreferences();
@@ -39,6 +40,7 @@ export async function render(
       scope={scope}
       preferences={preferences}
       networkImage={SOL_IMAGE_SVG}
+      origin={origin}
     />,
     {},
   );

@@ -27,7 +27,7 @@ export function getErrorMessage(
   const { code } = error;
 
   if (!code) {
-    return 'transactionScan.errors.unknownError';
+    return translate('transactionScan.errors.unknownError');
   }
 
   const translationKey =
