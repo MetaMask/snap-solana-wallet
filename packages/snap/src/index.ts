@@ -108,9 +108,17 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
 
     validateOrigin(origin, request.method);
 
+    // This is a temporal fix to prevent the swap/bridge functionality breaking
+    // TODO: Remove this once changes in bridge-status-controller are in place
+    const updatedRequest = {
+      ...request,
+      // default to metamask.io if origin is not set
+      origin: 'origin' in request ? request.origin : 'https://metamask.io',
+    };
+
     return (await handleKeyringRequest(
       keyring,
-      request,
+      updatedRequest,
     )) as unknown as Promise<Json>;
   } catch (error: any) {
     let snapError = error;
