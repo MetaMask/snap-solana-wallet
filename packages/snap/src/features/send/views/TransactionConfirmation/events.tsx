@@ -1,5 +1,3 @@
-import { SolMethod } from '@metamask/keyring-api';
-
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import {
   resolveInterface,
@@ -137,25 +135,11 @@ async function onConfirmButtonClick({
   try {
     const account = await keyring.getAccountOrThrow(fromAccountId);
 
-    // Send the transaction message.
-    // It will be decoded on the other side, then signed and sent to the network.
-    // It MUST be signed on the other side, because the transaction message is stripped of its private keys during encoding, for security reasons.
-    // Fees can also be calculated on the other side from the decoded transaction message.
-    const response = await walletService.signAndSendTransaction(account, {
-      id: globalThis.crypto.randomUUID(),
+    const response = await walletService.signAndSendTransaction(
+      account,
+      transactionMessage,
       scope,
-      account: fromAccountId,
-      request: {
-        method: SolMethod.SignAndSendTransaction,
-        params: {
-          transaction: transactionMessage,
-          scope,
-          account: {
-            address: '', // Is unused
-          },
-        },
-      },
-    });
+    );
 
     signature = response.signature;
   } catch (error) {

@@ -26,12 +26,8 @@ export function getErrorMessage(
   const translate = i18n(preferences.locale);
   const { code } = error;
 
-  if (!code) {
-    return 'transactionScan.errors.unknownError';
-  }
-
   const translationKey =
-    ERROR_MESSAGES[code] ?? 'transactionScan.errors.unknownError';
+    (code && ERROR_MESSAGES[code]) ?? 'transactionScan.errors.unknownError';
 
   return translate(translationKey as keyof typeof translate);
 }

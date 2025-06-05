@@ -31,6 +31,8 @@ const dappPermissions = isDev
       // Protocol methods
       SolanaProtocolRequestMethod.GetGenesisHash,
       SolanaProtocolRequestMethod.GetLatestBlockhash,
+      // Client methods
+      ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
     ])
   : new Set([]);
 

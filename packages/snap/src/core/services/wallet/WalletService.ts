@@ -205,6 +205,7 @@ export class WalletService {
 
   /**
    * Signs and sends a transaction.
+   *
    * @param account - The account to sign and send the transaction.
    * @param transactionMessageBase64Encoded - The transaction message base64 encoded.
    * @param scope - The scope of the transaction.
