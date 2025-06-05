@@ -42,7 +42,7 @@ export class AnalyticsService {
 
   async trackEventTransactionSubmitted(
     account: SolanaKeyringAccount,
-    base64EncodedTransaction: string,
+    transactionMessageBase64Encoded: string,
     signature: string,
     scope: Network,
   ): Promise<void> {
@@ -50,7 +50,7 @@ export class AnalyticsService {
       `[📣 AnalyticsService] Tracking event transaction submitted`,
     );
 
-    assert(base64EncodedTransaction, Base64Struct);
+    assert(transactionMessageBase64Encoded, Base64Struct);
     // TODO: Implement
   }
 

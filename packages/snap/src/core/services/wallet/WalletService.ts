@@ -40,12 +40,12 @@ import type { SolanaConnection } from '../connection';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
 import type {
+  SolanaSignAndSendTransactionOptions,
   SolanaSignAndSendTransactionResponse,
   SolanaSignInRequest,
   SolanaWalletRequest,
 } from './structs';
 import {
-  SolanaSignAndSendTransactionRequestStruct,
   SolanaSignAndSendTransactionResponseStruct,
   SolanaSignInRequestStruct,
   type SolanaSignInResponse,
@@ -206,23 +206,21 @@ export class WalletService {
   /**
    * Signs and sends a transaction.
    * @param account - The account to sign and send the transaction.
-   * @param request - The request to sign and send a transaction.
+   * @param transactionMessageBase64Encoded - The transaction message base64 encoded.
+   * @param scope - The scope of the transaction.
+   * @param options - The options for the transaction.
+   * @param options.minContextSlot - The minimum context slot.
+   * @param options.preflightCommitment - The preflight commitment.
+   * @param options.maxRetries - The maximum number of retries.
+   * @param options.commitment - The commitment.
    * @returns A Promise that resolves to the signed transaction.
    */
   async signAndSendTransaction(
     account: SolanaKeyringAccount,
-    request: KeyringRequest,
+    transactionMessageBase64Encoded: string,
+    scope: Network,
+    options?: SolanaSignAndSendTransactionOptions,
   ): Promise<SolanaSignAndSendTransactionResponse> {
-    assert(request.request, SolanaSignAndSendTransactionRequestStruct);
-    assert(request.scope, NetworkStruct);
-
-    const {
-      request: {
-        params: { transaction: base64EncodedTransaction, options },
-      },
-      scope,
-    } = request;
-
     const signConfig: DecompileTransactionMessageFetchingLookupTablesConfig =
       options?.minContextSlot
         ? {
@@ -232,7 +230,7 @@ export class WalletService {
 
     const partiallySignedTransaction =
       await this.#transactionHelper.partiallySignBase64String(
-        base64EncodedTransaction,
+        transactionMessageBase64Encoded,
         account,
         scope,
         signConfig,
@@ -283,7 +281,7 @@ export class WalletService {
           method: ScheduleBackgroundEventMethod.OnTransactionSubmitted,
           params: {
             accountId: account.id,
-            base64EncodedTransaction,
+            transactionMessageBase64Encoded,
             signature,
             scope,
           },

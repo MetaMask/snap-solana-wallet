@@ -1,10 +1,14 @@
-import { object, string } from '@metamask/superstruct';
+import { literal } from '@metamask/snaps-sdk';
+import { nullable, number, object, string, union } from '@metamask/superstruct';
 
-import { TransactionIntentStruct } from '../../domain';
-import { Base64Struct } from '../../validation/structs';
+import { SolanaSignAndSendTransactionInputStruct } from '../../services/wallet/structs';
+import { ClientRequestMethod } from './types';
 
-export const SignAndSendTransactionWithIntentParamsStruct = object({
-  intent: TransactionIntentStruct,
-  transaction: Base64Struct,
-  signature: string(),
+export const SignAndSendTransactionWithoutConfirmationRequestStruct = object({
+  id: nullable(union([string(), number()])),
+  jsonrpc: literal('2.0'),
+  method: literal(
+    ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
+  ),
+  params: SolanaSignAndSendTransactionInputStruct,
 });

@@ -4,38 +4,28 @@ import {
   type Json,
   type JsonRpcRequest,
 } from '@metamask/snaps-sdk';
-import type { Struct } from '@metamask/superstruct';
-import { assert, enums } from '@metamask/superstruct';
+import { assert } from '@metamask/superstruct';
 
-import type {
-  SignAndSendTransactionWithoutConfirmationUseCase,
-  UseCase,
-} from '../../use-cases';
+import type { WalletService } from '../../services/wallet/WalletService';
 import type { ILogger } from '../../utils/logger';
+import type { SolanaKeyring } from '../onKeyringRequest/Keyring';
 import { ClientRequestMethod } from './types';
-import { SignAndSendTransactionWithIntentParamsStruct } from './validation';
+import { SignAndSendTransactionWithoutConfirmationRequestStruct } from './validation';
 
 export class ClientRequestHandler {
-  readonly #methodToUseCase: Record<ClientRequestMethod, UseCase>;
+  readonly #keyring: SolanaKeyring;
 
-  readonly #methodToParamsStruct: Record<ClientRequestMethod, Struct<any, any>>;
+  readonly #walletService: WalletService;
 
   readonly #logger: ILogger;
 
   constructor(
-    signAndSendTransactionWithIntentUseCase: SignAndSendTransactionWithoutConfirmationUseCase,
+    keyring: SolanaKeyring,
+    walletService: WalletService,
     logger: ILogger,
   ) {
-    this.#methodToUseCase = {
-      [ClientRequestMethod.SignAndSendTransactionWithoutConfirmation]:
-        signAndSendTransactionWithIntentUseCase,
-    };
-
-    this.#methodToParamsStruct = {
-      [ClientRequestMethod.SignAndSendTransactionWithoutConfirmation]:
-        SignAndSendTransactionWithIntentParamsStruct,
-    };
-
+    this.#keyring = keyring;
+    this.#walletService = walletService;
     this.#logger = logger;
   }
 
@@ -51,27 +41,47 @@ export class ClientRequestHandler {
   async handle(request: JsonRpcRequest): Promise<Json> {
     this.#logger.log('[onClientRequest] Handling client request...', request);
 
-    const { method, params } = request;
+    const { method } = request;
 
-    // Validate the method
-    try {
-      assert(method, enums(Object.values(ClientRequestMethod)));
-    } catch (error) {
-      const errorToThrow = new MethodNotFoundError() as Error;
-      errorToThrow.cause = error;
-      throw errorToThrow;
+    switch (method) {
+      case ClientRequestMethod.SignAndSendTransactionWithoutConfirmation:
+        return this.#handleSignAndSendTransactionWithoutConfirmation(request);
+      default:
+        throw new MethodNotFoundError() as Error;
     }
+  }
 
-    // Validate the params
+  async #handleSignAndSendTransactionWithoutConfirmation(
+    request: JsonRpcRequest,
+  ): Promise<Json> {
     try {
-      assert(params, this.#methodToParamsStruct[method as ClientRequestMethod]);
+      assert(request, SignAndSendTransactionWithoutConfirmationRequestStruct);
     } catch (error) {
       const errorToThrow = new InvalidParamsError() as Error;
       errorToThrow.cause = error;
       throw errorToThrow;
     }
 
-    const useCase = this.#methodToUseCase[method];
-    return useCase.execute(params);
+    const {
+      params: {
+        transaction: base64EncodedTransaction,
+        options,
+        account: { address },
+        scope,
+      },
+    } = request;
+
+    const allAccounts = await this.#keyring.listAccounts();
+    const account = allAccounts.find((item) => item.address === address);
+    if (!account) {
+      throw new InvalidParamsError(`Account not found: ${address}`) as Error;
+    }
+
+    return this.#walletService.signAndSendTransaction(
+      account,
+      base64EncodedTransaction,
+      scope,
+      options,
+    );
   }
 }

@@ -82,7 +82,11 @@ const SolanaSignAndSendTransactionOptionsStruct = type({
   maxRetries: optional(number()),
 });
 
-const SolanaSignAndSendTransactionInputStruct = type({
+export type SolanaSignAndSendTransactionOptions = Infer<
+  typeof SolanaSignAndSendTransactionOptionsStruct
+>;
+
+export const SolanaSignAndSendTransactionInputStruct = type({
   ...SolanaSignTransactionInputStruct.schema,
   scope: ScopeStringStruct,
   options: optional(SolanaSignAndSendTransactionOptionsStruct),

@@ -186,6 +186,17 @@ describe('WalletService', () => {
           .spyOn(mockTransactionHelper, 'partiallySignBase64String')
           .mockResolvedValue(signedTransaction);
 
+        jest
+          .spyOn(mockTransactionHelper, 'waitForTransactionCommitment')
+          .mockResolvedValue({
+            transaction: {
+              signatures: [signature],
+              message: {
+                accountKeys: [fromAccount.address],
+              },
+            },
+          } as any);
+
         jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
           ...mockConnection.getRpc(scope),
           getMultipleAccounts: jest.fn().mockReturnValue({
@@ -230,20 +241,11 @@ describe('WalletService', () => {
 
       describe(`Scenario ${name}: signAndSendTransaction`, () => {
         it('returns the signature', async () => {
-          const request = wrapKeyringRequest({
-            method: SolMethod.SignAndSendTransaction,
-            params: {
-              account: {
-                address: fromAccount.address,
-              },
-              transaction: transactionMessageBase64Encoded,
-              scope,
-            },
-          });
-
           const result = await service.signAndSendTransaction(
             fromAccount,
-            request,
+            transactionMessageBase64Encoded,
+            scope,
+            undefined,
           );
 
           expect(result).toStrictEqual({
@@ -251,31 +253,13 @@ describe('WalletService', () => {
           });
         });
 
-        it('rejects invalid requests', async () => {
-          const request = wrapKeyringRequest({
-            method: SolMethod.SignAndSendTransaction,
-            params: {},
-          });
-
-          await expect(
-            service.signAndSendTransaction(fromAccount, request),
-          ).rejects.toThrow(/At path/u);
-        });
-
         it('defaults commitment to "confirmed" if not provided', async () => {
-          const request = wrapKeyringRequest({
-            method: SolMethod.SignAndSendTransaction,
-            params: {
-              account: {
-                address: fromAccount.address,
-              },
-              transaction: transactionMessageBase64Encoded,
-              scope,
-              options: {},
-            },
-          });
-
-          await service.signAndSendTransaction(fromAccount, request);
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            {},
+          );
 
           expect(
             mockTransactionHelper.waitForTransactionCommitment,
@@ -287,21 +271,14 @@ describe('WalletService', () => {
         });
 
         it('uses the provided commitment if provided', async () => {
-          const request = wrapKeyringRequest({
-            method: SolMethod.SignAndSendTransaction,
-            params: {
-              account: {
-                address: fromAccount.address,
-              },
-              transaction: transactionMessageBase64Encoded,
-              scope,
-              options: {
-                commitment: 'finalized',
-              },
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            {
+              commitment: 'finalized',
             },
-          });
-
-          await service.signAndSendTransaction(fromAccount, request);
+          );
 
           expect(
             mockTransactionHelper.waitForTransactionCommitment,
@@ -313,21 +290,14 @@ describe('WalletService', () => {
         });
 
         it('defaults commitment to "confirmed" if "processed" is provided', async () => {
-          const request = wrapKeyringRequest({
-            method: SolMethod.SignAndSendTransaction,
-            params: {
-              account: {
-                address: fromAccount.address,
-              },
-              transaction: transactionMessageBase64Encoded,
-              scope,
-              options: {
-                commitment: 'processed',
-              },
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            {
+              commitment: 'processed',
             },
-          });
-
-          await service.signAndSendTransaction(fromAccount, request);
+          );
 
           expect(
             mockTransactionHelper.waitForTransactionCommitment,

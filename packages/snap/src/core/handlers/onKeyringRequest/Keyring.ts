@@ -460,8 +460,15 @@ export class SolanaKeyring implements Keyring {
     }
 
     switch (method) {
-      case SolMethod.SignAndSendTransaction:
-        return this.#walletService.signAndSendTransaction(account, request);
+      case SolMethod.SignAndSendTransaction: {
+        const { transaction: base64EncodedTransaction, options } = params;
+        return this.#walletService.signAndSendTransaction(
+          account,
+          base64EncodedTransaction,
+          scope,
+          options,
+        );
+      }
       case SolMethod.SignTransaction:
         return this.#walletService.signTransaction(account, request);
       case SolMethod.SignMessage:
