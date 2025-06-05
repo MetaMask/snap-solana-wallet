@@ -1,5 +1,5 @@
+import type { Preferences } from '../../../../core/domain';
 import type { TransactionScanError } from '../../../../core/services/transaction-scan/types';
-import type { Preferences } from '../../../../core/types/snap';
 import { i18n } from '../../../../core/utils/i18n';
 
 /**

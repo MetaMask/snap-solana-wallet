@@ -8,7 +8,7 @@ import {
   state,
   transactionsService,
 } from '../../../../snapContext';
-import { Network } from '../../../constants/solana';
+import { Network } from '../../../domain';
 import logger from '../../../utils/logger';
 
 /**

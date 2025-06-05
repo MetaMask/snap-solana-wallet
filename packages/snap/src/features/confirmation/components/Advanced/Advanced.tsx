@@ -1,6 +1,6 @@
 import { Box, Button, Icon, type SnapComponent } from '@metamask/snaps-sdk/jsx';
 
-import type { Network } from '../../../../core/constants/solana';
+import type { Network } from '../../../../core/domain';
 import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
 import { ConfirmSignAndSendTransactionFormNames } from '../../views/ConfirmTransactionRequest/events';

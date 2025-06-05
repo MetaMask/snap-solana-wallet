@@ -4,17 +4,15 @@ import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
-import { KnownCaip19Id, Network } from '../../constants/solana';
+import { KnownCaip19Id, Network } from '../../domain';
 import type { Serializable } from '../../serialization/types';
-import {
-  SOLANA_MOCK_SPL_TOKENS,
-  SOLANA_MOCK_TOKEN,
-  SOLANA_MOCK_TOKEN_METADATA,
-} from '../../test/mocks/solana-assets';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
-} from '../../test/mocks/solana-keyring-accounts';
+  SOLANA_MOCK_SPL_TOKENS,
+  SOLANA_MOCK_TOKEN,
+  SOLANA_MOCK_TOKEN_METADATA,
+} from '../../test/mocks';
 import logger from '../../utils/logger';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';

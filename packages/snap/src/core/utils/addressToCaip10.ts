@@ -1,4 +1,4 @@
-import type { Caip10Address, Network } from '../constants/solana';
+import type { Caip10Address, Network } from '../domain';
 
 /**
  * Converts a Solana address to a CAIP-10 address.

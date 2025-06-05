@@ -18,8 +18,8 @@ import {
   pipe,
 } from '@solana/kit';
 
-import { PromiseAny } from '../utils/PromiseAny';
-import type { Base64Struct } from '../validation/structs';
+import { PromiseAny } from '../../utils/PromiseAny';
+import type { Base64Struct } from '../../validation/structs';
 
 /**
  * Encodes a compilable transaction message to a base64 string.

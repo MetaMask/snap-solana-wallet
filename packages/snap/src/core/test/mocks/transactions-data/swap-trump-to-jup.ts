@@ -9,7 +9,7 @@ import type {
 } from '@solana/kit';
 import { address, blockhash, lamports } from '@solana/kit';
 
-import type { SolanaTransaction } from '../../../types/solana';
+import type { SolanaTransaction } from '../../../domain';
 
 // This structure is based on the getTransaction RPC response,
 // so the SolanaTransaction is nested under the "result" property.

@@ -2,7 +2,7 @@ import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
 import { CaipAssetTypeStruct, parseCaipAssetType } from '@metamask/utils';
 
-import { Network } from '../../constants/solana';
+import { Network } from '../../domain';
 import type { ConfigProvider } from '../../services/config';
 import { NftService } from '../../services/nft/NftService';
 import { buildUrl } from '../../utils/buildUrl';

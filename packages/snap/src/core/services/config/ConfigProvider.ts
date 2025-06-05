@@ -9,7 +9,7 @@ import {
   string,
 } from '@metamask/superstruct';
 
-import { Network, Networks } from '../../constants/solana';
+import { Network, Networks } from '../../domain';
 import { UrlStruct } from '../../validation/structs';
 
 const ENVIRONMENT_TO_ACTIVE_NETWORKS = {

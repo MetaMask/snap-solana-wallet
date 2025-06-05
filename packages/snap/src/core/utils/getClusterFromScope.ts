@@ -1,4 +1,4 @@
-import { Network } from '../constants/solana';
+import { Network } from '../domain';
 
 /**
  * Returns the cluster name from the given CAIP-2 scope.

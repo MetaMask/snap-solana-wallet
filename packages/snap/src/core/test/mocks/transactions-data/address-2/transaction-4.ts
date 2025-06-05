@@ -7,7 +7,7 @@ import type {
 } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 
-import type { SolanaTransaction } from '../../../../types/solana';
+import type { SolanaTransaction } from '../../../../domain';
 
 export const ADDRESS_2_TRANSACTION_4_DATA: SolanaTransaction = {
   blockTime: 1736778620n as UnixTimestamp,

@@ -1,7 +1,7 @@
 import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
-import { Icon, Text, Tooltip, Box } from '@metamask/snaps-sdk/jsx';
+import { Box, Icon, Text, Tooltip } from '@metamask/snaps-sdk/jsx';
 
-import type { Preferences } from '../../../../core/types/snap';
+import type { Preferences } from '../../../../core/domain';
 import { i18n } from '../../../../core/utils/i18n';
 
 export const EstimatedChangesHeader: SnapComponent<{

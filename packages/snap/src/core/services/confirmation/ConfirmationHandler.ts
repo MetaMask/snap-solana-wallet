@@ -7,8 +7,8 @@ import {
   DEFAULT_CONFIRMATION_CONTEXT,
   render as renderConfirmTransactionRequest,
 } from '../../../features/confirmation/views/ConfirmTransactionRequest/render';
+import type { SolanaKeyringAccount } from '../../domain';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import type { SolanaKeyringRequest } from '../../handlers/onKeyringRequest/structs';
 import {
   SolanaSignAndSendTransactionRequestStruct,

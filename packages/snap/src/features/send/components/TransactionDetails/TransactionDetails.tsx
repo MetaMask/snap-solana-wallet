@@ -8,7 +8,7 @@ import {
   Value,
 } from '@metamask/snaps-sdk/jsx';
 
-import { Networks } from '../../../../core/constants/solana';
+import { Networks } from '../../../../core/domain';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCrypto } from '../../../../core/utils/formatCrypto';
 import { formatFiat } from '../../../../core/utils/formatFiat';

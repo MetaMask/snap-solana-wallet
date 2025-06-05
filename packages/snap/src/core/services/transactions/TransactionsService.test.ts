@@ -2,7 +2,7 @@ import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { address as asAddress } from '@solana/kit';
 
-import { Network } from '../../constants/solana';
+import { Network } from '../../domain';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,

@@ -1,4 +1,4 @@
-import { Network } from '../../constants/solana';
+import { Network } from '../../domain';
 import type { ConfigProvider } from '../../services/config';
 import { mockLogger } from '../../services/mocks/logger';
 import { SecurityAlertsApiClient } from './SecurityAlertsApiClient';

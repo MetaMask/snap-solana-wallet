@@ -1,4 +1,4 @@
-import type { Network } from '../constants/solana';
+import type { Network } from '../domain';
 
 /**
  * Converts a token address to a CAIP-19 identifier.

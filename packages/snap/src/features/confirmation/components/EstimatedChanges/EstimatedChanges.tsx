@@ -5,12 +5,13 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
+import type { Preferences } from '../../../../core/domain';
 import type {
   TransactionScanEstimatedChanges,
   TransactionScanStatus,
 } from '../../../../core/services/transaction-scan/types';
-import type { FetchStatus, Preferences } from '../../../../core/types/snap';
 import { i18n } from '../../../../core/utils/i18n';
+import type { FetchStatus } from '../../../../types';
 import { AssetChange } from '../AssetChange/AssetChange';
 import { EstimatedChangesHeader } from './EstimatedChangesHeader';
 import { EstimatedChangesSkeleton } from './EstimatedChangesSkeleton';

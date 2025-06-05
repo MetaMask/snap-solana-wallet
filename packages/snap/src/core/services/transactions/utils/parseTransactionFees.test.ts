@@ -1,4 +1,4 @@
-import { KnownCaip19Id, Network, Networks } from '../../../constants/solana';
+import { KnownCaip19Id, Network, Networks } from '../../../domain';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { EXPECTED_SWAP_USDC_TO_COBIE_DATA } from '../../../test/mocks/transactions-data/swap-usdc-to-cobie';

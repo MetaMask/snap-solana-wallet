@@ -1,4 +1,4 @@
-import type { Network } from '../../constants/solana';
+import type { Network } from '../../domain';
 
 export type SignatureMapping = {
   // For bulk fetching: All signatures for a network

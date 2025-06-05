@@ -6,7 +6,7 @@ import type { Address, Signature } from '@solana/kit';
 import { unset } from 'lodash';
 
 import type { SpotPrices } from '../../clients/price-api/types';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
+import type { SolanaKeyringAccount } from '../../domain';
 import { deserialize } from '../../serialization/deserialize';
 import { serialize } from '../../serialization/serialize';
 import type { Serializable } from '../../serialization/types';

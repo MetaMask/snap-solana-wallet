@@ -5,8 +5,8 @@ import {
   KnownCaip19Id,
   LAMPORTS_PER_SOL,
   Network,
-} from '../../../../core/constants/solana';
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
+} from '../../../../core/domain';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks';
 import { solToLamports } from '../../../../core/utils/conversion';
 import { updateInterface } from '../../../../core/utils/interface';
 import { keyring } from '../../../../snapContext';

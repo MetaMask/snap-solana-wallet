@@ -10,14 +10,14 @@ import {
   Tooltip,
 } from '@metamask/snaps-sdk/jsx';
 
-import type { Network } from '../../../../core/constants/solana';
-import { Networks } from '../../../../core/constants/solana';
-import type { FetchStatus, Preferences } from '../../../../core/types/snap';
+import type { Network, Preferences } from '../../../../core/domain';
+import { Networks } from '../../../../core/domain';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCrypto } from '../../../../core/utils/formatCrypto';
 import { formatFiat } from '../../../../core/utils/formatFiat';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
+import type { FetchStatus } from '../../../../types';
 
 type TransactionDetailsProps = {
   accountAddress: string | null;

@@ -7,7 +7,7 @@ import {
   type Rpc,
 } from '@solana/kit';
 
-import { MOCK_EXECUTION_SCENARIOS } from '../services/execution/mocks/scenarios';
+import { MOCK_EXECUTION_SCENARIOS } from '../../test/mocks';
 import {
   fromBase64StringToCompilableTransactionMessage,
   fromBase64StringToTransaction,

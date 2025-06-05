@@ -24,7 +24,7 @@ import {
   type MaybeEncodedAccount,
 } from '@solana/kit';
 
-import { type Network } from '../../../core/constants/solana';
+import { type Network } from '../../../core/domain';
 import type { SolanaConnection } from '../../../core/services/connection';
 import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
 import { deriveSolanaKeypair } from '../../../core/utils/deriveSolanaKeypair';

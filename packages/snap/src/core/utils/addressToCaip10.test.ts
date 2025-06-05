@@ -1,4 +1,4 @@
-import { Network } from '../constants/solana';
+import { Network } from '../domain';
 import { addressToCaip10 } from './addressToCaip10';
 
 describe('addressToCaip10', () => {

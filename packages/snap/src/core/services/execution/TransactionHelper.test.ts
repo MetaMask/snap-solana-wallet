@@ -7,18 +7,20 @@ import {
   isTransactionMessageWithBlockhashLifetime,
 } from '@solana/kit';
 
-import { Network } from '../../constants/solana';
-import { fromBytesToCompilableTransactionMessage } from '../../sdk-extensions/codecs';
 import {
+  fromBytesToCompilableTransactionMessage,
   isTransactionMessageWithComputeUnitLimitInstruction,
   isTransactionMessageWithComputeUnitPriceInstruction,
   isTransactionMessageWithFeePayer,
-} from '../../sdk-extensions/transaction-messages';
-import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
+  Network,
+} from '../../domain';
+import {
+  deriveSolanaKeypairMock,
+  MOCK_EXECUTION_SCENARIO_SEND_SOL,
+  MOCK_EXECUTION_SCENARIOS,
+} from '../../test/mocks';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
-import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
-import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from './mocks/scenarios/sendSol';
 import { TransactionHelper } from './TransactionHelper';
 
 jest.mock('@solana/kit', () => ({

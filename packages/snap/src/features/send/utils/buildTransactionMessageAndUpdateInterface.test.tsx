@@ -1,11 +1,11 @@
 /* eslint-disable camelcase */
 
-import { KnownCaip19Id, Network } from '../../../core/constants/solana';
-import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../../../core/services/execution/mocks/scenarios/sendSol';
+import { KnownCaip19Id, Network } from '../../../core/domain';
 import {
+  MOCK_EXECUTION_SCENARIO_SEND_SOL,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
-} from '../../../core/test/mocks/solana-keyring-accounts';
+} from '../../../core/test/mocks';
 import {
   getInterfaceContextOrThrow,
   updateInterface,

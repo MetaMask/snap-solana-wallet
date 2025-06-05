@@ -6,7 +6,7 @@ import {
   Heading,
 } from '@metamask/snaps-sdk/jsx';
 
-import { Networks } from '../../../../core/constants/solana';
+import { Networks } from '../../../../core/domain';
 import { i18n } from '../../../../core/utils/i18n';
 import { Advanced } from '../../components/Advanced/Advanced';
 import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';

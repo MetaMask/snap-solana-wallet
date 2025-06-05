@@ -9,8 +9,8 @@ import {
   KnownCaip19Id,
   Network,
   TOKEN_2022_PROGRAM_ADDRESS,
-} from '../../constants/solana';
-import type { SolanaAsset } from '../../types/solana';
+  type SolanaAsset,
+} from '../../domain';
 
 export const SOLANA_MOCK_TOKEN: SolanaAsset = {
   scope: Network.Localnet,

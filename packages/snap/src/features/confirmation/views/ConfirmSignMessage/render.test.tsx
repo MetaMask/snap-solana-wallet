@@ -2,15 +2,15 @@ import type { KeyringRequest } from '@metamask/keyring-api';
 import { KeyringRpcMethod } from '@metamask/keyring-api';
 import { installSnap } from '@metamask/snaps-jest';
 
-import { Network } from '../../../../core/constants/solana';
+import type { Preferences } from '../../../../core/domain';
+import { Network } from '../../../../core/domain';
 import type { SolanaKeyringRequest } from '../../../../core/handlers/onKeyringRequest/structs';
 import { MOCK_SIGN_MESSAGE_REQUEST } from '../../../../core/services/wallet/mocks';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../../core/test/mocks/solana-keyring-accounts';
 import type { MockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../../../core/test/utils';
-import type { Preferences } from '../../../../core/types/snap';
 import { ConfirmSignMessage } from './ConfirmSignMessage';
 
 describe('render', () => {

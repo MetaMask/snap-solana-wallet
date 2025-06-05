@@ -2,7 +2,7 @@ import type { Lamports } from '@solana/kit';
 import { lamports, pipe } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 
-import { MICRO_LAMPORTS_PER_LAMPORTS } from '../../../core/constants/solana';
+import { MICRO_LAMPORTS_PER_LAMPORTS } from '../../../core/domain';
 import type { ISendTransactionBuilder } from './ISendTransactionBuilder';
 
 const BASE_FEE = lamports(5000n);

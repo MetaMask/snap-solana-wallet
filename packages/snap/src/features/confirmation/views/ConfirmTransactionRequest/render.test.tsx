@@ -3,7 +3,8 @@ import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
 import { installSnap } from '@metamask/snaps-jest';
 
 import { MOCK_SPOT_PRICES } from '../../../../core/clients/price-api/mocks/spot-prices';
-import { KnownCaip19Id, Network } from '../../../../core/constants/solana';
+import type { Preferences } from '../../../../core/domain';
+import { KnownCaip19Id, Network } from '../../../../core/domain';
 import type { SolanaKeyringRequest } from '../../../../core/handlers/onKeyringRequest/structs';
 import {
   MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE,
@@ -17,11 +18,10 @@ import {
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
-} from '../../../../core/test/mocks/solana-keyring-accounts';
+} from '../../../../core/test/mocks';
 import type { MockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../../../core/test/mocks/startMockSolanaRpc';
 import { TEST_ORIGIN } from '../../../../core/test/utils';
-import type { Preferences } from '../../../../core/types/snap';
 import { ConfirmTransactionRequest } from './ConfirmTransactionRequest';
 import { DEFAULT_CONFIRMATION_CONTEXT } from './render';
 import type { ConfirmTransactionRequestContext } from './types';

@@ -9,11 +9,11 @@ import type {
   UpdateInterfaceResult,
 } from '@metamask/snaps-sdk';
 
+import type { Preferences } from '../domain';
 import type { ScheduleBackgroundEventMethod } from '../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { deserialize } from '../serialization/deserialize';
 import { serialize } from '../serialization/serialize';
 import type { Serializable } from '../serialization/types';
-import type { Preferences } from '../types/snap';
 
 export const SEND_FORM_INTERFACE_NAME = 'send-form';
 export const CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME =

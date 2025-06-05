@@ -13,7 +13,7 @@ import {
   union,
 } from '@metamask/superstruct';
 
-import { Network } from '../../constants/solana';
+import { Network } from '../../domain';
 import { Base58Struct, Base64Struct } from '../../validation/structs';
 
 /**

@@ -3,6 +3,12 @@ import { MOCK_EXECUTION_SCENARIO_NO_OP_WITH_HELLO_WORLD_DATA } from './noOpWithH
 import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from './sendSol';
 import { MOCK_EXECUTION_SCENARIO_SEND_SPL_TOKEN } from './sendSplToken';
 
+export * from './lifiSwap';
+export * from './noOpWithHelloWorldData';
+export * from './sendSol';
+export * from './sendSplToken';
+export * from './types';
+
 export const MOCK_EXECUTION_SCENARIOS = [
   MOCK_EXECUTION_SCENARIO_LIFI_SWAP,
   MOCK_EXECUTION_SCENARIO_SEND_SOL,
