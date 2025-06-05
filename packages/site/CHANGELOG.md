@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.32.0]
 
-### Uncategorized
+### Added
 
-- [NNT-395] feat: pass origin param to blockaid ([#395](https://github.com/MetaMask/snap-solana-wallet/pull/395))
+- Add `origin` param to Keyring methods ([#395](https://github.com/MetaMask/snap-solana-wallet/pull/395))
 
 ## [1.31.0]
 
