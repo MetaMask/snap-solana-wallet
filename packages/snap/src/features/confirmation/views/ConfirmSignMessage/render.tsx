@@ -1,7 +1,6 @@
 import { assert } from '@metamask/superstruct';
 import { getBase64Codec, getUtf8Codec } from '@solana/kit';
 
-import type { SolanaKeyringAccount } from '../../../../core/handlers/onKeyringRequest/Keyring';
 import type { SolanaKeyringRequest } from '../../../../core/handlers/onKeyringRequest/structs';
 import { SolanaSignMessageRequestStruct } from '../../../../core/services/wallet/structs';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
@@ -11,6 +10,7 @@ import {
   getPreferences,
   showDialog,
 } from '../../../../core/utils/interface';
+import type { SolanaKeyringAccount } from '../../../../domain';
 import { ConfirmSignMessage } from './ConfirmSignMessage';
 
 /**

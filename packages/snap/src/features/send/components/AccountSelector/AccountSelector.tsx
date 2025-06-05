@@ -12,7 +12,6 @@ import {
   SolanaCaip19Tokens,
   type Network,
 } from '../../../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../../../core/handlers/onKeyringRequest/Keyring';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCrypto } from '../../../../core/utils/formatCrypto';
 import { formatFiat } from '../../../../core/utils/formatFiat';
@@ -20,6 +19,7 @@ import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { truncateAddress } from '../../../../core/utils/truncateAddress';
+import type { SolanaKeyringAccount } from '../../../../domain';
 
 type AccountSelectorProps = {
   name: string;

@@ -1,8 +1,8 @@
 import type { Transaction } from '@metamask/keyring-api';
 import { assert } from '@metamask/superstruct';
 
+import type { SolanaKeyringAccount } from '../../../domain';
 import type { Network } from '../../constants/solana';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import logger from '../../utils/logger';
 import { Base64Struct } from '../../validation/structs';
 

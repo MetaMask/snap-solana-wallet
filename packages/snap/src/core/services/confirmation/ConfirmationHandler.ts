@@ -1,6 +1,7 @@
 import { SolMethod } from '@metamask/keyring-api';
 import { assert, union } from '@metamask/superstruct';
 
+import type { SolanaKeyringAccount } from '../../../domain';
 import { render as renderConfirmSignIn } from '../../../features/confirmation/views/ConfirmSignIn/render';
 import { render as renderConfirmSignMessage } from '../../../features/confirmation/views/ConfirmSignMessage/render';
 import {
@@ -8,7 +9,6 @@ import {
   render as renderConfirmTransactionRequest,
 } from '../../../features/confirmation/views/ConfirmTransactionRequest/render';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import type { SolanaKeyringRequest } from '../../handlers/onKeyringRequest/structs';
 import {
   SolanaSignAndSendTransactionRequestStruct,
