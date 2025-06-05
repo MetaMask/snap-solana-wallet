@@ -259,7 +259,6 @@ export const AccountRow = ({
         id: requestId,
         scope: network,
         account: account.id,
-        origin: 'https://example.com',
         request: {
           method: SolMethod.SignIn,
           params,

@@ -40,7 +40,7 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
 }) => {
   const translate = i18n(locale);
   const { address } = account;
-  const originHostname = new URL(origin).hostname;
+  const originHostname = origin ? new URL(origin).hostname : null;
   const addressCaip10 = addressToCaip10(scope, address);
 
   return (
@@ -65,17 +65,19 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
         </Section>
 
         <Section>
-          <Box alignment="space-between" direction="horizontal">
+          {originHostname ? (
             <Box alignment="space-between" direction="horizontal">
-              <Text fontWeight="medium" color="alternative">
-                {translate('confirmation.origin')}
-              </Text>
-              <Tooltip content={translate('confirmation.origin.tooltip')}>
-                <Icon name="question" color="muted" />
-              </Tooltip>
+              <Box alignment="space-between" direction="horizontal" center>
+                <Text fontWeight="medium" color="alternative">
+                  {translate('confirmation.origin')}
+                </Text>
+                <Tooltip content={translate('confirmation.origin.tooltip')}>
+                  <Icon name="question" color="muted" />
+                </Tooltip>
+              </Box>
+              <Text>{originHostname}</Text>
             </Box>
-            <Text>{originHostname}</Text>
-          </Box>
+          ) : null}
           <Box alignment="space-between" direction="horizontal">
             <Text fontWeight="medium" color="alternative">
               {translate('confirmation.account')}

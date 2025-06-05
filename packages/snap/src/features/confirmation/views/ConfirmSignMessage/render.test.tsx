@@ -74,6 +74,7 @@ describe('render', () => {
         scope={Network.Testnet}
         locale={'en'}
         networkImage={SOL_IMAGE_SVG}
+        origin={TEST_ORIGIN}
       />,
     );
   });

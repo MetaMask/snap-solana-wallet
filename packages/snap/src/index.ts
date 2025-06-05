@@ -18,6 +18,7 @@ import {
 import { assert, enums } from '@metamask/superstruct';
 import BigNumber from 'bignumber.js';
 
+import { KeyringRpcMethod } from '@metamask/keyring-api';
 import { onAssetHistoricalPrice as onAssetHistoricalPriceHandler } from './core/handlers/onAssetHistoricalPrice/onAssetHistoricalPrice';
 import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
 import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';
@@ -107,6 +108,12 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
     logger.log('[🔑 onKeyringRequest]', request.method, request);
 
     validateOrigin(origin, request.method);
+
+    // This is a temporal fix to prevent the swap/bridge functionality breaking
+    // TODO: Remove this once changes in bridge-status-controller are in place
+    if (request.method === KeyringRpcMethod.SubmitRequest && request.params && !('origin' in request.params)) {
+      (request.params as Record<string, Json>).origin = 'https://metamask.io';
+    }
 
     return (await handleKeyringRequest(
       keyring,

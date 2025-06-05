@@ -46,6 +46,7 @@ describe('render', () => {
     tokenPrices: mockSpotPrices,
     tokenPricesFetchStatus: 'fetched',
     scanFetchStatus: 'fetched',
+    origin: TEST_ORIGIN,
   };
 
   beforeAll(() => {

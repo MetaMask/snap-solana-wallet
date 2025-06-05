@@ -53,7 +53,7 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
   networkImage,
 }) => {
   const translate = i18n(preferences.locale);
-  const originHostname = new URL(origin).hostname;
+  const originHostname = origin ? new URL(origin).hostname : null;
 
   const {
     domain,
@@ -96,13 +96,14 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
         ) : null}
 
         <Section>
-          <Row
-            label={translate('confirmation.origin')}
-            tooltip={translate('confirmation.origin.tooltip')}
-          >
-            <Text>{originHostname}</Text>
-          </Row>
-
+          {originHostname ? (
+            <Row
+              label={translate('confirmation.origin')}
+              tooltip={translate('confirmation.origin.tooltip')}
+            >
+              <Text>{originHostname}</Text>
+            </Row>
+          ) : null}
           <Row label={translate('confirmation.signIn.domain')}>
             <Text>
               {domain ?? translate('confirmation.signIn.unknownDomain')}

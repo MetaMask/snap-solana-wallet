@@ -42,7 +42,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 }) => {
   const { currency, locale } = preferences;
   const translate = i18n(locale);
-  const originHostname = new URL(origin).hostname;
+  const originHostname = origin ? new URL(origin).hostname : null;
 
   const pricesFetching = fetchingPricesStatus === 'fetching';
   const pricesError = fetchingPricesStatus === 'error';
@@ -54,18 +54,22 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 
   return (
     <Section>
-      <Box alignment="space-between" direction="horizontal">
-        <Box alignment="space-between" direction="horizontal">
-          <Text fontWeight="medium" color="alternative">
-            {translate('confirmation.origin')}
-          </Text>
-          <Tooltip content={translate('confirmation.origin.tooltip')}>
-            <Icon name="question" color="muted" />
-          </Tooltip>
+      {originHostname ? (
+        <Box>
+          <Box alignment="space-between" direction="horizontal">
+            <Box alignment="space-between" direction="horizontal" center>
+              <Text fontWeight="medium" color="alternative">
+                {translate('confirmation.origin')}
+              </Text>
+              <Tooltip content={translate('confirmation.origin.tooltip')}>
+                <Icon name="question" color="muted" />
+              </Tooltip>
+            </Box>
+            <Text>{originHostname}</Text>
+          </Box>
+          <Box>{null}</Box>
         </Box>
-        <Text>{originHostname}</Text>
-      </Box>
-      <Box>{null}</Box>
+      ) : null}
       <Box alignment="space-between" direction="horizontal">
         <Text fontWeight="medium" color="alternative">
           {translate('confirmation.account')}

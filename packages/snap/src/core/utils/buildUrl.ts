@@ -51,15 +51,3 @@ export function buildUrl(params: BuildUrlParams): string {
   assert(builtUrl, UrlStruct);
   return builtUrl;
 }
-
-// export class SanitizedUrl {
-//   private readonly url: string;
-
-//   constructor(params: BuildUrlParams) {
-//     this.url = buildUrl({ baseUrl: url, path: '/' });
-//   }
-
-//   get hostname() {
-//     return new URL(this.url).hostname;
-//   }
-// }
