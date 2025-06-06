@@ -1,1 +1,1 @@
-export * from './SolanaKeyringAccount';
+export * from './keyring-account';
