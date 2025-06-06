@@ -13,11 +13,11 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 
 import { Networks, type Network } from '../../../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../../../core/handlers/onKeyringRequest/Keyring';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import type { Preferences } from '../../../../core/types/snap';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { i18n } from '../../../../core/utils/i18n';
+import type { SolanaKeyringAccount } from '../../../../entities';
 import { BasicNullableField } from '../../components/BasicNullableField/BasicNullableField';
 import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';
 import { ConfirmSignInFormNames } from './events';
