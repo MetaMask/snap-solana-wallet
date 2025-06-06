@@ -22,7 +22,7 @@ This dual repository setup allows you to develop and test the Solana Wallet Snap
 
 ## API Documentation
 
-MetaMask interacts with the Solana Wallet Snap via its. The complete API specification is documented in the OpenRPC format.
+MetaMask interacts with the Solana Wallet Snap via its [JSON-RPC API](packages/snap/openrpc.json). The complete API specification is documented in the OpenRPC format.
 
 ### Viewing the API Documentation
 
