@@ -8,6 +8,7 @@ import type { Address } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 import { map, uniq } from 'lodash';
 
+import type { SolanaKeyringAccount } from '../../../entities';
 import type { ICache } from '../../caching/ICache';
 import { useCache } from '../../caching/useCache';
 import {
@@ -15,7 +16,6 @@ import {
   SolanaCaip19Tokens,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '../../constants/solana';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import type {
   GetTokenAccountsByOwnerResponse,
   TokenAccountInfoWithJsonData,
