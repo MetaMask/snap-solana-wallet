@@ -10,8 +10,8 @@ import {
   type Signature,
 } from '@solana/kit';
 
+import type { SolanaKeyringAccount } from '../../../entities';
 import { Network } from '../../constants/solana';
-import type { SolanaKeyringAccount } from '../../handlers/onKeyringRequest/Keyring';
 import type { ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
@@ -144,7 +144,7 @@ export class TransactionsService {
 
     const next =
       signatures.length === pagination.limit
-        ? (signatures[signatures.length - 1] ?? null)
+        ? (signatures[signatures.length - 1] ?? null) // eslint-disable-line prettier/prettier
         : null;
 
     return {
