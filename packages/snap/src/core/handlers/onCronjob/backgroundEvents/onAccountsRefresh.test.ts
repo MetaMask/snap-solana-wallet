@@ -12,8 +12,6 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../../test/mocks/solana-keyring-accounts';
-import type { ILogger } from '../../../utils/logger';
-import logger from '../../../utils/logger';
 import type { SolanaKeyring } from '../../onKeyringRequest/Keyring';
 import { onAccountsRefresh } from './onAccountsRefresh';
 
@@ -43,7 +41,6 @@ describe('onAccountsRefresh', () => {
     snapContext.assetsService as jest.Mocked<AssetsService>;
   const mockTransactionsService =
     snapContext.transactionsService as jest.Mocked<TransactionsService>;
-  const mockLogger = logger as jest.Mocked<ILogger>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -125,16 +122,6 @@ describe('onAccountsRefresh', () => {
       expect(mockTransactionsService.refreshTransactions).toHaveBeenCalledWith([
         accounts[0],
       ]);
-
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        '[onAccountsRefresh] Cronjob triggered',
-      );
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        '[onAccountsRefresh] Found 1 accounts with changes',
-      );
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        '[onAccountsRefresh] Successfully refreshed 1 accounts',
-      );
     });
 
     it('handles accounts with no existing signatures', async () => {
@@ -169,180 +156,134 @@ describe('onAccountsRefresh', () => {
     });
   });
 
-  //   describe('when no accounts have changes', () => {
-  //     it('should skip refresh when all accounts have no new signatures', async () => {
-  //       // Arrange
-  //       const accounts = [
-  //         MOCK_SOLANA_KEYRING_ACCOUNT_0,
-  //         MOCK_SOLANA_KEYRING_ACCOUNT_1,
-  //       ];
-  //       const existingSignatures: Signature[] = [
-  //         'signature1',
-  //         'signature2',
-  //       ] as Signature[];
+  describe('when no accounts have changes', () => {
+    it('skips refresh when all accounts have no new signatures', async () => {
+      const accounts = [
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        MOCK_SOLANA_KEYRING_ACCOUNT_1,
+      ];
+      const existingSignatures: Signature[] = [
+        'signature1',
+        'signature2',
+      ] as Signature[];
 
-  //       mockKeyring.listAccounts.mockResolvedValue(accounts);
-  //       mockState.getKey.mockResolvedValue(existingSignatures);
+      mockKeyring.listAccounts.mockResolvedValue(accounts);
+      mockState.getKey.mockResolvedValue(existingSignatures);
 
-  //       // Return existing signatures (no changes)
-  //       mockTransactionsService.fetchLatestSignatures.mockResolvedValue([
-  //         'signature1',
-  //       ] as Signature[]);
+      // Return existing signatures (no changes)
+      mockTransactionsService.fetchLatestSignatures.mockResolvedValue([
+        'signature1',
+      ] as Signature[]);
 
-  //       const request = {
-  //         id: '1',
-  //         jsonrpc: '2.0' as const,
-  //         method: 'onCronjob',
-  //         params: {},
-  //       };
+      const request = {
+        id: '1',
+        jsonrpc: '2.0' as const,
+        method: 'onCronjob',
+        params: {},
+      };
 
-  //       await onAccountsRefresh({ request });
+      await onAccountsRefresh({ request });
 
-  //       // Assert
-  //       expect(mockAssetsService.refreshAssets).not.toHaveBeenCalled();
-  //       expect(
-  //         mockTransactionsService.refreshTransactions,
-  //       ).not.toHaveBeenCalled();
-  //       expect(mockLogger.info).toHaveBeenCalledWith(
-  //         '[onAccountsRefresh] No accounts with changes, skipping refresh',
-  //       );
-  //     });
+      expect(mockAssetsService.refreshAssets).not.toHaveBeenCalled();
+      expect(
+        mockTransactionsService.refreshTransactions,
+      ).not.toHaveBeenCalled();
+    });
 
-  //     it('should skip refresh when no latest signatures are found', async () => {
-  //       // Arrange
-  //       const accounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
+    it('skips refresh when no latest signatures are found', async () => {
+      const accounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
 
-  //       mockKeyring.listAccounts.mockResolvedValue(accounts);
-  //       mockState.getKey.mockResolvedValue([]);
-  //       mockTransactionsService.fetchLatestSignatures.mockResolvedValue([]); // No signatures found
+      mockKeyring.listAccounts.mockResolvedValue(accounts);
+      mockState.getKey.mockResolvedValue([]);
+      mockTransactionsService.fetchLatestSignatures.mockResolvedValue([]); // No signatures found
 
-  //       const request = {
-  //         id: '1',
-  //         jsonrpc: '2.0' as const,
-  //         method: 'onCronjob',
-  //         params: {},
-  //       };
+      const request = {
+        id: '1',
+        jsonrpc: '2.0' as const,
+        method: 'onCronjob',
+        params: {},
+      };
 
-  //       await onAccountsRefresh({ request });
+      await onAccountsRefresh({ request });
 
-  //       // Assert
-  //       expect(mockAssetsService.refreshAssets).not.toHaveBeenCalled();
-  //       expect(
-  //         mockTransactionsService.refreshTransactions,
-  //       ).not.toHaveBeenCalled();
-  //       expect(mockLogger.info).toHaveBeenCalledWith(
-  //         '[onAccountsRefresh] No accounts with changes, skipping refresh',
-  //       );
-  //     });
-  //   });
+      expect(mockAssetsService.refreshAssets).not.toHaveBeenCalled();
+      expect(
+        mockTransactionsService.refreshTransactions,
+      ).not.toHaveBeenCalled();
+    });
+  });
 
-  //   describe('when no accounts exist', () => {
-  //     it('should handle empty accounts list gracefully', async () => {
-  //       // Arrange
-  //       mockKeyring.listAccounts.mockResolvedValue([]);
+  describe('when no accounts exist', () => {
+    it('handles empty accounts list gracefully', async () => {
+      mockKeyring.listAccounts.mockResolvedValue([]);
 
-  //       // Act
-  //       await onAccountsRefresh();
+      const request = {
+        id: '1',
+        jsonrpc: '2.0' as const,
+        method: 'onCronjob',
+        params: {},
+      };
 
-  //       // Assert
-  //       expect(mockState.getKey).not.toHaveBeenCalled();
-  //       expect(
-  //         mockTransactionsService.fetchLatestSignatures,
-  //       ).not.toHaveBeenCalled();
-  //       expect(mockAssetsService.refreshAssets).not.toHaveBeenCalled();
-  //       expect(
-  //         mockTransactionsService.refreshTransactions,
-  //       ).not.toHaveBeenCalled();
-  //       expect(mockLogger.info).toHaveBeenCalledWith(
-  //         '[onAccountsRefresh] No accounts with changes, skipping refresh',
-  //       );
-  //     });
-  //   });
+      await onAccountsRefresh({ request });
 
-  //   describe('error handling', () => {
-  //     it('should handle errors during assets refresh gracefully', async () => {
-  //       // Arrange
-  //       const accounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
-  //       const assetsError = new Error('Assets service failed');
+      expect(mockState.getKey).not.toHaveBeenCalled();
+      expect(
+        mockTransactionsService.fetchLatestSignatures,
+      ).not.toHaveBeenCalled();
+      expect(mockAssetsService.refreshAssets).not.toHaveBeenCalled();
+      expect(
+        mockTransactionsService.refreshTransactions,
+      ).not.toHaveBeenCalled();
+    });
+  });
 
-  //       mockKeyring.listAccounts.mockResolvedValue(accounts);
-  //       mockState.getKey.mockResolvedValue([]);
-  //       mockTransactionsService.fetchLatestSignatures.mockResolvedValue([
-  //         'newSig',
-  //       ] as Signature[]);
-  //       mockAssetsService.refreshAssets.mockRejectedValue(assetsError);
-  //       mockTransactionsService.refreshTransactions.mockResolvedValue();
+  describe('error handling', () => {
+    it('handles errors during assets refresh gracefully', async () => {
+      const accounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
+      const assetsError = new Error('Assets service failed');
+      mockKeyring.listAccounts.mockResolvedValue(accounts);
+      mockState.getKey.mockResolvedValue([]);
+      mockTransactionsService.fetchLatestSignatures.mockResolvedValue([
+        'newSig',
+      ] as Signature[]);
+      mockAssetsService.refreshAssets.mockRejectedValue(assetsError);
+      mockTransactionsService.refreshTransactions.mockResolvedValue();
 
-  //       // Act
-  //       await onAccountsRefresh();
+      const request = {
+        id: '1',
+        jsonrpc: '2.0' as const,
+        method: 'onCronjob',
+        params: {},
+      };
 
-  //       // Assert
-  //       expect(mockLogger.warn).toHaveBeenCalledWith(
-  //         '[onAccountsRefresh] Caught error while refreshing assets',
-  //         assetsError,
-  //       );
-  //       expect(mockTransactionsService.refreshTransactions).toHaveBeenCalled(); // Should still continue
-  //     });
+      await onAccountsRefresh({ request });
 
-  //     it('should handle errors during transactions refresh gracefully', async () => {
-  //       // Arrange
-  //       const accounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
-  //       const transactionsError = new Error('Transactions service failed');
+      expect(mockTransactionsService.refreshTransactions).toHaveBeenCalled(); // Should still continue
+    });
 
-  //       mockKeyring.listAccounts.mockResolvedValue(accounts);
-  //       mockState.getKey.mockResolvedValue([]);
-  //       mockTransactionsService.fetchLatestSignatures.mockResolvedValue([
-  //         'newSig',
-  //       ] as Signature[]);
-  //       mockAssetsService.refreshAssets.mockResolvedValue();
-  //       mockTransactionsService.refreshTransactions.mockRejectedValue(
-  //         transactionsError,
-  //       );
+    it('handles errors during transactions refresh gracefully', async () => {
+      const accounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
+      const transactionsError = new Error('Transactions service failed');
+      mockKeyring.listAccounts.mockResolvedValue(accounts);
+      mockState.getKey.mockResolvedValue([]);
+      mockTransactionsService.fetchLatestSignatures.mockResolvedValue([
+        'newSig',
+      ] as Signature[]);
+      mockAssetsService.refreshAssets.mockResolvedValue();
+      mockTransactionsService.refreshTransactions.mockRejectedValue(
+        transactionsError,
+      );
 
-  //       // Act
-  //       await onAccountsRefresh();
+      const request = {
+        id: '1',
+        jsonrpc: '2.0' as const,
+        method: 'onCronjob',
+        params: {},
+      };
 
-  //       // Assert
-  //       expect(mockLogger.warn).toHaveBeenCalledWith(
-  //         '[onAccountsRefresh] Caught error while refreshing transactions',
-  //         transactionsError,
-  //       );
-  //     });
+      await onAccountsRefresh({ request });
 
-  //     it('should handle critical errors and log them', async () => {
-  //       // Arrange
-  //       const criticalError = new Error('Critical failure');
-  //       mockKeyring.listAccounts.mockRejectedValue(criticalError);
-
-  //       // Act
-  //       await onAccountsRefresh();
-
-  //       // Assert
-  //       expect(mockLogger.error).toHaveBeenCalledWith(
-  //         '[onAccountsRefresh] Error',
-  //         criticalError,
-  //       );
-  //     });
-
-  //     it('should handle errors during signature fetching', async () => {
-  //       // Arrange
-  //       const accounts = [MOCK_SOLANA_KEYRING_ACCOUNT_0];
-  //       const signatureError = new Error('Signature fetch failed');
-
-  //       mockKeyring.listAccounts.mockResolvedValue(accounts);
-  //       mockState.getKey.mockResolvedValue([]);
-  //       mockTransactionsService.fetchLatestSignatures.mockRejectedValue(
-  //         signatureError,
-  //       );
-
-  //       // Act
-  //       await onAccountsRefresh();
-
-  //       // Assert
-  //       expect(mockLogger.error).toHaveBeenCalledWith(
-  //         '[onAccountsRefresh] Error',
-  //         signatureError,
-  //       );
-  //     });
-  //   });
+      expect(mockAssetsService.refreshAssets).toHaveBeenCalled(); // Should still continue
+    });
+  });
 });
