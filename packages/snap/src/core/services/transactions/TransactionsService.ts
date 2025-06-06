@@ -10,7 +10,7 @@ import {
   type Signature,
 } from '@solana/kit';
 
-import type { SolanaKeyringAccount } from '../../../domain';
+import type { SolanaKeyringAccount } from '../../../entities';
 import { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';

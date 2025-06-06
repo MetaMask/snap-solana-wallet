@@ -1,7 +1,7 @@
 import { SolMethod } from '@metamask/keyring-api';
 import { assert, union } from '@metamask/superstruct';
 
-import type { SolanaKeyringAccount } from '../../../domain';
+import type { SolanaKeyringAccount } from '../../../entities';
 import { render as renderConfirmSignIn } from '../../../features/confirmation/views/ConfirmSignIn/render';
 import { render as renderConfirmSignMessage } from '../../../features/confirmation/views/ConfirmSignMessage/render';
 import {

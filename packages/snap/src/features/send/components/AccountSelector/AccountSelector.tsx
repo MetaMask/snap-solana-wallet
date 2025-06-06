@@ -19,7 +19,7 @@ import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { truncateAddress } from '../../../../core/utils/truncateAddress';
-import type { SolanaKeyringAccount } from '../../../../domain';
+import type { SolanaKeyringAccount } from '../../../../entities';
 
 type AccountSelectorProps = {
   name: string;

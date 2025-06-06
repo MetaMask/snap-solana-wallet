@@ -21,7 +21,7 @@ import {
   verifySignature,
 } from '@solana/kit';
 
-import type { SolanaKeyringAccount } from '../../../domain';
+import type { SolanaKeyringAccount } from '../../../entities';
 import type { Caip10Address, Network } from '../../constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';

@@ -5,7 +5,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import type { Address, Signature } from '@solana/kit';
 import { unset } from 'lodash';
 
-import type { SolanaKeyringAccount } from '../../../domain';
+import type { SolanaKeyringAccount } from '../../../entities';
 import type { SpotPrices } from '../../clients/price-api/types';
 import { deserialize } from '../../serialization/deserialize';
 import { serialize } from '../../serialization/serialize';

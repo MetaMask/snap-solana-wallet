@@ -10,7 +10,7 @@ import {
   getPreferences,
   showDialog,
 } from '../../../../core/utils/interface';
-import type { SolanaKeyringAccount } from '../../../../domain';
+import type { SolanaKeyringAccount } from '../../../../entities';
 import { ConfirmSignMessage } from './ConfirmSignMessage';
 
 /**

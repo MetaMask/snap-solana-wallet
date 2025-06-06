@@ -18,7 +18,7 @@ import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
-import type { SolanaKeyringAccount } from '../../../../domain';
+import type { SolanaKeyringAccount } from '../../../../entities';
 import { ConfirmSignMessageFormNames } from './events';
 
 export type ConfirmSignMessageProps = {

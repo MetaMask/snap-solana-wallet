@@ -2,7 +2,7 @@ import type { Address, CompilableTransactionMessage } from '@solana/kit';
 import type BigNumber from 'bignumber.js';
 
 import type { Network } from '../../../core/constants/solana';
-import type { SolanaKeyringAccount } from '../../../domain';
+import type { SolanaKeyringAccount } from '../../../entities';
 
 export type BuildSendTransactionParams = {
   from: SolanaKeyringAccount;

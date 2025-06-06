@@ -4,7 +4,7 @@ import type { SpotPrices } from '../../../../core/clients/price-api/types';
 import type { Network } from '../../../../core/constants/solana';
 import type { TransactionScanResult } from '../../../../core/services/transaction-scan/types';
 import type { FetchStatus, Preferences } from '../../../../core/types/snap';
-import type { SolanaKeyringAccount } from '../../../../domain';
+import type { SolanaKeyringAccount } from '../../../../entities';
 
 export type SolanaInstruction = {
   programId: string;

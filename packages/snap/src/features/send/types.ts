@@ -5,7 +5,7 @@ import type { Network } from '../../core/constants/solana';
 import type { FormFieldError } from '../../core/types/error';
 import type { FetchStatus, Preferences } from '../../core/types/snap';
 import type { LocalizedMessage } from '../../core/utils/i18n';
-import type { SolanaKeyringAccount } from '../../domain';
+import type { SolanaKeyringAccount } from '../../entities';
 
 export type SendFlowStage =
   | 'send-form'
