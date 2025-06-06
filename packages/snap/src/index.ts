@@ -29,7 +29,6 @@ import { CronjobMethod } from './core/handlers/onCronjob/cronjobs/CronjobMethod'
 import { onProtocolRequest as onProtocolRequestHandler } from './core/handlers/onProtocolRequest/onProtocolRequest';
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
-import { install as installPolyfills } from './core/polyfills';
 import { isSnapRpcError } from './core/utils/errors';
 import { getClientStatus } from './core/utils/interface';
 import logger from './core/utils/logger';
@@ -39,6 +38,7 @@ import { eventHandlers as confirmSignMessageEvents } from './features/confirmati
 import { eventHandlers as confirmSignAndSendTransactionEvents } from './features/confirmation/views/ConfirmTransactionRequest/events';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
+import { installPolyfills } from './infrastructure';
 import snapContext, {
   clientRequestHandler,
   keyring,
