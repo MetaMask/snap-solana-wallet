@@ -535,7 +535,6 @@ export const parseInstruction = (
   // because the interface context is serialized as JSON, and JSON does not support ReadonlyUint8Array
   const encoded = {
     ...instruction,
-    // data: new Uint8Array(instruction.data ?? []),
     dataBase58: getBase58Codec().decode(instruction.data ?? new Uint8Array()),
   };
 
