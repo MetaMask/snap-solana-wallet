@@ -1,7 +1,6 @@
 import { SolMethod } from '@metamask/keyring-api';
 
 import { Network, Networks } from '../../../../core/constants/solana';
-import type { Serializable } from '../../../../core/serialization/types';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import { lamportsToSol } from '../../../../core/utils/conversion';
 import {
@@ -100,7 +99,7 @@ export async function render(
 
   const id = await createInterface(
     <ConfirmTransactionRequest context={context} />,
-    context as Serializable,
+    context,
   );
 
   const dialogPromise = showDialog(id);
@@ -152,7 +151,7 @@ export async function render(
   await updateInterface(
     id,
     <ConfirmTransactionRequest context={updatedContext1} />,
-    updatedContext1 as Serializable,
+    updatedContext1,
   );
 
   /**
@@ -201,7 +200,7 @@ export async function render(
   await updateInterface(
     id,
     <ConfirmTransactionRequest context={updatedContext2} />,
-    updatedContext2 as Serializable,
+    updatedContext2,
   );
 
   await state.setKey(

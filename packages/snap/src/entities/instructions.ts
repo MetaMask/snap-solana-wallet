@@ -1,5 +1,4 @@
 import { type Infer } from '@metamask/superstruct';
-import type { ParsedComputeBudgetInstruction } from '@solana-program/compute-budget';
 import {
   COMPUTE_BUDGET_PROGRAM_ADDRESS,
   ComputeBudgetInstruction,
@@ -10,7 +9,6 @@ import {
   parseSetComputeUnitPriceInstruction,
   parseSetLoadedAccountsDataSizeLimitInstruction,
 } from '@solana-program/compute-budget';
-import type { ParsedSystemInstruction } from '@solana-program/system';
 import {
   identifySystemInstruction,
   parseAdvanceNonceAccountInstruction,
@@ -29,10 +27,6 @@ import {
   SYSTEM_PROGRAM_ADDRESS,
   SystemInstruction,
 } from '@solana-program/system';
-import type {
-  ParsedAssociatedTokenInstruction,
-  ParsedTokenInstruction,
-} from '@solana-program/token';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ADDRESS,
   identifyTokenInstruction,
@@ -64,7 +58,6 @@ import {
   TOKEN_PROGRAM_ADDRESS,
   TokenInstruction,
 } from '@solana-program/token';
-import type { ParsedToken2022Instruction } from '@solana-program/token-2022';
 import {
   AssociatedTokenInstruction,
   identifyAssociatedTokenInstruction as identifyAssociatedToken2022Instruction,
@@ -202,14 +195,8 @@ type InstructionType =
   | keyof typeof Token2022Instruction
   | keyof typeof AssociatedTokenInstruction;
 
-type ParsedInstruction = Omit<
-  | ParsedSystemInstruction<typeof SYSTEM_PROGRAM_ADDRESS>
-  | ParsedComputeBudgetInstruction<typeof COMPUTE_BUDGET_PROGRAM_ADDRESS>
-  | ParsedTokenInstruction<typeof TOKEN_PROGRAM_ADDRESS>
-  | ParsedToken2022Instruction<typeof TOKEN_2022_PROGRAM_ADDRESS>
-  | ParsedAssociatedTokenInstruction<typeof ASSOCIATED_TOKEN_PROGRAM_ADDRESS>,
-  'instructionType'
-> & {
+type ParsedInstruction = {
+  data: Record<string, any>;
   accounts?: Record<
     string,
     {
@@ -220,7 +207,6 @@ type ParsedInstruction = Omit<
 };
 
 type EncodedInstruction = Omit<IInstruction, 'data' | 'accounts'> & {
-  data: Uint8Array;
   dataBase58: string;
 };
 
@@ -534,7 +520,7 @@ export const parseInstruction = (
   // because the interface context is serialized as JSON, and JSON does not support ReadonlyUint8Array
   const encoded = {
     ...instruction,
-    data: new Uint8Array(instruction.data ?? []),
+    // data: new Uint8Array(instruction.data ?? []),
     dataBase58: getBase58Codec().decode(instruction.data ?? new Uint8Array()),
   };
 

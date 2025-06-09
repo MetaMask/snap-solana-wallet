@@ -56,7 +56,6 @@ export const Instruction = ({
   scope,
   locale,
 }: InstructionProps) => {
-  console.log('🍪🍪🍪🍪', instruction);
   const translate = i18n(locale);
   const { type, encoded, parsed } = instruction;
   const { programAddress, dataBase58 } = encoded;
