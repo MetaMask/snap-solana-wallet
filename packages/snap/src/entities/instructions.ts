@@ -231,7 +231,7 @@ export type InstructionParseResult =
 type ParsingConfig<TInstructionType extends string> = {
   /** The function that, given an instruction, returns its type (e.g. Token2022Instruction.InitializeMint) */
   identifier: (instruction: IInstruction) => TInstructionType;
-  /** The enum that maps every instruction type (e.g. Token2022Instruction.InitializeMint) to the instruction type */
+  /** The enum that holds every instruction type for a given program */
   instructionEnum: Record<number, string>;
   /** Maps every instruction type (e.g. Token2022Instruction.InitializeMint) to the function that parses it */
   typeToParserMap: Record<
