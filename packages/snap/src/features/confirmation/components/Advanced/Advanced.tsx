@@ -1,25 +1,25 @@
-import { Box, Button, Icon, type SnapComponent } from '@metamask/snaps-sdk/jsx';
+import { Box, Button, Icon } from '@metamask/snaps-sdk/jsx';
 
 import type { Network } from '../../../../core/constants/solana';
 import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
+import type { InstructionParseResult } from '../../../../entities';
 import { ConfirmSignAndSendTransactionFormNames } from '../../views/ConfirmTransactionRequest/events';
-import { type SolanaInstruction } from '../../views/ConfirmTransactionRequest/types';
 import { Instruction } from '../Instruction/Instruction';
 
 type AdvancedProps = {
-  instructions: SolanaInstruction[];
+  instructions: InstructionParseResult[];
   showInstructions: boolean;
   locale: Locale;
   scope: Network;
 };
 
-export const Advanced: SnapComponent<AdvancedProps> = ({
+export const Advanced = ({
   instructions,
   showInstructions,
   locale,
   scope,
-}) => {
+}: AdvancedProps) => {
   const translate = i18n(locale);
 
   const showInstructionsMode = showInstructions ? 'hide' : 'show';
@@ -35,7 +35,11 @@ export const Advanced: SnapComponent<AdvancedProps> = ({
       {showInstructions && (
         <Box>
           {instructions.map((instruction) => (
-            <Instruction locale={locale} scope={scope} {...instruction} />
+            <Instruction
+              locale={locale}
+              scope={scope}
+              instruction={instruction}
+            />
           ))}
         </Box>
       )}

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type { Json } from '@metamask/snaps-sdk';
+import { getBase64Codec } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 import { cloneDeepWith } from 'lodash';
 
@@ -32,6 +33,13 @@ export const serialize = (value: Serializable): Record<string, Json> =>
       return {
         __type: 'bigint',
         value: val.toString(),
+      };
+    }
+
+    if (val instanceof Uint8Array) {
+      return {
+        __type: 'Uint8Array',
+        value: getBase64Codec().decode(val),
       };
     }
 

@@ -10,6 +10,7 @@ export type Serializable =
   | null
   | bigint
   | BigNumber
+  | Uint8Array
   | Serializable[]
   | {
       [prop: string]: Serializable;

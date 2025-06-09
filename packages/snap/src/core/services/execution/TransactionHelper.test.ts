@@ -199,7 +199,6 @@ describe('TransactionHelper', () => {
       transactionMessageBase64Encoded,
       getMultipleAccountsResponse,
       signedTransaction,
-      signedTransactionBase64Encoded,
       signature,
     } = scenario;
 
@@ -215,28 +214,6 @@ describe('TransactionHelper', () => {
             .fn()
             .mockResolvedValue(getMultipleAccountsResponse?.result),
         }),
-      });
-    });
-
-    describe('extractInstructionsFromBase64String', () => {
-      it(`Scenario ${name}: successfully extracts instructions from a base64 encoded transaction message`, async () => {
-        const result =
-          await transactionHelper.extractInstructionsFromUnknownBase64String(
-            transactionMessageBase64Encoded,
-            scope,
-          );
-
-        expect(result).not.toHaveLength(0);
-      });
-
-      it(`Scenario ${name}: successfully extracts instructions from a base64 encoded transaction`, async () => {
-        const result =
-          await transactionHelper.extractInstructionsFromUnknownBase64String(
-            signedTransactionBase64Encoded,
-            scope,
-          );
-
-        expect(result).not.toHaveLength(0);
       });
     });
 

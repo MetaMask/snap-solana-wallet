@@ -86,4 +86,10 @@ describe('deserialize', () => {
       nullValue: null,
     });
   });
+
+  it('deserializes Uint8Array', () => {
+    const input = { __type: 'Uint8Array', value: 'AQID' };
+    const result = deserialize(input);
+    expect(result).toStrictEqual(new Uint8Array([1, 2, 3]));
+  });
 });

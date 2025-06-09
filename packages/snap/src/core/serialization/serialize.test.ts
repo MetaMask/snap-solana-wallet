@@ -95,4 +95,13 @@ describe('serialize', () => {
       },
     });
   });
+
+  it('serializes Uint8Array', () => {
+    const input = new Uint8Array([1, 2, 3]);
+    const result = serialize(input);
+    expect(result).toStrictEqual({
+      __type: 'Uint8Array',
+      value: 'AQID',
+    });
+  });
 });

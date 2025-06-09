@@ -1,9 +1,9 @@
 import { SolMethod } from '@metamask/keyring-api';
 
 import { Network, Networks } from '../../../../core/constants/solana';
+import type { Serializable } from '../../../../core/serialization/types';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import { lamportsToSol } from '../../../../core/utils/conversion';
-import { parseInstructions } from '../../../../core/utils/instructions';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
   createInterface,
@@ -11,7 +11,9 @@ import {
   showDialog,
   updateInterface,
 } from '../../../../core/utils/interface';
+import { extractInstructionsFromUnknownBase64String } from '../../../../entities';
 import {
+  connection,
   priceApiClient,
   state,
   transactionHelper,
@@ -76,13 +78,12 @@ export async function render(
       context.preferences = DEFAULT_CONFIRMATION_CONTEXT.preferences;
     });
 
-  const instructionsPromise = transactionHelper
-    .extractInstructionsFromUnknownBase64String(
-      context.transaction,
-      context.scope,
-    )
+  const instructionsPromise = extractInstructionsFromUnknownBase64String(
+    connection.getRpc(context.scope),
+    context.transaction,
+  )
     .then((instructions) => {
-      context.advanced.instructions = parseInstructions(instructions);
+      context.advanced.instructions = instructions;
     })
     .catch((error) => {
       console.error(error);
@@ -99,7 +100,7 @@ export async function render(
 
   const id = await createInterface(
     <ConfirmTransactionRequest context={context} />,
-    context,
+    context as Serializable,
   );
 
   const dialogPromise = showDialog(id);
@@ -151,7 +152,7 @@ export async function render(
   await updateInterface(
     id,
     <ConfirmTransactionRequest context={updatedContext1} />,
-    updatedContext1,
+    updatedContext1 as Serializable,
   );
 
   /**
@@ -200,7 +201,7 @@ export async function render(
   await updateInterface(
     id,
     <ConfirmTransactionRequest context={updatedContext2} />,
-    updatedContext2,
+    updatedContext2 as Serializable,
   );
 
   await state.setKey(

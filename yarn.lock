@@ -4748,6 +4748,7 @@ __metadata:
     "@solana-program/compute-budget": 0.7.0
     "@solana-program/system": 0.7.0
     "@solana-program/token": 0.5.1
+    "@solana-program/token-2022": ^0.4.2
     "@solana/kit": 2.1.0
     "@testing-library/jest-dom": ^6.6.2
     "@types/express": ^5.0.0
@@ -6039,6 +6040,16 @@ __metadata:
   peerDependencies:
     "@solana/kit": ^2.1.0
   checksum: 491a7d780ddaf6d4148770c6c8ff0e2594a6c6adcc41689aff70d6b8554b69e8afebe1bc8d43205de6581bb08fd5b9616b28123e157b157292ef295d8518d447
+  languageName: node
+  linkType: hard
+
+"@solana-program/token-2022@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "@solana-program/token-2022@npm:0.4.2"
+  peerDependencies:
+    "@solana/kit": ^2.1.0
+    "@solana/sysvars": ^2.1.0
+  checksum: 94483c35f8ae8f1c9d8129695438518dfa3fa2bca4ee6806c2d84b96d52dccd6b66dfa548feb7e3091ca7c005f6e112ffd3b5485e93ee86cae1c04665b3f9a99
   languageName: node
   linkType: hard
 

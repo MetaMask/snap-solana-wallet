@@ -1,4 +1,5 @@
 import type { Json } from '@metamask/snaps-sdk';
+import { getBase64Codec } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 
 import type { Serializable } from './types';
@@ -26,6 +27,10 @@ export const deserialize = (serializedValue: Json): Serializable =>
 
     if (value.__type === 'bigint') {
       return BigInt(value.value);
+    }
+
+    if (value.__type === 'Uint8Array') {
+      return getBase64Codec().encode(value.value);
     }
 
     return value;

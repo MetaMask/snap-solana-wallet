@@ -2,7 +2,6 @@ import type { Infer } from '@metamask/superstruct';
 import { assert } from '@metamask/superstruct';
 import type {
   BaseTransactionMessage,
-  CompilableTransactionMessage,
   GetTransactionApi,
   Transaction,
   TransactionMessageBytesBase64,
@@ -22,7 +21,7 @@ import {
   type Blockhash,
 } from '@solana/kit';
 
-import type { SolanaKeyringAccount } from '../../../entities';
+import { type SolanaKeyringAccount } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';
 import {
@@ -393,38 +392,5 @@ export class TransactionHelper {
     const keyPair = await createKeyPairFromPrivateKeyBytes(privateKeyBytes);
 
     return partiallySignTransaction([keyPair], transaction);
-  }
-
-  /**
-   * Extracts the instructions from a base64 string, adapting the logic depending on whether
-   * the string represents a transaction or a transaction message.
-   *
-   * @param base64EncodedString - The base64 encoded string to extract the instructions from.
-   * @param scope - The network on which the transaction is being sent.
-   * @returns The instructions from the base64 encoded string.
-   * @throws If the base64 encoded string is not a valid transaction or transaction message.
-   */
-  async extractInstructionsFromUnknownBase64String(
-    base64EncodedString: Infer<typeof Base64Struct>,
-    scope: Network,
-  ): Promise<CompilableTransactionMessage['instructions']> {
-    const rpc = this.#connection.getRpc(scope);
-
-    const transactionOrTransactionMessage =
-      await fromUnknowBase64StringToTransactionOrTransactionMessage(
-        base64EncodedString,
-        rpc,
-      );
-
-    if ('instructions' in transactionOrTransactionMessage) {
-      return transactionOrTransactionMessage.instructions;
-    }
-
-    const transactionMessage = await fromBytesToCompilableTransactionMessage(
-      transactionOrTransactionMessage.messageBytes,
-      rpc,
-    );
-
-    return transactionMessage.instructions;
   }
 }
