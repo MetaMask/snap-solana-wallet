@@ -240,7 +240,7 @@ type ParsingConfig<TInstructionType extends string> = {
   >;
 };
 
-// Structure that maps every supported program address to
+// Structure that maps every supported program address to its parsing config
 const programAddressToParsingConfig: Record<
   ParseableInstructionProgramAddress,
   ParsingConfig<InstructionType>
