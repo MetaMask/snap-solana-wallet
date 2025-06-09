@@ -496,17 +496,32 @@ const programAddressToParsingConfig: Record<
  * Parses a generic instruction, returning the parsed instruction if it's supported,
  * or the original non-parsed instruction if it's not.
  *
- * Enhances the data with various representations for convenience:
- * - The data as a Uint8Array.
- * - The data as a base58 string.
- *
  * @example
  * ```ts
  * const instruction = {
- *   programAddress: SYSTEM_PROGRAM_ADDRESS,
- *   data: new Uint8Array([0]),
- * };
- * const parsedInstruction = parseInstruction(instruction, SYSTEM_PROGRAM_ADDRESS);
+ *     programAddress: address('ComputeBudget111111111111111111111111111111'),
+ *     data: new Uint8Array([3, 232, 3, 0, 0, 0, 0, 0, 0]),
+ *     dataBase58: '3tGNFMqHiozw',
+ *   }
+ * const programAddress = address('ComputeBudget111111111111111111111111111111');
+ * const parsedInstruction = parseInstruction(instruction, programAddress);
+ *
+ * // Returns:
+ *  {
+ *   type: 'SetComputeUnitPrice',
+ *   encoded: {
+ *     programAddress: address('ComputeBudget111111111111111111111111111111'),
+ *     data: new Uint8Array([3, 232, 3, 0, 0, 0, 0, 0, 0]),
+ *     dataBase58: '3tGNFMqHiozw',
+ *   },
+ *   parsed: {
+ *     programAddress: address('ComputeBudget111111111111111111111111111111'),
+ *     data: {
+ *       discriminator: 3,
+ *       microLamports: 1000n,
+ *     },
+ *   },
+ * }
  * ```
  * @param instruction - The instruction to parse.
  * @param programAddress - The program address of the instruction.
