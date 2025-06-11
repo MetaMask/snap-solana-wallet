@@ -9,13 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.33.0]
 
-### Uncategorized
+### Added
 
-- Nnt 236 snap instructions section improvement in confirmation screen ([#416](https://github.com/MetaMask/snap-solana-wallet/pull/416))
-- Nnt 399 solana snap write unit tests for on accounts refresh ts ([#415](https://github.com/MetaMask/snap-solana-wallet/pull/415))
-- refactor: move polyfills to infrastructure directory ([#414](https://github.com/MetaMask/snap-solana-wallet/pull/414))
-- Move solana keyring account to domain layer ([#412](https://github.com/MetaMask/snap-solana-wallet/pull/412))
-- Nnt 378 solana snap implement on client request ([#405](https://github.com/MetaMask/snap-solana-wallet/pull/405))
+- `onClientRequest` implementation ([#405](https://github.com/MetaMask/snap-solana-wallet/pull/405))
+- Instructions improvements in confirmation screen ([#416](https://github.com/MetaMask/snap-solana-wallet/pull/416))
+- Cover `onAccountsRefresh` with unit tests ([#415](https://github.com/MetaMask/snap-solana-wallet/pull/415))
+
+### Changed
+
+- Move `polyfills` to `infrastructure` directory ([#414](https://github.com/MetaMask/snap-solana-wallet/pull/414))
+- Move Solana Keyring account to `domain` layer ([#412](https://github.com/MetaMask/snap-solana-wallet/pull/412))
 
 ## [1.32.0]
 
