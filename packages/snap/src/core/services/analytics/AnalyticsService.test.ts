@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable jest/require-to-throw-message */
 import type { Transaction } from '@metamask/keyring-api';
 
 import { Network } from '../../constants/solana';
