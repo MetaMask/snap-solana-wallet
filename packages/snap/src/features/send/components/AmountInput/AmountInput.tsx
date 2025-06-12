@@ -18,7 +18,6 @@ type AmountInputProps = {
   currency: string;
   currencyType: SendCurrencyType;
   locale: Locale;
-  error?: string;
   swapCurrencyButtonDisabled?: boolean;
 };
 
@@ -28,7 +27,6 @@ export const AmountInput: SnapComponent<AmountInputProps> = ({
   tokenSymbol,
   currency,
   currencyType,
-  error,
   locale,
   swapCurrencyButtonDisabled = false,
 }) => {
@@ -39,7 +37,7 @@ export const AmountInput: SnapComponent<AmountInputProps> = ({
       : tokenSymbol;
 
   return (
-    <Field label={translate('send.amountField')} error={error}>
+    <Field label={translate('send.amountField')}>
       <Input
         name={name}
         type="number"
