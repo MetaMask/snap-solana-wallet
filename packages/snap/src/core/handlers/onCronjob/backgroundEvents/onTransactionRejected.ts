@@ -1,5 +1,11 @@
 import { InternalError, type OnCronjobHandler } from '@metamask/snaps-sdk';
-import { assert, literal, nullable, object, string } from '@metamask/superstruct';
+import {
+  assert,
+  literal,
+  nullable,
+  object,
+  string,
+} from '@metamask/superstruct';
 
 import { analyticsService, keyring } from '../../../../snapContext';
 import logger from '../../../utils/logger';
