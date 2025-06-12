@@ -209,6 +209,7 @@ export class WalletService {
    * @param account - The account to sign and send the transaction.
    * @param transactionMessageBase64Encoded - The transaction message base64 encoded.
    * @param scope - The scope of the transaction.
+   * @param origin - The origin of the transaction.
    * @param options - The options for the transaction.
    * @param options.minContextSlot - The minimum context slot.
    * @param options.preflightCommitment - The preflight commitment.
@@ -286,7 +287,7 @@ export class WalletService {
             transactionMessageBase64Encoded,
             signature,
             scope,
-            origin: origin || null,
+            origin: origin ?? null,
           },
         },
       },
@@ -342,7 +343,7 @@ export class WalletService {
           params: {
             accountId: account.id,
             transaction: mappedTransactionWithAccountId,
-            origin: origin || null,
+            origin: origin ?? null,
           },
         },
       },

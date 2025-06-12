@@ -258,6 +258,7 @@ describe('WalletService', () => {
             fromAccount,
             transactionMessageBase64Encoded,
             scope,
+            'https://metamask.io',
             {},
           );
 
@@ -275,6 +276,7 @@ describe('WalletService', () => {
             fromAccount,
             transactionMessageBase64Encoded,
             scope,
+            'https://metamask.io',
             {
               commitment: 'finalized',
             },
@@ -294,6 +296,7 @@ describe('WalletService', () => {
             fromAccount,
             transactionMessageBase64Encoded,
             scope,
+            'https://metamask.io',
             {
               commitment: 'processed',
             },

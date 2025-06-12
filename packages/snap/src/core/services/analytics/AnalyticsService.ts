@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type { Transaction } from '@metamask/keyring-api';
 import { assert } from '@metamask/superstruct';
 
@@ -25,7 +26,7 @@ export class AnalyticsService {
     this.#logger.log(`[📣 AnalyticsService] Tracking event transaction added`);
 
     assert(base64EncodedTransaction, Base64Struct);
-    
+
     await snap.request({
       method: 'snap_trackEvent',
       params: {
@@ -33,7 +34,7 @@ export class AnalyticsService {
           event: 'Transaction Added',
           properties: {
             message: 'Snap transaction added',
-            origin: origin || null,
+            origin: origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
@@ -63,7 +64,7 @@ export class AnalyticsService {
           event: 'Transaction Approved',
           properties: {
             message: 'Snap transaction approved',
-            origin: origin || null,
+            origin: origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
@@ -86,7 +87,7 @@ export class AnalyticsService {
     );
 
     assert(transactionMessageBase64Encoded, Base64Struct);
-    
+
     await snap.request({
       method: 'snap_trackEvent',
       params: {
@@ -94,7 +95,7 @@ export class AnalyticsService {
           event: 'Transaction Submitted',
           properties: {
             message: 'Snap transaction submitted',
-            origin: origin || null,
+            origin: origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
@@ -121,7 +122,7 @@ export class AnalyticsService {
           event: 'Transaction Finalized',
           properties: {
             message: 'Snap transaction finalized',
-            origin: origin || null,
+            origin: origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
@@ -145,7 +146,7 @@ export class AnalyticsService {
     );
 
     assert(base64EncodedTransaction, Base64Struct);
-    
+
     await snap.request({
       method: 'snap_trackEvent',
       params: {
@@ -153,7 +154,7 @@ export class AnalyticsService {
           event: 'Transaction Rejected',
           properties: {
             message: 'Snap transaction rejected',
-            origin: origin || null,
+            origin: origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,

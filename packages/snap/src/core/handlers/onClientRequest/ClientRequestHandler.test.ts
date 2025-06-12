@@ -101,6 +101,7 @@ describe('ClientRequestHandler', () => {
             MOCK_SOLANA_KEYRING_ACCOUNT_0,
             mockTransaction,
             Network.Testnet,
+            undefined,
             {
               commitment: 'confirmed',
               skipPreflight: false,

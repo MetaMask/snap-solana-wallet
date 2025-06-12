@@ -36,7 +36,8 @@ export const onTransactionApproved: OnCronjobHandler = async ({ request }) => {
 
     assert(request, OnTransactionApprovedRequestStruct);
 
-    const { accountId, base64EncodedTransaction, scope, origin } = request.params;
+    const { accountId, base64EncodedTransaction, scope, origin } =
+      request.params;
 
     const account = await keyring.getAccountOrThrow(accountId);
 
