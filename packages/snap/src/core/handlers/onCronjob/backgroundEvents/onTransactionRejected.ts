@@ -19,6 +19,7 @@ export const OnTransactionRejectedRequestStruct = object({
     /** The base64 encoded transaction or transaction message. */
     base64EncodedTransaction: Base64Struct,
     scope: NetworkStruct,
+    origin: string(),
   }),
 });
 
@@ -35,7 +36,7 @@ export const onTransactionRejected: OnCronjobHandler = async ({ request }) => {
 
     assert(request, OnTransactionRejectedRequestStruct);
 
-    const { accountId, base64EncodedTransaction, scope } = request.params;
+    const { accountId, base64EncodedTransaction, scope, origin } = request.params;
 
     const account = await keyring.getAccountOrThrow(accountId);
 
@@ -43,6 +44,7 @@ export const onTransactionRejected: OnCronjobHandler = async ({ request }) => {
       account,
       base64EncodedTransaction,
       scope,
+      origin,
     );
   } catch (error) {
     logger.error(error);

@@ -81,6 +81,7 @@ export class ClientRequestHandler {
       account,
       base64EncodedTransaction,
       scope,
+      undefined,
       options,
     );
   }

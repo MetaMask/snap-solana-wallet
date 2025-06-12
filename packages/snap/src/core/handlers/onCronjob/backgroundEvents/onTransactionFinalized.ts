@@ -9,7 +9,7 @@ import {
   transactionsService,
 } from '../../../../snapContext';
 import logger from '../../../utils/logger';
-import { UuidStruct } from '../../../validation/structs';
+import { NetworkStruct, UuidStruct } from '../../../validation/structs';
 import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const OnTransactionFinalizedRequestStruct = object({
@@ -19,6 +19,7 @@ export const OnTransactionFinalizedRequestStruct = object({
   params: object({
     accountId: UuidStruct,
     transaction: TransactionStruct,
+    origin: string(),
   }),
 });
 
@@ -36,7 +37,7 @@ export const onTransactionFinalized: OnCronjobHandler = async ({ request }) => {
 
     assert(request, OnTransactionFinalizedRequestStruct);
 
-    const { accountId, transaction } = request.params;
+    const { accountId, transaction, origin } = request.params;
 
     const account = await keyring.getAccountOrThrow(accountId);
 
@@ -64,6 +65,7 @@ export const onTransactionFinalized: OnCronjobHandler = async ({ request }) => {
     const trackEventPromise = analyticsService.trackEventTransactionFinalized(
       account,
       transaction,
+      origin,
     );
 
     await Promise.all([

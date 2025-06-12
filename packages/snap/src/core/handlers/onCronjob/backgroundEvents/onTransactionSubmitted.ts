@@ -20,6 +20,7 @@ export const OnTransactionSubmittedRequestStruct = object({
     transactionMessageBase64Encoded: Base64Struct,
     signature: string(),
     scope: NetworkStruct,
+    origin: string(),
   }),
 });
 
@@ -36,8 +37,13 @@ export const onTransactionSubmitted: OnCronjobHandler = async ({ request }) => {
 
     assert(request, OnTransactionSubmittedRequestStruct);
 
-    const { accountId, transactionMessageBase64Encoded, signature, scope } =
-      request.params;
+    const {
+      accountId,
+      transactionMessageBase64Encoded,
+      signature,
+      scope,
+      origin,
+    } = request.params;
 
     const account = await keyring.getAccountOrThrow(accountId);
 
@@ -46,6 +52,7 @@ export const onTransactionSubmitted: OnCronjobHandler = async ({ request }) => {
       transactionMessageBase64Encoded,
       signature,
       scope,
+      origin,
     );
   } catch (error) {
     logger.error(error);

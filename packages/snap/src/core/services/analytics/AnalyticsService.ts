@@ -20,24 +20,58 @@ export class AnalyticsService {
     account: SolanaKeyringAccount,
     base64EncodedTransaction: string,
     scope: Network,
+    origin?: string,
   ): Promise<void> {
     this.#logger.log(`[📣 AnalyticsService] Tracking event transaction added`);
 
     assert(base64EncodedTransaction, Base64Struct);
-    // TODO: Implement
+    
+    await snap.request({
+      method: 'snap_trackEvent',
+      params: {
+        event: {
+          event: 'Transaction Added',
+          properties: {
+            message: 'Snap transaction added',
+            origin: origin || null,
+            account_id: account.id,
+            account_address: account.address,
+            account_type: account.type,
+            chain_id: scope,
+          },
+        },
+      },
+    });
   }
 
   async trackEventTransactionApproved(
     account: SolanaKeyringAccount,
     base64EncodedTransaction: string,
     scope: Network,
+    origin?: string,
   ): Promise<void> {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction approved`,
     );
 
     assert(base64EncodedTransaction, Base64Struct);
-    // TODO: Implement
+
+    await snap.request({
+      method: 'snap_trackEvent',
+      params: {
+        event: {
+          event: 'Transaction Approved',
+          properties: {
+            message: 'Snap transaction approved',
+            origin: origin || null,
+            account_id: account.id,
+            account_address: account.address,
+            account_type: account.type,
+            chain_id: scope,
+          },
+        },
+      },
+    });
   }
 
   async trackEventTransactionSubmitted(
@@ -45,35 +79,88 @@ export class AnalyticsService {
     transactionMessageBase64Encoded: string,
     signature: string,
     scope: Network,
+    origin?: string,
   ): Promise<void> {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction submitted`,
     );
 
     assert(transactionMessageBase64Encoded, Base64Struct);
-    // TODO: Implement
+    
+    await snap.request({
+      method: 'snap_trackEvent',
+      params: {
+        event: {
+          event: 'Transaction Submitted',
+          properties: {
+            message: 'Snap transaction submitted',
+            origin: origin || null,
+            account_id: account.id,
+            account_address: account.address,
+            account_type: account.type,
+            chain_id: scope,
+          },
+        },
+      },
+    });
   }
 
   async trackEventTransactionFinalized(
     account: SolanaKeyringAccount,
     transaction: Transaction,
+    origin?: string,
   ): Promise<void> {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction finalized`,
     );
-    // TODO: Implement
+
+    await snap.request({
+      method: 'snap_trackEvent',
+      params: {
+        event: {
+          event: 'Transaction Finalized',
+          properties: {
+            message: 'Snap transaction finalized',
+            origin: origin || null,
+            account_id: account.id,
+            account_address: account.address,
+            account_type: account.type,
+            chain_id: transaction.chain,
+            transaction_status: transaction.status,
+            transaction_type: transaction.type,
+          },
+        },
+      },
+    });
   }
 
   async trackEventTransactionRejected(
     account: SolanaKeyringAccount,
     base64EncodedTransaction: string,
     scope: Network,
+    origin?: string,
   ): Promise<void> {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction rejected`,
     );
 
     assert(base64EncodedTransaction, Base64Struct);
-    // TODO: Implement
+    
+    await snap.request({
+      method: 'snap_trackEvent',
+      params: {
+        event: {
+          event: 'Transaction Rejected',
+          properties: {
+            message: 'Snap transaction rejected',
+            origin: origin || null,
+            account_id: account.id,
+            account_address: account.address,
+            account_type: account.type,
+            chain_id: scope,
+          },
+        },
+      },
+    });
   }
 }

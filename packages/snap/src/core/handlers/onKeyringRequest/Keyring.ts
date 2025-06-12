@@ -407,6 +407,7 @@ export class SolanaKeyring implements Keyring {
       request: { method, params },
       scope,
       account: accountId,
+      origin,
     } = request;
 
     const account = await this.getAccountOrThrow(accountId);
@@ -441,6 +442,7 @@ export class SolanaKeyring implements Keyring {
           account,
           base64EncodedTransaction,
           scope,
+          origin,
           options,
         );
       }

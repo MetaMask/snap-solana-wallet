@@ -79,6 +79,7 @@ export class ConfirmationHandler {
       },
       scope,
       account: accountId,
+      origin,
     } = request;
 
     // Trigger the side effects that need to happen when the transaction is shown in confirmation UI
@@ -92,6 +93,7 @@ export class ConfirmationHandler {
             accountId,
             base64EncodedTransaction,
             scope,
+            origin,
           },
         },
       },
@@ -118,6 +120,7 @@ export class ConfirmationHandler {
               accountId,
               base64EncodedTransaction,
               scope,
+              origin,
             },
           },
         },
@@ -137,6 +140,7 @@ export class ConfirmationHandler {
             accountId,
             base64EncodedTransaction,
             scope,
+            origin,
           },
         },
       },
