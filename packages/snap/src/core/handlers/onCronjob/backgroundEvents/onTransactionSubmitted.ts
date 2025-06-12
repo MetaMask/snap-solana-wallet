@@ -1,5 +1,5 @@
 import { InternalError, type OnCronjobHandler } from '@metamask/snaps-sdk';
-import { assert, literal, object, string } from '@metamask/superstruct';
+import { assert, literal, nullable, object, string } from '@metamask/superstruct';
 
 import { analyticsService, keyring } from '../../../../snapContext';
 import logger from '../../../utils/logger';
@@ -20,7 +20,7 @@ export const OnTransactionSubmittedRequestStruct = object({
     transactionMessageBase64Encoded: Base64Struct,
     signature: string(),
     scope: NetworkStruct,
-    origin: string(),
+    origin: nullable(string()),
   }),
 });
 
@@ -52,7 +52,7 @@ export const onTransactionSubmitted: OnCronjobHandler = async ({ request }) => {
       transactionMessageBase64Encoded,
       signature,
       scope,
-      origin,
+      origin ?? undefined,
     );
   } catch (error) {
     logger.error(error);

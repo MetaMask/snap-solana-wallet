@@ -1,6 +1,6 @@
 import { TransactionStruct } from '@metamask/keyring-api';
 import { InternalError, type OnCronjobHandler } from '@metamask/snaps-sdk';
-import { assert, literal, object, string } from '@metamask/superstruct';
+import { assert, literal, nullable, object, string } from '@metamask/superstruct';
 
 import {
   analyticsService,
@@ -19,7 +19,7 @@ export const OnTransactionFinalizedRequestStruct = object({
   params: object({
     accountId: UuidStruct,
     transaction: TransactionStruct,
-    origin: string(),
+    origin: nullable(string()),
   }),
 });
 
@@ -65,7 +65,7 @@ export const onTransactionFinalized: OnCronjobHandler = async ({ request }) => {
     const trackEventPromise = analyticsService.trackEventTransactionFinalized(
       account,
       transaction,
-      origin,
+      origin ?? undefined,
     );
 
     await Promise.all([
