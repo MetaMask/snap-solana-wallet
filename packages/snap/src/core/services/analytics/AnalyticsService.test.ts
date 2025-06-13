@@ -26,6 +26,10 @@ describe('AnalyticsService', () => {
     scope: mockScope,
     origin: mockOrigin,
   };
+  const mockMetadataWithoutOrigin = {
+    scope: mockScope,
+    origin: null,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -72,7 +76,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionAdded(
         mockAccount,
         mockBase64Transaction,
-        mockMetadata,
+        mockMetadataWithoutOrigin,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -140,7 +144,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionApproved(
         mockAccount,
         mockBase64Transaction,
-        mockMetadata,
+        mockMetadataWithoutOrigin,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -210,7 +214,7 @@ describe('AnalyticsService', () => {
         mockAccount,
         mockBase64Transaction,
         mockSignature,
-        mockMetadata,
+        mockMetadataWithoutOrigin,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -329,7 +333,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionFinalized(
         mockAccount,
         mockTransaction,
-        mockMetadata,
+        mockMetadataWithoutOrigin,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -387,7 +391,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionRejected(
         mockAccount,
         mockBase64Transaction,
-        mockMetadata,
+        mockMetadataWithoutOrigin,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
