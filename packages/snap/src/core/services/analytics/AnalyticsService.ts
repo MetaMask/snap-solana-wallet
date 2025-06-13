@@ -123,7 +123,7 @@ export class AnalyticsService {
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
-            chain_id: metadata.scope,
+            chain_id: transaction.chain,
             transaction_status: transaction.status,
             transaction_type: transaction.type,
           },
