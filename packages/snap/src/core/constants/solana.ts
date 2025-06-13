@@ -1,3 +1,4 @@
+import { define, pattern, string } from '@metamask/superstruct';
 import { address } from '@solana/kit';
 
 /* eslint-disable no-restricted-globals */
@@ -33,6 +34,56 @@ export enum KnownCaip19Id {
   EurcLocalnet = `${Network.Localnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   Ai16zLocalnet = `${Network.Localnet}/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC`,
 }
+
+export type NativeCaipAssetType = `${Network}/slip44:501`;
+export type TokenCaipAssetType = `${Network}/token:${string}`;
+export type NftCaipAssetType = `${Network}/nft:${string}`;
+
+/**
+ * Validates a Solana native CAIP-19 ID (e.g., "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501")
+ */
+export const NativeCaipAssetTypeStruct = pattern(
+  string(),
+  /^solana:[a-zA-Z0-9]+\/slip44:501$/u,
+);
+
+/**
+ * Validates a Solana token CAIP-19 ID (e.g., "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+ */
+export const TokenCaipAssetTypeStruct = pattern(
+  string(),
+  /^solana:[a-zA-Z0-9]+\/token:[a-zA-Z0-9]+$/u,
+);
+
+/**
+ * Validates a Solana NFT CAIP-19 ID (e.g., "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/nft:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+ */
+export const NftCaipAssetTypeStruct = pattern(
+  string(),
+  /^solana:[a-zA-Z0-9]+\/nft:[a-zA-Z0-9]+$/u,
+);
+
+/**
+ * Custom struct that validates a string and returns it as TokenCaipAssetType
+ * This is useful when the API returns a generic string that needs to be validated
+ * and typed as TokenCaipAssetType
+ */
+export const TokenCaipAssetTypeFromStringStruct = define(
+  'TokenCaipAssetTypeFromString',
+  (value) => {
+    if (typeof value !== 'string') {
+      return `Expected a string, but received: ${typeof value}`;
+    }
+
+    const [error] = TokenCaipAssetTypeStruct.validate(value);
+
+    if (error) {
+      return error;
+    }
+
+    return true;
+  },
+);
 
 export const NETWORK_TO_EXPLORER_CLUSTER = {
   [Network.Mainnet]: undefined,

@@ -269,7 +269,7 @@ describe('PriceApiClient', () => {
       );
     });
 
-    it('rejects tokenCaip19Ids that are invalid or that include malicious inputs', async () => {
+    it('rejects tokenCaipAssetTypes that are invalid or that include malicious inputs', async () => {
       await expect(
         client.getMultipleSpotPrices([
           KnownCaip19Id.SolLocalnet,

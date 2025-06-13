@@ -360,6 +360,12 @@ describe('Send', () => {
       ...updatedContext3,
       stage: 'transaction-confirmation',
       feeEstimatedInSol: '0.000005',
+      selectedTokenMetadata: {
+        symbol: 'SOL',
+        name: 'Solana',
+        asset: KnownCaip19Id.SolLocalnet,
+        imageSvg: null,
+      },
     };
 
     expect(screen4).toRender(<Send context={updatedContext4} />);
