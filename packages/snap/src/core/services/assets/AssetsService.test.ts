@@ -4,6 +4,8 @@ import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
+import { MOCK_NFTS_LIST_RESPONSE_MAPPED } from '../../clients/nft-api/mocks/mockNftsListResponseMapped';
+import type { NftApiClient } from '../../clients/nft-api/NftApiClient';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { Serializable } from '../../serialization/types';
 import {
@@ -42,6 +44,7 @@ describe('AssetsService', () => {
   let mockConnection: SolanaConnection;
   let mockConfigProvider: ConfigProvider;
   let mockTokenMetadataService: TokenMetadataService;
+  let mockNftApiClient: NftApiClient;
   let mockState: IStateManager<UnencryptedStateValue>;
   let stateUpdateSpy: jest.SpyInstance;
   let mockCache: ICache<Serializable>;
@@ -66,6 +69,12 @@ describe('AssetsService', () => {
 
     mockCache = new InMemoryCache();
 
+    mockNftApiClient = {
+      listAddressSolanaNfts: jest
+        .fn()
+        .mockResolvedValue(MOCK_NFTS_LIST_RESPONSE_MAPPED),
+    } as unknown as NftApiClient;
+
     stateUpdateSpy = jest.spyOn(mockState, 'update');
 
     const snap = {
@@ -80,6 +89,7 @@ describe('AssetsService', () => {
       state: mockState,
       tokenMetadataService: mockTokenMetadataService,
       cache: mockCache,
+      nftApiClient: mockNftApiClient,
     });
   });
 

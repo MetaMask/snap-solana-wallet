@@ -1,5 +1,6 @@
 import type { ICache } from './core/caching/ICache';
 import { StateCache } from './core/caching/StateCache';
+import { NftApiClient } from './core/clients/nft-api/NftApiClient';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
@@ -68,6 +69,7 @@ const sendSplTokenBuilder = new SendSplTokenBuilder(
 );
 const tokenMetadataClient = new TokenMetadataClient(configProvider);
 const priceApiClient = new PriceApiClient(configProvider, cache);
+const nftApiClient = new NftApiClient(configProvider, cache);
 
 const tokenMetadataService = new TokenMetadataService({
   tokenMetadataClient,
@@ -81,6 +83,7 @@ const assetsService = new AssetsService({
   state,
   tokenMetadataService,
   cache,
+  nftApiClient,
 });
 
 const transactionsService = new TransactionsService({

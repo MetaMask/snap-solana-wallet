@@ -25,6 +25,8 @@ on:
         required: true
       SECURITY_ALERTS_API_BASE_URL:
         required: true
+      NFT_API_BASE_URL:
+        required: true
       EXPLORER_BASE_URL:
         required: true
 jobs:
@@ -39,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
       - uses: MetaMask/action-publish-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,6 +61,7 @@ jobs:
           TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
           STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
           SECURITY_ALERTS_API_BASE_URL: ${{ secrets.SECURITY_ALERTS_API_BASE_URL }}
+          NFT_API_BASE_URL: ${{ secrets.NFT_API_BASE_URL }}
       - uses: actions/cache@v4
         id: restore-build
         with:
