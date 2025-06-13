@@ -13,11 +13,11 @@ import {
 import type { SolanaKeyringAccount } from '../../../entities';
 import { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
+import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
-import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { SignatureMapping } from './types';
 import { mapRpcTransaction } from './utils/mapRpcTransaction';
 
@@ -26,7 +26,7 @@ export class TransactionsService {
 
   readonly #logger: ILogger;
 
-  readonly #tokenMetadataService: TokenMetadataService;
+  readonly #assetsService: AssetsService;
 
   readonly #state: IStateManager<UnencryptedStateValue>;
 
@@ -35,18 +35,18 @@ export class TransactionsService {
   constructor({
     logger,
     connection,
-    tokenMetadataService,
+    assetsService,
     state,
     configProvider,
   }: {
     logger: ILogger;
     connection: SolanaConnection;
-    tokenMetadataService: TokenMetadataService;
+    assetsService: AssetsService;
     state: IStateManager<UnencryptedStateValue>;
     configProvider: ConfigProvider;
   }) {
     this.#connection = connection;
-    this.#tokenMetadataService = tokenMetadataService;
+    this.#assetsService = assetsService;
     this.#logger = logger;
     this.#state = state;
     this.#configProvider = configProvider;
@@ -491,20 +491,20 @@ export class TransactionsService {
       ),
     ];
 
-    const tokenMetadata =
-      await this.#tokenMetadataService.getTokensMetadata(caip19Ids);
+    const assetsMetadata =
+      await this.#assetsService.getAssetsMetadata(caip19Ids);
 
     Object.keys(transactionsByAccount).forEach((accountId) => {
       transactionsByAccount[accountId]?.forEach((transaction) => {
         transaction.from.forEach((from) => {
-          if (from.asset?.fungible && tokenMetadata[from.asset.type]) {
-            from.asset.unit = tokenMetadata[from.asset.type]?.symbol ?? '';
+          if (from.asset?.fungible && assetsMetadata[from.asset.type]) {
+            from.asset.unit = assetsMetadata[from.asset.type]?.symbol ?? '';
           }
         });
 
         transaction.to.forEach((to) => {
-          if (to.asset?.fungible && tokenMetadata[to.asset.type]) {
-            to.asset.unit = tokenMetadata[to.asset.type]?.symbol ?? '';
+          if (to.asset?.fungible && assetsMetadata[to.asset.type]) {
+            to.asset.unit = assetsMetadata[to.asset.type]?.symbol ?? '';
           }
         });
       });

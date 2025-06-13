@@ -45,6 +45,7 @@ const EnvStruct = object({
   TOKEN_API_BASE_URL: UrlStruct,
   STATIC_API_BASE_URL: UrlStruct,
   SECURITY_ALERTS_API_BASE_URL: UrlStruct,
+  NFT_API_BASE_URL: UrlStruct,
   LOCAL_API_BASE_URL: string(),
 });
 
@@ -75,6 +76,9 @@ export type Config = {
     storageLimit: number;
   };
   securityAlertsApi: {
+    baseUrl: string;
+  };
+  nftApi: {
     baseUrl: string;
   };
   subscription: {
@@ -118,6 +122,8 @@ export class ConfigProvider {
       STATIC_API_BASE_URL: process.env.STATIC_API_BASE_URL,
       SECURITY_ALERTS_API_BASE_URL: process.env.SECURITY_ALERTS_API_BASE_URL, // Blockaid
       LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL,
+      // NFT API
+      NFT_API_BASE_URL: process.env.NFT_API_BASE_URL,
     };
 
     // Validate and parse them before returning
@@ -176,6 +182,12 @@ export class ConfigProvider {
           environment.ENVIRONMENT === 'test'
             ? environment.LOCAL_API_BASE_URL
             : environment.SECURITY_ALERTS_API_BASE_URL,
+      },
+      nftApi: {
+        baseUrl:
+          environment.ENVIRONMENT === 'test'
+            ? environment.LOCAL_API_BASE_URL
+            : environment.NFT_API_BASE_URL,
       },
       subscription: {
         maxReconnectAttempts: 5,
