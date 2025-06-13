@@ -105,6 +105,14 @@ export const SendForm = ({
 
   const showClearAddressButton = Boolean(toAddress && toAddress.length > 0);
 
+  const amountInputIsError = Boolean(
+    validation?.[SendFormNames.AmountInput]?.message,
+  );
+
+  const balanceText = amountInputIsError
+    ? (validation?.[SendFormNames.AmountInput]?.message ?? '')
+    : `${translate('send.balance')}: ${balance}`;
+
   const canReview =
     fromAccountId.length > 0 &&
     (amount ? amount.length > 0 : false) &&
@@ -178,7 +186,6 @@ export const SendForm = ({
                 </Field>
                 <AmountInput
                   name={SendFormNames.AmountInput}
-                  error={validation?.[SendFormNames.AmountInput]?.message ?? ''}
                   currencyType={currencyType}
                   tokenSymbol={tokenSymbol}
                   currency={currency}
@@ -189,14 +196,19 @@ export const SendForm = ({
                   }
                 />
               </Box>
-              <Box direction="horizontal" alignment="space-between" center>
-                {balance ? (
-                  <Text size="sm" color="muted">{`${translate(
-                    'send.balance',
-                  )}: ${balance}`}</Text>
-                ) : (
-                  <Box>{null}</Box>
-                )}
+              <Box
+                direction="horizontal"
+                alignment="space-between"
+                crossAlignment="start"
+              >
+                <Box direction="vertical" alignment="start">
+                  <Text
+                    size="sm"
+                    color={amountInputIsError ? 'error' : 'muted'}
+                  >
+                    {balanceText}
+                  </Text>
+                </Box>
                 <Button
                   size="sm"
                   name={SendFormNames.MaxAmountButton}

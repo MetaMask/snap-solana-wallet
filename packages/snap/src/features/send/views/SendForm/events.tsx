@@ -295,7 +295,9 @@ async function onMaxAmountButtonClick({
 
     const maxAmountLamports = BigNumber.maximum(
       balanceInLamportsAfterCost,
-      BigNumber(0),
+      balanceInLamportsAfterCost.isNegative()
+        ? balanceInLamports
+        : BigNumber(0),
     );
 
     const maxAmountSol = lamportsToSol(maxAmountLamports);

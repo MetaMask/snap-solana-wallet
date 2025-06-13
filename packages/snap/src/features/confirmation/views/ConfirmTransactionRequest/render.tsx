@@ -183,8 +183,8 @@ export async function render(
         options,
       })
       .then(async (scan) => {
-        updatedContext2.scanFetchStatus = 'fetched';
         updatedContext2.scan = scan;
+        updatedContext2.scanFetchStatus = scan ? 'fetched' : 'error';
       })
       .catch(() => {
         updatedContext2.scan = null;

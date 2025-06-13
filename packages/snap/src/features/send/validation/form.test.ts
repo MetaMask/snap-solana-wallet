@@ -126,6 +126,9 @@ describe('send form validation', () => {
           scope: Network.Testnet,
           currencyType: SendCurrencyType.TOKEN,
           feeEstimatedInSol: '0.000005',
+          selectedTokenMetadata: {
+            symbol: 'SOL',
+          },
           balances: {
             [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
               [KnownCaip19Id.SolTestnet]: {
@@ -155,7 +158,7 @@ describe('send form validation', () => {
         const context = createSolContext();
         const validator = amountInput(context);
         expect(validator('0')).toStrictEqual({
-          message: '',
+          message: 'Amount must be greater than 0.002',
           value: '0',
         });
       });
@@ -164,7 +167,7 @@ describe('send form validation', () => {
         const context = createSolContext();
         const validator = amountInput(context);
         expect(validator('1.5')).toStrictEqual({
-          message: 'Insufficient balance',
+          message: 'Insufficient balance: 1 SOL',
           value: '1.5',
         });
       });
@@ -213,6 +216,9 @@ describe('send form validation', () => {
           scope: Network.Testnet,
           currencyType: SendCurrencyType.TOKEN,
           feeEstimatedInSol: '0.000005',
+          selectedTokenMetadata: {
+            symbol: 'EURC',
+          },
           balances: {
             [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
               [KnownCaip19Id.EurcDevnet]: {
@@ -260,7 +266,7 @@ describe('send form validation', () => {
         const context = createSplContext();
         const validator = amountInput(context);
         expect(validator('150')).toStrictEqual({
-          message: 'Insufficient balance',
+          message: 'Insufficient balance: 100 EURC',
           value: '150',
         });
       });

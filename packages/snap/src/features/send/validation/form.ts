@@ -133,6 +133,7 @@ export const amountInput = (context: SendContext) => {
     minimumBalanceForRentExemptionSol,
     preferences: { locale },
     feeEstimatedInSol,
+    selectedTokenMetadata,
   } = context;
   const translate = i18n(locale);
 
@@ -153,32 +154,18 @@ export const amountInput = (context: SendContext) => {
     const minimumBalanceForRentExemptionLamports = solToLamports(
       minimumBalanceForRentExemptionSol ?? '0',
     );
-
-    // If the value parses to 0, it's invalid but we don't want to show an error
-    if (tokenAmountLamports.isZero()) {
-      return { message: '', value };
-    }
+    const solBalance = getNativeTokenBalance(context);
+    const solBalanceLamports = solToLamports(solBalance);
+    const isNativeToken = getIsNativeToken(context);
 
     // If you try to send more than your balance, it's invalid
     const isAmountGreaterThanBalance = tokenAmountLamports.gt(balanceLamports);
     if (isAmountGreaterThanBalance) {
       return {
-        message: translate('send.insufficientBalance'),
+        message: `${translate('send.insufficientBalance')}: ${balance} ${selectedTokenMetadata?.symbol ?? ''}`,
         value,
       };
     }
-
-    // If you have 0 SOL, you can't pay for the fee, it's invalid
-    const solBalance = getNativeTokenBalance(context);
-    const solBalanceLamports = solToLamports(solBalance);
-    if (solBalanceLamports.isZero()) {
-      return {
-        message: translate('send.insuffientSolToCoverFee'),
-        value,
-      };
-    }
-
-    const isNativeToken = getIsNativeToken(context);
 
     if (isNativeToken) {
       // If the value is lower than the minimum balance for rent exemption, it's invalid
@@ -223,6 +210,19 @@ export const amountInput = (context: SendContext) => {
           value,
         };
       }
+    }
+
+    // If the value parses to 0, it's invalid but we don't want to show an error
+    if (tokenAmountLamports.isZero()) {
+      return { message: '', value };
+    }
+
+    // If you have 0 SOL, you can't pay for the fee, it's invalid
+    if (solBalanceLamports.isZero()) {
+      return {
+        message: translate('send.insuffientSolToCoverFee'),
+        value,
+      };
     }
 
     return null;
