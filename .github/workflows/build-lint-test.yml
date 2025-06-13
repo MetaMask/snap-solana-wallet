@@ -21,6 +21,8 @@ on:
         required: true
       SECURITY_ALERTS_API_BASE_URL:
         required: true
+      NFT_API_BASE_URL:
+        required: true
       EXPLORER_BASE_URL:
         required: true
 
@@ -33,8 +35,8 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          node-version-file: ".nvmrc"
+          cache: "yarn"
       - name: Install Yarn dependencies
         run: yarn --immutable
 
@@ -55,13 +57,14 @@ jobs:
       TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
       STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
       SECURITY_ALERTS_API_BASE_URL: ${{ secrets.SECURITY_ALERTS_API_BASE_URL }}
+      NFT_API_BASE_URL: ${{ secrets.NFT_API_BASE_URL }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          node-version-file: ".nvmrc"
+          cache: "yarn"
       - run: yarn --immutable --immutable-cache || yarn install
       - run: |
           npm rebuild --verbose sharp
@@ -89,8 +92,8 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          node-version-file: ".nvmrc"
+          cache: "yarn"
       - run: yarn --immutable --immutable-cache || yarn install
       - run: yarn lint
       - name: Require clean working directory
@@ -118,13 +121,14 @@ jobs:
       TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
       STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
       SECURITY_ALERTS_API_BASE_URL: ${{ secrets.SECURITY_ALERTS_API_BASE_URL }}
+      NFT_API_BASE_URL: ${{ secrets.NFT_API_BASE_URL }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          node-version-file: ".nvmrc"
+          cache: "yarn"
       - run: yarn install --immutable
       - name: Build for tests
         run: yarn workspace @metamask/solana-wallet-snap build

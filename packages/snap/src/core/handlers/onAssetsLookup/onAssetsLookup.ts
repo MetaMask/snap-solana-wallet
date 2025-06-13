@@ -1,12 +1,12 @@
-import type { OnAssetsLookupHandler } from '@metamask/snaps-sdk';
+import type { CaipAssetType } from '@metamask/keyring-api';
 
-import { tokenMetadataClient } from '../../../snapContext';
+import { assetsService } from '../../../snapContext';
 
-export const onAssetsLookup: OnAssetsLookupHandler = async (params) => {
-  const { assets } = params;
-
-  const metadata =
-    await tokenMetadataClient.getTokenMetadataFromAddresses(assets);
-
+export const onAssetsLookup = async ({
+  assets,
+}: {
+  assets: CaipAssetType[];
+}) => {
+  const metadata = await assetsService.getAssetsMetadata(assets);
   return { assets: metadata };
 };

@@ -1,4 +1,4 @@
-import type { TokenMetadataClient } from '../../clients/token-metadata-client/TokenMetadataClient';
+import type { TokenApiClient } from '../../clients/token-api-client/TokenApiClient';
 import {
   SOLANA_MOCK_SPL_TOKENS,
   SOLANA_MOCK_TOKEN_METADATA,
@@ -8,13 +8,13 @@ import type { ILogger } from '../../utils/logger';
 import { TokenMetadataService } from './TokenMetadata';
 
 describe('TokenMetadataService', () => {
-  let tokenMetadataClient: TokenMetadataClient;
+  let tokenApiClient: TokenApiClient;
   let tokenMetadataService: TokenMetadataService;
   let logger: ILogger;
   beforeEach(() => {
-    tokenMetadataClient = {
+    tokenApiClient = {
       getTokenMetadataFromAddresses: jest.fn(),
-    } as unknown as TokenMetadataClient;
+    } as unknown as TokenApiClient;
 
     logger = {
       error: jest.fn(),
@@ -22,7 +22,7 @@ describe('TokenMetadataService', () => {
     } as unknown as ILogger;
 
     tokenMetadataService = new TokenMetadataService({
-      tokenMetadataClient,
+      tokenApiClient,
       logger,
     });
   });
@@ -38,7 +38,7 @@ describe('TokenMetadataService', () => {
       const mockMetadata = SOLANA_MOCK_TOKEN_METADATA;
 
       jest
-        .spyOn(tokenMetadataClient, 'getTokenMetadataFromAddresses')
+        .spyOn(tokenApiClient, 'getTokenMetadataFromAddresses')
         .mockResolvedValue(mockMetadata);
 
       const result = await tokenMetadataService.getTokensMetadata(
@@ -53,7 +53,7 @@ describe('TokenMetadataService', () => {
       const error = new Error('Error fetching token metadata');
 
       jest
-        .spyOn(tokenMetadataClient, 'getTokenMetadataFromAddresses')
+        .spyOn(tokenApiClient, 'getTokenMetadataFromAddresses')
         .mockRejectedValue(error);
 
       await expect(

@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       base-branch:
-        description: 'The base branch for git operations and the pull request.'
-        default: 'main'
+        description: "The base branch for git operations and the pull request."
+        default: "main"
         required: true
       release-type:
         description: 'A SemVer version diff, i.e. major, minor, or patch. Mutually exclusive with "release-version".'
@@ -32,7 +32,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
       - uses: MetaMask/action-create-release-pr@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -49,7 +49,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
       - name: Update Snap Version
         id: update-release-pr
         shell: bash
@@ -69,3 +69,4 @@ jobs:
           TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
           STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
           SECURITY_ALERTS_API_BASE_URL: ${{ secrets.SECURITY_ALERTS_API_BASE_URL }}
+          NFT_API_BASE_URL: ${{ secrets.NFT_API_BASE_URL }}

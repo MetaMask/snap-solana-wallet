@@ -5,7 +5,7 @@ import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
-import { TokenMetadataClient } from './TokenMetadataClient';
+import { TokenApiClient } from './TokenApiClient';
 
 const MOCK_METADATA_RESPONSE = [
   {
@@ -24,14 +24,14 @@ const MOCK_METADATA_RESPONSE = [
   },
 ];
 
-describe('TokenMetadataClient', () => {
+describe('TokenApiClient', () => {
   const mockFetch = jest.fn();
   const mockLogger = {
     error: jest.fn(console.error),
     warn: jest.fn(console.error),
   } as unknown as ILogger;
 
-  let client: TokenMetadataClient;
+  let client: TokenApiClient;
   let mockConfigProvider: ConfigProvider;
 
   beforeEach(() => {
@@ -49,7 +49,7 @@ describe('TokenMetadataClient', () => {
       }),
     } as unknown as ConfigProvider;
 
-    client = new TokenMetadataClient(mockConfigProvider, mockFetch, mockLogger);
+    client = new TokenApiClient(mockConfigProvider, mockFetch, mockLogger);
   });
 
   describe('constructor', () => {
@@ -63,8 +63,7 @@ describe('TokenMetadataClient', () => {
       } as unknown as ConfigProvider;
 
       expect(
-        () =>
-          new TokenMetadataClient(invalidConfigProvider, mockFetch, mockLogger),
+        () => new TokenApiClient(invalidConfigProvider, mockFetch, mockLogger),
       ).toThrow('Invalid URL format');
     });
   });

@@ -12,6 +12,8 @@ export const onAssetsConversion: OnAssetsConversionHandler = async (params) => {
 
     const { conversions, includeMarketData } = params;
 
+    // TODO: There might be NFTs in the conversions, we need to handle them differently
+
     const conversionRates =
       await tokenPricesService.getMultipleTokenConversions(
         conversions,

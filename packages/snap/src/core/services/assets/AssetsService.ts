@@ -11,6 +11,13 @@ import { map, uniq } from 'lodash';
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { ICache } from '../../caching/ICache';
 import { useCache } from '../../caching/useCache';
+import type { NftApiClient } from '../../clients/nft-api/NftApiClient';
+import type {
+  Caip10Address,
+  NativeCaip19Id,
+  NftCaip19Id,
+  TokenCaip19Id,
+} from '../../constants/solana';
 import {
   Network,
   SolanaCaip19Tokens,
@@ -32,6 +39,11 @@ import type { SolanaConnection } from '../connection';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
+import type {
+  AssetMetadata,
+  FungibleAssetMetadata,
+  NonFungibleAssetMetadata,
+} from './types';
 
 /**
  * Extends a token account as returned by the `getTokenAccountsByOwner` RPC method with the scope and the caip-19 asset type for convenience.
@@ -55,8 +67,13 @@ export class AssetsService {
 
   readonly #cache: ICache<Serializable>;
 
+  readonly #nftApiClient: NftApiClient;
+
+  readonly #activeNetworks: Network[];
+
   public static readonly cacheTtlsMilliseconds = {
     tokenAccountsByOwner: 5 * Duration.Second,
+    nftApiClient: 5 * Duration.Second,
   };
 
   constructor({
@@ -66,6 +83,7 @@ export class AssetsService {
     state,
     tokenMetadataService,
     cache,
+    nftApiClient,
   }: {
     connection: SolanaConnection;
     logger: ILogger;
@@ -73,6 +91,7 @@ export class AssetsService {
     state: IStateManager<UnencryptedStateValue>;
     tokenMetadataService: TokenMetadataService;
     cache: ICache<Serializable>;
+    nftApiClient: NftApiClient;
   }) {
     this.#logger = logger;
     this.#connection = connection;
@@ -80,6 +99,39 @@ export class AssetsService {
     this.#state = state;
     this.#tokenMetadataService = tokenMetadataService;
     this.#cache = cache;
+    this.#nftApiClient = nftApiClient;
+    this.#activeNetworks = configProvider.get().activeNetworks;
+  }
+
+  async #listAddressNativeAssets(): Promise<NativeCaip19Id[]> {
+    const nativeAssetsIds = this.#activeNetworks.map(
+      (network) => `${network}/${SolanaCaip19Tokens.SOL}` as const,
+    );
+
+    return nativeAssetsIds;
+  }
+
+  async #listAddressTokenAssets(address: Address): Promise<TokenCaip19Id[]> {
+    const tokenAccounts = await this.#getTokenAccountsByOwnerMultiple(
+      asAddress(address),
+      [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+      this.#activeNetworks,
+    );
+    const tokenIds = tokenAccounts.map(
+      (token) => token.assetType,
+    ) as TokenCaip19Id[];
+
+    return tokenIds;
+  }
+
+  async #listAddressNftAssets(address: Address): Promise<NftCaip19Id[]> {
+    const nftAssets = await this.#nftApiClient.listAddressSolanaNfts(address);
+
+    const nftAssetsIds = nftAssets.map(
+      (nft) => `${Network.Mainnet}/nft:${nft.tokenAddress}` as NftCaip19Id,
+    );
+
+    return nftAssetsIds;
   }
 
   /**
@@ -91,21 +143,146 @@ export class AssetsService {
   async listAccountAssets(
     account: SolanaKeyringAccount,
   ): Promise<CaipAssetType[]> {
-    const { activeNetworks } = this.#configProvider.get();
+    const accountAddress = asAddress(account.address);
 
-    const nativeAssetTypes = activeNetworks.map(
-      (network) => `${network}/${SolanaCaip19Tokens.SOL}` as CaipAssetType,
+    console.log('BEFORE DATA REQUEST');
+
+    const [nativeAssetsIds, tokenAssetsIds, nftAssetsIds] = await Promise.all([
+      this.#listAddressNativeAssets(),
+      this.#listAddressTokenAssets(accountAddress),
+      this.#listAddressNftAssets(accountAddress),
+    ]);
+
+    console.log('LIST ACCOUNT ASSETS');
+    console.log(nativeAssetsIds);
+    console.log(tokenAssetsIds);
+    console.log(nftAssetsIds);
+
+    return uniq([...nativeAssetsIds, ...tokenAssetsIds, ...nftAssetsIds]);
+  }
+
+  #splitAssetsByType(assetTypes: CaipAssetType[]) {
+    const nativeAssetTypes = assetTypes.filter((assetType) =>
+      assetType.endsWith(SolanaCaip19Tokens.SOL),
+    ) as NativeCaip19Id[];
+    const tokenAssetTypes = assetTypes.filter((assetType) =>
+      assetType.includes('token:'),
+    ) as TokenCaip19Id[];
+    const nftAssetTypes = assetTypes.filter((assetType) =>
+      assetType.includes('nft:'),
+    ) as NftCaip19Id[];
+
+    return { nativeAssetTypes, tokenAssetTypes, nftAssetTypes };
+  }
+
+  #getNativeTokensMetadata(
+    assetTypes: NativeCaip19Id[],
+  ): Record<CaipAssetType, FungibleAssetMetadata | null> {
+    const nativeTokensMetadata: Record<
+      CaipAssetType,
+      FungibleAssetMetadata | null
+    > = {};
+
+    for (const assetType of assetTypes) {
+      const { chainId } = parseCaipAssetType(assetType);
+      nativeTokensMetadata[assetType] = {
+        name: 'Solana',
+        symbol: 'SOL',
+        fungible: true,
+        iconUrl: `${this.#configProvider.get().staticApi.baseUrl}/api/v2/tokenIcons/assets/solana/${chainId}/slip44/501.png`,
+        units: [
+          {
+            name: 'Solana',
+            symbol: 'SOL',
+            decimals: 9,
+          },
+        ],
+      };
+    }
+
+    return nativeTokensMetadata;
+  }
+
+  async #getTokensMetadata(
+    assetTypes: TokenCaip19Id[],
+  ): Promise<Record<TokenCaip19Id, FungibleAssetMetadata | null>> {
+    const tokensMetadata =
+      await this.#tokenMetadataService.getTokensMetadata(assetTypes);
+
+    return tokensMetadata;
+  }
+
+  async #getNftsMetadata(
+    assetTypes: NftCaip19Id[],
+  ): Promise<Record<NftCaip19Id, NonFungibleAssetMetadata | null>> {
+    /**
+     * For each NFT asset type coming in, we need to fetch the metadata for that NFT
+     */
+    const nftsRawMetadataArray = await this.#nftApiClient.getNftsMetadata(
+      assetTypes.map((assetType) => {
+        const { assetReference } = parseCaipAssetType(assetType);
+        return assetReference;
+      }),
     );
 
-    const tokenAssetTypes = (
-      await this.#getTokenAccountsByOwnerMultiple(
-        asAddress(account.address),
-        [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-        activeNetworks,
-      )
-    ).flatMap((response) => response.assetType);
+    const nftsMetadataMap: Record<
+      NftCaip19Id,
+      NonFungibleAssetMetadata | null
+    > = {};
 
-    return [...nativeAssetTypes, ...tokenAssetTypes];
+    for (const nft of nftsRawMetadataArray) {
+      const assetType = `${Network.Mainnet}/nft:${nft.address}` as NftCaip19Id; // FIXME: Change the mainnet assumption if/when we support devnets
+
+      const metadata = {
+        name: nft.name,
+        symbol: nft.name,
+        imageUrl: nft.imageUrl,
+        description: nft.description,
+        fungible: false as const,
+        // acquiredAt: undefined, // TODO: Add this once we have a way to get the acquisition time
+        // isPossibleSpam: undefined, // TODO: The isSpam should be part of the NFT item response, not balance, otherwise we can't get it here
+        attributes: Object.fromEntries(
+          nft.attributes.map(
+            (attr: { key: string; value: string | number }) => [
+              attr.key,
+              attr.value,
+            ],
+          ),
+        ),
+        collection: {
+          name: nft.collectionName,
+          address: nft.onchainCollectionAddress as unknown as Caip10Address, // FIXME: doesn't exist when metadata is fetched
+          symbol: nft.collectionSymbol,
+          tokenCount: nft.collectionCount,
+          creator: '' as unknown as Caip10Address, // FIXME: There can be more than one creator
+          imageUrl: nft.collectionImageUrl ?? '', // FIXME: Should this maybe be optional?
+        },
+      };
+
+      nftsMetadataMap[assetType] = metadata;
+    }
+
+    return nftsMetadataMap;
+  }
+
+  async getAssetsMetadata(
+    assetTypes: CaipAssetType[],
+  ): Promise<Record<CaipAssetType, AssetMetadata | null>> {
+    const { nativeAssetTypes, tokenAssetTypes, nftAssetTypes } =
+      this.#splitAssetsByType(assetTypes);
+
+    const [nativeTokensMetadata, tokensMetadata, nftMetadata] =
+      await Promise.all([
+        this.#getNativeTokensMetadata(nativeAssetTypes),
+        this.#getTokensMetadata(tokenAssetTypes),
+        this.#getNftsMetadata(nftAssetTypes),
+      ]);
+
+    return {
+      ...nativeTokensMetadata,
+      ...tokensMetadata,
+      ...nftMetadata,
+    };
   }
 
   /**
@@ -200,11 +377,62 @@ export class AssetsService {
     account: SolanaKeyringAccount,
     assetTypes: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
+    /**
+     * There will be 3 sources of balances data:
+     * - The balances for native assets, which are fetched from the RPC
+     * - The balances for token assets, which are fetched from the token accounts
+     * - The balances for NFT assets, which are always 1
+     */
+    const { nativeAssetTypes, tokenAssetTypes, nftAssetTypes } =
+      this.#splitAssetsByType(assetTypes);
+
+    const [nativeBalances, tokenBalances, nftBalances] = await Promise.all([
+      this.#getNativeBalances(account, nativeAssetTypes),
+      this.#getTokenBalances(account, tokenAssetTypes),
+      this.#getNftBalances(account, nftAssetTypes),
+    ]);
+
+    return {
+      ...nativeBalances,
+      ...tokenBalances,
+      ...nftBalances,
+    };
+  }
+
+  async #getNativeBalances(
+    account: SolanaKeyringAccount,
+    assetIds: NativeCaip19Id[],
+  ): Promise<Record<CaipAssetType, Balance>> {
+    const accountAddress = asAddress(account.address);
+
+    const balancePromises = assetIds.map(async (assetId) => {
+      const balance = await this.#connection
+        .getRpc(getNetworkFromToken(assetId))
+        .getBalance(accountAddress)
+        .send();
+
+      return [
+        assetId,
+        {
+          unit: 'SOL',
+          amount: balance.value.toString(),
+        },
+      ] as const;
+    });
+
+    const results = await Promise.all(balancePromises);
+    return Object.fromEntries(results);
+  }
+
+  async #getTokenBalances(
+    account: SolanaKeyringAccount,
+    assetIds: TokenCaip19Id[],
+  ): Promise<Record<CaipAssetType, Balance>> {
     const accountAddress = asAddress(account.address);
     const tokensMetadata =
-      await this.#tokenMetadataService.getTokensMetadata(assetTypes);
+      await this.#tokenMetadataService.getTokensMetadata(assetIds);
 
-    const scopes = uniq(map(assetTypes, getNetworkFromToken));
+    const scopes = uniq(map(assetIds, getNetworkFromToken));
     const programIds = [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS];
     const tokenAccounts = await this.#getTokenAccountsByOwnerMultiple(
       accountAddress,
@@ -215,28 +443,14 @@ export class AssetsService {
     const balances: Record<CaipAssetType, Balance> = {};
 
     // For each requested asset type, retrieve the balance and metadata, and store that in the balances object
-    const promises = assetTypes.map(async (assetType) => {
-      const { chainId } = parseCaipAssetType(assetType);
-      const isNative = assetType.endsWith(SolanaCaip19Tokens.SOL);
+    const promises = assetIds.map(async (assetType) => {
+      const tokenAccount = tokenAccounts.find(
+        (item: any) => item.assetType === assetType,
+      );
 
-      let balance: bigint;
-
-      if (isNative) {
-        balance = (
-          await this.#connection
-            .getRpc(chainId as Network)
-            .getBalance(accountAddress)
-            .send()
-        ).value;
-      } else {
-        const tokenAccount = tokenAccounts.find(
-          (item: any) => item.assetType === assetType,
-        );
-
-        balance = tokenAccount
-          ? BigInt(tokenAccount.account.data.parsed.info.tokenAmount.amount)
-          : BigInt(0); // If the user has no token account linked to a requested mint, default to 0
-      }
+      const balance = tokenAccount
+        ? BigInt(tokenAccount.account.data.parsed.info.tokenAmount.amount)
+        : BigInt(0); // If the user has no token account linked to a requested mint, default to 0
 
       const metadata = tokensMetadata[assetType];
 
@@ -256,6 +470,36 @@ export class AssetsService {
       ...balances,
     };
     await this.#state.setKey(`assets.${account.id}`, updatedAssets);
+
+    return balances;
+  }
+
+  async #getNftBalances(
+    account: SolanaKeyringAccount,
+    assetIds: NftCaip19Id[],
+  ): Promise<Record<CaipAssetType, Balance>> {
+    const accountAddress = asAddress(account.address);
+
+    const nftAssets =
+      await this.#nftApiClient.listAddressSolanaNfts(accountAddress);
+    const balances: Record<CaipAssetType, Balance> = {};
+
+    for (const assetId of assetIds) {
+      const { assetReference } = parseCaipAssetType(assetId);
+
+      const nftAsset = nftAssets.find(
+        (nft) => nft.tokenAddress === assetReference,
+      );
+
+      if (!nftAsset) {
+        continue;
+      }
+
+      balances[assetId] = {
+        unit: nftAsset.nftToken.name,
+        amount: nftAsset.balance.toString(),
+      };
+    }
 
     return balances;
   }

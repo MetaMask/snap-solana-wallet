@@ -33,6 +33,10 @@ export enum KnownCaip19Id {
   Ai16zLocalnet = `${Network.Localnet}/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC`,
 }
 
+export type NativeCaip19Id = `${Network}/slip44:501`;
+export type TokenCaip19Id = `${Network}/token:${string}`;
+export type NftCaip19Id = `${Network}/nft:${string}`;
+
 export const NETWORK_TO_EXPLORER_CLUSTER = {
   [Network.Mainnet]: undefined,
   [Network.Devnet]: 'devnet',
