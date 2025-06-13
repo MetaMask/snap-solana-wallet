@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.33.1]
 
-### Uncategorized
+### Fixed
 
-- fix: max button when balace is lower than rent + fee ([#419](https://github.com/MetaMask/snap-solana-wallet/pull/419))
+- Max button not working when balace is lower than rent + fee ([#419](https://github.com/MetaMask/snap-solana-wallet/pull/419))
+- Transaction scan when api fails ([#419](https://github.com/MetaMask/snap-solana-wallet/pull/419))
 
 ## [1.33.0]
 
