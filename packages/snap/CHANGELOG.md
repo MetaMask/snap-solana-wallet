@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.34.0]
+
+### Uncategorized
+
+- fix: max button when balace is lower than rent + fee ([#419](https://github.com/MetaMask/snap-solana-wallet/pull/419))
+
 ## [1.33.0]
 
 ### Added
@@ -658,7 +664,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.33.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.34.0...HEAD
+[1.34.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.33.0...v1.34.0
 [1.33.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.32.0...v1.33.0
 [1.32.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.2...v1.32.0
 [1.31.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.1...v1.31.2
