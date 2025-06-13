@@ -3,7 +3,7 @@ import type { Transaction } from '@metamask/keyring-api';
 import { assert } from '@metamask/superstruct';
 
 import type { SolanaKeyringAccount } from '../../../entities';
-import type { Network } from '../../constants/solana';
+import type { TransactionMetadata } from '../../constants/solana';
 import logger from '../../utils/logger';
 import { Base64Struct } from '../../validation/structs';
 
@@ -20,8 +20,7 @@ export class AnalyticsService {
   async trackEventTransactionAdded(
     account: SolanaKeyringAccount,
     base64EncodedTransaction: string,
-    scope: Network,
-    origin?: string,
+    metadata: TransactionMetadata,
   ): Promise<void> {
     this.#logger.log(`[📣 AnalyticsService] Tracking event transaction added`);
 
@@ -34,11 +33,11 @@ export class AnalyticsService {
           event: 'Transaction Added',
           properties: {
             message: 'Snap transaction added',
-            origin: origin ?? null,
+            origin: metadata.origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
-            chain_id: scope,
+            chain_id: metadata.scope,
           },
         },
       },
@@ -48,8 +47,7 @@ export class AnalyticsService {
   async trackEventTransactionApproved(
     account: SolanaKeyringAccount,
     base64EncodedTransaction: string,
-    scope: Network,
-    origin?: string,
+    metadata: TransactionMetadata,
   ): Promise<void> {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction approved`,
@@ -64,11 +62,11 @@ export class AnalyticsService {
           event: 'Transaction Approved',
           properties: {
             message: 'Snap transaction approved',
-            origin: origin ?? null,
+            origin: metadata.origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
-            chain_id: scope,
+            chain_id: metadata.scope,
           },
         },
       },
@@ -79,8 +77,7 @@ export class AnalyticsService {
     account: SolanaKeyringAccount,
     transactionMessageBase64Encoded: string,
     signature: string,
-    scope: Network,
-    origin?: string,
+    metadata: TransactionMetadata,
   ): Promise<void> {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction submitted`,
@@ -95,11 +92,11 @@ export class AnalyticsService {
           event: 'Transaction Submitted',
           properties: {
             message: 'Snap transaction submitted',
-            origin: origin ?? null,
+            origin: metadata.origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
-            chain_id: scope,
+            chain_id: metadata.scope,
           },
         },
       },
@@ -109,7 +106,7 @@ export class AnalyticsService {
   async trackEventTransactionFinalized(
     account: SolanaKeyringAccount,
     transaction: Transaction,
-    origin?: string,
+    metadata: TransactionMetadata,
   ): Promise<void> {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction finalized`,
@@ -122,11 +119,11 @@ export class AnalyticsService {
           event: 'Transaction Finalized',
           properties: {
             message: 'Snap transaction finalized',
-            origin: origin ?? null,
+            origin: metadata.origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
-            chain_id: transaction.chain,
+            chain_id: metadata.scope,
             transaction_status: transaction.status,
             transaction_type: transaction.type,
           },
@@ -138,8 +135,7 @@ export class AnalyticsService {
   async trackEventTransactionRejected(
     account: SolanaKeyringAccount,
     base64EncodedTransaction: string,
-    scope: Network,
-    origin?: string,
+    metadata: TransactionMetadata,
   ): Promise<void> {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event transaction rejected`,
@@ -154,11 +150,11 @@ export class AnalyticsService {
           event: 'Transaction Rejected',
           properties: {
             message: 'Snap transaction rejected',
-            origin: origin ?? null,
+            origin: metadata.origin ?? null,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
-            chain_id: scope,
+            chain_id: metadata.scope,
           },
         },
       },

@@ -466,7 +466,10 @@ async function onSendButtonClick({
         params: {
           accountId: context.fromAccountId,
           base64EncodedTransaction: context.transactionMessage,
-          scope: context.scope,
+          metadata: {
+            scope: context.scope,
+            origin: null,
+          },
         },
       },
     },

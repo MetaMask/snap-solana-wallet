@@ -51,6 +51,11 @@ export type TokenInfo = {
   decimals: number;
 };
 
+export type TransactionMetadata = {
+  scope: Network;
+  origin: string | null;
+};
+
 export const TokenMetadata = {
   [KnownCaip19Id.SolMainnet]: {
     symbol: 'SOL',

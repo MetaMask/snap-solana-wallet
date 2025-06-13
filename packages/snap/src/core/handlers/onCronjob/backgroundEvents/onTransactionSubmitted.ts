@@ -25,8 +25,10 @@ export const OnTransactionSubmittedRequestStruct = object({
     /** The base64 encoded transaction message. */
     transactionMessageBase64Encoded: Base64Struct,
     signature: string(),
-    scope: NetworkStruct,
-    origin: nullable(string()),
+    metadata: object({
+      scope: NetworkStruct,
+      origin: nullable(string()),
+    }),
   }),
 });
 
@@ -43,13 +45,8 @@ export const onTransactionSubmitted: OnCronjobHandler = async ({ request }) => {
 
     assert(request, OnTransactionSubmittedRequestStruct);
 
-    const {
-      accountId,
-      transactionMessageBase64Encoded,
-      signature,
-      scope,
-      origin,
-    } = request.params;
+    const { accountId, transactionMessageBase64Encoded, signature, metadata } =
+      request.params;
 
     const account = await keyring.getAccountOrThrow(accountId);
 
@@ -57,8 +54,7 @@ export const onTransactionSubmitted: OnCronjobHandler = async ({ request }) => {
       account,
       transactionMessageBase64Encoded,
       signature,
-      scope,
-      origin ?? undefined,
+      metadata,
     );
   } catch (error) {
     logger.error(error);

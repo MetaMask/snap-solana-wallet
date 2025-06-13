@@ -118,7 +118,10 @@ describe('onTransactionFinalized', () => {
         params: {
           accountId: mockAccountId,
           transaction: mockTransaction,
-          origin: mockOrigin,
+          metadata: {
+            scope: Network.Testnet,
+            origin: mockOrigin,
+          },
         },
       },
     });
@@ -190,7 +193,10 @@ describe('onTransactionFinalized', () => {
         params: {
           accountId: mockAccountId,
           transaction: mockTransaction,
-          origin: mockOrigin,
+          metadata: {
+            scope: Network.Testnet,
+            origin: mockOrigin,
+          },
         },
       },
     });

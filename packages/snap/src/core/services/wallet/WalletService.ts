@@ -286,8 +286,10 @@ export class WalletService {
             accountId: account.id,
             transactionMessageBase64Encoded,
             signature,
-            scope,
-            origin: origin ?? null,
+            metadata: {
+              scope,
+              origin: origin ?? null,
+            },
           },
         },
       },
@@ -343,7 +345,10 @@ export class WalletService {
           params: {
             accountId: account.id,
             transaction: mappedTransactionWithAccountId,
-            origin: origin ?? null,
+            metadata: {
+              scope,
+              origin: origin ?? null,
+            },
           },
         },
       },

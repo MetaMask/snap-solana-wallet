@@ -22,6 +22,10 @@ describe('AnalyticsService', () => {
   const mockScope = Network.Mainnet;
   const mockOrigin = 'https://metamask.io';
   const mockSignature = 'mockedSignature';
+  const mockMetadata = {
+    scope: mockScope,
+    origin: mockOrigin,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -39,8 +43,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionAdded(
         mockAccount,
         mockBase64Transaction,
-        mockScope,
-        mockOrigin,
+        mockMetadata,
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
@@ -69,7 +72,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionAdded(
         mockAccount,
         mockBase64Transaction,
-        mockScope,
+        mockMetadata,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -97,8 +100,7 @@ describe('AnalyticsService', () => {
         analyticsService.trackEventTransactionAdded(
           mockAccount,
           invalidBase64,
-          mockScope,
-          mockOrigin,
+          mockMetadata,
         ),
       ).rejects.toThrow();
     });
@@ -109,8 +111,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionApproved(
         mockAccount,
         mockBase64Transaction,
-        mockScope,
-        mockOrigin,
+        mockMetadata,
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
@@ -139,7 +140,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionApproved(
         mockAccount,
         mockBase64Transaction,
-        mockScope,
+        mockMetadata,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -167,8 +168,7 @@ describe('AnalyticsService', () => {
         analyticsService.trackEventTransactionApproved(
           mockAccount,
           invalidBase64,
-          mockScope,
-          mockOrigin,
+          mockMetadata,
         ),
       ).rejects.toThrow();
     });
@@ -180,8 +180,7 @@ describe('AnalyticsService', () => {
         mockAccount,
         mockBase64Transaction,
         mockSignature,
-        mockScope,
-        mockOrigin,
+        mockMetadata,
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
@@ -211,7 +210,7 @@ describe('AnalyticsService', () => {
         mockAccount,
         mockBase64Transaction,
         mockSignature,
-        mockScope,
+        mockMetadata,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -240,8 +239,7 @@ describe('AnalyticsService', () => {
           mockAccount,
           invalidBase64,
           mockSignature,
-          mockScope,
-          mockOrigin,
+          mockMetadata,
         ),
       ).rejects.toThrow();
     });
@@ -300,7 +298,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionFinalized(
         mockAccount,
         mockTransaction,
-        mockOrigin,
+        mockMetadata,
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
@@ -331,6 +329,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionFinalized(
         mockAccount,
         mockTransaction,
+        mockMetadata,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -359,8 +358,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionRejected(
         mockAccount,
         mockBase64Transaction,
-        mockScope,
-        mockOrigin,
+        mockMetadata,
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
@@ -389,7 +387,7 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionRejected(
         mockAccount,
         mockBase64Transaction,
-        mockScope,
+        mockMetadata,
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -417,8 +415,7 @@ describe('AnalyticsService', () => {
         analyticsService.trackEventTransactionRejected(
           mockAccount,
           invalidBase64,
-          mockScope,
-          mockOrigin,
+          mockMetadata,
         ),
       ).rejects.toThrow();
     });
@@ -433,8 +430,7 @@ describe('AnalyticsService', () => {
         analyticsService.trackEventTransactionAdded(
           mockAccount,
           mockBase64Transaction,
-          mockScope,
-          mockOrigin,
+          mockMetadata,
         ),
       ).rejects.toThrow('Snap request failed');
     });

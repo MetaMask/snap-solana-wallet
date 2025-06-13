@@ -68,7 +68,10 @@ async function onCancelButtonClick({
         params: {
           accountId: fromAccountId,
           base64EncodedTransaction: transactionMessage,
-          scope,
+          metadata: {
+            scope,
+            origin: null,
+          },
         },
       },
     },
@@ -115,7 +118,10 @@ async function onConfirmButtonClick({
         params: {
           accountId: context.fromAccountId,
           base64EncodedTransaction: context.transactionMessage,
-          scope: context.scope,
+          metadata: {
+            scope: context.scope,
+            origin: null,
+          },
         },
       },
     },

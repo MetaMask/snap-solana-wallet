@@ -25,7 +25,10 @@ export const OnTransactionFinalizedRequestStruct = object({
   params: object({
     accountId: UuidStruct,
     transaction: TransactionStruct,
-    origin: nullable(string()),
+    metadata: object({
+      scope: NetworkStruct,
+      origin: nullable(string()),
+    }),
   }),
 });
 
@@ -43,7 +46,7 @@ export const onTransactionFinalized: OnCronjobHandler = async ({ request }) => {
 
     assert(request, OnTransactionFinalizedRequestStruct);
 
-    const { accountId, transaction, origin } = request.params;
+    const { accountId, transaction, metadata } = request.params;
 
     const account = await keyring.getAccountOrThrow(accountId);
 
@@ -71,7 +74,7 @@ export const onTransactionFinalized: OnCronjobHandler = async ({ request }) => {
     const trackEventPromise = analyticsService.trackEventTransactionFinalized(
       account,
       transaction,
-      origin ?? undefined,
+      metadata,
     );
 
     await Promise.all([

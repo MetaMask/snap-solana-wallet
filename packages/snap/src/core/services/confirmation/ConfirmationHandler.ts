@@ -92,8 +92,10 @@ export class ConfirmationHandler {
           params: {
             accountId,
             base64EncodedTransaction,
-            scope,
-            origin,
+            metadata: {
+              scope,
+              origin,
+            },
           },
         },
       },
@@ -119,8 +121,10 @@ export class ConfirmationHandler {
             params: {
               accountId,
               base64EncodedTransaction,
-              scope,
-              origin,
+              metadata: {
+                scope,
+                origin,
+              },
             },
           },
         },
@@ -139,8 +143,10 @@ export class ConfirmationHandler {
           params: {
             accountId,
             base64EncodedTransaction,
-            scope,
-            origin,
+            metadata: {
+              scope,
+              origin,
+            },
           },
         },
       },

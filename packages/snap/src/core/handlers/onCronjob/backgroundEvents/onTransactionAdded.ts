@@ -24,8 +24,10 @@ export const OnTransactionAddedRequestStruct = object({
     accountId: UuidStruct,
     /** The base64 encoded transaction or transaction message. */
     base64EncodedTransaction: Base64Struct,
-    scope: NetworkStruct,
-    origin: nullable(string()),
+    metadata: object({
+      scope: NetworkStruct,
+      origin: nullable(string()),
+    }),
   }),
 });
 
@@ -42,16 +44,14 @@ export const onTransactionAdded: OnCronjobHandler = async ({ request }) => {
 
     assert(request, OnTransactionAddedRequestStruct);
 
-    const { accountId, base64EncodedTransaction, scope, origin } =
-      request.params;
+    const { accountId, base64EncodedTransaction, metadata } = request.params;
 
     const account = await keyring.getAccountOrThrow(accountId);
 
     await analyticsService.trackEventTransactionAdded(
       account,
       base64EncodedTransaction,
-      scope,
-      origin ?? undefined,
+      metadata,
     );
   } catch (error) {
     logger.error(error);
