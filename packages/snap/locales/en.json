@@ -148,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Confirm"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Transaction request"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Unknown"
