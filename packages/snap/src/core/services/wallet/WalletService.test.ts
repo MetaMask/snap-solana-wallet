@@ -245,7 +245,7 @@ describe('WalletService', () => {
             fromAccount,
             transactionMessageBase64Encoded,
             scope,
-            undefined,
+            'https://metamask.io',
           );
 
           expect(result).toStrictEqual({
