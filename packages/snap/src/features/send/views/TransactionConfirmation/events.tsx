@@ -145,6 +145,7 @@ async function onConfirmButtonClick({
       account,
       transactionMessage,
       scope,
+      'metamask',
     );
 
     signature = response.signature;

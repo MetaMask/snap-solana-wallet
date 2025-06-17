@@ -101,7 +101,7 @@ describe('ClientRequestHandler', () => {
             MOCK_SOLANA_KEYRING_ACCOUNT_0,
             mockTransaction,
             Network.Testnet,
-            undefined,
+            'metamask',
             {
               commitment: 'confirmed',
               skipPreflight: false,
