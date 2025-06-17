@@ -42,7 +42,9 @@ export const ConfirmTransactionRequest = ({
         ) : null}
         <Box alignment="center" center>
           <Box>{null}</Box>
-          <Heading size="lg">{translate('confirmation.title')}</Heading>
+          <Heading size="lg">
+            {translate(`confirmation.${context.method}.title`)}
+          </Heading>
           <Box>{null}</Box>
         </Box>
         {context.preferences.simulateOnChainActions ? (

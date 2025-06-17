@@ -185,14 +185,6 @@ export const ListAccountAssetsResponseStruct = array(CaipAssetTypeStruct);
 
 export const SubmitRequestMethodStruct = enums(Object.values(SolMethod));
 
-export const SendAndConfirmTransactionParamsStruct = object({
-  base64EncodedTransactionMessage: string(),
-});
-
-export type SendAndConfirmTransactionParams = Infer<
-  typeof SendAndConfirmTransactionParamsStruct
->;
-
 export const NetworkStruct = enums(Object.values(Network));
 
 export const Curenc = enums([
