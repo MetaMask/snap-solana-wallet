@@ -221,7 +221,7 @@ export class WalletService {
     account: SolanaKeyringAccount,
     transactionMessageBase64Encoded: string,
     scope: Network,
-    origin?: string,
+    origin: string,
     options?: SolanaSignAndSendTransactionOptions,
   ): Promise<SolanaSignAndSendTransactionResponse> {
     const signConfig: DecompileTransactionMessageFetchingLookupTablesConfig =
@@ -288,7 +288,7 @@ export class WalletService {
             signature,
             metadata: {
               scope,
-              origin: origin ?? null,
+              origin,
             },
           },
         },
@@ -347,7 +347,7 @@ export class WalletService {
             transaction: mappedTransactionWithAccountId,
             metadata: {
               scope,
-              origin: origin ?? null,
+              origin,
             },
           },
         },

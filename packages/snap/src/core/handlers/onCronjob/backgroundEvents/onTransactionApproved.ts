@@ -26,7 +26,7 @@ export const OnTransactionApprovedRequestStruct = object({
     base64EncodedTransaction: Base64Struct,
     metadata: object({
       scope: NetworkStruct,
-      origin: nullable(string()),
+      origin: string(),
     }),
   }),
 });

@@ -94,7 +94,7 @@ export class ConfirmationHandler {
             base64EncodedTransaction,
             metadata: {
               scope,
-              origin: origin ?? null,
+              origin,
             },
           },
         },
@@ -123,7 +123,7 @@ export class ConfirmationHandler {
               base64EncodedTransaction,
               metadata: {
                 scope,
-                origin: origin ?? null,
+                origin,
               },
             },
           },
@@ -145,7 +145,7 @@ export class ConfirmationHandler {
             base64EncodedTransaction,
             metadata: {
               scope,
-              origin: origin ?? null,
+              origin,
             },
           },
         },

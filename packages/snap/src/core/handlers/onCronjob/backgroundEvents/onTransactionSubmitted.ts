@@ -27,7 +27,7 @@ export const OnTransactionSubmittedRequestStruct = object({
     signature: string(),
     metadata: object({
       scope: NetworkStruct,
-      origin: nullable(string()),
+      origin: string(),
     }),
   }),
 });

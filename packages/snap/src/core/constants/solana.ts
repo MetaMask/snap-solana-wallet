@@ -54,7 +54,7 @@ export type TokenInfo = {
 
 export type TransactionMetadata = {
   scope: Network;
-  origin: string | null;
+  origin: string;
 };
 
 export const TokenMetadata = {

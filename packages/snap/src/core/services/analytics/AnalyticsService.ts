@@ -33,7 +33,7 @@ export class AnalyticsService {
           event: 'Transaction Added',
           properties: {
             message: 'Snap transaction added',
-            origin: metadata.origin ?? null,
+            origin: metadata.origin,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
@@ -62,7 +62,7 @@ export class AnalyticsService {
           event: 'Transaction Approved',
           properties: {
             message: 'Snap transaction approved',
-            origin: metadata.origin ?? null,
+            origin: metadata.origin,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
@@ -92,7 +92,7 @@ export class AnalyticsService {
           event: 'Transaction Submitted',
           properties: {
             message: 'Snap transaction submitted',
-            origin: metadata.origin ?? null,
+            origin: metadata.origin,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
@@ -119,7 +119,7 @@ export class AnalyticsService {
           event: 'Transaction Finalized',
           properties: {
             message: 'Snap transaction finalized',
-            origin: metadata.origin ?? null,
+            origin: metadata.origin,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,
@@ -150,7 +150,7 @@ export class AnalyticsService {
           event: 'Transaction Rejected',
           properties: {
             message: 'Snap transaction rejected',
-            origin: metadata.origin ?? null,
+            origin: metadata.origin,
             account_id: account.id,
             account_address: account.address,
             account_type: account.type,

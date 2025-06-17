@@ -27,7 +27,7 @@ export const OnTransactionFinalizedRequestStruct = object({
     transaction: TransactionStruct,
     metadata: object({
       scope: NetworkStruct,
-      origin: nullable(string()),
+      origin: string(),
     }),
   }),
 });

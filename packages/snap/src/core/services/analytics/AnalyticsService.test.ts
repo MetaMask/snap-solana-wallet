@@ -26,10 +26,6 @@ describe('AnalyticsService', () => {
     scope: mockScope,
     origin: mockOrigin,
   };
-  const mockMetadataWithoutOrigin = {
-    scope: mockScope,
-    origin: null,
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -62,31 +58,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap transaction added',
               origin: mockOrigin,
-              account_id: mockAccount.id,
-              account_address: mockAccount.address,
-              account_type: mockAccount.type,
-              chain_id: mockScope,
-            },
-          },
-        },
-      });
-    });
-
-    it('tracks transaction added event without origin', async () => {
-      await analyticsService.trackEventTransactionAdded(
-        mockAccount,
-        mockBase64Transaction,
-        mockMetadataWithoutOrigin,
-      );
-
-      expect(mockSnapRequest).toHaveBeenCalledWith({
-        method: 'snap_trackEvent',
-        params: {
-          event: {
-            event: 'Transaction Added',
-            properties: {
-              message: 'Snap transaction added',
-              origin: null,
               account_id: mockAccount.id,
               account_address: mockAccount.address,
               account_type: mockAccount.type,
@@ -140,31 +111,6 @@ describe('AnalyticsService', () => {
       });
     });
 
-    it('tracks transaction approved event without origin', async () => {
-      await analyticsService.trackEventTransactionApproved(
-        mockAccount,
-        mockBase64Transaction,
-        mockMetadataWithoutOrigin,
-      );
-
-      expect(mockSnapRequest).toHaveBeenCalledWith({
-        method: 'snap_trackEvent',
-        params: {
-          event: {
-            event: 'Transaction Approved',
-            properties: {
-              message: 'Snap transaction approved',
-              origin: null,
-              account_id: mockAccount.id,
-              account_address: mockAccount.address,
-              account_type: mockAccount.type,
-              chain_id: mockScope,
-            },
-          },
-        },
-      });
-    });
-
     it('throws error for invalid base64 transaction', async () => {
       const invalidBase64 = 'invalid-base64!@#';
 
@@ -199,32 +145,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap transaction submitted',
               origin: mockOrigin,
-              account_id: mockAccount.id,
-              account_address: mockAccount.address,
-              account_type: mockAccount.type,
-              chain_id: mockScope,
-            },
-          },
-        },
-      });
-    });
-
-    it('tracks transaction submitted event without origin', async () => {
-      await analyticsService.trackEventTransactionSubmitted(
-        mockAccount,
-        mockBase64Transaction,
-        mockSignature,
-        mockMetadataWithoutOrigin,
-      );
-
-      expect(mockSnapRequest).toHaveBeenCalledWith({
-        method: 'snap_trackEvent',
-        params: {
-          event: {
-            event: 'Transaction Submitted',
-            properties: {
-              message: 'Snap transaction submitted',
-              origin: null,
               account_id: mockAccount.id,
               account_address: mockAccount.address,
               account_type: mockAccount.type,
@@ -328,33 +248,6 @@ describe('AnalyticsService', () => {
         },
       });
     });
-
-    it('tracks transaction finalized event without origin', async () => {
-      await analyticsService.trackEventTransactionFinalized(
-        mockAccount,
-        mockTransaction,
-        mockMetadataWithoutOrigin,
-      );
-
-      expect(mockSnapRequest).toHaveBeenCalledWith({
-        method: 'snap_trackEvent',
-        params: {
-          event: {
-            event: 'Transaction Finalized',
-            properties: {
-              message: 'Snap transaction finalized',
-              origin: null,
-              account_id: mockAccount.id,
-              account_address: mockAccount.address,
-              account_type: mockAccount.type,
-              chain_id: mockTransaction.chain,
-              transaction_status: mockTransaction.status,
-              transaction_type: mockTransaction.type,
-            },
-          },
-        },
-      });
-    });
   });
 
   describe('trackEventTransactionRejected', () => {
@@ -377,31 +270,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap transaction rejected',
               origin: mockOrigin,
-              account_id: mockAccount.id,
-              account_address: mockAccount.address,
-              account_type: mockAccount.type,
-              chain_id: mockScope,
-            },
-          },
-        },
-      });
-    });
-
-    it('tracks transaction rejected event without origin', async () => {
-      await analyticsService.trackEventTransactionRejected(
-        mockAccount,
-        mockBase64Transaction,
-        mockMetadataWithoutOrigin,
-      );
-
-      expect(mockSnapRequest).toHaveBeenCalledWith({
-        method: 'snap_trackEvent',
-        params: {
-          event: {
-            event: 'Transaction Rejected',
-            properties: {
-              message: 'Snap transaction rejected',
-              origin: null,
               account_id: mockAccount.id,
               account_address: mockAccount.address,
               account_type: mockAccount.type,
