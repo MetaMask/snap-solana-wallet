@@ -7,6 +7,7 @@ export const SOL_IMAGE_URL =
 export const MICRO_LAMPORTS_PER_LAMPORTS = 1_000_000n;
 export const LAMPORTS_PER_SOL = 1_000_000_000;
 export const DEFAULT_NETWORK_BLOCK_EXPLORER_URL = 'https://solscan.io';
+export const METAMASK_ORIGIN = 'metamask';
 
 /**
  * Solana CAIP-2 Networks

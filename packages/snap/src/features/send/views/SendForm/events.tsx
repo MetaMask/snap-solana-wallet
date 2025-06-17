@@ -2,7 +2,7 @@ import type { InputChangeEvent } from '@metamask/snaps-sdk';
 import BigNumber from 'bignumber.js';
 import { merge } from 'lodash';
 
-import { Networks } from '../../../../core/constants/solana';
+import { METAMASK_ORIGIN, Networks } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { buildUrl } from '../../../../core/utils/buildUrl';
 import {
@@ -470,7 +470,7 @@ async function onSendButtonClick({
           base64EncodedTransaction: context.transactionMessage,
           metadata: {
             scope: context.scope,
-            origin: null,
+            origin: METAMASK_ORIGIN,
           },
         },
       },

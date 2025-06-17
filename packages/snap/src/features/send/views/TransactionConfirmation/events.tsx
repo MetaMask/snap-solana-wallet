@@ -1,3 +1,4 @@
+import { METAMASK_ORIGIN } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import {
   resolveInterface,
@@ -70,7 +71,7 @@ async function onCancelButtonClick({
           base64EncodedTransaction: transactionMessage,
           metadata: {
             scope,
-            origin: null,
+            origin: METAMASK_ORIGIN,
           },
         },
       },
@@ -120,7 +121,7 @@ async function onConfirmButtonClick({
           base64EncodedTransaction: context.transactionMessage,
           metadata: {
             scope: context.scope,
-            origin: null,
+            origin: METAMASK_ORIGIN,
           },
         },
       },
