@@ -146,7 +146,7 @@ async function onConfirmButtonClick({
       account,
       transactionMessage,
       scope,
-      'metamask',
+      METAMASK_ORIGIN,
     );
 
     signature = response.signature;

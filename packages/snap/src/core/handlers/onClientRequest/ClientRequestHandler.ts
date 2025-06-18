@@ -6,6 +6,7 @@ import {
 } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
+import { METAMASK_ORIGIN } from '../../constants/solana';
 import type { WalletService } from '../../services/wallet/WalletService';
 import type { ILogger } from '../../utils/logger';
 import type { SolanaKeyring } from '../onKeyringRequest/Keyring';
@@ -81,7 +82,7 @@ export class ClientRequestHandler {
       account,
       base64EncodedTransaction,
       scope,
-      'metamask',
+      METAMASK_ORIGIN,
       options,
     );
   }
