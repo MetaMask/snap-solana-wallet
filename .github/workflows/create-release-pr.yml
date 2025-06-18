@@ -26,13 +26,7 @@ jobs:
         with:
           is-high-risk-environment: false
           fetch-depth: 0
-          # We check out the specified branch, which will be used as the base
-          # branch for all git operations and the release PR.
           ref: ${{ github.event.inputs.base-branch }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
       - uses: MetaMask/action-create-release-pr@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
