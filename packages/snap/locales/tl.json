@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Hindi sapat ang balanse"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Dahil sa isang error, hindi namin masuri kung may mga alerto sa seguridad."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Magpatuloy lang kung pinagkakatiwalaan mo ang bawat address na sangkot."
+    },
     "send.simulationTitleError": {
       "message": "Nabigo ang pag-simulate ng transaksyon"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Kumpirmahin"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Hiling na transaksyon"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Hindi alam"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "Hindi matantya ang bayad"
+    },
+    "confirmation.origin": {
+      "message": "Kahilingan mula sa/kay"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Binawi ang transaksyong ito habang nagsa-simulate."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Nais ng isang site na mag-sign in ka upang patunayan na pag-aari mo ang account na ito."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Kahilingan mula sa/kay"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Hindi kilalang domain"
@@ -231,6 +249,18 @@
     },
     "confirmation.signIn.resources": {
       "message": "Mga Mapagkukunan"
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "May umiiral nang account na may kaparehong address."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "Walang sapat na SOL ang account para isagawa ang operasyong ito."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "Ibinalik ang transaksyon dahil lumampas sa slippage tolerance."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

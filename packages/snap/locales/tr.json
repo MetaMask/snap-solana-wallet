@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Bakiye yetersiz"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Bir hata nedeniyle güvenlik uyarılarını kontrol edemedik."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Yalnızca ilgili her adrese güveniyorsanız devam edin."
+    },
     "send.simulationTitleError": {
       "message": "İşlem simülasyonu başarısız oldu"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Onayla"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "İşlem talebi"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Bilinmeyen"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "Ücret tahmin edilemiyor"
+    },
+    "confirmation.origin": {
+      "message": "Talebi gönderen"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Bu işlem simülasyon sırasında geri döndürüldü."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Bir site, bu hesabın size ait olduğunu kanıtlamanız için giriş yapmanızı istiyor."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Talebi gönderen"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Bilinmeyen alan"
@@ -231,6 +249,18 @@
     },
     "confirmation.signIn.resources": {
       "message": "Kaynaklar"
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "Halihazırda aynı adrese sahip bir hesap mevcut."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "İşlemi gerçekleştirmek için hesapta yeterli SOL yok."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "Kayma toleransı aşıldığı için işlem geri döndürüldü."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

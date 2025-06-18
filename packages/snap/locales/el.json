@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Ανεπαρκές υπόλοιπο"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Λόγω κάποιου σφάλματος, δεν μπορέσαμε να ελέγξουμε για ειδοποιήσεις ασφαλείας."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Συνεχίστε μόνο αν εμπιστεύεστε κάθε διεύθυνση που εμπλέκεται."
+    },
     "send.simulationTitleError": {
       "message": "Η προσομοίωση της συναλλαγής απέτυχε"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Επιβεβαίωση"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Αίτημα συναλλαγής"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Άγνωστο"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "Δεν είναι δυνατή η εκτίμηση των τελών"
+    },
+    "confirmation.origin": {
+      "message": "Ζητήθηκε από"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Η συναλλαγή αυτή ακυρώθηκε κατά τη διάρκεια της προσομοίωσης."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Ζητήθηκε από"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Άγνωστος τομέας"
@@ -231,6 +249,18 @@
     },
     "confirmation.signIn.resources": {
       "message": "Πόροι"
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "Υπάρχει ήδη ένας λογαριασμός με την ίδια διεύθυνση."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "Ο λογαριασμός δεν διαθέτει αρκετά SOL για να εκτελέσει την ενέργεια."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "Η συναλλαγή ακυρώθηκε επειδή ξεπεράστηκε το όριο αποδεκτής απόκλισης."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

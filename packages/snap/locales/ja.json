@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "残高が不十分です"
     },
+    "send.simulationTitleAPIError": {
+      "message": "エラーのため、セキュリティアラートを確認できませんでした。"
+    },
+    "send.simulationMessageAPIError": {
+      "message": "関係するすべてのアドレスを信頼できる場合のみ続行してください。"
+    },
     "send.simulationTitleError": {
       "message": "トランザクションのシミュレーションに失敗しました"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "確定"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "トランザクションリクエスト"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "不明"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "手数料を見積もれません"
+    },
+    "confirmation.origin": {
+      "message": "要求元"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "このトランザクションはシミュレーション中に取り消されました。"
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。"
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "要求元"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "不明なドメイン"
@@ -231,6 +249,18 @@
     },
     "confirmation.signIn.resources": {
       "message": "リソース"
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "同じアドレスのアカウントがすでに存在します."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "アカウントには、この操作を実行するのに十分なSOLがありません."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "スリッページの許容範囲を超えたため、トランザクションが取り消されました。"
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }
