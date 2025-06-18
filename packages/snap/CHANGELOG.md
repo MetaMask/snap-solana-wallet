@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
-- chore: adds snap_trackEvent and origin param ([#418](https://github.com/MetaMask/snap-solana-wallet/pull/418))
-- fix: name confirmation aligned with method request ([#423](https://github.com/MetaMask/snap-solana-wallet/pull/423))
+- Adds snap_trackEvent and origin param ([#418](https://github.com/MetaMask/snap-solana-wallet/pull/418))
+- Name confirmation aligned with method request ([#423](https://github.com/MetaMask/snap-solana-wallet/pull/423))
 
 ## [1.33.1]
 
