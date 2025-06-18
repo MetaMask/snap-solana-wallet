@@ -67,7 +67,6 @@ jobs:
         with:
           name: snap-build-${{ github.sha }}
           path: ./packages/snap/dist
-          key: snap-${{ runner.os }}-${{ github.sha }}
       - name: Require clean working directory
         shell: bash
         run: |

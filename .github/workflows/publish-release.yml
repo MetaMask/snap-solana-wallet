@@ -67,7 +67,6 @@ jobs:
             ./packages/**/dist
             ./packages/snap/snap.manifest.json
             ./node_modules/.yarn-state.yml
-          key: ${{ github.sha }}
 
   publish-npm-dry-run:
     runs-on: ubuntu-latest
