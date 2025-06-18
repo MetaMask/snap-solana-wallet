@@ -15,7 +15,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: MetaMask/action-checkout-and-setup@v1
+        with:
+          is-high-risk-environment: false
 
       - name: crowdin action
         uses: crowdin/github-action@a3160b9e5a9e00739392c23da5e580c6cabe526d

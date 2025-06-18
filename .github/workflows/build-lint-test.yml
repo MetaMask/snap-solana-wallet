@@ -29,12 +29,10 @@ jobs:
     name: Prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout and setup environment
+        uses: MetaMask/action-checkout-and-setup@v1
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          is-high-risk-environment: false
       - name: Install Yarn dependencies
         run: yarn --immutable
 
@@ -56,19 +54,18 @@ jobs:
       STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
       SECURITY_ALERTS_API_BASE_URL: ${{ secrets.SECURITY_ALERTS_API_BASE_URL }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout and setup environment
+        uses: MetaMask/action-checkout-and-setup@v1
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          is-high-risk-environment: false
       - run: yarn --immutable --immutable-cache || yarn install
       - run: |
           npm rebuild --verbose sharp
           yarn build
-      - name: Cache snap build
-        uses: actions/cache@v3
+      - name: Save snap build
+        uses: actions/upload-artifact@v4
         with:
+          name: snap-build-${{ github.sha }}
           path: ./packages/snap/dist
           key: snap-${{ runner.os }}-${{ github.sha }}
       - name: Require clean working directory
@@ -85,12 +82,10 @@ jobs:
     needs:
       - prepare
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout and setup environment
+        uses: MetaMask/action-checkout-and-setup@v1
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          is-high-risk-environment: false
       - run: yarn --immutable --immutable-cache || yarn install
       - run: yarn lint
       - name: Require clean working directory
@@ -119,12 +114,10 @@ jobs:
       STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
       SECURITY_ALERTS_API_BASE_URL: ${{ secrets.SECURITY_ALERTS_API_BASE_URL }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout and setup environment
+        uses: MetaMask/action-checkout-and-setup@v1
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          is-high-risk-environment: false
       - run: yarn install --immutable
       - name: Build for tests
         run: yarn workspace @metamask/solana-wallet-snap build
