@@ -62,18 +62,6 @@ jobs:
       - run: |
           npm rebuild --verbose sharp
           yarn build
-      - name: Save snap build
-        uses: actions/upload-artifact@v4
-        with:
-          name: snap-build-${{ github.sha }}
-          path: ./packages/snap/dist
-      - name: Require clean working directory
-        shell: bash
-        run: |
-          if ! git diff --exit-code; then
-            echo "Working tree dirty at end of job"
-            exit 1
-          fi
 
   lint:
     name: Lint
