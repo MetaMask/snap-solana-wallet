@@ -197,6 +197,7 @@ export {
   connection,
   eventEmitter,
   keyring,
+  nameResolutionService,
   nftService,
   priceApiClient,
   sendSolBuilder,
@@ -211,8 +212,7 @@ export {
   transactionScanService,
   transactionsService,
   walletService,
-  webSocketConnectionService,
-  nameResolutionService,
+  webSocketConnectionService
 };
 
 export default snapContext;

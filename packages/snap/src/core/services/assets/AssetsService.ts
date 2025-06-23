@@ -17,6 +17,7 @@ import {
   SolanaCaip19Tokens,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '../../constants/solana';
+import type { FungibleAssetMarketData } from '../../handlers/onAssetsMarketData/onAssetsMarketData';
 import type {
   GetTokenAccountsByOwnerResponse,
   TokenAccountInfoWithJsonData,
