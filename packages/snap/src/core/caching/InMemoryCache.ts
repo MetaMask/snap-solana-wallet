@@ -1,30 +1,91 @@
+import { assert } from '@metamask/utils';
+
 import type { Serializable } from '../serialization/types';
+import type { ILogger } from '../utils/logger';
 import type { ICache } from './ICache';
+
+export type TimestampMilliseconds = number;
+
+/**
+ * A single cache entry.
+ */
+export type CacheEntry = {
+  value: Serializable;
+  expiresAt: TimestampMilliseconds;
+};
 
 /**
  * A simple in-memory cache implementation, primarily used for testing purposes.
  *
  * WARNINGS:
  * - This cache is not persistent and will be lost when the process is restarted.
- * - It does not support TTL.
+ * - It now supports TTL (Time To Live) functionality.
  */
 export class InMemoryCache implements ICache<Serializable> {
-  #cache: Map<string, Serializable> = new Map();
+  #cache: Map<string, CacheEntry> = new Map();
+
+  public readonly logger: ILogger;
+
+  constructor(logger: ILogger) {
+    this.logger = logger;
+  }
+
+  #validateTtlOrThrow(ttlMilliseconds?: number): void {
+    if (ttlMilliseconds === undefined) {
+      return;
+    }
+
+    if (typeof ttlMilliseconds !== 'number') {
+      throw new Error('TTL must be a number');
+    }
+
+    if (ttlMilliseconds < 0) {
+      throw new Error('TTL must be positive');
+    }
+
+    if (ttlMilliseconds > Number.MAX_SAFE_INTEGER) {
+      throw new Error('TTL must be less than 2^53 - 1');
+    }
+  }
+
+  #isExpired(cacheEntry: CacheEntry): boolean {
+    return cacheEntry.expiresAt < Date.now();
+  }
+
+  #cleanupExpiredEntries(): void {
+    const expiredKeys: string[] = [];
+    for (const [key, entry] of this.#cache.entries()) {
+      if (this.#isExpired(entry)) {
+        expiredKeys.push(key);
+      }
+    }
+    expiredKeys.forEach((key) => this.#cache.delete(key));
+  }
 
   async get(key: string): Promise<Serializable | undefined> {
-    return this.#cache.get(key);
+    const result = await this.mget([key]);
+    return result[key];
   }
 
   async set(
     key: string,
     value: Serializable,
-    _ttlMilliseconds?: number,
+    ttlMilliseconds = Number.MAX_SAFE_INTEGER,
   ): Promise<void> {
-    this.#cache.set(key, value);
+    this.#validateTtlOrThrow(ttlMilliseconds);
+
+    this.#cache.set(key, {
+      value,
+      expiresAt: Math.min(
+        Date.now() + (ttlMilliseconds ?? Number.MAX_SAFE_INTEGER),
+        Number.MAX_SAFE_INTEGER,
+      ),
+    });
   }
 
   async delete(key: string): Promise<boolean> {
-    return this.#cache.delete(key);
+    const result = await this.mdelete([key]);
+    return result[key] ?? false;
   }
 
   async clear(): Promise<void> {
@@ -32,7 +93,17 @@ export class InMemoryCache implements ICache<Serializable> {
   }
 
   async has(key: string): Promise<boolean> {
-    return this.#cache.has(key);
+    const cacheEntry = this.#cache.get(key);
+    if (!cacheEntry) {
+      return false;
+    }
+
+    if (this.#isExpired(cacheEntry)) {
+      this.#cache.delete(key);
+      return false;
+    }
+
+    return true;
   }
 
   async keys(): Promise<string[]> {
@@ -44,26 +115,81 @@ export class InMemoryCache implements ICache<Serializable> {
   }
 
   async peek(key: string): Promise<Serializable | undefined> {
-    return this.#cache.get(key);
+    const cacheEntry = this.#cache.get(key);
+    if (!cacheEntry) {
+      return undefined;
+    }
+
+    return cacheEntry.value;
   }
 
-  async mget(keys: string[]): Promise<Record<string, Serializable>> {
-    return Object.fromEntries(
-      keys.map((key) => [key, this.#cache.get(key)]),
-    ) as Record<string, Serializable>;
+  async mget(
+    keys: string[],
+  ): Promise<Record<string, Serializable | undefined>> {
+    this.#cleanupExpiredEntries();
+
+    const result: Record<string, Serializable | undefined> = {};
+    const expiredKeys: string[] = [];
+
+    for (const key of keys) {
+      const cacheEntry = this.#cache.get(key);
+      if (!cacheEntry) {
+        this.logger.info(`[InMemoryCache] ❌ Cache miss for key "${key}"`);
+        result[key] = undefined;
+        continue;
+      }
+
+      if (this.#isExpired(cacheEntry)) {
+        expiredKeys.push(key);
+        this.logger.info(`[InMemoryCache] ⌛ Cache expired for key "${key}"`);
+        result[key] = undefined;
+      } else {
+        this.logger.info(`[InMemoryCache] 🎉 Cache hit for key "${key}"`);
+        result[key] = cacheEntry.value;
+      }
+    }
+
+    // Clean up expired entries
+    expiredKeys.forEach((key) => this.#cache.delete(key));
+
+    return result;
   }
 
   async mset(
-    entries: { key: string; value: Serializable; _ttlMilliseconds?: number }[],
+    entries: { key: string; value: Serializable; ttlMilliseconds?: number }[],
   ): Promise<void> {
-    entries.forEach(({ key, value }) => {
-      this.#cache.set(key, value);
+    if (entries.length === 0) {
+      return;
+    }
+
+    if (entries.length === 1) {
+      assert(entries[0]); // Enforce type narrowing as TS cannot infer that entries[0] is defined
+      const { key, value, ttlMilliseconds } = entries[0];
+      await this.set(key, value, ttlMilliseconds);
+      return;
+    }
+
+    entries.forEach(({ ttlMilliseconds }) => {
+      this.#validateTtlOrThrow(ttlMilliseconds);
+    });
+
+    entries.forEach(({ key, value, ttlMilliseconds }) => {
+      if (value === undefined) {
+        return;
+      }
+      this.#cache.set(key, {
+        value,
+        expiresAt: Math.min(
+          Date.now() + (ttlMilliseconds ?? Number.MAX_SAFE_INTEGER),
+          Number.MAX_SAFE_INTEGER,
+        ),
+      });
     });
   }
 
   async mdelete(keys: string[]): Promise<Record<string, boolean>> {
     return Object.fromEntries(
       keys.map((key) => [key, this.#cache.delete(key)]),
-    ) as Record<string, boolean>;
+    );
   }
 }
