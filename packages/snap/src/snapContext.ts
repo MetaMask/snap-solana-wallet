@@ -89,6 +89,8 @@ const tokenMetadataService = new TokenMetadataService({
   logger,
 });
 
+const tokenPricesService = new TokenPricesService(priceApiClient);
+
 const assetsService = new AssetsService({
   connection,
   logger,
@@ -96,6 +98,7 @@ const assetsService = new AssetsService({
   state,
   tokenMetadataService,
   cache: inMemoryCache,
+  tokenPricesService,
 });
 
 const transactionsService = new TransactionsService({
@@ -146,8 +149,6 @@ const keyring = new SolanaKeyring({
   walletService,
   confirmationHandler,
 });
-
-const tokenPricesService = new TokenPricesService(priceApiClient);
 
 const nftService = new NftService(connection, logger);
 

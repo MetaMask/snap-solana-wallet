@@ -10,13 +10,10 @@ export const onAssetsConversion: OnAssetsConversionHandler = async (params) => {
   try {
     logger.log('[💱 onAssetsConversion]', params);
 
-    const { conversions, includeMarketData } = params;
+    const { conversions } = params;
 
     const conversionRates =
-      await tokenPricesService.getMultipleTokenConversions(
-        conversions,
-        includeMarketData,
-      );
+      await tokenPricesService.getMultipleTokenConversions(conversions);
 
     return {
       conversionRates,
