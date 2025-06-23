@@ -310,18 +310,14 @@ export class AssetsService {
           `[refreshAssets] Found updated assets for ${account.address}`,
         );
 
-        await emitSnapKeyringEvent(
-          snap as any,
-          KeyringEvent.AccountAssetListUpdated,
-          {
-            assets: {
-              [account.id]: {
-                added: assetsAdded,
-                removed: assetsDeleted,
-              },
+        await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
+          assets: {
+            [account.id]: {
+              added: assetsAdded,
+              removed: assetsDeleted,
             },
           },
-        );
+        });
       }
 
       const accountBalances = await this.getAccountBalances(
@@ -345,18 +341,14 @@ export class AssetsService {
           `[BalancesService] Found updated balances for ${account.address}`,
         );
 
-        await emitSnapKeyringEvent(
-          snap as any,
-          KeyringEvent.AccountBalancesUpdated,
-          {
-            balances: {
-              [account.id]: {
-                ...balancesAdded,
-                ...balancesChanged,
-              },
+        await emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
+          balances: {
+            [account.id]: {
+              ...balancesAdded,
+              ...balancesChanged,
             },
           },
-        );
+        });
 
         await this.#state.setKey(`assets.${account.id}`, accountBalances);
       }

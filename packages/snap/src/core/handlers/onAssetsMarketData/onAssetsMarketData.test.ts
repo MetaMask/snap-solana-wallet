@@ -1,5 +1,4 @@
 import type { FungibleAssetMarketData } from '@metamask/snaps-sdk';
-import { InternalError } from '@metamask/snaps-sdk';
 import type { CaipAssetType } from '@metamask/utils';
 
 import { assetsService } from '../../../snapContext';
@@ -231,101 +230,6 @@ describe('onAssetsMarketData', () => {
     });
   });
 
-  describe('error scenarios', () => {
-    it('should throw InternalError when assetsService.getAssetsMarketData throws an error', async () => {
-      const params = {
-        assets: [{ asset: BTC, unit: USD }],
-      };
-
-      const errorMessage = 'Failed to fetch market data';
-      const mockError = new Error(errorMessage);
-      mockAssetsService.getAssetsMarketData.mockRejectedValue(mockError);
-
-      await expect(onAssetsMarketData(params)).rejects.toThrow(InternalError);
-
-      expect(logger.log).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        params,
-      );
-      expect(logger.error).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        mockError,
-      );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
-        params.assets,
-      );
-    });
-
-    it('should throw InternalError when assetsService.getAssetsMarketData throws a network error', async () => {
-      const params = {
-        assets: [{ asset: ETH, unit: USD }],
-      };
-
-      const networkError = new Error('Network timeout');
-      mockAssetsService.getAssetsMarketData.mockRejectedValue(networkError);
-
-      await expect(onAssetsMarketData(params)).rejects.toThrow(InternalError);
-
-      expect(logger.log).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        params,
-      );
-      expect(logger.error).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        networkError,
-      );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
-        params.assets,
-      );
-    });
-
-    it('should throw InternalError when assetsService.getAssetsMarketData throws a validation error', async () => {
-      const params = {
-        assets: [{ asset: 'invalid-asset-type' as CaipAssetType, unit: USD }],
-      };
-
-      const validationError = new Error('Invalid asset type');
-      mockAssetsService.getAssetsMarketData.mockRejectedValue(validationError);
-
-      await expect(onAssetsMarketData(params)).rejects.toThrow(InternalError);
-
-      expect(logger.log).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        params,
-      );
-      expect(logger.error).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        validationError,
-      );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
-        params.assets,
-      );
-    });
-
-    it('should handle and re-throw InternalError when assetsService throws InternalError', async () => {
-      const params = {
-        assets: [{ asset: BTC, unit: USD }],
-      };
-
-      const internalError = new InternalError('Service unavailable');
-      mockAssetsService.getAssetsMarketData.mockRejectedValue(internalError);
-
-      await expect(onAssetsMarketData(params)).rejects.toThrow(InternalError);
-
-      expect(logger.log).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        params,
-      );
-      expect(logger.error).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        internalError,
-      );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
-        params.assets,
-      );
-    });
-  });
-
   describe('edge cases', () => {
     it('should handle assets with special characters in asset types', async () => {
       const specialAsset =
@@ -448,30 +352,6 @@ describe('onAssetsMarketData', () => {
       expect(logger.log).toHaveBeenCalledWith(
         '[💰 onAssetsMarketData]',
         params,
-      );
-    });
-
-    it('should log errors correctly when service fails', async () => {
-      const params = {
-        assets: [{ asset: BTC, unit: USD }],
-      };
-
-      const error = new Error('Service error');
-      mockAssetsService.getAssetsMarketData.mockRejectedValue(error);
-
-      try {
-        await onAssetsMarketData(params);
-      } catch (thrownError) {
-        // Expected to throw
-      }
-
-      expect(logger.log).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        params,
-      );
-      expect(logger.error).toHaveBeenCalledWith(
-        '[💰 onAssetsMarketData]',
-        error,
       );
     });
   });

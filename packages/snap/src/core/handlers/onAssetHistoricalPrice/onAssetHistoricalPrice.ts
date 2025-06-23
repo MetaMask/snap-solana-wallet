@@ -15,23 +15,15 @@ import logger from '../../utils/logger';
 export const onAssetHistoricalPrice: OnAssetHistoricalPriceHandler = async (
   params,
 ) => {
-  try {
-    logger.log('[📈 onAssetHistoricalPrice]', params);
+  logger.log('[📈 onAssetHistoricalPrice]', params);
 
-    const { from, to } = params;
-    assert(from, CaipAssetTypeStruct);
-    assert(to, CaipAssetTypeStruct);
+  const { from, to } = params;
+  assert(from, CaipAssetTypeStruct);
+  assert(to, CaipAssetTypeStruct);
 
-    const historicalPrice = await tokenPricesService.getHistoricalPrice(
-      from,
-      to,
-    );
+  const historicalPrice = await tokenPricesService.getHistoricalPrice(from, to);
 
-    return {
-      historicalPrice,
-    };
-  } catch (error: any) {
-    logger.error('[📈 onAssetHistoricalPrice]', error);
-    return null;
-  }
+  return {
+    historicalPrice,
+  };
 };

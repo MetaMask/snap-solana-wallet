@@ -7,13 +7,13 @@ import { InMemoryCache } from '../../caching/InMemoryCache';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { Serializable } from '../../serialization/types';
 import {
-    SOLANA_MOCK_SPL_TOKENS,
-    SOLANA_MOCK_TOKEN,
-    SOLANA_MOCK_TOKEN_METADATA,
+  SOLANA_MOCK_SPL_TOKENS,
+  SOLANA_MOCK_TOKEN,
+  SOLANA_MOCK_TOKEN_METADATA,
 } from '../../test/mocks/solana-assets';
 import {
-    MOCK_SOLANA_KEYRING_ACCOUNT_0,
-    MOCK_SOLANA_KEYRING_ACCOUNTS,
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
 import type { ConfigProvider } from '../config';
