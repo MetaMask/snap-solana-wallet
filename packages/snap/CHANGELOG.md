@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.33.3]
 
-### Uncategorized
+### Changed
 
-- fix: use in-memory cache in price service ([#427](https://github.com/MetaMask/snap-solana-wallet/pull/427))
+- Use `InMemoryCache` in `PriceApiService` ([#427](https://github.com/MetaMask/snap-solana-wallet/pull/427))
 
 ## [1.33.2]
 
