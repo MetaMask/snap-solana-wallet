@@ -97,10 +97,12 @@ export class InMemoryCache implements ICache<Serializable> {
   }
 
   async keys(): Promise<string[]> {
+    this.#cleanupExpiredEntries();
     return Array.from(this.#cache.keys());
   }
 
   async size(): Promise<number> {
+    this.#cleanupExpiredEntries();
     return this.#cache.size;
   }
 
