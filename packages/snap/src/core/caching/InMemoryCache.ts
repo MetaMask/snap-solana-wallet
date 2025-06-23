@@ -112,6 +112,11 @@ export class InMemoryCache implements ICache<Serializable> {
       return undefined;
     }
 
+    if (this.#isExpired(cacheEntry)) {
+      this.#cache.delete(key);
+      return undefined;
+    }
+
     return cacheEntry.value;
   }
 
@@ -121,7 +126,6 @@ export class InMemoryCache implements ICache<Serializable> {
     await this.#cleanupExpiredEntries();
 
     const result: Record<string, Serializable | undefined> = {};
-    const expiredKeys: string[] = [];
 
     for (const key of keys) {
       const cacheEntry = this.#cache.get(key);
@@ -131,18 +135,9 @@ export class InMemoryCache implements ICache<Serializable> {
         continue;
       }
 
-      if (this.#isExpired(cacheEntry)) {
-        expiredKeys.push(key);
-        this.logger.info(`[InMemoryCache] ⌛ Cache expired for key "${key}"`);
-        result[key] = undefined;
-      } else {
-        this.logger.info(`[InMemoryCache] 🎉 Cache hit for key "${key}"`);
-        result[key] = cacheEntry.value;
-      }
+      this.logger.info(`[InMemoryCache] 🎉 Cache hit for key "${key}"`);
+      result[key] = cacheEntry.value;
     }
-
-    // Clean up expired entries
-    expiredKeys.forEach((key) => this.#cache.delete(key));
 
     return result;
   }
