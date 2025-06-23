@@ -25,6 +25,7 @@ import { diffArrays } from '../../utils/diffArrays';
 import { diffObjects } from '../../utils/diffObjects';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
+import { isFiat } from '../../utils/isFiat';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { ConfigProvider } from '../config';
@@ -32,6 +33,7 @@ import type { SolanaConnection } from '../connection';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
+import type { TokenPricesService } from '../token-prices/TokenPrices';
 
 /**
  * Extends a token account as returned by the `getTokenAccountsByOwner` RPC method with the scope and the caip-19 asset type for convenience.
@@ -347,4 +349,112 @@ export class AssetsService {
       }
     }
   }
+
+  /**
+   * Fetches market data for the given assets in their specified units.
+   *
+   * @param assets - Array of assets with their target units for market data.
+   * @returns Market data indexed by asset CAIP-19 ID.
+   */
+  async getAssetsMarketData(
+    assets: { asset: CaipAssetType; unit: CaipAssetType }[],
+  ): Promise<Record<CaipAssetType, FungibleAssetMarketData>> {
+    if (assets.length === 0) {
+      return {};
+    }
+
+    // Create conversions array for the TokenPricesService
+    const conversions = assets.map(({ asset, unit }) => ({
+      from: asset,
+      to: unit,
+    }));
+
+    // Get token conversions with market data
+    const tokenPricesService = this.#getTokenPricesService();
+    const conversionRates = await tokenPricesService.getMultipleTokenConversions(
+      conversions,
+      true, // includeMarketData
+    );
+
+    const result: Record<CaipAssetType, FungibleAssetMarketData> = {};
+
+    // Transform the conversion data into FungibleAssetMarketData format
+    assets.forEach(({ asset, unit }) => {
+      const conversionData = conversionRates[asset]?.[unit];
+
+      if (conversionData?.marketData) {
+        const { marketData } = conversionData;
+
+        // Build pricePercentChange object only if there are valid entries
+        const pricePercentChange: Record<string, number> = {};
+        if (marketData.pricePercentChange) {
+          Object.entries(marketData.pricePercentChange).forEach(
+            ([interval, value]) => {
+              if (typeof value === 'number') {
+                pricePercentChange[interval] = value;
+              }
+            },
+          );
+        }
+
+        const fungibleMarketData: FungibleAssetMarketData = {
+          fungible: true,
+          ...(marketData.marketCap && { marketCap: marketData.marketCap }),
+          ...(marketData.totalVolume && { totalVolume: marketData.totalVolume }),
+          ...(marketData.circulatingSupply && {
+            circulatingSupply: marketData.circulatingSupply,
+          }),
+          ...(marketData.allTimeHigh && { allTimeHigh: marketData.allTimeHigh }),
+          ...(marketData.allTimeLow && { allTimeLow: marketData.allTimeLow }),
+          ...(Object.keys(pricePercentChange).length > 0 && {
+            pricePercentChange,
+          }),
+        };
+
+        result[asset] = fungibleMarketData;
+      } else {
+        // If no market data is available, return a basic fungible asset entry
+        result[asset] = {
+          fungible: true,
+        };
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Gets the TokenPricesService instance. This is a workaround to avoid circular dependencies.
+   * In a real implementation, this should be injected through the constructor.
+   */
+  #getTokenPricesService(): TokenPricesService {
+    // This is a temporary workaround. In the actual implementation,
+    // TokenPricesService should be injected via constructor to avoid circular dependencies
+    const { priceApiClient } = require('../../../snapContext');
+    const { TokenPricesService: TokenPricesServiceClass } = require('../token-prices/TokenPrices');
+    return new TokenPricesServiceClass(priceApiClient, this.#logger);
+  }
 }
+
+// Define the FungibleAssetMarketData type (moved from handler to be reusable)
+export type FungibleAssetMarketData = {
+  // Represents a fungible asset market data.
+  fungible: true;
+  // The market cap of the asset represented as a decimal number in a string.
+  marketCap?: string;
+  // The total volume of the asset represented as a decimal number in a string.
+  totalVolume?: string;
+  // The circulating supply of the asset represented as a decimal number in a string.
+  circulatingSupply?: string;
+  // The all time high of the asset represented as a decimal number in a string.
+  allTimeHigh?: string;
+  // The all time low of the asset represented as a decimal number in a string.
+  allTimeLow?: string;
+  // The price percent change of the asset represented as a decimal number in a string.
+  pricePercentChange?: {
+    // The `all` value is a special interval that represents all available data.
+    all?: number;
+    // The interval key MUST follow the ISO 8601 duration format.
+    [interval: string]: number;
+  };
+};
