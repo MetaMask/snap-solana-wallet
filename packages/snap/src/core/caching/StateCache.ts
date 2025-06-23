@@ -6,16 +6,7 @@ import type { Serializable } from '../serialization/types';
 import type { IStateManager } from '../services/state/IStateManager';
 import type { ILogger } from '../utils/logger';
 import type { ICache } from './ICache';
-
-export type TimestampMilliseconds = number;
-
-/**
- * A single cache entry.
- */
-export type CacheEntry = {
-  value: Serializable;
-  expiresAt: TimestampMilliseconds;
-};
+import type { CacheEntry } from './types';
 
 /**
  * The whole cache store.

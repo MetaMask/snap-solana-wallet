@@ -3,23 +3,13 @@ import { assert } from '@metamask/utils';
 import type { Serializable } from '../serialization/types';
 import type { ILogger } from '../utils/logger';
 import type { ICache } from './ICache';
-
-export type TimestampMilliseconds = number;
-
-/**
- * A single cache entry.
- */
-export type CacheEntry = {
-  value: Serializable;
-  expiresAt: TimestampMilliseconds;
-};
+import type { CacheEntry } from './types';
 
 /**
- * A simple in-memory cache implementation, primarily used for testing purposes.
+ * A simple in-memory cache implementation supporting TTL (Time To Live) functionality.
  *
  * WARNINGS:
  * - This cache is not persistent and will be lost when the process is restarted.
- * - It now supports TTL (Time To Live) functionality.
  */
 export class InMemoryCache implements ICache<Serializable> {
   #cache: Map<string, CacheEntry> = new Map();
