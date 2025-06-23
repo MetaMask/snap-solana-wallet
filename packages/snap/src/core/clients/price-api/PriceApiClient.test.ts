@@ -31,7 +31,7 @@ describe('PriceApiClient', () => {
       }),
     } as unknown as ConfigProvider;
 
-    mockCache = new InMemoryCache();
+    mockCache = new InMemoryCache(mockLogger);
 
     client = new PriceApiClient(
       mockConfigProvider,

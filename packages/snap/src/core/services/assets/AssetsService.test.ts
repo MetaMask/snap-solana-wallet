@@ -64,7 +64,7 @@ describe('AssetsService', () => {
 
     mockState = new InMemoryState(DEFAULT_UNENCRYPTED_STATE);
 
-    mockCache = new InMemoryCache();
+    mockCache = new InMemoryCache(logger);
 
     stateUpdateSpy = jest.spyOn(mockState, 'update');
 

@@ -1,4 +1,5 @@
 import type { ICache } from './core/caching/ICache';
+import { InMemoryCache } from './core/caching/InMemoryCache';
 import { StateCache } from './core/caching/StateCache';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
@@ -61,7 +62,8 @@ const state = new State({
   defaultState: DEFAULT_UNENCRYPTED_STATE,
 });
 
-const cache = new StateCache(state, logger);
+const stateCache = new StateCache(state, logger);
+const inMemoryCache = new InMemoryCache(logger);
 
 const connection = new SolanaConnection(configProvider);
 const transactionHelper = new TransactionHelper(connection, logger);
@@ -72,7 +74,7 @@ const sendSplTokenBuilder = new SendSplTokenBuilder(
   logger,
 );
 const tokenMetadataClient = new TokenMetadataClient(configProvider);
-const priceApiClient = new PriceApiClient(configProvider, cache);
+const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);
 
 const tokenMetadataService = new TokenMetadataService({
   tokenMetadataClient,
@@ -85,7 +87,7 @@ const assetsService = new AssetsService({
   configProvider,
   state,
   tokenMetadataService,
-  cache,
+  cache: inMemoryCache,
 });
 
 const transactionsService = new TransactionsService({
@@ -143,7 +145,7 @@ const snapContext: SnapExecutionContext = {
   keyring,
   priceApiClient,
   state,
-  cache,
+  cache: stateCache,
   /* Services */
   assetsService,
   tokenPricesService,
