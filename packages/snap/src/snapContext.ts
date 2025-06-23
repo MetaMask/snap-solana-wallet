@@ -5,6 +5,7 @@ import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/Secu
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
 import { ClientRequestHandler } from './core/handlers/onClientRequest';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
+import type { WebSocketTransportPort } from './core/ports/WebSocketTransportPort';
 import type { Serializable } from './core/serialization/types';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
@@ -21,9 +22,11 @@ import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
 import { TransactionsService } from './core/services/transactions/TransactionsService';
 import { WalletService } from './core/services/wallet/WalletService';
+import { WebSocketService } from './core/services/websocket/WebSocketService';
 import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
+import { WebSocketTransport } from './infrastructure/websocket/WebSocketTransport';
 
 /**
  * Initializes all the services using dependency injection.
@@ -48,6 +51,8 @@ export type SnapExecutionContext = {
   cache: ICache<Serializable>;
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
+  webSocketTransport: WebSocketTransportPort;
+  webSocketService: WebSocketService;
 };
 
 const configProvider = new ConfigProvider();
@@ -103,6 +108,16 @@ const transactionScanService = new TransactionScanService(
 
 const confirmationHandler = new ConfirmationHandler();
 
+// Initialize WebSocket services
+const webSocketTransport = new WebSocketTransport(configProvider, logger);
+const webSocketService = new WebSocketService(
+  webSocketTransport,
+  assetsService,
+  transactionsService,
+  state,
+  logger,
+);
+
 const keyring = new SolanaKeyring({
   state,
   transactionsService,
@@ -142,6 +157,8 @@ const snapContext: SnapExecutionContext = {
   confirmationHandler,
   nftService,
   clientRequestHandler,
+  webSocketTransport,
+  webSocketService,
 };
 
 export {
@@ -164,6 +181,8 @@ export {
   transactionScanService,
   transactionsService,
   walletService,
+  webSocketService,
+  webSocketTransport,
 };
 
 export default snapContext;
