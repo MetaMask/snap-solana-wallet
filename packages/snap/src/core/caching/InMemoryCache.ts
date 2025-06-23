@@ -42,14 +42,14 @@ export class InMemoryCache implements ICache<Serializable> {
     return cacheEntry.expiresAt < Date.now();
   }
 
-  #cleanupExpiredEntries(): void {
+  async #cleanupExpiredEntries(): Promise<void> {
     const expiredKeys: string[] = [];
     for (const [key, entry] of this.#cache.entries()) {
       if (this.#isExpired(entry)) {
         expiredKeys.push(key);
       }
     }
-    expiredKeys.forEach((key) => this.#cache.delete(key));
+    await this.mdelete(expiredKeys);
   }
 
   async get(key: string): Promise<Serializable | undefined> {
@@ -97,12 +97,12 @@ export class InMemoryCache implements ICache<Serializable> {
   }
 
   async keys(): Promise<string[]> {
-    this.#cleanupExpiredEntries();
+    await this.#cleanupExpiredEntries();
     return Array.from(this.#cache.keys());
   }
 
   async size(): Promise<number> {
-    this.#cleanupExpiredEntries();
+    await this.#cleanupExpiredEntries();
     return this.#cache.size;
   }
 
@@ -118,7 +118,7 @@ export class InMemoryCache implements ICache<Serializable> {
   async mget(
     keys: string[],
   ): Promise<Record<string, Serializable | undefined>> {
-    this.#cleanupExpiredEntries();
+    await this.#cleanupExpiredEntries();
 
     const result: Record<string, Serializable | undefined> = {};
     const expiredKeys: string[] = [];
