@@ -228,7 +228,7 @@ export {
   transactionScanService,
   transactionsService,
   walletService,
-  webSocketConnectionService,
+  webSocketConnectionService
 };
 
 export default snapContext;
