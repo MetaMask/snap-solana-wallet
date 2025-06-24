@@ -160,7 +160,7 @@ describe('errors', () => {
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         { error: expect.any(SnapError) },
-        expect.stringContaining('Error occurred:'),
+        expect.stringContaining('[SnapError]'),
       );
     });
 
