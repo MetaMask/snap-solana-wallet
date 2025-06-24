@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals';
 import { SnapError } from '@metamask/snaps-sdk';
 
-import { handle } from './errors';
+import { withCatchAndThrowSnapError } from './errors';
 import logger from './logger';
 
 // Mock the logger to avoid actual console output during tests
@@ -21,7 +21,7 @@ describe('errors', () => {
       const mockFn = jest.fn().mockResolvedValue('success');
       const scope = 'test-scope';
 
-      const result = await handle(scope, mockFn);
+      const result = await withCatchAndThrowSnapError(scope, mockFn);
 
       expect(result).toBe('success');
       expect(mockFn).toHaveBeenCalledTimes(1);
@@ -33,7 +33,9 @@ describe('errors', () => {
       const mockFn = jest.fn().mockRejectedValue(originalError);
       const scope = 'test-scope';
 
-      await expect(handle(scope, mockFn)).rejects.toThrow(SnapError);
+      await expect(withCatchAndThrowSnapError(scope, mockFn)).rejects.toThrow(
+        SnapError,
+      );
 
       expect(mockFn).toHaveBeenCalledTimes(1);
       expect(mockLogger.error).toHaveBeenCalledTimes(1);
@@ -45,7 +47,7 @@ describe('errors', () => {
       const scope = 'test-scope';
 
       try {
-        await handle(scope, mockFn);
+        await withCatchAndThrowSnapError(scope, mockFn);
       } catch (error) {
         // Expected to throw
       }
@@ -66,7 +68,9 @@ describe('errors', () => {
       const mockFn = jest.fn().mockRejectedValue(nonErrorValue);
       const scope = 'test-scope';
 
-      await expect(handle(scope, mockFn)).rejects.toThrow(SnapError);
+      await expect(withCatchAndThrowSnapError(scope, mockFn)).rejects.toThrow(
+        SnapError,
+      );
 
       expect(mockLogger.error).toHaveBeenCalledTimes(1);
       const logCall = mockLogger.error.mock.calls[0];
@@ -78,7 +82,9 @@ describe('errors', () => {
       const mockFn = jest.fn().mockRejectedValue(null);
       const scope = 'test-scope';
 
-      await expect(handle(scope, mockFn)).rejects.toThrow(SnapError);
+      await expect(withCatchAndThrowSnapError(scope, mockFn)).rejects.toThrow(
+        SnapError,
+      );
 
       expect(mockLogger.error).toHaveBeenCalledTimes(1);
     });
@@ -90,7 +96,7 @@ describe('errors', () => {
 
       let caughtError: unknown;
       try {
-        await handle(scope, mockFn);
+        await withCatchAndThrowSnapError(scope, mockFn);
       } catch (error) {
         caughtError = error;
       }
@@ -113,7 +119,7 @@ describe('errors', () => {
         const mockFn = jest.fn().mockResolvedValue(testCase.value);
         const scope = 'test-scope';
 
-        const result = await handle(scope, mockFn);
+        const result = await withCatchAndThrowSnapError(scope, mockFn);
 
         expect(result).toBe(testCase.value);
         expect(mockLogger.error).not.toHaveBeenCalled();
@@ -132,7 +138,9 @@ describe('errors', () => {
         const mockFn = jest.fn().mockRejectedValue(errorType);
         const scope = 'test-scope';
 
-        await expect(handle(scope, mockFn)).rejects.toThrow(SnapError);
+        await expect(withCatchAndThrowSnapError(scope, mockFn)).rejects.toThrow(
+          SnapError,
+        );
       }
 
       expect(mockLogger.error).toHaveBeenCalledTimes(errorTypes.length);
@@ -154,7 +162,7 @@ describe('errors', () => {
       const scope = 'test-scope';
 
       try {
-        await handle(scope, mockFn);
+        await withCatchAndThrowSnapError(scope, mockFn);
       } catch (error) {
         // Expected to throw
       }
@@ -170,7 +178,9 @@ describe('errors', () => {
       const mockFn = jest.fn().mockImplementation(async () => rejectedPromise);
       const scope = 'test-scope';
 
-      await expect(handle(scope, mockFn)).rejects.toThrow(SnapError);
+      await expect(withCatchAndThrowSnapError(scope, mockFn)).rejects.toThrow(
+        SnapError,
+      );
 
       expect(mockLogger.error).toHaveBeenCalledTimes(1);
     });
