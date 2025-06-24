@@ -79,7 +79,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
     ) as unknown as Error;
   }
 
-  const result = await withCatchAndThrowSnapError('onRpcRequest', async () =>
+  const result = await withCatchAndThrowSnapError(async () =>
     handler({ origin, request }),
   );
 
@@ -114,9 +114,8 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
     (request.params as Record<string, Json>).origin = 'https://metamask.io';
   }
 
-  const result = await withCatchAndThrowSnapError(
-    'onKeyringRequest',
-    async () => handleKeyringRequest(keyring, request),
+  const result = await withCatchAndThrowSnapError(async () =>
+    handleKeyringRequest(keyring, request),
   );
 
   return result ?? null;
@@ -158,7 +157,7 @@ export const onUserInput: OnUserInputHandler = async ({
     return;
   }
 
-  await withCatchAndThrowSnapError('onUserInput', async () =>
+  await withCatchAndThrowSnapError(async () =>
     handler({ id, event, context, snapContext }),
   );
 };
@@ -184,7 +183,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
     ]),
   );
 
-  const result = await withCatchAndThrowSnapError('onCronjob', async () => {
+  const result = await withCatchAndThrowSnapError(async () => {
     /**
      * Don't run cronjobs if client is locked or inactive
      * - We dont want to call cronjobs if the client is locked
@@ -232,24 +231,22 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
 };
 
 export const onAssetsLookup: OnAssetsLookupHandler = async (params) => {
-  const result = await withCatchAndThrowSnapError('onAssetsLookup', async () =>
+  const result = await withCatchAndThrowSnapError(async () =>
     onAssetsLookupHandler(params),
   );
   return result ?? null;
 };
 
 export const onAssetsConversion: OnAssetsConversionHandler = async (params) => {
-  const result = await withCatchAndThrowSnapError(
-    'onAssetsConversion',
-    async () => onAssetsConversionHandler(params),
+  const result = await withCatchAndThrowSnapError(async () =>
+    onAssetsConversionHandler(params),
   );
   return result ?? null;
 };
 
 export const onProtocolRequest: OnProtocolRequestHandler = async (params) => {
-  const result = await withCatchAndThrowSnapError(
-    'onProtocolRequest',
-    async () => onProtocolRequestHandler(params),
+  const result = await withCatchAndThrowSnapError(async () =>
+    onProtocolRequestHandler(params),
   );
   return result ?? null;
 };
@@ -257,15 +254,14 @@ export const onProtocolRequest: OnProtocolRequestHandler = async (params) => {
 export const onAssetHistoricalPrice: OnAssetHistoricalPriceHandler = async (
   params,
 ) => {
-  const result = await withCatchAndThrowSnapError(
-    'onAssetHistoricalPrice',
-    async () => onAssetHistoricalPriceHandler(params),
+  const result = await withCatchAndThrowSnapError(async () =>
+    onAssetHistoricalPriceHandler(params),
   );
   return result ?? null;
 };
 
 export const onClientRequest: OnClientRequestHandler = async ({ request }) => {
-  const result = await withCatchAndThrowSnapError('onClientRequest', async () =>
+  const result = await withCatchAndThrowSnapError(async () =>
     clientRequestHandler.handle(request),
   );
   return result ?? null;

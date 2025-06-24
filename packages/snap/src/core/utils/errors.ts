@@ -51,7 +51,6 @@ export function isSnapRpcError(error: Error): boolean {
 }
 
 export const withCatchAndThrowSnapError = async <ResponseT>(
-  scope: string,
   fn: () => Promise<ResponseT>,
 ): Promise<ResponseT> => {
   try {
@@ -63,7 +62,7 @@ export const withCatchAndThrowSnapError = async <ResponseT>(
 
     logger.error(
       { error },
-      `[${scope}] Error occurred: ${JSON.stringify(error.toJSON(), null, 2)}`,
+      `[SnapError] ${JSON.stringify(error.toJSON(), null, 2)}`,
     );
 
     throw error;
