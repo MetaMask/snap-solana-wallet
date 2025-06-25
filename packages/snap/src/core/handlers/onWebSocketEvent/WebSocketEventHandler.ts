@@ -9,17 +9,17 @@ import type { ILogger } from '../../utils/logger';
 export class WebSocketEventHandler {
   readonly #connectionManager: WebSocketConnectionManagerPort;
 
-  readonly #subscriptionManager: JsonRpcSubscriptionTransportPort;
+  readonly #subscriptionTransport: JsonRpcSubscriptionTransportPort;
 
   readonly #logger: ILogger;
 
   constructor(
     connectionManager: WebSocketConnectionManagerPort,
-    subscriptionManager: JsonRpcSubscriptionTransportPort,
+    subscriptionTransport: JsonRpcSubscriptionTransportPort,
     logger: ILogger,
   ) {
     this.#connectionManager = connectionManager;
-    this.#subscriptionManager = subscriptionManager;
+    this.#subscriptionTransport = subscriptionTransport;
     this.#logger = logger;
   }
 
@@ -36,7 +36,7 @@ export class WebSocketEventHandler {
 
       switch (event.type) {
         case 'message':
-          await this.#subscriptionManager.handleMessage(event.id, event.data);
+          await this.#subscriptionTransport.handleMessage(event.id, event.data);
           break;
         case 'open':
           await this.#connectionManager.handleConnectionEvent(
