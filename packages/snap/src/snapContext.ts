@@ -8,8 +8,8 @@ import { ClientRequestHandler } from './core/handlers/onClientRequest';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import { WebSocketEventHandler } from './core/handlers/onWebSocketEvent';
 import type {
-  JsonRpcSubscriptionTransportPort,
-  WebSocketConnectionManagerPort,
+  SubscriptionConnectionManagerPort,
+  SubscriptionTransportPort,
 } from './core/ports';
 import type { Serializable } from './core/serialization/types';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
@@ -32,9 +32,9 @@ import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
 import {
-  JsonRpcSubscriptionTransportAdapter,
-  WebSocketConnectionManagerAdapter,
-} from './infrastructure/connection';
+  SubscriptionConnectionManagerAdapter,
+  SubscriptionTransportAdapter,
+} from './infrastructure/subscription';
 
 /**
  * Initializes all the services using dependency injection.
@@ -59,8 +59,8 @@ export type SnapExecutionContext = {
   cache: ICache<Serializable>;
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
-  webSocketConnectionManager: WebSocketConnectionManagerPort;
-  subscriptionTransport: JsonRpcSubscriptionTransportPort;
+  webSocketConnectionManager: SubscriptionConnectionManagerPort;
+  subscriptionTransport: SubscriptionTransportPort;
   webSocketService: WebSocketService;
   webSocketEventHandler: WebSocketEventHandler;
 };
@@ -119,12 +119,12 @@ const transactionScanService = new TransactionScanService(
 
 const confirmationHandler = new ConfirmationHandler();
 
-const webSocketConnectionManager = new WebSocketConnectionManagerAdapter(
+const webSocketConnectionManager = new SubscriptionConnectionManagerAdapter(
   configProvider,
   logger,
 );
 
-const subscriptionTransport = new JsonRpcSubscriptionTransportAdapter(
+const subscriptionTransport = new SubscriptionTransportAdapter(
   webSocketConnectionManager,
   logger,
 );

@@ -1,11 +1,11 @@
-import { Network } from '../../../core/constants/solana';
-import type { ConfigProvider } from '../../../core/services/config';
-import type { NetworkWithRpcUrls } from '../../../core/services/config/ConfigProvider';
-import { mockLogger } from '../../../core/services/mocks/logger';
-import { WebSocketConnectionManagerAdapter } from './WebSocketConnectionManagerAdapter';
+import { Network } from '../../core/constants/solana';
+import type { ConfigProvider } from '../../core/services/config';
+import type { NetworkWithRpcUrls } from '../../core/services/config/ConfigProvider';
+import { mockLogger } from '../../core/services/mocks/logger';
+import { SubscriptionConnectionManagerAdapter } from './SubscriptionConnectionManagerAdapter';
 
-describe('WebSocketConnectionManagerAdapter', () => {
-  let connectionManager: WebSocketConnectionManagerAdapter;
+describe('SubscriptionConnectionManagerAdapter', () => {
+  let subscriptionConnectionManager: SubscriptionConnectionManagerAdapter;
   let mockConfigProvider: ConfigProvider;
 
   beforeEach(() => {
@@ -22,7 +22,7 @@ describe('WebSocketConnectionManagerAdapter', () => {
     };
     (globalThis as any).snap = snap;
 
-    connectionManager = new WebSocketConnectionManagerAdapter(
+    subscriptionConnectionManager = new SubscriptionConnectionManagerAdapter(
       mockConfigProvider,
       mockLogger,
     );
@@ -36,9 +36,8 @@ describe('WebSocketConnectionManagerAdapter', () => {
             .spyOn(snap, 'request')
             .mockResolvedValue(globalThis.crypto.randomUUID());
 
-          const connectionId = await connectionManager.openConnection(
-            Network.Mainnet,
-          );
+          const connectionId =
+            await subscriptionConnectionManager.openConnection(Network.Mainnet);
 
           expect(connectionId).toBeDefined();
         });
@@ -52,7 +51,7 @@ describe('WebSocketConnectionManagerAdapter', () => {
             .mockResolvedValue(globalThis.crypto.randomUUID());
 
           // Start the connection attempt (don't await yet)
-          await connectionManager.openConnection(Network.Mainnet);
+          await subscriptionConnectionManager.openConnection(Network.Mainnet);
 
           // First call is the fail attempt, secondis the retry
           expect(snap.request).toHaveBeenCalledTimes(2);
@@ -69,13 +68,12 @@ describe('WebSocketConnectionManagerAdapter', () => {
           .spyOn(snap, 'request')
           .mockResolvedValue(globalThis.crypto.randomUUID());
 
-        existingConnectionId = await connectionManager.openConnection(
-          Network.Mainnet,
-        );
+        existingConnectionId =
+          await subscriptionConnectionManager.openConnection(Network.Mainnet);
       });
 
       it('returns the existing connection ID', async () => {
-        const connectionId = await connectionManager.openConnection(
+        const connectionId = await subscriptionConnectionManager.openConnection(
           Network.Mainnet,
         );
 
@@ -83,7 +81,7 @@ describe('WebSocketConnectionManagerAdapter', () => {
       });
 
       it('does not open a new connection', async () => {
-        await connectionManager.openConnection(Network.Mainnet);
+        await subscriptionConnectionManager.openConnection(Network.Mainnet);
 
         // snap.request should have been called only once, on the first openConnection call
         expect(spy).toHaveBeenCalledTimes(1);
@@ -97,7 +95,7 @@ describe('WebSocketConnectionManagerAdapter', () => {
         } as unknown as NetworkWithRpcUrls);
 
         await expect(
-          connectionManager.openConnection(Network.Mainnet),
+          subscriptionConnectionManager.openConnection(Network.Mainnet),
         ).rejects.toThrow(
           'No RPC URL found for network solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         );
@@ -108,7 +106,7 @@ describe('WebSocketConnectionManagerAdapter', () => {
   describe('closeConnection', () => {
     describe('when the connection does not exist', () => {
       it('does nothing', async () => {
-        await connectionManager.closeConnection(Network.Mainnet);
+        await subscriptionConnectionManager.closeConnection(Network.Mainnet);
 
         expect(snap.request).not.toHaveBeenCalled();
       });
@@ -116,11 +114,11 @@ describe('WebSocketConnectionManagerAdapter', () => {
 
     describe('when the connection exists', () => {
       beforeEach(async () => {
-        await connectionManager.openConnection(Network.Mainnet);
+        await subscriptionConnectionManager.openConnection(Network.Mainnet);
       });
 
       it('closes the connection', async () => {
-        await connectionManager.closeConnection(Network.Mainnet);
+        await subscriptionConnectionManager.closeConnection(Network.Mainnet);
 
         expect(snap.request).toHaveBeenCalled();
       });
@@ -130,7 +128,7 @@ describe('WebSocketConnectionManagerAdapter', () => {
   describe('handleConnectionEvent', () => {
     describe('when the connection does not exist', () => {
       it('does nothing', async () => {
-        await connectionManager.handleConnectionEvent(
+        await subscriptionConnectionManager.handleConnectionEvent(
           'some-mock-connection-id',
           'disconnect',
         );
@@ -145,37 +143,42 @@ describe('WebSocketConnectionManagerAdapter', () => {
       let connectionId: string;
 
       beforeEach(async () => {
-        connectionId = await connectionManager.openConnection(Network.Mainnet);
+        connectionId = await subscriptionConnectionManager.openConnection(
+          Network.Mainnet,
+        );
       });
 
       describe('when the event is a disconnect', () => {
         it('attempts to reconnect', async () => {
           jest
-            .spyOn(connectionManager, 'openConnection')
+            .spyOn(subscriptionConnectionManager, 'openConnection')
             .mockResolvedValue(connectionId);
 
-          await connectionManager.handleConnectionEvent(
+          await subscriptionConnectionManager.handleConnectionEvent(
             connectionId,
             'disconnect',
           );
 
-          expect(connectionManager.openConnection).toHaveBeenCalledWith(
-            Network.Mainnet,
-          );
+          expect(
+            subscriptionConnectionManager.openConnection,
+          ).toHaveBeenCalledWith(Network.Mainnet);
         });
       });
 
       describe('when the event is a error', () => {
         it('attempts to reconnect', async () => {
           jest
-            .spyOn(connectionManager, 'openConnection')
+            .spyOn(subscriptionConnectionManager, 'openConnection')
             .mockResolvedValue(connectionId);
 
-          await connectionManager.handleConnectionEvent(connectionId, 'error');
-
-          expect(connectionManager.openConnection).toHaveBeenCalledWith(
-            Network.Mainnet,
+          await subscriptionConnectionManager.handleConnectionEvent(
+            connectionId,
+            'error',
           );
+
+          expect(
+            subscriptionConnectionManager.openConnection,
+          ).toHaveBeenCalledWith(Network.Mainnet);
         });
       });
 
@@ -185,10 +188,10 @@ describe('WebSocketConnectionManagerAdapter', () => {
           const recoveryCallback1 = jest.fn();
           const recoveryCallback2 = jest.fn();
           const recoveryCallback3 = jest.fn();
-          connectionManager.onConnectionRecovery(recoveryCallback0);
-          connectionManager.onConnectionRecovery(recoveryCallback1);
-          connectionManager.onConnectionRecovery(recoveryCallback2);
-          connectionManager.onConnectionRecovery(recoveryCallback3);
+          subscriptionConnectionManager.onConnectionRecovery(recoveryCallback0);
+          subscriptionConnectionManager.onConnectionRecovery(recoveryCallback1);
+          subscriptionConnectionManager.onConnectionRecovery(recoveryCallback2);
+          subscriptionConnectionManager.onConnectionRecovery(recoveryCallback3);
 
           //   const connectionId = globalThis.crypto.randomUUID();
 
@@ -213,7 +216,7 @@ describe('WebSocketConnectionManagerAdapter', () => {
           //   const subscribeSpy = jest.spyOn(adapter, 'subscribe');
 
           // Send the connect event
-          await connectionManager.handleConnectionEvent(
+          await subscriptionConnectionManager.handleConnectionEvent(
             connectionId,
             'connect',
           );

@@ -1,21 +1,21 @@
 import type { WebSocketEvent } from '@metamask/snaps-sdk';
 
 import type {
-  JsonRpcSubscriptionTransportPort,
-  WebSocketConnectionManagerPort,
+  SubscriptionConnectionManagerPort,
+  SubscriptionTransportPort,
 } from '../../ports';
 import type { ILogger } from '../../utils/logger';
 
 export class WebSocketEventHandler {
-  readonly #connectionManager: WebSocketConnectionManagerPort;
+  readonly #connectionManager: SubscriptionConnectionManagerPort;
 
-  readonly #subscriptionTransport: JsonRpcSubscriptionTransportPort;
+  readonly #subscriptionTransport: SubscriptionTransportPort;
 
   readonly #logger: ILogger;
 
   constructor(
-    connectionManager: WebSocketConnectionManagerPort,
-    subscriptionTransport: JsonRpcSubscriptionTransportPort,
+    connectionManager: SubscriptionConnectionManagerPort,
+    subscriptionTransport: SubscriptionTransportPort,
     logger: ILogger,
   ) {
     this.#connectionManager = connectionManager;

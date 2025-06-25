@@ -1,13 +1,13 @@
 import type { JsonRpcFailure } from '@metamask/utils';
 import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
 
-import { Network } from '../../../core/constants/solana';
+import { Network } from '../../core/constants/solana';
 import type {
   JsonRpcSubscription,
   SubscriptionConnectionManagerPort,
   SubscriptionTransportPort,
-} from '../../../core/ports';
-import type { ILogger } from '../../../core/utils/logger';
+} from '../../core/ports';
+import type { ILogger } from '../../core/utils/logger';
 
 type JsonRpcWebSocketSubscriptionConfirmation = {
   jsonrpc: string;
@@ -30,6 +30,7 @@ type JsonRpcWebSocketNotification = {
 
 /**
  * Implements JSON-RPC subscription transport over WebSocket.
+ *
  * Allows subscribing to real-time notifications from the Solana blockchain using the [RPC WebSocket API](https://solana.com/docs/rpc/websocket).
  * Manages connection lifecycle, subscriptions, and message routing.
  *
@@ -42,12 +43,10 @@ type JsonRpcWebSocketNotification = {
  * > Receive {"jsonrpc":"2.0","method":"accountNotification","params":{"subscription":98765,"result":{"context":{"Slot":348848975},"value":{"lamports":117046295673,"owner":"11111111111111111111111111111111","data":null,"executable":false,"rentEpoch":null}}}} // Notification received.
  * ...
  */
-export class JsonRpcSubscriptionTransportAdapter
-  implements SubscriptionTransportPort
-{
+export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
   readonly #logger: ILogger;
 
-  readonly #webSocketConnectionManager: SubscriptionConnectionManagerPort;
+  readonly #subscriptionConnectionManager: SubscriptionConnectionManagerPort;
 
   // TODO: Need to track in the state
   readonly #pendingSubscriptions: Map<number, JsonRpcSubscription> = new Map(); // request ID -> subscription
@@ -59,10 +58,10 @@ export class JsonRpcSubscriptionTransportAdapter
   #nextRequestId = 1;
 
   constructor(
-    webSocketConnectionManager: SubscriptionConnectionManagerPort,
+    subscriptionConnectionManager: SubscriptionConnectionManagerPort,
     logger: ILogger,
   ) {
-    this.#webSocketConnectionManager = webSocketConnectionManager;
+    this.#subscriptionConnectionManager = subscriptionConnectionManager;
     this.#logger = logger;
   }
 
@@ -87,7 +86,7 @@ export class JsonRpcSubscriptionTransportAdapter
 
     // If the subscription has a connection recovery callback, register it with the connection manager.
     if (onConnectionRecovery) {
-      this.#webSocketConnectionManager.onConnectionRecovery(
+      this.#subscriptionConnectionManager.onConnectionRecovery(
         onConnectionRecovery,
       );
     }
@@ -106,7 +105,7 @@ export class JsonRpcSubscriptionTransportAdapter
     if (rpcSubscriptionId && subscriptionInActiveMap) {
       const network = this.#getNetworkFromSubscription(subscriptionInActiveMap);
       const connectionId =
-        this.#webSocketConnectionManager.getConnectionId(network);
+        this.#subscriptionConnectionManager.getConnectionId(network);
 
       if (connectionId) {
         const { unsubscribeMethod } = subscriptionInActiveMap;

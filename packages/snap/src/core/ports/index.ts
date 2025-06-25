@@ -1,2 +1,2 @@
-export * from './JsonRpcSubscriptionTransportPort';
-export * from './WebSocketConnectionManagerPort';
+export * from './SubscriptionConnectionManagerPort';
+export * from './SubscriptionTransportPort';

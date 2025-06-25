@@ -1,7 +1,7 @@
-import type { Network } from '../../../core/constants/solana';
-import type { WebSocketConnectionManagerPort } from '../../../core/ports';
-import type { ConfigProvider } from '../../../core/services/config';
-import type { ILogger } from '../../../core/utils/logger';
+import type { Network } from '../../core/constants/solana';
+import type { SubscriptionConnectionManagerPort } from '../../core/ports';
+import type { ConfigProvider } from '../../core/services/config';
+import type { ILogger } from '../../core/utils/logger';
 
 /**
  * Manages WebSocket connections for different Solana networks, providing robust connection
@@ -15,8 +15,8 @@ import type { ILogger } from '../../../core/utils/logger';
  * - Processes WebSocket connection events (connect, disconnect, error) and triggers appropriate recovery mechanisms
  * - Converts HTTP RPC URLs to WebSocket URLs for subscription endpoints
  */
-export class WebSocketConnectionManagerAdapter
-  implements WebSocketConnectionManagerPort
+export class SubscriptionConnectionManagerAdapter
+  implements SubscriptionConnectionManagerPort
 {
   readonly #networkToConnectionId: Map<Network, string> = new Map(); // network -> connection ID
 
@@ -59,7 +59,7 @@ export class WebSocketConnectionManagerAdapter
         const wsUrl = this.#getWebSocketUrl(rpcUrl);
 
         this.#logger.info(
-          `[WebSocketJsonRpcSubscriptionAdapter] Opening connection to ${wsUrl} (attempt ${attempts + 1}/${this.#maxReconnectAttempts})`,
+          `[${this.constructor.name}] Opening connection to ${wsUrl} (attempt ${attempts + 1}/${this.#maxReconnectAttempts})`,
         );
 
         const connectionId = await snap.request({
@@ -73,7 +73,7 @@ export class WebSocketConnectionManagerAdapter
         this.#networkToConnectionId.set(network, connectionId);
 
         this.#logger.info(
-          `[WebSocketJsonRpcSubscriptionAdapter] Connected with ID: ${connectionId}`,
+          `[${this.constructor.name}] Connected with ID: ${connectionId}`,
         );
 
         return connectionId;
@@ -82,7 +82,7 @@ export class WebSocketConnectionManagerAdapter
 
         if (attempts >= this.#maxReconnectAttempts) {
           this.#logger.error(
-            '[WebSocketJsonRpcSubscriptionAdapter] Failed to open connection after all retry attempts:',
+            `[${this.constructor.name}] Failed to open connection after all retry attempts:`,
             error,
           );
           throw error;
@@ -90,7 +90,7 @@ export class WebSocketConnectionManagerAdapter
 
         const delay = this.#reconnectDelay * Math.pow(2, attempts - 1);
         this.#logger.info(
-          `[WebSocketJsonRpcSubscriptionAdapter] Connection attempt ${attempts} failed, retrying in ${delay}ms:`,
+          `[${this.constructor.name}] Connection attempt ${attempts} failed, retrying in ${delay}ms:`,
           error,
         );
 
@@ -117,11 +117,11 @@ export class WebSocketConnectionManagerAdapter
       this.#networkToConnectionId.delete(network);
 
       this.#logger.info(
-        `[WebSocketJsonRpcSubscriptionAdapter] Closed connection ${connectionId}`,
+        `[${this.constructor.name}] Closed connection ${connectionId}`,
       );
     } catch (error) {
       this.#logger.error(
-        '[WebSocketJsonRpcSubscriptionAdapter] Failed to close connection:',
+        `[${this.constructor.name}] Failed to close connection:`,
         error,
       );
     }
@@ -141,7 +141,7 @@ export class WebSocketConnectionManagerAdapter
     data?: any,
   ): Promise<void> {
     this.#logger.info(
-      `[WebSocketJsonRpcSubscriptionAdapter] Connection event: ${event} for ${connectionId}`,
+      `[${this.constructor.name}] Connection event: ${event} for ${connectionId}`,
     );
 
     const isConnectionOpen = this.#isConnectionOpen(connectionId);
@@ -149,7 +149,7 @@ export class WebSocketConnectionManagerAdapter
     if (event === 'disconnect' || event === 'error') {
       if (!isConnectionOpen) {
         this.#logger.warn(
-          `[WebSocketJsonRpcSubscriptionAdapter] No connection found for event: ${event}`,
+          `[${this.constructor.name}] No connection found for event: ${event}`,
         );
         return;
       }
@@ -191,7 +191,7 @@ export class WebSocketConnectionManagerAdapter
 
   async #handleDisconnection(connectionId: string): Promise<void> {
     this.#logger.info(
-      '[WebSocketJsonRpcSubscriptionAdapter] Handling disconnection, attempting to reconnect...',
+      `[${this.constructor.name}] Handling disconnection, attempting to reconnect...`,
     );
 
     try {
@@ -205,7 +205,7 @@ export class WebSocketConnectionManagerAdapter
       }
     } catch (error) {
       this.#logger.error(
-        '[WebSocketJsonRpcSubscriptionAdapter] Reconnection failed:',
+        `[${this.constructor.name}] Reconnection failed:`,
         error,
       );
     }
@@ -216,7 +216,7 @@ export class WebSocketConnectionManagerAdapter
     event: 'connect',
   ): Promise<void> {
     this.#logger.info(
-      `[WebSocketJsonRpcSubscriptionAdapter] Handling connection event: ${event} for ${connectionId}`,
+      `[${this.constructor.name}] Handling connection event: ${event} for ${connectionId}`,
     );
 
     // Trigger all recovery callbacks
@@ -226,7 +226,7 @@ export class WebSocketConnectionManagerAdapter
           await callback();
         } catch (error) {
           this.#logger.error(
-            '[WebSocketJsonRpcSubscriptionAdapter] Error in connection recovery callback:',
+            `[${this.constructor.name}] Error in connection recovery callback:`,
             error,
           );
         }

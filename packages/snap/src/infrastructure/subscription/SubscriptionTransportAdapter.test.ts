@@ -1,9 +1,9 @@
 import type {
   JsonRpcSubscription,
-  WebSocketConnectionManagerPort,
-} from '../../../core/ports';
-import { mockLogger } from '../../../core/services/mocks/logger';
-import { JsonRpcSubscriptionTransportAdapter } from './JsonRpcSubscriptionTransportAdapter';
+  SubscriptionConnectionManagerPort,
+} from '../../core/ports';
+import { mockLogger } from '../../core/services/mocks/logger';
+import { SubscriptionTransportAdapter } from './SubscriptionTransportAdapter';
 
 const createMockSubscription = (
   id = 'some-subscription-id',
@@ -50,10 +50,11 @@ const createMockFailure = (id: number | undefined, error: any) => ({
   }),
 });
 
-describe('JsonRpcSubscriptionTransportAdapter', () => {
-  let adapter: JsonRpcSubscriptionTransportAdapter;
-  let mockWebSocketConnectionManager: WebSocketConnectionManagerPort;
+describe('SubscriptionTransportAdapter', () => {
+  let subscriptionTransport: SubscriptionTransportAdapter;
+  let mockSubscriptionConnectionManager: SubscriptionConnectionManagerPort;
   const mockConnectionId = 'some-connection-id';
+  const loggerScope = 'SubscriptionTransportAdapter';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -63,13 +64,13 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
     };
     (globalThis as any).snap = snap;
 
-    mockWebSocketConnectionManager = {
+    mockSubscriptionConnectionManager = {
       getConnectionId: jest.fn().mockReturnValue(mockConnectionId),
       onConnectionRecovery: jest.fn(),
-    } as unknown as WebSocketConnectionManagerPort;
+    } as unknown as SubscriptionConnectionManagerPort;
 
-    adapter = new JsonRpcSubscriptionTransportAdapter(
-      mockWebSocketConnectionManager,
+    subscriptionTransport = new SubscriptionTransportAdapter(
+      mockSubscriptionConnectionManager,
       mockLogger,
     );
   });
@@ -79,7 +80,7 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
       jest.spyOn(snap, 'request').mockResolvedValueOnce(null);
       const subscription = createMockSubscription();
 
-      await adapter.subscribe('some-connection-id', subscription);
+      await subscriptionTransport.subscribe('some-connection-id', subscription);
 
       expect(snap.request).toHaveBeenCalledWith({
         method: 'snap_sendWebSocketMessage',
@@ -98,17 +99,17 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
     it('registers a connection recovery callback when the subscription has one', async () => {
       const subscription = createMockSubscription();
 
-      await adapter.subscribe(mockConnectionId, subscription);
+      await subscriptionTransport.subscribe(mockConnectionId, subscription);
 
       expect(
-        mockWebSocketConnectionManager.onConnectionRecovery,
+        mockSubscriptionConnectionManager.onConnectionRecovery,
       ).toHaveBeenCalledWith(subscription.onConnectionRecovery);
     });
   });
 
   describe('unsubscribe', () => {
     it('does nothing when the subscription does not exist', async () => {
-      await adapter.unsubscribe('some-inexistent-id');
+      await subscriptionTransport.unsubscribe('some-inexistent-id');
 
       // There was no subscription so there shouldn't be a call to unsubscribe.
       expect(snap.request).not.toHaveBeenCalled();
@@ -118,14 +119,17 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
       const subscription = createMockSubscription();
 
       // Init the subscription
-      await adapter.subscribe(mockConnectionId, subscription);
+      await subscriptionTransport.subscribe(mockConnectionId, subscription);
 
       // Confirm the subscription
       const confirmationMessage = createMockConfirmationMessage(2, 98765);
-      await adapter.handleMessage(mockConnectionId, confirmationMessage);
+      await subscriptionTransport.handleMessage(
+        mockConnectionId,
+        confirmationMessage,
+      );
 
       // Unsubscribe
-      await adapter.unsubscribe(subscription.id);
+      await subscriptionTransport.unsubscribe(subscription.id);
 
       // First call to subscribe, second call to unsubscribe
       expect(snap.request).toHaveBeenCalledTimes(2);
@@ -151,10 +155,13 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
         it('logs a warning and does nothing', async () => {
           const notification = createMockNotification(98765, {});
 
-          await adapter.handleMessage(mockConnectionId, notification);
+          await subscriptionTransport.handleMessage(
+            mockConnectionId,
+            notification,
+          );
 
           expect(mockLogger.warn).toHaveBeenCalledWith(
-            '[JsonRpcSubscriptionTransportAdapter] Received a notification, but no matching active subscription found for RPC ID: 98765',
+            `[${loggerScope}] Received a notification, but no matching active subscription found for RPC ID: 98765`,
           );
         });
       });
@@ -164,24 +171,27 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
 
         beforeEach(async () => {
           subscription = createMockSubscription();
-          await adapter.subscribe(mockConnectionId, subscription);
+          await subscriptionTransport.subscribe(mockConnectionId, subscription);
         });
 
         describe('when the subscription is pending', () => {
           it('does nothing', async () => {
             const notification = createMockNotification(98765, {});
 
-            await adapter.handleMessage(mockConnectionId, notification);
+            await subscriptionTransport.handleMessage(
+              mockConnectionId,
+              notification,
+            );
 
             expect(mockLogger.warn).not.toHaveBeenNthCalledWith(
               1,
-              '[JsonRpcSubscriptionTransportAdapter] Received a notification, but no matching active subscription found for RPC ID:',
+              `[${loggerScope}] Received a notification, but no matching active subscription found for RPC ID:`,
               98765,
             );
 
             expect(mockLogger.warn).not.toHaveBeenNthCalledWith(
               2,
-              '[JsonRpcSubscriptionTransportAdapter] Subscription is still pending for RPC ID:',
+              `[${loggerScope}] Subscription is still pending for RPC ID:`,
               98765,
             );
           });
@@ -190,7 +200,10 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
         describe('when the subscription is confirmed', () => {
           beforeEach(async () => {
             const confirmationMessage = createMockConfirmationMessage(2, 98765);
-            await adapter.handleMessage(mockConnectionId, confirmationMessage);
+            await subscriptionTransport.handleMessage(
+              mockConnectionId,
+              confirmationMessage,
+            );
           });
 
           it('handles a notification', async () => {
@@ -199,7 +212,10 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
               value: { lamports: 116044436802 },
             });
 
-            await adapter.handleMessage(mockConnectionId, notification);
+            await subscriptionTransport.handleMessage(
+              mockConnectionId,
+              notification,
+            );
 
             expect(subscription.onNotification).toHaveBeenCalledWith({
               context: { Slot: 348893275 },
@@ -218,10 +234,13 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
               value: { lamports: 116044436802 },
             });
 
-            await adapter.handleMessage(mockConnectionId, notification);
+            await subscriptionTransport.handleMessage(
+              mockConnectionId,
+              notification,
+            );
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-              '[JsonRpcSubscriptionTransportAdapter] Error in subscription callback for 98765:',
+              `[${loggerScope}] Error in subscription callback for 98765:`,
               new Error('Subscription callback error'),
             );
           });
@@ -233,10 +252,10 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
       describe('when there is no subscription for the message', () => {
         it('logs a warning and does nothing', async () => {
           const message = createMockConfirmationMessage(2, 98765);
-          await adapter.handleMessage(mockConnectionId, message);
+          await subscriptionTransport.handleMessage(mockConnectionId, message);
 
           expect(mockLogger.warn).toHaveBeenCalledWith(
-            '[JsonRpcSubscriptionTransportAdapter] Received confirmation for unknown request ID: 2',
+            `[${loggerScope}] Received confirmation for unknown request ID: 2`,
           );
         });
       });
@@ -246,17 +265,20 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
 
         beforeEach(async () => {
           subscription = createMockSubscription();
-          await adapter.subscribe(mockConnectionId, subscription);
+          await subscriptionTransport.subscribe(mockConnectionId, subscription);
         });
 
         it('makes the subscription active', async () => {
           const confirmationMessage = createMockConfirmationMessage(2, 98765);
 
-          await adapter.handleMessage(mockConnectionId, confirmationMessage);
+          await subscriptionTransport.handleMessage(
+            mockConnectionId,
+            confirmationMessage,
+          );
 
           // Verify the confirmation was logged
           expect(mockLogger.info).toHaveBeenCalledWith(
-            '[JsonRpcSubscriptionTransportAdapter] Subscription confirmed: request ID: 2 -> RPC ID: 98765',
+            `[${loggerScope}] Subscription confirmed: request ID: 2 -> RPC ID: 98765`,
           );
 
           // Verify that notifications are now handled
@@ -265,7 +287,10 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
             value: { lamports: 116044436802 },
           });
 
-          await adapter.handleMessage(mockConnectionId, notification);
+          await subscriptionTransport.handleMessage(
+            mockConnectionId,
+            notification,
+          );
 
           expect(subscription.onNotification).toHaveBeenCalledWith({
             context: { Slot: 348893275 },
@@ -287,14 +312,20 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
 
           beforeEach(async () => {
             subscription = createMockSubscription(); // request ID is 2 (request ID 1 was for opening the connection), hence why we createMockFailure with 2 as first argument
-            await adapter.subscribe(mockConnectionId, subscription);
+            await subscriptionTransport.subscribe(
+              mockConnectionId,
+              subscription,
+            );
           });
 
           it('logs the error', async () => {
-            await adapter.handleMessage(mockConnectionId, message);
+            await subscriptionTransport.handleMessage(
+              mockConnectionId,
+              message,
+            );
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-              '[JsonRpcSubscriptionTransportAdapter] Subscription establishment failed for some-subscription-id:',
+              `[${loggerScope}] Subscription establishment failed for some-subscription-id:`,
               {
                 code: -32000,
                 message: 'Subscription error',
@@ -303,7 +334,10 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
           });
 
           it('calls the subscription callback with the error', async () => {
-            await adapter.handleMessage(mockConnectionId, message);
+            await subscriptionTransport.handleMessage(
+              mockConnectionId,
+              message,
+            );
 
             expect(subscription.onSubscriptionFailed).toHaveBeenCalledWith({
               code: -32000,
@@ -314,10 +348,13 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
 
         describe('when there is no subscription for the message', () => {
           it('logs an error and does nothing', async () => {
-            await adapter.handleMessage(mockConnectionId, message);
+            await subscriptionTransport.handleMessage(
+              mockConnectionId,
+              message,
+            );
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-              '[JsonRpcSubscriptionTransportAdapter] Received error for request ID: 2',
+              `[${loggerScope}] Received error for request ID: 2`,
               {
                 code: -32000,
                 message: 'Subscription error',
@@ -333,10 +370,10 @@ describe('JsonRpcSubscriptionTransportAdapter', () => {
         };
 
         it('logs an error and does nothing', async () => {
-          await adapter.handleMessage(mockConnectionId, message);
+          await subscriptionTransport.handleMessage(mockConnectionId, message);
 
           expect(mockLogger.error).toHaveBeenCalledWith(
-            '[JsonRpcSubscriptionTransportAdapter] Connection-level error:',
+            `[${loggerScope}] Connection-level error:`,
             'Some connection error',
           );
         });

@@ -40,7 +40,7 @@ import { eventHandlers as confirmSignMessageEvents } from './features/confirmati
 import { eventHandlers as confirmSignAndSendTransactionEvents } from './features/confirmation/views/ConfirmTransactionRequest/events';
 import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/events';
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
-import { installPolyfills } from './infrastructure';
+import { installPolyfills } from './infrastructure/polyfills';
 import snapContext, {
   clientRequestHandler,
   keyring,

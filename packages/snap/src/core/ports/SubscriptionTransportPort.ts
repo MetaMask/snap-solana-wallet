@@ -25,7 +25,7 @@ export type JsonRpcSubscription = {
  * Defines the contract for managing WebSocket-based JSON-RPC subscriptions,
  * with subscription lifecycle management and message handling.
  */
-export type JsonRpcSubscriptionTransportPort = {
+export type SubscriptionTransportPort = {
   /**
    * Subscribes to a specific method.
    * @param connectionId - The connection ID to subscribe to.
