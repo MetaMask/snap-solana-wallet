@@ -6,7 +6,11 @@ import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/Secu
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
 import { ClientRequestHandler } from './core/handlers/onClientRequest';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
-import type { WebSocketTransportPort } from './core/ports/WebSocketTransportPort';
+import { WebSocketEventHandler } from './core/handlers/onWebSocketEvent';
+import type {
+  JsonRpcSubscriptionTransportPort,
+  WebSocketConnectionManagerPort,
+} from './core/ports';
 import type { Serializable } from './core/serialization/types';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
@@ -27,7 +31,10 @@ import { WebSocketService } from './core/services/websocket/WebSocketService';
 import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
-import { WebSocketTransport } from './infrastructure/websocket/WebSocketTransport';
+import {
+  JsonRpcSubscriptionTransportAdapter,
+  WebSocketConnectionManagerAdapter,
+} from './infrastructure/connection';
 
 /**
  * Initializes all the services using dependency injection.
@@ -52,8 +59,10 @@ export type SnapExecutionContext = {
   cache: ICache<Serializable>;
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
-  webSocketTransport: WebSocketTransportPort;
+  webSocketConnectionManager: WebSocketConnectionManagerPort;
+  subscriptionTransport: JsonRpcSubscriptionTransportPort;
   webSocketService: WebSocketService;
+  webSocketEventHandler: WebSocketEventHandler;
 };
 
 const configProvider = new ConfigProvider();
@@ -110,13 +119,27 @@ const transactionScanService = new TransactionScanService(
 
 const confirmationHandler = new ConfirmationHandler();
 
-// Initialize WebSocket services
-const webSocketTransport = new WebSocketTransport(configProvider, logger);
+const webSocketConnectionManager = new WebSocketConnectionManagerAdapter(
+  configProvider,
+  logger,
+);
+
+const subscriptionTransport = new JsonRpcSubscriptionTransportAdapter(
+  webSocketConnectionManager,
+  logger,
+);
+
 const webSocketService = new WebSocketService(
-  webSocketTransport,
+  subscriptionTransport,
   assetsService,
   transactionsService,
   state,
+  logger,
+);
+
+const webSocketEventHandler = new WebSocketEventHandler(
+  webSocketConnectionManager,
+  subscriptionTransport,
   logger,
 );
 
@@ -159,8 +182,10 @@ const snapContext: SnapExecutionContext = {
   confirmationHandler,
   nftService,
   clientRequestHandler,
-  webSocketTransport,
+  webSocketConnectionManager,
+  subscriptionTransport,
   webSocketService,
+  webSocketEventHandler,
 };
 
 export {
@@ -176,6 +201,7 @@ export {
   sendSolBuilder,
   sendSplTokenBuilder,
   state,
+  subscriptionTransport,
   tokenMetadataClient,
   tokenMetadataService,
   tokenPricesService,
@@ -183,8 +209,9 @@ export {
   transactionScanService,
   transactionsService,
   walletService,
+  webSocketConnectionManager,
+  webSocketEventHandler,
   webSocketService,
-  webSocketTransport,
 };
 
 export default snapContext;

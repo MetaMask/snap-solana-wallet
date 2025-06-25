@@ -10,7 +10,9 @@ import type {
   OnCronjobHandler,
   OnKeyringRequestHandler,
   OnProtocolRequestHandler,
+  OnStartHandler,
   OnUserInputHandler,
+  OnWebSocketEventHandler,
 } from '@metamask/snaps-sdk';
 import {
   MethodNotFoundError,
@@ -43,63 +45,13 @@ import snapContext, {
   clientRequestHandler,
   keyring,
   state,
-  webSocketManager,
+  webSocketEventHandler,
 } from './snapContext';
 
 installPolyfills();
 
 // Lowest precision we ever go for: MicroLamports represented in Sol amount
 BigNumber.config({ EXPONENTIAL_AT: 16 });
-
-// SIP-20 WebSocket Types (until available in SDK)
-export type WebSocketTextMessage = {
-  type: 'text';
-  message: string;
-};
-
-export type WebSocketBinaryMessage = {
-  type: 'binary';
-  message: number[];
-};
-
-export type WebSocketMessageData =
-  | WebSocketTextMessage
-  | WebSocketBinaryMessage;
-
-export type WebSocketMessage = {
-  type: 'message';
-  id: string;
-  origin: string;
-  data: WebSocketMessageData;
-};
-
-export type WebSocketOpenEvent = {
-  type: 'open';
-  id: string;
-  origin: string;
-};
-
-export type WebSocketCloseEvent = {
-  type: 'close';
-  id: string;
-  origin: string;
-  code: number;
-  reason: string | null;
-  wasClean: boolean | null;
-};
-
-export type WebSocketEvent =
-  | WebSocketMessage
-  | WebSocketOpenEvent
-  | WebSocketCloseEvent;
-
-export type OnWebSocketEventArgs = {
-  event: WebSocketEvent;
-};
-
-export type OnWebSocketEventHandler = (
-  args: OnWebSocketEventArgs,
-) => Promise<void>;
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -301,45 +253,8 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
   return handler({ request });
 };
 
-/**
- * Handle incoming WebSocket events according to SIP-20 specification.
- *
- * @param args - The WebSocket event args.
- * @param args.event - The WebSocket event.
- * @returns A promise that resolves when the event is handled.
- */
-export const onWebSocketEvent: OnWebSocketEventHandler = async ({ event }) => {
-  try {
-    logger.log('[🌐 onWebSocketEvent]', event.type, event);
-
-    if (!webSocketManager) {
-      logger.warn('[onWebSocketEvent] WebSocket manager not available');
-      return;
-    }
-
-    switch (event.type) {
-      case 'message':
-        await webSocketManager.handleMessage(event.id, event.data);
-        break;
-      case 'open':
-        await webSocketManager.handleConnectionEvent(event.id, 'connect');
-        break;
-      case 'close':
-        await webSocketManager.handleConnectionEvent(event.id, 'disconnect', {
-          code: event.code,
-          reason: event.reason,
-          wasClean: event.wasClean,
-        });
-        break;
-      default:
-        logger.warn(
-          `[onWebSocketEvent] Unknown event type: ${(event as any).type}`,
-        );
-    }
-  } catch (error: any) {
-    logger.error('[onWebSocketEvent] Error handling WebSocket event:', error);
-  }
-};
+export const onWebSocketEvent: OnWebSocketEventHandler = async ({ event }) =>
+  webSocketEventHandler.handle(event);
 
 export const onAssetsLookup: OnAssetsLookupHandler = onAssetsLookupHandler;
 
@@ -354,3 +269,12 @@ export const onAssetHistoricalPrice: OnAssetHistoricalPriceHandler =
 
 export const onClientRequest: OnClientRequestHandler = async ({ request }) =>
   clientRequestHandler.handle(request);
+
+export const onStart: OnStartHandler = async () => {
+  logger.log('[🔑 onStart]');
+
+  // Wipe the subscriptions state
+
+  // Open the connections for all networks
+  // Init the subscriptions
+};
