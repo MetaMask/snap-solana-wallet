@@ -2,10 +2,7 @@ import type { Address, Signature } from '@solana/kit';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import { Network } from '../../constants/solana';
-import type {
-  JsonRpcSubscription,
-  SubscriptionTransportPort,
-} from '../../ports';
+import type { JsonRpcSubscription, SubscriptionManagerPort } from '../../ports';
 import type { ILogger } from '../../utils/logger';
 import type { AssetsService } from '../assets/AssetsService';
 import type { State } from '../state/State';
@@ -44,7 +41,7 @@ export type SubscriptionInfo = {
  * for accounts and transactions, replacing the HTTP polling mechanism.
  */
 export class WebSocketService {
-  readonly #subscriptionManager: SubscriptionTransportPort;
+  readonly #subscriptionManager: SubscriptionManagerPort;
 
   readonly #assetsService: AssetsService;
 
@@ -65,7 +62,7 @@ export class WebSocketService {
   readonly #signatureTimeoutMs = 5 * 60 * 1000; // 5 minutes timeout
 
   constructor(
-    subscriptionManager: SubscriptionTransportPort,
+    subscriptionManager: SubscriptionManagerPort,
     assetsService: AssetsService,
     transactionsService: TransactionsService,
     stateService: State<any>,

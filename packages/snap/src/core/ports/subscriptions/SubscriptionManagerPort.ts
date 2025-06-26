@@ -1,12 +1,12 @@
-import type { Subscription } from '../../entities';
+import type { Subscription } from '../../../entities';
 
 /**
- * Port interface for JSON-RPC subscription transport operations.
+ * Port interface for JSON-RPC subscription operations.
  *
  * Defines the contract for managing WebSocket-based JSON-RPC subscriptions,
  * with subscription lifecycle management and message handling.
  */
-export type SubscriptionTransportPort = {
+export type SubscriptionManagerPort = {
   /**
    * Subscribes to a specific method.
    * @param connectionId - The connection ID to subscribe to.

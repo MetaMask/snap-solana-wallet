@@ -1,10 +1,10 @@
-import type { Network } from '../constants/solana';
+import type { Network } from '../../constants/solana';
 
 /**
  * Port interface for managing JSON-RPC subscription connections,
  * with connection lifecycle management and message handling.
  */
-export type SubscriptionConnectionManagerPort = {
+export type ConnectionManagerPort = {
   /**
    * Opens a connection for the specified network.
    * @param network - The network to open a connection for.

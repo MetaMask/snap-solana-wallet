@@ -12,7 +12,7 @@ import {
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type {
   SubscriptionConnectionManagerPort,
-  SubscriptionTransportPort,
+  SubscriptionManagerPort,
 } from './core/ports';
 import type { Serializable } from './core/serialization/types';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
@@ -35,10 +35,10 @@ import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
 import {
-  SubscriptionConnectionManagerAdapter,
-  SubscriptionTransportAdapter,
-} from './infrastructure/subscription';
-import { SubscriptionConnectionRepository } from './infrastructure/subscription/SubscriptionConnectionRepository';
+  ConnectionManagerAdapter,
+  SubscriptionManagerAdapter,
+} from './infrastructure/subscriptions';
+import { ConnectionRepository } from './infrastructure/subscriptions/ConnectionRepository';
 
 /**
  * Initializes all the services using dependency injection.
@@ -64,7 +64,7 @@ export type SnapExecutionContext = {
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
   subscriptionConnectionManager: SubscriptionConnectionManagerPort;
-  subscriptionTransport: SubscriptionTransportPort;
+  subscriptionTransport: SubscriptionManagerPort;
   webSocketService: WebSocketService;
   webSocketEventHandler: WebSocketEventHandler;
   startHandler: StartHandler;
@@ -124,15 +124,15 @@ const transactionScanService = new TransactionScanService(
 
 const confirmationHandler = new ConfirmationHandler();
 
-const subscriptionConnectionRepository = new SubscriptionConnectionRepository();
+const subscriptionConnectionRepository = new ConnectionRepository();
 
-const subscriptionConnectionManager = new SubscriptionConnectionManagerAdapter(
+const subscriptionConnectionManager = new ConnectionManagerAdapter(
   subscriptionConnectionRepository,
   configProvider,
   logger,
 );
 
-const subscriptionTransport = new SubscriptionTransportAdapter(
+const subscriptionTransport = new SubscriptionManagerAdapter(
   subscriptionConnectionManager,
   logger,
 );

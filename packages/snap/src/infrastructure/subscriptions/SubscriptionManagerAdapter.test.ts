@@ -1,7 +1,7 @@
-import type { SubscriptionConnectionManagerPort } from '../../core/ports';
+import type { ConnectionManagerPort } from '../../core/ports/subscriptions';
 import { mockLogger } from '../../core/services/mocks/logger';
 import type { Subscription } from '../../entities';
-import { SubscriptionTransportAdapter } from './SubscriptionTransportAdapter';
+import { SubscriptionManagerAdapter } from './SubscriptionManagerAdapter';
 
 const createMockSubscription = (
   id = 'some-subscription-id',
@@ -48,11 +48,11 @@ const createMockFailure = (id: number | undefined, error: any) => ({
   }),
 });
 
-describe('SubscriptionTransportAdapter', () => {
-  let subscriptionTransport: SubscriptionTransportAdapter;
-  let mockSubscriptionConnectionManager: SubscriptionConnectionManagerPort;
+describe('SubscriptionManagerAdapter', () => {
+  let subscriptionManager: SubscriptionManagerAdapter;
+  let mockConnectionManager: ConnectionManagerPort;
   const mockConnectionId = 'some-connection-id';
-  const loggerScope = 'SubscriptionTransportAdapter';
+  const loggerScope = 'SubscriptionManagerAdapter';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -62,13 +62,13 @@ describe('SubscriptionTransportAdapter', () => {
     };
     (globalThis as any).snap = snap;
 
-    mockSubscriptionConnectionManager = {
+    mockConnectionManager = {
       getConnectionIdByNetwork: jest.fn().mockReturnValue(mockConnectionId),
       onConnectionRecovery: jest.fn(),
-    } as unknown as SubscriptionConnectionManagerPort;
+    } as unknown as ConnectionManagerPort;
 
-    subscriptionTransport = new SubscriptionTransportAdapter(
-      mockSubscriptionConnectionManager,
+    subscriptionManager = new SubscriptionManagerAdapter(
+      mockConnectionManager,
       mockLogger,
     );
   });
@@ -78,7 +78,7 @@ describe('SubscriptionTransportAdapter', () => {
       jest.spyOn(snap, 'request').mockResolvedValueOnce(null);
       const subscription = createMockSubscription();
 
-      await subscriptionTransport.subscribe('some-connection-id', subscription);
+      await subscriptionManager.subscribe('some-connection-id', subscription);
 
       expect(snap.request).toHaveBeenCalledWith({
         method: 'snap_sendWebSocketMessage',
@@ -97,17 +97,17 @@ describe('SubscriptionTransportAdapter', () => {
     it('registers a connection recovery callback when the subscription has one', async () => {
       const subscription = createMockSubscription();
 
-      await subscriptionTransport.subscribe(mockConnectionId, subscription);
+      await subscriptionManager.subscribe(mockConnectionId, subscription);
 
-      expect(
-        mockSubscriptionConnectionManager.onConnectionRecovery,
-      ).toHaveBeenCalledWith(subscription.onConnectionRecovery);
+      expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
+        subscription.onConnectionRecovery,
+      );
     });
   });
 
   describe('unsubscribe', () => {
     it('does nothing when the subscription does not exist', async () => {
-      await subscriptionTransport.unsubscribe('some-inexistent-id');
+      await subscriptionManager.unsubscribe('some-inexistent-id');
 
       // There was no subscription so there shouldn't be a call to unsubscribe.
       expect(snap.request).not.toHaveBeenCalled();
@@ -117,17 +117,17 @@ describe('SubscriptionTransportAdapter', () => {
       const subscription = createMockSubscription();
 
       // Init the subscription
-      await subscriptionTransport.subscribe(mockConnectionId, subscription);
+      await subscriptionManager.subscribe(mockConnectionId, subscription);
 
       // Confirm the subscription
       const confirmationMessage = createMockConfirmationMessage(2, 98765);
-      await subscriptionTransport.handleMessage(
+      await subscriptionManager.handleMessage(
         mockConnectionId,
         confirmationMessage,
       );
 
       // Unsubscribe
-      await subscriptionTransport.unsubscribe(subscription.id);
+      await subscriptionManager.unsubscribe(subscription.id);
 
       // First call to subscribe, second call to unsubscribe
       expect(snap.request).toHaveBeenCalledTimes(2);
@@ -153,7 +153,7 @@ describe('SubscriptionTransportAdapter', () => {
         it('logs a warning and does nothing', async () => {
           const notification = createMockNotification(98765, {});
 
-          await subscriptionTransport.handleMessage(
+          await subscriptionManager.handleMessage(
             mockConnectionId,
             notification,
           );
@@ -169,14 +169,14 @@ describe('SubscriptionTransportAdapter', () => {
 
         beforeEach(async () => {
           subscription = createMockSubscription();
-          await subscriptionTransport.subscribe(mockConnectionId, subscription);
+          await subscriptionManager.subscribe(mockConnectionId, subscription);
         });
 
         describe('when the subscription is pending', () => {
           it('does nothing', async () => {
             const notification = createMockNotification(98765, {});
 
-            await subscriptionTransport.handleMessage(
+            await subscriptionManager.handleMessage(
               mockConnectionId,
               notification,
             );
@@ -198,7 +198,7 @@ describe('SubscriptionTransportAdapter', () => {
         describe('when the subscription is confirmed', () => {
           beforeEach(async () => {
             const confirmationMessage = createMockConfirmationMessage(2, 98765);
-            await subscriptionTransport.handleMessage(
+            await subscriptionManager.handleMessage(
               mockConnectionId,
               confirmationMessage,
             );
@@ -210,7 +210,7 @@ describe('SubscriptionTransportAdapter', () => {
               value: { lamports: 116044436802 },
             });
 
-            await subscriptionTransport.handleMessage(
+            await subscriptionManager.handleMessage(
               mockConnectionId,
               notification,
             );
@@ -232,7 +232,7 @@ describe('SubscriptionTransportAdapter', () => {
               value: { lamports: 116044436802 },
             });
 
-            await subscriptionTransport.handleMessage(
+            await subscriptionManager.handleMessage(
               mockConnectionId,
               notification,
             );
@@ -250,7 +250,7 @@ describe('SubscriptionTransportAdapter', () => {
       describe('when there is no subscription for the message', () => {
         it('logs a warning and does nothing', async () => {
           const message = createMockConfirmationMessage(2, 98765);
-          await subscriptionTransport.handleMessage(mockConnectionId, message);
+          await subscriptionManager.handleMessage(mockConnectionId, message);
 
           expect(mockLogger.warn).toHaveBeenCalledWith(
             `[${loggerScope}] Received confirmation for unknown request ID: 2`,
@@ -263,13 +263,13 @@ describe('SubscriptionTransportAdapter', () => {
 
         beforeEach(async () => {
           subscription = createMockSubscription();
-          await subscriptionTransport.subscribe(mockConnectionId, subscription);
+          await subscriptionManager.subscribe(mockConnectionId, subscription);
         });
 
         it('makes the subscription active', async () => {
           const confirmationMessage = createMockConfirmationMessage(2, 98765);
 
-          await subscriptionTransport.handleMessage(
+          await subscriptionManager.handleMessage(
             mockConnectionId,
             confirmationMessage,
           );
@@ -285,7 +285,7 @@ describe('SubscriptionTransportAdapter', () => {
             value: { lamports: 116044436802 },
           });
 
-          await subscriptionTransport.handleMessage(
+          await subscriptionManager.handleMessage(
             mockConnectionId,
             notification,
           );
@@ -310,17 +310,11 @@ describe('SubscriptionTransportAdapter', () => {
 
           beforeEach(async () => {
             subscription = createMockSubscription(); // request ID is 2 (request ID 1 was for opening the connection), hence why we createMockFailure with 2 as first argument
-            await subscriptionTransport.subscribe(
-              mockConnectionId,
-              subscription,
-            );
+            await subscriptionManager.subscribe(mockConnectionId, subscription);
           });
 
           it('logs the error', async () => {
-            await subscriptionTransport.handleMessage(
-              mockConnectionId,
-              message,
-            );
+            await subscriptionManager.handleMessage(mockConnectionId, message);
 
             expect(mockLogger.error).toHaveBeenCalledWith(
               `[${loggerScope}] Subscription establishment failed for some-subscription-id:`,
@@ -332,10 +326,7 @@ describe('SubscriptionTransportAdapter', () => {
           });
 
           it('calls the subscription callback with the error', async () => {
-            await subscriptionTransport.handleMessage(
-              mockConnectionId,
-              message,
-            );
+            await subscriptionManager.handleMessage(mockConnectionId, message);
 
             expect(subscription.onSubscriptionFailed).toHaveBeenCalledWith({
               code: -32000,
@@ -346,10 +337,7 @@ describe('SubscriptionTransportAdapter', () => {
 
         describe('when there is no subscription for the message', () => {
           it('logs an error and does nothing', async () => {
-            await subscriptionTransport.handleMessage(
-              mockConnectionId,
-              message,
-            );
+            await subscriptionManager.handleMessage(mockConnectionId, message);
 
             expect(mockLogger.error).toHaveBeenCalledWith(
               `[${loggerScope}] Received error for request ID: 2`,
@@ -368,7 +356,7 @@ describe('SubscriptionTransportAdapter', () => {
         };
 
         it('logs an error and does nothing', async () => {
-          await subscriptionTransport.handleMessage(mockConnectionId, message);
+          await subscriptionManager.handleMessage(mockConnectionId, message);
 
           expect(mockLogger.error).toHaveBeenCalledWith(
             `[${loggerScope}] Connection-level error:`,

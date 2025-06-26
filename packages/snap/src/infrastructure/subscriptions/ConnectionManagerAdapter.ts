@@ -1,10 +1,10 @@
 import { difference } from 'lodash';
 
 import { Network } from '../../core/constants/solana';
-import type { SubscriptionConnectionManagerPort } from '../../core/ports';
+import type { ConnectionManagerPort } from '../../core/ports/subscriptions';
 import type { ConfigProvider } from '../../core/services/config';
 import type { ILogger } from '../../core/utils/logger';
-import type { SubscriptionConnectionRepository } from './SubscriptionConnectionRepository';
+import type { ConnectionRepository } from './ConnectionRepository';
 
 /**
  * Manages WebSocket connections for different Solana networks, providing robust connection
@@ -18,12 +18,10 @@ import type { SubscriptionConnectionRepository } from './SubscriptionConnectionR
  * - Processes WebSocket connection events (connect, disconnect, error) and triggers appropriate recovery mechanisms
  * - Converts HTTP RPC URLs to WebSocket URLs for subscription endpoints
  */
-export class SubscriptionConnectionManagerAdapter
-  implements SubscriptionConnectionManagerPort
-{
+export class ConnectionManagerAdapter implements ConnectionManagerPort {
   readonly #configProvider: ConfigProvider;
 
-  readonly #subscriptionConnectionRepository: SubscriptionConnectionRepository;
+  readonly #connectionRepository: ConnectionRepository;
 
   readonly #logger: ILogger;
 
@@ -34,14 +32,14 @@ export class SubscriptionConnectionManagerAdapter
   readonly #connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
 
   constructor(
-    subscriptionConnectionRepository: SubscriptionConnectionRepository,
+    connectionRepository: ConnectionRepository,
     configProvider: ConfigProvider,
     logger: ILogger,
   ) {
     const { maxReconnectAttempts, reconnectDelayMilliseconds } =
       configProvider.get().subscription;
 
-    this.#subscriptionConnectionRepository = subscriptionConnectionRepository;
+    this.#connectionRepository = connectionRepository;
     this.#configProvider = configProvider;
     this.#logger = logger;
     this.#maxReconnectAttempts = maxReconnectAttempts;
@@ -53,7 +51,7 @@ export class SubscriptionConnectionManagerAdapter
 
     // Check if the connection already exists
     const existingConnection =
-      await this.#subscriptionConnectionRepository.findByUrl(wsUrl);
+      await this.#connectionRepository.findByUrl(wsUrl);
 
     if (existingConnection) {
       return existingConnection.id;
@@ -78,8 +76,7 @@ export class SubscriptionConnectionManagerAdapter
         );
 
         // const protocols = []; // TODO: What do we need to do here?
-        const connectionId =
-          await this.#subscriptionConnectionRepository.save(wsUrl);
+        const connectionId = await this.#connectionRepository.save(wsUrl);
 
         this.#logger.info(
           `[${this.constructor.name}] Connected with ID: ${connectionId}`,
@@ -117,7 +114,7 @@ export class SubscriptionConnectionManagerAdapter
 
     // Early return if the connection does not exist
     const existingConnection =
-      await this.#subscriptionConnectionRepository.findByUrl(wsUrl);
+      await this.#connectionRepository.findByUrl(wsUrl);
 
     if (!existingConnection) {
       this.#logger.warn(
@@ -129,7 +126,7 @@ export class SubscriptionConnectionManagerAdapter
     const connectionId = existingConnection.id;
 
     try {
-      await this.#subscriptionConnectionRepository.delete(connectionId);
+      await this.#connectionRepository.delete(connectionId);
 
       this.#logger.info(
         `[${this.constructor.name}] Closed connection ${connectionId}`,
@@ -146,7 +143,7 @@ export class SubscriptionConnectionManagerAdapter
     const { activeNetworks } = this.#configProvider.get();
     const inactiveNetworks = difference(Object.values(Network), activeNetworks);
 
-    const connections = await this.#subscriptionConnectionRepository.getAll();
+    const connections = await this.#connectionRepository.getAll();
 
     const isConnectionOpen = (network: Network) =>
       connections.some(
@@ -172,7 +169,7 @@ export class SubscriptionConnectionManagerAdapter
 
   getConnectionIdByNetwork(network: Network): string | null {
     const wsUrl = this.#getWebSocketUrl(network);
-    return this.#subscriptionConnectionRepository.getIdByUrl(wsUrl) ?? null;
+    return this.#connectionRepository.getIdByUrl(wsUrl) ?? null;
   }
 
   async handleConnectionEvent(
@@ -199,7 +196,7 @@ export class SubscriptionConnectionManagerAdapter
     );
 
     const existingConnection =
-      await this.#subscriptionConnectionRepository.getById(connectionId);
+      await this.#connectionRepository.getById(connectionId);
 
     if (!existingConnection) {
       this.#logger.warn(
@@ -231,8 +228,7 @@ export class SubscriptionConnectionManagerAdapter
     );
 
     try {
-      const connection =
-        await this.#subscriptionConnectionRepository.getById(connectionId);
+      const connection = await this.#connectionRepository.getById(connectionId);
 
       if (!connection) {
         this.#logger.warn(

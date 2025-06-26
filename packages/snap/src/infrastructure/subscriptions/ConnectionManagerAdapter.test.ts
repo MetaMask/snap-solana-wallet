@@ -5,12 +5,12 @@ import type {
   NetworkWithRpcUrls,
 } from '../../core/services/config/ConfigProvider';
 import { mockLogger } from '../../core/services/mocks/logger';
-import { SubscriptionConnectionManagerAdapter } from './SubscriptionConnectionManagerAdapter';
-import type { SubscriptionConnectionRepository } from './SubscriptionConnectionRepository';
+import { ConnectionManagerAdapter } from './ConnectionManagerAdapter';
+import type { ConnectionRepository } from './ConnectionRepository';
 
-describe('SubscriptionConnectionManagerAdapter', () => {
-  let subscriptionConnectionManager: SubscriptionConnectionManagerAdapter;
-  let mockSubscriptionConnectionRepository: SubscriptionConnectionRepository;
+describe('ConnectionManagerAdapter', () => {
+  let connectionManager: ConnectionManagerAdapter;
+  let mockConnectionRepository: ConnectionRepository;
   let mockConfigProvider: ConfigProvider;
   const mockWebSocketUrl = 'wss://some-mock-url.com';
   const mockConnectionId = 'mock-connection-id';
@@ -18,7 +18,7 @@ describe('SubscriptionConnectionManagerAdapter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockSubscriptionConnectionRepository = {
+    mockConnectionRepository = {
       getAll: jest.fn(),
       getById: jest.fn(),
       findByUrl: jest.fn(),
@@ -26,7 +26,7 @@ describe('SubscriptionConnectionManagerAdapter', () => {
       delete: jest.fn(),
       getIdByUrl: jest.fn(),
       getUrlById: jest.fn(),
-    } as unknown as SubscriptionConnectionRepository;
+    } as unknown as ConnectionRepository;
 
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
@@ -40,8 +40,8 @@ describe('SubscriptionConnectionManagerAdapter', () => {
       }),
     } as unknown as ConfigProvider;
 
-    subscriptionConnectionManager = new SubscriptionConnectionManagerAdapter(
-      mockSubscriptionConnectionRepository,
+    connectionManager = new ConnectionManagerAdapter(
+      mockConnectionRepository,
       mockConfigProvider,
       mockLogger,
     );
@@ -52,15 +52,16 @@ describe('SubscriptionConnectionManagerAdapter', () => {
       describe('when the connection succeeds', () => {
         it('opens a connection', async () => {
           jest
-            .spyOn(mockSubscriptionConnectionRepository, 'getAll')
+            .spyOn(mockConnectionRepository, 'getAll')
             .mockResolvedValueOnce([]);
 
           jest
-            .spyOn(mockSubscriptionConnectionRepository, 'save')
+            .spyOn(mockConnectionRepository, 'save')
             .mockResolvedValueOnce(mockConnectionId);
 
-          const connectionId =
-            await subscriptionConnectionManager.openConnection(Network.Mainnet);
+          const connectionId = await connectionManager.openConnection(
+            Network.Mainnet,
+          );
 
           expect(connectionId).toBe(mockConnectionId);
         });
@@ -69,39 +70,36 @@ describe('SubscriptionConnectionManagerAdapter', () => {
       describe('when the connection fails', () => {
         it('retries until it succeeds, when attempts < 5', async () => {
           jest
-            .spyOn(mockSubscriptionConnectionRepository, 'getAll')
+            .spyOn(mockConnectionRepository, 'getAll')
             .mockResolvedValueOnce([]);
 
           jest
-            .spyOn(mockSubscriptionConnectionRepository, 'save')
+            .spyOn(mockConnectionRepository, 'save')
             .mockRejectedValueOnce(new Error('Connection failed')) // 1st call is the fail attempt
             .mockResolvedValueOnce(mockConnectionId); // 2nd call is the success attempt
 
-          const connectionId =
-            await subscriptionConnectionManager.openConnection(Network.Mainnet);
+          const connectionId = await connectionManager.openConnection(
+            Network.Mainnet,
+          );
 
-          expect(
-            mockSubscriptionConnectionRepository.save,
-          ).toHaveBeenCalledTimes(2);
+          expect(mockConnectionRepository.save).toHaveBeenCalledTimes(2);
           expect(connectionId).toBe(mockConnectionId);
         });
 
         it('does not retry more than the max number of attempts', async () => {
           jest
-            .spyOn(mockSubscriptionConnectionRepository, 'getAll')
+            .spyOn(mockConnectionRepository, 'getAll')
             .mockResolvedValueOnce([]);
 
           jest
-            .spyOn(mockSubscriptionConnectionRepository, 'save')
+            .spyOn(mockConnectionRepository, 'save')
             .mockRejectedValue(new Error('Connection failed'));
 
           await expect(
-            subscriptionConnectionManager.openConnection(Network.Mainnet),
+            connectionManager.openConnection(Network.Mainnet),
           ).rejects.toThrow('Connection failed');
 
-          expect(
-            mockSubscriptionConnectionRepository.save,
-          ).toHaveBeenCalledTimes(5);
+          expect(mockConnectionRepository.save).toHaveBeenCalledTimes(5);
         });
       });
     });
@@ -109,7 +107,7 @@ describe('SubscriptionConnectionManagerAdapter', () => {
     describe('when the connection already exists', () => {
       beforeEach(async () => {
         jest
-          .spyOn(mockSubscriptionConnectionRepository, 'findByUrl')
+          .spyOn(mockConnectionRepository, 'findByUrl')
           .mockResolvedValueOnce({
             id: mockConnectionId,
             url: mockWebSocketUrl,
@@ -117,12 +115,12 @@ describe('SubscriptionConnectionManagerAdapter', () => {
           });
 
         jest
-          .spyOn(mockSubscriptionConnectionRepository, 'save')
+          .spyOn(mockConnectionRepository, 'save')
           .mockResolvedValueOnce(mockConnectionId);
       });
 
       it('returns the existing connection ID', async () => {
-        const connectionId = await subscriptionConnectionManager.openConnection(
+        const connectionId = await connectionManager.openConnection(
           Network.Mainnet,
         );
 
@@ -130,11 +128,9 @@ describe('SubscriptionConnectionManagerAdapter', () => {
       });
 
       it('does not open a new connection', async () => {
-        await subscriptionConnectionManager.openConnection(Network.Mainnet);
+        await connectionManager.openConnection(Network.Mainnet);
 
-        expect(
-          mockSubscriptionConnectionRepository.save,
-        ).not.toHaveBeenCalled();
+        expect(mockConnectionRepository.save).not.toHaveBeenCalled();
       });
     });
 
@@ -145,7 +141,7 @@ describe('SubscriptionConnectionManagerAdapter', () => {
         } as unknown as NetworkWithRpcUrls);
 
         await expect(
-          subscriptionConnectionManager.openConnection(Network.Mainnet),
+          connectionManager.openConnection(Network.Mainnet),
         ).rejects.toThrow(
           'No RPC URL found for network solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         );
@@ -157,23 +153,21 @@ describe('SubscriptionConnectionManagerAdapter', () => {
     describe('when the connection does not exist', () => {
       beforeEach(async () => {
         jest
-          .spyOn(mockSubscriptionConnectionRepository, 'getAll')
+          .spyOn(mockConnectionRepository, 'getAll')
           .mockResolvedValueOnce([]);
       });
 
       it('does nothing', async () => {
-        await subscriptionConnectionManager.closeConnection(Network.Mainnet);
+        await connectionManager.closeConnection(Network.Mainnet);
 
-        expect(
-          mockSubscriptionConnectionRepository.delete,
-        ).not.toHaveBeenCalled();
+        expect(mockConnectionRepository.delete).not.toHaveBeenCalled();
       });
     });
 
     describe('when the connection exists', () => {
       beforeEach(async () => {
         jest
-          .spyOn(mockSubscriptionConnectionRepository, 'findByUrl')
+          .spyOn(mockConnectionRepository, 'findByUrl')
           .mockResolvedValueOnce({
             id: mockConnectionId,
             url: mockWebSocketUrl,
@@ -181,16 +175,14 @@ describe('SubscriptionConnectionManagerAdapter', () => {
           });
 
         jest
-          .spyOn(mockSubscriptionConnectionRepository, 'delete')
+          .spyOn(mockConnectionRepository, 'delete')
           .mockResolvedValueOnce(undefined);
       });
 
       it('closes the connection', async () => {
-        await subscriptionConnectionManager.closeConnection(Network.Mainnet);
+        await connectionManager.closeConnection(Network.Mainnet);
 
-        expect(
-          mockSubscriptionConnectionRepository.delete,
-        ).toHaveBeenCalledTimes(1);
+        expect(mockConnectionRepository.delete).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -201,19 +193,15 @@ describe('SubscriptionConnectionManagerAdapter', () => {
         activeNetworks: [Network.Mainnet, Network.Devnet],
       } as unknown as Config);
 
-      jest
-        .spyOn(mockSubscriptionConnectionRepository, 'getAll')
-        .mockResolvedValueOnce([]);
+      jest.spyOn(mockConnectionRepository, 'getAll').mockResolvedValueOnce([]);
 
       jest
-        .spyOn(mockSubscriptionConnectionRepository, 'save')
+        .spyOn(mockConnectionRepository, 'save')
         .mockResolvedValueOnce(mockConnectionId);
 
-      await subscriptionConnectionManager.setupAllConnections();
+      await connectionManager.setupAllConnections();
 
-      expect(mockSubscriptionConnectionRepository.save).toHaveBeenCalledTimes(
-        2,
-      );
+      expect(mockConnectionRepository.save).toHaveBeenCalledTimes(2);
     });
 
     it('does nothing for active networks that are already open', async () => {
@@ -225,21 +213,17 @@ describe('SubscriptionConnectionManagerAdapter', () => {
         rpcUrls: [mockWebSocketUrl],
       } as unknown as NetworkWithRpcUrls);
 
-      jest
-        .spyOn(mockSubscriptionConnectionRepository, 'getAll')
-        .mockResolvedValueOnce([
-          {
-            id: mockConnectionId,
-            url: mockWebSocketUrl,
-            protocols: [],
-          },
-        ]);
+      jest.spyOn(mockConnectionRepository, 'getAll').mockResolvedValueOnce([
+        {
+          id: mockConnectionId,
+          url: mockWebSocketUrl,
+          protocols: [],
+        },
+      ]);
 
-      await subscriptionConnectionManager.setupAllConnections();
+      await connectionManager.setupAllConnections();
 
-      expect(mockSubscriptionConnectionRepository.save).toHaveBeenCalledTimes(
-        0,
-      );
+      expect(mockConnectionRepository.save).toHaveBeenCalledTimes(0);
     });
 
     it('closes the connections for the inactive networks that are open', async () => {
@@ -254,18 +238,16 @@ describe('SubscriptionConnectionManagerAdapter', () => {
       };
 
       jest
-        .spyOn(mockSubscriptionConnectionRepository, 'getAll')
+        .spyOn(mockConnectionRepository, 'getAll')
         .mockResolvedValueOnce([openConnection]);
 
       jest
-        .spyOn(mockSubscriptionConnectionRepository, 'findByUrl')
+        .spyOn(mockConnectionRepository, 'findByUrl')
         .mockResolvedValueOnce(openConnection);
 
-      await subscriptionConnectionManager.setupAllConnections();
+      await connectionManager.setupAllConnections();
 
-      expect(mockSubscriptionConnectionRepository.delete).toHaveBeenCalledTimes(
-        1,
-      );
+      expect(mockConnectionRepository.delete).toHaveBeenCalledTimes(1);
     });
 
     it('does nothing for inactive networks that are not open', async () => {
@@ -273,15 +255,11 @@ describe('SubscriptionConnectionManagerAdapter', () => {
         activeNetworks: [],
       } as unknown as Config);
 
-      jest
-        .spyOn(mockSubscriptionConnectionRepository, 'getAll')
-        .mockResolvedValueOnce([]);
+      jest.spyOn(mockConnectionRepository, 'getAll').mockResolvedValueOnce([]);
 
-      await subscriptionConnectionManager.setupAllConnections();
+      await connectionManager.setupAllConnections();
 
-      expect(
-        mockSubscriptionConnectionRepository.delete,
-      ).not.toHaveBeenCalled();
+      expect(mockConnectionRepository.delete).not.toHaveBeenCalled();
     });
   });
 
@@ -295,11 +273,11 @@ describe('SubscriptionConnectionManagerAdapter', () => {
         };
 
         jest
-          .spyOn(mockSubscriptionConnectionRepository, 'findByUrl')
+          .spyOn(mockConnectionRepository, 'findByUrl')
           .mockResolvedValue(mockConnection);
 
         jest
-          .spyOn(mockSubscriptionConnectionRepository, 'getById')
+          .spyOn(mockConnectionRepository, 'getById')
           .mockResolvedValue(mockConnection);
       });
 
@@ -308,10 +286,10 @@ describe('SubscriptionConnectionManagerAdapter', () => {
         const recoveryCallback1 = jest.fn();
         const recoveryCallback2 = jest.fn();
         const recoveryCallback3 = jest.fn();
-        subscriptionConnectionManager.onConnectionRecovery(recoveryCallback0);
-        subscriptionConnectionManager.onConnectionRecovery(recoveryCallback1);
-        subscriptionConnectionManager.onConnectionRecovery(recoveryCallback2);
-        subscriptionConnectionManager.onConnectionRecovery(recoveryCallback3);
+        connectionManager.onConnectionRecovery(recoveryCallback0);
+        connectionManager.onConnectionRecovery(recoveryCallback1);
+        connectionManager.onConnectionRecovery(recoveryCallback2);
+        connectionManager.onConnectionRecovery(recoveryCallback3);
 
         //   const connectionId = globalThis.crypto.randomUUID();
 
@@ -336,7 +314,7 @@ describe('SubscriptionConnectionManagerAdapter', () => {
         //   const subscribeSpy = jest.spyOn(adapter, 'subscribe');
 
         // Send the connect event
-        await subscriptionConnectionManager.handleConnectionEvent(
+        await connectionManager.handleConnectionEvent(
           mockConnectionId,
           'connected',
         );
@@ -357,35 +335,33 @@ describe('SubscriptionConnectionManagerAdapter', () => {
     describe('when the event is a disconnect', () => {
       beforeEach(async () => {
         jest
-          .spyOn(mockSubscriptionConnectionRepository, 'getAll')
+          .spyOn(mockConnectionRepository, 'getAll')
           .mockResolvedValueOnce([
             { id: mockConnectionId, url: mockWebSocketUrl, protocols: [] },
           ]);
 
-        await subscriptionConnectionManager.openConnection(Network.Mainnet);
+        await connectionManager.openConnection(Network.Mainnet);
       });
 
       it('attempts to reconnect', async () => {
         jest
-          .spyOn(subscriptionConnectionManager, 'openConnection')
+          .spyOn(connectionManager, 'openConnection')
           .mockResolvedValue(mockConnectionId);
 
-        jest
-          .spyOn(mockSubscriptionConnectionRepository, 'getById')
-          .mockResolvedValueOnce({
-            id: mockConnectionId,
-            url: mockWebSocketUrl,
-            protocols: [],
-          });
+        jest.spyOn(mockConnectionRepository, 'getById').mockResolvedValueOnce({
+          id: mockConnectionId,
+          url: mockWebSocketUrl,
+          protocols: [],
+        });
 
-        await subscriptionConnectionManager.handleConnectionEvent(
+        await connectionManager.handleConnectionEvent(
           mockConnectionId,
           'disconnected',
         );
 
-        expect(
-          subscriptionConnectionManager.openConnection,
-        ).toHaveBeenCalledWith(Network.Mainnet);
+        expect(connectionManager.openConnection).toHaveBeenCalledWith(
+          Network.Mainnet,
+        );
       });
     });
   });
@@ -393,11 +369,12 @@ describe('SubscriptionConnectionManagerAdapter', () => {
   describe('getConnectionIdByNetwork', () => {
     it('returns the connection ID for the network', async () => {
       jest
-        .spyOn(mockSubscriptionConnectionRepository, 'getIdByUrl')
+        .spyOn(mockConnectionRepository, 'getIdByUrl')
         .mockReturnValue(mockConnectionId);
 
-      const connectionId =
-        subscriptionConnectionManager.getConnectionIdByNetwork(Network.Mainnet);
+      const connectionId = connectionManager.getConnectionIdByNetwork(
+        Network.Mainnet,
+      );
 
       expect(connectionId).toBe(mockConnectionId);
     });

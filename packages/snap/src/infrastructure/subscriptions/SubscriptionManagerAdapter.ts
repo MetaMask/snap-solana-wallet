@@ -3,9 +3,9 @@ import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
 
 import { Network } from '../../core/constants/solana';
 import type {
-  SubscriptionConnectionManagerPort,
-  SubscriptionTransportPort,
-} from '../../core/ports';
+  ConnectionManagerPort,
+  SubscriptionManagerPort,
+} from '../../core/ports/subscriptions';
 import type { ILogger } from '../../core/utils/logger';
 import type { Subscription } from '../../entities';
 
@@ -43,10 +43,10 @@ type JsonRpcWebSocketNotification = {
  * > Receive {"jsonrpc":"2.0","method":"accountNotification","params":{"subscription":98765,"result":{"context":{"Slot":348848975},"value":{"lamports":117046295673,"owner":"11111111111111111111111111111111","data":null,"executable":false,"rentEpoch":null}}}} // Notification received.
  * ...
  */
-export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
+export class SubscriptionManagerAdapter implements SubscriptionManagerPort {
   readonly #logger: ILogger;
 
-  readonly #subscriptionConnectionManager: SubscriptionConnectionManagerPort;
+  readonly #connectionManager: ConnectionManagerPort;
 
   // TODO: Need to track in the state
   readonly #pendingSubscriptions: Map<number, Subscription> = new Map(); // request ID -> subscription
@@ -58,10 +58,10 @@ export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
   #nextRequestId = 1;
 
   constructor(
-    subscriptionConnectionManager: SubscriptionConnectionManagerPort,
+    subscriptionConnectionManager: ConnectionManagerPort,
     logger: ILogger,
   ) {
-    this.#subscriptionConnectionManager = subscriptionConnectionManager;
+    this.#connectionManager = subscriptionConnectionManager;
     this.#logger = logger;
   }
 
@@ -87,9 +87,7 @@ export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
 
     // If the subscription has a connection recovery callback, register it with the connection manager.
     if (onConnectionRecovery) {
-      this.#subscriptionConnectionManager.onConnectionRecovery(
-        onConnectionRecovery,
-      );
+      this.#connectionManager.onConnectionRecovery(onConnectionRecovery);
     }
 
     await this.#sendMessage(connectionId, message);
@@ -106,7 +104,7 @@ export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
     if (rpcSubscriptionId && subscriptionInActiveMap) {
       const network = this.#getNetworkFromSubscription(subscriptionInActiveMap);
       const connectionId =
-        this.#subscriptionConnectionManager.getConnectionIdByNetwork(network);
+        this.#connectionManager.getConnectionIdByNetwork(network);
 
       if (connectionId) {
         const { unsubscribeMethod } = subscriptionInActiveMap;
