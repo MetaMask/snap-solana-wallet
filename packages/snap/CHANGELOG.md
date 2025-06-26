@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.33.4]
 
-### Uncategorized
+### Fixed
 
-- fix: handle errors on the edge ([#430](https://github.com/MetaMask/snap-solana-wallet/pull/430))
+- Handle errors on the edge ([#430](https://github.com/MetaMask/snap-solana-wallet/pull/430))
 
 ## [1.33.3]
 
