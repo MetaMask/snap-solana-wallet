@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Saldo insuficiente"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Devido a um erro, não foi possível verificar os alertas de segurança."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Continue somente se você confia em todos os endereços envolvidos."
+    },
     "send.simulationTitleError": {
       "message": "Simulação da transação falhou"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Confirmar"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Solicitação de transação"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Desconhecida"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "Não foi possível estimar a taxa"
+    },
+    "confirmation.origin": {
+      "message": "Solicitação de"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Esta transação foi revertida durante a simulação."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Um site deseja que você faça login para comprovar que você é o titular desta conta."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Solicitação de"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Domínio desconhecido"
@@ -231,6 +249,18 @@
     },
     "confirmation.signIn.resources": {
       "message": "Recursos"
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "Já existe uma conta com o mesmo endereço."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "A conta não possui SOL suficiente para realizar a operação."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "A transação foi revertida porque a tolerância de slippage foi excedida."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

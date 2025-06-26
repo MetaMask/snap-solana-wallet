@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "余额不足"
     },
+    "send.simulationTitleAPIError": {
+      "message": "由于错误，我们无法检查安全警报。"
+    },
+    "send.simulationMessageAPIError": {
+      "message": "请仅在信任所有相关地址的前提下继续操作。"
+    },
     "send.simulationTitleError": {
       "message": "交易模拟失败"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "确认"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "交易请求"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "未知"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "无法估算费用"
+    },
+    "confirmation.origin": {
+      "message": "请求来自"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "此交易在模拟期间被撤销。"
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "网站要求您登录以验证账户所有权。"
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "请求来自"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "未知域名"
@@ -231,6 +249,18 @@
     },
     "confirmation.signIn.resources": {
       "message": "资源"
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "已存在使用相同地址的账户."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "账户 SOL 余额不足，无法执行该操作."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "该交易因超出滑点容差上限而撤销。"
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

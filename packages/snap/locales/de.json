@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Unzureichendes Guthaben"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Aufgrund eines Fehlers konnten wir nicht auf Sicherheitsbenachrichtigungen prüfen."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Fahren Sie nur fort, wenn Sie jeder beteiligten Adresse vertrauen."
+    },
     "send.simulationTitleError": {
       "message": "Transaktionssimulation fehlgeschlagen"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Bestätigen"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Transaktionsanfrage"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Unbekannt"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "Gebühr kann nicht geschätzt werden"
+    },
+    "confirmation.origin": {
+      "message": "Anfrage von"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Diese Transaktion wurde während der Simulation zurückgesetzt."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Eine Website verlangt eine Anmeldung als Nachweis, dass Sie der Kontoinhaber sind."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Anfrage von"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Unbekannte Domain"
@@ -231,6 +249,18 @@
     },
     "confirmation.signIn.resources": {
       "message": "Ressourcen"
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "An account with the same address already exists."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "Account does not have enough SOL to perform the operation."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "Die Transaktion wurde aufgrund einer Überschreitung der Slippage-Toleranz zurückgesetzt."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

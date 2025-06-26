@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Saldo tidak cukup"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Terjadi kesalahan sehingga kami tidak dapat memeriksa peringatan keamanan."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Lanjutkan hanya jika Anda memercayai setiap alamat yang terlibat."
+    },
     "send.simulationTitleError": {
       "message": "Simulasi transaksi gagal"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Konfirmasikan"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Permintaan transaksi"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Tidak dikenal"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "Tidak dapat memperkirakan biaya"
+    },
+    "confirmation.origin": {
+      "message": "Permintaan dari"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Transaksi ini dikembalikan selama simulasi."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Permintaan dari"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Domain tak dikenal"
@@ -231,6 +249,18 @@
     },
     "confirmation.signIn.resources": {
       "message": "Sumber daya"
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "Akun dengan alamat yang sama sudah ada."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "Akun tidak memiliki cukup SOL untuk melakukan operasi."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "Transaksi dibatalkan karena toleransi selip telah terlampaui."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }
