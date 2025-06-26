@@ -43,7 +43,7 @@ import { installPolyfills } from './infrastructure/polyfills';
 import snapContext, {
   clientRequestHandler,
   keyring,
-  onStartHandler,
+  startHandler,
   state,
   webSocketEventHandler,
 } from './snapContext';
@@ -275,4 +275,4 @@ export const onWebSocketEvent: OnWebSocketEventHandler = async ({ event }) =>
   withCatchAndThrowSnapError(async () => webSocketEventHandler.handle(event));
 
 export const onStart: OnStartHandler = async () =>
-  withCatchAndThrowSnapError(async () => onStartHandler.handle());
+  withCatchAndThrowSnapError(async () => startHandler.handle());

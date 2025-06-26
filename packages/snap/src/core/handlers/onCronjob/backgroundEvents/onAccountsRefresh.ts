@@ -23,6 +23,7 @@ export const onAccountsRefresh: OnCronjobHandler = async () => {
     logger.info('[onAccountsRefresh] Cronjob triggered');
 
     const accounts = await keyring.listAccounts();
+
     const scope = Network.Mainnet;
 
     const accountsWithChangeCheckPromises = accounts.map(async (account) => {

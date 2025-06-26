@@ -4,9 +4,12 @@ import { StateCache } from './core/caching/StateCache';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
-import { ClientRequestHandler } from './core/handlers/onClientRequest';
+import {
+  ClientRequestHandler,
+  StartHandler,
+  WebSocketEventHandler,
+} from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
-import { WebSocketEventHandler } from './core/handlers/onWebSocketEvent';
 import type {
   SubscriptionConnectionManagerPort,
   SubscriptionTransportPort,
@@ -64,6 +67,7 @@ export type SnapExecutionContext = {
   subscriptionTransport: SubscriptionTransportPort;
   webSocketService: WebSocketService;
   webSocketEventHandler: WebSocketEventHandler;
+  startHandler: StartHandler;
 };
 
 const configProvider = new ConfigProvider();
@@ -166,6 +170,8 @@ const clientRequestHandler = new ClientRequestHandler(
   logger,
 );
 
+const startHandler = new StartHandler(subscriptionConnectionManager);
+
 const snapContext: SnapExecutionContext = {
   configProvider,
   connection,
@@ -190,6 +196,7 @@ const snapContext: SnapExecutionContext = {
   subscriptionTransport,
   webSocketService,
   webSocketEventHandler,
+  startHandler,
 };
 
 export {
@@ -204,6 +211,7 @@ export {
   priceApiClient,
   sendSolBuilder,
   sendSplTokenBuilder,
+  startHandler,
   state,
   subscriptionConnectionManager,
   subscriptionTransport,
