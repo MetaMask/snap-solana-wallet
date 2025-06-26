@@ -1,8 +1,6 @@
-import type {
-  JsonRpcSubscription,
-  SubscriptionConnectionManagerPort,
-} from '../../core/ports';
+import type { SubscriptionConnectionManagerPort } from '../../core/ports';
 import { mockLogger } from '../../core/services/mocks/logger';
+import type { Subscription } from '../../entities';
 import { SubscriptionTransportAdapter } from './SubscriptionTransportAdapter';
 
 const createMockSubscription = (
@@ -13,7 +11,7 @@ const createMockSubscription = (
   onNotification = jest.fn(),
   onSubscriptionFailed = jest.fn(),
   onConnectionRecovery = jest.fn(),
-): JsonRpcSubscription => ({
+): Subscription => ({
   id,
   method,
   unsubscribeMethod,
@@ -65,7 +63,7 @@ describe('SubscriptionTransportAdapter', () => {
     (globalThis as any).snap = snap;
 
     mockSubscriptionConnectionManager = {
-      getConnectionId: jest.fn().mockReturnValue(mockConnectionId),
+      getConnectionIdByNetwork: jest.fn().mockReturnValue(mockConnectionId),
       onConnectionRecovery: jest.fn(),
     } as unknown as SubscriptionConnectionManagerPort;
 
@@ -167,7 +165,7 @@ describe('SubscriptionTransportAdapter', () => {
       });
 
       describe('when there is a subscription for the message', () => {
-        let subscription: JsonRpcSubscription;
+        let subscription: Subscription;
 
         beforeEach(async () => {
           subscription = createMockSubscription();
@@ -261,7 +259,7 @@ describe('SubscriptionTransportAdapter', () => {
       });
 
       describe('when there is a subscription for the message', () => {
-        let subscription: JsonRpcSubscription;
+        let subscription: Subscription;
 
         beforeEach(async () => {
           subscription = createMockSubscription();
@@ -308,7 +306,7 @@ describe('SubscriptionTransportAdapter', () => {
         });
 
         describe('when there is a subscription for the message', () => {
-          let subscription: JsonRpcSubscription;
+          let subscription: Subscription;
 
           beforeEach(async () => {
             subscription = createMockSubscription(); // request ID is 2 (request ID 1 was for opening the connection), hence why we createMockFailure with 2 as first argument

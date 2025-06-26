@@ -41,15 +41,13 @@ export class WebSocketEventHandler {
         case 'open':
           await this.#connectionManager.handleConnectionEvent(
             event.id,
-            'connect',
-            event,
+            'connected',
           );
           break;
         case 'close':
           await this.#connectionManager.handleConnectionEvent(
             event.id,
-            'disconnect',
-            event,
+            'disconnected',
           );
           break;
         default:

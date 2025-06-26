@@ -1,7 +1,10 @@
-import type { Network } from '../../core/constants/solana';
+import { difference } from 'lodash';
+
+import { Network } from '../../core/constants/solana';
 import type { SubscriptionConnectionManagerPort } from '../../core/ports';
 import type { ConfigProvider } from '../../core/services/config';
 import type { ILogger } from '../../core/utils/logger';
+import type { SubscriptionConnectionRepository } from './SubscriptionConnectionRepository';
 
 /**
  * Manages WebSocket connections for different Solana networks, providing robust connection
@@ -18,34 +21,48 @@ import type { ILogger } from '../../core/utils/logger';
 export class SubscriptionConnectionManagerAdapter
   implements SubscriptionConnectionManagerPort
 {
-  readonly #networkToConnectionId: Map<Network, string> = new Map(); // network -> connection ID
-
   readonly #configProvider: ConfigProvider;
+
+  readonly #subscriptionConnectionRepository: SubscriptionConnectionRepository;
 
   readonly #logger: ILogger;
 
-  #maxReconnectAttempts = 5;
+  readonly #maxReconnectAttempts: number;
 
-  #reconnectDelay = 1000; // Start with 1 second
+  readonly #reconnectDelayMilliseconds: number;
 
-  #connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
+  readonly #connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
 
-  constructor(configProvider: ConfigProvider, logger: ILogger) {
+  constructor(
+    subscriptionConnectionRepository: SubscriptionConnectionRepository,
+    configProvider: ConfigProvider,
+    logger: ILogger,
+  ) {
+    const { maxReconnectAttempts, reconnectDelayMilliseconds } =
+      configProvider.get().subscription;
+
+    this.#subscriptionConnectionRepository = subscriptionConnectionRepository;
     this.#configProvider = configProvider;
     this.#logger = logger;
+    this.#maxReconnectAttempts = maxReconnectAttempts;
+    this.#reconnectDelayMilliseconds = reconnectDelayMilliseconds;
   }
 
   async openConnection(network: Network): Promise<string> {
+    const wsUrl = this.#getWebSocketUrl(network);
+
+    // Check if the connection already exists
+    const existingConnection =
+      await this.#subscriptionConnectionRepository.findByUrl(wsUrl);
+
+    if (existingConnection) {
+      return existingConnection.id;
+    }
+
     let attempts = 0;
 
     while (attempts < this.#maxReconnectAttempts) {
       try {
-        // Check if the connection already exists
-        const existingConnectionId = this.#networkToConnectionId.get(network);
-        if (existingConnectionId) {
-          return existingConnectionId;
-        }
-
         const networkConfig = this.#configProvider.getNetworkBy(
           'caip2Id',
           network,
@@ -56,21 +73,13 @@ export class SubscriptionConnectionManagerAdapter
           throw new Error(`No RPC URL found for network ${network}`);
         }
 
-        const wsUrl = this.#getWebSocketUrl(rpcUrl);
-
         this.#logger.info(
           `[${this.constructor.name}] Opening connection to ${wsUrl} (attempt ${attempts + 1}/${this.#maxReconnectAttempts})`,
         );
 
-        const connectionId = await snap.request({
-          method: 'snap_openWebSocket',
-          params: {
-            url: wsUrl,
-            //   protocols: [], // TODO: What do we need to do here?
-          },
-        });
-
-        this.#networkToConnectionId.set(network, connectionId);
+        // const protocols = []; // TODO: What do we need to do here?
+        const connectionId =
+          await this.#subscriptionConnectionRepository.save(wsUrl);
 
         this.#logger.info(
           `[${this.constructor.name}] Connected with ID: ${connectionId}`,
@@ -88,7 +97,8 @@ export class SubscriptionConnectionManagerAdapter
           throw error;
         }
 
-        const delay = this.#reconnectDelay * Math.pow(2, attempts - 1);
+        const delay =
+          this.#reconnectDelayMilliseconds * Math.pow(2, attempts - 1);
         this.#logger.info(
           `[${this.constructor.name}] Connection attempt ${attempts} failed, retrying in ${delay}ms:`,
           error,
@@ -103,18 +113,23 @@ export class SubscriptionConnectionManagerAdapter
   }
 
   async closeConnection(network: Network): Promise<void> {
-    const connectionId = this.#networkToConnectionId.get(network);
-    if (!connectionId) {
+    const wsUrl = this.#getWebSocketUrl(network);
+
+    // Early return if the connection does not exist
+    const existingConnection =
+      await this.#subscriptionConnectionRepository.findByUrl(wsUrl);
+
+    if (!existingConnection) {
+      this.#logger.warn(
+        `[${this.constructor.name}] Tried to close connection for network ${network} but no connection was found`,
+      );
       return;
     }
 
-    try {
-      await snap.request({
-        method: 'snap_closeWebSocket',
-        params: { id: connectionId },
-      });
+    const connectionId = existingConnection.id;
 
-      this.#networkToConnectionId.delete(network);
+    try {
+      await this.#subscriptionConnectionRepository.delete(connectionId);
 
       this.#logger.info(
         `[${this.constructor.name}] Closed connection ${connectionId}`,
@@ -128,96 +143,70 @@ export class SubscriptionConnectionManagerAdapter
   }
 
   async setupAllConnections(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
+    const { activeNetworks } = this.#configProvider.get();
+    const inactiveNetworks = difference(Object.values(Network), activeNetworks);
 
-  getConnectionId(network: Network): string | null {
-    return this.#networkToConnectionId.get(network) ?? null;
-  }
+    const connections = await this.#subscriptionConnectionRepository.getAll();
 
-  async handleConnectionEvent(
-    connectionId: string,
-    event: 'connect' | 'disconnect' | 'error',
-    data?: any,
-  ): Promise<void> {
-    this.#logger.info(
-      `[${this.constructor.name}] Connection event: ${event} for ${connectionId}`,
-    );
+    const isConnectionOpen = (network: Network) =>
+      connections.some(
+        (connection) => connection.url === this.#getWebSocketUrl(network),
+      );
 
-    const isConnectionOpen = this.#isConnectionOpen(connectionId);
+    // Open the connections for the active networks that are not already open
+    const openingPromises = activeNetworks
+      .filter((network) => !isConnectionOpen(network))
+      .map(async (network) => this.openConnection(network));
 
-    if (event === 'disconnect' || event === 'error') {
-      if (!isConnectionOpen) {
-        this.#logger.warn(
-          `[${this.constructor.name}] No connection found for event: ${event}`,
-        );
-        return;
-      }
-      await this.#handleDisconnection(connectionId);
-    } else if (event === 'connect') {
-      await this.#handleConnection(connectionId, event);
-    }
+    // Close the connections for the inactive networks that are already open
+    const closingPromises = inactiveNetworks
+      .filter(isConnectionOpen)
+      .map(async (network) => this.closeConnection(network));
+
+    await Promise.all([...openingPromises, ...closingPromises]);
   }
 
   onConnectionRecovery(callback: () => Promise<void>): void {
     this.#connectionRecoveryCallbacks.push(callback);
   }
 
-  /**
-   * Checks if the connection for the specified connection ID is open.
-   * @param connectionId - The connection ID to check.
-   * @returns True if the connection is open, false otherwise.
-   */
-  #isConnectionOpen(connectionId: string): boolean {
-    return (
-      Array.from(this.#networkToConnectionId.entries()).find(
-        ([, id]) => id === connectionId,
-      )?.[0] !== undefined
-    );
+  getConnectionIdByNetwork(network: Network): string | null {
+    const wsUrl = this.#getWebSocketUrl(network);
+    return this.#subscriptionConnectionRepository.getIdByUrl(wsUrl) ?? null;
   }
 
-  /**
-   * Gets the network for the specified connection ID.
-   * @param connectionId - The connection ID to get the network for.
-   * @returns The network, or null if no network is associated with the connection ID.
-   */
-  #getNetworkForConnection(connectionId: string): Network | null {
-    return (
-      Array.from(this.#networkToConnectionId.entries()).find(
-        ([, id]) => id === connectionId,
-      )?.[0] ?? null
-    );
-  }
-
-  async #handleDisconnection(connectionId: string): Promise<void> {
-    this.#logger.info(
-      `[${this.constructor.name}] Handling disconnection, attempting to reconnect...`,
-    );
-
-    try {
-      const network = this.#getNetworkForConnection(connectionId);
-
-      if (network) {
-        // Remove the old connection mapping first
-        this.#networkToConnectionId.delete(network);
-        // Reconnect with retry logic
-        await this.openConnection(network);
-      }
-    } catch (error) {
-      this.#logger.error(
-        `[${this.constructor.name}] Reconnection failed:`,
-        error,
-      );
+  async handleConnectionEvent(
+    connectionId: string,
+    eventType: 'connected' | 'disconnected',
+  ): Promise<void> {
+    switch (eventType) {
+      case 'connected':
+        await this.#handleConnected(connectionId);
+        break;
+      case 'disconnected':
+        await this.#handleDisconnected(connectionId);
+        break;
+      default:
+        this.#logger.warn(
+          `[${this.constructor.name}] Unknown connection event type: ${eventType}`,
+        );
     }
   }
 
-  async #handleConnection(
-    connectionId: string,
-    event: 'connect',
-  ): Promise<void> {
+  async #handleConnected(connectionId: string): Promise<void> {
     this.#logger.info(
-      `[${this.constructor.name}] Handling connection event: ${event} for ${connectionId}`,
+      `[${this.constructor.name}] Handling connection open for ${connectionId}`,
     );
+
+    const existingConnection =
+      await this.#subscriptionConnectionRepository.getById(connectionId);
+
+    if (!existingConnection) {
+      this.#logger.warn(
+        `[${this.constructor.name}] No connection found for connection open: ${connectionId}`,
+      );
+      return;
+    }
 
     // Trigger all recovery callbacks
     const recoveryPromises = this.#connectionRecoveryCallbacks.map(
@@ -236,12 +225,62 @@ export class SubscriptionConnectionManagerAdapter
     await Promise.allSettled(recoveryPromises);
   }
 
+  async #handleDisconnected(connectionId: string): Promise<void> {
+    this.#logger.info(
+      `[${this.constructor.name}] Handling disconnection, attempting to reconnect...`,
+    );
+
+    try {
+      const connection =
+        await this.#subscriptionConnectionRepository.getById(connectionId);
+
+      if (!connection) {
+        this.#logger.warn(
+          `[${this.constructor.name}] No connection found for disconnection: ${connectionId}`,
+        );
+        return;
+      }
+
+      const network = this.#findNetworkForConnectionUrl(connection.url);
+
+      if (network) {
+        // Attempt to reconnect
+        await this.openConnection(network);
+      }
+    } catch (error) {
+      this.#logger.error(
+        `[${this.constructor.name}] Reconnection failed:`,
+        error,
+      );
+    }
+  }
+
   /**
    * Converts an HTTP RPC URL to a WebSocket URL.
-   * @param httpUrl - The HTTP RPC URL to convert.
+   * @param network - The network to get the WebSocket URL for.
    * @returns The WebSocket URL.
    */
-  #getWebSocketUrl(httpUrl: string): string {
-    return httpUrl.replace(/^https?:\/\//u, 'wss://').replace(/\/$/u, '');
+  #getWebSocketUrl(network: Network): string {
+    const networkConfig = this.#configProvider.getNetworkBy('caip2Id', network);
+    const rpcUrl = networkConfig.rpcUrls[0];
+
+    if (!rpcUrl) {
+      throw new Error(`No RPC URL found for network ${network}`);
+    }
+
+    return rpcUrl.replace(/^https?:\/\//u, 'wss://').replace(/\/$/u, '');
+  }
+
+  /**
+   * Gets the network for the specified connection ID.
+   * @param connectionUrl - The connection URL to get the network for.
+   * @returns The network, or null if no network is associated with the connection ID.
+   */
+  #findNetworkForConnectionUrl(connectionUrl: string): Network | null {
+    const allNetworks = Object.values(Network);
+    const network = allNetworks.find(
+      (it) => this.#getWebSocketUrl(it) === connectionUrl,
+    );
+    return network ?? null;
   }
 }

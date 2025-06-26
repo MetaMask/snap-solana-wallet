@@ -35,6 +35,7 @@ import {
   SubscriptionConnectionManagerAdapter,
   SubscriptionTransportAdapter,
 } from './infrastructure/subscription';
+import { SubscriptionConnectionRepository } from './infrastructure/subscription/SubscriptionConnectionRepository';
 
 /**
  * Initializes all the services using dependency injection.
@@ -59,7 +60,7 @@ export type SnapExecutionContext = {
   cache: ICache<Serializable>;
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
-  webSocketConnectionManager: SubscriptionConnectionManagerPort;
+  subscriptionConnectionManager: SubscriptionConnectionManagerPort;
   subscriptionTransport: SubscriptionTransportPort;
   webSocketService: WebSocketService;
   webSocketEventHandler: WebSocketEventHandler;
@@ -119,13 +120,16 @@ const transactionScanService = new TransactionScanService(
 
 const confirmationHandler = new ConfirmationHandler();
 
-const webSocketConnectionManager = new SubscriptionConnectionManagerAdapter(
+const subscriptionConnectionRepository = new SubscriptionConnectionRepository();
+
+const subscriptionConnectionManager = new SubscriptionConnectionManagerAdapter(
+  subscriptionConnectionRepository,
   configProvider,
   logger,
 );
 
 const subscriptionTransport = new SubscriptionTransportAdapter(
-  webSocketConnectionManager,
+  subscriptionConnectionManager,
   logger,
 );
 
@@ -138,7 +142,7 @@ const webSocketService = new WebSocketService(
 );
 
 const webSocketEventHandler = new WebSocketEventHandler(
-  webSocketConnectionManager,
+  subscriptionConnectionManager,
   subscriptionTransport,
   logger,
 );
@@ -182,7 +186,7 @@ const snapContext: SnapExecutionContext = {
   confirmationHandler,
   nftService,
   clientRequestHandler,
-  webSocketConnectionManager,
+  subscriptionConnectionManager,
   subscriptionTransport,
   webSocketService,
   webSocketEventHandler,
@@ -201,6 +205,7 @@ export {
   sendSolBuilder,
   sendSplTokenBuilder,
   state,
+  subscriptionConnectionManager,
   subscriptionTransport,
   tokenMetadataClient,
   tokenMetadataService,
@@ -209,7 +214,6 @@ export {
   transactionScanService,
   transactionsService,
   walletService,
-  webSocketConnectionManager,
   webSocketEventHandler,
   webSocketService,
 };

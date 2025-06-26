@@ -3,11 +3,11 @@ import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
 
 import { Network } from '../../core/constants/solana';
 import type {
-  JsonRpcSubscription,
   SubscriptionConnectionManagerPort,
   SubscriptionTransportPort,
 } from '../../core/ports';
 import type { ILogger } from '../../core/utils/logger';
+import type { Subscription } from '../../entities';
 
 type JsonRpcWebSocketSubscriptionConfirmation = {
   jsonrpc: string;
@@ -49,9 +49,9 @@ export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
   readonly #subscriptionConnectionManager: SubscriptionConnectionManagerPort;
 
   // TODO: Need to track in the state
-  readonly #pendingSubscriptions: Map<number, JsonRpcSubscription> = new Map(); // request ID -> subscription
+  readonly #pendingSubscriptions: Map<number, Subscription> = new Map(); // request ID -> subscription
 
-  readonly #activeSubscriptions: Map<number, JsonRpcSubscription> = new Map(); // RPC subscription ID -> subscription
+  readonly #activeSubscriptions: Map<number, Subscription> = new Map(); // RPC subscription ID -> subscription
 
   readonly #subscriptionIdsLookup: Map<number, number> = new Map(); // RPC subscription ID -> request ID
 
@@ -67,12 +67,13 @@ export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
 
   async subscribe(
     connectionId: string,
-    subscription: JsonRpcSubscription,
+    subscriptionRequest: Subscription,
   ): Promise<void> {
-    const { method, params, onConnectionRecovery } = subscription;
+    const { method, params, onConnectionRecovery } = subscriptionRequest;
 
     this.#nextRequestId += 1;
     const requestId = this.#nextRequestId;
+
     const message: JsonRpcRequest = {
       jsonrpc: '2.0',
       id: requestId,
@@ -82,7 +83,7 @@ export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
 
     // Before sending the request, register the subscription in the pending list.
     // When it gets confirmed, we will move it to the active list.
-    this.#pendingSubscriptions.set(requestId, subscription);
+    this.#pendingSubscriptions.set(requestId, subscriptionRequest);
 
     // If the subscription has a connection recovery callback, register it with the connection manager.
     if (onConnectionRecovery) {
@@ -105,7 +106,7 @@ export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
     if (rpcSubscriptionId && subscriptionInActiveMap) {
       const network = this.#getNetworkFromSubscription(subscriptionInActiveMap);
       const connectionId =
-        this.#subscriptionConnectionManager.getConnectionId(network);
+        this.#subscriptionConnectionManager.getConnectionIdByNetwork(network);
 
       if (connectionId) {
         const { unsubscribeMethod } = subscriptionInActiveMap;
@@ -464,7 +465,7 @@ export class SubscriptionTransportAdapter implements SubscriptionTransportPort {
     // }
   }
 
-  #getNetworkFromSubscription(subscription: JsonRpcSubscription): Network {
+  #getNetworkFromSubscription(subscription: Subscription): Network {
     // This is a simplified approach - you might need a better way to determine the network
     // based on your specific implementation
     return Network.Mainnet; // Default to mainnet for now

@@ -27,22 +27,13 @@ export type SubscriptionConnectionManagerPort = {
   setupAllConnections(): Promise<void>;
 
   /**
-   * Gets the connection ID for the specified network.
-   * @param network - The network to get the connection ID for.
-   * @returns The connection ID, or null if no connection exists for the network.
-   */
-  getConnectionId(network: Network): string | null;
-
-  /**
-   * Handles connection events (connect, disconnect, error).
+   * Handles WebSocket connection lifecycle events.
    * @param connectionId - The connection ID for the event.
-   * @param event - The type of connection event.
-   * @param data - Optional event data.
+   * @param eventType - The type of connection event.
    */
   handleConnectionEvent(
     connectionId: string,
-    event: 'connect' | 'disconnect' | 'error',
-    data?: any,
+    eventType: 'connected' | 'disconnected',
   ): Promise<void>;
 
   /**
@@ -50,4 +41,11 @@ export type SubscriptionConnectionManagerPort = {
    * @param callback - The callback function to register.
    */
   onConnectionRecovery(callback: () => Promise<void>): void;
+
+  /**
+   * Gets the connection ID for the specified network.
+   * @param network - The network to get the connection ID for.
+   * @returns The connection ID, or null if no connection exists for the network.
+   */
+  getConnectionIdByNetwork(network: Network): string | null;
 };

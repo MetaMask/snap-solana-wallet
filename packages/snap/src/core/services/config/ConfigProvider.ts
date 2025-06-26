@@ -72,6 +72,10 @@ export type Config = {
   securityAlertsApi: {
     baseUrl: string;
   };
+  subscription: {
+    maxReconnectAttempts: number;
+    reconnectDelayMilliseconds: number;
+  };
 };
 
 /**
@@ -164,6 +168,10 @@ export class ConfigProvider {
           environment.ENVIRONMENT === 'test'
             ? environment.LOCAL_API_BASE_URL
             : environment.SECURITY_ALERTS_API_BASE_URL,
+      },
+      subscription: {
+        maxReconnectAttempts: 5,
+        reconnectDelayMilliseconds: 1000,
       },
     };
   }
