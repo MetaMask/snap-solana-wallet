@@ -2,7 +2,10 @@ import type { Address, Signature } from '@solana/kit';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import { Network } from '../../constants/solana';
-import type { WebSocketTransportPort } from '../../ports/WebSocketTransportPort';
+import type {
+  JsonRpcSubscription,
+  SubscriptionTransportPort,
+} from '../../ports';
 import type { ILogger } from '../../utils/logger';
 import type { AssetsService } from '../assets/AssetsService';
 import type { State } from '../state/State';
@@ -16,19 +19,32 @@ export type SubscriptionInfo = {
   createdAt: number;
 };
 
-export type WebSocketSubscription = {
-  id: string;
-  method: 'accountSubscribe' | 'signatureSubscribe';
-  params: any[];
-  callback: (notification: any) => Promise<void>;
-};
+// export type WebSocketMethod =
+//   | 'accountSubscribe'
+//   | 'accountUnsubscribe'
+//   | 'blockSubscribe'
+//   | 'blockUnsubscribe'
+//   | 'logsSubscribe'
+//   | 'logsUnsubscribe'
+//   | 'programSubscribe'
+//   | 'programUnsubscribe'
+//   | 'rootSubscribe'
+//   | 'rootUnsubscribe'
+//   | 'signatureSubscribe'
+//   | 'signatureUnsubscribe'
+//   | 'slotSubscribe'
+//   | 'slotUpdatesSubscribe'
+//   | 'slotUpdatesUnsubscribe'
+//   | 'slotUnsubscribe'
+//   | 'voteSubscribe'
+//   | 'voteUnsubscribe';
 
 /**
  * Service that manages WebSocket subscriptions and handles real-time updates
  * for accounts and transactions, replacing the HTTP polling mechanism.
  */
 export class WebSocketService {
-  readonly #webSocketTransport: WebSocketTransportPort;
+  readonly #subscriptionManager: SubscriptionTransportPort;
 
   readonly #assetsService: AssetsService;
 
@@ -49,20 +65,20 @@ export class WebSocketService {
   readonly #signatureTimeoutMs = 5 * 60 * 1000; // 5 minutes timeout
 
   constructor(
-    rpcTransport: WebSocketTransportPort,
+    subscriptionManager: SubscriptionTransportPort,
     assetsService: AssetsService,
     transactionsService: TransactionsService,
     stateService: State<any>,
     logger: ILogger,
   ) {
-    this.#webSocketTransport = rpcTransport;
+    this.#subscriptionManager = subscriptionManager;
     this.#assetsService = assetsService;
     this.#transactionsService = transactionsService;
     this.#stateService = stateService;
     this.#logger = logger;
 
     // Set up connection recovery callback
-    this.#webSocketTransport.onConnectionRecovery(async () => {
+    this.#subscriptionManager.onConnectionRecovery(async () => {
       await this.#recoverAllSubscriptions();
     });
   }
@@ -82,7 +98,7 @@ export class WebSocketService {
       );
 
       // Open WebSocket connection
-      await this.#webSocketTransport.openConnection(network);
+      await this.#subscriptionManager.openConnection(network);
 
       // Subscribe to all user accounts
       await this.subscribeToAllAccounts(accounts, network);
@@ -138,17 +154,21 @@ export class WebSocketService {
     }
 
     try {
-      const subscriptionId = await this.#webSocketTransport.subscribe(
-        network,
-        accountAddress,
-        async (notification) => {
+      const subscriptionId = 'account_XXXxxxXXx';
+      const subscription: JsonRpcSubscription = {
+        id: subscriptionId,
+        method: 'accountSubscribe',
+        unsubscribeMethod: 'accountUnsubscribe',
+        params: [accountAddress],
+        onNotification: async (notification) => {
           await this.#handleAccountNotification(
             accountAddress,
             notification,
             network,
           );
         },
-      );
+      };
+      await this.#subscriptionManager.subscribe(network, subscription);
 
       // Track the subscription
       const subscriptionInfo: SubscriptionInfo = {
@@ -195,18 +215,21 @@ export class WebSocketService {
     }
 
     try {
-      const subscriptionId =
-        await this.#webSocketTransport.subscribeToSignature(
-          network,
-          signature,
-          async (notification) => {
-            await this.#handleSignatureNotification(
-              signature,
-              notification,
-              network,
-            );
-          },
-        );
+      const subscriptionId = 'signature_XXXxxxXXx';
+      const subscription: JsonRpcSubscription = {
+        id: subscriptionId,
+        method: 'signatureSubscribe',
+        unsubscribeMethod: 'signatureUnsubscribe',
+        params: [signature],
+        onNotification: async (notification) => {
+          await this.#handleSignatureNotification(
+            signature,
+            notification,
+            network,
+          );
+        },
+      };
+      await this.#subscriptionManager.subscribe(network, subscription);
 
       // Track the subscription
       const subscriptionInfo: SubscriptionInfo = {
@@ -255,7 +278,7 @@ export class WebSocketService {
       return;
     }
 
-    await this.#webSocketTransport.unsubscribe(subscriptionId);
+    await this.#subscriptionManager.unsubscribe(subscriptionId);
     this.#activeSubscriptions.delete(subscriptionId);
     this.#accountSubscriptions.delete(accountAddress);
 
@@ -281,7 +304,7 @@ export class WebSocketService {
       this.#signatureTimeouts.delete(signature);
     }
 
-    await this.#webSocketTransport.unsubscribe(subscriptionId);
+    await this.#subscriptionManager.unsubscribe(subscriptionId);
     this.#activeSubscriptions.delete(subscriptionId);
     this.#signatureSubscriptions.delete(signature);
 
@@ -314,7 +337,7 @@ export class WebSocketService {
     const unsubscribePromises = Array.from(
       this.#activeSubscriptions.keys(),
     ).map(async (subscriptionId) => {
-      await this.#webSocketTransport.unsubscribe(subscriptionId);
+      await this.#subscriptionManager.unsubscribe(subscriptionId);
     });
 
     await Promise.allSettled(unsubscribePromises);
@@ -325,7 +348,7 @@ export class WebSocketService {
     this.#signatureSubscriptions.clear();
 
     // Close connections
-    await this.#webSocketTransport.closeConnection(Network.Mainnet);
+    await this.#subscriptionManager.closeConnection(Network.Mainnet);
 
     this.#logger.info('[WebSocketService] WebSocket service cleaned up');
   }
@@ -550,7 +573,7 @@ export class WebSocketService {
   /**
    * Fetches new transactions for an account since the last known signature.
    * @param accountAddress - The account address to fetch new transactions for.
-   * @param network
+   * @param network - The network to fetch new transactions for.
    */
   async #fetchNewTransactions(
     accountAddress: Address,

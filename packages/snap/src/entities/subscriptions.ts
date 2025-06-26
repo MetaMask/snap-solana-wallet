@@ -1,5 +1,5 @@
 /**
- * Represents a subscription to real-time notifications using JSON-RPC.
+ * Represents a subscription to real-time notifications using the Solana RPC WebSocket API.
  *
  * @property id - Caller-provided ID for the subscription.
  * @property method - The method to subscribe to.
