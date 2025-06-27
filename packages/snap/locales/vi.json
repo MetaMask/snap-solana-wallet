@@ -250,6 +250,9 @@
     "confirmation.signIn.resources": {
       "message": "Tài nguyên"
     },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Đã tồn tại tài khoản với cùng địa chỉ này."
     },

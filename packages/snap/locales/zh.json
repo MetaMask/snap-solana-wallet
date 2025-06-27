@@ -250,6 +250,9 @@
     "confirmation.signIn.resources": {
       "message": "资源"
     },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "已存在使用相同地址的账户."
     },

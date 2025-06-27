@@ -250,6 +250,9 @@
     "confirmation.signIn.resources": {
       "message": "리소스"
     },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "동일한 주소의 계정이 이미 존재합니다."
     },

@@ -250,6 +250,9 @@
     "confirmation.signIn.resources": {
       "message": "Πόροι"
     },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Υπάρχει ήδη ένας λογαριασμός με την ίδια διεύθυνση."
     },

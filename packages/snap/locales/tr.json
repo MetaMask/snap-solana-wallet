@@ -250,6 +250,9 @@
     "confirmation.signIn.resources": {
       "message": "Kaynaklar"
     },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Halihazırda aynı adrese sahip bir hesap mevcut."
     },

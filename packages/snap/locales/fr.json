@@ -250,6 +250,9 @@
     "confirmation.signIn.resources": {
       "message": "Ressources"
     },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Un compte avec la même adresse existe déjà."
     },
