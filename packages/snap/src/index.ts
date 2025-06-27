@@ -186,13 +186,11 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
   const result = await withCatchAndThrowSnapError(async () => {
     /**
      * Don't run cronjobs if client is locked or inactive
-     * - We dont want to call cronjobs if the client is locked
-     * - We Dont want to call cronjobs if the client is inactive (except if we havent run a cronjob in the last 15 minutes)
+     * - We don't want to call cronjobs if the client is locked
+     * - We don't want to call cronjobs if the client is inactive
+     * (except if we haven't run a cronjob in the last 30 minutes)
      */
-    const { locked, active } =
-      (await getClientStatus()) as GetClientStatusResult & {
-        active: boolean | undefined; // FIXME: Remove this once the snap SDK is updated
-      };
+    const { locked, active } = await getClientStatus();
 
     logger.log('[🔑 onCronjob] Client status', { locked, active });
 
