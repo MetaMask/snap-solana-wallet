@@ -84,16 +84,6 @@ export class SubscriberAdapter implements SubscriberPort {
       createdAt: new Date().toISOString(),
     };
 
-    this.#nextRequestId += 1;
-    const requestId = this.#nextRequestId;
-
-    const message: JsonRpcRequest = {
-      jsonrpc: '2.0',
-      id: requestId,
-      method,
-      params,
-    };
-
     // Before sending the request, save the subscription in the repository.
     // When it gets confirmed, we will update the status to 'active'.
     await this.#subscriptionRepository.save(pendingSubscription);
@@ -107,20 +97,35 @@ export class SubscriberAdapter implements SubscriberPort {
     const connectionId =
       this.#connectionManager.getConnectionIdByNetwork(network);
 
+    // If the connection is open, send the message immediately.
     if (connectionId) {
-      // If the connection is already established, send the message immediately.
-      await this.#sendMessage(connectionId, message);
-    } else {
-      // If the connection is not established, register a callback that will send the subscription request when the connection is established.
-      this.#connectionManager.onConnectionRecovery(async () => {
-        const futureConnectionId =
-          this.#connectionManager.getConnectionIdByNetwork(network);
+      this.#nextRequestId += 1;
+      const requestId = this.#nextRequestId;
 
-        if (futureConnectionId) {
-          await this.#sendMessage(futureConnectionId, message);
-        }
-      });
+      const message: JsonRpcRequest = {
+        jsonrpc: '2.0',
+        id: requestId,
+        method,
+        params,
+      };
+
+      await this.#sendMessage(connectionId, message);
     }
+
+    /**
+     * Register a callback that will re-subscribe when the connection is reestablished.
+     * Cover both cases:
+     * - The connection was lost then re-established -> we need to re-subscribe.
+     * - The connection was not yet established, and we need to re-subscribe when it is established.
+     */
+    this.#connectionManager.onConnectionRecovery(async () => {
+      const futureConnectionId =
+        this.#connectionManager.getConnectionIdByNetwork(network);
+
+      if (futureConnectionId) {
+        await this.subscribe(request, callbacks);
+      }
+    });
 
     return pendingSubscription.id;
   }
@@ -219,6 +224,7 @@ export class SubscriberAdapter implements SubscriberPort {
     connectionId: string,
     message: JsonRpcRequest,
   ): Promise<void> {
+    console.log('Sending message:', message);
     await snap.request({
       method: 'snap_sendWebSocketMessage',
       params: {

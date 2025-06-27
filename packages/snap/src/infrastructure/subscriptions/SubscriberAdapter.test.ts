@@ -100,7 +100,7 @@ describe('SubscriberAdapter', () => {
 
   describe('subscribe', () => {
     describe('when the connection is already established', () => {
-      it('sends a subscribe message when the connection is already established', async () => {
+      it('sends a subscribe message', async () => {
         jest.spyOn(snap, 'request').mockResolvedValueOnce(null);
         const request = createMockSubscriptionRequest();
         const callbacks = createMockSubscriptionCallbacks();
@@ -133,98 +133,7 @@ describe('SubscriberAdapter', () => {
       });
     });
 
-    describe('when the connection is not (yet) established', () => {
-      it('saves the subscription request and registers it to be sent later when the connection is established', async () => {
-        jest
-          .spyOn(mockConnectionManager, 'getConnectionIdByNetwork')
-          .mockReturnValue(null);
-
-        const connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
-
-        jest
-          .spyOn(mockConnectionManager, 'onConnectionRecovery')
-          .mockImplementation((callback) => {
-            connectionRecoveryCallbacks.push(callback);
-          });
-
-        const request = createMockSubscriptionRequest();
-        const callbacks = createMockSubscriptionCallbacks();
-
-        await subscriptionManager.subscribe(request, callbacks);
-
-        const pendingSubscription: PendingSubscription = {
-          ...request,
-          id: expect.any(String),
-          status: 'pending',
-          requestId: 0,
-          createdAt: expect.any(String),
-        };
-
-        // Verify that the subscription request was saved, but not sent yet
-        expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
-          pendingSubscription,
-        );
-        expect(snap.request).not.toHaveBeenCalled();
-
-        // Verify that the connection recovery callback was registered
-        expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
-          expect.any(Function),
-        );
-        expect(connectionRecoveryCallbacks).toHaveLength(2); // 1 for the subscription's connection recovery callback, 1 for retrying the subscription request
-        expect(connectionRecoveryCallbacks[0]).toBe(
-          callbacks.onConnectionRecovery,
-        );
-
-        // Now, let's establish the connection
-        jest
-          .spyOn(mockConnectionManager, 'getConnectionIdByNetwork')
-          .mockReturnValue(mockConnectionId);
-
-        jest
-          .spyOn(mockConnectionManager, 'handleConnectionEvent')
-          .mockImplementation(async () => {
-            await Promise.all(
-              connectionRecoveryCallbacks.map(async (callback) => {
-                await callback();
-              }),
-            );
-          });
-
-        // Send the connection event
-        await mockConnectionManager.handleConnectionEvent(
-          mockConnectionId,
-          'connected',
-        );
-
-        // Verify that the subscription request was sent
-        expect(snap.request).toHaveBeenCalledWith({
-          method: 'snap_sendWebSocketMessage',
-          params: {
-            id: mockConnectionId,
-            message: JSON.stringify({
-              jsonrpc: '2.0',
-              id: 1,
-              method: 'some-method',
-              params: [],
-            }),
-          },
-        });
-
-        // Verify that the onConnectionRecovery callback was called
-        expect(callbacks.onConnectionRecovery).toHaveBeenCalledWith();
-      });
-
-      it('registers a connection recovery callback when the subscription has one', async () => {
-        const request = createMockSubscriptionRequest();
-        const callbacks = createMockSubscriptionCallbacks();
-
-        await subscriptionManager.subscribe(request, callbacks);
-
-        expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
-          callbacks.onConnectionRecovery,
-        );
-      });
-    });
+    // See 'complex flows' below for when the connection is not (yet) established.
   });
 
   describe('unsubscribe', () => {
@@ -596,8 +505,290 @@ describe('SubscriberAdapter', () => {
     });
   });
 
-  describe('complex flows', () => {});
-  // User subscribes before the connection is established. Check that the subscription is sent when the connection is established and we recover gaps.
-  // Connection established. User subscribes. Connection is lost before the subscription is confirmed. Check that the subscription is sent when the connection is reestablished and we recover gaps.
-  // Connection established. User subscribes. Subscription is confirmed. Connection is lost. Check that the subscription is sent when the connection is reestablished and we recover gaps.
+  describe('re-subscription scenarios', () => {
+    describe('when a subscription request is sent, but there is no open connection (not yet opened, or was closed, or was lost)', () => {
+      it('saves the subscription request, and sends it later when the connection is established', async () => {
+        jest
+          .spyOn(mockConnectionManager, 'getConnectionIdByNetwork')
+          .mockReturnValue(null);
+
+        // Prepare the mock connection manager to handle the reconnection
+        const connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
+
+        jest
+          .spyOn(mockConnectionManager, 'onConnectionRecovery')
+          .mockImplementation((callback) => {
+            connectionRecoveryCallbacks.push(callback);
+          });
+
+        jest
+          .spyOn(mockConnectionManager, 'handleConnectionEvent')
+          .mockImplementation(async () => {
+            await Promise.all(
+              connectionRecoveryCallbacks.map(async (callback) => {
+                await callback();
+              }),
+            );
+          });
+        const request = createMockSubscriptionRequest();
+        const callbacks = createMockSubscriptionCallbacks();
+
+        await subscriptionManager.subscribe(request, callbacks);
+
+        const pendingSubscription: PendingSubscription = {
+          ...request,
+          id: expect.any(String),
+          status: 'pending',
+          requestId: 0,
+          createdAt: expect.any(String),
+        };
+
+        // Verify that the subscription request was saved, but not sent yet
+        expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
+          pendingSubscription,
+        );
+        expect(snap.request).not.toHaveBeenCalled();
+
+        // Verify that the connection recovery callback was registered
+        expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
+          expect.any(Function),
+        );
+        expect(connectionRecoveryCallbacks).toHaveLength(2); // 1 for the subscription's connection recovery callback, 1 for retrying the subscription request
+        expect(connectionRecoveryCallbacks[0]).toBe(
+          callbacks.onConnectionRecovery,
+        );
+
+        // Now, let's establish the connection
+        jest
+          .spyOn(mockConnectionManager, 'getConnectionIdByNetwork')
+          .mockReturnValue(mockConnectionId);
+
+        // Send the connection event
+        await mockConnectionManager.handleConnectionEvent(
+          mockConnectionId,
+          'connected',
+        );
+
+        // Verify that the subscription request was sent
+        expect(snap.request).toHaveBeenCalledWith({
+          method: 'snap_sendWebSocketMessage',
+          params: {
+            id: mockConnectionId,
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              id: 1,
+              method: 'some-method',
+              params: [],
+            }),
+          },
+        });
+
+        // Verify that the onConnectionRecovery callback was called
+        expect(callbacks.onConnectionRecovery).toHaveBeenCalledWith();
+      });
+
+      it('registers a connection recovery callback when the subscription has one', async () => {
+        const request = createMockSubscriptionRequest();
+        const callbacks = createMockSubscriptionCallbacks();
+
+        await subscriptionManager.subscribe(request, callbacks);
+
+        expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
+          callbacks.onConnectionRecovery,
+        );
+      });
+    });
+
+    describe('when the connection is lost BEFORE the subscription is confirmed', () => {
+      it('re-sends the subscription request when the connection is reestablished', async () => {
+        // Prepare the mock connection manager to handle the reconnection
+        const connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
+
+        jest
+          .spyOn(mockConnectionManager, 'onConnectionRecovery')
+          .mockImplementation((callback) => {
+            connectionRecoveryCallbacks.push(callback);
+          });
+
+        jest
+          .spyOn(mockConnectionManager, 'handleConnectionEvent')
+          .mockImplementation(async () => {
+            await Promise.all(
+              connectionRecoveryCallbacks.map(async (callback) => {
+                await callback();
+              }),
+            );
+          });
+
+        const request = createMockSubscriptionRequest();
+        const callbacks = createMockSubscriptionCallbacks();
+
+        const subscriptionId = await subscriptionManager.subscribe(
+          request,
+          callbacks,
+        );
+
+        const pendingSubscription: PendingSubscription = {
+          ...request,
+          id: subscriptionId,
+          status: 'pending',
+          requestId: 0,
+          createdAt: expect.any(String),
+        };
+
+        // Verify that the subscription request was saved
+        expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
+          pendingSubscription,
+        );
+
+        // Verify that the connection request was sent
+        expect(snap.request).toHaveBeenCalledWith({
+          method: 'snap_sendWebSocketMessage',
+          params: {
+            id: mockConnectionId,
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              id: 1,
+              method: 'some-method',
+              params: [],
+            }),
+          },
+        });
+
+        // Do not confirm the subscription
+
+        // Now, simulate a disconnection (this has no effect, it's just for clarity of the test)
+        await mockConnectionManager.handleConnectionEvent(
+          mockConnectionId,
+          'disconnected',
+        );
+
+        // Simulate a reconnection
+        await mockConnectionManager.handleConnectionEvent(
+          mockConnectionId,
+          'connected',
+        );
+
+        // Verify that the subscription request was sent again
+        expect(snap.request).toHaveBeenCalledWith({
+          method: 'snap_sendWebSocketMessage',
+          params: {
+            id: mockConnectionId,
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              id: 1,
+              method: 'some-method',
+              params: [],
+            }),
+          },
+        });
+
+        // Verify that the onConnectionRecovery callback was called
+        expect(callbacks.onConnectionRecovery).toHaveBeenCalledWith();
+      });
+    });
+  });
+
+  describe('when the connection is lost AFTER the subscription is confirmed', () => {
+    it('re-sends the subscription request when the connection is reestablished', async () => {
+      // Prepare the mock connection manager to handle the reconnection
+      const connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
+
+      jest
+        .spyOn(mockConnectionManager, 'onConnectionRecovery')
+        .mockImplementation((callback) => {
+          connectionRecoveryCallbacks.push(callback);
+        });
+
+      jest
+        .spyOn(mockConnectionManager, 'handleConnectionEvent')
+        .mockImplementation(async () => {
+          await Promise.all(
+            connectionRecoveryCallbacks.map(async (callback) => {
+              await callback();
+            }),
+          );
+        });
+
+      const request = createMockSubscriptionRequest();
+      const callbacks = createMockSubscriptionCallbacks();
+
+      const subscriptionId = await subscriptionManager.subscribe(
+        request,
+        callbacks,
+      );
+
+      const pendingSubscription: PendingSubscription = {
+        ...request,
+        id: subscriptionId,
+        status: 'pending',
+        requestId: 0,
+        createdAt: expect.any(String),
+      };
+
+      // Verify that the subscription request was saved
+      expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
+        pendingSubscription,
+      );
+
+      // Verify that the connection request was sent
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_sendWebSocketMessage',
+        params: {
+          id: mockConnectionId,
+          message: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'some-method',
+            params: [],
+          }),
+        },
+      });
+
+      // Confirm the subscription
+      const confirmationMessage = createMockConfirmationMessage(1, 98765);
+      await subscriptionManager.handleMessage(
+        mockConnectionId,
+        confirmationMessage,
+      );
+
+      jest
+        .spyOn(mockSubscriptionRepository, 'findByRpcSubscriptionId')
+        .mockResolvedValue({
+          ...pendingSubscription,
+          status: 'confirmed',
+          rpcSubscriptionId: 98765,
+          confirmedAt: expect.any(String),
+        });
+
+      // Now, simulate a disconnection (this has no effect, it's just for clarity of the test)
+      await mockConnectionManager.handleConnectionEvent(
+        mockConnectionId,
+        'disconnected',
+      );
+
+      // Simulate a reconnection
+      await mockConnectionManager.handleConnectionEvent(
+        mockConnectionId,
+        'connected',
+      );
+
+      // Verify that the subscription request was sent again
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_sendWebSocketMessage',
+        params: {
+          id: mockConnectionId,
+          message: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'some-method',
+            params: [],
+          }),
+        },
+      });
+
+      // Verify that the onConnectionRecovery callback was called
+      expect(callbacks.onConnectionRecovery).toHaveBeenCalledWith();
+    });
+  });
 });
