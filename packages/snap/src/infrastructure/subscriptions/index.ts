@@ -1,2 +1,2 @@
 export * from './ConnectionManagerAdapter';
-export * from './SubscriptionManagerAdapter';
+export * from './SubscriberAdapter';

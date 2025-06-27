@@ -1,8 +1,9 @@
 import type { Network } from '../../constants/solana';
 
 /**
- * Port interface for managing JSON-RPC subscription connections,
- * with connection lifecycle management and message handling.
+ * Port interface for managing the lifecycle of JSON-RPC subscription connections.
+ * It is responsible for opening and closing connections for each network,
+ * and for re-opening connections when they are dropped.
  */
 export type ConnectionManagerPort = {
   /**

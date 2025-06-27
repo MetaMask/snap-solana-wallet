@@ -11,9 +11,9 @@ import {
 } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type {
-  SubscriptionConnectionManagerPort,
+  ConnectionManagerPort,
   SubscriptionManagerPort,
-} from './core/ports';
+} from './core/ports/subscriptions';
 import type { Serializable } from './core/serialization/types';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
@@ -36,7 +36,7 @@ import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
 import {
   ConnectionManagerAdapter,
-  SubscriptionManagerAdapter,
+  SubscriberAdapter,
 } from './infrastructure/subscriptions';
 import { ConnectionRepository } from './infrastructure/subscriptions/ConnectionRepository';
 
@@ -63,8 +63,8 @@ export type SnapExecutionContext = {
   cache: ICache<Serializable>;
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
-  subscriptionConnectionManager: SubscriptionConnectionManagerPort;
-  subscriptionTransport: SubscriptionManagerPort;
+  subscriptionConnectionManager: ConnectionManagerPort;
+  subscriptionManager: SubscriptionManagerPort;
   webSocketService: WebSocketService;
   webSocketEventHandler: WebSocketEventHandler;
   startHandler: StartHandler;
@@ -132,7 +132,7 @@ const subscriptionConnectionManager = new ConnectionManagerAdapter(
   logger,
 );
 
-const subscriptionTransport = new SubscriptionManagerAdapter(
+const subscriptionTransport = new SubscriberAdapter(
   subscriptionConnectionManager,
   logger,
 );
@@ -170,7 +170,7 @@ const clientRequestHandler = new ClientRequestHandler(
   logger,
 );
 
-const startHandler = new StartHandler(subscriptionConnectionManager);
+const startHandler = new StartHandler(subscriptionConnectionManager, state);
 
 const snapContext: SnapExecutionContext = {
   configProvider,
@@ -193,7 +193,7 @@ const snapContext: SnapExecutionContext = {
   nftService,
   clientRequestHandler,
   subscriptionConnectionManager,
-  subscriptionTransport,
+  subscriptionManager: subscriptionTransport,
   webSocketService,
   webSocketEventHandler,
   startHandler,
