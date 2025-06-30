@@ -6,10 +6,7 @@ import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/Secu
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
 import { ClientRequestHandler } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
-import type {
-  ConnectionManagerPort,
-  SubscriberPort,
-} from './core/ports/subscriptions';
+import type { ConnectionManagerPort, SubscriberPort } from './core/ports';
 import type { Serializable } from './core/serialization/types';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
@@ -29,13 +26,13 @@ import { WalletService } from './core/services/wallet/WalletService';
 import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
-import { EventEmitter } from './infrastructure/event-emitter';
 import {
   ConnectionManagerAdapter,
+  ConnectionRepository,
+  EventEmitter,
   SubscriberAdapter,
-} from './infrastructure/subscriptions';
-import { ConnectionRepository } from './infrastructure/subscriptions/ConnectionRepository';
-import { SubscriptionRepository } from './infrastructure/subscriptions/SubscriptionRepository';
+  SubscriptionRepository,
+} from './infrastructure';
 
 /**
  * Initializes all the services using dependency injection.

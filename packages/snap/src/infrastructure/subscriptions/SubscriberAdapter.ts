@@ -7,12 +7,11 @@ import type {
   ConnectionManagerPort,
   SubscriberPort,
   SubscriptionCallbacks,
-  SubscriptionRequest,
-} from '../../core/ports/subscriptions';
+} from '../../core/ports';
 import type { ILogger } from '../../core/utils/logger';
+import type { PendingSubscription, SubscriptionRequest } from '../../entities';
 import type { EventEmitter } from '../event-emitter';
 import type { SubscriptionRepository } from './SubscriptionRepository';
-import type { PendingSubscription } from './types';
 
 /**
  * A message that we receive from the RPC WebSocket server after a subscription request,

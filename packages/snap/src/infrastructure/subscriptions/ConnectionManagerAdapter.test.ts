@@ -220,7 +220,7 @@ describe('ConnectionManagerAdapter', () => {
         );
 
         // Send the connect event
-        mockEventEmitter.emit('onWebSocketEvent', {
+        mockEventEmitter.emitSync('onWebSocketEvent', {
           id: mockConnectionId,
           type: 'open',
         });
@@ -248,7 +248,7 @@ describe('ConnectionManagerAdapter', () => {
 
       it('attempts to reconnect', async () => {
         // Send the connect event
-        mockEventEmitter.emit('onWebSocketEvent', {
+        mockEventEmitter.emitSync('onWebSocketEvent', {
           id: mockConnectionId,
           type: 'close',
         });

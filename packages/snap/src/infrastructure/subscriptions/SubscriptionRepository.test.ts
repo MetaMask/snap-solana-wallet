@@ -1,8 +1,8 @@
 import { Network } from '../../core/constants/solana';
 import type { IStateManager } from '../../core/services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../core/services/state/State';
+import type { Subscription } from '../../entities';
 import { SubscriptionRepository } from './SubscriptionRepository';
-import type { Subscription } from './types';
 
 const createMockSubscription = (id: string): Subscription => ({
   id,

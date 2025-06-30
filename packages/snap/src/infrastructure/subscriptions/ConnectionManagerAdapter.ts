@@ -2,7 +2,7 @@ import type { WebSocketEvent } from '@metamask/snaps-sdk';
 import { difference } from 'lodash';
 
 import { Network } from '../../core/constants/solana';
-import type { ConnectionManagerPort } from '../../core/ports/subscriptions';
+import type { ConnectionManagerPort } from '../../core/ports';
 import type { ConfigProvider } from '../../core/services/config';
 import type { NetworkWithRpcUrls } from '../../core/services/config/ConfigProvider';
 import type { ILogger } from '../../core/utils/logger';
@@ -36,8 +36,6 @@ export class ConnectionManagerAdapter implements ConnectionManagerPort {
 
   readonly #connectionRecoveryCallbacks: Map<Network, (() => Promise<void>)[]> =
     new Map();
-
-  readonly #isConnectionOpen: Map<Network, boolean> = new Map();
 
   constructor(
     connectionRepository: ConnectionRepository,

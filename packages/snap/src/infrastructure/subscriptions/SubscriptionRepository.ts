@@ -4,7 +4,7 @@ import type {
   ConfirmedSubscription,
   PendingSubscription,
   Subscription,
-} from './types';
+} from '../../entities';
 
 export class SubscriptionRepository {
   readonly #state: IStateManager<UnencryptedStateValue>;

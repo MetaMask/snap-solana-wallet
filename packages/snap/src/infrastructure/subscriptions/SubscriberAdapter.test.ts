@@ -4,13 +4,16 @@ import { Network } from '../../core/constants/solana';
 import type {
   ConnectionManagerPort,
   SubscriptionCallbacks,
-  SubscriptionRequest,
-} from '../../core/ports/subscriptions';
+} from '../../core/ports';
 import { mockLogger } from '../../core/services/mocks/logger';
+import type {
+  ConfirmedSubscription,
+  PendingSubscription,
+  SubscriptionRequest,
+} from '../../entities';
 import { EventEmitter } from '../event-emitter';
 import { SubscriberAdapter } from './SubscriberAdapter';
 import type { SubscriptionRepository } from './SubscriptionRepository';
-import type { ConfirmedSubscription, PendingSubscription } from './types';
 
 const createMockSubscriptionRequest = (
   method = 'some-method',
@@ -89,7 +92,7 @@ const simulateDisconnection = async (
   eventEmitter: EventEmitter,
   connectionId: string,
 ) => {
-  eventEmitter.emit('onWebSocketEvent', {
+  eventEmitter.emitSync('onWebSocketEvent', {
     event: {
       type: 'close',
       id: connectionId,
@@ -102,7 +105,7 @@ const simulateReconnection = async (
   eventEmitter: EventEmitter,
   connectionId: string,
 ) => {
-  eventEmitter.emit('onWebSocketEvent', {
+  eventEmitter.emitSync('onWebSocketEvent', {
     event: {
       type: 'open',
       id: connectionId,
@@ -271,7 +274,7 @@ describe('SubscriberAdapter', () => {
             .mockResolvedValue(undefined);
           const notification = createMockNotification();
 
-          mockEventEmitter.emit('onWebSocketEvent', notification);
+          mockEventEmitter.emitSync('onWebSocketEvent', notification);
           await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(mockLogger.warn).toHaveBeenCalledWith(
@@ -299,7 +302,7 @@ describe('SubscriberAdapter', () => {
             98765,
           );
 
-          mockEventEmitter.emit('onWebSocketEvent', {
+          mockEventEmitter.emitSync('onWebSocketEvent', {
             event: confirmationMessage,
           });
           await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
@@ -325,7 +328,7 @@ describe('SubscriberAdapter', () => {
             value: { lamports: 116044436802 },
           });
 
-          mockEventEmitter.emit('onWebSocketEvent', notification);
+          mockEventEmitter.emitSync('onWebSocketEvent', notification);
           await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(callbacks.onNotification).toHaveBeenCalledWith({
@@ -345,7 +348,7 @@ describe('SubscriberAdapter', () => {
             value: { lamports: 116044436802 },
           });
 
-          mockEventEmitter.emit('onWebSocketEvent', notification);
+          mockEventEmitter.emitSync('onWebSocketEvent', notification);
           await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(mockLogger.error).toHaveBeenCalledWith(
@@ -362,7 +365,7 @@ describe('SubscriberAdapter', () => {
         it('logs a warning and does nothing', async () => {
           const message = createMockConfirmationMessage('some-subscription-id');
 
-          mockEventEmitter.emit('onWebSocketEvent', message);
+          mockEventEmitter.emitSync('onWebSocketEvent', message);
           await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(mockLogger.warn).toHaveBeenCalledWith(
@@ -402,7 +405,7 @@ describe('SubscriberAdapter', () => {
         it('confirms the subscription', async () => {
           const confirmationMessage = createMockConfirmationMessage();
 
-          mockEventEmitter.emit('onWebSocketEvent', confirmationMessage);
+          mockEventEmitter.emitSync('onWebSocketEvent', confirmationMessage);
           await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           // Verify the confirmation was updated to 'confirmed'
@@ -432,7 +435,7 @@ describe('SubscriberAdapter', () => {
             },
           );
 
-          mockEventEmitter.emit('onWebSocketEvent', notification);
+          mockEventEmitter.emitSync('onWebSocketEvent', notification);
           await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(callbacks.onNotification).toHaveBeenCalledWith({
@@ -477,7 +480,7 @@ describe('SubscriberAdapter', () => {
           });
 
           it('logs the error', async () => {
-            mockEventEmitter.emit('onWebSocketEvent', message);
+            mockEventEmitter.emitSync('onWebSocketEvent', message);
             await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
             expect(mockLogger.error).toHaveBeenCalledWith(
@@ -491,7 +494,7 @@ describe('SubscriberAdapter', () => {
           });
 
           it('calls the subscription callback with the error', async () => {
-            mockEventEmitter.emit('onWebSocketEvent', message);
+            mockEventEmitter.emitSync('onWebSocketEvent', message);
             await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
             expect(callbacks.onSubscriptionFailed).toHaveBeenCalledWith({
@@ -503,7 +506,7 @@ describe('SubscriberAdapter', () => {
 
         describe('when there is no subscription for the message', () => {
           it('logs an error and does nothing', async () => {
-            mockEventEmitter.emit('onWebSocketEvent', message);
+            mockEventEmitter.emitSync('onWebSocketEvent', message);
             await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
             expect(mockLogger.error).toHaveBeenCalledWith(
@@ -536,7 +539,7 @@ describe('SubscriberAdapter', () => {
         };
 
         it('logs an error and does nothing', async () => {
-          mockEventEmitter.emit('onWebSocketEvent', message);
+          mockEventEmitter.emitSync('onWebSocketEvent', message);
           await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(mockLogger.error).toHaveBeenCalledWith(
@@ -766,7 +769,7 @@ describe('SubscriberAdapter', () => {
           subscriptionId,
           98765,
         );
-        mockEventEmitter.emit('onWebSocketEvent', confirmationMessage);
+        mockEventEmitter.emitSync('onWebSocketEvent', confirmationMessage);
         await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
         jest.spyOn(mockSubscriptionRepository, 'findBy').mockResolvedValue({

@@ -1,6 +1,17 @@
 import type { GetWebSocketsResult } from '@metamask/snaps-sdk';
+import type { JsonRpcParams } from '@metamask/utils';
 
-import type { SubscriptionRequest } from '../../core/ports/subscriptions';
+import type { Network } from '../core/constants/solana';
+
+/**
+ * A request to subscribe to a JSON-RPC subscription.
+ */
+export type SubscriptionRequest = {
+  method: string;
+  unsubscribeMethod: string;
+  params: JsonRpcParams;
+  network: Network;
+};
 
 export type Connection = GetWebSocketsResult[number];
 

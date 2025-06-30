@@ -1,16 +1,4 @@
-import type { JsonRpcParams } from '@metamask/utils';
-
-import type { Network } from '../../constants/solana';
-
-/**
- * A request to subscribe to a JSON-RPC subscription.
- */
-export type SubscriptionRequest = {
-  method: string;
-  unsubscribeMethod: string;
-  params: JsonRpcParams;
-  network: Network;
-};
+import type { SubscriptionRequest } from '../../../entities';
 
 export type SubscriptionCallbacks = {
   /**

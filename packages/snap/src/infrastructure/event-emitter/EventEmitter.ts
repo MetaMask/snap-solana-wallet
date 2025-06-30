@@ -64,13 +64,13 @@ export class EventEmitter {
   }
 
   /**
-   * Emits an event in a non-blocking / "fire and forget" manner.
-   * The event is emitted to all listeners, and the function returns immediately.
-   * The listeners are executed concurrently, and the function does not wait for them to complete.
+   * Emits an event synchronously, and waits for all listeners to complete.
+   * The event is emitted to all listeners, and the function returns when all listeners have completed.
+   * Because of how the snaps platform works, we MUST await for all listeners to complete, otherwise the snap execution will stop.
    * @param event - The event to emit.
    * @param data - The data to pass to the listeners.
    */
-  emit(event: string, data?: any) {
+  async emitSync(event: string, data?: any): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `Emitting event ${event}`);
     const listeners = this.#listeners.get(event);
 
@@ -79,7 +79,7 @@ export class EventEmitter {
       const promises = Array.from(listeners).map(async (listener) =>
         listener(data),
       );
-      void Promise.allSettled(promises);
+      await Promise.allSettled(promises);
     }
   }
 
