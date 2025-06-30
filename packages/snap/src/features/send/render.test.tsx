@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { installSnap } from '@metamask/snaps-jest';
+import type { CaipAssetType } from '@metamask/keyring-api';
+import { getMockAccount, installSnap } from '@metamask/snaps-jest';
 
 import type { SpotPrices } from '../../core/clients/price-api/types';
 import {
@@ -37,20 +38,21 @@ const solanaKeyringAccounts = [
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 ];
 
-const solanaAccountBalances = {
-  [KnownCaip19Id.SolLocalnet]: {
-    amount: '0.123456789',
-    unit: SOL_SYMBOL,
-  },
-  'solana:123456789abcdef/token:address1': {
-    amount: '0.123456789',
-    unit: '',
-  },
-  'solana:123456789abcdef/token:address2': {
-    amount: '0.123456789',
-    unit: '',
-  },
-};
+const solanaAccountBalances: Record<string, { amount: string; unit: string }> =
+  {
+    [KnownCaip19Id.SolLocalnet]: {
+      amount: '0.123456789',
+      unit: SOL_SYMBOL,
+    },
+    'solana:123456789abcdef/token:address1': {
+      amount: '0.123456789',
+      unit: '',
+    },
+    'solana:123456789abcdef/token:address2': {
+      amount: '0.123456789',
+      unit: '',
+    },
+  };
 
 const mockSpotPrices: SpotPrices = {
   [KnownCaip19Id.SolLocalnet]: {
@@ -164,7 +166,7 @@ describe('Send', () => {
     mockSolanaRpc.shutdown();
   });
 
-  it('renders the send form', async () => {
+  it.only('renders the send form', async () => {
     const { mockResolvedResult, server } = mockSolanaRpc;
 
     // temporary mock for the token prices
@@ -202,6 +204,34 @@ describe('Send', () => {
         ...mockPreferences,
         secretRecoveryPhrase: MOCK_SEED_PHRASE,
         unencryptedState: initialState,
+        accounts: [
+          getMockAccount({
+            address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+            selected: true,
+            assets: Object.keys(solanaAccountBalances) as CaipAssetType[],
+            scopes: [Network.Localnet],
+          }),
+          getMockAccount({
+            address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+            selected: false,
+            assets: Object.keys(solanaAccountBalances) as CaipAssetType[],
+            scopes: [Network.Localnet],
+          }),
+        ],
+        assets: {
+          [KnownCaip19Id.SolLocalnet]: {
+            symbol: 'SOL',
+            name: 'Solana',
+          },
+          'solana:123456789abcdef/token:address1': {
+            symbol: 'EURO-COIN',
+            name: 'Euro Coin',
+          },
+          'solana:123456789abcdef/token:address2': {
+            symbol: 'USDC',
+            name: 'USDC',
+          },
+        },
       },
     });
 

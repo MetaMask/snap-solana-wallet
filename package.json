@@ -35,6 +35,9 @@
       "yarn lint:fix"
     ]
   },
+  "resolutions": {
+    "@metamask/snaps-sdk": "8.1.0"
+  },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
