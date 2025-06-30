@@ -32,3 +32,14 @@ export type TransactionScanResult = {
   validation: TransactionScanValidation;
   error: TransactionScanError | null;
 };
+
+export enum SecurityAlertResponse {
+  Benign = 'Benign',
+  Warning = 'Warning',
+  Malicious = 'Malicious',
+}
+
+export enum ScanStatus {
+  SUCCESS = 'SUCCESS',
+  ERROR = 'ERROR',
+}

@@ -3,7 +3,10 @@ import type { SecurityAlertSimulationValidationResponse } from '../../clients/se
 import type { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
-import type { TransactionScanResult } from './types';
+import type { TransactionScanResult, TransactionScanValidation } from './types';
+import type { AnalyticsService } from '../analytics/AnalyticsService';
+import type { SolanaKeyringAccount } from '../../../entities';
+import { ScanStatus, SecurityAlertResponse } from './types';
 
 const ICON_SIZE = 16;
 
@@ -14,13 +17,17 @@ export class TransactionScanService {
 
   readonly #tokenMetadataService: TokenMetadataService;
 
+  readonly #analyticsService: AnalyticsService;
+
   constructor(
     securityAlertsApiClient: SecurityAlertsApiClient,
     tokenMetadataService: TokenMetadataService,
+    analyticsService: AnalyticsService,
     logger: ILogger,
   ) {
     this.#securityAlertsApiClient = securityAlertsApiClient;
     this.#tokenMetadataService = tokenMetadataService;
+    this.#analyticsService = analyticsService;
     this.#logger = logger;
   }
 
@@ -33,6 +40,7 @@ export class TransactionScanService {
    * @param params.scope - The scope of the transaction.
    * @param params.origin - The origin of the transaction.
    * @param params.options - The options for the scan.
+   * @param params.account - The account for analytics tracking.
    * @returns The result of the scan.
    */
   async scanTransaction({
@@ -42,6 +50,7 @@ export class TransactionScanService {
     scope,
     origin,
     options = ['simulation', 'validation'],
+    account,
   }: {
     method: string;
     accountAddress: string;
@@ -49,6 +58,7 @@ export class TransactionScanService {
     scope: Network;
     origin: string;
     options?: string[];
+    account?: SolanaKeyringAccount;
   }): Promise<TransactionScanResult | null> {
     try {
       const result = await this.#securityAlertsApiClient.scanTransactions({
@@ -61,6 +71,31 @@ export class TransactionScanService {
       });
 
       const scan = this.#mapScan(result);
+
+      // The security scan is completed
+      if (account) {
+        await this.#analyticsService.trackEventSecurityScanCompleted(
+          account,
+          transaction,
+          origin,
+          scope,
+          scan?.status as ScanStatus,
+          scan?.validation?.type !== SecurityAlertResponse.Benign,
+        );
+
+        // And the alert is detected
+        if (scan?.validation?.type !== SecurityAlertResponse.Benign) {
+          await this.#analyticsService.trackEventSecurityAlertDetected(
+            account,
+            transaction,
+            origin,
+            scope,
+            scan?.validation?.type as SecurityAlertResponse,
+            scan?.validation?.reason,
+            this.#getSecurityAlertDescription(scan?.validation),
+          );
+        }
+      }
 
       if (!scan?.estimatedChanges?.assets) {
         return null;
@@ -94,8 +129,24 @@ export class TransactionScanService {
       return updatedScan;
     } catch (error) {
       this.#logger.error(error);
+
+      if (account) {
+        await this.#analyticsService.trackEventSecurityScanCompleted(
+          account,
+          transaction,
+          origin,
+          scope,
+          ScanStatus.ERROR,
+          false,
+        );
+      }
+
       return null;
     }
+  }
+
+  #getSecurityAlertDescription(validation: TransactionScanValidation): string {
+    return `Security alert: ${validation?.reason}`;
   }
 
   #mapScan(
