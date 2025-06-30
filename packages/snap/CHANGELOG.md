@@ -9,12 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.34.0]
 
-### Uncategorized
+### Changed
 
-- feat: switch to duration cronjobs ([#435](https://github.com/MetaMask/snap-solana-wallet/pull/435))
-- New Crowdin translations by Github Action ([#436](https://github.com/MetaMask/snap-solana-wallet/pull/436))
-- feat: validate same origin domain for signin ([#434](https://github.com/MetaMask/snap-solana-wallet/pull/434))
-- New Crowdin translations by Github Action ([#433](https://github.com/MetaMask/snap-solana-wallet/pull/433))
+- Switch to duration cronjobs ([#435](https://github.com/MetaMask/snap-solana-wallet/pull/435))
+
+### Fixed
+
+- Validate same origin domain for `signIn` ([#434](https://github.com/MetaMask/snap-solana-wallet/pull/434))
 
 ## [1.33.4]
 
