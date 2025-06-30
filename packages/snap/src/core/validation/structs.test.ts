@@ -33,6 +33,7 @@ describe('structs', () => {
         'https://example.com/path-with-hyphens',
         'https://example.com/path_with_underscore',
         'http://localhost:8899',
+        'wss://example.com',
       ];
 
       validUrls.forEach((url) => {

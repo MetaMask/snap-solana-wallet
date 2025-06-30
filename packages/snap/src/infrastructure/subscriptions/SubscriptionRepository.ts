@@ -1,6 +1,10 @@
 import type { IStateManager } from '../../core/services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../core/services/state/State';
-import type { Subscription } from './types';
+import type {
+  ConfirmedSubscription,
+  PendingSubscription,
+  Subscription,
+} from './types';
 
 export class SubscriptionRepository {
   readonly #state: IStateManager<UnencryptedStateValue>;
@@ -12,11 +16,19 @@ export class SubscriptionRepository {
   }
 
   async getAll(): Promise<Subscription[]> {
-    const subscriptions = await this.#state.getKey<Subscription[]>(
-      `${this.#stateKey}`,
-    );
+    const subscriptionsById = await this.#state.getKey<
+      Record<string, Subscription>
+    >(`${this.#stateKey}`);
 
-    return subscriptions ?? [];
+    return Object.values(subscriptionsById ?? {});
+  }
+
+  async getById(subscriptionId: string): Promise<Subscription | undefined> {
+    const result = await this.#state.getKey<
+      UnencryptedStateValue['subscriptions'][string]
+    >(`${this.#stateKey}.${subscriptionId}`);
+
+    return result;
   }
 
   async save(subscription: Subscription): Promise<void> {
@@ -30,6 +42,10 @@ export class SubscriptionRepository {
     await this.#state.deleteKey(`${this.#stateKey}.${subscriptionId}`);
   }
 
+  async deleteAll(): Promise<void> {
+    await this.#state.deleteKey(`${this.#stateKey}`);
+  }
+
   async update(subscription: Subscription): Promise<void> {
     await this.#state.setKey(
       `${this.#stateKey}.${subscription.id}`,
@@ -37,45 +53,24 @@ export class SubscriptionRepository {
     );
   }
 
-  async findById(id: string): Promise<Subscription | undefined> {
-    const subscription = await this.#state.getKey<Subscription>(
-      `${this.#stateKey}.${id}`,
-    );
-
-    if (!subscription) {
-      return undefined;
-    }
-
-    return subscription;
-  }
-
-  async findByRequestId(requestId: number): Promise<Subscription | undefined> {
-    const subscriptions = await this.#state.getKey<Subscription[]>(
-      `${this.#stateKey}`,
-    );
-
-    if (!subscriptions) {
-      return undefined;
-    }
-
-    return subscriptions.find((item) => item.requestId === requestId);
-  }
-
-  async findByRpcSubscriptionId(
-    rpcSubscriptionId: number,
+  async findBy(
+    key: keyof PendingSubscription | keyof ConfirmedSubscription,
+    value: string | number,
   ): Promise<Subscription | undefined> {
-    const subscriptions = await this.#state.getKey<Subscription[]>(
-      `${this.#stateKey}`,
-    );
+    const subscriptions = await this.getAll();
 
-    if (!subscriptions) {
+    if (subscriptions.length === 0) {
       return undefined;
     }
 
     return subscriptions.find(
-      (item) =>
-        'rpcSubscriptionId' in item &&
-        item.rpcSubscriptionId === rpcSubscriptionId,
+      (subscription) =>
+        key in subscription &&
+        subscription[key as keyof Subscription] === value,
     );
+  }
+
+  async clear(): Promise<void> {
+    await this.#state.deleteKey(`${this.#stateKey}`);
   }
 }

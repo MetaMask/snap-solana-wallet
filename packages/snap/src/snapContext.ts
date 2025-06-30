@@ -4,15 +4,11 @@ import { StateCache } from './core/caching/StateCache';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
-import {
-  ClientRequestHandler,
-  StartHandler,
-  WebSocketEventHandler,
-} from './core/handlers';
+import { ClientRequestHandler } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type {
   ConnectionManagerPort,
-  SubscriptionManagerPort,
+  SubscriberPort,
 } from './core/ports/subscriptions';
 import type { Serializable } from './core/serialization/types';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
@@ -30,15 +26,16 @@ import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
 import { TransactionsService } from './core/services/transactions/TransactionsService';
 import { WalletService } from './core/services/wallet/WalletService';
-import { WebSocketService } from './core/services/websocket/WebSocketService';
 import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
+import { EventEmitter } from './infrastructure/event-emitter';
 import {
   ConnectionManagerAdapter,
   SubscriberAdapter,
 } from './infrastructure/subscriptions';
 import { ConnectionRepository } from './infrastructure/subscriptions/ConnectionRepository';
+import { SubscriptionRepository } from './infrastructure/subscriptions/SubscriptionRepository';
 
 /**
  * Initializes all the services using dependency injection.
@@ -64,13 +61,15 @@ export type SnapExecutionContext = {
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
   subscriptionConnectionManager: ConnectionManagerPort;
-  subscriptionManager: SubscriptionManagerPort;
-  webSocketService: WebSocketService;
-  webSocketEventHandler: WebSocketEventHandler;
-  startHandler: StartHandler;
+  subscriber: SubscriberPort;
+  subscriptionRepository: SubscriptionRepository;
+  eventEmitter: EventEmitter;
 };
 
 const configProvider = new ConfigProvider();
+
+const eventEmitter = new EventEmitter(logger);
+
 const state = new State({
   encrypted: false,
   defaultState: DEFAULT_UNENCRYPTED_STATE,
@@ -129,25 +128,16 @@ const subscriptionConnectionRepository = new ConnectionRepository();
 const subscriptionConnectionManager = new ConnectionManagerAdapter(
   subscriptionConnectionRepository,
   configProvider,
+  eventEmitter,
   logger,
 );
 
-const subscriptionTransport = new SubscriberAdapter(
+const subscriptionRepository = new SubscriptionRepository(state);
+
+const subscriber = new SubscriberAdapter(
   subscriptionConnectionManager,
-  logger,
-);
-
-const webSocketService = new WebSocketService(
-  subscriptionTransport,
-  assetsService,
-  transactionsService,
-  state,
-  logger,
-);
-
-const webSocketEventHandler = new WebSocketEventHandler(
-  subscriptionConnectionManager,
-  subscriptionTransport,
+  subscriptionRepository,
+  eventEmitter,
   logger,
 );
 
@@ -170,8 +160,6 @@ const clientRequestHandler = new ClientRequestHandler(
   logger,
 );
 
-const startHandler = new StartHandler(subscriptionConnectionManager, state);
-
 const snapContext: SnapExecutionContext = {
   configProvider,
   connection,
@@ -193,10 +181,9 @@ const snapContext: SnapExecutionContext = {
   nftService,
   clientRequestHandler,
   subscriptionConnectionManager,
-  subscriptionManager: subscriptionTransport,
-  webSocketService,
-  webSocketEventHandler,
-  startHandler,
+  subscriber,
+  subscriptionRepository,
+  eventEmitter,
 };
 
 export {
@@ -206,15 +193,16 @@ export {
   configProvider,
   confirmationHandler,
   connection,
+  eventEmitter,
   keyring,
   nftService,
   priceApiClient,
   sendSolBuilder,
   sendSplTokenBuilder,
-  startHandler,
   state,
+  subscriber,
   subscriptionConnectionManager,
-  subscriptionTransport,
+  subscriptionRepository,
   tokenMetadataClient,
   tokenMetadataService,
   tokenPricesService,
@@ -222,8 +210,6 @@ export {
   transactionScanService,
   transactionsService,
   walletService,
-  webSocketEventHandler,
-  webSocketService,
 };
 
 export default snapContext;

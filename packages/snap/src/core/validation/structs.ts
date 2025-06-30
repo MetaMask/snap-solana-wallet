@@ -1,5 +1,5 @@
 import { CaipAssetTypeStruct, SolMethod } from '@metamask/keyring-api';
-import type { Infer, Struct } from '@metamask/superstruct';
+import type { Struct } from '@metamask/superstruct';
 import {
   array,
   define,
@@ -28,10 +28,10 @@ export const PositiveNumberStringStruct = pattern(
 );
 
 /**
- * Validates that a string is a valid and safe URL. Accepts http and https protocols.
+ * Validates that a string is a valid and safe URL.
  *
  * It rejects:
- * - Non-HTTP/HTTPS protocols
+ * - Non-HTTP/HTTPS/WSS protocols
  * - Malformed URL format or incorrect protocol format
  * - Invalid hostname format (must follow proper domain naming conventions)
  * - Protocol pollution attempts (backslashes, @ symbol, %2f@, %5c@)
@@ -56,12 +56,13 @@ export const UrlStruct = refine(string(), 'safe-url', (value) => {
     const url = new URL(value);
 
     // Protocol check
-    if (!['http:', 'https:'].includes(url.protocol)) {
-      return 'URL must use http or https protocol';
+    const supportedProtocols = ['http:', 'https:', 'wss:'];
+    if (!supportedProtocols.includes(url.protocol)) {
+      return `URL must use one of the following protocols: ${supportedProtocols}`;
     }
 
     // Validate URL format
-    if (!value.match(/^https?:\/\/[^/]+\/?/u)) {
+    if (!value.match(/^(https?|wss):\/\/[^/]+\/?/u)) {
       return 'Malformed URL - incorrect protocol format';
     }
 

@@ -1,3 +1,5 @@
+import type { WebSocketMessage } from '@metamask/snaps-sdk';
+
 import { Network } from '../../core/constants/solana';
 import type {
   ConnectionManagerPort,
@@ -5,6 +7,7 @@ import type {
   SubscriptionRequest,
 } from '../../core/ports/subscriptions';
 import { mockLogger } from '../../core/services/mocks/logger';
+import { EventEmitter } from '../event-emitter';
 import { SubscriberAdapter } from './SubscriberAdapter';
 import type { SubscriptionRepository } from './SubscriptionRepository';
 import type { ConfirmedSubscription, PendingSubscription } from './types';
@@ -31,41 +34,104 @@ const createMockSubscriptionCallbacks = (
   onConnectionRecovery,
 });
 
-const createMockConfirmationMessage = (id: number, result: number) => ({
-  type: 'text',
-  message: JSON.stringify({
-    jsonrpc: '2.0',
-    id,
-    result,
-  }),
+const createMockConfirmationMessage = (
+  id: string = globalThis.crypto.randomUUID(),
+  rpcSubscriptionId = 98765,
+): WebSocketMessage => ({
+  type: 'message',
+  id,
+  origin: 'some-origin',
+  data: {
+    type: 'text',
+    message: JSON.stringify({
+      jsonrpc: '2.0',
+      id,
+      result: rpcSubscriptionId,
+    }),
+  },
 });
 
-const createMockNotification = (subscription: number, result: any) => ({
-  type: 'text',
-  message: JSON.stringify({
-    jsonrpc: '2.0',
-    method: 'some-method',
-    params: { subscription, result },
-  }),
+const createMockNotification = (
+  id: string = globalThis.crypto.randomUUID(),
+  rpcSubscriptionId = 98765,
+  result: any = {},
+) => ({
+  type: 'message',
+  id,
+  origin: 'some-origin',
+  data: {
+    type: 'text',
+    message: JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'some-method',
+      params: { subscription: rpcSubscriptionId, result },
+    }),
+  },
 });
 
-const createMockFailure = (id: number | undefined, error: any) => ({
-  type: 'text',
-  message: JSON.stringify({
-    jsonrpc: '2.0',
-    id,
-    error,
-  }),
+const createMockFailure = (
+  error: any,
+  id: string = globalThis.crypto.randomUUID(),
+) => ({
+  type: 'message',
+  id,
+  data: {
+    type: 'text',
+    message: JSON.stringify({
+      jsonrpc: '2.0',
+      id,
+      error,
+    }),
+  },
 });
+
+const simulateDisconnection = async (
+  eventEmitter: EventEmitter,
+  connectionId: string,
+) => {
+  eventEmitter.emit('onWebSocketEvent', {
+    event: {
+      type: 'close',
+      id: connectionId,
+    },
+  });
+  await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
+};
+
+const simulateReconnection = async (
+  eventEmitter: EventEmitter,
+  connectionId: string,
+) => {
+  eventEmitter.emit('onWebSocketEvent', {
+    event: {
+      type: 'open',
+      id: connectionId,
+    },
+  });
+  await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
+};
+
+const triggerConnectionRecoveryCallbacks = async (
+  connectionRecoveryCallbacks: Map<Network, (() => Promise<void>)[]>,
+  network: Network,
+) => {
+  const recoveryCallbacks = connectionRecoveryCallbacks.get(network) ?? [];
+  await Promise.all(
+    recoveryCallbacks.map(async (callback) => {
+      await callback();
+    }),
+  );
+};
 
 describe('SubscriberAdapter', () => {
   let subscriptionManager: SubscriberAdapter;
   let mockConnectionManager: ConnectionManagerPort;
   let mockSubscriptionRepository: SubscriptionRepository;
+  let mockEventEmitter: EventEmitter;
+  let loggerScope: string;
 
   const mockNetwork = Network.Mainnet;
   const mockConnectionId = 'some-connection-id';
-  const loggerScope = 'SubscriberAdapter';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -83,29 +149,61 @@ describe('SubscriberAdapter', () => {
 
     mockSubscriptionRepository = {
       getAll: jest.fn(),
+      getById: jest.fn(),
       save: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-      findById: jest.fn(),
-      findByRequestId: jest.fn(),
-      findByRpcSubscriptionId: jest.fn(),
+      findBy: jest.fn(),
     } as unknown as SubscriptionRepository;
+
+    mockEventEmitter = new EventEmitter(mockLogger);
 
     subscriptionManager = new SubscriberAdapter(
       mockConnectionManager,
       mockSubscriptionRepository,
+      mockEventEmitter,
       mockLogger,
     );
+
+    loggerScope = subscriptionManager.loggerPrefix;
   });
 
   describe('subscribe', () => {
-    describe('when the connection is already established', () => {
+    it('persists the subscription in state', async () => {
+      const request = createMockSubscriptionRequest();
+      const callbacks = createMockSubscriptionCallbacks();
+
+      await subscriptionManager.subscribe(request, callbacks);
+
+      expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.any(String),
+        }),
+      );
+    });
+
+    it('registers the subscription callbacks', async () => {
+      const request = createMockSubscriptionRequest();
+      const callbacks = createMockSubscriptionCallbacks();
+
+      await subscriptionManager.subscribe(request, callbacks);
+
+      expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
+        request.network,
+        callbacks.onConnectionRecovery,
+      );
+    });
+
+    describe('when the connection is open', () => {
       it('sends a subscribe message', async () => {
         jest.spyOn(snap, 'request').mockResolvedValueOnce(null);
         const request = createMockSubscriptionRequest();
         const callbacks = createMockSubscriptionCallbacks();
 
-        await subscriptionManager.subscribe(request, callbacks);
+        const subscriptionId = await subscriptionManager.subscribe(
+          request,
+          callbacks,
+        );
 
         expect(snap.request).toHaveBeenCalledWith({
           method: 'snap_sendWebSocketMessage',
@@ -113,27 +211,16 @@ describe('SubscriberAdapter', () => {
             id: mockConnectionId,
             message: JSON.stringify({
               jsonrpc: '2.0',
-              id: 1,
+              id: subscriptionId,
               method: 'some-method',
               params: [],
             }),
           },
         });
       });
-
-      it('registers a connection recovery callback when the subscription has one', async () => {
-        const request = createMockSubscriptionRequest();
-        const callbacks = createMockSubscriptionCallbacks();
-
-        await subscriptionManager.subscribe(request, callbacks);
-
-        expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
-          callbacks.onConnectionRecovery,
-        );
-      });
     });
 
-    // See 'complex flows' below for when the connection is not (yet) established.
+    // See 'complex flows' below for when the connection is not (yet) open.
   });
 
   describe('unsubscribe', () => {
@@ -145,191 +232,127 @@ describe('SubscriberAdapter', () => {
     });
 
     it('unsubscribes from an active subscription', async () => {
-      const mockconfirmedSubscription: ConfirmedSubscription = {
-        id: 'some-subscription-id',
-        network: mockNetwork,
-        unsubscribeMethod: 'some-unsubscribe-method',
-        rpcSubscriptionId: 98765,
+      const mockSubscriptionId = 'some-subscription-id';
+      const mockConfirmedSubscription: ConfirmedSubscription = {
+        ...createMockSubscriptionRequest(),
+        id: mockSubscriptionId,
         status: 'confirmed',
-        params: [],
-        method: 'some-method',
-        requestId: 1,
+        requestId: mockSubscriptionId,
+        rpcSubscriptionId: 98765,
         createdAt: '2024-01-01T00:00:00.000Z',
         confirmedAt: '2024-01-02T00:00:00.000Z',
       };
       jest
-        .spyOn(mockSubscriptionRepository, 'findById')
-        .mockResolvedValue(mockconfirmedSubscription);
-
-      const request = createMockSubscriptionRequest();
-      const callbacks = createMockSubscriptionCallbacks();
-
-      // Init the subscription
-      const subscriptionId = await subscriptionManager.subscribe(
-        request,
-        callbacks,
-      );
-
-      // Confirm the subscription
-      const confirmationMessage = createMockConfirmationMessage(2, 98765);
-      await subscriptionManager.handleMessage(
-        mockConnectionId,
-        confirmationMessage,
-      );
+        .spyOn(mockSubscriptionRepository, 'getById')
+        .mockResolvedValue(mockConfirmedSubscription);
 
       // Unsubscribe
-      await subscriptionManager.unsubscribe(subscriptionId);
+      await subscriptionManager.unsubscribe('some-subscription-id');
 
-      // First call to subscribe, second call to unsubscribe
-      expect(snap.request).toHaveBeenCalledTimes(2);
-
-      expect(snap.request).toHaveBeenNthCalledWith(2, {
+      // Verify unsubscribe was called
+      expect(snap.request).toHaveBeenCalledWith({
         method: 'snap_sendWebSocketMessage',
         params: {
           id: mockConnectionId,
-          message: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 2,
-            method: 'some-unsubscribe-method',
-            params: [98765],
-          }),
+          message: expect.stringContaining(
+            '"method":"some-unsubscribe-method"',
+          ),
         },
       });
     });
   });
 
-  describe('handleMessage', () => {
+  describe('#handleWebSocketEvent', () => {
     describe('when the message is a notification', () => {
-      describe('when there is no subscription for the message', () => {
+      describe('when there is no confirmed subscription for the message', () => {
         it('logs a warning and does nothing', async () => {
           jest
-            .spyOn(mockSubscriptionRepository, 'findByRpcSubscriptionId')
+            .spyOn(mockSubscriptionRepository, 'getById')
             .mockResolvedValue(undefined);
-          const notification = createMockNotification(98765, {});
+          const notification = createMockNotification();
 
-          await subscriptionManager.handleMessage(
-            mockConnectionId,
-            notification,
-          );
+          mockEventEmitter.emit('onWebSocketEvent', notification);
+          await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(mockLogger.warn).toHaveBeenCalledWith(
-            `[${loggerScope}] Received a notification, but no matching active subscription found for RPC ID: 98765. It might be still pending confirmation.`,
+            loggerScope,
+            'Received a notification, but no matching confirmed subscription found for RPC subscription ID: 98765.',
           );
         });
       });
 
-      describe('when there is a subscription for the message', () => {
-        describe('when the subscription is pending', () => {
-          beforeEach(async () => {
-            const mockPendingSubscription: PendingSubscription = {
-              id: 'some-subscription-id',
-              method: 'some-method',
-              unsubscribeMethod: 'some-unsubscribe-method',
-              network: mockNetwork,
-              status: 'pending',
-              requestId: 1,
-              createdAt: '2024-01-01T00:00:00.000Z',
-              params: [],
-            };
+      describe('when there is a confirmed subscription for the message', () => {
+        let request: SubscriptionRequest;
+        let callbacks: SubscriptionCallbacks;
 
-            jest
-              .spyOn(mockSubscriptionRepository, 'findByRpcSubscriptionId')
-              .mockResolvedValue(mockPendingSubscription);
+        beforeEach(async () => {
+          request = createMockSubscriptionRequest();
+          callbacks = createMockSubscriptionCallbacks();
+
+          const subscriptionId = await subscriptionManager.subscribe(
+            request,
+            callbacks,
+          );
+
+          const confirmationMessage = createMockConfirmationMessage(
+            subscriptionId,
+            98765,
+          );
+
+          mockEventEmitter.emit('onWebSocketEvent', {
+            event: confirmationMessage,
+          });
+          await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
+
+          const confirmedSubscription: ConfirmedSubscription = {
+            ...request,
+            id: subscriptionId,
+            rpcSubscriptionId: 98765,
+            status: 'confirmed',
+            requestId: 2,
+            createdAt: '2024-01-01T00:00:00.000Z',
+            confirmedAt: '2024-01-02T00:00:00.000Z',
+          };
+
+          jest
+            .spyOn(mockSubscriptionRepository, 'findBy')
+            .mockResolvedValue(confirmedSubscription);
+        });
+
+        it('handles a notification', async () => {
+          const notification = createMockNotification(undefined, undefined, {
+            context: { Slot: 348893275 },
+            value: { lamports: 116044436802 },
           });
 
-          it('does nothing', async () => {
-            const notification = createMockNotification(98765, {});
+          mockEventEmitter.emit('onWebSocketEvent', notification);
+          await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
-            await subscriptionManager.handleMessage(
-              mockConnectionId,
-              notification,
-            );
-
-            expect(mockLogger.warn).not.toHaveBeenNthCalledWith(
-              1,
-              `[${loggerScope}] Received a notification, but no matching active subscription found for RPC ID:`,
-              98765,
-            );
-
-            expect(mockLogger.warn).not.toHaveBeenNthCalledWith(
-              2,
-              `[${loggerScope}] Subscription is still pending for RPC ID:`,
-              98765,
-            );
+          expect(callbacks.onNotification).toHaveBeenCalledWith({
+            context: { Slot: 348893275 },
+            value: { lamports: 116044436802 },
           });
         });
 
-        describe('when the subscription is confirmed', () => {
-          let request: SubscriptionRequest;
-          let callbacks: SubscriptionCallbacks;
-
-          beforeEach(async () => {
-            request = createMockSubscriptionRequest();
-            callbacks = createMockSubscriptionCallbacks();
-            const subscriptionId = await subscriptionManager.subscribe(
-              request,
-              callbacks,
-            );
-
-            const confirmationMessage = createMockConfirmationMessage(2, 98765);
-            await subscriptionManager.handleMessage(
-              mockConnectionId,
-              confirmationMessage,
-            );
-
-            const confirmedSubscription: ConfirmedSubscription = {
-              ...request,
-              id: subscriptionId,
-              rpcSubscriptionId: 98765,
-              status: 'confirmed',
-              requestId: 2,
-              createdAt: '2024-01-01T00:00:00.000Z',
-              confirmedAt: '2024-01-02T00:00:00.000Z',
-            };
-
-            jest
-              .spyOn(mockSubscriptionRepository, 'findByRpcSubscriptionId')
-              .mockResolvedValue(confirmedSubscription);
+        it('catches errors on the subscription callback', async () => {
+          const error = new Error('Subscription callback error');
+          jest
+            .spyOn(callbacks, 'onNotification')
+            .mockImplementation()
+            .mockRejectedValue(error);
+          const notification = createMockNotification(undefined, undefined, {
+            context: { Slot: 348893275 },
+            value: { lamports: 116044436802 },
           });
 
-          it('handles a notification', async () => {
-            const notification = createMockNotification(98765, {
-              context: { Slot: 348893275 },
-              value: { lamports: 116044436802 },
-            });
+          mockEventEmitter.emit('onWebSocketEvent', notification);
+          await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
-            await subscriptionManager.handleMessage(
-              mockConnectionId,
-              notification,
-            );
-
-            expect(callbacks.onNotification).toHaveBeenCalledWith({
-              context: { Slot: 348893275 },
-              value: { lamports: 116044436802 },
-            });
-          });
-
-          it('catches errors on the subscription callback', async () => {
-            jest
-              .spyOn(callbacks, 'onNotification')
-              .mockImplementation()
-              .mockRejectedValue(new Error('Subscription callback error'));
-
-            const notification = createMockNotification(98765, {
-              context: { Slot: 348893275 },
-              value: { lamports: 116044436802 },
-            });
-
-            await subscriptionManager.handleMessage(
-              mockConnectionId,
-              notification,
-            );
-
-            expect(mockLogger.error).toHaveBeenCalledWith(
-              `[${loggerScope}] Error in subscription callback for 98765:`,
-              new Error('Subscription callback error'),
-            );
-          });
+          expect(mockLogger.error).toHaveBeenCalledWith(
+            loggerScope,
+            'Error in subscription callback for 98765:',
+            error,
+          );
         });
       });
     });
@@ -337,11 +360,14 @@ describe('SubscriberAdapter', () => {
     describe('when the message is a subscription confirmation', () => {
       describe('when there is no subscription for the message', () => {
         it('logs a warning and does nothing', async () => {
-          const message = createMockConfirmationMessage(2, 98765);
-          await subscriptionManager.handleMessage(mockConnectionId, message);
+          const message = createMockConfirmationMessage('some-subscription-id');
+
+          mockEventEmitter.emit('onWebSocketEvent', message);
+          await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(mockLogger.warn).toHaveBeenCalledWith(
-            `[${loggerScope}] Received subscription confirmation, but no matching pending subscription found for request ID: 2.`,
+            loggerScope,
+            'Received subscription confirmation, but no matching pending subscription found for subscription ID: some-subscription-id.',
           );
         });
       });
@@ -355,7 +381,6 @@ describe('SubscriberAdapter', () => {
         beforeEach(async () => {
           request = createMockSubscriptionRequest();
           callbacks = createMockSubscriptionCallbacks();
-
           subscriptionId = await subscriptionManager.subscribe(
             request,
             callbacks,
@@ -365,22 +390,20 @@ describe('SubscriberAdapter', () => {
             ...request,
             id: subscriptionId,
             status: 'pending',
-            requestId: 2,
+            requestId: subscriptionId,
             createdAt: '2024-01-01T00:00:00.000Z',
           };
 
           jest
-            .spyOn(mockSubscriptionRepository, 'findByRequestId')
+            .spyOn(mockSubscriptionRepository, 'getById')
             .mockResolvedValue(pendingSubscription);
         });
 
         it('confirms the subscription', async () => {
-          const confirmationMessage = createMockConfirmationMessage(2, 98765);
+          const confirmationMessage = createMockConfirmationMessage();
 
-          await subscriptionManager.handleMessage(
-            mockConnectionId,
-            confirmationMessage,
-          );
+          mockEventEmitter.emit('onWebSocketEvent', confirmationMessage);
+          await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           // Verify the confirmation was updated to 'confirmed'
           const confirmedSubscription: ConfirmedSubscription = {
@@ -394,20 +417,23 @@ describe('SubscriberAdapter', () => {
             confirmedSubscription,
           );
 
+          // Verify that notifications are now handled
+
           jest
-            .spyOn(mockSubscriptionRepository, 'findByRpcSubscriptionId')
+            .spyOn(mockSubscriptionRepository, 'findBy')
             .mockResolvedValue(confirmedSubscription);
 
-          // Verify that notifications are now handled
-          const notification = createMockNotification(98765, {
-            context: { Slot: 348893275 },
-            value: { lamports: 116044436802 },
-          });
-
-          await subscriptionManager.handleMessage(
-            mockConnectionId,
-            notification,
+          const notification = createMockNotification(
+            confirmedSubscription.id,
+            98765,
+            {
+              context: { Slot: 348893275 },
+              value: { lamports: 116044436802 },
+            },
           );
+
+          mockEventEmitter.emit('onWebSocketEvent', notification);
+          await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(callbacks.onNotification).toHaveBeenCalledWith({
             context: { Slot: 348893275 },
@@ -419,7 +445,7 @@ describe('SubscriberAdapter', () => {
 
     describe('when the message is a failure', () => {
       describe('when it is a response to a specific request', () => {
-        const message = createMockFailure(2, {
+        const message = createMockFailure({
           code: -32000,
           message: 'Subscription error',
         });
@@ -432,7 +458,6 @@ describe('SubscriberAdapter', () => {
           beforeEach(async () => {
             request = createMockSubscriptionRequest(); // request ID is 2 (request ID 1 was for opening the connection), hence why we createMockFailure with 2 as first argument
             callbacks = createMockSubscriptionCallbacks();
-
             subscriptionId = await subscriptionManager.subscribe(
               request,
               callbacks,
@@ -442,20 +467,22 @@ describe('SubscriberAdapter', () => {
               ...request,
               id: subscriptionId,
               status: 'pending',
-              requestId: 2,
+              requestId: subscriptionId,
               createdAt: '2024-01-01T00:00:00.000Z',
             };
 
             jest
-              .spyOn(mockSubscriptionRepository, 'findByRequestId')
+              .spyOn(mockSubscriptionRepository, 'getById')
               .mockResolvedValue(pendingSubscription);
           });
 
           it('logs the error', async () => {
-            await subscriptionManager.handleMessage(mockConnectionId, message);
+            mockEventEmitter.emit('onWebSocketEvent', message);
+            await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-              `[${loggerScope}] Subscription establishment failed for ${subscriptionId}:`,
+              loggerScope,
+              `Subscription establishment failed for ${subscriptionId}:`,
               {
                 code: -32000,
                 message: 'Subscription error',
@@ -464,7 +491,8 @@ describe('SubscriberAdapter', () => {
           });
 
           it('calls the subscription callback with the error', async () => {
-            await subscriptionManager.handleMessage(mockConnectionId, message);
+            mockEventEmitter.emit('onWebSocketEvent', message);
+            await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
             expect(callbacks.onSubscriptionFailed).toHaveBeenCalledWith({
               code: -32000,
@@ -475,10 +503,12 @@ describe('SubscriberAdapter', () => {
 
         describe('when there is no subscription for the message', () => {
           it('logs an error and does nothing', async () => {
-            await subscriptionManager.handleMessage(mockConnectionId, message);
+            mockEventEmitter.emit('onWebSocketEvent', message);
+            await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-              `[${loggerScope}] Received error for request ID: 2`,
+              loggerScope,
+              `Received error for request ID: ${message.id}`,
               {
                 code: -32000,
                 message: 'Subscription error',
@@ -490,15 +520,32 @@ describe('SubscriberAdapter', () => {
 
       describe('when it is a connection-level error', () => {
         const message = {
-          error: 'Some connection error',
+          type: 'message',
+          id: 'some-id',
+          origin: 'some-origin',
+          data: {
+            type: 'text',
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              error: {
+                code: -32700,
+                message: 'Parse error',
+              },
+            }),
+          },
         };
 
         it('logs an error and does nothing', async () => {
-          await subscriptionManager.handleMessage(mockConnectionId, message);
+          mockEventEmitter.emit('onWebSocketEvent', message);
+          await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
           expect(mockLogger.error).toHaveBeenCalledWith(
-            `[${loggerScope}] Connection-level error:`,
-            'Some connection error',
+            loggerScope,
+            'Connection-level error:',
+            {
+              code: -32700,
+              message: 'Parse error',
+            },
           );
         });
       });
@@ -506,40 +553,45 @@ describe('SubscriberAdapter', () => {
   });
 
   describe('re-subscription scenarios', () => {
-    describe('when a subscription request is sent, but there is no open connection (not yet opened, or was closed, or was lost)', () => {
-      it('saves the subscription request, and sends it later when the connection is established', async () => {
+    let connectionRecoveryCallbacks: Map<Network, (() => Promise<void>)[]>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+
+      // Prepare the mock connection manager to handle the reconnection
+      connectionRecoveryCallbacks = new Map();
+
+      jest
+        .spyOn(mockConnectionManager, 'onConnectionRecovery')
+        .mockImplementation((network, callback) => {
+          connectionRecoveryCallbacks.set(network, [
+            ...(connectionRecoveryCallbacks.get(network) ?? []),
+            callback,
+          ]);
+        });
+    });
+
+    describe('when a subscription request is sent, but no open connection', () => {
+      it('saves the subscription request, and sends it once the connection is opened', async () => {
+        // Mock the getConnectionIdByNetwork to simulate connection state changes
         jest
           .spyOn(mockConnectionManager, 'getConnectionIdByNetwork')
-          .mockReturnValue(null);
+          .mockResolvedValue(null)
+          .mockResolvedValueOnce(null) // First call returns null (no connection)
+          .mockResolvedValueOnce(mockConnectionId); // Second call returns connection ID
 
-        // Prepare the mock connection manager to handle the reconnection
-        const connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
-
-        jest
-          .spyOn(mockConnectionManager, 'onConnectionRecovery')
-          .mockImplementation((callback) => {
-            connectionRecoveryCallbacks.push(callback);
-          });
-
-        jest
-          .spyOn(mockConnectionManager, 'handleConnectionEvent')
-          .mockImplementation(async () => {
-            await Promise.all(
-              connectionRecoveryCallbacks.map(async (callback) => {
-                await callback();
-              }),
-            );
-          });
         const request = createMockSubscriptionRequest();
         const callbacks = createMockSubscriptionCallbacks();
-
-        await subscriptionManager.subscribe(request, callbacks);
+        const subscriptionId = await subscriptionManager.subscribe(
+          request,
+          callbacks,
+        );
 
         const pendingSubscription: PendingSubscription = {
           ...request,
-          id: expect.any(String),
+          id: subscriptionId,
           status: 'pending',
-          requestId: 0,
+          requestId: subscriptionId,
           createdAt: expect.any(String),
         };
 
@@ -551,22 +603,26 @@ describe('SubscriberAdapter', () => {
 
         // Verify that the connection recovery callback was registered
         expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
+          mockNetwork,
           expect.any(Function),
         );
-        expect(connectionRecoveryCallbacks).toHaveLength(2); // 1 for the subscription's connection recovery callback, 1 for retrying the subscription request
-        expect(connectionRecoveryCallbacks[0]).toBe(
+        expect(connectionRecoveryCallbacks.get(mockNetwork)).toHaveLength(2); // 1 for the subscription's connection recovery callback, 1 for retrying the subscription request
+        expect(connectionRecoveryCallbacks.get(mockNetwork)?.[0]).toBe(
           callbacks.onConnectionRecovery,
         );
 
         // Now, let's establish the connection
         jest
           .spyOn(mockConnectionManager, 'getConnectionIdByNetwork')
-          .mockReturnValue(mockConnectionId);
+          .mockResolvedValue(mockConnectionId);
 
         // Send the connection event
-        await mockConnectionManager.handleConnectionEvent(
-          mockConnectionId,
-          'connected',
+        await simulateReconnection(mockEventEmitter, mockConnectionId);
+
+        // Manually trigger the connection recovery callbacks since we can't mock the private method #handleWebSocketEvent
+        await triggerConnectionRecoveryCallbacks(
+          connectionRecoveryCallbacks,
+          mockNetwork,
         );
 
         // Verify that the subscription request was sent
@@ -576,7 +632,7 @@ describe('SubscriberAdapter', () => {
             id: mockConnectionId,
             message: JSON.stringify({
               jsonrpc: '2.0',
-              id: 1,
+              id: subscriptionId,
               method: 'some-method',
               params: [],
             }),
@@ -594,6 +650,7 @@ describe('SubscriberAdapter', () => {
         await subscriptionManager.subscribe(request, callbacks);
 
         expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
+          mockNetwork,
           callbacks.onConnectionRecovery,
         );
       });
@@ -601,28 +658,8 @@ describe('SubscriberAdapter', () => {
 
     describe('when the connection is lost BEFORE the subscription is confirmed', () => {
       it('re-sends the subscription request when the connection is reestablished', async () => {
-        // Prepare the mock connection manager to handle the reconnection
-        const connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
-
-        jest
-          .spyOn(mockConnectionManager, 'onConnectionRecovery')
-          .mockImplementation((callback) => {
-            connectionRecoveryCallbacks.push(callback);
-          });
-
-        jest
-          .spyOn(mockConnectionManager, 'handleConnectionEvent')
-          .mockImplementation(async () => {
-            await Promise.all(
-              connectionRecoveryCallbacks.map(async (callback) => {
-                await callback();
-              }),
-            );
-          });
-
         const request = createMockSubscriptionRequest();
         const callbacks = createMockSubscriptionCallbacks();
-
         const subscriptionId = await subscriptionManager.subscribe(
           request,
           callbacks,
@@ -632,7 +669,7 @@ describe('SubscriberAdapter', () => {
           ...request,
           id: subscriptionId,
           status: 'pending',
-          requestId: 0,
+          requestId: subscriptionId,
           createdAt: expect.any(String),
         };
 
@@ -648,25 +685,25 @@ describe('SubscriberAdapter', () => {
             id: mockConnectionId,
             message: JSON.stringify({
               jsonrpc: '2.0',
-              id: 1,
+              id: subscriptionId,
               method: 'some-method',
               params: [],
             }),
           },
         });
 
-        // Do not confirm the subscription
+        // Do not confirm the subscription yet
 
-        // Now, simulate a disconnection (this has no effect, it's just for clarity of the test)
-        await mockConnectionManager.handleConnectionEvent(
-          mockConnectionId,
-          'disconnected',
-        );
+        // Now, simulate a disconnection (this has no direct effect, it's just for clarity of the test)
+        await simulateDisconnection(mockEventEmitter, mockConnectionId);
 
         // Simulate a reconnection
-        await mockConnectionManager.handleConnectionEvent(
-          mockConnectionId,
-          'connected',
+        await simulateReconnection(mockEventEmitter, mockConnectionId);
+
+        // Manually trigger the connection recovery callbacks since we can't mock the private method #handleWebSocketEvent
+        await triggerConnectionRecoveryCallbacks(
+          connectionRecoveryCallbacks,
+          mockNetwork,
         );
 
         // Verify that the subscription request was sent again
@@ -676,7 +713,7 @@ describe('SubscriberAdapter', () => {
             id: mockConnectionId,
             message: JSON.stringify({
               jsonrpc: '2.0',
-              id: 1,
+              id: subscriptionId,
               method: 'some-method',
               params: [],
             }),
@@ -687,108 +724,87 @@ describe('SubscriberAdapter', () => {
         expect(callbacks.onConnectionRecovery).toHaveBeenCalledWith();
       });
     });
-  });
 
-  describe('when the connection is lost AFTER the subscription is confirmed', () => {
-    it('re-sends the subscription request when the connection is reestablished', async () => {
-      // Prepare the mock connection manager to handle the reconnection
-      const connectionRecoveryCallbacks: (() => Promise<void>)[] = [];
+    describe('when the connection is lost AFTER the subscription is confirmed', () => {
+      it('re-sends the subscription request when the connection is reestablished', async () => {
+        const request = createMockSubscriptionRequest();
+        const callbacks = createMockSubscriptionCallbacks();
+        const subscriptionId = await subscriptionManager.subscribe(
+          request,
+          callbacks,
+        );
 
-      jest
-        .spyOn(mockConnectionManager, 'onConnectionRecovery')
-        .mockImplementation((callback) => {
-          connectionRecoveryCallbacks.push(callback);
-        });
+        const pendingSubscription: PendingSubscription = {
+          ...request,
+          id: subscriptionId,
+          status: 'pending',
+          requestId: subscriptionId,
+          createdAt: expect.any(String),
+        };
 
-      jest
-        .spyOn(mockConnectionManager, 'handleConnectionEvent')
-        .mockImplementation(async () => {
-          await Promise.all(
-            connectionRecoveryCallbacks.map(async (callback) => {
-              await callback();
+        // Verify that the subscription request was saved
+        expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
+          pendingSubscription,
+        );
+
+        // Verify that the connection request was sent
+        expect(snap.request).toHaveBeenCalledWith({
+          method: 'snap_sendWebSocketMessage',
+          params: {
+            id: mockConnectionId,
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              id: subscriptionId,
+              method: 'some-method',
+              params: [],
             }),
-          );
+          },
         });
 
-      const request = createMockSubscriptionRequest();
-      const callbacks = createMockSubscriptionCallbacks();
+        // Confirm the subscription
+        const confirmationMessage = createMockConfirmationMessage(
+          subscriptionId,
+          98765,
+        );
+        mockEventEmitter.emit('onWebSocketEvent', confirmationMessage);
+        await new Promise((resolve) => setTimeout(resolve, 0)); // Emitting the event is async. We need to wait for it to complete.
 
-      const subscriptionId = await subscriptionManager.subscribe(
-        request,
-        callbacks,
-      );
-
-      const pendingSubscription: PendingSubscription = {
-        ...request,
-        id: subscriptionId,
-        status: 'pending',
-        requestId: 0,
-        createdAt: expect.any(String),
-      };
-
-      // Verify that the subscription request was saved
-      expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
-        pendingSubscription,
-      );
-
-      // Verify that the connection request was sent
-      expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_sendWebSocketMessage',
-        params: {
-          id: mockConnectionId,
-          message: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'some-method',
-            params: [],
-          }),
-        },
-      });
-
-      // Confirm the subscription
-      const confirmationMessage = createMockConfirmationMessage(1, 98765);
-      await subscriptionManager.handleMessage(
-        mockConnectionId,
-        confirmationMessage,
-      );
-
-      jest
-        .spyOn(mockSubscriptionRepository, 'findByRpcSubscriptionId')
-        .mockResolvedValue({
+        jest.spyOn(mockSubscriptionRepository, 'findBy').mockResolvedValue({
           ...pendingSubscription,
           status: 'confirmed',
           rpcSubscriptionId: 98765,
           confirmedAt: expect.any(String),
         });
 
-      // Now, simulate a disconnection (this has no effect, it's just for clarity of the test)
-      await mockConnectionManager.handleConnectionEvent(
-        mockConnectionId,
-        'disconnected',
-      );
+        // Now, simulate a disconnection (this has no direct effect, it's just for clarity of the test)
+        await simulateDisconnection(mockEventEmitter, mockConnectionId);
 
-      // Simulate a reconnection
-      await mockConnectionManager.handleConnectionEvent(
-        mockConnectionId,
-        'connected',
-      );
+        // Simulate a reconnection
+        await simulateReconnection(mockEventEmitter, mockConnectionId);
 
-      // Verify that the subscription request was sent again
-      expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_sendWebSocketMessage',
-        params: {
-          id: mockConnectionId,
-          message: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'some-method',
-            params: [],
-          }),
-        },
+        // Verify that the subscription request was sent again
+        expect(snap.request).toHaveBeenCalledWith({
+          method: 'snap_sendWebSocketMessage',
+          params: {
+            id: mockConnectionId,
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              id: subscriptionId,
+              method: 'some-method',
+              params: [],
+            }),
+          },
+        });
+
+        // Manually trigger the connection recovery callbacks since we can't mock the private method #handleWebSocketEvent
+        await triggerConnectionRecoveryCallbacks(
+          connectionRecoveryCallbacks,
+          mockNetwork,
+        );
+
+        // Verify that the onConnectionRecovery callback was called
+        expect(callbacks.onConnectionRecovery).toHaveBeenCalledWith();
       });
-
-      // Verify that the onConnectionRecovery callback was called
-      expect(callbacks.onConnectionRecovery).toHaveBeenCalledWith();
     });
   });
 });

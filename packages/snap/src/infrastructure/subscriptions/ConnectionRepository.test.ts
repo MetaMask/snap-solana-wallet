@@ -101,38 +101,4 @@ describe('ConnectionRepository', () => {
       });
     });
   });
-
-  describe('getIdByUrl', () => {
-    it('returns the connection ID when the connection exists', async () => {
-      jest.spyOn(snap, 'request').mockResolvedValue('1');
-      await connectionRepository.save('ws://localhost:8080');
-
-      const connectionId = connectionRepository.getIdByUrl(
-        'ws://localhost:8080',
-      );
-      expect(connectionId).toBe('1');
-    });
-
-    it('returns null when the connection does not exist', () => {
-      const connectionId = connectionRepository.getIdByUrl(
-        'ws://localhost:8080',
-      );
-      expect(connectionId).toBeNull();
-    });
-  });
-
-  describe('getUrlById', () => {
-    it('returns the connection URL when the connection exists', async () => {
-      jest.spyOn(snap, 'request').mockResolvedValue('1');
-      await connectionRepository.save('ws://localhost:8080');
-
-      const connectionUrl = connectionRepository.getUrlById('1');
-      expect(connectionUrl).toBe('ws://localhost:8080');
-    });
-
-    it('returns null when the connection does not exist', () => {
-      const connectionUrl = connectionRepository.getUrlById('1');
-      expect(connectionUrl).toBeNull();
-    });
-  });
 });

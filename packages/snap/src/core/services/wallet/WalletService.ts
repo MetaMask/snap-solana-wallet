@@ -22,6 +22,7 @@ import {
 } from '@solana/kit';
 
 import type { SolanaKeyringAccount } from '../../../entities';
+import { eventEmitter } from '../../../snapContext';
 import type { Caip10Address, Network } from '../../constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';
@@ -152,6 +153,8 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignTransactionResponse> {
+    eventEmitter.emit('onStart', request);
+
     assert(request.request, SolanaSignTransactionRequestStruct);
     assert(request.scope, NetworkStruct);
 
@@ -375,6 +378,8 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignMessageResponse> {
+    eventEmitter.emit('onTestSubscription', request);
+
     assert(request.request, SolanaSignMessageRequestStruct);
 
     // message is base64 encoded

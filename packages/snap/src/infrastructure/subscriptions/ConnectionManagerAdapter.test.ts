@@ -4,16 +4,46 @@ import type {
   Config,
   NetworkWithRpcUrls,
 } from '../../core/services/config/ConfigProvider';
-import { mockLogger } from '../../core/services/mocks/logger';
+import { EventEmitter } from '../event-emitter/EventEmitter';
 import { ConnectionManagerAdapter } from './ConnectionManagerAdapter';
 import type { ConnectionRepository } from './ConnectionRepository';
+
+const mockWebSocketUrl = 'wss://some-mock-url.com/ws/v3/some-id';
+const mockConnectionId = 'mock-connection-id';
+
+const createMockConnection = (
+  id = mockConnectionId,
+  url = mockWebSocketUrl,
+) => ({
+  id,
+  url,
+  protocols: [],
+});
 
 describe('ConnectionManagerAdapter', () => {
   let connectionManager: ConnectionManagerAdapter;
   let mockConnectionRepository: ConnectionRepository;
   let mockConfigProvider: ConfigProvider;
-  const mockWebSocketUrl = 'wss://some-mock-url.com';
-  const mockConnectionId = 'mock-connection-id';
+  let mockEventEmitter: EventEmitter;
+
+  const mockNetworksConfig = [
+    {
+      caip2Id: Network.Mainnet,
+      webSocketUrl: mockWebSocketUrl,
+    },
+    {
+      caip2Id: Network.Devnet,
+      webSocketUrl: 'wss://some-mock-url2.com/ws/v3/some-id',
+    },
+    {
+      caip2Id: Network.Testnet,
+      webSocketUrl: 'wss://some-mock-url3.com/ws/v3/some-id',
+    },
+    {
+      caip2Id: Network.Localnet,
+      webSocketUrl: 'wss://some-mock-url4.com/ws/v3/some-id',
+    },
+  ] as NetworkWithRpcUrls[];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -30,161 +60,29 @@ describe('ConnectionManagerAdapter', () => {
 
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
+        networks: mockNetworksConfig,
         subscription: {
           maxReconnectAttempts: 5,
           reconnectDelayMilliseconds: 1, // To speed up the tests
         },
       }),
-      getNetworkBy: jest.fn().mockReturnValue({
-        rpcUrls: [mockWebSocketUrl],
+      getNetworkBy: jest.fn().mockImplementation((key, value) => {
+        return mockNetworksConfig.find(
+          (item) => item[key as keyof NetworkWithRpcUrls] === value,
+        );
       }),
     } as unknown as ConfigProvider;
+
+    const mockLogger = console;
+
+    mockEventEmitter = new EventEmitter(mockLogger);
 
     connectionManager = new ConnectionManagerAdapter(
       mockConnectionRepository,
       mockConfigProvider,
+      mockEventEmitter,
       mockLogger,
     );
-  });
-
-  describe('openConnection', () => {
-    describe('when the connection does not already exist', () => {
-      describe('when the connection succeeds', () => {
-        it('opens a connection', async () => {
-          jest
-            .spyOn(mockConnectionRepository, 'getAll')
-            .mockResolvedValueOnce([]);
-
-          jest
-            .spyOn(mockConnectionRepository, 'save')
-            .mockResolvedValueOnce(mockConnectionId);
-
-          const connectionId = await connectionManager.openConnection(
-            Network.Mainnet,
-          );
-
-          expect(connectionId).toBe(mockConnectionId);
-        });
-      });
-
-      describe('when the connection fails', () => {
-        it('retries until it succeeds, when attempts < 5', async () => {
-          jest
-            .spyOn(mockConnectionRepository, 'getAll')
-            .mockResolvedValueOnce([]);
-
-          jest
-            .spyOn(mockConnectionRepository, 'save')
-            .mockRejectedValueOnce(new Error('Connection failed')) // 1st call is the fail attempt
-            .mockResolvedValueOnce(mockConnectionId); // 2nd call is the success attempt
-
-          const connectionId = await connectionManager.openConnection(
-            Network.Mainnet,
-          );
-
-          expect(mockConnectionRepository.save).toHaveBeenCalledTimes(2);
-          expect(connectionId).toBe(mockConnectionId);
-        });
-
-        it('does not retry more than the max number of attempts', async () => {
-          jest
-            .spyOn(mockConnectionRepository, 'getAll')
-            .mockResolvedValueOnce([]);
-
-          jest
-            .spyOn(mockConnectionRepository, 'save')
-            .mockRejectedValue(new Error('Connection failed'));
-
-          await expect(
-            connectionManager.openConnection(Network.Mainnet),
-          ).rejects.toThrow('Connection failed');
-
-          expect(mockConnectionRepository.save).toHaveBeenCalledTimes(5);
-        });
-      });
-    });
-
-    describe('when the connection already exists', () => {
-      beforeEach(async () => {
-        jest
-          .spyOn(mockConnectionRepository, 'findByUrl')
-          .mockResolvedValueOnce({
-            id: mockConnectionId,
-            url: mockWebSocketUrl,
-            protocols: [],
-          });
-
-        jest
-          .spyOn(mockConnectionRepository, 'save')
-          .mockResolvedValueOnce(mockConnectionId);
-      });
-
-      it('returns the existing connection ID', async () => {
-        const connectionId = await connectionManager.openConnection(
-          Network.Mainnet,
-        );
-
-        expect(connectionId).toBe(mockConnectionId);
-      });
-
-      it('does not open a new connection', async () => {
-        await connectionManager.openConnection(Network.Mainnet);
-
-        expect(mockConnectionRepository.save).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when the config misses the RPC URL', () => {
-      it('throws an error', async () => {
-        jest.spyOn(mockConfigProvider, 'getNetworkBy').mockReturnValue({
-          rpcUrls: [],
-        } as unknown as NetworkWithRpcUrls);
-
-        await expect(
-          connectionManager.openConnection(Network.Mainnet),
-        ).rejects.toThrow(
-          'No RPC URL found for network solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        );
-      });
-    });
-  });
-
-  describe('closeConnection', () => {
-    describe('when the connection does not exist', () => {
-      beforeEach(async () => {
-        jest
-          .spyOn(mockConnectionRepository, 'getAll')
-          .mockResolvedValueOnce([]);
-      });
-
-      it('does nothing', async () => {
-        await connectionManager.closeConnection(Network.Mainnet);
-
-        expect(mockConnectionRepository.delete).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when the connection exists', () => {
-      beforeEach(async () => {
-        jest
-          .spyOn(mockConnectionRepository, 'findByUrl')
-          .mockResolvedValueOnce({
-            id: mockConnectionId,
-            url: mockWebSocketUrl,
-            protocols: [],
-          });
-
-        jest
-          .spyOn(mockConnectionRepository, 'delete')
-          .mockResolvedValueOnce(undefined);
-      });
-
-      it('closes the connection', async () => {
-        await connectionManager.closeConnection(Network.Mainnet);
-
-        expect(mockConnectionRepository.delete).toHaveBeenCalledTimes(1);
-      });
-    });
   });
 
   describe('setupAllConnections', () => {
@@ -193,7 +91,12 @@ describe('ConnectionManagerAdapter', () => {
         activeNetworks: [Network.Mainnet, Network.Devnet],
       } as unknown as Config);
 
-      jest.spyOn(mockConnectionRepository, 'getAll').mockResolvedValueOnce([]);
+      // Init with an existing connection for Mainnet. We expect to only open the connection for Devnet.
+      const mockConnectionMainnet = createMockConnection();
+
+      jest
+        .spyOn(mockConnectionRepository, 'getAll')
+        .mockResolvedValueOnce([mockConnectionMainnet]);
 
       jest
         .spyOn(mockConnectionRepository, 'save')
@@ -201,7 +104,10 @@ describe('ConnectionManagerAdapter', () => {
 
       await connectionManager.setupAllConnections();
 
-      expect(mockConnectionRepository.save).toHaveBeenCalledTimes(2);
+      expect(mockConnectionRepository.save).toHaveBeenCalledTimes(1);
+      expect(mockConnectionRepository.save).toHaveBeenCalledWith(
+        'wss://some-mock-url2.com/ws/v3/some-id',
+      );
     });
 
     it('does nothing for active networks that are already open', async () => {
@@ -209,17 +115,11 @@ describe('ConnectionManagerAdapter', () => {
         activeNetworks: [Network.Mainnet],
       } as unknown as Config);
 
-      jest.spyOn(mockConfigProvider, 'getNetworkBy').mockReturnValueOnce({
-        rpcUrls: [mockWebSocketUrl],
-      } as unknown as NetworkWithRpcUrls);
+      const mockConnection = createMockConnection();
 
-      jest.spyOn(mockConnectionRepository, 'getAll').mockResolvedValueOnce([
-        {
-          id: mockConnectionId,
-          url: mockWebSocketUrl,
-          protocols: [],
-        },
-      ]);
+      jest
+        .spyOn(mockConnectionRepository, 'getAll')
+        .mockResolvedValueOnce([mockConnection]);
 
       await connectionManager.setupAllConnections();
 
@@ -231,11 +131,7 @@ describe('ConnectionManagerAdapter', () => {
         activeNetworks: [],
       } as unknown as Config);
 
-      const openConnection = {
-        id: mockConnectionId,
-        url: mockWebSocketUrl,
-        protocols: [],
-      };
+      const openConnection = createMockConnection();
 
       jest
         .spyOn(mockConnectionRepository, 'getAll')
@@ -261,118 +157,118 @@ describe('ConnectionManagerAdapter', () => {
 
       expect(mockConnectionRepository.delete).not.toHaveBeenCalled();
     });
-  });
 
-  describe('handleConnectionEvent', () => {
-    describe('when the event is a connect', () => {
-      beforeEach(async () => {
-        const mockConnection = {
-          id: mockConnectionId,
-          url: mockWebSocketUrl,
-          protocols: [],
-        };
+    describe('when the connection fails', () => {
+      beforeEach(() => {
+        jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+          activeNetworks: [Network.Mainnet],
+        } as unknown as Config);
 
         jest
-          .spyOn(mockConnectionRepository, 'findByUrl')
-          .mockResolvedValue(mockConnection);
+          .spyOn(mockConnectionRepository, 'getAll')
+          .mockResolvedValueOnce([]);
+      });
+
+      it('retries until it succeeds, when attempts < 5', async () => {
+        jest
+          .spyOn(mockConnectionRepository, 'save')
+          .mockRejectedValueOnce(new Error('Connection failed')) // 1st call is the fail attempt
+          .mockResolvedValueOnce(mockConnectionId); // 2nd call is the success attempt
+
+        await connectionManager.setupAllConnections();
+
+        expect(mockConnectionRepository.save).toHaveBeenCalledTimes(2);
+      });
+
+      it('retries up to the max number of attempts', async () => {
+        jest
+          .spyOn(mockConnectionRepository, 'save')
+          .mockRejectedValue(new Error('Connection failed'));
+
+        await connectionManager.setupAllConnections();
+
+        expect(mockConnectionRepository.save).toHaveBeenCalledTimes(5);
+      });
+    });
+  });
+
+  describe('#handleWebSocketEvent', () => {
+    describe('when the event is a connect', () => {
+      beforeEach(async () => {
+        const mockConnection = createMockConnection();
 
         jest
           .spyOn(mockConnectionRepository, 'getById')
           .mockResolvedValue(mockConnection);
+
+        jest
+          .spyOn(mockConnectionRepository, 'findByUrl')
+          .mockResolvedValueOnce(mockConnection);
       });
 
       it('triggers all the recovery callbacks', async () => {
         const recoveryCallback0 = jest.fn();
         const recoveryCallback1 = jest.fn();
-        const recoveryCallback2 = jest.fn();
-        const recoveryCallback3 = jest.fn();
-        connectionManager.onConnectionRecovery(recoveryCallback0);
-        connectionManager.onConnectionRecovery(recoveryCallback1);
-        connectionManager.onConnectionRecovery(recoveryCallback2);
-        connectionManager.onConnectionRecovery(recoveryCallback3);
 
-        //   const connectionId = globalThis.crypto.randomUUID();
-
-        //   // Set up some pending and active subscriptions
-        //   const pendingSubscription0 = createMockSubscription('pending-0');
-        //   const pendingSubscription1 = createMockSubscription('pending-1');
-        //   const activeSubscription0 = createMockSubscription('active-0');
-        //   const activeSubscription1 = createMockSubscription('active-1');
-
-        // Init the subscriptions
-        //   await adapter.subscribe(connectionId, pendingSubscription0); // Request ID 1
-        //   await adapter.subscribe(connectionId, pendingSubscription1); // Request ID 2
-        //   await adapter.subscribe(connectionId, activeSubscription0); // Request ID 3
-        //   await adapter.subscribe(connectionId, activeSubscription1); // Request ID 4
-
-        // Confirm the subscriptions we want active
-        //   const confirmationMessage0 = createMockConfirmationMessage(3, 98765);
-        //   const confirmationMessage1 = createMockConfirmationMessage(4, 98766);
-        //   await adapter.handleMessage(connectionId, confirmationMessage0);
-        //   await adapter.handleMessage(connectionId, confirmationMessage1);
-
-        //   const subscribeSpy = jest.spyOn(adapter, 'subscribe');
-
-        // Send the connect event
-        await connectionManager.handleConnectionEvent(
-          mockConnectionId,
-          'connected',
+        connectionManager.onConnectionRecovery(
+          Network.Mainnet,
+          recoveryCallback0,
+        );
+        connectionManager.onConnectionRecovery(
+          Network.Mainnet,
+          recoveryCallback1,
         );
 
-        //   // Verify that we requested to re-establish ALL subscriptions
-        //   expect(subscribeSpy).toHaveBeenCalledTimes(4);
-        //   expect(subscribeSpy).toHaveBeenCalledWith(pendingSubscription0);
-        //   expect(subscribeSpy).toHaveBeenCalledWith(pendingSubscription1);
-        //   expect(subscribeSpy).toHaveBeenCalledWith(activeSubscription0);
-        //   expect(subscribeSpy).toHaveBeenCalledWith(activeSubscription1);
+        // Send the connect event
+        mockEventEmitter.emit('onWebSocketEvent', {
+          id: mockConnectionId,
+          type: 'open',
+        });
+
+        // Wait for async operations to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
         expect(recoveryCallback0).toHaveBeenCalled();
         expect(recoveryCallback1).toHaveBeenCalled();
-        expect(recoveryCallback2).toHaveBeenCalled();
-        expect(recoveryCallback3).toHaveBeenCalled();
       });
     });
 
     describe('when the event is a disconnect', () => {
       beforeEach(async () => {
+        const mockConnection = createMockConnection();
+
         jest
           .spyOn(mockConnectionRepository, 'getAll')
-          .mockResolvedValueOnce([
-            { id: mockConnectionId, url: mockWebSocketUrl, protocols: [] },
-          ]);
+          .mockResolvedValueOnce([mockConnection]);
 
-        await connectionManager.openConnection(Network.Mainnet);
+        jest
+          .spyOn(mockConnectionRepository, 'getById')
+          .mockResolvedValueOnce(mockConnection);
       });
 
       it('attempts to reconnect', async () => {
-        jest
-          .spyOn(connectionManager, 'openConnection')
-          .mockResolvedValue(mockConnectionId);
-
-        jest.spyOn(mockConnectionRepository, 'getById').mockResolvedValueOnce({
+        // Send the connect event
+        mockEventEmitter.emit('onWebSocketEvent', {
           id: mockConnectionId,
-          url: mockWebSocketUrl,
-          protocols: [],
+          type: 'close',
         });
 
-        await connectionManager.handleConnectionEvent(
-          mockConnectionId,
-          'disconnected',
-        );
+        // Wait for async operations to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(connectionManager.openConnection).toHaveBeenCalledWith(
-          Network.Mainnet,
-        );
+        expect(mockConnectionRepository.save).toHaveBeenCalledTimes(1);
       });
     });
   });
 
   describe('getConnectionIdByNetwork', () => {
     it('returns the connection ID for the network', async () => {
+      const mockConnection = createMockConnection();
       jest
-        .spyOn(mockConnectionRepository, 'getIdByUrl')
-        .mockReturnValue(mockConnectionId);
+        .spyOn(mockConnectionRepository, 'findByUrl')
+        .mockResolvedValueOnce(mockConnection);
 
-      const connectionId = connectionManager.getConnectionIdByNetwork(
+      const connectionId = await connectionManager.getConnectionIdByNetwork(
         Network.Mainnet,
       );
 

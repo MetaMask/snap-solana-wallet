@@ -6,6 +6,7 @@ import type { Address, Signature } from '@solana/kit';
 import { unset } from 'lodash';
 
 import type { SolanaKeyringAccount } from '../../../entities';
+import type { Subscription } from '../../../infrastructure/subscriptions/types';
 import type { SpotPrices } from '../../clients/price-api/types';
 import { deserialize } from '../../serialization/deserialize';
 import { serialize } from '../../serialization/serialize';
@@ -24,6 +25,7 @@ export type UnencryptedStateValue = {
   signatures: Record<Address, Signature[]>;
   assets: Record<AccountId, Record<CaipAssetType, Balance>>;
   tokenPrices: SpotPrices;
+  subscriptions: Record<string, Subscription>;
 };
 
 export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
@@ -33,6 +35,7 @@ export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
   signatures: {},
   assets: {},
   tokenPrices: {},
+  subscriptions: {},
 };
 
 export type StateConfig<TValue extends Record<string, Serializable>> = {
@@ -87,6 +90,7 @@ export class State<TStateValue extends Record<string, Serializable>>
   async getKey<TResponse extends Serializable>(
     key: string,
   ): Promise<TResponse | undefined> {
+    console.log('🐦‍🔥 getKey start', key);
     const value = await snap.request({
       method: 'snap_getState',
       params: {
@@ -94,6 +98,8 @@ export class State<TStateValue extends Record<string, Serializable>>
         encrypted: this.#config.encrypted,
       },
     });
+
+    console.log('🐦‍🔥 getKey value', value); // N'est pas log ???
 
     if (value === null) {
       return undefined;

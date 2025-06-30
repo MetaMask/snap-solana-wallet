@@ -1,6 +1,8 @@
+import type { WebSocketEvent } from '@metamask/snaps-sdk';
 import type { JsonRpcFailure } from '@metamask/utils';
 import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
 
+import { Network } from '../../core/constants/solana';
 import type {
   ConnectionManagerPort,
   SubscriberPort,
@@ -8,6 +10,7 @@ import type {
   SubscriptionRequest,
 } from '../../core/ports/subscriptions';
 import type { ILogger } from '../../core/utils/logger';
+import type { EventEmitter } from '../event-emitter';
 import type { SubscriptionRepository } from './SubscriptionRepository';
 import type { PendingSubscription } from './types';
 
@@ -17,7 +20,7 @@ import type { PendingSubscription } from './types';
  */
 type JsonRpcWebSocketSubscriptionConfirmation = {
   jsonrpc: string;
-  id: number;
+  id: string | number;
   result: number;
 };
 
@@ -36,6 +39,13 @@ type JsonRpcWebSocketNotification = {
 
 /**
  * Allows subscribing / unsubscribing from real-time notifications from the Solana blockchain using the [RPC WebSocket API](https://solana.com/docs/rpc/websocket).
+ *
+ * @example
+ * ```ts
+ * const subscriber = new SubscriberAdapter(...);
+ * await subscriber.subscribe(request, callbacks);
+ * await subscriber.unsubscribe(subscriptionId);
+ * ```
  */
 export class SubscriberAdapter implements SubscriberPort {
   readonly #connectionManager: ConnectionManagerPort;
@@ -44,7 +54,7 @@ export class SubscriberAdapter implements SubscriberPort {
 
   readonly #logger: ILogger;
 
-  #nextRequestId = 0;
+  readonly loggerPrefix = '[🔔 SubscriberAdapter]';
 
   // TODO: This is problematic because the subscriptions are persisted in the state, but not the callbacks.
   readonly #callbacks: Map<string, SubscriptionCallbacks> = new Map(); // subscription ID -> callbacks
@@ -52,11 +62,17 @@ export class SubscriberAdapter implements SubscriberPort {
   constructor(
     connectionManager: ConnectionManagerPort,
     subscriptionRepository: SubscriptionRepository,
+    eventEmitter: EventEmitter,
     logger: ILogger,
   ) {
     this.#connectionManager = connectionManager;
     this.#subscriptionRepository = subscriptionRepository;
     this.#logger = logger;
+
+    // When the extension starts, it has lost all its websockets, so we need to clear the subscriptions.
+    eventEmitter.on('onStart', this.#clearSubscriptions.bind(this));
+    eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
+    eventEmitter.on('onTestSubscription', this.#testSubscription.bind(this)); // DELETE: Test a subscription request onInstall
   }
 
   /**
@@ -73,14 +89,23 @@ export class SubscriberAdapter implements SubscriberPort {
     request: SubscriptionRequest,
     callbacks: SubscriptionCallbacks,
   ): Promise<string> {
+    this.#logger.info(
+      this.loggerPrefix,
+      `New subscription request`,
+      request,
+      callbacks,
+    );
+
     const { method, params, network } = request;
     const { onConnectionRecovery } = callbacks;
 
+    const id = this.#generateId();
+
     const pendingSubscription: PendingSubscription = {
       ...request,
-      id: globalThis.crypto.randomUUID(),
+      id,
       status: 'pending',
-      requestId: this.#nextRequestId,
+      requestId: id, // Use the same ID for the request and the subscription for easier lookup.
       createdAt: new Date().toISOString(),
     };
 
@@ -88,56 +113,63 @@ export class SubscriberAdapter implements SubscriberPort {
     // When it gets confirmed, we will update the status to 'active'.
     await this.#subscriptionRepository.save(pendingSubscription);
 
-    this.#callbacks.set(pendingSubscription.id, callbacks);
+    this.#callbacks.set(id, callbacks);
 
     // If the subscription has a connection recovery callback, register it with the connection manager.
     if (onConnectionRecovery) {
-      this.#connectionManager.onConnectionRecovery(onConnectionRecovery);
+      this.#connectionManager.onConnectionRecovery(
+        network,
+        onConnectionRecovery,
+      );
     }
+
     const connectionId =
-      this.#connectionManager.getConnectionIdByNetwork(network);
+      await this.#connectionManager.getConnectionIdByNetwork(network);
 
-    // If the connection is open, send the message immediately.
-    if (connectionId) {
-      this.#nextRequestId += 1;
-      const requestId = this.#nextRequestId;
-
+    const sendSubscriptionMessage = async (_connectionId: string) => {
       const message: JsonRpcRequest = {
         jsonrpc: '2.0',
-        id: requestId,
+        id,
         method,
         params,
       };
-
-      await this.#sendMessage(connectionId, message);
-    }
+      if (_connectionId) {
+        await this.#sendMessage(_connectionId, message);
+      }
+    };
 
     /**
-     * Register a callback that will re-subscribe when the connection is reestablished.
-     * Cover both cases:
+     * Register a callback that will send the message when the connection is reestablished. It covers both cases:
      * - The connection was lost then re-established -> we need to re-subscribe.
      * - The connection was not yet established, and we need to re-subscribe when it is established.
      */
-    this.#connectionManager.onConnectionRecovery(async () => {
+    this.#connectionManager.onConnectionRecovery(network, async () => {
       const futureConnectionId =
-        this.#connectionManager.getConnectionIdByNetwork(network);
-
+        await this.#connectionManager.getConnectionIdByNetwork(network);
       if (futureConnectionId) {
-        await this.subscribe(request, callbacks);
+        await sendSubscriptionMessage(futureConnectionId);
       }
     });
+
+    // If the connection is open, send the message immediately.
+    if (connectionId) {
+      await sendSubscriptionMessage(connectionId);
+    }
 
     return pendingSubscription.id;
   }
 
   async unsubscribe(subscriptionId: string): Promise<void> {
+    this.#logger.info(this.loggerPrefix, `Unsubscribing`, subscriptionId);
+
     // Attempt to find the subscription in the repository
     const subscription =
-      await this.#subscriptionRepository.findById(subscriptionId);
+      await this.#subscriptionRepository.getById(subscriptionId);
 
     if (!subscription) {
       this.#logger.warn(
-        `[${this.constructor.name}] Subscription not found: ${subscriptionId}`,
+        this.loggerPrefix,
+        `Subscription not found: ${subscriptionId}`,
       );
       return;
     }
@@ -147,12 +179,12 @@ export class SubscriberAdapter implements SubscriberPort {
     // If the subscription is active, we need to unsubscribe from the RPC and remove it from the active map.
     if (subscription.status === 'confirmed') {
       const connectionId =
-        this.#connectionManager.getConnectionIdByNetwork(network);
+        await this.#connectionManager.getConnectionIdByNetwork(network);
 
       if (connectionId) {
         await this.#sendMessage(connectionId, {
           jsonrpc: '2.0',
-          id: (this.#nextRequestId += 1),
+          id: this.#generateId(),
           method: unsubscribeMethod,
           params: [subscription.rpcSubscriptionId],
         });
@@ -163,40 +195,38 @@ export class SubscriberAdapter implements SubscriberPort {
     await this.#subscriptionRepository.delete(id);
   }
 
-  async handleMessage(connectionId: string, messageData: any): Promise<void> {
+  async #handleWebSocketEvent(message: WebSocketEvent): Promise<void> {
+    // We only care about actual messages, not open or close events.
+    if (message.type !== 'message') {
+      return;
+    }
+
+    this.#logger.info(this.loggerPrefix, `Received message`, message);
+
     try {
+      const { data } = message;
       let parsedMessage: any;
 
       // Handle SIP-20 message format
-      if (
-        messageData &&
-        typeof messageData === 'object' &&
-        'type' in messageData
-      ) {
+      if (data && typeof data === 'object' && 'type' in data) {
         // This is already a SIP-20 formatted message data
-        if (messageData.type === 'text') {
+        if (data.type === 'text') {
           parsedMessage =
-            typeof messageData.message === 'string'
-              ? JSON.parse(messageData.message)
-              : messageData.message;
-        } else if (messageData.type === 'binary') {
+            typeof data.message === 'string'
+              ? JSON.parse(data.message)
+              : data.message;
+        } else if (data.type === 'binary') {
           // Convert binary message to string and parse
-          const binaryArray = messageData.message as number[];
+          const binaryArray = data.message;
           const messageString = String.fromCharCode(...binaryArray);
           parsedMessage = JSON.parse(messageString);
         } else {
-          this.#logger.warn(
-            `[${this.constructor.name}] Unknown message data type:`,
-            messageData.type,
-          );
+          this.#logger.warn(this.loggerPrefix, `Unknown message data`, data);
           return;
         }
       } else {
         // Fallback for direct message parsing
-        parsedMessage =
-          typeof messageData === 'string'
-            ? JSON.parse(messageData)
-            : messageData;
+        parsedMessage = typeof data === 'string' ? JSON.parse(data) : data;
       }
 
       if (this.#isNotification(parsedMessage)) {
@@ -207,10 +237,7 @@ export class SubscriberAdapter implements SubscriberPort {
         await this.#handleFailure(parsedMessage);
       }
     } catch (error) {
-      this.#logger.error(
-        `[${this.constructor.name}] Failed to handle message:`,
-        error,
-      );
+      this.#logger.error(this.loggerPrefix, `Failed to handle message`, error);
     }
   }
 
@@ -224,7 +251,12 @@ export class SubscriberAdapter implements SubscriberPort {
     connectionId: string,
     message: JsonRpcRequest,
   ): Promise<void> {
-    console.log('Sending message:', message);
+    this.#logger.info(
+      this.loggerPrefix,
+      `Sending message to connection ${connectionId}`,
+      message,
+    );
+
     await snap.request({
       method: 'snap_sendWebSocketMessage',
       params: {
@@ -266,14 +298,15 @@ export class SubscriberAdapter implements SubscriberPort {
   ): Promise<void> {
     const { subscription: rpcSubscriptionId, result } = notification.params;
 
-    const subscription =
-      await this.#subscriptionRepository.findByRpcSubscriptionId(
-        rpcSubscriptionId,
-      );
+    const subscription = await this.#subscriptionRepository.findBy(
+      'rpcSubscriptionId',
+      rpcSubscriptionId,
+    );
 
     if (!subscription) {
       this.#logger.warn(
-        `[${this.constructor.name}] Received a notification, but no matching active subscription found for RPC ID: ${rpcSubscriptionId}. It might be still pending confirmation.`,
+        this.loggerPrefix,
+        `Received a notification, but no matching confirmed subscription found for RPC subscription ID: ${rpcSubscriptionId}.`,
       );
 
       return;
@@ -281,13 +314,19 @@ export class SubscriberAdapter implements SubscriberPort {
 
     try {
       const callbacks = this.#callbacks.get(subscription.id);
-
-      if (callbacks?.onNotification) {
-        await callbacks.onNotification(result);
+      if (!callbacks) {
+        this.#logger.warn(
+          this.loggerPrefix,
+          `Received a notification, but no matching callbacks found for subscription ID: ${subscription.id}.`,
+        );
+        return;
       }
+
+      await callbacks.onNotification(result);
     } catch (error) {
       this.#logger.error(
-        `[${this.constructor.name}] Error in subscription callback for ${rpcSubscriptionId}:`,
+        this.loggerPrefix,
+        `Error in subscription callback for ${rpcSubscriptionId}:`,
         error,
       );
     }
@@ -296,21 +335,24 @@ export class SubscriberAdapter implements SubscriberPort {
   async #handleSubscriptionConfirmation(
     message: JsonRpcWebSocketSubscriptionConfirmation,
   ): Promise<void> {
-    const requestId = message.id;
-    const rpcSubscriptionId = message.result;
-    const subscription =
-      await this.#subscriptionRepository.findByRequestId(requestId);
+    const { id: requestId, result: rpcSubscriptionId } = message; // request ID and subscription ID are the same
+
+    const subscription = await this.#subscriptionRepository.getById(
+      String(requestId),
+    );
 
     if (!subscription) {
       this.#logger.warn(
-        `[${this.constructor.name}] Received subscription confirmation, but no matching pending subscription found for request ID: ${requestId}.`,
+        this.loggerPrefix,
+        `Received subscription confirmation, but no matching pending subscription found for subscription ID: ${requestId}.`,
       );
       return;
     }
 
     if (subscription.status === 'confirmed') {
       this.#logger.warn(
-        `[${this.constructor.name}] Received subscription confirmation, but the subscription is already confirmed for request ID: ${requestId}.`,
+        this.loggerPrefix,
+        `Received subscription confirmation, but the subscription is already confirmed for request ID: ${requestId}.`,
       );
       return;
     }
@@ -323,7 +365,8 @@ export class SubscriberAdapter implements SubscriberPort {
     });
 
     this.#logger.info(
-      `[${this.constructor.name}] Subscription confirmed: request ID: ${requestId} -> RPC ID: ${rpcSubscriptionId}`,
+      this.loggerPrefix,
+      `Subscription confirmed: request ID: ${requestId} -> RPC ID: ${rpcSubscriptionId}`,
     );
   }
 
@@ -376,22 +419,19 @@ export class SubscriberAdapter implements SubscriberPort {
    * @param response - The response to handle.
    */
   async #handleFailure(response: JsonRpcFailure): Promise<void> {
-    if (
-      'id' in response &&
-      response.id !== undefined &&
-      typeof response.id === 'number'
-    ) {
+    if ('id' in response && response.id !== undefined) {
       // This is a response to a specific subscription request, expect the error to be related to a pending subscription.
-      const subscription = await this.#subscriptionRepository.findByRequestId(
-        response.id,
+      const subscription = await this.#subscriptionRepository.getById(
+        String(response.id),
       );
 
       if (subscription?.status === 'pending') {
-        // The subscription request failed. We can remove it from the repository.
+        // The subscription request failed. We can remove the pending subscription from the repository.
         await this.#subscriptionRepository.delete(subscription.id);
 
         this.#logger.error(
-          `[${this.constructor.name}] Subscription establishment failed for ${subscription.id}:`,
+          this.loggerPrefix,
+          `Subscription establishment failed for ${subscription.id}:`,
           response.error,
         );
 
@@ -411,97 +451,60 @@ export class SubscriberAdapter implements SubscriberPort {
       } else {
         // Could be an error response to an unsubscribe request or other operation
         this.#logger.error(
-          `[${this.constructor.name}] Received error for request ID: ${response.id}`,
+          this.loggerPrefix,
+          `Received error for request ID: ${response.id}`,
           response.error,
         );
       }
     } else {
       // Connection-level error - doesn't affect individual subscriptions
       this.#logger.error(
-        `[${this.constructor.name}] Connection-level error:`,
+        this.loggerPrefix,
+        `Connection-level error:`,
         response.error,
       );
     }
   }
 
-  //   async #handleConnection(
-  //     connectionId: string,
-  //     event: 'connect',
-  //   ): Promise<void> {
-  //     this.#logger.info(
-  //       `[${this.constructor.name}] Handling connection event: ${event} for ${connectionId}`,
-  //     );
-
-  //     /**
-  //      * Note that this happens for ALL 'connect' events: the initial one as well as subsequent ones after a disconnection.
-  //      * This also allows for requesting subscriptions BEFORE the initial connection is even established, preventing potential startup race conditions.
-  //      */
-  //     await this.#recoverSubscriptions(connectionId);
-  //   }
+  async #clearSubscriptions(): Promise<void> {
+    this.#logger.info(this.loggerPrefix, `Clearing subscriptions`);
+    await this.#subscriptionRepository.deleteAll();
+  }
 
   /**
-   * TODO: I think we don't need this.
-   * Re-establishes all subscriptions.
-   * @param connectionId - The ID of the connection to recover the subscriptions for.
+   * DELETE: Temporary method to test a subscription.
    */
-  async #recoverSubscriptions(connectionId: string): Promise<void> {
-    this.#logger.info(
-      `[${this.constructor.name}] Recovering subscriptions after reconnection`,
-    );
+  async #testSubscription(): Promise<void> {
+    const subscriptionRequest: SubscriptionRequest = {
+      method: 'accountSubscribe',
+      unsubscribeMethod: 'accountUnsubscribe',
+      network: Network.Mainnet,
+      params: [
+        '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC', // LUKAzPV8dDbVykTVT14pCGKzFfNcgZgRbAXB8AGdKx3
+        { commitment: 'confirmed' },
+      ],
+    };
 
-    // Collect all subscriptions that need to be re-established
-    const subscriptions = await this.#subscriptionRepository.getAll();
+    console.log('🧦 subscriptionRequest', subscriptionRequest);
 
-    // Re-establish all subscriptions
-    const recoveryPromises = subscriptions.map(async (subscription) => {
-      try {
-        const callbacks = this.#callbacks.get(subscription.id);
+    const callbacks: SubscriptionCallbacks = {
+      onNotification: async (message: any) => {
+        console.log('🧦 onNotification', message);
+      },
+      onSubscriptionFailed: async (error: any) => {
+        console.log('🧦 onSubscriptionFailed', error);
+      },
+      onConnectionRecovery: async () => {
+        console.log('🧦 onConnectionRecovery');
+      },
+    };
 
-        if (!callbacks) {
-          throw new Error(
-            `No callbacks found for subscription ${subscription.id}`,
-          );
-        }
+    console.log('🧦 callbacks', callbacks);
 
-        await this.subscribe(subscription, callbacks);
+    await this.subscribe(subscriptionRequest, callbacks);
+  }
 
-        return { status: 'fulfilled', subscription };
-      } catch (error) {
-        this.#logger.error(
-          `[${this.constructor.name}] Failed to recover subscription ${subscription.id}:`,
-          error,
-        );
-        return { status: 'rejected', subscription, error };
-      }
-    });
-
-    const results = await Promise.allSettled(recoveryPromises);
-
-    // Log summary
-    const successful = results.filter(
-      (item) => item.status === 'fulfilled' && item.value.subscription,
-    ).length;
-
-    this.#logger.info(
-      `[${this.constructor.name}] Recovery complete: ${successful}/${subscriptions.length} subscriptions recovered`,
-    );
-
-    // // Clear existing state since all subscriptions are now invalid
-    // this.#activeSubscriptions.clear();
-    // this.#subscriptionIdsLookup.clear();
-    // this.#pendingSubscriptions.clear();
-
-    // TODO: DO THIS BEFORE RECOVERING SUBSCRIPTIONS???
-    // Call recovery callbacks
-    // for (const callback of this.#connectionRecoveryCallbacks) {
-    //   try {
-    //     await callback();
-    //   } catch (error) {
-    //     this.#logger.error(
-    //       '[WebSocketJsonRpcSubscriptionAdapter] Error in connection recovery callback:',
-    //       error,
-    //     );
-    //   }
-    // }
+  #generateId(): string {
+    return globalThis.crypto.randomUUID();
   }
 }

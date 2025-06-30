@@ -8,9 +8,11 @@ import type {
   OnAssetsLookupHandler,
   OnClientRequestHandler,
   OnCronjobHandler,
+  OnInstallHandler,
   OnKeyringRequestHandler,
   OnProtocolRequestHandler,
   OnStartHandler,
+  OnUpdateHandler,
   OnUserInputHandler,
   OnWebSocketEventHandler,
 } from '@metamask/snaps-sdk';
@@ -42,10 +44,9 @@ import { eventHandlers as transactionConfirmationEvents } from './features/send/
 import { installPolyfills } from './infrastructure/polyfills';
 import snapContext, {
   clientRequestHandler,
+  eventEmitter,
   keyring,
-  startHandler,
   state,
-  webSocketEventHandler,
 } from './snapContext';
 
 installPolyfills();
@@ -272,7 +273,15 @@ export const onClientRequest: OnClientRequestHandler = async ({ request }) => {
 };
 
 export const onWebSocketEvent: OnWebSocketEventHandler = async ({ event }) =>
-  withCatchAndThrowSnapError(async () => webSocketEventHandler.handle(event));
+  withCatchAndThrowSnapError(async () =>
+    eventEmitter.emit('onWebSocketEvent', event),
+  );
 
 export const onStart: OnStartHandler = async () =>
-  withCatchAndThrowSnapError(async () => startHandler.handle());
+  withCatchAndThrowSnapError(async () => eventEmitter.emit('onStart'));
+
+export const onUpdate: OnUpdateHandler = async () =>
+  withCatchAndThrowSnapError(async () => eventEmitter.emit('onUpdate'));
+
+export const onInstall: OnInstallHandler = async () =>
+  withCatchAndThrowSnapError(async () => eventEmitter.emit('onInstall'));
