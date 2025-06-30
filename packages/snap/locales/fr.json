@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Solde insuffisant"
     },
+    "send.simulationTitleAPIError": {
+      "message": "En raison d’une erreur, nous n’avons pas pu vérifier les alertes de sécurité."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Ne continuez que si vous faites confiance à toutes les adresses concernées."
+    },
     "send.simulationTitleError": {
       "message": "La simulation de la transaction a échoué"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Confirmer"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Demande de transaction"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Inconnu"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "Impossible d’estimer les frais"
+    },
+    "confirmation.origin": {
+      "message": "Demande de la part de"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Cette transaction a été annulée pendant la simulation."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Un site vous demande de vous connecter pour prouver que vous êtes le titulaire de ce compte."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Demande de la part de"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Domaine inconnu"
@@ -231,6 +249,21 @@
     },
     "confirmation.signIn.resources": {
       "message": "Ressources"
+    },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "Un compte avec la même adresse existe déjà."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "Le compte ne dispose pas de suffisamment de SOL pour effectuer l’opération."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "La transaction a été annulée, car la tolérance de slippage a été dépassée."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

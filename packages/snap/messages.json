@@ -82,6 +82,7 @@
   "confirmation.signIn.notBefore": "Not before",
   "confirmation.signIn.requestId": "Request ID",
   "confirmation.signIn.resources": "Resources",
+  "confirmation.signIn.badDomain": "This site is asking you to sign in using the wrong domain.",
   "transactionScan.errors.accountAlreadyInUse": "An account with the same address already exists.",
   "transactionScan.errors.insufficientSol": "Account does not have enough SOL to perform the operation.",
   "transactionScan.errors.slippageToleranceExceeded": "The transaction was reverted because the slippage tolerance was exceeded.",

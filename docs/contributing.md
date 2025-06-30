@@ -6,7 +6,7 @@ Thank you for your interest in contributing to the Snap Solana Wallet project! T
 
 - [MetaMask Flask](https://consensyssoftware.atlassian.net/wiki/x/IQCOB10) is required for testing the snap locally
 - [NVM](https://github.com/creationix/nvm) to manage Node.js and avoid compatibility issues between different projects
-- Node.js `21.7.3` as specified in `.nvmrc`
+- Node.js `v22.17.0` as specified in `.nvmrc`
 - Yarn `3.8.6` is required due to MetaMask package compatibility
 
 ## 🚀 Quick Start

@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "कम बैलेंस"
     },
+    "send.simulationTitleAPIError": {
+      "message": "किसी गड़बड़ी (एरर) के कारण, हम सुरक्षा एलर्ट की जांच नहीं कर सके।"
+    },
+    "send.simulationMessageAPIError": {
+      "message": "केवल तभी आगे बढ़ें जब आपको शामिल प्रत्येक एड्रेस पर भरोसा हो।"
+    },
     "send.simulationTitleError": {
       "message": "ट्रांसेक्शन सिमुलेशन विफल रहा"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "कन्फर्म करें"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "ट्रांसेक्शन रिक्वेस्ट"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "अज्ञात"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "फीस का अनुमान लगाने में अक्षम"
+    },
+    "confirmation.origin": {
+      "message": "इनसे मिला अनुरोध"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "सिमुलेशन के दौरान ये ट्रांसेक्शन वापस कर दिया गया।"
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "एक साइट चाहती है कि आप यह साबित करने के लिए साइन इन करें कि यह अकाउंट आपका है।"
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "इनसे मिला अनुरोध"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "अज्ञात डोमेन"
@@ -231,6 +249,21 @@
     },
     "confirmation.signIn.resources": {
       "message": "संसाधन"
+    },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "An account with the same address already exists."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "Account does not have enough SOL to perform the operation."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "ट्रांसेक्शन को वापस कर दिया गया क्योंकि स्लिपेज (slippage) टॉलरेंस की सीमा पार हो गई थी।"
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }
