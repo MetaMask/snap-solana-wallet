@@ -121,7 +121,7 @@ export const SendForm = ({
     isBalanceDefined &&
     !buildingTransaction &&
     isTransactionMessageSuccessfullyBuild;
-  console.log('fromAccountId', fromAccountId);
+
   return (
     <Container backgroundColor="alternative">
       <Box>
