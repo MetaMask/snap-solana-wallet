@@ -166,7 +166,7 @@ describe('Send', () => {
     mockSolanaRpc.shutdown();
   });
 
-  it.only('renders the send form', async () => {
+  it('renders the send form', async () => {
     const { mockResolvedResult, server } = mockSolanaRpc;
 
     // temporary mock for the token prices
@@ -177,8 +177,14 @@ describe('Send', () => {
 
     const initialState = {
       keyringAccounts: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: MOCK_SOLANA_KEYRING_ACCOUNT_1,
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          entropySource: 'default',
+        },
+        [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: {
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
+          entropySource: 'alternative',
+        },
       },
       assets: {
         [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
