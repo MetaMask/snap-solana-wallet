@@ -146,7 +146,21 @@ export class TransactionScanService {
   }
 
   #getSecurityAlertDescription(validation: TransactionScanValidation): string {
-    return `Security alert: ${validation?.reason}`;
+    // Reference: https://docs.blockaid.io/reference/response-reference-solana
+    const reasonDescriptions: Record<string, string> = {
+      unfair_trade: 'Unfair trade of assets, without adequate compensation to the owner\'s account',
+      transfer_farming: 'Substantial transfer of the account\'s assets to untrusted entities',
+      writable_accounts_farming: 'Transaction exposes unused writable account, can be utilized in BIT-FLIP attacks patterns',
+      native_ownership_change: 'The account transferred ownership of its native SOL to untrusted entities',
+      spl_token_ownership_change: 'The account transferred ownership of its SPL tokens to untrusted entities',
+      exposure_farming: 'The account delegates ownership, thereby exposing its assets to untrusted spenders',
+      known_attacker: 'A known attacker\'s account is involved in the transaction',
+      invalid_signature: 'One of the transactions provided contains non valid signatures, that can lead misleading simulation results',
+      honeypot: 'The account invests funds in a token that is part of an orchestrated honeypot scheme',
+      other: 'The transaction was marked as malicious for other reason, further details would be described in features field',
+    };
+  
+    return reasonDescriptions[validation.reason] || `Security alert: ${validation.reason}`;
   }
 
   #mapScan(
