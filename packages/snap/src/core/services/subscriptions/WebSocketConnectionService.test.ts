@@ -159,7 +159,7 @@ describe('WebSocketConnectionService', () => {
       expect(mockWebSocketConnectionRepository.delete).not.toHaveBeenCalled();
     });
 
-    it('clears the connection recovery callbacks for the closed networks', async () => {
+    it('clears associated recovery callbacks when closing a connection', async () => {
       // Initially, we have a connection for Mainnet
       const mockConnection = createMockWebSocketConnection();
       jest
