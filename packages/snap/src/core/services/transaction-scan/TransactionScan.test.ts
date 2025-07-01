@@ -10,39 +10,39 @@ import { TransactionScanService } from './TransactionScan';
 import { ScanStatus, SecurityAlertResponse } from './types';
 
 describe('TransactionScan', () => {
+  let transactionScanService: TransactionScanService;
+  let mockSecurityAlertsApiClient: SecurityAlertsApiClient;
+  let mockLogger: ILogger;
+  let mockTokenMetadataService: TokenMetadataService;
+  let mockAnalyticsService: AnalyticsService;
+
+  beforeEach(() => {
+    mockTokenMetadataService = {
+      generateImageComponent: jest.fn().mockResolvedValue(null),
+    } as unknown as TokenMetadataService;
+
+    mockSecurityAlertsApiClient = {
+      scanTransactions: jest.fn().mockResolvedValue({}),
+    } as unknown as SecurityAlertsApiClient;
+
+    mockLogger = {
+      error: jest.fn(),
+    } as unknown as ILogger;
+
+    mockAnalyticsService = {
+      trackEventSecurityScanCompleted: jest.fn().mockResolvedValue(undefined),
+      trackEventSecurityAlertDetected: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AnalyticsService;
+
+    transactionScanService = new TransactionScanService(
+      mockSecurityAlertsApiClient,
+      mockTokenMetadataService,
+      mockAnalyticsService,
+      mockLogger,
+    );
+  });
+
   describe('scanTransaction', () => {
-    let transactionScanService: TransactionScanService;
-    let mockSecurityAlertsApiClient: SecurityAlertsApiClient;
-    let mockLogger: ILogger;
-    let mockTokenMetadataService: TokenMetadataService;
-    let mockAnalyticsService: AnalyticsService;
-
-    beforeEach(() => {
-      mockTokenMetadataService = {
-        generateImageComponent: jest.fn().mockResolvedValue(null),
-      } as unknown as TokenMetadataService;
-
-      mockSecurityAlertsApiClient = {
-        scanTransactions: jest.fn().mockResolvedValue({}),
-      } as unknown as SecurityAlertsApiClient;
-
-      mockLogger = {
-        error: jest.fn(),
-      } as unknown as ILogger;
-
-      mockAnalyticsService = {
-        trackEventSecurityScanCompleted: jest.fn().mockResolvedValue(undefined),
-        trackEventSecurityAlertDetected: jest.fn().mockResolvedValue(undefined),
-      } as unknown as AnalyticsService;
-
-      transactionScanService = new TransactionScanService(
-        mockSecurityAlertsApiClient,
-        mockTokenMetadataService,
-        mockAnalyticsService,
-        mockLogger,
-      );
-    });
-
     it('scans a transaction', async () => {
       jest
         .spyOn(mockSecurityAlertsApiClient, 'scanTransactions')
@@ -221,38 +221,6 @@ describe('TransactionScan', () => {
   });
 
   describe('getSecurityAlertDescription', () => {
-    let transactionScanService: TransactionScanService;
-    let mockSecurityAlertsApiClient: SecurityAlertsApiClient;
-    let mockLogger: ILogger;
-    let mockTokenMetadataService: TokenMetadataService;
-    let mockAnalyticsService: AnalyticsService;
-
-    beforeEach(() => {
-      mockTokenMetadataService = {
-        generateImageComponent: jest.fn().mockResolvedValue(null),
-      } as unknown as TokenMetadataService;
-
-      mockSecurityAlertsApiClient = {
-        scanTransactions: jest.fn().mockResolvedValue({}),
-      } as unknown as SecurityAlertsApiClient;
-
-      mockLogger = {
-        error: jest.fn(),
-      } as unknown as ILogger;
-
-      mockAnalyticsService = {
-        trackEventSecurityScanCompleted: jest.fn().mockResolvedValue(undefined),
-        trackEventSecurityAlertDetected: jest.fn().mockResolvedValue(undefined),
-      } as unknown as AnalyticsService;
-
-      transactionScanService = new TransactionScanService(
-        mockSecurityAlertsApiClient,
-        mockTokenMetadataService,
-        mockAnalyticsService,
-        mockLogger,
-      );
-    });
-
     it('returns correct description for known reasons', async () => {
       const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
 

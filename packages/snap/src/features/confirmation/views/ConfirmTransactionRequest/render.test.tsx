@@ -158,8 +158,13 @@ describe('render', () => {
 
       const screen1 = await (response as any).getInterface();
 
+      const expectedContext = {
+        ...mockConfirmationContext,
+        preferences: mockPreferences,
+      };
+
       expect(screen1).toRender(
-        <ConfirmTransactionRequest context={mockConfirmationContext} />,
+        <ConfirmTransactionRequest context={expectedContext} />,
       );
     });
   });
