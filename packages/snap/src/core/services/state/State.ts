@@ -89,7 +89,6 @@ export class State<TStateValue extends Record<string, Serializable>>
   async getKey<TResponse extends Serializable>(
     key: string,
   ): Promise<TResponse | undefined> {
-    console.log('🐦‍🔥 getKey start', key);
     const value = await snap.request({
       method: 'snap_getState',
       params: {
@@ -97,8 +96,6 @@ export class State<TStateValue extends Record<string, Serializable>>
         encrypted: this.#config.encrypted,
       },
     });
-
-    console.log('🐦‍🔥 getKey value', value); // N'est pas log ???
 
     if (value === null) {
       return undefined;
