@@ -75,27 +75,34 @@ export class TransactionScanService {
 
       // The security scan is completed
       if (account) {
-        await this.#analyticsService.trackEventSecurityScanCompleted(
-          account,
-          transaction,
-          origin,
-          scope,
-          scan?.status as ScanStatus,
-          scan?.validation?.type !== SecurityAlertResponse.Benign,
-        );
-
-        // And the alert is detected
-        if (scan?.validation?.type !== SecurityAlertResponse.Benign) {
-          await this.#analyticsService.trackEventSecurityAlertDetected(
+        const analyticsPromises = [
+          this.#analyticsService.trackEventSecurityScanCompleted(
             account,
             transaction,
             origin,
             scope,
-            scan?.validation?.type as SecurityAlertResponse,
-            scan?.validation?.reason,
-            this.#getSecurityAlertDescription(scan?.validation),
+            scan?.status as ScanStatus,
+            scan?.validation?.type !== SecurityAlertResponse.Benign,
+          ),
+        ];
+
+        // And the alert is detected
+        if (scan?.validation?.type !== SecurityAlertResponse.Benign) {
+          analyticsPromises.push(
+            this.#analyticsService.trackEventSecurityAlertDetected(
+              account,
+              transaction,
+              origin,
+              scope,
+              scan?.validation?.type as SecurityAlertResponse,
+              scan?.validation?.reason,
+              this.#getSecurityAlertDescription(scan?.validation),
+            ),
           );
         }
+
+        // Run all analytics calls in parallel
+        await Promise.all(analyticsPromises);
       }
 
       if (!scan?.estimatedChanges?.assets) {

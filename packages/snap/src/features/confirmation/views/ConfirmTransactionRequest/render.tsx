@@ -10,10 +10,8 @@ import {
   showDialog,
   updateInterface,
 } from '../../../../core/utils/interface';
-import {
-  extractInstructionsFromUnknownBase64String,
-  SolanaKeyringAccount,
-} from '../../../../entities';
+import type { SolanaKeyringAccount } from '../../../../entities';
+import { extractInstructionsFromUnknownBase64String } from '../../../../entities';
 import {
   connection,
   priceApiClient,
