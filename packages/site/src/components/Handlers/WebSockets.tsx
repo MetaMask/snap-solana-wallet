@@ -13,7 +13,7 @@ export const WebSockets = () => {
     showToasterForResponse(
       { result: 'ok' },
       {
-        title: 'WebSocket connection initiated',
+        title: 'Initiated WebSocket connections to all active networks',
         description: `Inspect the offscreen console`,
       },
     );
