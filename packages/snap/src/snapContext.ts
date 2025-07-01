@@ -119,7 +119,9 @@ const transactionScanService = new TransactionScanService(
 
 const confirmationHandler = new ConfirmationHandler();
 
-const webSocketConnectionRepository = new WebSocketConnectionRepository();
+const webSocketConnectionRepository = new WebSocketConnectionRepository(
+  configProvider,
+);
 
 const webSocketConnectionService = new WebSocketConnectionService(
   webSocketConnectionRepository,

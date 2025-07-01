@@ -55,7 +55,9 @@ export type SubscriptionCallbacks = {
   onConnectionRecovery?: () => Promise<void>;
 };
 
-export type WebSocketConnection = GetWebSocketsResult[number];
+export type WebSocketConnection = GetWebSocketsResult[number] & {
+  readonly network: Network;
+};
 
 /**
  * Once the Subscriber acknowledges the subscription request,
