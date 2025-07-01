@@ -9,6 +9,59 @@ export const MOCK_SECURITY_ALERTS_API_SCAN_TRANSACTIONS_RESPONSE = {
   result: {
     simulation: {
       assets_diff: {
+        BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP: [
+          {
+            asset_type: 'SOL',
+            asset: {
+              type: 'SOL',
+              decimals: 9,
+              logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
+            },
+            in: null,
+            out: {
+              usd_price: 0.37655198219999997,
+              summary: 'Lost approximately 0.38$',
+              value: 0.002160615,
+              raw_value: 2160615,
+            },
+          },
+          {
+            asset_type: 'TOKEN',
+            asset: {
+              address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+              type: 'TOKEN',
+              decimals: 6,
+            },
+            in: null,
+            out: {
+              usd_price: 0.9998669999999998,
+              summary: 'Lost approximately 1.0$',
+              value: 1,
+              raw_value: 1000000,
+            },
+          },
+          {
+            asset_type: 'TOKEN',
+            asset: {
+              address: 'HaMv3cdfDW6357yjpDur6kb6w52BUPJrMJpR76tjpump',
+              symbol: 'COBIE',
+              name: 'COBIE THE BUILDER',
+              logo: 'https://ipfs.io/ipfs/QmdWCVHoMvtDCAbgajnzAP7ZBNeBo9RgtkbqE4rJZWGYGq',
+              type: 'TOKEN',
+              decimals: 6,
+            },
+            in: {
+              usd_price: null,
+              summary: 'Gained approximately 202344.646927',
+              value: 202344.646927,
+              raw_value: 202344646927,
+            },
+            out: null,
+          },
+        ],
         '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P': [
           {
             asset_type: 'SOL',
