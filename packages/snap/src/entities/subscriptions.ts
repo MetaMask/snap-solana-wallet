@@ -15,11 +15,14 @@ export type SubscriptionRequest = {
 
 export type Connection = GetWebSocketsResult[number];
 
-// After we generate our client-side ID
+/**
+ * Once the Subscriber acknowledges the subscription request,
+ * it generates a subscrption ID, and the subscription is pending (waiting for the confirmation message).
+ */
 export type PendingSubscription = SubscriptionRequest & {
-  readonly id: string; // Our generated UUID
+  readonly id: string;
   readonly status: 'pending';
-  readonly requestId: string | number; // JSON-RPC request ID
+  readonly requestId: string; // Same a the field `id`
   readonly createdAt: string; // ISO string
 };
 
