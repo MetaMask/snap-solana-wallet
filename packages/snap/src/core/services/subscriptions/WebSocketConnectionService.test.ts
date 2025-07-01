@@ -2,7 +2,7 @@ import type { WebSocketConnection } from '../../../entities';
 import { EventEmitter } from '../../../infrastructure';
 import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../config';
-import type { Config, NetworkWithRpcUrls } from '../config/ConfigProvider';
+import type { Config, NetworkConfig } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
 import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
 import { WebSocketConnectionService } from './WebSocketConnectionService';
@@ -42,7 +42,7 @@ describe('WebSocketConnectionService', () => {
       caip2Id: Network.Localnet,
       webSocketUrl: 'wss://some-mock-url4.com/ws/v3/some-id',
     },
-  ] as NetworkWithRpcUrls[];
+  ] as NetworkConfig[];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -67,7 +67,7 @@ describe('WebSocketConnectionService', () => {
       }),
       getNetworkBy: jest.fn().mockImplementation((key, value) => {
         return mockNetworksConfig.find(
-          (item) => item[key as keyof NetworkWithRpcUrls] === value,
+          (item) => item[key as keyof NetworkConfig] === value,
         );
       }),
     } as unknown as ConfigProvider;

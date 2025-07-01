@@ -5,7 +5,7 @@ import type { EventEmitter } from '../../../infrastructure';
 import { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
-import type { NetworkWithRpcUrls } from '../config/ConfigProvider';
+import type { NetworkConfig } from '../config/ConfigProvider';
 import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
 
 /**
@@ -331,7 +331,7 @@ export class WebSocketConnectionService {
    * @param webSocketUrl - The WebSocket URL to get the network for.
    * @returns The network, or null if no network is associated with the connection ID.
    */
-  #findNetworkByWebSocketUrl(webSocketUrl: string): NetworkWithRpcUrls | null {
+  #findNetworkByWebSocketUrl(webSocketUrl: string): NetworkConfig | null {
     return this.#configProvider.getNetworkBy('webSocketUrl', webSocketUrl);
   }
 }

@@ -50,14 +50,14 @@ const EnvStruct = object({
 
 export type Env = Infer<typeof EnvStruct>;
 
-export type NetworkWithRpcUrls = (typeof Networks)[Network] & {
+export type NetworkConfig = (typeof Networks)[Network] & {
   rpcUrls: string[];
   webSocketUrl: string;
 };
 
 export type Config = {
   environment: string;
-  networks: NetworkWithRpcUrls[];
+  networks: NetworkConfig[];
   activeNetworks: Network[];
   explorerBaseUrl: string;
   priceApi: {
@@ -188,10 +188,7 @@ export class ConfigProvider {
     return this.#config;
   }
 
-  public getNetworkBy(
-    key: keyof NetworkWithRpcUrls,
-    value: string,
-  ): NetworkWithRpcUrls {
+  public getNetworkBy(key: keyof NetworkConfig, value: string): NetworkConfig {
     const network = this.get().networks.find((item) => item[key] === value);
     if (!network) {
       throw new Error(`Network ${key} not found`);
