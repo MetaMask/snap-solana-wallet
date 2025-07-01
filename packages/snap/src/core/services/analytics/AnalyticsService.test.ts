@@ -5,8 +5,8 @@ import type { Transaction } from '@metamask/keyring-api';
 import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
-import { AnalyticsService } from './AnalyticsService';
 import { ScanStatus, SecurityAlertResponse } from '../transaction-scan/types';
+import { AnalyticsService } from './AnalyticsService';
 
 const mockSnapRequest = jest.fn();
 const snap = {
@@ -298,7 +298,8 @@ describe('AnalyticsService', () => {
     it('tracks security alert detected event', async () => {
       const securityAlertResponse = SecurityAlertResponse.Warning;
       const securityAlertReason = 'transfer_farming';
-      const securityAlertDescription = 'Substantial transfer of the account\'s assets to untrusted entities';
+      const securityAlertDescription =
+        "Substantial transfer of the account's assets to untrusted entities";
 
       await analyticsService.trackEventSecurityAlertDetected(
         mockAccount,

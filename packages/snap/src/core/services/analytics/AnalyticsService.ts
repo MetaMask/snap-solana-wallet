@@ -4,9 +4,12 @@ import { assert } from '@metamask/superstruct';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { Network, TransactionMetadata } from '../../constants/solana';
+import type {
+  ScanStatus,
+  SecurityAlertResponse,
+} from '../transaction-scan/types';
 import logger from '../../utils/logger';
 import { Base64Struct } from '../../validation/structs';
-import { ScanStatus, SecurityAlertResponse } from '../transaction-scan/types';
 
 /**
  * Service for tracking events related to transactions.
@@ -174,9 +177,9 @@ export class AnalyticsService {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event security alert detected`,
     );
-  
+
     assert(base64EncodedTransaction, Base64Struct);
-  
+
     await snap.request({
       method: 'snap_trackEvent',
       params: {
@@ -197,7 +200,7 @@ export class AnalyticsService {
       },
     });
   }
-  
+
   async trackEventSecurityScanCompleted(
     account: SolanaKeyringAccount,
     base64EncodedTransaction: string,
@@ -209,9 +212,9 @@ export class AnalyticsService {
     this.#logger.log(
       `[📣 AnalyticsService] Tracking event security scan completed`,
     );
-  
+
     assert(base64EncodedTransaction, Base64Struct);
-  
+
     await snap.request({
       method: 'snap_trackEvent',
       params: {
