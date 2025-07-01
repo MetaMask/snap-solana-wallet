@@ -58,6 +58,12 @@ export class ConnectionManagerAdapter implements ConnectionManagerPort {
     eventEmitter.on('onInstall', this.setupAllConnections.bind(this));
 
     eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
+
+    // Temporary bind to enable manual testing from the test dapp
+    eventEmitter.on(
+      'onTestSetupAllConnections',
+      this.setupAllConnections.bind(this),
+    );
   }
 
   async setupAllConnections(): Promise<void> {

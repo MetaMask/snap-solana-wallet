@@ -71,7 +71,12 @@ export class SubscriberAdapter implements SubscriberPort {
     // When the extension starts, it has lost all its websockets, so we need to clear the subscriptions.
     eventEmitter.on('onStart', this.#clearSubscriptions.bind(this));
     eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
-    eventEmitter.on('onTestSubscription', this.#testSubscription.bind(this)); // DELETE: Test a subscription request onInstall
+
+    // Temporary bind to enable manual testing from the test dapp
+    eventEmitter.on(
+      'onTestSubscribeToAccount',
+      this.#testSubscribeToAccount.bind(this),
+    );
   }
 
   /**
@@ -473,7 +478,7 @@ export class SubscriberAdapter implements SubscriberPort {
   /**
    * DELETE: Temporary method to test a subscription.
    */
-  async #testSubscription(): Promise<void> {
+  async #testSubscribeToAccount(): Promise<void> {
     const subscriptionRequest: SubscriptionRequest = {
       method: 'accountSubscribe',
       unsubscribeMethod: 'accountUnsubscribe',
@@ -484,21 +489,23 @@ export class SubscriberAdapter implements SubscriberPort {
       ],
     };
 
-    console.log('🧦 subscriptionRequest', subscriptionRequest);
+    this.#logger.info(
+      this.loggerPrefix,
+      `Testing subscription`,
+      subscriptionRequest,
+    );
 
     const callbacks: SubscriptionCallbacks = {
       onNotification: async (message: any) => {
-        console.log('🧦 onNotification', message);
+        this.#logger.info(this.loggerPrefix, `onNotification`, message);
       },
       onSubscriptionFailed: async (error: any) => {
-        console.log('🧦 onSubscriptionFailed', error);
+        this.#logger.info(this.loggerPrefix, `onSubscriptionFailed`, error);
       },
       onConnectionRecovery: async () => {
-        console.log('🧦 onConnectionRecovery');
+        this.#logger.info(this.loggerPrefix, `onConnectionRecovery`);
       },
     };
-
-    console.log('🧦 callbacks', callbacks);
 
     await this.subscribe(subscriptionRequest, callbacks);
   }

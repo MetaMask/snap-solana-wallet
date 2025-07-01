@@ -1,0 +1,68 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Button, Card, Flex } from '@chakra-ui/react';
+
+import { TestDappRpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
+import { useInvokeSnap } from '../../hooks';
+import { useShowToasterForResponse } from '../../hooks/useToasterForResponse';
+
+export const WebSockets = () => {
+  const invokeSnap = useInvokeSnap();
+  const { showToasterForResponse } = useShowToasterForResponse();
+
+  const setupAllConnections = async () => {
+    showToasterForResponse(
+      { result: 'ok' },
+      {
+        title: 'WebSocket connection initiated',
+        description: `Inspect the offscreen console`,
+      },
+    );
+
+    await invokeSnap({
+      method: TestDappRpcRequestMethod.TestSetupAllConnections,
+    });
+  };
+
+  const subscribeToAccount = async () => {
+    await invokeSnap({
+      method: TestDappRpcRequestMethod.TestSubscribeToAccount,
+    });
+
+    showToasterForResponse(
+      { result: 'ok' },
+      {
+        title:
+          'Initiated subscription to account 8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+        description: `Inspect the offscreen console`,
+      },
+    );
+  };
+
+  return (
+    <Card.Root>
+      <Card.Header>
+        <Card.Title>WebSockets</Card.Title>
+      </Card.Header>
+      <Card.Body gap="2">
+        <Flex>
+          <Button
+            variant="outline"
+            onClick={setupAllConnections}
+            marginRight="1"
+          >
+            Setup All Connections
+          </Button>
+        </Flex>
+        <Flex>
+          <Button
+            variant="outline"
+            onClick={subscribeToAccount}
+            marginRight="1"
+          >
+            Subscribe to account
+          </Button>
+        </Flex>
+      </Card.Body>
+    </Card.Root>
+  );
+};
