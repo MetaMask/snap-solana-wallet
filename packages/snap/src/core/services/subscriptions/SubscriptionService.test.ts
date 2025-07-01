@@ -1,19 +1,17 @@
 import type { WebSocketMessage } from '@metamask/snaps-sdk';
 
-import { Network } from '../../core/constants/solana';
-import type {
-  ConnectionManagerPort,
-  SubscriptionCallbacks,
-} from '../../core/ports';
-import { mockLogger } from '../../core/services/mocks/logger';
 import type {
   ConfirmedSubscription,
   PendingSubscription,
+  SubscriptionCallbacks,
   SubscriptionRequest,
-} from '../../entities';
-import { EventEmitter } from '../event-emitter';
-import { SubscriberAdapter } from './SubscriberAdapter';
+} from '../../../entities';
+import { EventEmitter } from '../../../infrastructure';
+import { Network } from '../../constants/solana';
+import { mockLogger } from '../mocks/logger';
 import type { SubscriptionRepository } from './SubscriptionRepository';
+import { SubscriptionService } from './SubscriptionService';
+import type { WebSocketConnectionService } from './WebSocketConnectionService';
 
 const createMockSubscriptionRequest = (
   method = 'some-method',
@@ -124,9 +122,9 @@ const triggerConnectionRecoveryCallbacks = async (
   );
 };
 
-describe('SubscriberAdapter', () => {
-  let subscriptionManager: SubscriberAdapter;
-  let mockConnectionManager: ConnectionManagerPort;
+describe('SubscriptionService', () => {
+  let service: SubscriptionService;
+  let mockWebSocketConnectionService: WebSocketConnectionService;
   let mockSubscriptionRepository: SubscriptionRepository;
   let mockEventEmitter: EventEmitter;
   let loggerScope: string;
@@ -142,11 +140,11 @@ describe('SubscriberAdapter', () => {
     };
     (globalThis as any).snap = snap;
 
-    mockConnectionManager = {
+    mockWebSocketConnectionService = {
       getConnectionIdByNetwork: jest.fn().mockReturnValue(mockConnectionId),
       onConnectionRecovery: jest.fn(),
       handleConnectionEvent: jest.fn(),
-    } as unknown as ConnectionManagerPort;
+    } as unknown as WebSocketConnectionService;
 
     mockSubscriptionRepository = {
       getAll: jest.fn(),
@@ -159,14 +157,14 @@ describe('SubscriberAdapter', () => {
 
     mockEventEmitter = new EventEmitter(mockLogger);
 
-    subscriptionManager = new SubscriberAdapter(
-      mockConnectionManager,
+    service = new SubscriptionService(
+      mockWebSocketConnectionService,
       mockSubscriptionRepository,
       mockEventEmitter,
       mockLogger,
     );
 
-    loggerScope = subscriptionManager.loggerPrefix;
+    loggerScope = service.loggerPrefix;
   });
 
   describe('subscribe', () => {
@@ -174,7 +172,7 @@ describe('SubscriberAdapter', () => {
       const request = createMockSubscriptionRequest();
       const callbacks = createMockSubscriptionCallbacks();
 
-      await subscriptionManager.subscribe(request, callbacks);
+      await service.subscribe(request, callbacks);
 
       expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -187,12 +185,11 @@ describe('SubscriberAdapter', () => {
       const request = createMockSubscriptionRequest();
       const callbacks = createMockSubscriptionCallbacks();
 
-      await subscriptionManager.subscribe(request, callbacks);
+      await service.subscribe(request, callbacks);
 
-      expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
-        request.network,
-        callbacks.onConnectionRecovery,
-      );
+      expect(
+        mockWebSocketConnectionService.onConnectionRecovery,
+      ).toHaveBeenCalledWith(request.network, callbacks.onConnectionRecovery);
     });
 
     describe('when the connection is open', () => {
@@ -201,10 +198,7 @@ describe('SubscriberAdapter', () => {
         const request = createMockSubscriptionRequest();
         const callbacks = createMockSubscriptionCallbacks();
 
-        const subscriptionId = await subscriptionManager.subscribe(
-          request,
-          callbacks,
-        );
+        const subscriptionId = await service.subscribe(request, callbacks);
 
         expect(snap.request).toHaveBeenCalledWith({
           method: 'snap_sendWebSocketMessage',
@@ -226,7 +220,7 @@ describe('SubscriberAdapter', () => {
 
   describe('unsubscribe', () => {
     it('does nothing when the subscription does not exist', async () => {
-      await subscriptionManager.unsubscribe('some-inexistent-id');
+      await service.unsubscribe('some-inexistent-id');
 
       // There was no subscription so there shouldn't be a call to unsubscribe.
       expect(snap.request).not.toHaveBeenCalled();
@@ -248,7 +242,7 @@ describe('SubscriberAdapter', () => {
         .mockResolvedValue(mockConfirmedSubscription);
 
       // Unsubscribe
-      await subscriptionManager.unsubscribe('some-subscription-id');
+      await service.unsubscribe('some-subscription-id');
 
       // Verify unsubscribe was called
       expect(snap.request).toHaveBeenCalledWith({
@@ -289,10 +283,7 @@ describe('SubscriberAdapter', () => {
           request = createMockSubscriptionRequest();
           callbacks = createMockSubscriptionCallbacks();
 
-          const subscriptionId = await subscriptionManager.subscribe(
-            request,
-            callbacks,
-          );
+          const subscriptionId = await service.subscribe(request, callbacks);
 
           const confirmationMessage = createMockConfirmationMessage(
             subscriptionId,
@@ -377,10 +368,7 @@ describe('SubscriberAdapter', () => {
         beforeEach(async () => {
           request = createMockSubscriptionRequest();
           callbacks = createMockSubscriptionCallbacks();
-          subscriptionId = await subscriptionManager.subscribe(
-            request,
-            callbacks,
-          );
+          subscriptionId = await service.subscribe(request, callbacks);
 
           pendingSubscription = {
             ...request,
@@ -455,10 +443,7 @@ describe('SubscriberAdapter', () => {
           beforeEach(async () => {
             request = createMockSubscriptionRequest(); // request ID is 2 (request ID 1 was for opening the connection), hence why we createMockFailure with 2 as first argument
             callbacks = createMockSubscriptionCallbacks();
-            subscriptionId = await subscriptionManager.subscribe(
-              request,
-              callbacks,
-            );
+            subscriptionId = await service.subscribe(request, callbacks);
 
             const pendingSubscription: PendingSubscription = {
               ...request,
@@ -555,7 +540,7 @@ describe('SubscriberAdapter', () => {
       connectionRecoveryCallbacks = new Map();
 
       jest
-        .spyOn(mockConnectionManager, 'onConnectionRecovery')
+        .spyOn(mockWebSocketConnectionService, 'onConnectionRecovery')
         .mockImplementation((network, callback) => {
           connectionRecoveryCallbacks.set(network, [
             ...(connectionRecoveryCallbacks.get(network) ?? []),
@@ -568,17 +553,14 @@ describe('SubscriberAdapter', () => {
       it('saves the subscription request, and sends it once the connection is opened', async () => {
         // Mock the getConnectionIdByNetwork to simulate connection state changes
         jest
-          .spyOn(mockConnectionManager, 'getConnectionIdByNetwork')
+          .spyOn(mockWebSocketConnectionService, 'getConnectionIdByNetwork')
           .mockResolvedValue(null)
           .mockResolvedValueOnce(null) // First call returns null (no connection)
           .mockResolvedValueOnce(mockConnectionId); // Second call returns connection ID
 
         const request = createMockSubscriptionRequest();
         const callbacks = createMockSubscriptionCallbacks();
-        const subscriptionId = await subscriptionManager.subscribe(
-          request,
-          callbacks,
-        );
+        const subscriptionId = await service.subscribe(request, callbacks);
 
         const pendingSubscription: PendingSubscription = {
           ...request,
@@ -595,10 +577,9 @@ describe('SubscriberAdapter', () => {
         expect(snap.request).not.toHaveBeenCalled();
 
         // Verify that the connection recovery callback was registered
-        expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
-          mockNetwork,
-          expect.any(Function),
-        );
+        expect(
+          mockWebSocketConnectionService.onConnectionRecovery,
+        ).toHaveBeenCalledWith(mockNetwork, expect.any(Function));
         expect(connectionRecoveryCallbacks.get(mockNetwork)).toHaveLength(2); // 1 for the subscription's connection recovery callback, 1 for retrying the subscription request
         expect(connectionRecoveryCallbacks.get(mockNetwork)?.[0]).toBe(
           callbacks.onConnectionRecovery,
@@ -606,7 +587,7 @@ describe('SubscriberAdapter', () => {
 
         // Now, let's establish the connection
         jest
-          .spyOn(mockConnectionManager, 'getConnectionIdByNetwork')
+          .spyOn(mockWebSocketConnectionService, 'getConnectionIdByNetwork')
           .mockResolvedValue(mockConnectionId);
 
         // Send the connection event
@@ -640,12 +621,11 @@ describe('SubscriberAdapter', () => {
         const request = createMockSubscriptionRequest();
         const callbacks = createMockSubscriptionCallbacks();
 
-        await subscriptionManager.subscribe(request, callbacks);
+        await service.subscribe(request, callbacks);
 
-        expect(mockConnectionManager.onConnectionRecovery).toHaveBeenCalledWith(
-          mockNetwork,
-          callbacks.onConnectionRecovery,
-        );
+        expect(
+          mockWebSocketConnectionService.onConnectionRecovery,
+        ).toHaveBeenCalledWith(mockNetwork, callbacks.onConnectionRecovery);
       });
     });
 
@@ -653,10 +633,7 @@ describe('SubscriberAdapter', () => {
       it('re-sends the subscription request when the connection is reestablished', async () => {
         const request = createMockSubscriptionRequest();
         const callbacks = createMockSubscriptionCallbacks();
-        const subscriptionId = await subscriptionManager.subscribe(
-          request,
-          callbacks,
-        );
+        const subscriptionId = await service.subscribe(request, callbacks);
 
         const pendingSubscription: PendingSubscription = {
           ...request,
@@ -722,10 +699,7 @@ describe('SubscriberAdapter', () => {
       it('re-sends the subscription request when the connection is reestablished', async () => {
         const request = createMockSubscriptionRequest();
         const callbacks = createMockSubscriptionCallbacks();
-        const subscriptionId = await subscriptionManager.subscribe(
-          request,
-          callbacks,
-        );
+        const subscriptionId = await service.subscribe(request, callbacks);
 
         const pendingSubscription: PendingSubscription = {
           ...request,

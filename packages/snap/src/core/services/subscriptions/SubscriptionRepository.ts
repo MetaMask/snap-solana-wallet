@@ -1,10 +1,10 @@
-import type { IStateManager } from '../../core/services/state/IStateManager';
-import type { UnencryptedStateValue } from '../../core/services/state/State';
 import type {
   ConfirmedSubscription,
   PendingSubscription,
   Subscription,
-} from '../../entities';
+} from '../../../entities';
+import type { IStateManager } from '../state/IStateManager';
+import type { UnencryptedStateValue } from '../state/State';
 
 export class SubscriptionRepository {
   readonly #state: IStateManager<UnencryptedStateValue>;

@@ -1,13 +1,12 @@
 import type { WebSocketEvent } from '@metamask/snaps-sdk';
 import { difference } from 'lodash';
 
-import { Network } from '../../core/constants/solana';
-import type { ConnectionManagerPort } from '../../core/ports';
-import type { ConfigProvider } from '../../core/services/config';
-import type { NetworkWithRpcUrls } from '../../core/services/config/ConfigProvider';
-import type { ILogger } from '../../core/utils/logger';
-import type { EventEmitter } from '../event-emitter';
-import type { ConnectionRepository } from './ConnectionRepository';
+import type { EventEmitter } from '../../../infrastructure';
+import { Network } from '../../constants/solana';
+import type { ILogger } from '../../utils/logger';
+import type { ConfigProvider } from '../config';
+import type { NetworkWithRpcUrls } from '../config/ConfigProvider';
+import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
 
 /**
  * Manages WebSocket connections for different Solana networks, providing robust connection
@@ -21,14 +20,14 @@ import type { ConnectionRepository } from './ConnectionRepository';
  * - Processes WebSocket connection events (connect, disconnect, error) and triggers appropriate recovery mechanisms
  * - Converts HTTP RPC URLs to WebSocket URLs for subscription endpoints
  */
-export class ConnectionManagerAdapter implements ConnectionManagerPort {
+export class WebSocketConnectionService {
   readonly #configProvider: ConfigProvider;
 
-  readonly #connectionRepository: ConnectionRepository;
+  readonly #connectionRepository: WebSocketConnectionRepository;
 
   readonly #logger: ILogger;
 
-  readonly #loggerPrefix = '[🔌 ConnectionManagerAdapter]';
+  readonly #loggerPrefix = '[🔌 WebSocketConnectionService]';
 
   readonly #maxReconnectAttempts: number;
 
@@ -38,7 +37,7 @@ export class ConnectionManagerAdapter implements ConnectionManagerPort {
     new Map();
 
   constructor(
-    connectionRepository: ConnectionRepository,
+    connectionRepository: WebSocketConnectionRepository,
     configProvider: ConfigProvider,
     eventEmitter: EventEmitter,
     logger: ILogger,
@@ -66,6 +65,12 @@ export class ConnectionManagerAdapter implements ConnectionManagerPort {
     );
   }
 
+  /**
+   * Sets up connections for all networks.
+   * - Opens the connections for all enabled networks that are not already open.
+   * - Closes the connections for all disabled networks.
+   * @returns A promise that resolves when the connections are setup.
+   */
   async setupAllConnections(): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `Setting up all connections`);
 
@@ -201,6 +206,11 @@ export class ConnectionManagerAdapter implements ConnectionManagerPort {
     }
   }
 
+  /**
+   * Registers a callback to be called when connection is recovered.
+   * @param network - The network to register the callback for.
+   * @param callback - The callback function to register.
+   */
   onConnectionRecovery(network: Network, callback: () => Promise<void>): void {
     const existingCallbacks =
       this.#connectionRecoveryCallbacks.get(network) ?? [];
@@ -211,6 +221,11 @@ export class ConnectionManagerAdapter implements ConnectionManagerPort {
     ]);
   }
 
+  /**
+   * Gets the connection ID for the specified network.
+   * @param network - The network to get the connection ID for.
+   * @returns The connection ID, or null if no connection exists for the network.
+   */
   async getConnectionIdByNetwork(network: Network): Promise<string | null> {
     const wsUrl = this.#getWebSocketUrl(network);
     const connection = await this.#connectionRepository.findByUrl(wsUrl);

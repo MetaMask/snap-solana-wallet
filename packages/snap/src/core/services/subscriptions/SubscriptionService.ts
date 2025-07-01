@@ -2,16 +2,16 @@ import type { WebSocketEvent } from '@metamask/snaps-sdk';
 import type { JsonRpcFailure } from '@metamask/utils';
 import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
 
-import { Network } from '../../core/constants/solana';
 import type {
-  ConnectionManagerPort,
-  SubscriberPort,
+  PendingSubscription,
   SubscriptionCallbacks,
-} from '../../core/ports';
-import type { ILogger } from '../../core/utils/logger';
-import type { PendingSubscription, SubscriptionRequest } from '../../entities';
-import type { EventEmitter } from '../event-emitter';
+  SubscriptionRequest,
+} from '../../../entities';
+import type { EventEmitter } from '../../../infrastructure';
+import { Network } from '../../constants/solana';
+import type { ILogger } from '../../utils/logger';
 import type { SubscriptionRepository } from './SubscriptionRepository';
+import type { WebSocketConnectionService } from './WebSocketConnectionService';
 
 /**
  * A message that we receive from the RPC WebSocket server after a subscription request,
@@ -41,30 +41,30 @@ type JsonRpcWebSocketNotification = {
  *
  * @example
  * ```ts
- * const subscriber = new SubscriberAdapter(...);
- * await subscriber.subscribe(request, callbacks);
- * await subscriber.unsubscribe(subscriptionId);
+ * const service = new SubscriptionService(...);
+ * await service.subscribe(request, callbacks);
+ * await service.unsubscribe(subscriptionId);
  * ```
  */
-export class SubscriberAdapter implements SubscriberPort {
-  readonly #connectionManager: ConnectionManagerPort;
+export class SubscriptionService {
+  readonly #connectionService: WebSocketConnectionService;
 
   readonly #subscriptionRepository: SubscriptionRepository;
 
   readonly #logger: ILogger;
 
-  readonly loggerPrefix = '[🔔 SubscriberAdapter]';
+  readonly loggerPrefix = '[🔔 SubscriptionService]';
 
   // TODO: This is problematic because the subscriptions are persisted in the state, but not the callbacks.
   readonly #callbacks: Map<string, SubscriptionCallbacks> = new Map(); // subscription ID -> callbacks
 
   constructor(
-    connectionManager: ConnectionManagerPort,
+    connectionService: WebSocketConnectionService,
     subscriptionRepository: SubscriptionRepository,
     eventEmitter: EventEmitter,
     logger: ILogger,
   ) {
-    this.#connectionManager = connectionManager;
+    this.#connectionService = connectionService;
     this.#subscriptionRepository = subscriptionRepository;
     this.#logger = logger;
 
@@ -121,14 +121,14 @@ export class SubscriberAdapter implements SubscriberPort {
 
     // If the subscription has a connection recovery callback, register it with the connection manager.
     if (onConnectionRecovery) {
-      this.#connectionManager.onConnectionRecovery(
+      this.#connectionService.onConnectionRecovery(
         network,
         onConnectionRecovery,
       );
     }
 
     const connectionId =
-      await this.#connectionManager.getConnectionIdByNetwork(network);
+      await this.#connectionService.getConnectionIdByNetwork(network);
 
     const sendSubscriptionMessage = async (_connectionId: string) => {
       const message: JsonRpcRequest = {
@@ -147,9 +147,9 @@ export class SubscriberAdapter implements SubscriberPort {
      * - The connection was lost then re-established -> we need to re-subscribe.
      * - The connection was not yet established, and we need to re-subscribe when it is established.
      */
-    this.#connectionManager.onConnectionRecovery(network, async () => {
+    this.#connectionService.onConnectionRecovery(network, async () => {
       const futureConnectionId =
-        await this.#connectionManager.getConnectionIdByNetwork(network);
+        await this.#connectionService.getConnectionIdByNetwork(network);
       if (futureConnectionId) {
         await sendSubscriptionMessage(futureConnectionId);
       }
@@ -183,7 +183,7 @@ export class SubscriberAdapter implements SubscriberPort {
     // If the subscription is active, we need to unsubscribe from the RPC and remove it from the active map.
     if (subscription.status === 'confirmed') {
       const connectionId =
-        await this.#connectionManager.getConnectionIdByNetwork(network);
+        await this.#connectionService.getConnectionIdByNetwork(network);
 
       if (connectionId) {
         await this.#sendMessage(connectionId, {

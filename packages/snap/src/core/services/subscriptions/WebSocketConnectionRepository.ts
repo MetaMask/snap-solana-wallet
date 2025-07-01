@@ -1,4 +1,4 @@
-import type { GetWebSocketsResult } from '@metamask/snaps-sdk';
+import type { WebSocketConnection } from '../../../entities';
 
 /**
  * Repository that is treating the Snap's WebSocket storage as a persistent data store, where:
@@ -8,25 +8,21 @@ import type { GetWebSocketsResult } from '@metamask/snaps-sdk';
  *
  * It also tracks bidirectional mappings between the connection ID and the URL to perform fast lookups.
  */
-export class ConnectionRepository {
-  async getAll(): Promise<GetWebSocketsResult> {
+export class WebSocketConnectionRepository {
+  async getAll(): Promise<WebSocketConnection[]> {
     return snap.request({
       method: 'snap_getWebSockets',
     });
   }
 
-  async getById(
-    connectionId: string,
-  ): Promise<GetWebSocketsResult[number] | null> {
+  async getById(id: string): Promise<WebSocketConnection | null> {
     const existingConnections = await this.getAll();
     return (
-      existingConnections.find(
-        (connection) => connection.id === connectionId,
-      ) ?? null
+      existingConnections.find((connection) => connection.id === id) ?? null
     );
   }
 
-  async findByUrl(url: string): Promise<GetWebSocketsResult[number] | null> {
+  async findByUrl(url: string): Promise<WebSocketConnection | null> {
     const existingConnections = await this.getAll();
 
     return (
@@ -54,12 +50,12 @@ export class ConnectionRepository {
 
   /**
    * Closes the connection with the specified ID.
-   * @param connectionId - The ID of the connection to close.
+   * @param id - The ID of the connection to close.
    */
-  async delete(connectionId: string) {
+  async delete(id: string) {
     await snap.request({
       method: 'snap_closeWebSocket',
-      params: { id: connectionId },
+      params: { id },
     });
   }
 }

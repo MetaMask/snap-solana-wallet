@@ -6,8 +6,13 @@ import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/Secu
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
 import { ClientRequestHandler } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
-import type { ConnectionManagerPort, SubscriberPort } from './core/ports';
 import type { Serializable } from './core/serialization/types';
+import {
+  SubscriptionRepository,
+  SubscriptionService,
+  WebSocketConnectionRepository,
+  WebSocketConnectionService,
+} from './core/services';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
@@ -26,13 +31,7 @@ import { WalletService } from './core/services/wallet/WalletService';
 import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
-import {
-  ConnectionManagerAdapter,
-  ConnectionRepository,
-  EventEmitter,
-  SubscriberAdapter,
-  SubscriptionRepository,
-} from './infrastructure';
+import { EventEmitter } from './infrastructure';
 
 /**
  * Initializes all the services using dependency injection.
@@ -57,9 +56,8 @@ export type SnapExecutionContext = {
   cache: ICache<Serializable>;
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
-  subscriptionConnectionManager: ConnectionManagerPort;
-  subscriber: SubscriberPort;
-  subscriptionRepository: SubscriptionRepository;
+  webSocketConnectionService: WebSocketConnectionService;
+  subscriptionService: SubscriptionService;
   eventEmitter: EventEmitter;
 };
 
@@ -120,10 +118,10 @@ const transactionScanService = new TransactionScanService(
 
 const confirmationHandler = new ConfirmationHandler();
 
-const subscriptionConnectionRepository = new ConnectionRepository();
+const webSocketConnectionRepository = new WebSocketConnectionRepository();
 
-const subscriptionConnectionManager = new ConnectionManagerAdapter(
-  subscriptionConnectionRepository,
+const webSocketConnectionService = new WebSocketConnectionService(
+  webSocketConnectionRepository,
   configProvider,
   eventEmitter,
   logger,
@@ -131,8 +129,8 @@ const subscriptionConnectionManager = new ConnectionManagerAdapter(
 
 const subscriptionRepository = new SubscriptionRepository(state);
 
-const subscriber = new SubscriberAdapter(
-  subscriptionConnectionManager,
+const subscriptionService = new SubscriptionService(
+  webSocketConnectionService,
   subscriptionRepository,
   eventEmitter,
   logger,
@@ -177,9 +175,8 @@ const snapContext: SnapExecutionContext = {
   confirmationHandler,
   nftService,
   clientRequestHandler,
-  subscriptionConnectionManager,
-  subscriber,
-  subscriptionRepository,
+  webSocketConnectionService,
+  subscriptionService,
   eventEmitter,
 };
 
@@ -197,9 +194,8 @@ export {
   sendSolBuilder,
   sendSplTokenBuilder,
   state,
-  subscriber,
-  subscriptionConnectionManager,
   subscriptionRepository,
+  subscriptionService,
   tokenMetadataClient,
   tokenMetadataService,
   tokenPricesService,
@@ -207,6 +203,7 @@ export {
   transactionScanService,
   transactionsService,
   walletService,
+  webSocketConnectionService,
 };
 
 export default snapContext;
