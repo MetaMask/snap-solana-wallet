@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Saldo insuficiente"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Debido a un error, no pudimos verificar las alertas de seguridad."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Continúa solo si confías en todas las direcciones involucradas."
+    },
     "send.simulationTitleError": {
       "message": "Simulación de transacción fallida"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Confirmar"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Solicitud de transacción"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Desconocida"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "No se puede calcular la tarifa"
+    },
+    "confirmation.origin": {
+      "message": "Solicitud de"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Esta transacción se revirtió durante la simulación."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Un sitio quiere que inicie sesión para demostrar que usted es el titular de esta cuenta."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Solicitud de"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Dominio desconocido"
@@ -231,6 +249,21 @@
     },
     "confirmation.signIn.resources": {
       "message": "Recursos"
+    },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "Ya existe una cuenta con la misma dirección."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "La cuenta no tiene suficiente SOL para realizar la operación."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "La transacción se revirtió porque se superó la tolerancia de deslizamiento."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

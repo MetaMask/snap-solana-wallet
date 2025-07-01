@@ -1,1 +1,1 @@
-export * from './polyfills';
+export * from './event-emitter';

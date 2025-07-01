@@ -5,7 +5,7 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
    * Gets the whole state object.
    *
    * ⚠️ WARNING: Use with caution because it transfers the whole state, which might contain a lot of data.
-   * If you need to retrieve only a specific part of the state, use {@link IStateManager.getKey} instead.
+   * If you need to retrieve only a specific part of the state, use IStateManager.getKey instead.
    *
    * @example
    * ```typescript

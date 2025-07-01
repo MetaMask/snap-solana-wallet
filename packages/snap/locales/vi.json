@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Không đủ số dư"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Đã xảy ra lỗi, do đó chúng tôi không thể kiểm tra các cảnh báo bảo mật."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Chỉ tiếp tục nếu bạn tin tưởng mọi địa chỉ liên quan."
+    },
     "send.simulationTitleError": {
       "message": "Mô phỏng giao dịch không thành công"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Xác nhận"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Yêu cầu giao dịch"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Không xác định"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "Không thể ước tính phí"
+    },
+    "confirmation.origin": {
+      "message": "Yêu cầu từ"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Giao dịch này đã được hoàn lại trong quá trình mô phỏng."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Yêu cầu từ"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Miền không xác định"
@@ -231,6 +249,21 @@
     },
     "confirmation.signIn.resources": {
       "message": "Tài nguyên"
+    },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "Đã tồn tại tài khoản với cùng địa chỉ này."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "Tài khoản không có đủ SOL để thực hiện tác vụ."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "Giao dịch đã được hoàn tác vì vượt quá ngưỡng trượt giá cho phép."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

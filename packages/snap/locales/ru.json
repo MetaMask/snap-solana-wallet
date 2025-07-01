@@ -52,6 +52,12 @@
     "send.insufficientBalance": {
       "message": "Недостаточный баланс"
     },
+    "send.simulationTitleAPIError": {
+      "message": "Из -за ошибки мы не смогли проверить наличие оповещений о безопасности."
+    },
+    "send.simulationMessageAPIError": {
+      "message": "Продолжайте только если вы доверяете каждому адресу."
+    },
     "send.simulationTitleError": {
       "message": "Моделирование транзакции не удалось"
     },
@@ -142,8 +148,14 @@
     "confirmation.confirmButton": {
       "message": "Подтвердить"
     },
-    "confirmation.title": {
+    "confirmation.signAndSendTransaction.title": {
       "message": "Запрос транзакции"
+    },
+    "confirmation.signTransaction.title": {
+      "message": "Signing request"
+    },
+    "confirmation.sendAndConfirmTransaction.title": {
+      "message": "Sending and confirming transaction"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Неизвестно"
@@ -159,6 +171,12 @@
     },
     "confirmation.feeError": {
       "message": "Невозможно оценить комиссию"
+    },
+    "confirmation.origin": {
+      "message": "Запрос от"
+    },
+    "confirmation.origin.tooltip": {
+      "message": "This is the site asking for your confirmation."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Эта транзакция была отменена во время моделирования."
@@ -190,8 +208,8 @@
     "confirmation.signIn.description": {
       "message": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета."
     },
-    "confirmation.signIn.requestFrom": {
-      "message": "Запрос от"
+    "confirmation.signIn.domain": {
+      "message": "Domain"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Неизвестный домен"
@@ -231,6 +249,21 @@
     },
     "confirmation.signIn.resources": {
       "message": "Ресурсы"
+    },
+    "confirmation.signIn.badDomain": {
+      "message": "This site is asking you to sign in using the wrong domain."
+    },
+    "transactionScan.errors.accountAlreadyInUse": {
+      "message": "Счет с тем же адресом уже существует."
+    },
+    "transactionScan.errors.insufficientSol": {
+      "message": "На счете недостаточно SOL для выполнения операции."
+    },
+    "transactionScan.errors.slippageToleranceExceeded": {
+      "message": "Транзакция возвращена, потому что толерантность к проскальзыванию превышена."
+    },
+    "transactionScan.errors.unknownError": {
+      "message": "An unknown error occurred."
     }
   }
 }

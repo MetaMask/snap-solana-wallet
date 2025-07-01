@@ -36,6 +36,10 @@ const EnvStruct = object({
   RPC_URL_DEVNET_LIST: CommaSeparatedListOfUrlsStruct,
   RPC_URL_TESTNET_LIST: CommaSeparatedListOfUrlsStruct,
   RPC_URL_LOCALNET_LIST: CommaSeparatedListOfStringsStruct,
+  RPC_WEB_SOCKET_URL_MAINNET: UrlStruct,
+  RPC_WEB_SOCKET_URL_DEVNET: UrlStruct,
+  RPC_WEB_SOCKET_URL_TESTNET: UrlStruct,
+  RPC_WEB_SOCKET_URL_LOCALNET: UrlStruct,
   EXPLORER_BASE_URL: UrlStruct,
   PRICE_API_BASE_URL: UrlStruct,
   TOKEN_API_BASE_URL: UrlStruct,
@@ -46,13 +50,14 @@ const EnvStruct = object({
 
 export type Env = Infer<typeof EnvStruct>;
 
-export type NetworkWithRpcUrls = (typeof Networks)[Network] & {
+export type NetworkConfig = (typeof Networks)[Network] & {
   rpcUrls: string[];
+  webSocketUrl: string;
 };
 
 export type Config = {
   environment: string;
-  networks: NetworkWithRpcUrls[];
+  networks: NetworkConfig[];
   activeNetworks: Network[];
   explorerBaseUrl: string;
   priceApi: {
@@ -71,6 +76,10 @@ export type Config = {
   };
   securityAlertsApi: {
     baseUrl: string;
+  };
+  subscription: {
+    maxReconnectAttempts: number;
+    reconnectDelayMilliseconds: number;
   };
 };
 
@@ -99,16 +108,15 @@ export class ConfigProvider {
       RPC_URL_DEVNET_LIST: process.env.RPC_URL_DEVNET_LIST,
       RPC_URL_TESTNET_LIST: process.env.RPC_URL_TESTNET_LIST,
       RPC_URL_LOCALNET_LIST: process.env.RPC_URL_LOCALNET_LIST,
+      RPC_WEB_SOCKET_URL_MAINNET: process.env.RPC_WEB_SOCKET_URL_MAINNET,
+      RPC_WEB_SOCKET_URL_DEVNET: process.env.RPC_WEB_SOCKET_URL_DEVNET,
+      RPC_WEB_SOCKET_URL_TESTNET: process.env.RPC_WEB_SOCKET_URL_TESTNET,
+      RPC_WEB_SOCKET_URL_LOCALNET: process.env.RPC_WEB_SOCKET_URL_LOCALNET,
       EXPLORER_BASE_URL: process.env.EXPLORER_BASE_URL,
-      // Price API
       PRICE_API_BASE_URL: process.env.PRICE_API_BASE_URL,
-      // Token API
       TOKEN_API_BASE_URL: process.env.TOKEN_API_BASE_URL,
-      // Static API
       STATIC_API_BASE_URL: process.env.STATIC_API_BASE_URL,
-      // Blockaid
-      SECURITY_ALERTS_API_BASE_URL: process.env.SECURITY_ALERTS_API_BASE_URL,
-      // Local API
+      SECURITY_ALERTS_API_BASE_URL: process.env.SECURITY_ALERTS_API_BASE_URL, // Blockaid
       LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL,
     };
 
@@ -123,18 +131,22 @@ export class ConfigProvider {
         {
           ...Networks[Network.Mainnet],
           rpcUrls: environment.RPC_URL_MAINNET_LIST,
+          webSocketUrl: environment.RPC_WEB_SOCKET_URL_MAINNET,
         },
         {
           ...Networks[Network.Devnet],
           rpcUrls: environment.RPC_URL_DEVNET_LIST,
+          webSocketUrl: environment.RPC_WEB_SOCKET_URL_DEVNET,
         },
         {
           ...Networks[Network.Testnet],
           rpcUrls: environment.RPC_URL_TESTNET_LIST,
+          webSocketUrl: environment.RPC_WEB_SOCKET_URL_TESTNET,
         },
         {
           ...Networks[Network.Localnet],
           rpcUrls: environment.RPC_URL_LOCALNET_LIST,
+          webSocketUrl: environment.RPC_WEB_SOCKET_URL_LOCALNET,
         },
       ],
       explorerBaseUrl: environment.EXPLORER_BASE_URL,
@@ -165,6 +177,10 @@ export class ConfigProvider {
             ? environment.LOCAL_API_BASE_URL
             : environment.SECURITY_ALERTS_API_BASE_URL,
       },
+      subscription: {
+        maxReconnectAttempts: 5,
+        reconnectDelayMilliseconds: 1000,
+      },
     };
   }
 
@@ -172,10 +188,7 @@ export class ConfigProvider {
     return this.#config;
   }
 
-  public getNetworkBy(
-    key: keyof NetworkWithRpcUrls,
-    value: string,
-  ): NetworkWithRpcUrls {
+  public getNetworkBy(key: keyof NetworkConfig, value: string): NetworkConfig {
     const network = this.get().networks.find((item) => item[key] === value);
     if (!network) {
       throw new Error(`Network ${key} not found`);

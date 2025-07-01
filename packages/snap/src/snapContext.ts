@@ -4,9 +4,15 @@ import { StateCache } from './core/caching/StateCache';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
-import { ClientRequestHandler } from './core/handlers/onClientRequest';
+import { ClientRequestHandler } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
+import {
+  SubscriptionRepository,
+  SubscriptionService,
+  WebSocketConnectionRepository,
+  WebSocketConnectionService,
+} from './core/services';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
@@ -25,6 +31,7 @@ import { WalletService } from './core/services/wallet/WalletService';
 import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
+import { EventEmitter } from './infrastructure';
 
 /**
  * Initializes all the services using dependency injection.
@@ -49,9 +56,15 @@ export type SnapExecutionContext = {
   cache: ICache<Serializable>;
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
+  webSocketConnectionService: WebSocketConnectionService;
+  subscriptionService: SubscriptionService;
+  eventEmitter: EventEmitter;
 };
 
 const configProvider = new ConfigProvider();
+
+const eventEmitter = new EventEmitter(logger);
+
 const state = new State({
   encrypted: false,
   defaultState: DEFAULT_UNENCRYPTED_STATE,
@@ -106,6 +119,24 @@ const transactionScanService = new TransactionScanService(
 
 const confirmationHandler = new ConfirmationHandler();
 
+const webSocketConnectionRepository = new WebSocketConnectionRepository();
+
+const webSocketConnectionService = new WebSocketConnectionService(
+  webSocketConnectionRepository,
+  configProvider,
+  eventEmitter,
+  logger,
+);
+
+const subscriptionRepository = new SubscriptionRepository(state);
+
+const subscriptionService = new SubscriptionService(
+  webSocketConnectionService,
+  subscriptionRepository,
+  eventEmitter,
+  logger,
+);
+
 const keyring = new SolanaKeyring({
   state,
   transactionsService,
@@ -145,6 +176,9 @@ const snapContext: SnapExecutionContext = {
   confirmationHandler,
   nftService,
   clientRequestHandler,
+  webSocketConnectionService,
+  subscriptionService,
+  eventEmitter,
 };
 
 export {
@@ -154,12 +188,15 @@ export {
   configProvider,
   confirmationHandler,
   connection,
+  eventEmitter,
   keyring,
   nftService,
   priceApiClient,
   sendSolBuilder,
   sendSplTokenBuilder,
   state,
+  subscriptionRepository,
+  subscriptionService,
   tokenMetadataClient,
   tokenMetadataService,
   tokenPricesService,
@@ -167,6 +204,7 @@ export {
   transactionScanService,
   transactionsService,
   walletService,
+  webSocketConnectionService,
 };
 
 export default snapContext;

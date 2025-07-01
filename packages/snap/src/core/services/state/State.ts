@@ -5,7 +5,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import type { Address, Signature } from '@solana/kit';
 import { unset } from 'lodash';
 
-import type { SolanaKeyringAccount } from '../../../entities';
+import type { SolanaKeyringAccount, Subscription } from '../../../entities';
 import type { SpotPrices } from '../../clients/price-api/types';
 import { deserialize } from '../../serialization/deserialize';
 import { serialize } from '../../serialization/serialize';
@@ -24,6 +24,7 @@ export type UnencryptedStateValue = {
   signatures: Record<Address, Signature[]>;
   assets: Record<AccountId, Record<CaipAssetType, Balance>>;
   tokenPrices: SpotPrices;
+  subscriptions: Record<string, Subscription>;
 };
 
 export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
@@ -33,6 +34,7 @@ export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
   signatures: {},
   assets: {},
   tokenPrices: {},
+  subscriptions: {},
 };
 
 export type StateConfig<TValue extends Record<string, Serializable>> = {

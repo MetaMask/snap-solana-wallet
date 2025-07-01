@@ -74,6 +74,7 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
   const signInAddressCaip10 = address ? addressToCaip10(scope, address) : null;
 
   const isBadAccount = signInAddressCaip10 !== accountAddressCaip10;
+  const isBadDomain = domain !== originHostname;
 
   return (
     <Container>
@@ -104,7 +105,15 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
               <Text>{originHostname}</Text>
             </Row>
           ) : null}
-          <Row label={translate('confirmation.signIn.domain')}>
+          <Row
+            variant={isBadDomain ? 'critical' : 'default'}
+            label={translate('confirmation.signIn.domain')}
+            tooltip={
+              isBadDomain
+                ? translate('confirmation.signIn.badDomain')
+                : undefined
+            }
+          >
             <Text>
               {domain ?? translate('confirmation.signIn.unknownDomain')}
             </Text>
@@ -212,7 +221,10 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
         <Button name={ConfirmSignInFormNames.Cancel}>
           {translate('confirmation.cancelButton')}
         </Button>
-        <Button name={ConfirmSignInFormNames.Confirm}>
+        <Button
+          name={ConfirmSignInFormNames.Confirm}
+          variant={isBadDomain ? 'destructive' : 'primary'}
+        >
           {translate('confirmation.confirmButton')}
         </Button>
       </Footer>

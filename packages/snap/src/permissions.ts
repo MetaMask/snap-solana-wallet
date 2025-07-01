@@ -2,7 +2,10 @@ import { KeyringRpcMethod } from '@metamask/keyring-api';
 
 import { ClientRequestMethod } from './core/handlers/onClientRequest';
 import { SolanaProtocolRequestMethod } from './core/handlers/onProtocolRequest/structs';
-import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
+import {
+  RpcRequestMethod,
+  TestDappRpcRequestMethod,
+} from './core/handlers/onRpcRequest/types';
 import { ConfigProvider } from './core/services/config/ConfigProvider';
 
 const prodOrigins = ['https://portfolio.metamask.io'];
@@ -33,6 +36,9 @@ const dappPermissions = isDev
       SolanaProtocolRequestMethod.GetLatestBlockhash,
       // Client methods
       ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
+      // Methods specific to the test dapp
+      TestDappRpcRequestMethod.TestSetupAllConnections,
+      TestDappRpcRequestMethod.TestSubscribeToAccount,
     ])
   : new Set([]);
 
