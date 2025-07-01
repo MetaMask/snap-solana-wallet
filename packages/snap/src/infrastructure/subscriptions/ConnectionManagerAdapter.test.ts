@@ -4,6 +4,7 @@ import type {
   Config,
   NetworkWithRpcUrls,
 } from '../../core/services/config/ConfigProvider';
+import { mockLogger } from '../../core/services/mocks/logger';
 import { EventEmitter } from '../event-emitter/EventEmitter';
 import { ConnectionManagerAdapter } from './ConnectionManagerAdapter';
 import type { ConnectionRepository } from './ConnectionRepository';
@@ -72,8 +73,6 @@ describe('ConnectionManagerAdapter', () => {
         );
       }),
     } as unknown as ConfigProvider;
-
-    const mockLogger = console;
 
     mockEventEmitter = new EventEmitter(mockLogger);
 
