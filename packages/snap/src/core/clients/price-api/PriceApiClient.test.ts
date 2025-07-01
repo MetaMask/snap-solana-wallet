@@ -264,7 +264,9 @@ describe('PriceApiClient', () => {
             mockFetch,
             mockLogger,
           ),
-      ).toThrow('URL must use http or https protocol');
+      ).toThrow(
+        'URL must use one of the following protocols: http:,https:,wss:',
+      );
     });
 
     it('rejects tokenCaip19Ids that are invalid or that include malicious inputs', async () => {

@@ -219,6 +219,7 @@ describe('SolanaKeyring', () => {
         metadata: {},
         tokenPrices: {},
         signatures: {},
+        subscriptions: {},
       });
       // Start with no accounts
       keyring = new SolanaKeyring({

@@ -1,7 +1,6 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
 import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
 import type {
-  GetClientStatusResult,
   Json,
   OnAssetHistoricalPriceHandler,
   OnAssetsConversionHandler,
