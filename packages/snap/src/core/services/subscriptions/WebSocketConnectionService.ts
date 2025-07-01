@@ -1,11 +1,11 @@
 import type { WebSocketEvent } from '@metamask/snaps-sdk';
 import { difference } from 'lodash';
 
+import type { WebSocketConnection } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
-import type { NetworkConfig } from '../config/ConfigProvider';
 import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
 
 /**
@@ -58,7 +58,6 @@ export class WebSocketConnectionService {
 
     eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
 
-    // Temporary bind to enable manual testing from the test dapp
     // Temporary binds to enable manual testing from the test dapp
     eventEmitter.on(
       'onTestSetupAllConnections',
@@ -85,9 +84,7 @@ export class WebSocketConnectionService {
     const connections = await this.#connectionRepository.getAll();
 
     const isConnectionOpen = (network: Network) =>
-      connections.some(
-        (connection) => connection.url === this.#getWebSocketUrl(network),
-      );
+      connections.some((connection) => connection.network === network);
 
     // Open the connections for the active networks that are not already open
     const openingPromises = activeNetworks
@@ -105,27 +102,28 @@ export class WebSocketConnectionService {
   /**
    * Opens a connection for the specified network.
    * @param network - The network to open a connection for.
-   * @returns A promise that resolves to the connection ID.
+   * @returns A promise that resolves to the connection.
    */
-  async #openConnection(network: Network): Promise<string> {
+  async #openConnection(network: Network): Promise<WebSocketConnection> {
     this.#logger.info(
       this.#loggerPrefix,
       `Opening connection for network ${network}`,
     );
 
     const networkConfig = this.#configProvider.getNetworkBy('caip2Id', network);
-
     const { webSocketUrl } = networkConfig;
-    if (!webSocketUrl) {
-      throw new Error(`No WebSocket URL found for network ${network}`);
-    }
 
-    // Check if the connection already exists
+    // Check if a connection already exists for this network
     const existingConnection =
-      await this.#connectionRepository.findByUrl(webSocketUrl);
+      await this.#connectionRepository.findByNetwork(network);
 
     if (existingConnection) {
-      return existingConnection.id;
+      this.#logger.info(
+        this.#loggerPrefix,
+        `Connection for network ${network} already exists`,
+        existingConnection,
+      );
+      return existingConnection;
     }
 
     let attempts = 0;
@@ -137,10 +135,13 @@ export class WebSocketConnectionService {
           `Opening connection for network ${network} to ${webSocketUrl} (attempt ${attempts + 1}/${this.#maxReconnectAttempts})`,
         );
 
-        const connectionId =
-          await this.#connectionRepository.save(webSocketUrl);
+        const connection = await this.#connectionRepository.save({
+          network,
+          url: webSocketUrl,
+          protocols: [],
+        });
 
-        return connectionId;
+        return connection;
       } catch (error) {
         attempts += 1;
 
@@ -171,6 +172,7 @@ export class WebSocketConnectionService {
 
   /**
    * Closes the connection for the specified network.
+   * This is an intentional close, not a disconnection, so it also removes the connection recovery callbacks for this network.
    * @param network - The network to close the connection for.
    */
   async #closeConnection(network: Network): Promise<void> {
@@ -179,13 +181,12 @@ export class WebSocketConnectionService {
       `Closing connection for network ${network}`,
     );
 
-    const webSocketUrl = this.#getWebSocketUrl(network);
     // Clean up the connection recovery callbacks for this network
     this.#connectionRecoveryCallbacks.delete(network);
 
     // Early return if the connection does not exist
     const existingConnection =
-      await this.#connectionRepository.findByUrl(webSocketUrl);
+      await this.#connectionRepository.findByNetwork(network);
 
     if (!existingConnection) {
       this.#logger.warn(
@@ -202,7 +203,7 @@ export class WebSocketConnectionService {
 
       this.#logger.info(
         this.#loggerPrefix,
-        `Closed connection ${connectionId}`,
+        ` ❌ Closed connection ${connectionId}`,
       );
     } catch (error) {
       this.#logger.error(
@@ -234,8 +235,7 @@ export class WebSocketConnectionService {
    * @returns The connection ID, or null if no connection exists for the network.
    */
   async getConnectionIdByNetwork(network: Network): Promise<string | null> {
-    const wsUrl = this.#getWebSocketUrl(network);
-    const connection = await this.#connectionRepository.findByUrl(wsUrl);
+    const connection = await this.#connectionRepository.findByNetwork(network);
 
     return connection?.id ?? null;
   }
@@ -258,16 +258,7 @@ export class WebSocketConnectionService {
       return;
     }
 
-    const network = this.#findNetworkByWebSocketUrl(connection.url)?.caip2Id;
-
-    if (!network) {
-      this.#logger.warn(
-        this.#loggerPrefix,
-        `No network found matching the URL of the connection`,
-        connection,
-      );
-      return;
-    }
+    const { network } = connection;
 
     this.#logger.info(
       this.#loggerPrefix,
@@ -321,29 +312,12 @@ export class WebSocketConnectionService {
   }
 
   /**
-   * Converts an HTTP RPC URL to a WebSocket URL.
-   * @param network - The network to get the WebSocket URL for.
-   * @returns The WebSocket URL.
    * Closes connections for all networks.
    * This is used to test the connection recovery mechanism.
    */
-  #getWebSocketUrl(network: Network): string {
-    const { webSocketUrl } = this.#configProvider.getNetworkBy(
-      'caip2Id',
-      network,
-    );
-    return webSocketUrl;
-  }
   async #closeAllConnections(): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `Closing all connections`);
 
-  /**
-   * Gets the network for the specified connection ID.
-   * @param webSocketUrl - The WebSocket URL to get the network for.
-   * @returns The network, or null if no network is associated with the connection ID.
-   */
-  #findNetworkByWebSocketUrl(webSocketUrl: string): NetworkConfig | null {
-    return this.#configProvider.getNetworkBy('webSocketUrl', webSocketUrl);
     const allNetworks = Object.values(Network);
 
     const closePromises = allNetworks.map(async (network) => {
