@@ -59,9 +59,14 @@ export class WebSocketConnectionService {
     eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
 
     // Temporary bind to enable manual testing from the test dapp
+    // Temporary binds to enable manual testing from the test dapp
     eventEmitter.on(
       'onTestSetupAllConnections',
       this.setupAllConnections.bind(this),
+    );
+    eventEmitter.on(
+      'onTestCloseAllConnections',
+      this.#closeAllConnections.bind(this),
     );
   }
 
@@ -317,6 +322,8 @@ export class WebSocketConnectionService {
    * Converts an HTTP RPC URL to a WebSocket URL.
    * @param network - The network to get the WebSocket URL for.
    * @returns The WebSocket URL.
+   * Closes connections for all networks.
+   * This is used to test the connection recovery mechanism.
    */
   #getWebSocketUrl(network: Network): string {
     const { webSocketUrl } = this.#configProvider.getNetworkBy(
@@ -325,6 +332,8 @@ export class WebSocketConnectionService {
     );
     return webSocketUrl;
   }
+  async #closeAllConnections(): Promise<void> {
+    this.#logger.info(this.#loggerPrefix, `Closing all connections`);
 
   /**
    * Gets the network for the specified connection ID.
@@ -333,5 +342,12 @@ export class WebSocketConnectionService {
    */
   #findNetworkByWebSocketUrl(webSocketUrl: string): NetworkConfig | null {
     return this.#configProvider.getNetworkBy('webSocketUrl', webSocketUrl);
+    const allNetworks = Object.values(Network);
+
+    const closePromises = allNetworks.map(async (network) => {
+      await this.#closeConnection(network);
+    });
+
+    await Promise.allSettled(closePromises);
   }
 }

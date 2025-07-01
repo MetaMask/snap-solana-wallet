@@ -23,6 +23,18 @@ export const WebSockets = () => {
     });
   };
 
+  const closeAllConnections = async () => {
+    showToasterForResponse(
+      { result: 'ok' },
+      {
+        title: 'Closed all WebSocket connections',
+      },
+    );
+    await invokeSnap({
+      method: TestDappRpcRequestMethod.TestCloseAllConnections,
+    });
+  };
+
   const subscribeToAccount = async () => {
     await invokeSnap({
       method: TestDappRpcRequestMethod.TestSubscribeToAccount,
@@ -51,6 +63,13 @@ export const WebSockets = () => {
             marginRight="1"
           >
             Setup All Connections
+          </Button>
+          <Button
+            variant="outline"
+            onClick={closeAllConnections}
+            marginRight="1"
+          >
+            Close All Connections
           </Button>
         </Flex>
         <Flex>
