@@ -1,5 +1,6 @@
-/* eslint-disable no-void */
 import type { ILogger } from '../../core/utils/logger';
+
+type Listener = (data?: any) => Promise<void>;
 
 /**
  * The EventEmitter class is a simple event emitter that allows to register listeners / callbacks for events and emit events.
@@ -19,8 +20,7 @@ export class EventEmitter {
 
   readonly #loggerPrefix = '[⚡ EventEmitter]';
 
-  readonly #listeners: Map<string, Set<(data?: any) => Promise<void>>> =
-    new Map();
+  readonly #listeners: Map<string, Set<Listener>> = new Map();
 
   constructor(logger: ILogger) {
     this.#logger = logger;
@@ -31,7 +31,7 @@ export class EventEmitter {
    * @param event - The event to listen to.
    * @param listener - The listener to call when the event is emitted.
    */
-  on(event: string, listener: (data?: any) => Promise<void>) {
+  on(event: string, listener: Listener) {
     this.#logger.info(this.#loggerPrefix, `Adding listener for event ${event}`);
 
     if (!this.#listeners.has(event)) {
@@ -46,7 +46,7 @@ export class EventEmitter {
    * @param event - The event to remove the listener for.
    * @param listener - The listener to remove.
    */
-  off(event: string, listener: (data?: any) => Promise<void>) {
+  off(event: string, listener: Listener) {
     this.#logger.info(
       this.#loggerPrefix,
       `Removing listener for event ${event}`,
@@ -75,9 +75,8 @@ export class EventEmitter {
     const listeners = this.#listeners.get(event);
 
     if (listeners) {
-      // Execute all listeners concurrently
-      const promises = Array.from(listeners).map(async (listener) =>
-        listener(data),
+      const promises = Array.from(listeners).map(
+        async (listener) => await listener(data),
       );
       await Promise.allSettled(promises);
     }

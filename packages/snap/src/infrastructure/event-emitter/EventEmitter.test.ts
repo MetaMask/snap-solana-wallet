@@ -59,7 +59,7 @@ describe('EventEmitter', () => {
       eventEmitter.on('someEvent', listener2);
       eventEmitter.on('someEvent', listener3);
 
-      eventEmitter.emitSync('someEvent');
+      await eventEmitter.emitSync('someEvent');
 
       expect(listener1).toHaveBeenCalled();
       expect(listener2).toHaveBeenCalled();
@@ -72,7 +72,7 @@ describe('EventEmitter', () => {
       eventEmitter.on('someEvent', listener1);
       eventEmitter.on('someOtherEvent', listener2);
 
-      eventEmitter.emitSync('someEvent');
+      await eventEmitter.emitSync('someEvent');
 
       expect(listener1).toHaveBeenCalled();
       expect(listener2).not.toHaveBeenCalled();

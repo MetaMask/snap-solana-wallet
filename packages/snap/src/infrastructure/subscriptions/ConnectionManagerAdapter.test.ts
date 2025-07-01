@@ -220,13 +220,10 @@ describe('ConnectionManagerAdapter', () => {
         );
 
         // Send the connect event
-        mockEventEmitter.emitSync('onWebSocketEvent', {
+        await mockEventEmitter.emitSync('onWebSocketEvent', {
           id: mockConnectionId,
           type: 'open',
         });
-
-        // Wait for async operations to complete
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(recoveryCallback0).toHaveBeenCalled();
         expect(recoveryCallback1).toHaveBeenCalled();
@@ -248,13 +245,10 @@ describe('ConnectionManagerAdapter', () => {
 
       it('attempts to reconnect', async () => {
         // Send the connect event
-        mockEventEmitter.emitSync('onWebSocketEvent', {
+        await mockEventEmitter.emitSync('onWebSocketEvent', {
           id: mockConnectionId,
           type: 'close',
         });
-
-        // Wait for async operations to complete
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(mockConnectionRepository.save).toHaveBeenCalledTimes(1);
       });
