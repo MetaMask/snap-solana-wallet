@@ -9,6 +9,7 @@ import type {
   OnCronjobHandler,
   OnInstallHandler,
   OnKeyringRequestHandler,
+  OnNameLookupHandler,
   OnProtocolRequestHandler,
   OnStartHandler,
   OnUpdateHandler,
@@ -28,6 +29,7 @@ import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAsset
 import { handlers as onCronjobHandlers } from './core/handlers/onCronjob';
 import { ScheduleBackgroundEventMethod } from './core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { CronjobMethod } from './core/handlers/onCronjob/cronjobs/CronjobMethod';
+import { onNameLookupHandler } from './core/handlers/onNameLookup/onNameLookup';
 import { onProtocolRequest as onProtocolRequestHandler } from './core/handlers/onProtocolRequest/onProtocolRequest';
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
@@ -282,3 +284,10 @@ export const onUpdate: OnUpdateHandler = async () =>
 
 export const onInstall: OnInstallHandler = async () =>
   withCatchAndThrowSnapError(async () => eventEmitter.emitSync('onInstall'));
+
+export const onNameLookup: OnNameLookupHandler = async (request) => {
+  const result = await withCatchAndThrowSnapError(async () =>
+    onNameLookupHandler(request),
+  );
+  return result ?? null;
+};

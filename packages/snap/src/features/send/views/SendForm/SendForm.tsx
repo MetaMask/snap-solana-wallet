@@ -38,7 +38,8 @@ export const SendForm = ({
     accounts,
     fromAccountId,
     amount,
-    toAddress,
+    destinationAddressOrDomain,
+    domainResolutionStatus,
     validation,
     currencyType,
     tokenCaipId,
@@ -97,13 +98,17 @@ export const SendForm = ({
 
   const canPickAmout =
     fromAccountId.length > 0 &&
-    (toAddress ? toAddress.length > 0 : false) &&
+    (destinationAddressOrDomain
+      ? destinationAddressOrDomain.length > 0
+      : false) &&
     isNullOrUndefined(validation?.[SendFormNames.DestinationAccountInput]);
 
   const isTransactionMessageSuccessfullyBuild =
     !isNullOrUndefined(transactionMessage) && transactionMessage !== '';
 
-  const showClearAddressButton = Boolean(toAddress && toAddress.length > 0);
+  const showClearAddressButton = Boolean(
+    destinationAddressOrDomain && destinationAddressOrDomain.length > 0,
+  );
 
   const amountInputIsError = Boolean(
     validation?.[SendFormNames.AmountInput]?.message,
@@ -116,7 +121,9 @@ export const SendForm = ({
   const canReview =
     fromAccountId.length > 0 &&
     (amount ? amount.length > 0 : false) &&
-    (toAddress ? toAddress.length > 0 : false) &&
+    (destinationAddressOrDomain
+      ? destinationAddressOrDomain.length > 0
+      : false) &&
     Object.values(validation).every(isNullOrUndefined) &&
     isBalanceDefined &&
     !buildingTransaction &&
@@ -164,6 +171,7 @@ export const SendForm = ({
             name={SendFormNames.DestinationAccountInput}
             value={inputToAddress ?? null}
             showClearButton={showClearAddressButton}
+            domainResolutionStatus={domainResolutionStatus}
             error={
               validation?.[SendFormNames.DestinationAccountInput]?.message ?? ''
             }

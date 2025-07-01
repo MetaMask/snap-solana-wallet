@@ -49,6 +49,7 @@
     "@metamask/superstruct": "^3.1.0",
     "@metamask/utils": "11.4.0",
     "@noble/ed25519": "2.1.0",
+    "@solana-name-service/sns-sdk-kit": "beta",
     "@solana-program/compute-budget": "0.7.0",
     "@solana-program/system": "0.7.0",
     "@solana-program/token": "0.5.1",
