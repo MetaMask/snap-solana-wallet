@@ -201,7 +201,7 @@ describe('WebSocketConnectionService', () => {
       // Now, calling setupAllConnections will open the Mainnet connection again
       await service.setupAllConnections();
 
-      // The connection has recovered, but the recovery callback should not have been called
+      // The connection has recovered, but the recovery callback should not have been called because it was cleared
       expect(recoveryCallback).not.toHaveBeenCalled();
     });
 
