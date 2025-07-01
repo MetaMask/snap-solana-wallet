@@ -157,6 +157,52 @@ describe('WebSocketConnectionService', () => {
       expect(mockWebSocketConnectionRepository.delete).not.toHaveBeenCalled();
     });
 
+    it('clears the connection recovery callbacks for the closed networks', async () => {
+      // Initially, we have a connection for Mainnet
+      const mockConnection = createMockWebSocketConnection();
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'getAll')
+        .mockResolvedValueOnce([mockConnection]);
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
+        .mockResolvedValueOnce(mockConnection);
+
+      // We register a recovery callback for Mainnet. We expect it to be cleared when the connection is closed.
+      const recoveryCallback = jest.fn();
+      service.onConnectionRecovery(Network.Mainnet, recoveryCallback);
+
+      // However, no active networks => calling setupAllConnections will close the mainnet connection
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [],
+      } as unknown as Config);
+
+      await service.setupAllConnections();
+
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledWith(
+        mockConnectionId,
+      );
+
+      // No open connections left
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'getAll')
+        .mockResolvedValueOnce([]);
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
+        .mockResolvedValueOnce(null);
+
+      // Now, make Mainnet active again
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet],
+      } as unknown as Config);
+
+      // Now, calling setupAllConnections will open the Mainnet connection again
+      await service.setupAllConnections();
+
+      // The connection has recovered, but the recovery callback should not have been called
+      expect(recoveryCallback).not.toHaveBeenCalled();
+    });
+
     describe('when the connection fails', () => {
       beforeEach(() => {
         jest.spyOn(mockConfigProvider, 'get').mockReturnValue({

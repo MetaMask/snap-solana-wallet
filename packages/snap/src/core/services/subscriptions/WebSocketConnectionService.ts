@@ -180,6 +180,8 @@ export class WebSocketConnectionService {
     );
 
     const webSocketUrl = this.#getWebSocketUrl(network);
+    // Clean up the connection recovery callbacks for this network
+    this.#connectionRecoveryCallbacks.delete(network);
 
     // Early return if the connection does not exist
     const existingConnection =
