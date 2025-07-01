@@ -308,7 +308,7 @@ describe('SubscriberAdapter', () => {
             id: subscriptionId,
             rpcSubscriptionId: 98765,
             status: 'confirmed',
-            requestId: 2,
+            requestId: subscriptionId,
             createdAt: '2024-01-01T00:00:00.000Z',
             confirmedAt: '2024-01-02T00:00:00.000Z',
           };
