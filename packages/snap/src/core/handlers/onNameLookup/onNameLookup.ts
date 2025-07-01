@@ -12,7 +12,7 @@ export const onNameLookupHandler: OnNameLookupHandler = async (request) => {
   const { chainId, domain, address } = request;
 
   if (domain) {
-    const resolvedAddress = await nameResolutionService.resolveAddress(
+    const resolvedAddress = await nameResolutionService.resolveDomain(
       chainId,
       domain,
     );
@@ -31,7 +31,7 @@ export const onNameLookupHandler: OnNameLookupHandler = async (request) => {
   }
 
   if (address) {
-    const resolvedDomain = await nameResolutionService.resolveDomain(
+    const resolvedDomain = await nameResolutionService.resolveAddress(
       chainId,
       address,
     );

@@ -417,8 +417,12 @@ async function onClearButtonClick({
   id: string;
   context: SendContext;
 }) {
+  context.destinationAddressOrDomain = '';
   context.toAddress = '';
+  context.domainResolutionStatus = null;
   context.error = null;
+  context.validation[SendFormNames.DestinationAccountInput] = null;
+
   await updateInterface(
     id,
     <Send context={context} inputToAddress={context.toAddress} />,
