@@ -59,7 +59,7 @@ export type WebSocketConnection = GetWebSocketsResult[number];
 
 /**
  * Once the Subscriber acknowledges the subscription request,
- * it generates a subscrption ID, and the subscription is pending (waiting for the confirmation message).
+ * it generates a subscription ID, and the subscription is pending (waiting for the confirmation message).
  */
 export type PendingSubscription = SubscriptionRequest & {
   readonly id: string;
