@@ -13,28 +13,6 @@ export type SubscriptionRequest = {
   network: Network;
 };
 
-export type WebSocketConnection = GetWebSocketsResult[number];
-
-/**
- * Once the Subscriber acknowledges the subscription request,
- * it generates a subscrption ID, and the subscription is pending (waiting for the confirmation message).
- */
-export type PendingSubscription = SubscriptionRequest & {
-  readonly id: string;
-  readonly status: 'pending';
-  readonly requestId: string; // Same a the field `id`
-  readonly createdAt: string; // ISO string
-};
-
-// After server confirms the subscription
-export type ConfirmedSubscription = Omit<PendingSubscription, 'status'> & {
-  readonly status: 'confirmed';
-  readonly rpcSubscriptionId: number; // Server's confirmation ID
-  readonly confirmedAt: string; // ISO string
-};
-
-// Union type for all states
-export type Subscription = PendingSubscription | ConfirmedSubscription;
 export type SubscriptionCallbacks = {
   /**
    * A callback that will be called when a notification is received.
@@ -76,3 +54,26 @@ export type SubscriptionCallbacks = {
    */
   onConnectionRecovery?: () => Promise<void>;
 };
+
+export type WebSocketConnection = GetWebSocketsResult[number];
+
+/**
+ * Once the Subscriber acknowledges the subscription request,
+ * it generates a subscrption ID, and the subscription is pending (waiting for the confirmation message).
+ */
+export type PendingSubscription = SubscriptionRequest & {
+  readonly id: string;
+  readonly status: 'pending';
+  readonly requestId: string; // Same a the field `id`
+  readonly createdAt: string; // ISO string
+};
+
+// After server confirms the subscription
+export type ConfirmedSubscription = Omit<PendingSubscription, 'status'> & {
+  readonly status: 'confirmed';
+  readonly rpcSubscriptionId: number; // Server's confirmation ID
+  readonly confirmedAt: string; // ISO string
+};
+
+// Union type for all states
+export type Subscription = PendingSubscription | ConfirmedSubscription;
