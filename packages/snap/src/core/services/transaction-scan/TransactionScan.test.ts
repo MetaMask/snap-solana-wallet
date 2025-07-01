@@ -253,7 +253,7 @@ describe('TransactionScan', () => {
       );
     });
 
-    it('returns correct description for known reasons', () => {
+    it('returns correct description for known reasons', async () => {
       const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
 
       jest
@@ -281,31 +281,29 @@ describe('TransactionScan', () => {
           },
         } as unknown as SecurityAlertSimulationValidationResponse);
 
-      return transactionScanService
-        .scanTransaction({
-          method: 'method',
-          accountAddress: 'accountAddress',
-          transaction: 'transaction',
-          scope: Network.Mainnet,
-          origin: 'https://metamask.io',
-          account: mockAccount,
-        })
-        .then(() => {
-          expect(
-            mockAnalyticsService.trackEventSecurityAlertDetected,
-          ).toHaveBeenCalledWith(
-            mockAccount,
-            'transaction',
-            'https://metamask.io',
-            Network.Mainnet,
-            SecurityAlertResponse.Warning,
-            'transfer_farming',
-            "Substantial transfer of the account's assets to untrusted entities",
-          );
-        });
+      await transactionScanService.scanTransaction({
+        method: 'method',
+        accountAddress: 'accountAddress',
+        transaction: 'transaction',
+        scope: Network.Mainnet,
+        origin: 'https://metamask.io',
+        account: mockAccount,
+      });
+
+      expect(
+        mockAnalyticsService.trackEventSecurityAlertDetected,
+      ).toHaveBeenCalledWith(
+        mockAccount,
+        'transaction',
+        'https://metamask.io',
+        Network.Mainnet,
+        SecurityAlertResponse.Warning,
+        'transfer_farming',
+        "Substantial transfer of the account's assets to untrusted entities",
+      );
     });
 
-    it('returns fallback description for unknown reasons', () => {
+    it('returns fallback description for unknown reasons', async () => {
       const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
 
       jest
@@ -333,28 +331,26 @@ describe('TransactionScan', () => {
           },
         } as unknown as SecurityAlertSimulationValidationResponse);
 
-      return transactionScanService
-        .scanTransaction({
-          method: 'method',
-          accountAddress: 'accountAddress',
-          transaction: 'transaction',
-          scope: Network.Mainnet,
-          origin: 'https://metamask.io',
-          account: mockAccount,
-        })
-        .then(() => {
-          expect(
-            mockAnalyticsService.trackEventSecurityAlertDetected,
-          ).toHaveBeenCalledWith(
-            mockAccount,
-            'transaction',
-            'https://metamask.io',
-            Network.Mainnet,
-            SecurityAlertResponse.Warning,
-            'unknown_reason',
-            'Security alert: unknown_reason',
-          );
-        });
+      await transactionScanService.scanTransaction({
+        method: 'method',
+        accountAddress: 'accountAddress',
+        transaction: 'transaction',
+        scope: Network.Mainnet,
+        origin: 'https://metamask.io',
+        account: mockAccount,
+      });
+
+      expect(
+        mockAnalyticsService.trackEventSecurityAlertDetected,
+      ).toHaveBeenCalledWith(
+        mockAccount,
+        'transaction',
+        'https://metamask.io',
+        Network.Mainnet,
+        SecurityAlertResponse.Warning,
+        'unknown_reason',
+        'Security alert: unknown_reason',
+      );
     });
   });
 });

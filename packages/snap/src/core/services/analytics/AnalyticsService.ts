@@ -4,12 +4,12 @@ import { assert } from '@metamask/superstruct';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { Network, TransactionMetadata } from '../../constants/solana';
+import logger from '../../utils/logger';
+import { Base64Struct } from '../../validation/structs';
 import type {
   ScanStatus,
   SecurityAlertResponse,
 } from '../transaction-scan/types';
-import logger from '../../utils/logger';
-import { Base64Struct } from '../../validation/structs';
 
 /**
  * Service for tracking events related to transactions.
