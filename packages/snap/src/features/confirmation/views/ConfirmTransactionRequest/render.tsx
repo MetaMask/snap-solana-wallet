@@ -10,7 +10,6 @@ import {
   showDialog,
   updateInterface,
 } from '../../../../core/utils/interface';
-import type { SolanaKeyringAccount } from '../../../../entities';
 import { extractInstructionsFromUnknownBase64String } from '../../../../entities';
 import {
   connection,
@@ -182,7 +181,6 @@ export async function render(
         scope: updatedContext2.scope,
         origin: updatedContext2.origin,
         options,
-        account: updatedContext2.account as SolanaKeyringAccount,
       })
       .then(async (scan) => {
         updatedContext2.scan = scan;
