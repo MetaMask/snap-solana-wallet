@@ -1,6 +1,7 @@
 import type { WebSocketEvent } from '@metamask/snaps-sdk';
 import type { JsonRpcFailure } from '@metamask/utils';
 import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
+import { get } from 'lodash';
 
 import type {
   PendingSubscription,
@@ -76,6 +77,10 @@ export class SubscriptionService {
     eventEmitter.on(
       'onTestSubscribeToAccount',
       this.#testSubscribeToAccount.bind(this),
+    );
+    eventEmitter.on(
+      'onTestUnsubscribeFromAccount',
+      this.#testUnsubscribeFromAccount.bind(this),
     );
   }
 
@@ -180,7 +185,7 @@ export class SubscriptionService {
 
     const { id, network, unsubscribeMethod } = subscription;
 
-    // If the subscription is active, we need to unsubscribe from the RPC and remove it from the active map.
+    // If the subscription is active, we need to unsubscribe from the RPC
     if (subscription.status === 'confirmed') {
       const connectionId =
         await this.#connectionService.getConnectionIdByNetwork(network);
@@ -475,6 +480,10 @@ export class SubscriptionService {
     await this.#subscriptionRepository.deleteAll();
   }
 
+  #generateId(): string {
+    return globalThis.crypto.randomUUID();
+  }
+
   /**
    * DELETE: Temporary method to test a subscription.
    */
@@ -510,7 +519,17 @@ export class SubscriptionService {
     await this.subscribe(subscriptionRequest, callbacks);
   }
 
-  #generateId(): string {
-    return globalThis.crypto.randomUUID();
+  async #testUnsubscribeFromAccount(): Promise<void> {
+    const allSubscriptions = await this.#subscriptionRepository.getAll();
+    const subscriptionForAccount = allSubscriptions.find(
+      (subscription) =>
+        subscription.method === 'accountSubscribe' &&
+        get(subscription, 'params[0]') ===
+          '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+    );
+
+    if (subscriptionForAccount) {
+      await this.unsubscribe(subscriptionForAccount.id);
+    }
   }
 }

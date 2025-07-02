@@ -38,8 +38,9 @@ const dappPermissions = isDev
       ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
       // Methods specific to the test dapp
       TestDappRpcRequestMethod.TestSetupAllConnections,
-      TestDappRpcRequestMethod.TestSubscribeToAccount,
       TestDappRpcRequestMethod.TestCloseAllConnections,
+      TestDappRpcRequestMethod.TestSubscribeToAccount,
+      TestDappRpcRequestMethod.TestUnsubscribeFromAccount,
     ])
   : new Set([]);
 

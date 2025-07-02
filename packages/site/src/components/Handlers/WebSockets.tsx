@@ -50,6 +50,21 @@ export const WebSockets = () => {
     );
   };
 
+  const unsubscribeFromAccount = async () => {
+    await invokeSnap({
+      method: TestDappRpcRequestMethod.TestUnsubscribeFromAccount,
+    });
+
+    showToasterForResponse(
+      { result: 'ok' },
+      {
+        title:
+          'Initiated unsubscription to account 8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+        description: `Inspect the offscreen console`,
+      },
+    );
+  };
+
   return (
     <Card.Root>
       <Card.Header>
@@ -79,6 +94,13 @@ export const WebSockets = () => {
             marginRight="1"
           >
             Subscribe to account
+          </Button>
+          <Button
+            variant="outline"
+            onClick={unsubscribeFromAccount}
+            marginRight="1"
+          >
+            Unsubscribe from account
           </Button>
         </Flex>
       </Card.Body>

@@ -9,6 +9,7 @@ export enum RpcRequestMethod {
  */
 export enum TestDappRpcRequestMethod {
   TestSetupAllConnections = 'testSetupAllConnections',
-  TestSubscribeToAccount = 'testSubscribeToAccount',
   TestCloseAllConnections = 'testCloseAllConnections',
+  TestSubscribeToAccount = 'testSubscribeToAccount',
+  TestUnsubscribeFromAccount = 'testUnsubscribeFromAccount',
 }
