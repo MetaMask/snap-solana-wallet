@@ -19,6 +19,7 @@ import { ConfigProvider } from './core/services/config';
 import { ConfirmationHandler } from './core/services/confirmation/ConfirmationHandler';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
+import { NameResolutionService } from './core/services/name-resolution/NameResolutionService';
 import { NftService } from './core/services/nft/NftService';
 import type { IStateManager } from './core/services/state/IStateManager';
 import type { UnencryptedStateValue } from './core/services/state/State';
@@ -59,6 +60,7 @@ export type SnapExecutionContext = {
   webSocketConnectionService: WebSocketConnectionService;
   subscriptionService: SubscriptionService;
   eventEmitter: EventEmitter;
+  nameResolutionService: NameResolutionService;
 };
 
 const configProvider = new ConfigProvider();
@@ -90,6 +92,7 @@ const tokenMetadataService = new TokenMetadataService({
 });
 
 const tokenPricesService = new TokenPricesService(priceApiClient);
+const nameResolutionService = new NameResolutionService(connection);
 
 const assetsService = new AssetsService({
   connection,
@@ -182,6 +185,7 @@ const snapContext: SnapExecutionContext = {
   webSocketConnectionService,
   subscriptionService,
   eventEmitter,
+  nameResolutionService,
 };
 
 export {
@@ -208,6 +212,7 @@ export {
   transactionsService,
   walletService,
   webSocketConnectionService,
+  nameResolutionService,
 };
 
 export default snapContext;

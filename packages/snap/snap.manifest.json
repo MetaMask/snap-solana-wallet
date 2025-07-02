@@ -1,5 +1,5 @@
 {
-  "version": "1.34.0",
+  "version": "1.35.0",
   "description": "Manage Solana using MetaMask",
   "proposedName": "Solana",
   "repository": {
@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "Ghld8TVzBnwQn+kQ4nQzKTDiPuWcDVQlhKMlyhfX7wo=",
+    "shasum": "tc9MLRhAZZIWuyapvXzUM61CK9SHjFdhqZXgxLoVpj4=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -16,7 +16,9 @@
         "registry": "https://registry.npmjs.org/"
       }
     },
-    "locales": ["locales/en.json"]
+    "locales": [
+      "locales/en.json"
+    ]
   },
   "initialConnections": {
     "https://portfolio.metamask.io": {}
@@ -27,11 +29,17 @@
       "snaps": false
     },
     "endowment:keyring": {
-      "allowedOrigins": ["https://portfolio.metamask.io"]
+      "allowedOrigins": [
+        "https://portfolio.metamask.io"
+      ]
     },
     "snap_getBip32Entropy": [
       {
-        "path": ["m", "44'", "501'"],
+        "path": [
+          "m",
+          "44'",
+          "501'"
+        ],
         "curve": "ed25519"
       }
     ],
@@ -81,6 +89,12 @@
     },
     "endowment:assets": {
       "scopes": [
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1"
+      ]
+    },
+    "endowment:name-lookup": {
+      "chains": [
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1"
       ]

@@ -322,6 +322,7 @@ describe('Send', () => {
 
     const updatedContext2: SendContext = {
       ...updatedContext1,
+      destinationAddressOrDomain: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
       toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
     };
 

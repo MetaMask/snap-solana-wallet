@@ -40,6 +40,8 @@ describe('SendForm events', () => {
         },
       },
     },
+    destinationAddressOrDomain: mockToAddress,
+    domainResolutionStatus: null,
     scope: Network.Localnet,
     tokenPricesFetchStatus: 'initial',
     tokenPrices: {
