@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.35.0]
+
+### Uncategorized
+
+- feat: implement `onAssetsMarketData` handler ([#426](https://github.com/MetaMask/snap-solana-wallet/pull/426))
+- Small improvements ([#440](https://github.com/MetaMask/snap-solana-wallet/pull/440))
+- refactor: adapters are in fact services + rename them ([#438](https://github.com/MetaMask/snap-solana-wallet/pull/438))
+- Nwnt 381 solana snap initial websockets setup ([#431](https://github.com/MetaMask/snap-solana-wallet/pull/431))
+
 ## [1.34.0]
 
 ### Changed
@@ -697,7 +706,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.34.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.0...HEAD
+[1.35.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.34.0...v1.35.0
 [1.34.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.33.4...v1.34.0
 [1.33.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.33.3...v1.33.4
 [1.33.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.33.2...v1.33.3
