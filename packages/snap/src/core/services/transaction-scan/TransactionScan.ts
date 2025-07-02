@@ -73,7 +73,6 @@ export class TransactionScanService {
 
       const scan = this.#mapScan(result);
 
-      // Validate scan object before proceeding
       if (!scan || !scan.status) {
         this.#logger.warn(
           'Invalid scan result received from security alerts API',
@@ -95,22 +94,31 @@ export class TransactionScanService {
 
       // The security scan is completed
       if (account) {
+        const isValidScanStatus = Object.values(ScanStatus).includes(
+          scan.status as ScanStatus,
+        );
+        const scanStatus = isValidScanStatus
+          ? (scan.status as ScanStatus)
+          : ScanStatus.ERROR;
+
+        const hasSecurityAlert = Boolean(
+          scan.validation?.type &&
+            scan.validation.type !== SecurityAlertResponse.Benign,
+        );
+
         const analyticsPromises = [
           this.#analyticsService.trackEventSecurityScanCompleted(
             account,
             transaction,
             origin,
             scope,
-            scan.status as ScanStatus,
-            scan.validation?.type !== SecurityAlertResponse.Benign,
+            scanStatus,
+            hasSecurityAlert,
           ),
         ];
 
         // And the alert is detected - only if validation exists and is not benign
-        if (
-          scan.validation?.type &&
-          scan.validation.type !== SecurityAlertResponse.Benign
-        ) {
+        if (hasSecurityAlert) {
           analyticsPromises.push(
             this.#analyticsService.trackEventSecurityAlertDetected(
               account,
@@ -221,7 +229,10 @@ export class TransactionScanService {
     }
 
     return {
-      status: result.status || 'ERROR',
+      status:
+        result.status === 'SUCCESS' || result.status === 'ERROR'
+          ? result.status
+          : 'ERROR',
       estimatedChanges: {
         assets:
           result.result?.simulation?.account_summary?.account_assets_diff?.map(
