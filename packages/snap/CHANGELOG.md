@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.35.1]
 
-### Uncategorized
+### Added
 
-- fix: export handler `onAssetsMarketData` ([#446](https://github.com/MetaMask/snap-solana-wallet/pull/446))
-- chore: adds tracking for blockaid metrics ([#439](https://github.com/MetaMask/snap-solana-wallet/pull/439))
-- feat: integrate sns ([#441](https://github.com/MetaMask/snap-solana-wallet/pull/441))
-- New Crowdin translations by Github Action ([#442](https://github.com/MetaMask/snap-solana-wallet/pull/442))
+- Implement Solana Name Service support ([#441](https://github.com/MetaMask/snap-solana-wallet/pull/441))
+- Track Blockaid metrics ([#439](https://github.com/MetaMask/snap-solana-wallet/pull/439))
+
+### Fixed
+
+- Correctly export handler `onAssetsMarketData` ([#446](https://github.com/MetaMask/snap-solana-wallet/pull/446))
 
 ## [1.35.0]
 
