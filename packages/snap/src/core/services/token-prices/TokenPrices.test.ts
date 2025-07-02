@@ -33,14 +33,26 @@ describe('TokenPricesService', () => {
         [BTC]: {
           ...MOCK_SPOT_PRICES[BTC],
           price: 100000,
+          marketCap: '154042108588301.98',
+          totalVolume: '2374843629989.5576',
+          allTimeHigh: '10084744.951017378',
+          allTimeLow: '6286.163248290115',
         },
         [ETH]: {
           ...MOCK_SPOT_PRICES[ETH],
           price: 3000,
+          marketCap: '624979575734316.66',
+          totalVolume: '44016387604270.72',
+          allTimeHigh: '13566821440.330305',
+          allTimeLow: '1204148.3603073612',
         },
         [SOL]: {
           ...MOCK_SPOT_PRICES[SOL],
           price: 200,
+          marketCap: '12043500406335.33',
+          totalVolume: '677897123503.5106',
+          allTimeHigh: '54381198.71275545',
+          allTimeLow: '92851.10871279238',
         },
         [USDC]: {
           ...MOCK_SPOT_PRICES[USDC],
@@ -238,212 +250,125 @@ describe('TokenPricesService', () => {
         });
       });
     });
+  });
 
-    describe('when includeMarketData is true', () => {
-      const includeMarketData = true;
+  describe('getMultipleTokensMarketData', () => {
+    it('returns empty object when no assets provided', async () => {
+      const result = await tokenPricesService.getMultipleTokensMarketData([]);
+      expect(result).toStrictEqual({});
+    });
 
-      it('returns market data in the correct currency', async () => {
-        const result = await tokenPricesService.getMultipleTokenConversions(
-          [
-            { from: BTC, to: USD },
-            { from: ETH, to: USD },
-            { from: SOL, to: EUR },
-            { from: SOL, to: USD },
-            { from: SOL, to: BTC },
-            { from: ETH, to: BTC },
-          ],
-          includeMarketData,
-        );
+    it('returns market data in the correct currency', async () => {
+      const result = await tokenPricesService.getMultipleTokensMarketData([
+        { asset: BTC, unit: USD },
+        { asset: ETH, unit: USD },
+        { asset: SOL, unit: EUR },
+        { asset: SOL, unit: USD },
+        { asset: SOL, unit: BTC },
+        { asset: ETH, unit: BTC },
+      ]);
 
-        expect(result).toStrictEqual({
-          'bip122:000000000019d6689c085ae165831e93/slip44:0': {
-            'swift:0/iso4217:USD': {
-              rate: '100000',
-              conversionTime: expect.any(Number),
-              expirationTime: expect.any(Number),
-              marketData: {
-                marketCap: '1540421085883.0198',
-                totalVolume: '23748436299.895576',
-                circulatingSupply: '19844921',
-                allTimeHigh: '100847.44951017378',
-                allTimeLow: '62.86163248290115',
-                pricePercentChange: {
-                  PT1H: -0.4456714429821922,
-                  P1D: 1.3725526422881404,
-                  P7D: -4.2914380354332256,
-                  P14D: 1.3530761284206316,
-                  P30D: -2.6647248645353425,
-                  P200D: 44.69565022141291,
-                  P1Y: 20.367003699380124,
-                },
-              },
-            },
+      expect(result).toStrictEqual({
+        'bip122:000000000019d6689c085ae165831e93/slip44:0': {
+          fungible: true,
+          marketCap: '154042108588301.98',
+          totalVolume: '2374843629989.5576',
+          circulatingSupply: '19844921',
+          allTimeHigh: '10084744.951017378',
+          allTimeLow: '6286.163248290115',
+          pricePercentChange: {
+            PT1H: -0.4456714429821922,
+            P1D: 1.3725526422881404,
+            P7D: -4.2914380354332256,
+            P14D: 1.3530761284206316,
+            P30D: -2.6647248645353425,
+            P200D: 44.69565022141291,
+            P1Y: 20.367003699380124,
           },
-          'eip155:1/slip44:60': {
-            'swift:0/iso4217:USD': {
-              rate: '3000',
-              conversionTime: expect.any(Number),
-              expirationTime: expect.any(Number),
-              marketData: {
-                marketCap: '208326525244.77222',
-                totalVolume: '14672129201.423573',
-                circulatingSupply: '120659504.7581715',
-                allTimeHigh: '4522.273813243435',
-                allTimeLow: '0.4013827867691204',
-                pricePercentChange: {
-                  PT1H: -0.16193070976498064,
-                  P1D: 1.9964598342126199,
-                  P7D: -10.123102834312476,
-                  P14D: -1.7452971064771636,
-                  P30D: -16.78602306244949,
-                  P200D: -21.026646670919543,
-                  P1Y: -47.45246230239663,
-                },
-              },
-            },
-            'bip122:000000000019d6689c085ae165831e93/slip44:0': {
-              rate: '0.03',
-              conversionTime: expect.any(Number),
-              expirationTime: expect.any(Number),
-              marketData: {
-                marketCap: '2083265.2524477222',
-                totalVolume: '146721.29201423573',
-                circulatingSupply: '120659504.7581715',
-                allTimeHigh: '0.04522273813243435',
-                allTimeLow: '0.0000040138278676912',
-                pricePercentChange: {
-                  PT1H: -0.16193070976498064,
-                  P1D: 1.9964598342126199,
-                  P7D: -10.123102834312476,
-                  P14D: -1.7452971064771636,
-                  P30D: -16.78602306244949,
-                  P200D: -21.026646670919543,
-                  P1Y: -47.45246230239663,
-                },
-              },
-            },
+        },
+        'eip155:1/slip44:60': {
+          fungible: true,
+          marketCap: '6249795757.3431666',
+          totalVolume: '440163876.0427072',
+          circulatingSupply: '120659504.7581715',
+          allTimeHigh: '135668.21440330305',
+          allTimeLow: '12.041483603073612',
+          pricePercentChange: {
+            PT1H: -0.16193070976498064,
+            P1D: 1.9964598342126199,
+            P7D: -10.123102834312476,
+            P14D: -1.7452971064771636,
+            P30D: -16.78602306244949,
+            P200D: -21.026646670919543,
+            P1Y: -47.45246230239663,
           },
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
-            'swift:0/iso4217:EUR': {
-              rate: '192.7893998785668999995',
-              conversionTime: expect.any(Number),
-              expirationTime: expect.any(Number),
-              marketData: {
-                marketCap: '58046480394.36662200758692138314',
-                totalVolume: '3267284490.49121393197975318582',
-                circulatingSupply: '512506275.4700137',
-                allTimeHigh: '262.1029666127304599094',
-                allTimeLow: '0.44751773816992952247',
-                pricePercentChange: {
-                  PT1H: -0.7015657267954617,
-                  P1D: 1.6270441732346845,
-                  P7D: -10.985589910714582,
-                  P14D: 2.557473792001135,
-                  P30D: -11.519171371325216,
-                  P200D: -4.453777067234332,
-                  P1Y: -35.331458644625535,
-                },
-              },
-            },
-            'swift:0/iso4217:USD': {
-              rate: '200',
-              conversionTime: expect.any(Number),
-              expirationTime: expect.any(Number),
-              marketData: {
-                marketCap: '60217502031.67665',
-                totalVolume: '3389485617.517553',
-                circulatingSupply: '512506275.4700137',
-                allTimeHigh: '271.90599356377726',
-                allTimeLow: '0.46425554356391946',
-                pricePercentChange: {
-                  PT1H: -0.7015657267954617,
-                  P1D: 1.6270441732346845,
-                  P7D: -10.985589910714582,
-                  P14D: 2.557473792001135,
-                  P30D: -11.519171371325216,
-                  P200D: -4.453777067234332,
-                  P1Y: -35.331458644625535,
-                },
-              },
-            },
-            'bip122:000000000019d6689c085ae165831e93/slip44:0': {
-              rate: '0.002',
-              conversionTime: expect.any(Number),
-              expirationTime: expect.any(Number),
-              marketData: {
-                marketCap: '602175.0203167665',
-                totalVolume: '33894.85617517553',
-                circulatingSupply: '512506275.4700137',
-                allTimeHigh: '0.0027190599356377726',
-                allTimeLow: '0.00000464255543563919',
-                pricePercentChange: {
-                  PT1H: -0.7015657267954617,
-                  P1D: 1.6270441732346845,
-                  P7D: -10.985589910714582,
-                  P14D: 2.557473792001135,
-                  P30D: -11.519171371325216,
-                  P200D: -4.453777067234332,
-                  P1Y: -35.331458644625535,
-                },
-              },
-            },
+        },
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+          fungible: true,
+          marketCap: '120435004.0633533',
+          totalVolume: '6778971.235035106',
+          circulatingSupply: '512506275.4700137',
+          allTimeHigh: '543.8119871275545',
+          allTimeLow: '0.9285110871279238',
+          pricePercentChange: {
+            PT1H: -0.7015657267954617,
+            P1D: 1.6270441732346845,
+            P7D: -10.985589910714582,
+            P14D: 2.557473792001135,
+            P30D: -11.519171371325216,
+            P200D: -4.453777067234332,
+            P1Y: -35.331458644625535,
           },
+        },
+      });
+    });
+
+    it('only includes price percent change if Price API returns it', async () => {
+      jest
+        .spyOn(mockPriceApiClient, 'getMultipleSpotPrices')
+        .mockResolvedValue({
+          [BTC]: {
+            ...MOCK_SPOT_PRICES[BTC],
+            pricePercentChange1h: -0.4456714429821922,
+            pricePercentChange1d: null,
+            pricePercentChange7d: null,
+            pricePercentChange14d: null,
+            pricePercentChange30d: null,
+            pricePercentChange200d: null,
+            pricePercentChange1y: null,
+          } as SpotPrice,
         });
+
+      const result = await tokenPricesService.getMultipleTokensMarketData([
+        { asset: BTC, unit: USD },
+      ]);
+
+      expect(result[BTC]?.pricePercentChange).toStrictEqual({
+        PT1H: -0.4456714429821922,
       });
+    });
 
-      it('only includes price percent change if Price API returns it', async () => {
-        jest
-          .spyOn(mockPriceApiClient, 'getMultipleSpotPrices')
-          .mockResolvedValue({
-            [BTC]: {
-              ...MOCK_SPOT_PRICES[BTC],
-              pricePercentChange1h: -0.4456714429821922,
-              pricePercentChange1d: null,
-              pricePercentChange7d: null,
-              pricePercentChange14d: null,
-              pricePercentChange30d: null,
-              pricePercentChange200d: null,
-              pricePercentChange1y: null,
-            } as SpotPrice,
-          });
-
-        const result = await tokenPricesService.getMultipleTokenConversions(
-          [{ from: BTC, to: USD }],
-          includeMarketData,
-        );
-
-        expect(
-          result[BTC]?.[USD]?.marketData?.pricePercentChange,
-        ).toStrictEqual({
-          PT1H: -0.4456714429821922,
+    it('does not include price percent change field if Price API does not return any values', async () => {
+      jest
+        .spyOn(mockPriceApiClient, 'getMultipleSpotPrices')
+        .mockResolvedValue({
+          [BTC]: {
+            ...MOCK_SPOT_PRICES[BTC],
+            pricePercentChange1h: null,
+            pricePercentChange1d: null,
+            pricePercentChange7d: null,
+            pricePercentChange14d: null,
+            pricePercentChange30d: null,
+            pricePercentChange200d: null,
+            pricePercentChange1y: null,
+          } as SpotPrice,
         });
-      });
 
-      it('does not include price percent change field if Price API does not return any values', async () => {
-        jest
-          .spyOn(mockPriceApiClient, 'getMultipleSpotPrices')
-          .mockResolvedValue({
-            [BTC]: {
-              ...MOCK_SPOT_PRICES[BTC],
-              pricePercentChange1h: null,
-              pricePercentChange1d: null,
-              pricePercentChange7d: null,
-              pricePercentChange14d: null,
-              pricePercentChange30d: null,
-              pricePercentChange200d: null,
-              pricePercentChange1y: null,
-            } as SpotPrice,
-          });
+      const result = await tokenPricesService.getMultipleTokensMarketData([
+        { asset: BTC, unit: USD },
+      ]);
 
-        const result = await tokenPricesService.getMultipleTokenConversions(
-          [{ from: BTC, to: USD }],
-          includeMarketData,
-        );
-
-        expect(
-          result[BTC]?.[USD]?.marketData?.pricePercentChange,
-        ).toBeUndefined();
-      });
+      expect(result[BTC]?.pricePercentChange).toBeUndefined();
     });
   });
 

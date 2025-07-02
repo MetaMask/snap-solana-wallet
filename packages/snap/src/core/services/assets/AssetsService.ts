@@ -1,6 +1,7 @@
 import type { Balance } from '@metamask/keyring-api';
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
+import type { FungibleAssetMarketData } from '@metamask/snaps-sdk';
 import type { CaipAssetType } from '@metamask/utils';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
@@ -32,6 +33,7 @@ import type { SolanaConnection } from '../connection';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
+import type { TokenPricesService } from '../token-prices/TokenPrices';
 
 /**
  * Extends a token account as returned by the `getTokenAccountsByOwner` RPC method with the scope and the caip-19 asset type for convenience.
@@ -53,6 +55,8 @@ export class AssetsService {
 
   readonly #tokenMetadataService: TokenMetadataService;
 
+  readonly #tokenPricesService: TokenPricesService;
+
   readonly #cache: ICache<Serializable>;
 
   public static readonly cacheTtlsMilliseconds = {
@@ -65,6 +69,7 @@ export class AssetsService {
     configProvider,
     state,
     tokenMetadataService,
+    tokenPricesService,
     cache,
   }: {
     connection: SolanaConnection;
@@ -72,6 +77,7 @@ export class AssetsService {
     configProvider: ConfigProvider;
     state: IStateManager<UnencryptedStateValue>;
     tokenMetadataService: TokenMetadataService;
+    tokenPricesService: TokenPricesService;
     cache: ICache<Serializable>;
   }) {
     this.#logger = logger;
@@ -79,6 +85,7 @@ export class AssetsService {
     this.#configProvider = configProvider;
     this.#state = state;
     this.#tokenMetadataService = tokenMetadataService;
+    this.#tokenPricesService = tokenPricesService;
     this.#cache = cache;
   }
 
@@ -346,5 +353,16 @@ export class AssetsService {
         await this.#state.setKey(`assets.${account.id}`, accountBalances);
       }
     }
+  }
+
+  async getAssetsMarketData(
+    assets: {
+      asset: CaipAssetType;
+      unit: CaipAssetType;
+    }[],
+  ): Promise<Record<CaipAssetType, FungibleAssetMarketData>> {
+    const marketData =
+      await this.#tokenPricesService.getMultipleTokensMarketData(assets);
+    return marketData;
   }
 }

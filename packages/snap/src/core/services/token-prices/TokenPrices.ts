@@ -2,8 +2,8 @@
 import { CaipAssetTypeStruct, type CaipAssetType } from '@metamask/keyring-api';
 import type {
   AssetConversion,
+  FungibleAssetMarketData,
   HistoricalPriceIntervals,
-  MarketData,
 } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 import { parseCaipAssetType } from '@metamask/utils';
@@ -49,16 +49,40 @@ export class TokenPricesService {
   }
 
   /**
+   * Fetches fiat exchange rates and crypto prices for the given assets.
+   * This is shared logic between getMultipleTokenConversions and getMultipleTokensMarketData.
+   *
+   * @param allAssets - Array of all CAIP asset types (both fiat and crypto).
+   * @returns Promise resolving to fiat exchange rates and crypto prices.
+   */
+  async #fetchPriceData(allAssets: CaipAssetType[]): Promise<{
+    fiatExchangeRates: Record<string, { value: number }>;
+    cryptoPrices: Record<CaipAssetType, SpotPrice | null>;
+  }> {
+    const cryptoAssets = allAssets.filter((asset) => !isFiat(asset));
+
+    const [fiatExchangeRates, cryptoPrices] = await Promise.all([
+      this.#priceApiClient.getFiatExchangeRates(),
+      this.#priceApiClient.getMultipleSpotPrices(cryptoAssets, 'usd'),
+    ]);
+
+    return { fiatExchangeRates, cryptoPrices };
+  }
+
+  /**
    * Get the token conversions for a list of asset pairs.
    * It caches the results for 1 hour.
    *
+   * Beware: Inside we are using the Price API's `getFiatExchangeRates` method for fiat prices,
+   * `getMultipleSpotPrices` for crypto prices and then using USD as an intermediate currency
+   * to convert the prices to the correct currency. This is not entirely accurate but it's the
+   * best we can do with the current API.
+   *
    * @param conversions - The asset pairs to get the conversions for.
-   * @param includeMarketData - Whether to include market data in the response.
    * @returns The token conversions.
    */
   async getMultipleTokenConversions(
     conversions: { from: CaipAssetType; to: CaipAssetType }[],
-    includeMarketData = false,
   ): Promise<
     Record<CaipAssetType, Record<CaipAssetType, AssetConversion | null>>
   > {
@@ -76,12 +100,9 @@ export class TokenPricesService {
       conversion.from,
       conversion.to,
     ]);
-    const cryptoAssets = allAssets.filter((asset) => !isFiat(asset));
 
-    const [fiatExchangeRates, cryptoPrices] = await Promise.all([
-      this.#priceApiClient.getFiatExchangeRates(),
-      this.#priceApiClient.getMultipleSpotPrices(cryptoAssets, 'usd'),
-    ]);
+    const { fiatExchangeRates, cryptoPrices } =
+      await this.#fetchPriceData(allAssets);
 
     /**
      * Now that we have the data, convert the `from`s to `to`s.
@@ -156,19 +177,13 @@ export class TokenPricesService {
 
       const rate = fromUsdRate.dividedBy(toUsdRate).toString();
 
-      const marketData =
-        includeMarketData && cryptoPrices[from]
-          ? this.#computeMarketData(cryptoPrices[from], toUsdRate)
-          : undefined;
-
       const now = Date.now();
 
       result[from][to] = {
         rate,
         conversionTime: now,
         expirationTime:
-          now + PriceApiClient.cacheTtlsMilliseconds.historicalPrices,
-        ...(includeMarketData && marketData ? { marketData } : {}), // Convoluted syntax enforced by TS config 'exactOptionalPropertyTypes: true'
+          now + PriceApiClient.cacheTtlsMilliseconds.historicalPrices, // Convoluted syntax enforced by TS config 'exactOptionalPropertyTypes: true'
       };
     });
 
@@ -182,7 +197,10 @@ export class TokenPricesService {
    * @param rate - The rate to convert the market data to from source currency to target currency.
    * @returns The market data in the target currency.
    */
-  #computeMarketData(spotPrice: SpotPrice, rate: BigNumber): MarketData {
+  #computeMarketData(
+    spotPrice: SpotPrice,
+    rate: BigNumber,
+  ): FungibleAssetMarketData {
     const marketDataInUsd = pick(spotPrice, [
       'marketCap',
       'totalVolume',
@@ -223,6 +241,7 @@ export class TokenPricesService {
     };
 
     const marketDataInToCurrency = {
+      fungible: true,
       marketCap: toCurrency(marketDataInUsd.marketCap),
       totalVolume: toCurrency(marketDataInUsd.totalVolume),
       circulatingSupply: (marketDataInUsd.circulatingSupply ?? 0).toString(), // Circulating supply counts the number of tokens in circulation, so we don't convert
@@ -232,13 +251,72 @@ export class TokenPricesService {
       ...(Object.keys(pricePercentChange).length > 0
         ? { pricePercentChange }
         : {}),
-      /**
-       * TODO: Remove this type cast when [this type](https://github.com/MetaMask/snaps/blob/main/packages/snaps-sdk/src/types/handlers/assets-conversion.ts#L15-L24) is updated in the SDK to support optional pricePercentChange,
-       * so that is matches [its related struct](https://github.com/MetaMask/snaps/blob/main/packages/snaps-utils/src/handlers/assets-conversion.ts#L24-L34).
-       */
-    } as MarketData;
+    } as FungibleAssetMarketData;
 
     return marketDataInToCurrency;
+  }
+
+  async getMultipleTokensMarketData(
+    assets: {
+      asset: CaipAssetType;
+      unit: CaipAssetType;
+    }[],
+  ): Promise<Record<CaipAssetType, FungibleAssetMarketData>> {
+    if (assets.length === 0) {
+      return {};
+    }
+
+    /**
+     * `asset` and `unit` can represent both fiat and crypto assets. For us to get their values
+     * the best approach is to use Price API's `getFiatExchangeRates` method for fiat prices,
+     * `getMultipleSpotPrices` for crypto prices and then using USD as an intermediate currency
+     * to convert the prices to the correct currency.
+     */
+    const allAssets = assets.flatMap((asset) => [asset.asset, asset.unit]);
+
+    const { fiatExchangeRates, cryptoPrices } =
+      await this.#fetchPriceData(allAssets);
+
+    const result: Record<CaipAssetType, FungibleAssetMarketData> = {};
+
+    assets.forEach((asset) => {
+      const { asset: assetType, unit } = asset;
+
+      // Skip if we don't have price data for the asset
+      if (!cryptoPrices[assetType]) {
+        return;
+      }
+
+      let unitUsdRate: BigNumber;
+
+      if (isFiat(unit)) {
+        /**
+         * Beware:
+         * We need to invert the fiat exchange rate because exchange rate != spot price
+         */
+        const fiatExchangeRate =
+          fiatExchangeRates[this.#extractFiatTicker(unit)]?.value;
+
+        if (!fiatExchangeRate) {
+          return;
+        }
+
+        unitUsdRate = new BigNumber(1).dividedBy(fiatExchangeRate);
+      } else {
+        unitUsdRate = new BigNumber(cryptoPrices[unit]?.price ?? 0);
+      }
+
+      if (unitUsdRate.isZero()) {
+        return;
+      }
+
+      result[assetType] = this.#computeMarketData(
+        cryptoPrices[assetType],
+        unitUsdRate,
+      );
+    });
+
+    return result;
   }
 
   async getHistoricalPrice(
