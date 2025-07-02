@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { installSnap } from '@metamask/snaps-jest';
-
-jest.mock('@metamask/snaps-utils', () => ({
-  ...jest.requireActual('@metamask/snaps-utils'),
-  snapOwnsAccount: () => true,
-}));
+import type { CaipAssetType } from '@metamask/keyring-api';
+import { getMockAccount, installSnap } from '@metamask/snaps-jest';
 
 import type { SpotPrices } from '../../core/clients/price-api/types';
 import {
@@ -14,14 +10,28 @@ import {
 } from '../../core/constants/solana';
 import { RpcRequestMethod } from '../../core/handlers/onRpcRequest/types';
 import {
+  MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE,
+  MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE,
+  MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE,
+  MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_RESPONSE,
+  MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE,
+  MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE,
+  MOCK_SOLANA_RPC_SIMULATE_TRANSACTION_RESPONSE,
+} from '../../core/services/mocks/mockSolanaRpcResponses';
+import {
+  MOCK_SEED_PHRASE,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../core/test/mocks/solana-keyring-accounts';
 import type { MockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
+import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../core/test/mocks/transactions-data/native-sol-transfer';
 import { TEST_ORIGIN } from '../../core/test/utils';
+import type { Preferences } from '../../core/types/snap';
 import { DEFAULT_SEND_CONTEXT } from './render';
-import { type SendContext, SendCurrencyType } from './types';
+import { Send } from './Send';
+import { type SendContext, SendCurrencyType, SendFormNames } from './types';
+import { TransactionConfirmationNames } from './views/TransactionConfirmation/TransactionConfirmation';
 
 const solanaKeyringAccounts = [
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -156,148 +166,246 @@ describe('Send', () => {
     mockSolanaRpc.shutdown();
   });
 
-  describe('RPC Method Validation', () => {
-    it('fails when wrong scope', async () => {
-      const { request } = await installSnap();
+  it('renders the send form', async () => {
+    const { mockResolvedResult, server } = mockSolanaRpc;
 
-      const response = await request({
-        origin: TEST_ORIGIN,
-        method: RpcRequestMethod.StartSendTransactionFlow,
-        params: {
-          scope: 'wrong scope',
-          account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+    // temporary mock for the token prices
+    // FIXME: when we have a better way to handle external requests
+    server?.get(`/v3/spot-prices`, (_: any, res: any) => {
+      return res.json(mockSpotPrices);
+    });
+
+    const initialState = {
+      keyringAccounts: {
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          entropySource: 'default',
         },
-      });
-
-      expect(response).toRespondWithError({
-        code: expect.any(Number),
-        message: expect.stringMatching(/At path: scope/u),
-        stack: expect.any(String),
-      });
-    });
-
-    it('fails when account is not a uuid', async () => {
-      const { request } = await installSnap();
-
-      const response = await request({
-        origin: TEST_ORIGIN,
-        method: RpcRequestMethod.StartSendTransactionFlow,
-        params: {
-          scope: Network.Localnet,
-          account: 'not-a-uuid',
+        [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: {
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
+          entropySource: 'alternative',
         },
-      });
-
-      expect(response).toRespondWithError({
-        code: expect.any(Number),
-        message: expect.stringMatching(/At path: account/u),
-        stack: expect.any(String),
-      });
-    });
-  });
-
-  describe('Send Context Data Flow', () => {
-    it('creates valid send context with correct default values', () => {
-      expect(DEFAULT_SEND_CONTEXT.scope).toBe(Network.Mainnet);
-      expect(DEFAULT_SEND_CONTEXT.fromAccountId).toBe('');
-      expect(DEFAULT_SEND_CONTEXT.amount).toBe('');
-      expect(DEFAULT_SEND_CONTEXT.toAddress).toBe(null);
-      expect(DEFAULT_SEND_CONTEXT.tokenCaipId).toBe(KnownCaip19Id.SolMainnet);
-      expect(DEFAULT_SEND_CONTEXT.currencyType).toBe(SendCurrencyType.TOKEN);
-      expect(DEFAULT_SEND_CONTEXT.accounts).toEqual([]);
-      expect(DEFAULT_SEND_CONTEXT.validation).toEqual({});
-      expect(DEFAULT_SEND_CONTEXT.balances).toEqual({});
-      expect(DEFAULT_SEND_CONTEXT.assets).toEqual([]);
-      expect(DEFAULT_SEND_CONTEXT.tokenPrices).toEqual({});
-      expect(DEFAULT_SEND_CONTEXT.selectedTokenMetadata).toBeNull();
-      expect(DEFAULT_SEND_CONTEXT.tokenPricesFetchStatus).toBe('initial');
-      expect(DEFAULT_SEND_CONTEXT.error).toBeNull();
-      expect(DEFAULT_SEND_CONTEXT.buildingTransaction).toBe(false);
-      expect(DEFAULT_SEND_CONTEXT.transactionMessage).toBeNull();
-      expect(DEFAULT_SEND_CONTEXT.transaction).toBeNull();
-      expect(DEFAULT_SEND_CONTEXT.stage).toBe('send-form');
-      expect(DEFAULT_SEND_CONTEXT.minimumBalanceForRentExemptionSol).toBe(
-        '0.002',
-      );
-      expect(DEFAULT_SEND_CONTEXT.loading).toBe(true);
-    });
-
-    it('validates mock context structure', () => {
-      expect(mockContext.accounts).toEqual(solanaKeyringAccounts);
-      expect(mockContext.fromAccountId).toBe(MOCK_SOLANA_KEYRING_ACCOUNT_0.id);
-      expect(mockContext.scope).toBe(Network.Localnet);
-      expect(mockContext.currencyType).toBe(SendCurrencyType.TOKEN);
-      expect(mockContext.tokenCaipId).toBe(KnownCaip19Id.SolLocalnet);
-      expect(mockContext.assets).toEqual([
-        KnownCaip19Id.SolLocalnet,
-        'solana:123456789abcdef/token:address1',
-        'solana:123456789abcdef/token:address2',
-      ]);
-      expect(mockContext.balances).toEqual({
+      },
+      assets: {
         [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
         [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
-      });
-      expect(mockContext.tokenPrices).toEqual(mockSpotPrices);
-      expect(mockContext.loading).toBe(false);
+      },
+    };
+
+    const mockPreferences: Preferences = {
+      locale: 'en',
+      currency: 'usd',
+      hideBalances: false,
+      useSecurityAlerts: true,
+      useExternalPricingData: true,
+      simulateOnChainActions: true,
+      useTokenDetection: true,
+      batchCheckBalances: true,
+      displayNftMedia: true,
+      useNftDetection: true,
+    };
+
+    const { request, mockJsonRpc } = await installSnap({
+      options: {
+        ...mockPreferences,
+        secretRecoveryPhrase: MOCK_SEED_PHRASE,
+        unencryptedState: initialState,
+        accounts: [
+          getMockAccount({
+            address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+            selected: true,
+            assets: Object.keys(solanaAccountBalances) as CaipAssetType[],
+            scopes: [Network.Localnet],
+          }),
+          getMockAccount({
+            address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+            selected: false,
+            assets: Object.keys(solanaAccountBalances) as CaipAssetType[],
+            scopes: [Network.Localnet],
+          }),
+        ],
+        assets: {
+          [KnownCaip19Id.SolLocalnet]: {
+            symbol: 'SOL',
+            name: 'Solana',
+          },
+          'solana:123456789abcdef/token:address1': {
+            symbol: 'EURO-COIN',
+            name: 'Euro Coin',
+          },
+          'solana:123456789abcdef/token:address2': {
+            symbol: 'USDC',
+            name: 'USDC',
+          },
+        },
+      },
     });
 
-    it('validates account data structure', () => {
-      const account = mockContext.accounts.find(
-        (acc) => acc.id === mockContext.fromAccountId,
-      );
-      expect(account).toBeDefined();
-      expect(account?.id).toBe(MOCK_SOLANA_KEYRING_ACCOUNT_0.id);
-      expect(account?.address).toBe(MOCK_SOLANA_KEYRING_ACCOUNT_0.address);
-      expect(account?.type).toBe('solana:data-account');
+    mockJsonRpc({
+      method: 'snap_scheduleBackgroundEvent',
+      result: {},
     });
 
-    it('validates balance data structure', () => {
-      const accountBalances = mockContext.balances[mockContext.fromAccountId];
-      expect(accountBalances).toBeDefined();
-      const solBalance = accountBalances![KnownCaip19Id.SolLocalnet];
-      expect(solBalance).toBeDefined();
-      expect(solBalance!.amount).toBe('0.123456789');
-      expect(solBalance!.unit).toBe(SOL_SYMBOL);
+    mockResolvedResult({
+      method: 'getLatestBlockhash',
+      result: MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result,
     });
 
-    it('validates token price data structure', () => {
-      const solPrice = mockContext.tokenPrices[KnownCaip19Id.SolLocalnet];
-      expect(solPrice).toBeDefined();
-      expect(solPrice!.id).toBe('solana');
-      expect(solPrice!.price).toBe(200);
-      expect(solPrice!.marketCap).toBeDefined();
+    mockResolvedResult({
+      method: 'sendTransaction',
+      result: MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result,
+    });
+
+    mockResolvedResult({
+      method: 'getTokenAccountsByOwner',
+      result: MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result,
+    });
+
+    mockResolvedResult({
+      method: 'getFeeForMessage',
+      result: MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE.result,
+    });
+
+    mockResolvedResult({
+      method: 'getBalance',
+      result: MOCK_SOLANA_RPC_GET_BALANCE_RESPONSE.result,
+    });
+
+    mockResolvedResult({
+      method: 'simulateTransaction',
+      result: MOCK_SOLANA_RPC_SIMULATE_TRANSACTION_RESPONSE.result,
+    });
+
+    mockResolvedResult({
+      method: 'getMultipleAccounts',
+      result: MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_RESPONSE.result,
+    });
+
+    mockResolvedResult({
+      method: 'getTransaction',
+      result: {
+        transaction: EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction,
+      } as any,
+    });
+
+    mockResolvedResult({
+      method: 'getMinimumBalanceForRentExemption',
+      result: 890880, // 890880 lamports = 0.00089088 SOL
+    });
+
+    const response = request({
+      origin: TEST_ORIGIN,
+      method: RpcRequestMethod.StartSendTransactionFlow,
+      params: {
+        scope: Network.Localnet, // Routes the call to the mock RPC server running locally
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      },
+    });
+
+    const screen1BeforeUpdate = await response.getInterface();
+    await screen1BeforeUpdate.waitForUpdate();
+
+    const screen1 = await response.getInterface();
+
+    const updatedContext1: SendContext = mockContext;
+
+    expect(screen1).toRender(<Send context={updatedContext1} />);
+
+    await screen1.typeInField(
+      SendFormNames.DestinationAccountInput,
+      MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    );
+
+    // two rerenders are happening here
+    await response.getInterface();
+    const screen2 = await response.getInterface();
+
+    const updatedContext2: SendContext = {
+      ...updatedContext1,
+      destinationAddressOrDomain: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+      toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    };
+
+    expect(screen2).toRender(<Send context={updatedContext2} />);
+
+    await screen2.typeInField(SendFormNames.AmountInput, '0.001');
+
+    await screen2.waitForUpdate();
+
+    const screen3 = await response.getInterface();
+
+    const updatedContext3: SendContext = {
+      ...updatedContext2,
+      amount: '0.001',
+      transactionMessage: 'some-base64-encoded-message',
+    };
+
+    expect(screen3).toRender(<Send context={updatedContext3} />);
+
+    await screen3.clickElement(SendFormNames.SendButton);
+
+    const screen4 = await response.getInterface();
+
+    const updatedContext4: SendContext = {
+      ...updatedContext3,
+      stage: 'transaction-confirmation',
+      feeEstimatedInSol: '0.000005',
+    };
+
+    expect(screen4).toRender(<Send context={updatedContext4} />);
+
+    await screen4.clickElement(TransactionConfirmationNames.ConfirmButton);
+
+    const screen5 = await response.getInterface();
+
+    const updatedContext5: SendContext = {
+      ...updatedContext4,
+      stage: 'transaction-success',
+      feePaidInSol: '0.000005',
+      transaction: {
+        result: 'success',
+        signature: MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result.signature,
+      },
+    };
+
+    expect(screen5).toRender(<Send context={updatedContext5} />);
+  });
+
+  it('fails when wrong scope', async () => {
+    const { request } = await installSnap();
+
+    const response = await request({
+      origin: TEST_ORIGIN,
+      method: RpcRequestMethod.StartSendTransactionFlow,
+      params: {
+        scope: 'wrong scope',
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      },
+    });
+
+    expect(response).toRespondWithError({
+      code: expect.any(Number),
+      message: expect.stringMatching(/At path: scope/u),
+      stack: expect.any(String),
     });
   });
 
-  describe('Send Flow Business Logic', () => {
-    it('validates that required fields are present for send flow', () => {
-      expect(mockContext.fromAccountId).toBeTruthy();
-      expect(mockContext.scope).toBeTruthy();
-      expect(mockContext.tokenCaipId).toBeTruthy();
-      expect(mockContext.accounts.length).toBeGreaterThan(0);
-      expect(Object.keys(mockContext.balances).length).toBeGreaterThan(0);
+  it('fails when account is not a uuid', async () => {
+    const { request } = await installSnap();
+
+    const response = await request({
+      origin: TEST_ORIGIN,
+      method: RpcRequestMethod.StartSendTransactionFlow,
+      params: {
+        scope: Network.Localnet,
+        account: 'not-a-uuid',
+      },
     });
 
-    it('validates account selection logic', () => {
-      const selectedAccount = mockContext.accounts.find(
-        (account) => account.id === mockContext.fromAccountId,
-      );
-      expect(selectedAccount).toBeDefined();
-      expect(selectedAccount?.id).toBe(MOCK_SOLANA_KEYRING_ACCOUNT_0.id);
-    });
-
-    it('validates asset availability', () => {
-      expect(mockContext.assets).toContain(mockContext.tokenCaipId);
-
-      const accountBalances = mockContext.balances[mockContext.fromAccountId];
-      expect(accountBalances).toBeDefined();
-      expect(accountBalances![mockContext.tokenCaipId]).toBeDefined();
-    });
-
-    it('validates token price availability', () => {
-      const tokenPrice = mockContext.tokenPrices[mockContext.tokenCaipId];
-      expect(tokenPrice).toBeDefined();
-      expect(tokenPrice!.price).toBeGreaterThan(0);
+    expect(response).toRespondWithError({
+      code: expect.any(Number),
+      message: expect.stringMatching(/At path: account/u),
+      stack: expect.any(String),
     });
   });
 });

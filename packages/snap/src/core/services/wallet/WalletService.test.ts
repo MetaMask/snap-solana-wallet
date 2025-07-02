@@ -33,77 +33,6 @@ jest.mock('../../utils/getBip32Entropy', () => ({
   getBip32Entropy: getBip32EntropyMock,
 }));
 
-jest.mock('@solana/keys', () => ({
-  ...jest.requireActual('@solana/keys'),
-  verifySignature: jest.fn().mockResolvedValue(true),
-}));
-
-jest.mock('@solana/kit', () => ({
-  ...jest.requireActual('@solana/kit'),
-  createKeyPairSignerFromPrivateKeyBytes: jest.fn().mockImplementation(() => {
-    return Promise.resolve({
-      address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
-      keyPair: {
-        privateKey: {
-          algorithm: { name: 'Ed25519' },
-          extractable: false,
-          type: 'private',
-          usages: ['sign'],
-        },
-        publicKey: {
-          algorithm: { name: 'Ed25519' },
-          extractable: true,
-          type: 'public',
-          usages: ['verify'],
-        },
-      },
-      signMessages: jest.fn().mockResolvedValue([
-        {
-          BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP: new Uint8Array([
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
-            37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
-            54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-          ]),
-          '27h6cm6S9ag5y4ASi1a1vbTSKEsQMjEdfvZ6atPjmbuD': new Uint8Array([
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
-            37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
-            54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-          ]),
-          '3SYHDFbhoxuTCYCGRw7KSL8GbwUoByjtvyy7pUZeAhh8': new Uint8Array([
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
-            37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
-            54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-          ]),
-          FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo: new Uint8Array([
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
-            37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
-            54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-          ]),
-          FDUGdV6jbhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK: new Uint8Array([
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
-            37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
-            54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-          ]),
-          GN1DST49kafBmRDnKKwUbR6nJWoqzSJBPoHwcTXzgmkH: new Uint8Array([
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
-            37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
-            54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-          ]),
-        },
-      ]),
-      signTransaction: jest
-        .fn()
-        .mockResolvedValue(new Uint8Array([1, 2, 3, 4])),
-    });
-  }),
-}));
-
 describe('WalletService', () => {
   let mockLogger: ILogger;
   let mockConnection: SolanaConnection;
@@ -386,7 +315,7 @@ describe('WalletService', () => {
   );
 
   describe('signMessage', () => {
-    it('returns the signed message', async () => {
+    it('returns the signed message and is properly verified', async () => {
       const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
       const request = wrapKeyringRequest(
         MOCK_SIGN_MESSAGE_REQUEST as unknown as JsonRpcRequest,
@@ -394,11 +323,15 @@ describe('WalletService', () => {
 
       const result = await service.signMessage(account, request);
 
-      expect(result).toMatchObject({
-        signature: expect.any(String),
-        signedMessage: MOCK_SIGN_MESSAGE_RESPONSE.signedMessage,
-        signatureType: 'ed25519',
-      });
+      expect(result).toStrictEqual(MOCK_SIGN_MESSAGE_RESPONSE);
+
+      const verified = await service.verifySignature(
+        account,
+        result.signature,
+        result.signedMessage,
+      );
+
+      expect(verified).toBe(true);
     });
 
     it('rejects invalid requests', async () => {
@@ -423,14 +356,7 @@ describe('WalletService', () => {
 
       const result = await service.signIn(account, request);
 
-      expect(result).toMatchObject({
-        account: {
-          address: MOCK_SIGN_IN_RESPONSE.account.address,
-        },
-        signature: expect.any(String),
-        signedMessage: MOCK_SIGN_IN_RESPONSE.signedMessage,
-        signatureType: 'ed25519',
-      });
+      expect(result).toStrictEqual(MOCK_SIGN_IN_RESPONSE);
     });
 
     it('rejects invalid requests', async () => {
@@ -443,6 +369,20 @@ describe('WalletService', () => {
       await expect(service.signIn(account, request)).rejects.toThrow(
         /At path/u,
       );
+    });
+  });
+
+  describe('verifySignature', () => {
+    it('returns true for a valid signature', async () => {
+      const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
+
+      const result = await service.verifySignature(
+        account,
+        MOCK_SIGN_MESSAGE_RESPONSE.signature,
+        MOCK_SIGN_MESSAGE_RESPONSE.signedMessage,
+      );
+
+      expect(result).toBe(true);
     });
   });
 });

@@ -24,25 +24,6 @@ jest.mock('@solana/kit', () => ({
   sendTransactionWithoutConfirmingFactory: jest
     .fn()
     .mockReturnValue(() => jest.fn()),
-  createKeyPairSignerFromPrivateKeyBytes: jest.fn().mockResolvedValue({
-    address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
-    keyPair: {
-      privateKey: {
-        algorithm: { name: 'Ed25519' },
-        extractable: false,
-        type: 'private',
-        usages: ['sign'],
-      },
-      publicKey: {
-        algorithm: { name: 'Ed25519' },
-        extractable: true,
-        type: 'public',
-        usages: ['verify'],
-      },
-    },
-    signMessages: jest.fn(),
-    signTransactions: jest.fn(),
-  }),
 }));
 
 jest.mock('../../../core/utils/deriveSolanaKeypair', () => ({
