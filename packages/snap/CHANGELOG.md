@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.35.2]
+
+### Uncategorized
+
+- fix: return correct structure `onAssetsMarketData` handler ([#448](https://github.com/MetaMask/snap-solana-wallet/pull/448))
+
 ## [1.35.1]
 
 ### Added
@@ -719,7 +725,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.1...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.2...HEAD
+[1.35.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.1...v1.35.2
 [1.35.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.0...v1.35.1
 [1.35.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.34.0...v1.35.0
 [1.34.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.33.4...v1.34.0
