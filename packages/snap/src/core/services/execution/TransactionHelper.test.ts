@@ -35,6 +35,14 @@ jest.mock('../../utils/deriveSolanaKeypair', () => ({
   deriveSolanaKeypair: deriveSolanaKeypairMock,
 }));
 
+jest.mock('@solana/signers', () => ({
+  ...jest.requireActual('@solana/signers'),
+  createKeyPairSignerFromPrivateKeyBytes: jest.fn(() => ({
+    sign: jest.fn(async () => new Uint8Array(64)),
+    publicKey: new Uint8Array(32),
+  })),
+}));
+
 describe('TransactionHelper', () => {
   const mockScope = Network.Mainnet;
 
