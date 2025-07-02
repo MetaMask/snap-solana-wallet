@@ -61,9 +61,10 @@ export const SendForm = ({
   const selectedAccount = accounts.find(
     (account) => account.id === fromAccountId,
   );
-  const selectedAccountAddress = selectedAccount?.address
-    ? addressToCaip10(scope, selectedAccount.address)
-    : '';
+  const selectedAccountAddress: `${string}:${string}:${string}` | undefined =
+    selectedAccount?.address
+      ? addressToCaip10(scope, selectedAccount.address)
+      : undefined;
 
   const selectedTokenPrice = getSelectedTokenPrice(context);
 
@@ -142,7 +143,12 @@ export const SendForm = ({
           <Box>{null}</Box>
           <Box>{null}</Box>
 
-          <Field label={translate('send.fromField')}>
+          <Field
+            label={translate('send.fromField')}
+            error={
+              validation?.[SendFormNames.SourceAccountSelector]?.message ?? ''
+            }
+          >
             <AccountSelector
               name={SendFormNames.SourceAccountSelector}
               chainIds={[scope]}
