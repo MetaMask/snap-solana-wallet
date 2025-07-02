@@ -5,6 +5,7 @@ import type {
   OnAssetHistoricalPriceHandler,
   OnAssetsConversionHandler,
   OnAssetsLookupHandler,
+  OnAssetsMarketDataHandler,
   OnClientRequestHandler,
   OnCronjobHandler,
   OnInstallHandler,
@@ -26,6 +27,7 @@ import BigNumber from 'bignumber.js';
 import { onAssetHistoricalPrice as onAssetHistoricalPriceHandler } from './core/handlers/onAssetHistoricalPrice/onAssetHistoricalPrice';
 import { onAssetsConversion as onAssetsConversionHandler } from './core/handlers/onAssetsConversion/onAssetsConversion';
 import { onAssetsLookup as onAssetsLookupHandler } from './core/handlers/onAssetsLookup/onAssetsLookup';
+import { onAssetsMarketData as onAssetsMarketDataHandler } from './core/handlers/onAssetsMarketData/onAssetsMarketData';
 import { handlers as onCronjobHandlers } from './core/handlers/onCronjob';
 import { ScheduleBackgroundEventMethod } from './core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { CronjobMethod } from './core/handlers/onCronjob/cronjobs/CronjobMethod';
@@ -288,6 +290,13 @@ export const onInstall: OnInstallHandler = async () =>
 export const onNameLookup: OnNameLookupHandler = async (request) => {
   const result = await withCatchAndThrowSnapError(async () =>
     onNameLookupHandler(request),
+  );
+  return result ?? null;
+};
+
+export const onAssetsMarketData: OnAssetsMarketDataHandler = async (params) => {
+  const result = await withCatchAndThrowSnapError(async () =>
+    onAssetsMarketDataHandler(params),
   );
   return result ?? null;
 };
