@@ -73,7 +73,7 @@ export class TransactionScanService {
 
       const scan = this.#mapScan(result);
 
-      if (!scan || !scan.status) {
+      if (!scan?.status) {
         this.#logger.warn(
           'Invalid scan result received from security alerts API',
         );
@@ -132,7 +132,7 @@ export class TransactionScanService {
               origin,
               scope,
               securityAlertType,
-              scan.validation.reason || 'unknown',
+              scan.validation.reason ?? 'unknown',
               this.#getSecurityAlertDescription(scan.validation),
             ),
           );
@@ -191,8 +191,7 @@ export class TransactionScanService {
   }
 
   #getSecurityAlertDescription(validation: TransactionScanValidation): string {
-    // Add null/undefined check for validation and reason
-    if (!validation || !validation.reason) {
+    if (!validation?.reason) {
       return 'Security alert: Unknown reason';
     }
 
@@ -255,8 +254,8 @@ export class TransactionScanService {
           ) ?? [],
       },
       validation: {
-        type: result.result?.validation?.result_type || null,
-        reason: result.result?.validation?.reason || null,
+        type: result.result?.validation?.result_type ?? null,
+        reason: result.result?.validation?.reason ?? null,
       },
       error: result?.error_details
         ? {
