@@ -24,7 +24,10 @@ type TransactionAlertProps = {
 };
 
 const VALIDATION_TYPE_TO_SEVERITY: Partial<
-  Record<TransactionScanValidation['type'], BannerProps['severity']>
+  Record<
+    NonNullable<TransactionScanValidation['type']>,
+    BannerProps['severity']
+  >
 > = {
   Malicious: 'danger',
   Warning: 'warning',
@@ -84,7 +87,9 @@ export const TransactionAlert: SnapComponent<TransactionAlertProps> = ({
     return <Box>{null}</Box>;
   }
 
-  const severity = VALIDATION_TYPE_TO_SEVERITY[validation?.type];
+  const severity = validation?.type
+    ? VALIDATION_TYPE_TO_SEVERITY[validation.type]
+    : undefined;
 
   /**
    * Displays a banner if the validation there is a validation.

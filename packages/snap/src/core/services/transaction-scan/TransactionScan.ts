@@ -75,8 +75,10 @@ export class TransactionScanService {
 
       // Validate scan object before proceeding
       if (!scan || !scan.status) {
-        this.#logger.warn('Invalid scan result received from security alerts API');
-        
+        this.#logger.warn(
+          'Invalid scan result received from security alerts API',
+        );
+
         if (account) {
           await this.#analyticsService.trackEventSecurityScanCompleted(
             account,
@@ -87,7 +89,7 @@ export class TransactionScanService {
             false,
           );
         }
-        
+
         return null;
       }
 
@@ -105,7 +107,10 @@ export class TransactionScanService {
         ];
 
         // And the alert is detected - only if validation exists and is not benign
-        if (scan.validation?.type && scan.validation.type !== SecurityAlertResponse.Benign) {
+        if (
+          scan.validation?.type &&
+          scan.validation.type !== SecurityAlertResponse.Benign
+        ) {
           analyticsPromises.push(
             this.#analyticsService.trackEventSecurityAlertDetected(
               account,
