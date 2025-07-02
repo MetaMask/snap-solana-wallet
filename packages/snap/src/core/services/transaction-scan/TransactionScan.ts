@@ -73,6 +73,24 @@ export class TransactionScanService {
 
       const scan = this.#mapScan(result);
 
+      // Validate scan object before proceeding
+      if (!scan || !scan.status) {
+        this.#logger.warn('Invalid scan result received from security alerts API');
+        
+        if (account) {
+          await this.#analyticsService.trackEventSecurityScanCompleted(
+            account,
+            transaction,
+            origin,
+            scope,
+            ScanStatus.ERROR,
+            false,
+          );
+        }
+        
+        return null;
+      }
+
       // The security scan is completed
       if (account) {
         const analyticsPromises = [
@@ -81,22 +99,22 @@ export class TransactionScanService {
             transaction,
             origin,
             scope,
-            scan?.status as ScanStatus,
-            scan?.validation?.type !== SecurityAlertResponse.Benign,
+            scan.status as ScanStatus,
+            scan.validation?.type !== SecurityAlertResponse.Benign,
           ),
         ];
 
-        // And the alert is detected
-        if (scan?.validation?.type !== SecurityAlertResponse.Benign) {
+        // And the alert is detected - only if validation exists and is not benign
+        if (scan.validation?.type && scan.validation.type !== SecurityAlertResponse.Benign) {
           analyticsPromises.push(
             this.#analyticsService.trackEventSecurityAlertDetected(
               account,
               transaction,
               origin,
               scope,
-              scan?.validation?.type as SecurityAlertResponse,
-              scan?.validation?.reason,
-              this.#getSecurityAlertDescription(scan?.validation),
+              scan.validation.type as SecurityAlertResponse,
+              scan.validation.reason || 'unknown',
+              this.#getSecurityAlertDescription(scan.validation),
             ),
           );
         }
@@ -154,6 +172,11 @@ export class TransactionScanService {
   }
 
   #getSecurityAlertDescription(validation: TransactionScanValidation): string {
+    // Add null/undefined check for validation and reason
+    if (!validation || !validation.reason) {
+      return 'Security alert: Unknown reason';
+    }
+
     // Reference: https://docs.blockaid.io/reference/response-reference-solana
     const reasonDescriptions: Record<string, string> = {
       unfair_trade:
@@ -186,9 +209,14 @@ export class TransactionScanService {
 
   #mapScan(
     result: SecurityAlertSimulationValidationResponse,
-  ): TransactionScanResult {
+  ): TransactionScanResult | null {
+    // Validate that we have a basic result structure
+    if (!result) {
+      return null;
+    }
+
     return {
-      status: result?.status,
+      status: result.status || 'ERROR',
       estimatedChanges: {
         assets:
           result.result?.simulation?.account_summary?.account_assets_diff?.map(
@@ -205,8 +233,8 @@ export class TransactionScanService {
           ) ?? [],
       },
       validation: {
-        type: result.result?.validation?.result_type,
-        reason: result.result?.validation?.reason,
+        type: result.result?.validation?.result_type || null,
+        reason: result.result?.validation?.reason || null,
       },
       error: result?.error_details
         ? {

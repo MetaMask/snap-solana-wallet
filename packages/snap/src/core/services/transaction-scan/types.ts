@@ -17,8 +17,8 @@ export type TransactionScanEstimatedChanges = {
 };
 
 export type TransactionScanValidation = {
-  type: SecurityAlertSimulationValidationResponse['result']['validation']['result_type'];
-  reason: SecurityAlertSimulationValidationResponse['result']['validation']['reason'];
+  type: SecurityAlertSimulationValidationResponse['result']['validation']['result_type'] | null;
+  reason: SecurityAlertSimulationValidationResponse['result']['validation']['reason'] | null;
 };
 
 export type TransactionScanError = {
