@@ -150,7 +150,7 @@ export class SubscriptionService {
     /**
      * Register a callback that will send the message when the connection is reestablished. It covers both cases:
      * - The connection was lost then re-established -> we need to re-subscribe.
-     * - The connection was not yet established, and we need to re-subscribe when it is established.
+     * - The connection was not yet established, and we need to subscribe when it is established.
      */
     this.#connectionService.onConnectionRecovery(network, async () => {
       const futureConnectionId =
@@ -163,6 +163,12 @@ export class SubscriptionService {
     // If the connection is open, send the message immediately.
     if (connectionId) {
       await sendSubscriptionMessage(connectionId);
+    } else {
+      this.#logger.info(
+        this.loggerPrefix,
+        `No connection found for network ${network}, opening a new one`,
+      );
+      await this.#connectionService.openConnection(network);
     }
 
     return pendingSubscription.id;
