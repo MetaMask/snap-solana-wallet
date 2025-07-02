@@ -9,6 +9,7 @@ import {
   lamportsToSol,
   solToLamports,
 } from '../../../../core/utils/conversion';
+import { i18n } from '../../../../core/utils/i18n';
 import {
   resolveInterface,
   SEND_FORM_INTERFACE_NAME,
@@ -17,6 +18,7 @@ import {
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import {
   configProvider,
+  nameResolutionService,
   priceApiClient,
   sendSolBuilder,
   sendSplTokenBuilder,
@@ -28,6 +30,7 @@ import { Send } from '../../Send';
 import { SendFeeCalculator } from '../../transactions/SendFeeCalculator';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 import { buildTransactionMessageAndUpdateInterface } from '../../utils/buildTransactionMessageAndUpdateInterface';
+import { isSolanaDomain } from '../../utils/isSolanaDomain';
 import { sendFieldsAreValid, validateField } from '../../validation/form';
 import { validation } from './validation';
 
@@ -362,21 +365,54 @@ async function onDestinationAccountInputValueChange({
 }) {
   const updatedContext = { ...context };
 
-  updatedContext.toAddress = event.value as string;
+  updatedContext.destinationAddressOrDomain = event.value as string;
+  updatedContext.domainResolutionStatus = null;
   updatedContext.error = null;
 
-  const toAddressValidation = validateField<SendFormNames>(
+  const destinationValidation = validateField<SendFormNames>(
     SendFormNames.DestinationAccountInput,
-    updatedContext.toAddress,
+    updatedContext.destinationAddressOrDomain,
     validation(updatedContext),
   );
 
   updatedContext.validation[SendFormNames.DestinationAccountInput] =
-    toAddressValidation;
+    destinationValidation;
+
+  if (isSolanaDomain(updatedContext?.destinationAddressOrDomain)) {
+    updatedContext.domainResolutionStatus = 'fetching';
+
+    await updateInterface(
+      id,
+      <Send context={updatedContext} />,
+      updatedContext,
+    );
+
+    // eslint-disable-next-line require-atomic-updates
+    updatedContext.toAddress = await nameResolutionService
+      .resolveDomain(
+        updatedContext.scope,
+        updatedContext.destinationAddressOrDomain,
+      )
+      .catch(() => {
+        const translate = i18n(updatedContext.preferences.locale);
+        updatedContext.validation[SendFormNames.DestinationAccountInput] = {
+          message: translate('send.toInvalidErrorDomain'),
+          value: updatedContext.destinationAddressOrDomain ?? '',
+        };
+
+        return null;
+      });
+
+    updatedContext.domainResolutionStatus = updatedContext.toAddress
+      ? 'fetched'
+      : 'error';
+  } else {
+    updatedContext.toAddress = updatedContext.destinationAddressOrDomain;
+  }
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
-  if (toAddressValidation === null) {
+  if (destinationValidation === null) {
     await buildTransactionMessageAndUpdateInterface(id, updatedContext);
   }
 }
@@ -394,8 +430,12 @@ async function onClearButtonClick({
   id: string;
   context: SendContext;
 }) {
+  context.destinationAddressOrDomain = '';
   context.toAddress = '';
+  context.domainResolutionStatus = null;
   context.error = null;
+  context.validation[SendFormNames.DestinationAccountInput] = null;
+
   await updateInterface(
     id,
     <Send context={context} inputToAddress={context.toAddress} />,

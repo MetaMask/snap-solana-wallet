@@ -201,7 +201,7 @@ describe('Send', () => {
       expect(DEFAULT_SEND_CONTEXT.scope).toBe(Network.Mainnet);
       expect(DEFAULT_SEND_CONTEXT.fromAccountId).toBe('');
       expect(DEFAULT_SEND_CONTEXT.amount).toBe('');
-      expect(DEFAULT_SEND_CONTEXT.toAddress).toBe('');
+      expect(DEFAULT_SEND_CONTEXT.toAddress).toBe(null);
       expect(DEFAULT_SEND_CONTEXT.tokenCaipId).toBe(KnownCaip19Id.SolMainnet);
       expect(DEFAULT_SEND_CONTEXT.currencyType).toBe(SendCurrencyType.TOKEN);
       expect(DEFAULT_SEND_CONTEXT.accounts).toEqual([]);

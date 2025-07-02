@@ -1,10 +1,24 @@
+import { Network } from '../../constants/solana';
+import type { ConfigProvider } from '../config';
 import { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
+
+const mockNetwork = Network.Mainnet;
+const mockWebSocketUrl = 'ws://localhost:8080';
+const mockConnectionId = 'some-connection-id';
 
 describe('WebSocketConnectionRepository', () => {
   let repository: WebSocketConnectionRepository;
+  let mockConfigProvider: ConfigProvider;
 
   beforeEach(() => {
-    repository = new WebSocketConnectionRepository();
+    mockConfigProvider = {
+      getNetworkBy: jest.fn().mockReturnValue({
+        caip2Id: mockNetwork,
+        webSocketUrl: mockWebSocketUrl,
+      }),
+    } as unknown as ConfigProvider;
+
+    repository = new WebSocketConnectionRepository(mockConfigProvider);
 
     const snap = {
       request: jest.fn(),
@@ -24,11 +38,11 @@ describe('WebSocketConnectionRepository', () => {
     it('returns all connections opened in the extension', async () => {
       jest
         .spyOn(snap, 'request')
-        .mockResolvedValue([{ id: '1', url: 'ws://localhost:8080' }]);
+        .mockResolvedValue([{ id: mockConnectionId, url: mockWebSocketUrl }]);
 
       const connections = await repository.getAll();
       expect(connections).toStrictEqual([
-        { id: '1', url: 'ws://localhost:8080' },
+        { id: mockConnectionId, url: mockWebSocketUrl, network: mockNetwork },
       ]);
     });
   });
@@ -45,11 +59,15 @@ describe('WebSocketConnectionRepository', () => {
     it('returns the connection when it exists', async () => {
       jest
         .spyOn(snap, 'request')
-        .mockResolvedValue([{ id: '1', url: 'ws://localhost:8080' }]);
+        .mockResolvedValue([{ id: mockConnectionId, url: mockWebSocketUrl }]);
 
-      const connection = await repository.getById('1');
+      const connection = await repository.getById(mockConnectionId);
 
-      expect(connection).toStrictEqual({ id: '1', url: 'ws://localhost:8080' });
+      expect(connection).toStrictEqual({
+        id: mockConnectionId,
+        url: mockWebSocketUrl,
+        network: mockNetwork,
+      });
     });
   });
 
@@ -57,7 +75,7 @@ describe('WebSocketConnectionRepository', () => {
     it('returns null when the connection does not exist', async () => {
       jest.spyOn(snap, 'request').mockResolvedValue([]);
 
-      const connection = await repository.findByUrl('ws://localhost:8080');
+      const connection = await repository.findByNetwork(mockNetwork);
 
       expect(connection).toBeNull();
     });
@@ -65,21 +83,34 @@ describe('WebSocketConnectionRepository', () => {
     it('returns the connection when it exists', async () => {
       jest
         .spyOn(snap, 'request')
-        .mockResolvedValue([{ id: '1', url: 'ws://localhost:8080' }]);
+        .mockResolvedValue([{ id: mockConnectionId, url: mockWebSocketUrl }]);
 
-      const connection = await repository.findByUrl('ws://localhost:8080');
+      const connection = await repository.findByNetwork(mockNetwork);
 
-      expect(connection).toStrictEqual({ id: '1', url: 'ws://localhost:8080' });
+      expect(connection).toStrictEqual({
+        id: mockConnectionId,
+        url: mockWebSocketUrl,
+        network: mockNetwork,
+      });
     });
   });
 
   describe('save', () => {
     it('saves the connection', async () => {
-      jest.spyOn(snap, 'request').mockResolvedValue('1');
+      jest.spyOn(snap, 'request').mockResolvedValue(mockConnectionId);
 
-      const connectionId = await repository.save('ws://localhost:8080');
+      const connection = await repository.save({
+        network: mockNetwork,
+        url: mockWebSocketUrl,
+        protocols: [],
+      });
 
-      expect(connectionId).toBe('1');
+      expect(connection).toStrictEqual({
+        id: mockConnectionId,
+        network: mockNetwork,
+        url: mockWebSocketUrl,
+        protocols: [],
+      });
     });
   });
 
@@ -87,11 +118,11 @@ describe('WebSocketConnectionRepository', () => {
     it('deletes the connection', async () => {
       jest.spyOn(snap, 'request').mockResolvedValue(null);
 
-      await repository.delete('1');
+      await repository.delete(mockConnectionId);
 
       expect(snap.request).toHaveBeenCalledWith({
         method: 'snap_closeWebSocket',
-        params: { id: '1' },
+        params: { id: mockConnectionId },
       });
     });
   });

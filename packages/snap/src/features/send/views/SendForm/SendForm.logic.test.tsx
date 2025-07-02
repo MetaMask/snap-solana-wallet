@@ -12,6 +12,9 @@ describe('SendForm Logic', () => {
         scope: Network.Localnet,
         fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
         amount: '1.5',
+        destinationAddressOrDomain:
+          'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+        domainResolutionStatus: null,
         toAddress: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
         feeEstimatedInSol: '0.000005',
         feePaidInSol: '0',
@@ -72,6 +75,9 @@ describe('SendForm Logic', () => {
         scope: Network.Localnet,
         fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
         amount: '1.5',
+        destinationAddressOrDomain:
+          'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+        domainResolutionStatus: null,
         toAddress: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
         feeEstimatedInSol: '0.000005',
         feePaidInSol: '0',
@@ -136,6 +142,9 @@ describe('SendForm Logic', () => {
         scope: Network.Localnet,
         fromAccountId: '', // Invalid: empty account
         amount: '', // Invalid: empty amount
+        destinationAddressOrDomain:
+          'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+        domainResolutionStatus: null,
         toAddress: 'invalid-address', // Invalid: not a Solana address
         feeEstimatedInSol: '0.000005',
         feePaidInSol: '0',
@@ -209,6 +218,9 @@ describe('SendForm Logic', () => {
         scope: Network.Localnet,
         fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
         amount: '1.5',
+        destinationAddressOrDomain:
+          'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+        domainResolutionStatus: null,
         toAddress: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
         feeEstimatedInSol: '0.000005',
         feePaidInSol: '0',

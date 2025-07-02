@@ -13,10 +13,12 @@ const mockConnectionId = 'mock-connection-id';
 const createMockWebSocketConnection = (
   id = mockConnectionId,
   url = mockWebSocketUrl,
+  network = Network.Mainnet,
 ): WebSocketConnection => ({
   id,
   url,
   protocols: [],
+  network,
 });
 
 describe('WebSocketConnectionService', () => {
@@ -50,11 +52,9 @@ describe('WebSocketConnectionService', () => {
     mockWebSocketConnectionRepository = {
       getAll: jest.fn(),
       getById: jest.fn(),
-      findByUrl: jest.fn(),
+      findByNetwork: jest.fn(),
       save: jest.fn(),
       delete: jest.fn(),
-      getIdByUrl: jest.fn(),
-      getUrlById: jest.fn(),
     } as unknown as WebSocketConnectionRepository;
 
     mockConfigProvider = {
@@ -97,14 +97,16 @@ describe('WebSocketConnectionService', () => {
 
       jest
         .spyOn(mockWebSocketConnectionRepository, 'save')
-        .mockResolvedValueOnce(mockConnectionId);
+        .mockResolvedValueOnce(mockConnectionMainnet);
 
       await service.setupAllConnections();
 
       expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(1);
-      expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledWith(
-        'wss://some-mock-url2.com/ws/v3/some-id',
-      );
+      expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledWith({
+        network: Network.Devnet,
+        url: 'wss://some-mock-url2.com/ws/v3/some-id',
+        protocols: [],
+      });
     });
 
     it('does nothing for active networks that are already open', async () => {
@@ -135,7 +137,7 @@ describe('WebSocketConnectionService', () => {
         .mockResolvedValueOnce([openConnection]);
 
       jest
-        .spyOn(mockWebSocketConnectionRepository, 'findByUrl')
+        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
         .mockResolvedValueOnce(openConnection);
 
       await service.setupAllConnections();
@@ -157,6 +159,52 @@ describe('WebSocketConnectionService', () => {
       expect(mockWebSocketConnectionRepository.delete).not.toHaveBeenCalled();
     });
 
+    it('clears associated recovery callbacks when closing a connection', async () => {
+      // Initially, we have a connection for Mainnet
+      const mockConnection = createMockWebSocketConnection();
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'getAll')
+        .mockResolvedValueOnce([mockConnection]);
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
+        .mockResolvedValueOnce(mockConnection);
+
+      // We register a recovery callback for Mainnet. We expect it to be cleared when the connection is closed.
+      const recoveryCallback = jest.fn();
+      service.onConnectionRecovery(Network.Mainnet, recoveryCallback);
+
+      // However, no active networks => calling setupAllConnections will close the mainnet connection
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [],
+      } as unknown as Config);
+
+      await service.setupAllConnections();
+
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledTimes(1);
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledWith(
+        mockConnectionId,
+      );
+
+      // No open connections left
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'getAll')
+        .mockResolvedValueOnce([]);
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
+        .mockResolvedValueOnce(null);
+
+      // Now, make Mainnet active again
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet],
+      } as unknown as Config);
+
+      // Now, calling setupAllConnections will open the Mainnet connection again
+      await service.setupAllConnections();
+
+      // The connection has recovered, but the recovery callback should not have been called because it was cleared
+      expect(recoveryCallback).not.toHaveBeenCalled();
+    });
+
     describe('when the connection fails', () => {
       beforeEach(() => {
         jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
@@ -169,10 +217,12 @@ describe('WebSocketConnectionService', () => {
       });
 
       it('retries until it succeeds, when attempts < 5', async () => {
+        const mockConnection = createMockWebSocketConnection();
+
         jest
           .spyOn(mockWebSocketConnectionRepository, 'save')
           .mockRejectedValueOnce(new Error('Connection failed')) // 1st call is the fail attempt
-          .mockResolvedValueOnce(mockConnectionId); // 2nd call is the success attempt
+          .mockResolvedValueOnce(mockConnection); // 2nd call is the success attempt
 
         await service.setupAllConnections();
 
@@ -201,7 +251,7 @@ describe('WebSocketConnectionService', () => {
           .mockResolvedValue(mockConnection);
 
         jest
-          .spyOn(mockWebSocketConnectionRepository, 'findByUrl')
+          .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
           .mockResolvedValueOnce(mockConnection);
       });
 
@@ -252,7 +302,7 @@ describe('WebSocketConnectionService', () => {
     it('returns the connection ID for the network', async () => {
       const mockConnection = createMockWebSocketConnection();
       jest
-        .spyOn(mockWebSocketConnectionRepository, 'findByUrl')
+        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
         .mockResolvedValueOnce(mockConnection);
 
       const connectionId = await service.getConnectionIdByNetwork(

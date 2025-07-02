@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Enter public address"
+      "message": "Enter public address or domain name"
     },
     "send.fromRequiredError": {
       "message": "Account is required"
@@ -47,7 +47,22 @@
       "message": "To address is required"
     },
     "send.toInvalidError": {
-      "message": "Invalid Solana address"
+      "message": "Invalid Solana address or domain name"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Unable to resolve domain name"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolving domain name..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domain name resolved."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Unable to resolve domain name."
     },
     "send.insufficientBalance": {
       "message": "Insufficient balance"

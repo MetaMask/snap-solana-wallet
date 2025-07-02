@@ -51,6 +51,8 @@ export type SendContext = {
   fromAccountId: string;
   amount: string | null;
   tokenCaipId: CaipAssetType;
+  destinationAddressOrDomain: string | null;
+  domainResolutionStatus: FetchStatus | null;
   toAddress: string | null;
   accounts: SolanaKeyringAccount[];
   feeEstimatedInSol: string | null;

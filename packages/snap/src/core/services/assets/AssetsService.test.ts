@@ -25,6 +25,7 @@ import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import { DEFAULT_UNENCRYPTED_STATE } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
+import type { TokenPricesService } from '../token-prices/TokenPrices';
 import { AssetsService } from './AssetsService';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
@@ -42,6 +43,7 @@ describe('AssetsService', () => {
   let mockConnection: SolanaConnection;
   let mockConfigProvider: ConfigProvider;
   let mockTokenMetadataService: TokenMetadataService;
+  let mockTokenPricesService: TokenPricesService;
   let mockState: IStateManager<UnencryptedStateValue>;
   let stateUpdateSpy: jest.SpyInstance;
   let mockCache: ICache<Serializable>;
@@ -62,6 +64,14 @@ describe('AssetsService', () => {
         .mockResolvedValue(SOLANA_MOCK_TOKEN_METADATA),
     } as unknown as TokenMetadataService;
 
+    mockTokenPricesService = {
+      getMultipleTokenConversions: jest.fn().mockResolvedValue({}),
+      getMultipleTokensMarketData: jest.fn().mockResolvedValue({}),
+      getHistoricalPrice: jest
+        .fn()
+        .mockResolvedValue({ intervals: {}, updateTime: 0, expirationTime: 0 }),
+    } as unknown as TokenPricesService;
+
     mockState = new InMemoryState(DEFAULT_UNENCRYPTED_STATE);
 
     mockCache = new InMemoryCache(logger);
@@ -79,6 +89,7 @@ describe('AssetsService', () => {
       configProvider: mockConfigProvider,
       state: mockState,
       tokenMetadataService: mockTokenMetadataService,
+      tokenPricesService: mockTokenPricesService,
       cache: mockCache,
     });
   });
