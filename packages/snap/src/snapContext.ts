@@ -8,6 +8,7 @@ import { ClientRequestHandler } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
+  SignatureWatcher,
   SubscriptionRepository,
   SubscriptionService,
   WebSocketConnectionRepository,
@@ -74,6 +75,33 @@ const stateCache = new StateCache(state, logger);
 const inMemoryCache = new InMemoryCache(logger);
 
 const connection = new SolanaConnection(configProvider);
+
+const webSocketConnectionRepository = new WebSocketConnectionRepository(
+  configProvider,
+);
+
+const webSocketConnectionService = new WebSocketConnectionService(
+  webSocketConnectionRepository,
+  configProvider,
+  eventEmitter,
+  logger,
+);
+
+const subscriptionRepository = new SubscriptionRepository(state);
+
+const subscriptionService = new SubscriptionService(
+  webSocketConnectionService,
+  subscriptionRepository,
+  eventEmitter,
+  logger,
+);
+
+const signatureWatcher = new SignatureWatcher(
+  subscriptionService,
+  connection,
+  logger,
+);
+
 const transactionHelper = new TransactionHelper(connection, logger);
 const sendSolBuilder = new SendSolBuilder(connection, logger);
 const sendSplTokenBuilder = new SendSplTokenBuilder(
@@ -111,7 +139,12 @@ const transactionsService = new TransactionsService({
 
 const analyticsService = new AnalyticsService(logger);
 
-const walletService = new WalletService(connection, transactionHelper, logger);
+const walletService = new WalletService(
+  connection,
+  transactionHelper,
+  signatureWatcher,
+  logger,
+);
 
 const transactionScanService = new TransactionScanService(
   new SecurityAlertsApiClient(configProvider),
@@ -120,26 +153,6 @@ const transactionScanService = new TransactionScanService(
 );
 
 const confirmationHandler = new ConfirmationHandler();
-
-const webSocketConnectionRepository = new WebSocketConnectionRepository(
-  configProvider,
-);
-
-const webSocketConnectionService = new WebSocketConnectionService(
-  webSocketConnectionRepository,
-  configProvider,
-  eventEmitter,
-  logger,
-);
-
-const subscriptionRepository = new SubscriptionRepository(state);
-
-const subscriptionService = new SubscriptionService(
-  webSocketConnectionService,
-  subscriptionRepository,
-  eventEmitter,
-  logger,
-);
 
 const keyring = new SolanaKeyring({
   state,

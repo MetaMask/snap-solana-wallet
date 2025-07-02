@@ -77,14 +77,14 @@ export const WebSockets = () => {
             onClick={setupAllConnections}
             marginRight="1"
           >
-            Setup All Connections
+            Setup all connections
           </Button>
           <Button
             variant="outline"
             onClick={closeAllConnections}
             marginRight="1"
           >
-            Close All Connections
+            Close all connections
           </Button>
         </Flex>
         <Flex>

@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-  type KeyringRequest,
-  SolMethod,
-  type Transaction,
-} from '@metamask/keyring-api';
+import type { Transaction } from '@metamask/keyring-api';
+import { type KeyringRequest, SolMethod } from '@metamask/keyring-api';
 import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
 import type { Commitment, SignatureBytes } from '@solana/kit';
 import {
   address as asAddress,
+  signature as asSignature,
   assertTransactionIsFullySigned,
   createKeyPairSignerFromPrivateKeyBytes,
   createSignableMessage,
@@ -38,6 +36,7 @@ import {
 } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
 import type { TransactionHelper } from '../execution/TransactionHelper';
+import type { SignatureWatcher } from '../subscriptions';
 import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
 import type {
   SolanaSignAndSendTransactionOptions,
@@ -63,15 +62,19 @@ export class WalletService {
 
   readonly #transactionHelper: TransactionHelper;
 
+  readonly #signatureWatcher: SignatureWatcher;
+
   readonly #logger: ILogger;
 
   constructor(
     connection: SolanaConnection,
     transactionHelper: TransactionHelper,
+    signatureWatcher: SignatureWatcher,
     _logger = logger,
   ) {
     this.#connection = connection;
     this.#transactionHelper = transactionHelper;
+    this.#signatureWatcher = signatureWatcher;
     this.#logger = _logger;
   }
 
@@ -301,31 +304,130 @@ export class WalletService {
 
     assert(result, SolanaSignAndSendTransactionResponseStruct);
 
-    /**
-     * If the commitment is `processed`, we default to `confirmed`.
-     * This is because we poll the RPC with `getTransaction` to check if the
-     * transaction has been confirmed, and this method does not support
-     * `processed` as a commitment. A solution would have been to simply not
-     * wait when `processed` is provided, but this would prevents us from
-     * fetching the transaction, mapping it, and triggering all the related
-     * side effects.
-     *
-     * If the commitment is not provided, we default to `confirmed`.
-     */
-    const commitment =
-      !options?.commitment || options?.commitment === 'processed'
-        ? 'confirmed'
-        : options?.commitment;
+    await this.#signatureWatcher.watch({
+      network: scope,
+      signature,
+      commitment: options?.commitment ?? 'finalized',
+      onCommitmentReached: async (params) => {
+        await this.#triggerSideEffectsForTransactionFinalized(
+          account,
+          params.signature,
+          params.network,
+          origin,
+        );
+      },
+    });
 
-    const transaction =
-      await this.#transactionHelper.waitForTransactionCommitment(
-        signature,
-        commitment,
-        scope,
-      );
+    // const subscriptionId = await this.#subscriptionService.subscribe(
+    //   {
+    //     method: 'signatureSubscribe',
+    //     unsubscribeMethod: 'signatureUnsubscribe',
+    //     network: scope,
+    //     params: [
+    //       signature,
+    //       {
+    //         commitment: options?.commitment ?? 'finalized',
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     onNotification: async (notification) => {
+    //       this.#logger.info(
+    //         `🎉🎉🎉🎉🎉 Notification received for signature ${signature}`,
+    //         notification,
+    //       );
+    //       await this.#subscriptionService.unsubscribe(subscriptionId);
+    //     },
+    //     onConnectionRecovery: async () => {
+    //       this.#logger.info(`Connection recovered for signature ${signature}`);
+    //     },
+    //   },
+    // );
+
+    // this.#logger.info(
+    //   `Subscription created for signature ${signature}`,
+    //   subscriptionId,
+    // );
+
+    // /**
+    //  * If the commitment is `processed`, we default to `confirmed`.
+    //  * This is because we poll the RPC with `getTransaction` to check if the
+    //  * transaction has been confirmed, and this method does not support
+    //  * `processed` as a commitment. A solution would have been to simply not
+    //  * wait when `processed` is provided, but this would prevents us from
+    //  * fetching the transaction, mapping it, and triggering all the related
+    //  * side effects.
+    //  *
+    //  * If the commitment is not provided, we default to `confirmed`.
+    //  */
+    // const commitment =
+    //   !options?.commitment || options?.commitment === 'processed'
+    //     ? 'confirmed'
+    //     : options?.commitment;
+
+    // const transaction =
+    //   await this.#transactionHelper.waitForTransactionCommitment(
+    //     signature,
+    //     commitment,
+    //     scope,
+    //   );
+
+    // const mappedTransaction = mapRpcTransaction({
+    //   scope,
+    //   address: asAddress(account.address),
+    //   transactionData: transaction,
+    // });
+
+    // const mappedTransactionWithAccountId: Transaction = {
+    //   ...mappedTransaction,
+    //   account: account.id,
+    // } as Transaction;
+
+    // // Trigger the side effects that need to happen when the transaction is finalized (failed or confirmed)
+    // await snap.request({
+    //   method: 'snap_scheduleBackgroundEvent',
+    //   params: {
+    //     duration: 'PT1S',
+    //     request: {
+    //       method: ScheduleBackgroundEventMethod.OnTransactionFinalized,
+    //       params: {
+    //         accountId: account.id,
+    //         transaction: mappedTransactionWithAccountId,
+    //         metadata: {
+    //           scope,
+    //           origin,
+    //         },
+    //       },
+    //     },
+    //   },
+    // });
+
+    return result;
+  }
+
+  /**
+   * Triggers the side effects that need to happen when a the user's transaction is finalized (failed or confirmed).
+   *
+   * @param account - The account that the transaction belongs to.
+   * @param signature - The signature of the transaction.
+   * @param network - The network of the transaction.
+   * @param origin - The origin of the transaction.
+   */
+  async #triggerSideEffectsForTransactionFinalized(
+    account: SolanaKeyringAccount,
+    signature: string,
+    network: Network,
+    origin: string,
+  ): Promise<void> {
+    const transaction = await this.#connection
+      .getRpc(network)
+      .getTransaction(asSignature(signature), {
+        maxSupportedTransactionVersion: 0,
+      })
+      .send();
 
     const mappedTransaction = mapRpcTransaction({
-      scope,
+      scope: network,
       address: asAddress(account.address),
       transactionData: transaction,
     });
@@ -335,7 +437,6 @@ export class WalletService {
       account: account.id,
     } as Transaction;
 
-    // Trigger the side effects that need to happen when the transaction is finalized (failed or confirmed)
     await snap.request({
       method: 'snap_scheduleBackgroundEvent',
       params: {
@@ -346,15 +447,13 @@ export class WalletService {
             accountId: account.id,
             transaction: mappedTransactionWithAccountId,
             metadata: {
-              scope,
+              scope: network,
               origin,
             },
           },
         },
       },
     });
-
-    return result;
   }
 
   /**
