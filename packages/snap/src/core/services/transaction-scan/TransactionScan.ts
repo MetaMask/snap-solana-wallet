@@ -117,15 +117,21 @@ export class TransactionScanService {
           ),
         ];
 
-        // And the alert is detected - only if validation exists and is not benign
         if (hasSecurityAlert) {
+          const isValidSecurityAlertType = Object.values(
+            SecurityAlertResponse,
+          ).includes(scan.validation.type as SecurityAlertResponse);
+          const securityAlertType = isValidSecurityAlertType
+            ? (scan.validation.type as SecurityAlertResponse)
+            : SecurityAlertResponse.Warning;
+
           analyticsPromises.push(
             this.#analyticsService.trackEventSecurityAlertDetected(
               account,
               transaction,
               origin,
               scope,
-              scan.validation.type as SecurityAlertResponse,
+              securityAlertType,
               scan.validation.reason || 'unknown',
               this.#getSecurityAlertDescription(scan.validation),
             ),
