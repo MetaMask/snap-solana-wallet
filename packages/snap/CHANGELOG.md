@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- fix: return correct structure `onAssetsMarketData` handler ([#448](https://github.com/MetaMask/snap-solana-wallet/pull/448))
+- Return correct structure on the `onAssetsMarketData` handler ([#448](https://github.com/MetaMask/snap-solana-wallet/pull/448))
 
 ## [1.35.1]
 
