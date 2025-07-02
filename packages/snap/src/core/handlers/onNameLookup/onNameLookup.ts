@@ -2,12 +2,12 @@ import { type OnNameLookupHandler } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
 import { nameResolutionService } from '../../../snapContext';
-import { SolanaNameLookupRequesstStruct } from './structs';
+import { SolanaNameLookupRequestStruct } from './structs';
 
 const SOLANA_NAME_SERVICE_PROTOCOL = 'Solana Name Service';
 
 export const onNameLookupHandler: OnNameLookupHandler = async (request) => {
-  assert(request, SolanaNameLookupRequesstStruct);
+  assert(request, SolanaNameLookupRequestStruct);
 
   const { chainId, domain, address } = request;
 

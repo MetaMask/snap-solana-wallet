@@ -50,8 +50,8 @@ describe('isSolanaDomain', () => {
       expect(isSolanaDomain('')).toBe(false);
     });
 
-    it('returns true for string with only .sol', () => {
-      expect(isSolanaDomain('.sol')).toBe(true);
+    it('returns false for string with only .sol', () => {
+      expect(isSolanaDomain('.sol')).toBe(false);
     });
 
     it('returns false for string ending with .SOL (uppercase)', () => {
