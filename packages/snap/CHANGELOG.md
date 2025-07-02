@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.35.0]
 
-### Uncategorized
+### Added
 
-- feat: implement `onAssetsMarketData` handler ([#426](https://github.com/MetaMask/snap-solana-wallet/pull/426))
-- Small improvements ([#440](https://github.com/MetaMask/snap-solana-wallet/pull/440))
-- refactor: adapters are in fact services + rename them ([#438](https://github.com/MetaMask/snap-solana-wallet/pull/438))
-- Nwnt 381 solana snap initial websockets setup ([#431](https://github.com/MetaMask/snap-solana-wallet/pull/431))
+- `onAssetsMarketData` handler ([#426](https://github.com/MetaMask/snap-solana-wallet/pull/426))
+- Websockets setup ([#431](https://github.com/MetaMask/snap-solana-wallet/pull/431))
+
+### Changed
+
+- Move adapters to services and rename them ([#438](https://github.com/MetaMask/snap-solana-wallet/pull/438))
 
 ## [1.34.0]
 
