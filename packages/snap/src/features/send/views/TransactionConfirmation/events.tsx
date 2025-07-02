@@ -36,7 +36,7 @@ async function onBackButtonClick({
     <Send
       context={updatedContext}
       inputAmount={context.amount ?? ''}
-      inputToAddress={context.toAddress ?? ''}
+      inputToAddress={context.destinationAddressOrDomain ?? ''}
     />,
     updatedContext,
   );

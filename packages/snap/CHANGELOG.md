@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.35.1]
+
+### Added
+
+- Implement Solana Name Service support ([#441](https://github.com/MetaMask/snap-solana-wallet/pull/441))
+- Track Blockaid metrics ([#439](https://github.com/MetaMask/snap-solana-wallet/pull/439))
+
+### Fixed
+
+- Correctly export handler `onAssetsMarketData` ([#446](https://github.com/MetaMask/snap-solana-wallet/pull/446))
+
+## [1.35.0]
+
+### Added
+
+- `onAssetsMarketData` handler ([#426](https://github.com/MetaMask/snap-solana-wallet/pull/426))
+- Websockets setup ([#431](https://github.com/MetaMask/snap-solana-wallet/pull/431))
+
+### Changed
+
+- Move adapters to services and rename them ([#438](https://github.com/MetaMask/snap-solana-wallet/pull/438))
+
 ## [1.34.0]
 
 ### Changed
@@ -697,7 +719,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.34.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.1...HEAD
+[1.35.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.0...v1.35.1
+[1.35.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.34.0...v1.35.0
 [1.34.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.33.4...v1.34.0
 [1.33.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.33.3...v1.33.4
 [1.33.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.33.2...v1.33.3

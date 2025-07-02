@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.35.0]
+
+### Added
+
+- Websockets setup ([#431](https://github.com/MetaMask/snap-solana-wallet/pull/431))
+
+### Fixed
+
+- Improvements in WSS UI ([#440](https://github.com/MetaMask/snap-solana-wallet/pull/440))
+
 ## [1.32.0]
 
 ### Added
@@ -182,7 +192,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.32.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.0...HEAD
+[1.35.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.32.0...v1.35.0
 [1.32.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.31.0...v1.32.0
 [1.31.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.22.0...v1.31.0
 [1.22.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.19.0...v1.22.0

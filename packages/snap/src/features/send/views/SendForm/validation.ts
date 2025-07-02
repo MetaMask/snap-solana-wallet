@@ -6,7 +6,7 @@ import type { FieldValidationFunction } from '../../../../core/types/form';
 import { UuidStruct } from '../../../../core/validation/structs';
 import type { SendContext } from '../../types';
 import { SendFormNames } from '../../types';
-import { address, amountInput, required } from '../../validation/form';
+import { addressOrDomain, amountInput, required } from '../../validation/form';
 
 export const StartSendTransactionFlowParamsStruct = object({
   scope: enums([...Object.values(Network)]),
@@ -26,6 +26,6 @@ export const validation: (
   ],
   [SendFormNames.DestinationAccountInput]: [
     required('send.toRequiredError', context.preferences.locale),
-    address('send.toInvalidError', context.preferences.locale),
+    addressOrDomain('send.toInvalidError', context.preferences.locale),
   ],
 });

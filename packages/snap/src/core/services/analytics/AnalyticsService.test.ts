@@ -5,6 +5,7 @@ import type { Transaction } from '@metamask/keyring-api';
 import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
 import logger from '../../utils/logger';
+import { ScanStatus, SecurityAlertResponse } from '../transaction-scan/types';
 import { AnalyticsService } from './AnalyticsService';
 
 const mockSnapRequest = jest.fn();
@@ -290,6 +291,121 @@ describe('AnalyticsService', () => {
           mockMetadata,
         ),
       ).rejects.toThrow();
+    });
+  });
+
+  describe('trackEventSecurityAlertDetected', () => {
+    it('tracks security alert detected event', async () => {
+      const securityAlertResponse = SecurityAlertResponse.Warning;
+      const securityAlertReason = 'transfer_farming';
+      const securityAlertDescription =
+        "Substantial transfer of the account's assets to untrusted entities";
+
+      await analyticsService.trackEventSecurityAlertDetected(
+        mockAccount,
+        mockBase64Transaction,
+        mockOrigin,
+        mockScope,
+        securityAlertResponse,
+        securityAlertReason,
+        securityAlertDescription,
+      );
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        '[📣 AnalyticsService] Tracking event security alert detected',
+      );
+
+      expect(mockSnapRequest).toHaveBeenCalledWith({
+        method: 'snap_trackEvent',
+        params: {
+          event: {
+            event: 'Security Alert Detected',
+            properties: {
+              message: 'Snap security alert detected',
+              origin: mockOrigin,
+              account_id: mockAccount.id,
+              account_address: mockAccount.address,
+              account_type: mockAccount.type,
+              chain_id: mockScope,
+              security_alert_response: securityAlertResponse,
+              security_alert_reason: securityAlertReason,
+              security_alert_description: securityAlertDescription,
+            },
+          },
+        },
+      });
+    });
+  });
+
+  describe('trackEventSecurityScanCompleted', () => {
+    it('tracks security scan completed event with alerts detected', async () => {
+      const scanStatus = ScanStatus.SUCCESS;
+      const hasSecurityAlerts = true;
+
+      await analyticsService.trackEventSecurityScanCompleted(
+        mockAccount,
+        mockBase64Transaction,
+        mockOrigin,
+        mockScope,
+        scanStatus,
+        hasSecurityAlerts,
+      );
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        '[📣 AnalyticsService] Tracking event security scan completed',
+      );
+
+      expect(mockSnapRequest).toHaveBeenCalledWith({
+        method: 'snap_trackEvent',
+        params: {
+          event: {
+            event: 'Security Scan Completed',
+            properties: {
+              message: 'Snap security scan completed',
+              origin: mockOrigin,
+              account_id: mockAccount.id,
+              account_address: mockAccount.address,
+              account_type: mockAccount.type,
+              chain_id: mockScope,
+              scan_status: scanStatus,
+              has_security_alerts: hasSecurityAlerts,
+            },
+          },
+        },
+      });
+    });
+
+    it('tracks security scan completed event without alerts', async () => {
+      const scanStatus = ScanStatus.SUCCESS;
+      const hasSecurityAlerts = false;
+
+      await analyticsService.trackEventSecurityScanCompleted(
+        mockAccount,
+        mockBase64Transaction,
+        mockOrigin,
+        mockScope,
+        scanStatus,
+        hasSecurityAlerts,
+      );
+
+      expect(mockSnapRequest).toHaveBeenCalledWith({
+        method: 'snap_trackEvent',
+        params: {
+          event: {
+            event: 'Security Scan Completed',
+            properties: {
+              message: 'Snap security scan completed',
+              origin: mockOrigin,
+              account_id: mockAccount.id,
+              account_address: mockAccount.address,
+              account_type: mockAccount.type,
+              chain_id: mockScope,
+              scan_status: scanStatus,
+              has_security_alerts: hasSecurityAlerts,
+            },
+          },
+        },
+      });
     });
   });
 

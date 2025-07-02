@@ -18,6 +18,7 @@ import {
 } from '../selectors';
 import type { SendContext } from '../types';
 import { SendFormNames } from '../types';
+import { isSolanaDomain } from '../utils/isSolanaDomain';
 import { validation } from '../views/SendForm/validation';
 
 /**
@@ -90,6 +91,26 @@ export const required: ValidationFunction = (
   return (value: string) => {
     const error = value === '' ? { message: translate(message), value } : null;
     return error ? { message: error.message, value } : null;
+  };
+};
+
+export const addressOrDomain: ValidationFunction = (
+  message: LocalizedMessage,
+  locale: Locale,
+) => {
+  const translate = i18n(locale);
+
+  return (value: string) => {
+    try {
+      if (isSolanaDomain(value)) {
+        return null;
+      }
+      // eslint-disable-next-line no-new
+      addressValidator(value);
+      return null;
+    } catch {
+      return { message: translate(message), value };
+    }
   };
 };
 
