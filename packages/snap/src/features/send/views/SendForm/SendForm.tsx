@@ -1,4 +1,5 @@
 import {
+  AccountSelector,
   AssetSelector,
   Banner,
   Box,
@@ -17,10 +18,9 @@ import { formatCrypto } from '../../../../core/utils/formatCrypto';
 import { formatFiat } from '../../../../core/utils/formatFiat';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
-import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
 import { AmountInput } from '../../components/AmountInput/AmountInput';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
-import { getNativeTokenPrice, getSelectedTokenPrice } from '../../selectors';
+import { getSelectedTokenPrice } from '../../selectors';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 
 type SendFormProps = {
@@ -65,7 +65,6 @@ export const SendForm = ({
     ? addressToCaip10(scope, selectedAccount.address)
     : '';
 
-  const nativePrice = getNativeTokenPrice(context);
   const selectedTokenPrice = getSelectedTokenPrice(context);
 
   const balanceUndefinedOrZero =
@@ -142,19 +141,17 @@ export const SendForm = ({
           <Box>{null}</Box>
           <Box>{null}</Box>
           <Box>{null}</Box>
-          <AccountSelector
-            name={SendFormNames.SourceAccountSelector}
-            scope={scope}
-            error={
-              validation?.[SendFormNames.SourceAccountSelector]?.message ?? ''
-            }
-            accounts={accounts}
-            selectedAccountId={fromAccountId}
-            balances={balances}
-            price={nativePrice ?? null}
-            locale={locale}
-            currency={currency}
-          />
+
+          <Field label={translate('send.fromField')}>
+            <AccountSelector
+              name={SendFormNames.SourceAccountSelector}
+              chainIds={[scope]}
+              value={selectedAccountAddress || undefined}
+              hideExternalAccounts
+              switchGlobalAccount
+            />
+          </Field>
+
           <Box>{null}</Box>
           <Box>{null}</Box>
           <Box>{null}</Box>
