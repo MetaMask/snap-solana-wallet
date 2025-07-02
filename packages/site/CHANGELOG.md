@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.35.0]
 
-### Uncategorized
+### Added
 
-- Small improvements ([#440](https://github.com/MetaMask/snap-solana-wallet/pull/440))
-- Nwnt 381 solana snap initial websockets setup ([#431](https://github.com/MetaMask/snap-solana-wallet/pull/431))
+- Websockets setup ([#431](https://github.com/MetaMask/snap-solana-wallet/pull/431))
+
+### Fixed
+
+- Improvements in WSS UI ([#440](https://github.com/MetaMask/snap-solana-wallet/pull/440))
 
 ## [1.32.0]
 
