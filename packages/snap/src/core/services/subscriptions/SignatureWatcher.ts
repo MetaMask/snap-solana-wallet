@@ -55,7 +55,7 @@ export class SignatureWatcher {
   async watch(params: Params): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `Watching signature`, params);
 
-    const { network, signature, commitment, onCommitmentReached } = params;
+    const { network, signature, commitment } = params;
 
     const subscriptionId = await this.#subscriptionService.subscribe(
       {
