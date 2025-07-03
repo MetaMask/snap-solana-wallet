@@ -20,7 +20,7 @@ export const OnSignTransactionRequestStruct = object({
 });
 
 /**
- * Handles side effects that need to happen when a transaction is finalized (failed or confirmed).
+ * Handles side effects that need to happen when a transaction is signed.
  *
  * @param args - The arguments object.
  * @param args.request - The request object containing transaction details.

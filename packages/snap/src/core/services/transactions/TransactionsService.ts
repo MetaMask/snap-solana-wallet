@@ -6,9 +6,11 @@ import {
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import {
   address as asAddress,
+  signature as asSignature,
   type Address,
   type Signature,
 } from '@solana/kit';
+import { uniq, uniqBy } from 'lodash';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import { Network } from '../../constants/solana';
@@ -78,9 +80,7 @@ export class TransactionsService {
     data: Transaction[];
     next: Signature | null;
   }> {
-    /**
-     * First get signatures
-     */
+    // First fetch the signatures
     const signatures = (
       await this.#connection
         .getRpc(scope)
@@ -103,36 +103,22 @@ export class TransactionsService {
       ...new Set([...existingSinatures, ...signatures]),
     ]);
 
-    /**
-     * Now fetch their transaction data
-     */
+    // Now fetch their transaction data
     const transactionsData = await this.getTransactionsDataFromSignatures({
       scope,
       signatures,
     });
 
-    /**
-     * Map it to the expected format from the Keyring API
-     */
-    const mappedTransactionsData = transactionsData.reduce<Transaction[]>(
-      (transactions, transactionData) => {
-        const mappedTransaction = mapRpcTransaction({
+    // Map it to the expected format from the Keyring API
+    const mappedTransactionsData = transactionsData
+      .map((txData) =>
+        mapRpcTransaction({
           scope,
           address,
-          transactionData,
-        });
-
-        /**
-         * Filter out unmapped transactions
-         */
-        if (mappedTransaction) {
-          transactions.push(mappedTransaction);
-        }
-
-        return transactions;
-      },
-      [],
-    );
+          transactionData: txData,
+        }),
+      )
+      .filter((item) => item !== null);
 
     const transactionsByAccountWithTokenMetadata =
       await this.#populateAccountTransactionAssetUnits({
@@ -199,6 +185,92 @@ export class TransactionsService {
     );
 
     return transactionsData;
+  }
+
+  /**
+   * Fetches a transaction from the RPC and maps it to the expected format from the Keyring API.
+   * @param signature - The signature of the transaction to fetch.
+   * @param account - The account that the transaction belongs to.
+   * @param scope - The network of the transaction.
+   * @returns The mapped transaction or `null` if the transaction is not found.
+   */
+  async fetchBySignature(
+    signature: string,
+    account: SolanaKeyringAccount,
+    scope: Network,
+  ): Promise<Transaction | null> {
+    const rpcTransaction = await this.#connection
+      .getRpc(scope)
+      .getTransaction(asSignature(signature), {
+        maxSupportedTransactionVersion: 0,
+      })
+      .send();
+
+    if (!rpcTransaction) {
+      throw new Error(
+        `Transaction with signature ${signature} not found on ${scope}`,
+      );
+    }
+
+    const mappedTransaction = mapRpcTransaction({
+      scope,
+      address: asAddress(account.address),
+      transactionData: rpcTransaction,
+    });
+
+    if (!mappedTransaction) {
+      throw new Error(
+        `Transaction with signature ${signature} not found on ${scope}`,
+      );
+    }
+
+    // TODO: Remove this once mapRpcTransaction maps field `account` to `account.id` instead of `accountAddress`
+    const mappedTransactionWithAccountId = {
+      ...mappedTransaction,
+      account: account.id,
+    };
+
+    return mappedTransactionWithAccountId;
+  }
+
+  /**
+   * Saves a transaction and its signature to the state.
+   * @param transaction - The transaction to save.
+   * @param account - The account that the transaction belongs to.
+   */
+  async saveTransaction(
+    transaction: Transaction,
+    account: SolanaKeyringAccount,
+  ): Promise<void> {
+    const { id: accountId, address: accountAddress } = account;
+    const { id: signature } = transaction;
+
+    const saveTransaction = async () => {
+      const existingTransactions =
+        (await this.#state.getKey<Transaction[]>(
+          `transactions.${accountId}`,
+        )) ?? [];
+
+      const allTransactions = uniqBy(
+        [...existingTransactions, transaction],
+        'id',
+      );
+
+      await this.#state.setKey(`transactions.${accountId}`, allTransactions);
+    };
+
+    const saveSignature = async () => {
+      const existingSinatures =
+        (await this.#state.getKey<Signature[]>(
+          `signatures.${accountAddress}`,
+        )) ?? [];
+
+      const allSignatures = uniq([...existingSinatures, signature]);
+
+      await this.#state.setKey(`signatures.${accountAddress}`, allSignatures);
+    };
+
+    await Promise.all([saveTransaction(), saveSignature()]);
   }
 
   /**

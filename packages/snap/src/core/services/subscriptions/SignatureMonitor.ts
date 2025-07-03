@@ -14,14 +14,14 @@ type Params = {
   onCommitmentReached: (params: Params) => Promise<void>;
 };
 
-export class SignatureWatcher {
+export class SignatureMonitor {
   readonly #subscriptionService: SubscriptionService;
 
   readonly #connection: SolanaConnection;
 
   readonly #logger: ILogger;
 
-  readonly #loggerPrefix = '[✍️ SignatureWatcher]';
+  readonly #loggerPrefix = '[✍️ SignatureMonitor]';
 
   constructor(
     subscriptionService: SubscriptionService,
@@ -34,7 +34,7 @@ export class SignatureWatcher {
   }
 
   /**
-   * Watches a signature for a given network, and executes the passed callback
+   * Monitors a signature for a given network, and executes the passed callback
    * when the transaction with the given signature reaches the specified
    * commitment level.
    *
@@ -52,8 +52,8 @@ export class SignatureWatcher {
    * @param params - The parameters for the signature watcher.
    * @returns The subscription ID.
    */
-  async watch(params: Params): Promise<void> {
-    this.#logger.info(this.#loggerPrefix, `Watching signature`, params);
+  async monitor(params: Params): Promise<void> {
+    this.#logger.info(this.#loggerPrefix, `Monitoring signature`, params);
 
     const { network, signature, commitment } = params;
 
@@ -118,7 +118,6 @@ export class SignatureWatcher {
         this.#loggerPrefix,
         `⚠️ Signature ${signature} not found via HTTP fetch during connection recovery`,
       );
-      await this.#subscriptionService.unsubscribe(subscriptionId);
     }
   }
 

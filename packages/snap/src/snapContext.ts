@@ -8,7 +8,7 @@ import { ClientRequestHandler } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
-  SignatureWatcher,
+  SignatureMonitor,
   SubscriptionRepository,
   SubscriptionService,
   WebSocketConnectionRepository,
@@ -98,7 +98,7 @@ const subscriptionService = new SubscriptionService(
   logger,
 );
 
-const signatureWatcher = new SignatureWatcher(
+const signatureMonitor = new SignatureMonitor(
   subscriptionService,
   connection,
   logger,
@@ -143,9 +143,11 @@ const transactionsService = new TransactionsService({
 const analyticsService = new AnalyticsService(logger);
 
 const walletService = new WalletService(
+  transactionsService,
+  analyticsService,
   connection,
   transactionHelper,
-  signatureWatcher,
+  signatureMonitor,
   logger,
 );
 
@@ -210,6 +212,7 @@ export {
   connection,
   eventEmitter,
   keyring,
+  nameResolutionService,
   nftService,
   priceApiClient,
   sendSolBuilder,
@@ -225,7 +228,6 @@ export {
   transactionsService,
   walletService,
   webSocketConnectionService,
-  nameResolutionService,
 };
 
 export default snapContext;
