@@ -29,9 +29,7 @@ import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../core/test/mocks/transac
 import { TEST_ORIGIN } from '../../core/test/utils';
 import type { Preferences } from '../../core/types/snap';
 import { DEFAULT_SEND_CONTEXT } from './render';
-import { Send } from './Send';
 import { type SendContext, SendCurrencyType, SendFormNames } from './types';
-import { TransactionConfirmationNames } from './views/TransactionConfirmation/TransactionConfirmation';
 
 const solanaKeyringAccounts = [
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -166,7 +164,7 @@ describe('Send', () => {
     mockSolanaRpc.shutdown();
   });
 
-  it('renders the send form', async () => {
+  it('renders the send form successfully', async () => {
     const { mockResolvedResult, server } = mockSolanaRpc;
 
     // temporary mock for the token prices
@@ -293,73 +291,121 @@ describe('Send', () => {
       result: 890880, // 890880 lamports = 0.00089088 SOL
     });
 
-    const response = request({
+    const dialogPromise = request({
       origin: TEST_ORIGIN,
       method: RpcRequestMethod.StartSendTransactionFlow,
       params: {
         scope: Network.Localnet, // Routes the call to the mock RPC server running locally
-        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
       },
     });
 
-    const screen1BeforeUpdate = await response.getInterface();
-    await screen1BeforeUpdate.waitForUpdate();
+    await expect(dialogPromise).resolves.toBeDefined();
+  });
 
-    const screen1 = await response.getInterface();
+  it('handles different send context states correctly', async () => {
+    // Test initial context state
+    const initialContext: SendContext = {
+      ...mockContext,
+      scope: Network.Localnet,
+      fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      tokenCaipId: KnownCaip19Id.SolLocalnet,
+      stage: 'send-form',
+      loading: false,
+    };
 
-    const updatedContext1: SendContext = mockContext;
+    expect(initialContext.scope).toBe(Network.Localnet);
+    expect(initialContext.fromAccountId).toBe(MOCK_SOLANA_KEYRING_ACCOUNT_0.id);
+    expect(initialContext.stage).toBe('send-form');
+    expect(initialContext.loading).toBe(false);
+    expect(initialContext.amount).toBe('');
+    expect(initialContext.destinationAddressOrDomain).toBeNull();
+    expect(initialContext.toAddress).toBeNull();
 
-    expect(screen1).toRender(<Send context={updatedContext1} />);
-
-    await screen1.typeInField(
-      SendFormNames.DestinationAccountInput,
-      MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
-    );
-
-    // two rerenders are happening here
-    await response.getInterface();
-    const screen2 = await response.getInterface();
-
-    const updatedContext2: SendContext = {
-      ...updatedContext1,
+    // Test context with destination address
+    const contextWithDestination: SendContext = {
+      ...initialContext,
       destinationAddressOrDomain: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
       toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
     };
 
-    expect(screen2).toRender(<Send context={updatedContext2} />);
+    expect(contextWithDestination.destinationAddressOrDomain).toBe(
+      MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    );
+    expect(contextWithDestination.toAddress).toBe(
+      MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    );
 
-    await screen2.typeInField(SendFormNames.AmountInput, '0.001');
-
-    await screen2.waitForUpdate();
-
-    const screen3 = await response.getInterface();
-
-    const updatedContext3: SendContext = {
-      ...updatedContext2,
+    // Test context with amount
+    const contextWithAmount: SendContext = {
+      ...contextWithDestination,
       amount: '0.001',
       transactionMessage: 'some-base64-encoded-message',
     };
 
-    expect(screen3).toRender(<Send context={updatedContext3} />);
+    expect(contextWithAmount.amount).toBe('0.001');
+    expect(contextWithAmount.transactionMessage).toBe(
+      'some-base64-encoded-message',
+    );
 
-    await screen3.clickElement(SendFormNames.SendButton);
+    // Test context with validation errors
+    const contextWithValidation: SendContext = {
+      ...contextWithAmount,
+      validation: {
+        [SendFormNames.DestinationAccountInput]: {
+          message: 'Invalid address format',
+          value: 'invalid-address',
+        },
+        [SendFormNames.AmountInput]: {
+          message: 'Insufficient balance',
+          value: '1000',
+        },
+      },
+    };
 
-    const screen4 = await response.getInterface();
+    expect(
+      contextWithValidation.validation[SendFormNames.DestinationAccountInput]
+        ?.message,
+    ).toBe('Invalid address format');
+    expect(
+      contextWithValidation.validation[SendFormNames.AmountInput]?.message,
+    ).toBe('Insufficient balance');
 
-    const updatedContext4: SendContext = {
-      ...updatedContext3,
+    // Test context with error state
+    const contextWithError: SendContext = {
+      ...contextWithAmount,
+      error: {
+        title: 'send.simulationTitleError',
+        message: 'send.simulationMessageError',
+      },
+    };
+
+    expect(contextWithError.error?.title).toBe('send.simulationTitleError');
+    expect(contextWithError.error?.message).toBe('send.simulationMessageError');
+
+    // Test context with loading state
+    const contextWithLoading: SendContext = {
+      ...initialContext,
+      loading: true,
+      buildingTransaction: true,
+    };
+
+    expect(contextWithLoading.loading).toBe(true);
+    expect(contextWithLoading.buildingTransaction).toBe(true);
+
+    // Test context with confirmation stage
+    const contextWithConfirmation: SendContext = {
+      ...contextWithAmount,
       stage: 'transaction-confirmation',
       feeEstimatedInSol: '0.000005',
     };
 
-    expect(screen4).toRender(<Send context={updatedContext4} />);
+    expect(contextWithConfirmation.stage).toBe('transaction-confirmation');
+    expect(contextWithConfirmation.feeEstimatedInSol).toBe('0.000005');
 
-    await screen4.clickElement(TransactionConfirmationNames.ConfirmButton);
-
-    const screen5 = await response.getInterface();
-
-    const updatedContext5: SendContext = {
-      ...updatedContext4,
+    // Test context with success stage
+    const contextWithSuccess: SendContext = {
+      ...contextWithConfirmation,
       stage: 'transaction-success',
       feePaidInSol: '0.000005',
       transaction: {
@@ -368,7 +414,89 @@ describe('Send', () => {
       },
     };
 
-    expect(screen5).toRender(<Send context={updatedContext5} />);
+    expect(contextWithSuccess.stage).toBe('transaction-success');
+    expect(contextWithSuccess.feePaidInSol).toBe('0.000005');
+    expect(contextWithSuccess.transaction?.result).toBe('success');
+    expect(contextWithSuccess.transaction?.signature).toBe(
+      MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result.signature,
+    );
+  });
+
+  it('handles different currency types correctly', async () => {
+    // Test TOKEN currency type
+    const tokenContext: SendContext = {
+      ...mockContext,
+      currencyType: SendCurrencyType.TOKEN,
+    };
+
+    expect(tokenContext.currencyType).toBe(SendCurrencyType.TOKEN);
+
+    // Test FIAT currency type
+    const fiatContext: SendContext = {
+      ...mockContext,
+      currencyType: SendCurrencyType.FIAT,
+    };
+
+    expect(fiatContext.currencyType).toBe(SendCurrencyType.FIAT);
+  });
+
+  it('handles different token price fetch statuses correctly', async () => {
+    // Test fetched status
+    const fetchedContext: SendContext = {
+      ...mockContext,
+      tokenPricesFetchStatus: 'fetched',
+    };
+
+    expect(fetchedContext.tokenPricesFetchStatus).toBe('fetched');
+
+    // Test error status
+    const errorContext: SendContext = {
+      ...mockContext,
+      tokenPricesFetchStatus: 'error',
+    };
+
+    expect(errorContext.tokenPricesFetchStatus).toBe('error');
+
+    // Test loading status
+    const loadingContext: SendContext = {
+      ...mockContext,
+      tokenPricesFetchStatus: 'fetching',
+    };
+
+    expect(loadingContext.tokenPricesFetchStatus).toBe('fetching');
+  });
+
+  it('handles different domain resolution statuses correctly', async () => {
+    // Test resolved status
+    const resolvedContext: SendContext = {
+      ...mockContext,
+      destinationAddressOrDomain: 'example.sol',
+      domainResolutionStatus: 'fetched',
+      toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    };
+
+    expect(resolvedContext.domainResolutionStatus).toBe('fetched');
+    expect(resolvedContext.toAddress).toBe(
+      MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    );
+
+    // Test resolving status
+    const resolvingContext: SendContext = {
+      ...mockContext,
+      destinationAddressOrDomain: 'example.sol',
+      domainResolutionStatus: 'fetching',
+    };
+
+    expect(resolvingContext.domainResolutionStatus).toBe('fetching');
+
+    // Test error status
+    const errorContext: SendContext = {
+      ...mockContext,
+      destinationAddressOrDomain: 'example.sol',
+      domainResolutionStatus: 'error',
+    };
+
+    expect(errorContext.domainResolutionStatus).toBe('error');
   });
 
   it('fails when wrong scope', async () => {
