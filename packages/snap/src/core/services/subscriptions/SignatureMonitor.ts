@@ -88,6 +88,12 @@ export class SignatureMonitor {
   ): Promise<void> {
     const { signature, commitment, onCommitmentReached } = params;
 
+    /**
+     * We don't need need to compare the commitment with the confirmation status.
+     * By design of the RPC API, if we receive a notification, then it means
+     * that the transaction has reached the desired commitment.
+     */
+
     this.#logger.info(
       this.#loggerPrefix,
       `🎉 Signature ${signature} reached commitment "${commitment}"`,
