@@ -360,7 +360,9 @@ export class AssetsService {
       asset: CaipAssetType;
       unit: CaipAssetType;
     }[],
-  ): Promise<Record<CaipAssetType, FungibleAssetMarketData>> {
+  ): Promise<
+    Record<CaipAssetType, Record<CaipAssetType, FungibleAssetMarketData>>
+  > {
     const marketData =
       await this.#tokenPricesService.getMultipleTokensMarketData(assets);
     return marketData;

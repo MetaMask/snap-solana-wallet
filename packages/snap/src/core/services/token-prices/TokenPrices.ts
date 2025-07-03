@@ -261,7 +261,9 @@ export class TokenPricesService {
       asset: CaipAssetType;
       unit: CaipAssetType;
     }[],
-  ): Promise<Record<CaipAssetType, FungibleAssetMarketData>> {
+  ): Promise<
+    Record<CaipAssetType, Record<CaipAssetType, FungibleAssetMarketData>>
+  > {
     if (assets.length === 0) {
       return {};
     }
@@ -277,7 +279,10 @@ export class TokenPricesService {
     const { fiatExchangeRates, cryptoPrices } =
       await this.#fetchPriceData(allAssets);
 
-    const result: Record<CaipAssetType, FungibleAssetMarketData> = {};
+    const result: Record<
+      CaipAssetType,
+      Record<CaipAssetType, FungibleAssetMarketData>
+    > = {};
 
     assets.forEach((asset) => {
       const { asset: assetType, unit } = asset;
@@ -310,7 +315,13 @@ export class TokenPricesService {
         return;
       }
 
-      result[assetType] = this.#computeMarketData(
+      // Initialize the nested structure for the asset if it doesn't exist
+      if (!result[assetType]) {
+        result[assetType] = {};
+      }
+
+      // Store the market data with the unit as the key
+      result[assetType][unit] = this.#computeMarketData(
         cryptoPrices[assetType],
         unitUsdRate,
       );
