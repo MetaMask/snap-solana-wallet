@@ -12,6 +12,8 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 import { isNullOrUndefined } from '@metamask/utils';
 
+import type { Caip10Address } from 'src/core/constants/solana';
+
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCrypto } from '../../../../core/utils/formatCrypto';
@@ -22,7 +24,6 @@ import { AmountInput } from '../../components/AmountInput/AmountInput';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
 import { getSelectedTokenPrice } from '../../selectors';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
-import { Caip10Address } from 'src/core/constants/solana';
 
 type SendFormProps = {
   context: SendContext;
