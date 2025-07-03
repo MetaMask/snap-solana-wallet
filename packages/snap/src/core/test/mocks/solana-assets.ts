@@ -4,7 +4,7 @@ import { TOKEN_PROGRAM_ADDRESS, type Mint } from '@solana-program/token';
 import type { Account } from '@solana/kit';
 import { address, lamports } from '@solana/kit';
 
-import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
+import type { SolanaTokenMetadata } from '../../clients/token-api-client/types';
 import {
   KnownCaip19Id,
   Network,

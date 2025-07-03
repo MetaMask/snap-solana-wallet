@@ -1,7 +1,9 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
+import type { FungibleAssetMetadata } from '@metamask/snaps-sdk';
 import { array, assert } from '@metamask/superstruct';
 import { CaipAssetTypeStruct, parseCaipAssetType } from '@metamask/utils';
 
+import type { TokenCaip19Id } from '../../constants/solana';
 import { Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import { NftService } from '../../services/nft/NftService';
@@ -10,9 +12,9 @@ import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { UrlStruct } from '../../validation/structs';
 import { TokenMetadataResponseStruct } from './structs';
-import type { SolanaTokenMetadata, TokenMetadata } from './types';
+import type { TokenMetadata } from './types';
 
-export class TokenMetadataClient {
+export class TokenApiClient {
   readonly #fetch: typeof globalThis.fetch;
 
   readonly #logger: ILogger;
@@ -65,33 +67,34 @@ export class TokenMetadataClient {
     const data = await response.json();
     assert(data, TokenMetadataResponseStruct);
 
-    return data;
+    return data.map((item) => ({
+      ...item,
+      assetId: item.assetId as TokenCaip19Id,
+    })) as TokenMetadata[];
   }
 
   async getTokenMetadataFromAddresses(
-    assetTypes: CaipAssetType[],
-  ): Promise<Record<CaipAssetType, SolanaTokenMetadata>> {
+    assetTypes: TokenCaip19Id[],
+  ): Promise<Record<TokenCaip19Id, FungibleAssetMetadata>> {
     try {
       assert(assetTypes, array(CaipAssetTypeStruct));
 
-      // The Token API only supports the networks in TokenMetadataClient.supportedNetworks
+      // The Token API only supports the networks in TokenApiClient.supportedNetworks
       const supportedAssetTypes = assetTypes.filter((assetType) => {
         const { chainId } = parseCaipAssetType(assetType);
-        return TokenMetadataClient.supportedNetworks.includes(
-          chainId as Network,
-        );
+        return TokenApiClient.supportedNetworks.includes(chainId as Network);
       });
 
       if (supportedAssetTypes.length !== assetTypes.length) {
         this.#logger.warn(
-          `[TokenMetadataClient] Received some asset types on networks that the Token API doesn't support. They will be ignored. Supported networks: ${TokenMetadataClient.supportedNetworks.join(
+          `[TokenApiClient] Received some asset types on networks that the Token API doesn't support. They will be ignored. Supported networks: ${TokenApiClient.supportedNetworks.join(
             ', ',
           )}`,
         );
       }
 
       // Split addresses into chunks
-      const chunks: CaipAssetType[][] = [];
+      const chunks: TokenCaip19Id[][] = [];
       for (let i = 0; i < supportedAssetTypes.length; i += this.#chunkSize) {
         chunks.push(supportedAssetTypes.slice(i, i + this.#chunkSize));
       }
@@ -102,7 +105,7 @@ export class TokenMetadataClient {
       );
 
       // Flatten and process all metadata
-      const tokenMetadataMap = new Map<string, SolanaTokenMetadata>();
+      const tokenMetadataMap = new Map<TokenCaip19Id, FungibleAssetMetadata>();
 
       tokenMetadataResponses.flat().forEach((metadata) => {
         const tokenSymbol = metadata?.symbol;

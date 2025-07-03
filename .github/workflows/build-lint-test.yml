@@ -29,6 +29,8 @@ on:
         required: true
       SECURITY_ALERTS_API_BASE_URL:
         required: true
+      NFT_API_BASE_URL:
+        required: true
       EXPLORER_BASE_URL:
         required: true
 
@@ -65,6 +67,7 @@ jobs:
       TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
       STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
       SECURITY_ALERTS_API_BASE_URL: ${{ secrets.SECURITY_ALERTS_API_BASE_URL }}
+      NFT_API_BASE_URL: ${{ secrets.NFT_API_BASE_URL }}
     steps:
       - name: Checkout and setup environment
         uses: MetaMask/action-checkout-and-setup@v1
@@ -116,6 +119,7 @@ jobs:
       TOKEN_API_BASE_URL: ${{ secrets.TOKEN_API_BASE_URL }}
       STATIC_API_BASE_URL: ${{ secrets.STATIC_API_BASE_URL }}
       SECURITY_ALERTS_API_BASE_URL: ${{ secrets.SECURITY_ALERTS_API_BASE_URL }}
+      NFT_API_BASE_URL: ${{ secrets.NFT_API_BASE_URL }}
     steps:
       - name: Checkout and setup environment
         uses: MetaMask/action-checkout-and-setup@v1

@@ -1,10 +1,11 @@
 import type { ICache } from './core/caching/ICache';
 import { InMemoryCache } from './core/caching/InMemoryCache';
 import { StateCache } from './core/caching/StateCache';
+import { NftApiClient } from './core/clients/nft-api/NftApiClient';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
-import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
-import { ClientRequestHandler } from './core/handlers';
+import { TokenApiClient } from './core/clients/token-api-client/TokenApiClient';
+import { ClientRequestHandler } from './core/handlers/onClientRequest';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
@@ -83,11 +84,12 @@ const sendSplTokenBuilder = new SendSplTokenBuilder(
   transactionHelper,
   logger,
 );
-const tokenMetadataClient = new TokenMetadataClient(configProvider);
 const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);
+const tokenApiClient = new TokenApiClient(configProvider);
+const nftApiClient = new NftApiClient(configProvider, inMemoryCache);
 
 const tokenMetadataService = new TokenMetadataService({
-  tokenMetadataClient,
+  tokenApiClient,
   logger,
 });
 
@@ -102,12 +104,13 @@ const assetsService = new AssetsService({
   tokenMetadataService,
   cache: inMemoryCache,
   tokenPricesService,
+  nftApiClient,
 });
 
 const transactionsService = new TransactionsService({
   logger,
   connection,
-  tokenMetadataService,
+  assetsService,
   state,
   configProvider,
 });
@@ -197,6 +200,7 @@ export {
   connection,
   eventEmitter,
   keyring,
+  nameResolutionService,
   nftService,
   priceApiClient,
   sendSolBuilder,
@@ -204,7 +208,7 @@ export {
   state,
   subscriptionRepository,
   subscriptionService,
-  tokenMetadataClient,
+  tokenApiClient,
   tokenMetadataService,
   tokenPricesService,
   transactionHelper,
@@ -212,7 +216,6 @@ export {
   transactionsService,
   walletService,
   webSocketConnectionService,
-  nameResolutionService,
 };
 
 export default snapContext;
