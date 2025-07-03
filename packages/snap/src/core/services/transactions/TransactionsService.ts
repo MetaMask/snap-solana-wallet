@@ -207,9 +207,7 @@ export class TransactionsService {
       .send();
 
     if (!rpcTransaction) {
-      throw new Error(
-        `Transaction with signature ${signature} not found on ${scope}`,
-      );
+      return null;
     }
 
     const mappedTransaction = mapRpcTransaction({

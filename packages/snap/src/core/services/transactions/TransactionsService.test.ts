@@ -557,18 +557,20 @@ describe('TransactionsService', () => {
       });
     });
 
-    it('throws an error if the transaction is not found', async () => {
+    it('returns null if the transaction is not found', async () => {
       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
         getTransaction: jest.fn().mockReturnValue({
           send: jest.fn().mockResolvedValue(null),
         }),
       } as any);
 
-      await expect(
-        service.fetchBySignature(mockSignature, mockAccount, mockScope),
-      ).rejects.toThrow(
-        `Transaction with signature ${mockSignature} not found on ${mockScope}`,
+      const result = await service.fetchBySignature(
+        mockSignature,
+        mockAccount,
+        mockScope,
       );
+
+      expect(result).toBeNull();
     });
   });
 
