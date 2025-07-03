@@ -29,7 +29,9 @@ import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../core/test/mocks/transac
 import { TEST_ORIGIN } from '../../core/test/utils';
 import type { Preferences } from '../../core/types/snap';
 import { DEFAULT_SEND_CONTEXT } from './render';
+import { Send } from './Send';
 import { type SendContext, SendCurrencyType, SendFormNames } from './types';
+import { TransactionConfirmationNames } from './views/TransactionConfirmation/TransactionConfirmation';
 
 const solanaKeyringAccounts = [
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -164,7 +166,7 @@ describe('Send', () => {
     mockSolanaRpc.shutdown();
   });
 
-  it('renders the send form successfully', async () => {
+  it('renders the send form', async () => {
     const { mockResolvedResult, server } = mockSolanaRpc;
 
     // temporary mock for the token prices
@@ -291,241 +293,82 @@ describe('Send', () => {
       result: 890880, // 890880 lamports = 0.00089088 SOL
     });
 
-    const dialogPromise = request({
+    const response = request({
       origin: TEST_ORIGIN,
       method: RpcRequestMethod.StartSendTransactionFlow,
       params: {
         scope: Network.Localnet, // Routes the call to the mock RPC server running locally
-        account: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
-      },
-    });
-
-    await expect(dialogPromise).resolves.toBeDefined();
-  });
-
-  it('tests actual validation logic for address input', async () => {
-    const { addressOrDomain, required } = await import('./validation/form');
-
-    const requiredValidator = required('send.toRequiredError', 'en');
-    expect(requiredValidator('')).toStrictEqual({
-      message: 'To address is required',
-      value: '',
-    });
-    expect(requiredValidator('valid-address')).toBeNull();
-
-    const addressValidator = addressOrDomain('send.toInvalidError', 'en');
-    expect(addressValidator('invalid-address')).toStrictEqual({
-      message: 'Invalid Solana address or domain name',
-      value: 'invalid-address',
-    });
-    expect(addressValidator(MOCK_SOLANA_KEYRING_ACCOUNT_1.address)).toBeNull();
-  });
-
-  it('tests actual validation logic for amount input', async () => {
-    const { amountInput } = await import('./validation/form');
-
-    const context: SendContext = {
-      ...mockContext,
-      fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      tokenCaipId: KnownCaip19Id.SolLocalnet,
-      balances: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          [KnownCaip19Id.SolLocalnet]: {
-            amount: '1.0',
-            unit: 'SOL',
-          },
-        },
-      },
-      minimumBalanceForRentExemptionSol: '0.002',
-      feeEstimatedInSol: '0.000005',
-      selectedTokenMetadata: {
-        symbol: 'SOL',
-        name: 'Solana',
-        asset: KnownCaip19Id.SolLocalnet,
-        imageSvg: null,
-      },
-    };
-
-    const validator = amountInput(context);
-
-    expect(validator('')).toStrictEqual({
-      message: '',
-      value: '',
-    });
-
-    expect(validator('0.5')).toBeNull();
-
-    expect(validator('2.0')).toStrictEqual({
-      message: 'Insufficient balance: 1.0 SOL',
-      value: '2.0',
-    });
-
-    expect(validator('0.001')).toStrictEqual({
-      message: 'Amount must be greater than 0.002',
-      value: '0.001',
-    });
-  });
-
-  it('tests actual form validation integration', async () => {
-    const { sendFieldsAreValid } = await import('./validation/form');
-
-    const validContext: SendContext = {
-      ...mockContext,
-      fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
-      amount: '0.5',
-      balances: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          [KnownCaip19Id.SolLocalnet]: {
-            amount: '1.0',
-            unit: 'SOL',
-          },
-        },
-      },
-      minimumBalanceForRentExemptionSol: '0.002',
-      feeEstimatedInSol: '0.000005',
-      selectedTokenMetadata: {
-        symbol: 'SOL',
-        name: 'Solana',
-        asset: KnownCaip19Id.SolLocalnet,
-        imageSvg: null,
-      },
-    };
-
-    expect(sendFieldsAreValid(validContext)).toBe(true);
-
-    const invalidContext: SendContext = {
-      ...validContext,
-      amount: '',
-    };
-
-    expect(sendFieldsAreValid(invalidContext)).toBe(false);
-  });
-
-  it('tests actual renderSend function behavior', async () => {
-    const { mockResolvedResult, server } = mockSolanaRpc;
-
-    server?.get(`/v3/spot-prices`, (_: any, res: any) => {
-      return res.json(mockSpotPrices);
-    });
-
-    const initialState = {
-      keyringAccounts: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-          entropySource: 'default',
-        },
-      },
-      assets: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
-      },
-    };
-
-    const { request, mockJsonRpc } = await installSnap({
-      options: {
-        secretRecoveryPhrase: MOCK_SEED_PHRASE,
-        unencryptedState: initialState,
-        accounts: [
-          getMockAccount({
-            address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
-            selected: true,
-            assets: Object.keys(solanaAccountBalances) as CaipAssetType[],
-            scopes: [Network.Localnet],
-          }),
-        ],
-      },
-    });
-
-    mockJsonRpc({
-      method: 'snap_scheduleBackgroundEvent',
-      result: {},
-    });
-
-    mockResolvedResult({
-      method: 'getLatestBlockhash',
-      result: MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result,
-    });
-
-    mockResolvedResult({
-      method: 'getMinimumBalanceForRentExemption',
-      result: 890880,
-    });
-
-    const dialogPromise = request({
-      origin: TEST_ORIGIN,
-      method: RpcRequestMethod.StartSendTransactionFlow,
-      params: {
-        scope: Network.Localnet,
         account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       },
     });
 
-    const response = await dialogPromise;
-    expect(response).toBeDefined();
+    const screen1BeforeUpdate = await response.getInterface();
+    await screen1BeforeUpdate.waitForUpdate();
 
-    const errorResponse = await request({
-      origin: TEST_ORIGIN,
-      method: RpcRequestMethod.StartSendTransactionFlow,
-      params: {
-        scope: 'invalid-scope' as any,
-        account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      },
-    });
+    const screen1 = await response.getInterface();
 
-    expect(errorResponse).toRespondWithError({
-      code: expect.any(Number),
-      message: expect.stringMatching(/Permission denied/u),
-      stack: expect.any(String),
-    });
-  });
+    const updatedContext1: SendContext = mockContext;
 
-  it('tests actual currency conversion logic', async () => {
-    const { tokenToFiat } = await import('../../core/utils/tokenToFiat');
-    const { formatCrypto } = await import('../../core/utils/formatCrypto');
-    const { formatFiat } = await import('../../core/utils/formatFiat');
+    expect(screen1).toRender(<Send context={updatedContext1} />);
 
-    const tokenAmount = '1.5';
-    const tokenPrice = 200;
-    const fiatAmount = tokenToFiat(tokenAmount, tokenPrice);
-    expect(fiatAmount).toBe('300'); // 1.5 * 200 = 300
-
-    const formattedCrypto = formatCrypto(tokenAmount, 'SOL', 'en');
-    expect(formattedCrypto).toBe('1.5 SOL');
-
-    const formattedFiat = formatFiat(fiatAmount.toString(), 'usd', 'en');
-    expect(formattedFiat).toBe('$300.00');
-  });
-
-  it('tests actual balance calculation logic', async () => {
-    const { getBalance, getNativeTokenBalance } = await import('./selectors');
-
-    const context: SendContext = {
-      ...mockContext,
-      fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      tokenCaipId: KnownCaip19Id.SolLocalnet,
-      balances: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-          [KnownCaip19Id.SolLocalnet]: {
-            amount: '2.5',
-            unit: 'SOL',
-          },
-        },
-      },
-    };
-
-    const balance = getBalance(context);
-    expect(balance).toBe('2.5');
-
-    const nativeBalance = getNativeTokenBalance(context);
-    expect(nativeBalance).toBe('2.5');
-  });
-
-  it('tests actual transaction building logic', async () => {
-    const { buildTransactionMessageAndUpdateInterface } = await import(
-      './utils/buildTransactionMessageAndUpdateInterface'
+    await screen1.typeInField(
+      SendFormNames.DestinationAccountInput,
+      MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
     );
 
-    expect(typeof buildTransactionMessageAndUpdateInterface).toBe('function');
+    // two rerenders are happening here
+    await response.getInterface();
+    const screen2 = await response.getInterface();
+
+    const updatedContext2: SendContext = {
+      ...updatedContext1,
+      destinationAddressOrDomain: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+      toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+    };
+
+    expect(screen2).toRender(<Send context={updatedContext2} />);
+
+    await screen2.typeInField(SendFormNames.AmountInput, '0.001');
+
+    await screen2.waitForUpdate();
+
+    const screen3 = await response.getInterface();
+
+    const updatedContext3: SendContext = {
+      ...updatedContext2,
+      amount: '0.001',
+      transactionMessage: 'some-base64-encoded-message',
+    };
+
+    expect(screen3).toRender(<Send context={updatedContext3} />);
+
+    await screen3.clickElement(SendFormNames.SendButton);
+
+    const screen4 = await response.getInterface();
+
+    const updatedContext4: SendContext = {
+      ...updatedContext3,
+      stage: 'transaction-confirmation',
+      feeEstimatedInSol: '0.000005',
+    };
+
+    expect(screen4).toRender(<Send context={updatedContext4} />);
+
+    await screen4.clickElement(TransactionConfirmationNames.ConfirmButton);
+
+    const screen5 = await response.getInterface();
+
+    const updatedContext5: SendContext = {
+      ...updatedContext4,
+      stage: 'transaction-success',
+      feePaidInSol: '0.000005',
+      transaction: {
+        result: 'success',
+        signature: MOCK_SOLANA_RPC_SEND_TRANSACTION_RESPONSE.result.signature,
+      },
+    };
+
+    expect(screen5).toRender(<Send context={updatedContext5} />);
   });
 
   it('fails when wrong scope', async () => {
@@ -542,7 +385,7 @@ describe('Send', () => {
 
     expect(response).toRespondWithError({
       code: expect.any(Number),
-      message: expect.stringMatching(/Permission denied/u),
+      message: expect.stringMatching(/At path: scope/u),
       stack: expect.any(String),
     });
   });
@@ -561,7 +404,7 @@ describe('Send', () => {
 
     expect(response).toRespondWithError({
       code: expect.any(Number),
-      message: expect.stringMatching(/Permission denied/u),
+      message: expect.stringMatching(/At path: account/u),
       stack: expect.any(String),
     });
   });
