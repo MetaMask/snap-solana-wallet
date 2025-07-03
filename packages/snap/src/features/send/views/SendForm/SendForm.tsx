@@ -22,6 +22,7 @@ import { AmountInput } from '../../components/AmountInput/AmountInput';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
 import { getSelectedTokenPrice } from '../../selectors';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
+import { Caip10Address } from 'src/core/constants/solana';
 
 type SendFormProps = {
   context: SendContext;
@@ -62,7 +63,7 @@ export const SendForm = ({
   const selectedAccount = accounts.find(
     (account) => account.id === fromAccountId,
   );
-  const selectedAccountAddress: `${string}:${string}:${string}` | undefined =
+  const selectedAccountAddress: Caip10Address | undefined =
     selectedAccount?.address
       ? addressToCaip10(scope, selectedAccount.address)
       : undefined;
