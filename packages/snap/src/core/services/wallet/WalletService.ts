@@ -3,7 +3,6 @@ import {
   KeyringEvent,
   type KeyringRequest,
   SolMethod,
-  TransactionStatus,
 } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { Infer } from '@metamask/superstruct';
@@ -387,7 +386,6 @@ export class WalletService {
       );
     }
 
-    transaction.status = TransactionStatus.Confirmed;
     await this.#transactionsService.saveTransaction(transaction, account);
 
     await Promise.allSettled([
