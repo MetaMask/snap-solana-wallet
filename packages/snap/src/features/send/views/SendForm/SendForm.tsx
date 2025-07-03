@@ -159,7 +159,7 @@ export const SendForm = ({
             <AccountSelector
               name={SendFormNames.SourceAccountSelector}
               chainIds={[scope]}
-              value={selectedAccountAddress || undefined}
+              value={selectedAccountAddress ?? undefined}
               hideExternalAccounts
               switchGlobalAccount
             />
