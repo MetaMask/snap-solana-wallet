@@ -218,7 +218,7 @@ export class TransactionsService {
 
     if (!mappedTransaction) {
       throw new Error(
-        `Transaction with signature ${signature} not found on ${scope}`,
+        `Transaction with signature ${signature} not found on ${scope}, or mapped to null`,
       );
     }
 
@@ -249,6 +249,14 @@ export class TransactionsService {
           `transactions.${accountId}`,
         )) ?? [];
 
+      // If a there is a transaction with the same signature, override it
+      const sameSignatureTransactionIndex = existingTransactions.findIndex(
+        (tx) => tx.id === signature,
+      );
+      if (sameSignatureTransactionIndex !== -1) {
+        existingTransactions[sameSignatureTransactionIndex] = transaction;
+      }
+
       const allTransactions = uniqBy(
         [...existingTransactions, transaction],
         'id',
@@ -262,6 +270,11 @@ export class TransactionsService {
         (await this.#state.getKey<Signature[]>(
           `signatures.${accountAddress}`,
         )) ?? [];
+
+      // Skip saving the signature if it already exists in the state
+      if (existingSinatures.toString().includes(signature)) {
+        return;
+      }
 
       const allSignatures = uniq([...existingSinatures, signature]);
 

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { KeyringEvent } from '@metamask/keyring-api';
+import { KeyringEvent, TransactionStatus } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { address as asAddress } from '@solana/kit';
 
@@ -614,7 +614,10 @@ describe('TransactionsService', () => {
     });
 
     it('overrides a transaction in the state when it already exists with the same id', async () => {
-      const mockExistingTransaction = mockTransaction;
+      const mockExistingTransaction = {
+        ...mockTransaction,
+        status: TransactionStatus.Submitted,
+      };
       jest
         .spyOn(mockState, 'getKey')
         .mockResolvedValue([mockExistingTransaction]);
@@ -654,13 +657,17 @@ describe('TransactionsService', () => {
       );
     });
 
-    it('does not store duplicate signatures in the state', async () => {
-      jest.spyOn(mockState, 'getKey').mockResolvedValue([mockTransaction.id]);
+    it('skips saving the signature if it already exists in the state', async () => {
+      jest
+        .spyOn(mockState, 'getKey')
+        .mockResolvedValueOnce([mockTransaction])
+        .mockResolvedValueOnce([mockTransaction.id]);
       const setKeySpy = jest.spyOn(mockState, 'setKey');
 
       await service.saveTransaction(mockTransaction, mockAccount);
 
-      expect(setKeySpy).toHaveBeenCalledWith(
+      expect(setKeySpy).toHaveBeenCalledTimes(1); // Only the call to save the transaction is made
+      expect(setKeySpy).not.toHaveBeenCalledWith(
         `signatures.${mockAccount.address}`,
         [mockTransaction.id],
       );
