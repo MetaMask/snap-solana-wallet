@@ -246,6 +246,16 @@ describe('Send', () => {
       result: {},
     });
 
+    mockJsonRpc({
+      method: 'snap_getWebSockets',
+      result: [],
+    });
+
+    mockJsonRpc({
+      method: 'snap_openWebSocket',
+      result: 'mock-id',
+    });
+
     mockResolvedResult({
       method: 'getLatestBlockhash',
       result: MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_RESPONSE.result,
