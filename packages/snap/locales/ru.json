@@ -29,7 +29,7 @@
       "message": "Токен"
     },
     "send.toPlaceholder": {
-      "message": "Введите публичный адрес"
+      "message": "Enter public address or domain name"
     },
     "send.fromRequiredError": {
       "message": "Требуется счет"
@@ -47,7 +47,22 @@
       "message": "Требуется адрес получателя"
     },
     "send.toInvalidError": {
-      "message": "Неверный адрес Solana"
+      "message": "Invalid Solana address or domain name"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Unable to resolve domain name"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolving domain name..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domain name resolved."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Unable to resolve domain name."
     },
     "send.insufficientBalance": {
       "message": "Недостаточный баланс"

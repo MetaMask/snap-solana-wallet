@@ -29,7 +29,7 @@
       "message": "टोकन"
     },
     "send.toPlaceholder": {
-      "message": "पब्लिक एड्रेस डालें"
+      "message": "Enter public address or domain name"
     },
     "send.fromRequiredError": {
       "message": "अकाउंट होना ज़रूरी है"
@@ -47,7 +47,22 @@
       "message": "जिसको भेजा जा रहा है उसका एड्रेस होना चाहिए"
     },
     "send.toInvalidError": {
-      "message": "सोलाना का अमान्य पता"
+      "message": "Invalid Solana address or domain name"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Unable to resolve domain name"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolving domain name..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domain name resolved."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Unable to resolve domain name."
     },
     "send.insufficientBalance": {
       "message": "कम बैलेंस"
