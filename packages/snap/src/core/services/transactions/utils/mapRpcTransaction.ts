@@ -3,9 +3,10 @@ import {
   TransactionType,
   type Transaction,
 } from '@metamask/keyring-api';
-import { type Address } from '@solana/kit';
+import { address as asAddress, type Address } from '@solana/kit';
 import { BigNumber } from 'bignumber.js';
 
+import type { SolanaKeyringAccount } from '../../../../entities/keyring-account';
 import { KnownCaip19Id, type Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
 import { parseTransactionNativeTransfers } from './parseTransactionNativeTransfers';
@@ -15,32 +16,29 @@ import { parseTransactionSplTransfers } from './parseTransactionSplTransfers';
 /**
  * Maps RPC transaction data to a standardized format.
  * @param params - The options object.
- * @param params.scope - The network scope (e.g., Mainnet, Devnet).
- * @param params.address - The account address associated with the transaction.
  * @param params.transactionData - The raw transaction data from the RPC response.
+ * @param params.account - The account associated with the transaction.
+ * @param params.scope - The network scope (e.g., Mainnet, Devnet).
  * @returns The mapped transaction data.
  */
 export function mapRpcTransaction({
-  scope,
-  address,
   transactionData,
+  account,
+  scope,
 }: {
+  transactionData: SolanaTransaction;
+  account: SolanaKeyringAccount;
   scope: Network;
-  address: Address;
-  transactionData: SolanaTransaction | null;
-}): Transaction | null {
-  if (!transactionData) {
-    return null;
+}): Transaction {
+  const { blockTime } = transactionData;
+  const { id: accountId, address } = account;
+
+  const id = transactionData.transaction.signatures[0];
+  if (!id) {
+    throw new Error('Transaction has no signature');
   }
 
-  const firstSignature = transactionData.transaction.signatures[0];
-
-  if (!firstSignature) {
-    return null;
-  }
-
-  const id = firstSignature as string;
-  const timestamp = Number(transactionData.blockTime);
+  const timestamp = Number(blockTime);
   const status = evaluateTransactionStatus(transactionData);
 
   let fees: Transaction['fees'] = [];
@@ -76,7 +74,7 @@ export function mapRpcTransaction({
   let to = [...splTo, ...nativeTo];
 
   const type = evaluateTransactionType({
-    address,
+    address: asAddress(address),
     status,
     from,
     to,
@@ -103,17 +101,17 @@ export function mapRpcTransaction({
     fees = [];
   }
 
-  const isLegitimate = evaluateTransactionLegitimacy({
-    address,
-    from,
-    to,
-    type,
-    status,
-  });
+  //   const isLegitimate = evaluateTransactionLegitimacy({
+  //     address,
+  //     from,
+  //     to,
+  //     type,
+  //     status,
+  //   });
 
-  if (!isLegitimate) {
-    return null;
-  }
+  //   if (!isLegitimate) {
+  //     return null;
+  //   }
 
   /**
    * We cannot do this filtering earlier because we need to use the incomplete
@@ -128,7 +126,7 @@ export function mapRpcTransaction({
 
   return {
     id,
-    account: address,
+    account: accountId,
     timestamp,
     chain: scope as `${string}:${string}`,
     status,
@@ -282,37 +280,28 @@ function passesSOLAmountThresholdCheck({
 
 /**
  * Evaluates the legitimacy of a transaction based on various checks.
- * @param params - The options object.
- * @param params.address - The address of the user.
- * @param params.from - The from items.
- * @param params.to - The to items.
- * @param params.type - The type of transaction.
- * @param params.status - The status of the transaction.
+ * @param transaction - The transaction to evaluate.
+ * @param account - The account associated with the transaction.
  * @returns Whether the transaction is considered legitimate (true = legitimate, false = spam).
  */
-function evaluateTransactionLegitimacy({
-  address,
-  from,
-  to,
-  type,
-  status,
-}: {
-  address: Address;
-  from: Transaction['from'];
-  to: Transaction['to'];
-  type: TransactionType;
-  status: TransactionStatus;
-}): boolean {
+function isLegitimate(
+  transaction: Transaction,
+  account: SolanaKeyringAccount,
+): boolean {
+  const { type, status, to } = transaction;
+  const { address } = account;
+  const addressAsAddress = asAddress(address);
+
   if (
     type === TransactionType.Receive &&
-    !passesSOLAmountThresholdCheck({ address, to })
+    !passesSOLAmountThresholdCheck({ address: addressAsAddress, to })
   ) {
     return false;
   }
 
   if (
     status === TransactionStatus.Failed &&
-    !passesSOLAmountThresholdCheck({ address, to })
+    !passesSOLAmountThresholdCheck({ address: addressAsAddress, to })
   ) {
     return false;
   }
