@@ -116,7 +116,7 @@ export class TransactionsService {
       signatures,
     });
 
-    // Filter out null transactions
+    // Remove null transactions
     const transactionsDataNonNull = transactionsData.filter(
       (item) => item !== null,
     );
@@ -131,17 +131,14 @@ export class TransactionsService {
         }),
     );
 
-    // Filter out non-legitimate transactions
+    // Remove spam transactions
     const legitimateTransactions = mappedTransactionsData.filter(
       (item) => !isSpam(item, account),
     );
 
     const transactionsByAccountWithTokenMetadata =
       await this.#populateAccountTransactionAssetUnits({
-        [address]: mappedTransactionsData.map((tx) => ({
-          ...tx,
-          account: address,
-        })),
+        [address]: legitimateTransactions,
       });
 
     const next =
