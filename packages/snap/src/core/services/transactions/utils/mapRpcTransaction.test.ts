@@ -212,8 +212,28 @@ describe('mapRpcTransaction', () => {
       chain: Network.Mainnet,
       status: 'failed',
       type: 'unknown',
-      from: [],
-      to: [],
+      from: [
+        {
+          address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+          asset: {
+            amount: '0.1',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+          },
+        },
+      ],
+      to: [
+        {
+          address: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
+          asset: {
+            amount: '0.1',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+          },
+        },
+      ],
       fees: [
         {
           type: 'base',
@@ -1100,8 +1120,46 @@ describe('mapRpcTransaction', () => {
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'failed',
       type: 'unknown',
-      from: [],
-      to: [],
+      from: [
+        {
+          address: '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+          asset: {
+            amount: '0.006',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+          },
+        },
+      ],
+      to: [
+        {
+          address: '34FKjAdVcTax2DHqV2XnbXa9J3zmyKcFuFKWbcmgxjgm',
+          asset: {
+            amount: '0',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+          },
+        },
+        {
+          address: '4cLUBQKZgCv2AqGXbh8ncGhrDRcicUe3WSDzjgPY2oTA',
+          asset: {
+            amount: '0.0000525',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+          },
+        },
+        {
+          address: '9QQjgi73MnaeeMvUYZr9LTaZj4dt3ktstUF8s25zfiJ1',
+          asset: {
+            amount: '0.0059475',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            unit: 'SOL',
+          },
+        },
+      ],
       fees: [
         {
           type: 'base',
