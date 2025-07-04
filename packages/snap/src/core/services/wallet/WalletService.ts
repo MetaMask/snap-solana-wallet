@@ -37,6 +37,7 @@ import {
   NetworkStruct,
 } from '../../validation/structs';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
+import type { AssetsService } from '../assets/AssetsService';
 import type { SolanaConnection } from '../connection';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import type { SignatureMonitor } from '../subscriptions';
@@ -63,6 +64,8 @@ import {
 export class WalletService {
   readonly #transactionsService: TransactionsService;
 
+  readonly #assetsService: AssetsService;
+
   readonly #analyticsService: AnalyticsService;
 
   readonly #connection: SolanaConnection;
@@ -77,6 +80,7 @@ export class WalletService {
 
   constructor(
     transactionsService: TransactionsService,
+    assetsService: AssetsService,
     analyticsService: AnalyticsService,
     connection: SolanaConnection,
     transactionHelper: TransactionHelper,
@@ -84,6 +88,7 @@ export class WalletService {
     _logger = logger,
   ) {
     this.#transactionsService = transactionsService;
+    this.#assetsService = assetsService;
     this.#analyticsService = analyticsService;
     this.#connection = connection;
     this.#transactionHelper = transactionHelper;
@@ -406,6 +411,8 @@ export class WalletService {
     await this.#transactionsService.saveTransaction(transaction, account);
 
     await Promise.allSettled([
+      // TODO: Remove this once we listen to accounts and token accounts via websockets
+      this.#assetsService.refreshAssets([account]),
       // Bubble up the new transaction to the extension
       emitSnapKeyringEvent(snap, KeyringEvent.AccountTransactionsUpdated, {
         transactions: {
