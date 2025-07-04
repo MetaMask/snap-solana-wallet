@@ -29,7 +29,7 @@
       "message": "토큰"
     },
     "send.toPlaceholder": {
-      "message": "공개 주소 입력"
+      "message": "Enter public address or domain name"
     },
     "send.fromRequiredError": {
       "message": "계정은 필수입니다"
@@ -47,7 +47,22 @@
       "message": "수신 주소는 필수입니다"
     },
     "send.toInvalidError": {
-      "message": "잘못된 Solana 주소"
+      "message": "Invalid Solana address or domain name"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Unable to resolve domain name"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolving domain name..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domain name resolved."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Unable to resolve domain name."
     },
     "send.insufficientBalance": {
       "message": "잔액 부족"

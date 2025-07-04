@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Nhập địa chỉ công khai"
+      "message": "Enter public address or domain name"
     },
     "send.fromRequiredError": {
       "message": "Bắt buộc nhập tài khoản"
@@ -47,7 +47,22 @@
       "message": "Bắt buộc nhập địa chỉ gửi đến"
     },
     "send.toInvalidError": {
-      "message": "Địa chỉ Solana không hợp lệ"
+      "message": "Invalid Solana address or domain name"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Unable to resolve domain name"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolving domain name..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domain name resolved."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Unable to resolve domain name."
     },
     "send.insufficientBalance": {
       "message": "Không đủ số dư"

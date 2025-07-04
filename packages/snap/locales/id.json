@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Masukkan alamat publik"
+      "message": "Enter public address or domain name"
     },
     "send.fromRequiredError": {
       "message": "Akun diperlukan"
@@ -47,7 +47,22 @@
       "message": "Alamat kirim diperlukan"
     },
     "send.toInvalidError": {
-      "message": "Alamat Solana tidak valid"
+      "message": "Invalid Solana address or domain name"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Unable to resolve domain name"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolving domain name..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domain name resolved."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Unable to resolve domain name."
     },
     "send.insufficientBalance": {
       "message": "Saldo tidak cukup"
