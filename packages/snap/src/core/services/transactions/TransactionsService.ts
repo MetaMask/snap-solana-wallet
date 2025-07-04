@@ -110,35 +110,26 @@ export class TransactionsService {
       ...new Set([...existingSinatures, ...signatures]),
     ]);
 
-    // Now fetch their transaction data
-    const transactionsData = await this.getTransactionsDataFromSignatures({
-      scope,
-      signatures,
-    });
-
-    // Remove null transactions
-    const transactionsDataNonNull = transactionsData.filter(
-      (item) => item !== null,
-    );
-
-    // Map it to the expected format from the Keyring API
-    const mappedTransactionsData = transactionsDataNonNull.map(
-      (transactionData) =>
+    // Fetch, clean up and map transactions
+    const transactions = (
+      await this.getTransactionsDataFromSignatures({
+        scope,
+        signatures,
+      })
+    )
+      .filter((item) => item !== null)
+      .map((transactionData) =>
         mapRpcTransaction({
           transactionData,
           account,
           scope,
         }),
-    );
-
-    // Remove spam transactions
-    const legitimateTransactions = mappedTransactionsData.filter(
-      (item) => !isSpam(item, account),
-    );
+      )
+      .filter((item) => !isSpam(item, account));
 
     const transactionsByAccountWithTokenMetadata =
       await this.#populateAccountTransactionAssetUnits({
-        [address]: legitimateTransactions,
+        [address]: transactions,
       });
 
     const next =
