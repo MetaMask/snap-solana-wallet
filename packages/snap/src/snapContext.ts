@@ -144,6 +144,7 @@ const analyticsService = new AnalyticsService(logger);
 
 const walletService = new WalletService(
   transactionsService,
+  assetsService,
   analyticsService,
   connection,
   transactionHelper,

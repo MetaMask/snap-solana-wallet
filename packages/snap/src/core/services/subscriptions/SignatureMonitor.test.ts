@@ -15,7 +15,6 @@ describe('SignatureMonitor', () => {
   beforeEach(() => {
     mockSubscriptionService = {
       subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
     } as unknown as SubscriptionService;
 
     // This will let us capture the callbacks passed to subscribe
@@ -86,16 +85,13 @@ describe('SignatureMonitor', () => {
         );
       });
 
-      it('calls onCommitmentReached and unsubscribes when notification received', async () => {
+      it('calls onCommitmentReached when notification received', async () => {
         await signatureMonitor.monitor(mockParams);
 
         // Simulate notification received
         await onNotificationCallback();
 
         expect(mockParams.onCommitmentReached).toHaveBeenCalledWith(mockParams);
-        expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
-          mockSubscriptionId,
-        );
       });
 
       it('doesnt fail if onCommitmentReached throws an error', async () => {
@@ -116,24 +112,17 @@ describe('SignatureMonitor', () => {
         expect(mockParamsWithError.onCommitmentReached).toHaveBeenCalledWith(
           mockParamsWithError,
         );
-
-        expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
-          mockSubscriptionId,
-        );
       });
     });
 
     describe('#handleConnectionRecovery', () => {
-      it('calls onCommitmentReached and unsubscribes when connection was dropped and recovered', async () => {
+      it('calls onCommitmentReached when connection was dropped and recovered', async () => {
         await signatureMonitor.monitor(mockParams);
 
         // Simulate connection recovery
         await onConnectionRecoveryCallback();
 
         expect(mockParams.onCommitmentReached).toHaveBeenCalledWith(mockParams);
-        expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
-          mockSubscriptionId,
-        );
       });
     });
   });

@@ -15,6 +15,7 @@ import { ADDRESS_1_TRANSACTION_1_DATA } from '../../test/mocks/transactions-data
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
+import type { AssetsService } from '../assets/AssetsService';
 import type { SolanaConnection } from '../connection';
 import { MOCK_EXECUTION_SCENARIOS } from '../execution/mocks/scenarios';
 import type { TransactionHelper } from '../execution/TransactionHelper';
@@ -44,11 +45,13 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 describe('WalletService', () => {
   let mockConnection: SolanaConnection;
   let mockTransactionsService: TransactionsService;
+  let mockAssetsService: AssetsService;
   let mockAnalyticsService: AnalyticsService;
   let mockTransactionHelper: TransactionHelper;
   let mockSignatureMonitor: SignatureMonitor;
   let service: WalletService;
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
+  let onCommitmentReachedCallback: (params: any) => Promise<void>;
 
   beforeEach(() => {
     mockConnection = createMockConnection();
@@ -59,6 +62,10 @@ describe('WalletService', () => {
         .mockResolvedValue(ADDRESS_1_TRANSACTION_1_DATA),
       saveTransaction: jest.fn(),
     } as unknown as TransactionsService;
+
+    mockAssetsService = {
+      refreshAssets: jest.fn(),
+    } as unknown as AssetsService;
 
     mockAnalyticsService = {
       trackEventTransactionSubmitted: jest.fn(),
@@ -76,8 +83,17 @@ describe('WalletService', () => {
       monitor: jest.fn(),
     } as unknown as SignatureMonitor;
 
+    // Mock the monitor method to capture the onCommitmentReached callback
+    (mockSignatureMonitor.monitor as jest.Mock).mockImplementation(
+      async (params) => {
+        onCommitmentReachedCallback = params.onCommitmentReached;
+        return Promise.resolve();
+      },
+    );
+
     service = new WalletService(
       mockTransactionsService,
+      mockAssetsService,
       mockAnalyticsService,
       mockConnection,
       mockTransactionHelper,
@@ -264,21 +280,42 @@ describe('WalletService', () => {
             service.signTransaction(fromAccount, request),
           ).rejects.toThrow(/At path/u);
         });
-      });
 
-      describe(`Scenario ${name}: signAndSendTransaction`, () => {
-        let onCommitmentReachedCallback: (params: any) => Promise<void>;
+        it('notifies the extension when the transaction is confirmed', async () => {
+          const request = wrapKeyringRequest({
+            method: SolMethod.SignTransaction,
+            params: {
+              account: {
+                address: fromAccount.address,
+              },
+              transaction: transactionMessageBase64Encoded,
+              scope,
+            },
+          });
 
-        beforeEach(() => {
-          // Mock the monitor method to capture the onCommitmentReached callback
-          (mockSignatureMonitor.monitor as jest.Mock).mockImplementation(
-            async (params) => {
-              onCommitmentReachedCallback = params.onCommitmentReached;
-              return Promise.resolve();
+          await service.signTransaction(fromAccount, request);
+
+          // Simulate the commitment being reached
+          await onCommitmentReachedCallback({
+            signature,
+            commitment: 'confirmed',
+            network: scope,
+            onCommitmentReached: onCommitmentReachedCallback,
+          });
+
+          expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+            snap,
+            'notify:accountTransactionsUpdated',
+            {
+              transactions: {
+                [fromAccount.id]: [ADDRESS_1_TRANSACTION_1_DATA],
+              },
             },
           );
         });
+      });
 
+      describe(`Scenario ${name}: signAndSendTransaction`, () => {
         it('returns the signature', async () => {
           const result = await service.signAndSendTransaction(
             fromAccount,
@@ -347,7 +384,7 @@ describe('WalletService', () => {
           );
         });
 
-        it('tracks an analytics event when the transaction is finalized', async () => {
+        it('tracks an analytics event when the transaction is confirmed', async () => {
           await service.signAndSendTransaction(
             fromAccount,
             transactionMessageBase64Encoded,
@@ -371,7 +408,7 @@ describe('WalletService', () => {
           });
         });
 
-        it('notifies the extension when the transaction is finalized', async () => {
+        it('notifies the extension when the transaction is confirmed', async () => {
           await service.signAndSendTransaction(
             fromAccount,
             transactionMessageBase64Encoded,
@@ -396,6 +433,28 @@ describe('WalletService', () => {
               },
             },
           );
+        });
+
+        // TODO: Remove this once we listen to accounts and token accounts via websockets
+        it('refreshes the assets when the transaction is confirmed', async () => {
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            'https://metamask.io',
+          );
+
+          // Simulate the commitment being reached
+          await onCommitmentReachedCallback({
+            signature,
+            commitment: 'confirmed',
+            network: scope,
+            onCommitmentReached: onCommitmentReachedCallback,
+          });
+
+          expect(mockAssetsService.refreshAssets).toHaveBeenCalledWith([
+            fromAccount,
+          ]);
         });
       });
 
