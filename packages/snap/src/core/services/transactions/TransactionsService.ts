@@ -272,7 +272,11 @@ export class TransactionsService {
         )) ?? [];
 
       // Skip saving the signature if it already exists in the state
-      if (existingSinatures.toString().includes(signature)) {
+      if (
+        existingSinatures
+          .map((item) => item.toString())
+          .includes(signature.toString())
+      ) {
         return;
       }
 
