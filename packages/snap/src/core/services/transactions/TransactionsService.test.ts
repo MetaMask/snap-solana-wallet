@@ -578,9 +578,9 @@ describe('TransactionsService', () => {
     const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
 
     const mockTransaction = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress(mockAccount.address),
       transactionData: ADDRESS_1_TRANSACTION_1_DATA,
+      account: mockAccount,
+      scope: Network.Mainnet,
     })!;
 
     it('saves a transaction to the state when there are no existing transactions', async () => {
@@ -596,9 +596,9 @@ describe('TransactionsService', () => {
 
     it('adds a transaction to the state when there are existing transactions', async () => {
       const mockExistingTransaction = mapRpcTransaction({
-        scope: Network.Mainnet,
-        address: asAddress(mockAccount.address),
         transactionData: ADDRESS_1_TRANSACTION_2_DATA,
+        account: mockAccount,
+        scope: Network.Mainnet,
       })!;
       jest
         .spyOn(mockState, 'getKey')

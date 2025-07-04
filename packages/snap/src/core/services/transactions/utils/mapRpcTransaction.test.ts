@@ -1,6 +1,7 @@
 import { address as asAddress } from '@solana/kit';
 
 import { Network, Networks } from '../../../constants/solana';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../../test/mocks/solana-keyring-accounts';
 import { EXPECTED_FAILED_SWAP_DATA } from '../../../test/mocks/transactions-data/failed-swap';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer';
 import { EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/native-sol-transfer-to-self';
@@ -9,8 +10,6 @@ import { EXPECTED_SEND_SPL_TOKEN_AND_CREATE_TOKEN_ACCOUNT_DATA } from '../../../
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self';
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_2_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self-2';
-import { EXPECTED_SPAM_TRANSACTION_DATA } from '../../../test/mocks/transactions-data/spam';
-import { EXPECTED_SPAM_TRANSACTION_DATA_2 } from '../../../test/mocks/transactions-data/spam-2';
 import { EXPECTED_SWAP_A16Z_USDT_SOL_DATA } from '../../../test/mocks/transactions-data/swap-a16z-usdt-sol';
 import { EXPECTED_SWAP_SOL_TO_OBRIC_DATA } from '../../../test/mocks/transactions-data/swap-sol-to-obric';
 import { EXPECTED_SWAP_SOL_TO_SAHUR_DATA } from '../../../test/mocks/transactions-data/swap-sol-to-sahur';
@@ -21,16 +20,19 @@ import { EXPECTED_SWAP_USDC_TO_JUP_DATA } from '../../../test/mocks/transactions
 import { mapRpcTransaction } from './mapRpcTransaction';
 
 describe('mapRpcTransaction', () => {
+  const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+  const mockScope = Network.Mainnet;
+
   it('maps native SOL transfers - as a sender', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: EXPECTED_NATIVE_SOL_TRANSFER_DATA,
+      account: mockAccount,
+      scope: mockScope,
     });
 
     expect(result).toStrictEqual({
       id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
-      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1736500242,
       chain: Network.Mainnet,
       status: 'confirmed',
@@ -79,14 +81,14 @@ describe('mapRpcTransaction', () => {
 
   it('maps native SOL transfers - as a sender to self', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA,
+      account: mockAccount,
+      scope: mockScope,
     });
 
     expect(result).toStrictEqual({
       id: '4Ccb8PaSob6JjsyDnoFJfUpJZDJHTwcjnK7MxiyVeMtPSsBGKuaMHEVL1VsXTKWS4w26tAhbc3T78aNELjfN8Zwb',
-      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1741791493,
       chain: Network.Mainnet,
       status: 'confirmed',
@@ -135,14 +137,17 @@ describe('mapRpcTransaction', () => {
 
   it('maps native SOL transfers - as a receiver', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK'),
       transactionData: EXPECTED_NATIVE_SOL_TRANSFER_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK'),
+      },
+      scope: mockScope,
     });
 
     expect(result).toStrictEqual({
       id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
-      account: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1736500242,
       chain: Network.Mainnet,
       status: 'confirmed',
@@ -181,8 +186,6 @@ describe('mapRpcTransaction', () => {
 
   it('maps native SOL transfers - failure', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: {
         ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
         meta: {
@@ -198,11 +201,13 @@ describe('mapRpcTransaction', () => {
           },
         },
       },
+      account: mockAccount,
+      scope: mockScope,
     });
 
     expect(result).toStrictEqual({
       id: '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
-      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1736500242,
       chain: Network.Mainnet,
       status: 'failed',
@@ -231,14 +236,14 @@ describe('mapRpcTransaction', () => {
 
   it('maps SPL token transfers - as a sender', () => {
     const result = mapRpcTransaction({
-      scope: Network.Devnet,
-      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: EXPECTED_SEND_USDC_TRANSFER_DATA,
+      account: mockAccount,
+      scope: Network.Devnet,
     });
 
     expect(result).toStrictEqual({
       id: '3Zj5XkvE1Uec1frjue6SK2ND2cqhKPvPkZ1ZFPwo2v9iL4NX4b4WWG1wPNEQdnJJU8sVx7MMHjSH1HxoR21vEjoV',
-      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1736502537,
       chain: Network.Devnet,
       status: 'confirmed',
@@ -287,14 +292,14 @@ describe('mapRpcTransaction', () => {
 
   it('maps SPL token transfers - as a sender to self', () => {
     const result = mapRpcTransaction({
-      scope: Network.Devnet,
-      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
       transactionData: EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA,
+      account: mockAccount,
+      scope: Network.Devnet,
     });
 
     expect(result).toStrictEqual({
       id: 'fFSAjDzu7CdhzVUUC7DMKf7xuuVn8cZ8njPnpjkTBMHo4Y43SZto2GDuy123yKDoTieihPfDHvBpysE7Eh9aPmH',
-      account: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1741796354,
       chain: Network.Devnet,
       status: 'confirmed',
@@ -343,14 +348,17 @@ describe('mapRpcTransaction', () => {
 
   it('maps SPL token transfers - as a sender to self II', () => {
     const result = mapRpcTransaction({
-      scope: Network.Devnet,
-      address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
       transactionData: EXPECTED_SEND_USDC_TRANSFER_TO_SELF_2_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
+      },
+      scope: Network.Devnet,
     });
 
     expect(result).toStrictEqual({
       id: 'LPaVYsnhx2q9yTeU7bf5vLESBdm6BYatMSdZqt6CYy8wcX5YFm6rNKZLXJqRA7jyq2w3nbEqfB4qgCFSGS1L6GT',
-      account: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1747059490,
       chain: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
       status: 'confirmed',
@@ -421,14 +429,17 @@ describe('mapRpcTransaction', () => {
 
   it('maps SPL token transfers - as a receiver', () => {
     const result = mapRpcTransaction({
-      scope: Network.Devnet,
-      address: asAddress('BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe'),
       transactionData: EXPECTED_SEND_USDC_TRANSFER_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe'),
+      },
+      scope: Network.Devnet,
     });
 
     expect(result).toStrictEqual({
       id: '3Zj5XkvE1Uec1frjue6SK2ND2cqhKPvPkZ1ZFPwo2v9iL4NX4b4WWG1wPNEQdnJJU8sVx7MMHjSH1HxoR21vEjoV',
-      account: 'BXT1K8kzYXWMi6ihg7m9UqiHW4iJbJ69zumELHE9oBLe',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1736502537,
       chain: Network.Devnet,
       status: 'confirmed',
@@ -467,14 +478,17 @@ describe('mapRpcTransaction', () => {
 
   it('maps SPL token transfers - using TransferChecked', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa'),
       transactionData: EXPECTED_SEND_JUP_TRANSFER_CHECKED_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa'),
+      },
+      scope: Network.Mainnet,
     });
 
     expect(result).toStrictEqual({
       id: '4zvFGpqjihSXgHdw6ymHA8hVfyHURNPwASz4FS4c9wADCMSooojx8k42EUuhoDiGGM73SixUcNXafgnuM5dnKHfH',
-      account: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1742387710,
       chain: Network.Mainnet,
       status: 'confirmed',
@@ -527,14 +541,17 @@ describe('mapRpcTransaction', () => {
 
   it('maps SPL token transfers - where sender has his token account created', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('BYh4CfuGDvFMKaZp3RPmkw9y6qg3sWukA2TiGJDeLKZi'),
       transactionData: EXPECTED_SEND_SPL_TOKEN_AND_CREATE_TOKEN_ACCOUNT_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('BYh4CfuGDvFMKaZp3RPmkw9y6qg3sWukA2TiGJDeLKZi'),
+      },
+      scope: Network.Mainnet,
     });
 
     expect(result).toStrictEqual({
       id: '4G24SgaZ3gU92HAB8xwSVg6WXS7NcGtUpHMnQ5RTwBw9bG5x8y6co5TzqqPXbExovY2NAuPjE9393TCHFZVhS8K9',
-      account: 'BYh4CfuGDvFMKaZp3RPmkw9y6qg3sWukA2TiGJDeLKZi',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1745927033,
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'confirmed',
@@ -579,9 +596,12 @@ describe('mapRpcTransaction', () => {
 
   it('maps swaps - #1 USDC -> Cobie', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa'),
       transactionData: EXPECTED_SWAP_USDC_TO_COBIE_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa'),
+      },
+      scope: Network.Mainnet,
     });
 
     /**
@@ -599,7 +619,7 @@ describe('mapRpcTransaction', () => {
      */
     expect(result).toStrictEqual({
       id: '2pfnv4drhnitfzCFKxiRoJMzFQpG7wZ9mpRQVk7xm5TQ27g6FZH95HVF6KgwQBS872yGtyhuq57jXXS1y29ub11',
-      account: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1740480781,
       chain: Network.Mainnet,
       status: 'confirmed',
@@ -661,9 +681,12 @@ describe('mapRpcTransaction', () => {
 
   it('maps swaps - #2 USDC -> JUP', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa'),
       transactionData: EXPECTED_SWAP_USDC_TO_JUP_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa'),
+      },
+      scope: Network.Mainnet,
     });
 
     /**
@@ -681,7 +704,7 @@ describe('mapRpcTransaction', () => {
      */
     expect(result).toStrictEqual({
       id: '5LuTa5k9UvgM2eJknVUD9MjfcmcTP7nvFrCedU8d7ZLXCHbrrwqhXDQYTSfncm1wTSNFPZj3Y4cRkWC8CLG6Zcvh',
-      account: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1742297902,
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'confirmed',
@@ -734,14 +757,17 @@ describe('mapRpcTransaction', () => {
 
   it('maps swaps - #3 A16Z -> USDT -> SOL', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
       transactionData: EXPECTED_SWAP_A16Z_USDT_SOL_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
+      },
+      scope: Network.Mainnet,
     });
 
     expect(result).toStrictEqual({
       id: 'JiqYGkWcYu8GxPZsMdXDnA8tkZvHnHVmNuKr4JYBErm4rgQWssdHCkbe8MzwwNGndyvyNYaaY5vvMhUMPNiQX9u',
-      account: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1745425114,
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'confirmed',
@@ -794,14 +820,17 @@ describe('mapRpcTransaction', () => {
 
   it('maps swaps - #4 TRUMP -> USDC -> WSOL -> JUP', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5'),
       transactionData: EXPECTED_SWAP_TRUMP_TO_JUP_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5'),
+      },
+      scope: Network.Mainnet,
     });
 
     expect(result).toStrictEqual({
       id: '4VhDRLUK5QDZ6kgN9PCeEoztUraCibwYA3XaLZUKhfwWxqeN96Qg7Ep4w2j5C1VtggbuU6dqkGczGC537byu9hG3',
-      account: '8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1746657467,
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'confirmed',
@@ -863,14 +892,17 @@ describe('mapRpcTransaction', () => {
 
   it('maps swaps - #5 SOL -> Sahur, uses swap balance to swap as well as create ATA', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
       transactionData: EXPECTED_SWAP_SOL_TO_SAHUR_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
+      },
+      scope: Network.Mainnet,
     });
 
     expect(result).toStrictEqual({
       id: 'QfFVu1P4ji8EFTor4BcRYS84wipv2RJDhyzi3w3YQgv1D8mxz2RhF9cKxi4k6DZdtzDRPL6a346HboDUAsSUCfV',
-      account: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1747062836,
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'confirmed',
@@ -927,14 +959,17 @@ describe('mapRpcTransaction', () => {
   // https://solscan.io/tx/2m8z8uPZyoZwQpissDbhSfW5XDTFmpc7cSFithc5e1w8iCwFcvVkxHeaVhgFSdgUPb5cebbKGjuu48JMLPjfEATr
   it.skip('maps swaps - #6 SOL -> USDC', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c'),
       transactionData: EXPECTED_SWAP_SOL_TO_USDC_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c'),
+      },
+      scope: Network.Mainnet,
     });
 
     expect(result).toStrictEqual({
       id: '2X4vKsDS56avumw6jh6Z5wj28GNvK5UkMfY1Ta2Mtouic886EGAraa1gsCJ5rkXyHCeL9p2wHRty3QHAhjf352Dp',
-      account: 'FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1748539118,
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'confirmed',
@@ -987,14 +1022,17 @@ describe('mapRpcTransaction', () => {
 
   it.skip('maps swaps - #7 SOL -> OBRIC', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c'),
       transactionData: EXPECTED_SWAP_SOL_TO_OBRIC_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c'),
+      },
+      scope: Network.Mainnet,
     });
 
     expect(result).toStrictEqual({
       id: '28rWme56aMyaP8oX18unFeZg65iyDEhjLhvMBpxyFgKcn38P37ZRsssSZoHDCCr5xUfwfpqsVSSBoShLitHQLdrr',
-      account: '3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1748545222,
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'confirmed',
@@ -1047,14 +1085,17 @@ describe('mapRpcTransaction', () => {
 
   it('maps swaps - failure', () => {
     const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5'),
       transactionData: EXPECTED_FAILED_SWAP_DATA,
+      account: {
+        ...mockAccount,
+        address: asAddress('8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5'),
+      },
+      scope: Network.Mainnet,
     });
 
     expect(result).toStrictEqual({
       id: '43VK3TtYjN21VG13f2EPvNJxmML38GB8QbTDVtFifzeDW3LQpmLtFdLjERAKwy3k4RUe4Hizmdrj4Nyjm5vYKDBx',
-      account: '8VCfQcnssNJznDqDoDDuzoKhdxgZWwwe5ikcKbAVWet5',
+      account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
       timestamp: 1747040326,
       chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       status: 'failed',
@@ -1085,49 +1126,19 @@ describe('mapRpcTransaction', () => {
     });
   });
 
-  it('returns null if the transaction is a spam transaction', () => {
-    const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('DAXnAudMEqiD1sS1rFn4ds3pdybRYJd9J58PqCncVVqS'),
-      transactionData: EXPECTED_SPAM_TRANSACTION_DATA,
-    });
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null if the transaction is a spam transaction - #2', () => {
-    const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('FQT9SSwEZ6UUQxsmTzgt5JzjrS4M5zm13M1QiYF8TEo6'),
-      transactionData: EXPECTED_SPAM_TRANSACTION_DATA_2,
-    });
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null if there is no transaction data', () => {
-    const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
-      transactionData: null,
-    });
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null if the transaction has no signatures', () => {
-    const result = mapRpcTransaction({
-      scope: Network.Mainnet,
-      address: asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
-      transactionData: {
-        ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
-        transaction: {
-          ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction,
-          signatures: [],
+  it('throws an error if the transaction has no signatures', () => {
+    expect(() =>
+      mapRpcTransaction({
+        transactionData: {
+          ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
+          transaction: {
+            ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction,
+            signatures: [],
+          },
         },
-      },
-    });
-
-    expect(result).toBeNull();
+        account: mockAccount,
+        scope: mockScope,
+      }),
+    ).toThrow('Transaction has no signature');
   });
 });

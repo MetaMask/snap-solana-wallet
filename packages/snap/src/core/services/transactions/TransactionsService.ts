@@ -21,6 +21,7 @@ import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { SignatureMapping } from './types';
+import { isSpam } from './utils/isSpam';
 import { mapRpcTransaction } from './utils/mapRpcTransaction';
 
 export class TransactionsService {
@@ -54,13 +55,16 @@ export class TransactionsService {
     this.#configProvider = configProvider;
   }
 
-  async fetchLatestAddressTransactions(address: Address, limit: number) {
+  async fetchLatestAccountTransactions(
+    account: SolanaKeyringAccount,
+    limit: number,
+  ) {
     const scopes = this.#configProvider.get().activeNetworks;
 
     const transactions = (
       await Promise.all(
         scopes.map(async (scope) =>
-          this.#fetchAddressTransactions(scope, address, {
+          this.#fetchAccountTransactions(account, scope, {
             limit,
           }),
         ),
@@ -72,20 +76,23 @@ export class TransactionsService {
     return transactions;
   }
 
-  async #fetchAddressTransactions(
+  async #fetchAccountTransactions(
+    account: SolanaKeyringAccount,
     scope: Network,
-    address: Address,
     pagination: { limit: number; next?: Signature | null },
   ): Promise<{
     data: Transaction[];
     next: Signature | null;
   }> {
+    const { address } = account;
+    const addressAsAddress = asAddress(address);
+
     // First fetch the signatures
     const signatures = (
       await this.#connection
         .getRpc(scope)
         .getSignaturesForAddress(
-          address,
+          addressAsAddress,
           pagination.next
             ? {
                 limit: pagination.limit,
@@ -109,16 +116,25 @@ export class TransactionsService {
       signatures,
     });
 
+    // Filter out null transactions
+    const transactionsDataNonNull = transactionsData.filter(
+      (item) => item !== null,
+    );
+
     // Map it to the expected format from the Keyring API
-    const mappedTransactionsData = transactionsData
-      .map((txData) =>
+    const mappedTransactionsData = transactionsDataNonNull.map(
+      (transactionData) =>
         mapRpcTransaction({
+          transactionData,
+          account,
           scope,
-          address,
-          transactionData: txData,
         }),
-      )
-      .filter((item) => item !== null);
+    );
+
+    // Filter out non-legitimate transactions
+    const legitimateTransactions = mappedTransactionsData.filter(
+      (item) => !isSpam(item, account),
+    );
 
     const transactionsByAccountWithTokenMetadata =
       await this.#populateAccountTransactionAssetUnits({
@@ -199,36 +215,22 @@ export class TransactionsService {
     account: SolanaKeyringAccount,
     scope: Network,
   ): Promise<Transaction | null> {
-    const rpcTransaction = await this.#connection
+    const transactionData = await this.#connection
       .getRpc(scope)
       .getTransaction(asSignature(signature), {
         maxSupportedTransactionVersion: 0,
       })
       .send();
 
-    if (!rpcTransaction) {
+    if (!transactionData) {
       return null;
     }
 
-    const mappedTransaction = mapRpcTransaction({
+    return mapRpcTransaction({
+      transactionData,
       scope,
-      address: asAddress(account.address),
-      transactionData: rpcTransaction,
+      account,
     });
-
-    if (!mappedTransaction) {
-      throw new Error(
-        `Transaction with signature ${signature} not found on ${scope}, or mapped to null`,
-      );
-    }
-
-    // TODO: Remove this once mapRpcTransaction maps field `account` to `account.id` instead of `accountAddress`
-    const mappedTransactionWithAccountId = {
-      ...mappedTransaction,
-      account: account.id,
-    };
-
-    return mappedTransactionWithAccountId;
   }
 
   /**
@@ -492,27 +494,19 @@ export class TransactionsService {
         const accountNetworkSet = accountMap.get(scope) as Set<string>;
 
         const accountTransactions = transactionsData
-          .filter((txData) => {
-            const signature = txData?.transaction?.signatures[0];
+          .filter((item) => item !== null)
+          .filter((item) => {
+            const signature = item?.transaction?.signatures[0];
             return signature && accountNetworkSet.has(signature);
           })
-          .map((txData) => {
-            const mappedTx = mapRpcTransaction({
+          .map((transactionData) =>
+            mapRpcTransaction({
+              transactionData,
+              account,
               scope,
-              address: account.address as Address,
-              transactionData: txData,
-            });
-
-            if (!mappedTx) {
-              return null;
-            }
-
-            return {
-              ...mappedTx,
-              account: account.id,
-            };
-          })
-          .filter((tx): tx is Transaction => tx !== null);
+            }),
+          )
+          .filter((item) => !isSpam(item, account));
 
         newTransactions[account.id]?.push(...accountTransactions);
       }

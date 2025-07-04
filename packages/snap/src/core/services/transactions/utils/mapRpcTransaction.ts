@@ -4,10 +4,9 @@ import {
   type Transaction,
 } from '@metamask/keyring-api';
 import { address as asAddress, type Address } from '@solana/kit';
-import { BigNumber } from 'bignumber.js';
 
 import type { SolanaKeyringAccount } from '../../../../entities/keyring-account';
-import { KnownCaip19Id, type Network } from '../../../constants/solana';
+import { type Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
 import { parseTransactionNativeTransfers } from './parseTransactionNativeTransfers';
 import { parseTransactionNativeTransfersV2 } from './parseTransactionNativeTransfersV2';
@@ -99,29 +98,6 @@ export function mapRpcTransaction({
      */
     to = to.filter((toItem) => toItem.address === address);
     fees = [];
-  }
-
-  //   const isLegitimate = evaluateTransactionLegitimacy({
-  //     address,
-  //     from,
-  //     to,
-  //     type,
-  //     status,
-  //   });
-
-  //   if (!isLegitimate) {
-  //     return null;
-  //   }
-
-  /**
-   * We cannot do this filtering earlier because we need to use the incomplete
-   * mapped `from` and `to` arrays to determine the transaction's legitimacy.
-   * For failed transactions, we need to first check if they are not spam before
-   * finally clearing out what we had mapped to `from` and `to`.
-   */
-  if (status === TransactionStatus.Failed) {
-    from = [];
-    to = [];
   }
 
   return {
@@ -231,80 +207,4 @@ function evaluateTransactionType({
   }
 
   return TransactionType.Receive;
-}
-
-/**
- * Spam Filter #1 Check: Sufficient SOL Amount Received
- *
- * Checks if the received SOL amount meets a minimum threshold (0.001 SOL).
- * Transactions receiving less than this are considered potentially spam.
- * Returns true if the amount is sufficient or if no SOL was received.
- *
- * @param params - The options object.
- * @param params.address - The address of the user.
- * @param params.to - The transaction's destination items.
- * @returns Whether the transaction passes the minimum SOL amount check (true = passes/legitimate).
- */
-function passesSOLAmountThresholdCheck({
-  address,
-  to,
-}: {
-  address: Address;
-  to: Transaction['from'];
-}): boolean {
-  const { hasReceivedSOL, receivedSOLAmount } = to.reduce(
-    (acc, toItem) => {
-      if (
-        toItem.address === address &&
-        toItem.asset?.fungible &&
-        (toItem.asset.type === KnownCaip19Id.SolMainnet ||
-          toItem.asset.type === KnownCaip19Id.SolDevnet)
-      ) {
-        return {
-          hasReceivedSOL: true,
-          receivedSOLAmount: acc.receivedSOLAmount.plus(toItem.asset.amount),
-        };
-      }
-
-      return acc;
-    },
-    { hasReceivedSOL: false, receivedSOLAmount: new BigNumber(0) },
-  );
-
-  if (!hasReceivedSOL || receivedSOLAmount.isGreaterThanOrEqualTo(0.001)) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * Evaluates the legitimacy of a transaction based on various checks.
- * @param transaction - The transaction to evaluate.
- * @param account - The account associated with the transaction.
- * @returns Whether the transaction is considered legitimate (true = legitimate, false = spam).
- */
-function isLegitimate(
-  transaction: Transaction,
-  account: SolanaKeyringAccount,
-): boolean {
-  const { type, status, to } = transaction;
-  const { address } = account;
-  const addressAsAddress = asAddress(address);
-
-  if (
-    type === TransactionType.Receive &&
-    !passesSOLAmountThresholdCheck({ address: addressAsAddress, to })
-  ) {
-    return false;
-  }
-
-  if (
-    status === TransactionStatus.Failed &&
-    !passesSOLAmountThresholdCheck({ address: addressAsAddress, to })
-  ) {
-    return false;
-  }
-
-  return true;
 }
