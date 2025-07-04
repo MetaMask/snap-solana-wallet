@@ -8,6 +8,7 @@ import { address as asAddress, type Address } from '@solana/kit';
 import type { SolanaKeyringAccount } from '../../../../entities/keyring-account';
 import { type Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
+import logger from '../../../utils/logger';
 import { parseTransactionNativeTransfers } from './parseTransactionNativeTransfers';
 import { parseTransactionNativeTransfersV2 } from './parseTransactionNativeTransfersV2';
 import { parseTransactionSplTransfers } from './parseTransactionSplTransfers';
@@ -28,95 +29,100 @@ export function mapRpcTransaction({
   transactionData: SolanaTransaction;
   account: SolanaKeyringAccount;
   scope: Network;
-}): Transaction {
-  const { blockTime } = transactionData;
-  const { id: accountId, address } = account;
+}): Transaction | null {
+  try {
+    const { blockTime } = transactionData;
+    const { id: accountId, address } = account;
 
-  const id = transactionData.transaction.signatures[0];
-  if (!id) {
-    throw new Error('Transaction has no signature');
-  }
+    const id = transactionData.transaction.signatures[0];
+    if (!id) {
+      throw new Error('Transaction ID is required');
+    }
 
-  const timestamp = Number(blockTime);
-  const status = evaluateTransactionStatus(transactionData);
+    const timestamp = Number(blockTime);
+    const status = evaluateTransactionStatus(transactionData);
 
-  let fees: Transaction['fees'] = [];
-  let nativeFrom: Transaction['from'] = [];
-  let nativeTo: Transaction['to'] = [];
+    let fees: Transaction['fees'] = [];
+    let nativeFrom: Transaction['from'] = [];
+    let nativeTo: Transaction['to'] = [];
 
-  /**
-   * If a transaction fails we don't really have access to meaningful `preBalances`
-   * and `postBalances` values, since nothing really happened. To extract information
-   * from it we have created this second version of the native transfers parser which
-   * reads instructions directly, instead of relying on balance differences.
-   */
-  const parser =
-    status === TransactionStatus.Failed
-      ? parseTransactionNativeTransfersV2
-      : parseTransactionNativeTransfers;
-
-  const nativeTransfers = parser({
-    scope,
-    transactionData,
-  });
-
-  fees = nativeTransfers.fees;
-  nativeFrom = nativeTransfers.from;
-  nativeTo = nativeTransfers.to;
-
-  const { from: splFrom, to: splTo } = parseTransactionSplTransfers({
-    scope,
-    transactionData,
-  });
-
-  let from = [...splFrom, ...nativeFrom];
-  let to = [...splTo, ...nativeTo];
-
-  const type = evaluateTransactionType({
-    address: asAddress(address),
-    status,
-    from,
-    to,
-  });
-
-  if (type === TransactionType.Swap) {
     /**
-     * If the type is swap:
-     * - we don't want to include assets that were sent by other addresses
-     * - we don't want to include assets that were received by other addresses
-     * - if there are SPL tokens AND SOL in the from and to arrays, we want to remove the SOL
+     * If a transaction fails we don't really have access to meaningful `preBalances`
+     * and `postBalances` values, since nothing really happened. To extract information
+     * from it we have created this second version of the native transfers parser which
+     * reads instructions directly, instead of relying on balance differences.
      */
-    from = from.filter((fromItem) => fromItem.address === address);
-    to = to.filter((toItem) => toItem.address === address);
-  }
+    const parser =
+      status === TransactionStatus.Failed
+        ? parseTransactionNativeTransfersV2
+        : parseTransactionNativeTransfers;
 
-  if (type === TransactionType.Receive) {
-    /**
-     * If the type is receive:
-     * - we don't want to include assets that were received by other addresses
-     * - we don't want to include fees as they were not paid by the user
-     */
-    to = to.filter((toItem) => toItem.address === address);
-    fees = [];
-  }
+    const nativeTransfers = parser({
+      scope,
+      transactionData,
+    });
 
-  return {
-    id,
-    account: accountId,
-    timestamp,
-    chain: scope as `${string}:${string}`,
-    status,
-    type,
-    from,
-    to,
-    fees,
-    events: [
-      {
-        status,
-        timestamp,
-      },
-    ],
-  };
+    fees = nativeTransfers.fees;
+    nativeFrom = nativeTransfers.from;
+    nativeTo = nativeTransfers.to;
+
+    const { from: splFrom, to: splTo } = parseTransactionSplTransfers({
+      scope,
+      transactionData,
+    });
+
+    let from = [...splFrom, ...nativeFrom];
+    let to = [...splTo, ...nativeTo];
+
+    const type = evaluateTransactionType({
+      address: asAddress(address),
+      status,
+      from,
+      to,
+    });
+
+    if (type === TransactionType.Swap) {
+      /**
+       * If the type is swap:
+       * - we don't want to include assets that were sent by other addresses
+       * - we don't want to include assets that were received by other addresses
+       * - if there are SPL tokens AND SOL in the from and to arrays, we want to remove the SOL
+       */
+      from = from.filter((fromItem) => fromItem.address === address);
+      to = to.filter((toItem) => toItem.address === address);
+    }
+
+    if (type === TransactionType.Receive) {
+      /**
+       * If the type is receive:
+       * - we don't want to include assets that were received by other addresses
+       * - we don't want to include fees as they were not paid by the user
+       */
+      to = to.filter((toItem) => toItem.address === address);
+      fees = [];
+    }
+
+    return {
+      id,
+      account: accountId,
+      timestamp,
+      chain: scope as `${string}:${string}`,
+      status,
+      type,
+      from,
+      to,
+      fees,
+      events: [
+        {
+          status,
+          timestamp,
+        },
+      ],
+    };
+  } catch (error) {
+    logger.warn(error, 'Error mapping transaction');
+    return null;
+  }
 }
 
 /**

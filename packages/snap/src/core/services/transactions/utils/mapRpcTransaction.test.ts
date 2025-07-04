@@ -1184,19 +1184,19 @@ describe('mapRpcTransaction', () => {
     });
   });
 
-  it('throws an error if the transaction has no signatures', () => {
-    expect(() =>
-      mapRpcTransaction({
-        transactionData: {
-          ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
-          transaction: {
-            ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction,
-            signatures: [],
-          },
+  it('returns null if the transaction has no signatures', () => {
+    const result = mapRpcTransaction({
+      transactionData: {
+        ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
+        transaction: {
+          ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction,
+          signatures: [],
         },
-        account: mockAccount,
-        scope: mockScope,
-      }),
-    ).toThrow('Transaction has no signature');
+      },
+      account: mockAccount,
+      scope: mockScope,
+    });
+
+    expect(result).toBeNull();
   });
 });

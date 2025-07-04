@@ -125,6 +125,7 @@ export class TransactionsService {
           scope,
         }),
       )
+      .filter((item) => item !== null)
       .filter((item) => !isSpam(item, account));
 
     const transactionsByAccountWithTokenMetadata =
@@ -498,6 +499,7 @@ export class TransactionsService {
               scope,
             }),
           )
+          .filter((item) => item !== null)
           .filter((item) => !isSpam(item, account));
 
         newTransactions[account.id]?.push(...accountTransactions);
