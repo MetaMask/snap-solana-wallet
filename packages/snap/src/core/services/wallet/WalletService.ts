@@ -24,7 +24,6 @@ import {
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { Caip10Address, Network } from '../../constants/solana';
-import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';
 import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
@@ -111,6 +110,12 @@ export class WalletService {
     scope: Network,
     request: SolanaWalletRequest,
   ): Promise<Caip10Address> {
+    this.#logger.log(this.#loggerPrefix, 'Resolving account address', {
+      keyringAccounts,
+      scope,
+      request,
+    });
+
     const { method, params } = request;
 
     const accountsWithThisScope = keyringAccounts.filter((account) =>
@@ -169,6 +174,11 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignTransactionResponse> {
+    this.#logger.log(this.#loggerPrefix, 'Signing transaction', {
+      account,
+      request,
+    });
+
     assert(request.request, SolanaSignTransactionRequestStruct);
     assert(request.scope, NetworkStruct);
 
@@ -199,23 +209,30 @@ export class WalletService {
 
     assert(result, SolanaSignTransactionResponseStruct);
 
-    // TODO: This is a temporary fix to ensure that transactions signed by the
-    // extension but sent by a dApp, which is a common pattern in Solana, are
-    // found faster and added to the ActivityList. If we don't do this, users
-    // will have their transaction sent but will have to wait for the cronjob.
+    const signature = getSignatureFromTransaction(partiallySignedTransaction);
 
-    await snap.request({
-      method: 'snap_scheduleBackgroundEvent',
-      params: {
-        duration: 'PT3S',
-        request: {
-          method: ScheduleBackgroundEventMethod.OnSignTransaction,
-          params: {
-            accountId: account.id,
-          },
+    // Send analytics and subscribe to the signature
+    await Promise.allSettled([
+      this.#signatureMonitor.monitor({
+        network: scope,
+        signature,
+        commitment: 'confirmed',
+        onCommitmentReached: async (params) => {
+          await this.#handleTransactionConfirmed(
+            params.signature,
+            account,
+            scope,
+            request.origin,
+          );
         },
-      },
-    });
+      }),
+      // Do we do that?
+      //   this.#analyticsService.trackEventTransactionSubmitted(
+      //     account,
+      //     signedTransactionBase64,
+      //     signature,
+      //   ),
+    ]);
 
     return result;
   }
@@ -425,7 +442,15 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignMessageResponse> {
+    this.#logger.log(this.#loggerPrefix, 'Signing message', account, request);
+
     assert(request.request, SolanaSignMessageRequestStruct);
+
+    const { address, entropySource, derivationPath } = account;
+    const addressAsAddress = asAddress(address);
+
+    const { scope } = request;
+    assert(scope, NetworkStruct);
 
     // message is base64 encoded
     const { message } = request.request.params;
@@ -433,8 +458,8 @@ export class WalletService {
     const messageUtf8 = getUtf8Codec().decode(messageBytes);
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
-      entropySource: account.entropySource,
-      derivationPath: account.derivationPath,
+      entropySource,
+      derivationPath,
     });
 
     const signer =
@@ -449,8 +474,7 @@ export class WalletService {
     // Equivalent to - but more compact than - an undefined check + throw error
     assert(messageSignatureBytesMap, object());
 
-    const messageSignatureBytes =
-      messageSignatureBytesMap[asAddress(account.address)];
+    const messageSignatureBytes = messageSignatureBytesMap[addressAsAddress];
 
     // Equivalent to - but more compact than - an undefined check + throw error
     assert(messageSignatureBytes, instance(Uint8Array));
@@ -483,6 +507,8 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignInResponse> {
+    this.#logger.log(this.#loggerPrefix, 'Signing in', account, request);
+
     assert(request.request, SolanaSignInRequestStruct);
 
     const { address } = account;
@@ -540,6 +566,12 @@ export class WalletService {
     signatureBase58: Infer<typeof Base58Struct>,
     messageBase64: Infer<typeof Base64Struct>,
   ): Promise<boolean> {
+    this.#logger.log(this.#loggerPrefix, 'Verifying signature', {
+      account,
+      signatureBase58,
+      messageBase64,
+    });
+
     assert(signatureBase58, Base58Struct);
     assert(messageBase64, Base64Struct);
 
@@ -592,41 +624,56 @@ export class WalletService {
     // ...
     // - ${resources[n]}
 
-    let message = `${signInParams.domain} wants you to sign in with your Solana account:\n`;
-    message += `${signInParams.address}`;
+    const {
+      domain,
+      address,
+      statement,
+      uri,
+      version,
+      chainId,
+      nonce,
+      issuedAt,
+      expirationTime,
+      notBefore,
+      requestId,
+      resources,
+    } = signInParams;
 
-    if (signInParams.statement) {
-      message += `\n\n${signInParams.statement}`;
+    let message = `${domain} wants you to sign in with your Solana account:\n`;
+    message += `${address}`;
+
+    if (statement) {
+      message += `\n\n${statement}`;
     }
 
     const fields: string[] = [];
-    if (signInParams.uri) {
-      fields.push(`URI: ${signInParams.uri}`);
+    if (uri) {
+      fields.push(`URI: ${uri}`);
     }
-    if (signInParams.version) {
-      fields.push(`Version: ${signInParams.version}`);
+    if (version) {
+      fields.push(`Version: ${version}`);
     }
-    if (signInParams.chainId) {
-      fields.push(`Chain ID: ${signInParams.chainId}`);
+    if (chainId) {
+      fields.push(`Chain ID: ${chainId}`);
     }
-    if (signInParams.nonce) {
-      fields.push(`Nonce: ${signInParams.nonce}`);
+    if (nonce) {
+      fields.push(`Nonce: ${nonce}`);
     }
-    if (signInParams.issuedAt) {
-      fields.push(`Issued At: ${signInParams.issuedAt}`);
+    if (issuedAt) {
+      fields.push(`Issued At: ${issuedAt}`);
     }
-    if (signInParams.expirationTime) {
-      fields.push(`Expiration Time: ${signInParams.expirationTime}`);
+    if (expirationTime) {
+      fields.push(`Expiration Time: ${expirationTime}`);
     }
-    if (signInParams.notBefore) {
-      fields.push(`Not Before: ${signInParams.notBefore}`);
+    if (notBefore) {
+      fields.push(`Not Before: ${notBefore}`);
     }
-    if (signInParams.requestId) {
-      fields.push(`Request ID: ${signInParams.requestId}`);
+    if (requestId) {
+      fields.push(`Request ID: ${requestId}`);
     }
-    if (signInParams.resources) {
+    if (resources) {
       fields.push(`Resources:`);
-      for (const resource of signInParams.resources) {
+      for (const resource of resources) {
         fields.push(`- ${resource}`);
       }
     }

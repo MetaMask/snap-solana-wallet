@@ -49,6 +49,7 @@ describe('WalletService', () => {
   let mockSignatureMonitor: SignatureMonitor;
   let service: WalletService;
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
+  let onCommitmentReachedCallback: (params: any) => Promise<void>;
 
   beforeEach(() => {
     mockConnection = createMockConnection();
@@ -75,6 +76,14 @@ describe('WalletService', () => {
     mockSignatureMonitor = {
       monitor: jest.fn(),
     } as unknown as SignatureMonitor;
+
+    // Mock the monitor method to capture the onCommitmentReached callback
+    (mockSignatureMonitor.monitor as jest.Mock).mockImplementation(
+      async (params) => {
+        onCommitmentReachedCallback = params.onCommitmentReached;
+        return Promise.resolve();
+      },
+    );
 
     service = new WalletService(
       mockTransactionsService,
@@ -264,21 +273,42 @@ describe('WalletService', () => {
             service.signTransaction(fromAccount, request),
           ).rejects.toThrow(/At path/u);
         });
-      });
 
-      describe(`Scenario ${name}: signAndSendTransaction`, () => {
-        let onCommitmentReachedCallback: (params: any) => Promise<void>;
+        it('notifies the extension when the transaction is confirmed', async () => {
+          const request = wrapKeyringRequest({
+            method: SolMethod.SignTransaction,
+            params: {
+              account: {
+                address: fromAccount.address,
+              },
+              transaction: transactionMessageBase64Encoded,
+              scope,
+            },
+          });
 
-        beforeEach(() => {
-          // Mock the monitor method to capture the onCommitmentReached callback
-          (mockSignatureMonitor.monitor as jest.Mock).mockImplementation(
-            async (params) => {
-              onCommitmentReachedCallback = params.onCommitmentReached;
-              return Promise.resolve();
+          await service.signTransaction(fromAccount, request);
+
+          // Simulate the commitment being reached
+          await onCommitmentReachedCallback({
+            signature,
+            commitment: 'confirmed',
+            network: scope,
+            onCommitmentReached: onCommitmentReachedCallback,
+          });
+
+          expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+            snap,
+            'notify:accountTransactionsUpdated',
+            {
+              transactions: {
+                [fromAccount.id]: [ADDRESS_1_TRANSACTION_1_DATA],
+              },
             },
           );
         });
+      });
 
+      describe(`Scenario ${name}: signAndSendTransaction`, () => {
         it('returns the signature', async () => {
           const result = await service.signAndSendTransaction(
             fromAccount,

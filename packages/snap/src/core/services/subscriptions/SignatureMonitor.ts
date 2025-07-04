@@ -57,7 +57,7 @@ export class SignatureMonitor {
 
     const { network, signature, commitment } = params;
 
-    const subscriptionId = await this.#subscriptionService.subscribe(
+    await this.#subscriptionService.subscribe(
       {
         method: 'signatureSubscribe',
         unsubscribeMethod: 'signatureUnsubscribe',
@@ -73,19 +73,16 @@ export class SignatureMonitor {
       {
         onNotification: async (message: any) => {
           // The notification message isn't useful. If we get here, we know the signature has reached the desired commitment.
-          await this.#handleNotification(params, subscriptionId);
+          await this.#handleNotification(params);
         },
         onConnectionRecovery: async () => {
-          await this.#handleConnectionRecovery(params, subscriptionId);
+          await this.#handleConnectionRecovery(params);
         },
       },
     );
   }
 
-  async #handleNotification(
-    params: Params,
-    subscriptionId: string,
-  ): Promise<void> {
+  async #handleNotification(params: Params): Promise<void> {
     const { signature, commitment, onCommitmentReached } = params;
 
     /**
@@ -99,16 +96,26 @@ export class SignatureMonitor {
       `🎉 Signature ${signature} reached commitment "${commitment}"`,
     );
 
-    await Promise.allSettled([
-      this.#subscriptionService.unsubscribe(subscriptionId),
-      onCommitmentReached(params),
-    ]);
+    try {
+      await onCommitmentReached(params);
+    } catch (error) {
+      this.#logger.warn(
+        this.#loggerPrefix,
+        `⚠️ Error calling onCommitmentReached callback`,
+        error,
+      );
+    }
+
+    /**
+     * As per the RPC API, we don't need to unsubscribe from the subscription.
+     * It will be automatically unsubscribed when the transaction reaches the
+     * desired commitment.
+     *
+     * @see https://solana.com/fr/docs/rpc/websocket/signaturesubscribe
+     */
   }
 
-  async #handleConnectionRecovery(
-    params: Params,
-    subscriptionId: string,
-  ): Promise<void> {
+  async #handleConnectionRecovery(params: Params): Promise<void> {
     const { signature, network } = params;
 
     // Fetch the transaction from the RPC API
@@ -118,7 +125,7 @@ export class SignatureMonitor {
     );
 
     if (confirmationStatus) {
-      await this.#handleNotification(params, subscriptionId);
+      await this.#handleNotification(params);
     } else {
       this.#logger.warn(
         this.#loggerPrefix,
