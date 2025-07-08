@@ -14,6 +14,7 @@ import {
   WebSocketConnectionRepository,
   WebSocketConnectionService,
 } from './core/services';
+import { AccountsService } from './core/services/accounts/AccountsService';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
@@ -25,6 +26,7 @@ import { NftService } from './core/services/nft/NftService';
 import type { IStateManager } from './core/services/state/IStateManager';
 import type { UnencryptedStateValue } from './core/services/state/State';
 import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
+import { AccountMonitor } from './core/services/subscriptions/AccountMonitor';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
@@ -62,6 +64,7 @@ export type SnapExecutionContext = {
   subscriptionService: SubscriptionService;
   eventEmitter: EventEmitter;
   nameResolutionService: NameResolutionService;
+  accountsService: AccountsService;
 };
 
 const configProvider = new ConfigProvider();
@@ -99,6 +102,12 @@ const subscriptionService = new SubscriptionService(
 );
 
 const signatureMonitor = new SignatureMonitor(
+  subscriptionService,
+  connection,
+  logger,
+);
+
+const accountMonitor = new AccountMonitor(
   subscriptionService,
   connection,
   logger,
@@ -159,6 +168,13 @@ const transactionScanService = new TransactionScanService(
   logger,
 );
 
+const accountsService = new AccountsService(
+  accountMonitor,
+  state,
+  eventEmitter,
+  logger,
+);
+
 const confirmationHandler = new ConfirmationHandler();
 
 const keyring = new SolanaKeyring({
@@ -168,6 +184,7 @@ const keyring = new SolanaKeyring({
   assetsService,
   walletService,
   confirmationHandler,
+  accountMonitor,
 });
 
 const nftService = new NftService(connection, logger);
@@ -202,9 +219,11 @@ const snapContext: SnapExecutionContext = {
   subscriptionService,
   eventEmitter,
   nameResolutionService,
+  accountsService,
 };
 
 export {
+  accountsService,
   analyticsService,
   assetsService,
   clientRequestHandler,

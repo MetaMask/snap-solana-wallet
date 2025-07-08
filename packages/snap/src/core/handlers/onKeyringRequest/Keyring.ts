@@ -43,6 +43,7 @@ import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { IStateManager } from '../../services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../services/state/State';
+import type { AccountMonitor } from '../../services/subscriptions/AccountMonitor';
 import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
@@ -78,6 +79,8 @@ export class SolanaKeyring implements Keyring {
 
   readonly #confirmationHandler: ConfirmationHandler;
 
+  readonly #accountMonitor: AccountMonitor;
+
   constructor({
     state,
     logger,
@@ -85,6 +88,7 @@ export class SolanaKeyring implements Keyring {
     assetsService,
     walletService,
     confirmationHandler,
+    accountMonitor,
   }: {
     state: IStateManager<UnencryptedStateValue>;
     logger: ILogger;
@@ -92,6 +96,7 @@ export class SolanaKeyring implements Keyring {
     assetsService: AssetsService;
     walletService: WalletService;
     confirmationHandler: ConfirmationHandler;
+    accountMonitor: AccountMonitor;
   }) {
     this.#state = state;
     this.#logger = logger;
@@ -99,6 +104,7 @@ export class SolanaKeyring implements Keyring {
     this.#assetsService = assetsService;
     this.#walletService = walletService;
     this.#confirmationHandler = confirmationHandler;
+    this.#accountMonitor = accountMonitor;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -299,6 +305,19 @@ export class SolanaKeyring implements Keyring {
             }
           : {}),
       });
+
+      //   await this.#accountMonitor.monitor({
+      //     address: accountAddress,
+      //     commitment: 'confirmed',
+      //     encoding: 'jsonParsed',
+      //     network: Network.Mainnet,
+      //     onAccountChanged: async (notification: any, params: any) => {
+      //       console.log('🚢🚢🚢🚢🚢🚢🚢notification', notification);
+      //       console.log('🚢🚢🚢🚢🚢🚢params', params);
+
+      //       //   await this.#walletService.refreshAccount(params.account);
+      //     },
+      //   });
 
       return keyringAccount;
     } catch (error: any) {

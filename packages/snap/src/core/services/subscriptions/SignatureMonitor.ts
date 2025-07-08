@@ -1,11 +1,10 @@
 import { signature as asSignature } from '@solana/kit';
 
+import type { Commitment } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import type { SubscriptionService } from './SubscriptionService';
-
-type Commitment = 'processed' | 'confirmed' | 'finalized';
 
 type Params = {
   signature: string;
@@ -50,7 +49,6 @@ export class SignatureMonitor {
    *
    * @see https://solana.com/docs/rpc/websocket/signaturesubscribe
    * @param params - The parameters for the signature watcher.
-   * @returns The subscription ID.
    */
   async monitor(params: Params): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `Monitoring signature`, params);
