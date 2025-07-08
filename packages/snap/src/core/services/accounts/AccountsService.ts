@@ -3,6 +3,7 @@ import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 
 import type { EventEmitter } from '../../../infrastructure';
 import { KnownCaip19Id, Network } from '../../constants/solana';
+import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import type { ILogger } from '../../utils/logger';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
@@ -31,16 +32,21 @@ export class AccountsService {
     this.#state = state;
     this.#logger = logger;
 
-    eventEmitter.on('onStart', this.#monitorAllKeyringAccounts.bind(this));
+    // eventEmitter.on('onStart', this.#monitorAllKeyringAccounts.bind(this));
   }
 
+  /**
+   * Monitors a keyring account for balance changes.
+   * When the balance changes, the account balance is updated in the state and the extension is notified.
+   * @param account - The account to monitor.
+   */
   async monitorKeyringAccount(account: KeyringAccount): Promise<void> {
     await this.#accountMonitor.monitor({
       address: account.address,
       commitment: 'confirmed',
       encoding: 'jsonParsed',
       network: Network.Mainnet,
-      onAccountChanged: this.#handleAccountChanged.bind(this),
+      onAccountChanged: this.#handleKeyringAccountChanged.bind(this),
     });
   }
 
@@ -59,7 +65,7 @@ export class AccountsService {
     );
   }
 
-  async #handleAccountChanged(
+  async #handleKeyringAccountChanged(
     notification: AccountNotification<typeof params.encoding>,
     params: AccountMonitoringParams,
   ): Promise<void> {
@@ -68,7 +74,7 @@ export class AccountsService {
       params,
     });
 
-    const { address } = params;
+    const { address, network } = params;
     const allAccounts =
       (await this.#state.getKey<UnencryptedStateValue['keyringAccounts']>(
         'keyringAccounts',
@@ -94,13 +100,13 @@ export class AccountsService {
     }
 
     const balance = {
-      amount: lamports.toString(),
+      amount: fromTokenUnits(lamports, 9),
       unit: 'SOL',
     };
 
     // Update the state
     await this.#state.setKey(
-      `assets.${params.address}.${KnownCaip19Id.SolMainnet}`,
+      `assets.${address}.${KnownCaip19Id.SolMainnet}`,
       balance,
     );
 

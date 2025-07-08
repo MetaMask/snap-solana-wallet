@@ -12,6 +12,7 @@ export enum TestDappRpcRequestMethod {
   TestCloseAllConnections = 'testCloseAllConnections',
   TestSubscribeToAccount = 'testSubscribeToAccount',
   TestUnsubscribeFromAccount = 'testUnsubscribeFromAccount',
+  TestListSubscriptions = 'testListSubscriptions',
   TestOnStart = 'testOnStart',
   TestOnInstall = 'testOnInstall',
   TestOnUpdate = 'testOnUpdate',

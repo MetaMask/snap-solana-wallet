@@ -22,6 +22,10 @@ export const handlers: Record<RpcRequestMethod, OnRpcRequestHandler> = {
     await eventEmitter.emitSync('onTestSubscribeToAccount');
     return null;
   },
+  [TestDappRpcRequestMethod.TestListSubscriptions as any]: async () => {
+    await eventEmitter.emitSync('onTestListSubscriptions');
+    return null;
+  },
   [TestDappRpcRequestMethod.TestUnsubscribeFromAccount as any]: async () => {
     await eventEmitter.emitSync('onTestUnsubscribeFromAccount');
     return null;

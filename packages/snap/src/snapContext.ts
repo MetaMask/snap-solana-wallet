@@ -14,7 +14,7 @@ import {
   WebSocketConnectionRepository,
   WebSocketConnectionService,
 } from './core/services';
-import { AccountsService } from './core/services/accounts/AccountsService';
+//  import { AccountsService } from './core/services/accounts/AccountsService';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
@@ -64,7 +64,7 @@ export type SnapExecutionContext = {
   subscriptionService: SubscriptionService;
   eventEmitter: EventEmitter;
   nameResolutionService: NameResolutionService;
-  accountsService: AccountsService;
+  //   accountsService: AccountsService;
 };
 
 const configProvider = new ConfigProvider();
@@ -139,6 +139,8 @@ const assetsService = new AssetsService({
   tokenMetadataService,
   cache: inMemoryCache,
   tokenPricesService,
+  accountMonitor,
+  eventEmitter,
 });
 
 const transactionsService = new TransactionsService({
@@ -168,12 +170,12 @@ const transactionScanService = new TransactionScanService(
   logger,
 );
 
-const accountsService = new AccountsService(
-  accountMonitor,
-  state,
-  eventEmitter,
-  logger,
-);
+// const accountsService = new AccountsService(
+//   accountMonitor,
+//   state,
+//   eventEmitter,
+//   logger,
+// );
 
 const confirmationHandler = new ConfirmationHandler();
 
@@ -219,11 +221,11 @@ const snapContext: SnapExecutionContext = {
   subscriptionService,
   eventEmitter,
   nameResolutionService,
-  accountsService,
+  //   accountsService,
 };
 
 export {
-  accountsService,
+  //   accountsService,
   analyticsService,
   assetsService,
   clientRequestHandler,

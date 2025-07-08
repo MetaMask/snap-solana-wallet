@@ -65,6 +65,20 @@ export const WebSockets = () => {
     );
   };
 
+  const listSubscriptions = async () => {
+    await invokeSnap({
+      method: TestDappRpcRequestMethod.TestListSubscriptions,
+    });
+
+    showToasterForResponse(
+      { result: 'ok' },
+      {
+        title: 'Listed subscriptions',
+        description: `Inspect the offscreen console`,
+      },
+    );
+  };
+
   return (
     <Card.Root>
       <Card.Header>
@@ -101,6 +115,9 @@ export const WebSockets = () => {
             marginRight="1"
           >
             Unsubscribe from account
+          </Button>
+          <Button variant="outline" onClick={listSubscriptions} marginRight="1">
+            List subscriptions
           </Button>
         </Flex>
       </Card.Body>
