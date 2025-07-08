@@ -77,6 +77,7 @@ export class WebSocketConnectionService {
    */
   async setupAllConnections(): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `Setting up all connections`);
+    console.log(this.#loggerPrefix, this.#connectionRecoveryCallbacks);
 
     const { activeNetworks } = this.#configProvider.get();
     const inactiveNetworks = difference(Object.values(Network), activeNetworks);
@@ -283,15 +284,17 @@ export class WebSocketConnectionService {
   async #handleConnected(network: Network): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `✅ Connected to`, network);
 
+    const callbacks = this.#connectionRecoveryCallbacks.get(network) ?? [];
+
     this.#logger.info(
       this.#loggerPrefix,
-      `Triggering connection recovery callbacks`,
+      `Triggering ${callbacks.length} connection recovery callbacks`,
       network,
     );
 
     // Trigger all recovery callbacks
     const recoveryPromises =
-      this.#connectionRecoveryCallbacks.get(network)?.map(async (callback) => {
+      callbacks.map(async (callback) => {
         try {
           await callback();
         } catch (error) {
