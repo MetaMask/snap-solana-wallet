@@ -164,13 +164,19 @@ describe('AccountMonitor', () => {
 
   describe('stopMonitoring', () => {
     it('unsubscribes from the subscription', async () => {
-      const subscriptionId = await accountMonitor.monitor(params);
+      await accountMonitor.monitor(params);
 
-      await accountMonitor.stopMonitoring(subscriptionId);
+      await accountMonitor.stopMonitoring(params.address, params.network);
 
       expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
-        subscriptionId,
+        mockSubscriptionId,
       );
+    });
+
+    it('doesnt fail if the subscription is not found', async () => {
+      await accountMonitor.stopMonitoring(params.address, params.network);
+
+      expect(mockSubscriptionService.unsubscribe).not.toHaveBeenCalled();
     });
   });
 });
