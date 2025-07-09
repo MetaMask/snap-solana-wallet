@@ -5,6 +5,7 @@ import type { FungibleAssetMarketData } from '@metamask/snaps-sdk';
 import type { CaipAssetType } from '@metamask/utils';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
+import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
 import type { Address } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 import { get, map, uniq } from 'lodash';
@@ -13,11 +14,7 @@ import type { SolanaKeyringAccount } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure/event-emitter/EventEmitter';
 import type { ICache } from '../../caching/ICache';
 import { useCache } from '../../caching/useCache';
-import {
-  Network,
-  SolanaCaip19Tokens,
-  TOKEN_2022_PROGRAM_ADDRESS,
-} from '../../constants/solana';
+import { Network, SolanaCaip19Tokens } from '../../constants/solana';
 import type {
   GetTokenAccountsByOwnerResponse,
   TokenAccountInfoWithJsonData,
@@ -416,25 +413,23 @@ export class AssetsService {
 
     const { activeNetworks } = this.#configProvider.get();
 
-    // Monitor native assets across all passed networks
-    await Promise.allSettled(
-      activeNetworks.map(async (network) => {
-        await this.#monitorAccountNativeAsset(account, network);
-      }),
-    );
-
-    // Monitor token assets across all passed networks
     const tokenAccounts = await this.#getTokenAccountsByOwnerMultiple(
       asAddress(account.address),
       [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
       activeNetworks,
     );
 
-    await Promise.allSettled(
-      tokenAccounts.map(async (tokenAccount) => {
-        await this.#monitorAccountTokenAsset(account, tokenAccount);
-      }),
+    // Monitor native assets across all active networks
+    const nativeAssetsPromises = activeNetworks.map(async (network) =>
+      this.#monitorAccountNativeAsset(account, network),
     );
+
+    // Monitor token assets across all active networks
+    const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
+      this.#monitorAccountTokenAsset(account, tokenAccount),
+    );
+
+    await Promise.allSettled([...nativeAssetsPromises, ...tokenAssetsPromises]);
   }
 
   /**
