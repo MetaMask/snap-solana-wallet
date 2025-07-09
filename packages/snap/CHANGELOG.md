@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.36.0]
 
-### Uncategorized
+### Changed
 
-- feat: monitor signed txs to detect confirmation ([#452](https://github.com/MetaMask/snap-solana-wallet/pull/452))
-- Simplify map rpc transaction ([#451](https://github.com/MetaMask/snap-solana-wallet/pull/451))
-- Nwnt 382 solana snap migrate execution flow from http polling to websockets ([#450](https://github.com/MetaMask/snap-solana-wallet/pull/450))
+- The flow signAndSendTransaction now relies on WebSockets to receive confirmation updates, instead of HTTP polling ([#450](https://github.com/MetaMask/snap-solana-wallet/pull/450))
+- The flow signTransaction now relies on WebSockets to receive confirmation updates, instead of HTTP polling ([#452](https://github.com/MetaMask/snap-solana-wallet/pull/452))
+- Simplify some logic in the transaction mapping function ([#451](https://github.com/MetaMask/snap-solana-wallet/pull/451))
 
 ## [1.35.2]
 

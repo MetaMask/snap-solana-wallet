@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.36.0]
 
-### Uncategorized
+### Changed
 
-- Nwnt 382 solana snap migrate execution flow from http polling to websockets ([#450](https://github.com/MetaMask/snap-solana-wallet/pull/450))
+- Add buttons to test the WebSocket connections ([#450](https://github.com/MetaMask/snap-solana-wallet/pull/450))
 
 ## [1.35.0]
 
