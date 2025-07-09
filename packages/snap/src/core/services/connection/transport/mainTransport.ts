@@ -1,6 +1,7 @@
 import { pipe } from '@solana/kit';
 
 import { createToggleInfuraBigtableLookupsTransport } from './createToggleInfuraBigtableLookupsTransports';
+import { createErrorTrackingTransport } from './errorTrackingTransport';
 import { createFailoverTransport } from './failoverTransport';
 import { createRetryingTransport } from './retryingTransport';
 
@@ -15,8 +16,9 @@ const forEach =
     items.map(callback);
 
 /**
- * Creates the main transport for RPC calls, stacking up mutiple behaviors:
+ * Creates the main transport for RPC calls, stacking up multiple behaviors:
  *
+ * - Error Tracking: Tracks all RPC errors (4xx, 5xx, and 2xx with errors) using snap_trackError.
  * - BigTable Lookups: Toggles BigTable lookups on Infura via the `x-bigtable` header.
  * - Failover: Switches to the next transport on failure.
  * - Retrying: Retries the request up to MAX_ATTEMPTS times before failing.
@@ -30,5 +32,6 @@ export const createMainTransport = (urls: string[]) => {
     forEach(createToggleInfuraBigtableLookupsTransport), // For each URL, create a transport that toggles BigTable lookups on Infura
     createFailoverTransport, // Wrap the list of above transports into a single transport that fails over each wrapped transport on failure
     createRetryingTransport, // Wrap the previous transport into a transport that retries failed requests
+    (transport) => createErrorTrackingTransport(transport, urls[0]), // Add error tracking as the most outer layer
   );
 };
