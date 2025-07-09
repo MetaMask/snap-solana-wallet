@@ -864,4 +864,37 @@ export class AssetsService {
       }),
     ]);
   }
+
+  /**
+   * Stops monitoring all assets for a single account across all active networks.
+   * @param account - The account to monitor the assets for.
+   */
+  async stopMonitorAccountAssets(account: SolanaKeyringAccount): Promise<void> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Stopping to monitor all assets of account',
+      account,
+    );
+
+    const { address } = account;
+    const { activeNetworks } = this.#configProvider.get();
+
+    const tokenAccounts = await this.#getTokenAccountsByOwnerMultiple(
+      asAddress(address),
+      [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+      activeNetworks,
+    );
+
+    // Stop monitoring native assets across all activeNetworks networks
+    const nativeAssetsPromises = activeNetworks.map(async (network) =>
+      this.#accountMonitor.stopMonitoring(address, network),
+    );
+
+    // Stop monitoring token assets across all active networks
+    const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
+      this.#accountMonitor.stopMonitoring(address, tokenAccount.scope),
+    );
+
+    await Promise.allSettled([...nativeAssetsPromises, ...tokenAssetsPromises]);
+  }
 }

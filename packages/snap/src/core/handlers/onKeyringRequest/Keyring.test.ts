@@ -88,6 +88,7 @@ describe('SolanaKeyring', () => {
       listAccountAssets: jest.fn(),
       getAccountBalances: jest.fn(),
       monitorAccountAssets: jest.fn(),
+      stopMonitorAccountAssets: jest.fn(),
     } as unknown as AssetsService;
 
     mockWalletService = {
@@ -557,6 +558,14 @@ describe('SolanaKeyring', () => {
         MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
       );
       expect(accountAfterDeletion).toBeUndefined();
+    });
+
+    it('stops monitoring the account assets', async () => {
+      await keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id);
+
+      expect(mockAssetsService.stopMonitorAccountAssets).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_1,
+      );
     });
 
     it('throws an error if account provided is not a uuid', async () => {

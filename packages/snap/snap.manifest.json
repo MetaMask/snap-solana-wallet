@@ -1,5 +1,5 @@
 {
-  "version": "1.36.0",
+  "version": "1.35.2",
   "description": "Manage Solana using MetaMask",
   "proposedName": "Solana",
   "repository": {
@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "KzlXLitVlQ2bEGM5dceouZ/4XlpQgKT+sEUFrDFDx+c=",
+    "shasum": "jxeQeqsoAhF9VQP6e+xrpCWsu08gYq4CXk9iqNlzDLI=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -16,12 +16,11 @@
         "registry": "https://registry.npmjs.org/"
       }
     },
-    "locales": [
-      "locales/en.json"
-    ]
+    "locales": ["locales/en.json"]
   },
   "initialConnections": {
-    "https://portfolio.metamask.io": {}
+    "https://portfolio.metamask.io": {},
+    "http://localhost:3000": {}
   },
   "initialPermissions": {
     "endowment:rpc": {
@@ -30,16 +29,13 @@
     },
     "endowment:keyring": {
       "allowedOrigins": [
-        "https://portfolio.metamask.io"
+        "https://portfolio.metamask.io",
+        "http://localhost:3000"
       ]
     },
     "snap_getBip32Entropy": [
       {
-        "path": [
-          "m",
-          "44'",
-          "501'"
-        ],
+        "path": ["m", "44'", "501'"],
         "curve": "ed25519"
       }
     ],
