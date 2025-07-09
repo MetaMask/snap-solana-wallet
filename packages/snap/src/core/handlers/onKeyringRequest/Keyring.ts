@@ -300,19 +300,6 @@ export class SolanaKeyring implements Keyring {
           : {}),
       });
 
-      //   await this.#accountMonitor.monitor({
-      //     address: accountAddress,
-      //     commitment: 'confirmed',
-      //     encoding: 'jsonParsed',
-      //     network: Network.Mainnet,
-      //     onAccountChanged: async (notification: any, params: any) => {
-      //       console.log('🚢🚢🚢🚢🚢🚢🚢notification', notification);
-      //       console.log('🚢🚢🚢🚢🚢🚢params', params);
-
-      //       //   await this.#walletService.refreshAccount(params.account);
-      //     },
-      //   });
-
       return keyringAccount;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating account');
