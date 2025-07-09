@@ -591,7 +591,7 @@ export class AssetsService {
 
     const balance = {
       amount: uiAmountString,
-      unit: 'TODO',
+      unit: '', // I think we can leave empty. The extension is not using it. Otherwise we should fetch the token metadata.
     };
 
     await Promise.allSettled([

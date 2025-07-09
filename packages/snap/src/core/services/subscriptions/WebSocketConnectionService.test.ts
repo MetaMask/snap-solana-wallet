@@ -82,7 +82,7 @@ describe('WebSocketConnectionService', () => {
     );
   });
 
-  describe('setupAllConnections', () => {
+  describe('#setupAllConnections', () => {
     it('opens the connections for the active networks that are not already open', async () => {
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
         activeNetworks: [Network.Mainnet, Network.Devnet],
@@ -99,7 +99,8 @@ describe('WebSocketConnectionService', () => {
         .spyOn(mockWebSocketConnectionRepository, 'save')
         .mockResolvedValueOnce(mockConnectionMainnet);
 
-      await service.setupAllConnections();
+      // Simulate the snap start event
+      await mockEventEmitter.emitSync('onStart');
 
       expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(1);
       expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledWith({
@@ -120,7 +121,8 @@ describe('WebSocketConnectionService', () => {
         .spyOn(mockWebSocketConnectionRepository, 'getAll')
         .mockResolvedValueOnce([mockConnection]);
 
-      await service.setupAllConnections();
+      // Simulate the snap start event
+      await mockEventEmitter.emitSync('onStart');
 
       expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(0);
     });
@@ -140,7 +142,8 @@ describe('WebSocketConnectionService', () => {
         .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
         .mockResolvedValueOnce(openConnection);
 
-      await service.setupAllConnections();
+      // Simulate the snap start event
+      await mockEventEmitter.emitSync('onStart');
 
       expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledTimes(1);
     });
@@ -154,38 +157,27 @@ describe('WebSocketConnectionService', () => {
         .spyOn(mockWebSocketConnectionRepository, 'getAll')
         .mockResolvedValueOnce([]);
 
-      await service.setupAllConnections();
+      // Simulate the snap start event
+      await mockEventEmitter.emitSync('onStart');
 
       expect(mockWebSocketConnectionRepository.delete).not.toHaveBeenCalled();
     });
 
-    it('clears associated recovery callbacks when closing a connection', async () => {
-      // Initially, we have a connection for Mainnet
-      const mockConnection = createMockWebSocketConnection();
-      jest
-        .spyOn(mockWebSocketConnectionRepository, 'getAll')
-        .mockResolvedValueOnce([mockConnection]);
-      jest
-        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
-        .mockResolvedValueOnce(mockConnection);
-
-      // We register a recovery callback for Mainnet. We expect it to be cleared when the connection is closed.
+    it('clears existing recovery callbacks', async () => {
+      // We register a recovery callback for Mainnet. We expect it to be cleared when the method is executed.
       const recoveryCallback = jest.fn();
       service.onConnectionRecovery(Network.Mainnet, recoveryCallback);
 
-      // However, no active networks => calling setupAllConnections will close the mainnet connection
+      /**
+       * Setup Mainnet as active network, but it has no connection, so calling setupAllConnections will:
+       * - clear the recovery callback
+       * - open the connection
+       * - upon opening, we will trigger all recovery callbacks
+       * - but since they have been cleared, they should not be called
+       */
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [],
+        activeNetworks: [Network.Mainnet],
       } as unknown as Config);
-
-      await service.setupAllConnections();
-
-      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledTimes(1);
-      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledWith(
-        mockConnectionId,
-      );
-
-      // No open connections left
       jest
         .spyOn(mockWebSocketConnectionRepository, 'getAll')
         .mockResolvedValueOnce([]);
@@ -193,13 +185,8 @@ describe('WebSocketConnectionService', () => {
         .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
         .mockResolvedValueOnce(null);
 
-      // Now, make Mainnet active again
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
-
-      // Now, calling setupAllConnections will open the Mainnet connection again
-      await service.setupAllConnections();
+      // Simulate the snap start event
+      await mockEventEmitter.emitSync('onStart');
 
       // The connection has recovered, but the recovery callback should not have been called because it was cleared
       expect(recoveryCallback).not.toHaveBeenCalled();
@@ -224,7 +211,8 @@ describe('WebSocketConnectionService', () => {
           .mockRejectedValueOnce(new Error('Connection failed')) // 1st call is the fail attempt
           .mockResolvedValueOnce(mockConnection); // 2nd call is the success attempt
 
-        await service.setupAllConnections();
+        // Simulate the snap start event
+        await mockEventEmitter.emitSync('onStart');
 
         expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(2);
       });
@@ -234,7 +222,8 @@ describe('WebSocketConnectionService', () => {
           .spyOn(mockWebSocketConnectionRepository, 'save')
           .mockRejectedValue(new Error('Connection failed'));
 
-        await service.setupAllConnections();
+        // Simulate the snap start event
+        await mockEventEmitter.emitSync('onStart');
 
         expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(5);
       });
