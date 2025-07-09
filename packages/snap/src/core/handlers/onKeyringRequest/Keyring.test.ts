@@ -87,6 +87,8 @@ describe('SolanaKeyring', () => {
     mockAssetsService = {
       listAccountAssets: jest.fn(),
       getAccountBalances: jest.fn(),
+      monitorAccountAssets: jest.fn(),
+      stopMonitorAccountAssets: jest.fn(),
     } as unknown as AssetsService;
 
     mockWalletService = {
@@ -512,6 +514,16 @@ describe('SolanaKeyring', () => {
       });
     });
 
+    it('monitors the account assets', async () => {
+      await keyring.createAccount();
+
+      expect(mockAssetsService.monitorAccountAssets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.any(String),
+        }),
+      );
+    });
+
     it('throws when deriving address fails', async () => {
       jest.mocked(getBip32Entropy).mockImplementationOnce(async () => {
         return Promise.reject(new Error('Error deriving address'));
@@ -546,6 +558,14 @@ describe('SolanaKeyring', () => {
         MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
       );
       expect(accountAfterDeletion).toBeUndefined();
+    });
+
+    it('stops monitoring the account assets', async () => {
+      await keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id);
+
+      expect(mockAssetsService.stopMonitorAccountAssets).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_1,
+      );
     });
 
     it('throws an error if account provided is not a uuid', async () => {

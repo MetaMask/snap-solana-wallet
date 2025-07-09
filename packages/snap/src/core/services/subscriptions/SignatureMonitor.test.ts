@@ -12,6 +12,14 @@ describe('SignatureMonitor', () => {
   let onNotificationCallback: () => Promise<void>;
   const mockSubscriptionId = 'subscription-id-123';
 
+  const mockParams = {
+    signature:
+      '4s3KAUEZ9N5uwKurHNApnCSXVd6UxPD4VuHFtjcdT4WyXk5g5ZuscqqyJCjgssm81rL2BbjhJULHwBoe5jbNx5yS',
+    commitment: 'confirmed' as const,
+    network: Network.Mainnet,
+    onCommitmentReached: jest.fn(),
+  };
+
   beforeEach(() => {
     mockSubscriptionService = {
       subscribe: jest.fn(),
@@ -20,6 +28,7 @@ describe('SignatureMonitor', () => {
     // This will let us capture the callbacks passed to subscribe
     (mockSubscriptionService.subscribe as jest.Mock).mockImplementation(
       async (_, callbacks) => {
+        onNotificationCallback = callbacks.onNotification;
         onConnectionRecoveryCallback = callbacks.onConnectionRecovery;
         return Promise.resolve(mockSubscriptionId);
       },
@@ -43,14 +52,6 @@ describe('SignatureMonitor', () => {
   });
 
   describe('monitor', () => {
-    const mockParams = {
-      signature:
-        '4s3KAUEZ9N5uwKurHNApnCSXVd6UxPD4VuHFtjcdT4WyXk5g5ZuscqqyJCjgssm81rL2BbjhJULHwBoe5jbNx5yS',
-      commitment: 'confirmed' as const,
-      network: Network.Mainnet,
-      onCommitmentReached: jest.fn(),
-    };
-
     it('registers a subscription to signatureSubscribe', async () => {
       await signatureMonitor.monitor(mockParams);
 
@@ -73,57 +74,47 @@ describe('SignatureMonitor', () => {
         },
       );
     });
+  });
 
-    describe('#handleNotification', () => {
-      beforeEach(() => {
-        // This will let us capture the callbacks passed to subscribe
-        (mockSubscriptionService.subscribe as jest.Mock).mockImplementation(
-          async (_, callbacks) => {
-            onNotificationCallback = callbacks.onNotification;
-            return Promise.resolve(mockSubscriptionId);
-          },
-        );
-      });
+  describe('#handleNotification', () => {
+    it('calls onCommitmentReached when notification received', async () => {
+      await signatureMonitor.monitor(mockParams);
 
-      it('calls onCommitmentReached when notification received', async () => {
-        await signatureMonitor.monitor(mockParams);
+      // Simulate notification received
+      await onNotificationCallback();
 
-        // Simulate notification received
-        await onNotificationCallback();
-
-        expect(mockParams.onCommitmentReached).toHaveBeenCalledWith(mockParams);
-      });
-
-      it('doesnt fail if onCommitmentReached throws an error', async () => {
-        const mockParamsWithError = {
-          signature: 'signature',
-          commitment: 'confirmed' as const,
-          network: Network.Mainnet,
-          onCommitmentReached: jest.fn().mockRejectedValue(new Error('test')),
-        };
-
-        expect(
-          await signatureMonitor.monitor(mockParamsWithError),
-        ).toBeUndefined();
-
-        // Simulate notification received
-        await onNotificationCallback();
-
-        expect(mockParamsWithError.onCommitmentReached).toHaveBeenCalledWith(
-          mockParamsWithError,
-        );
-      });
+      expect(mockParams.onCommitmentReached).toHaveBeenCalledWith(mockParams);
     });
 
-    describe('#handleConnectionRecovery', () => {
-      it('calls onCommitmentReached when connection was dropped and recovered', async () => {
-        await signatureMonitor.monitor(mockParams);
+    it('doesnt fail if onCommitmentReached throws an error', async () => {
+      const mockParamsWithError = {
+        signature: 'signature',
+        commitment: 'confirmed' as const,
+        network: Network.Mainnet,
+        onCommitmentReached: jest.fn().mockRejectedValue(new Error('test')),
+      };
 
-        // Simulate connection recovery
-        await onConnectionRecoveryCallback();
+      expect(
+        await signatureMonitor.monitor(mockParamsWithError),
+      ).toBeUndefined();
 
-        expect(mockParams.onCommitmentReached).toHaveBeenCalledWith(mockParams);
-      });
+      // Simulate notification received
+      await onNotificationCallback();
+
+      expect(mockParamsWithError.onCommitmentReached).toHaveBeenCalledWith(
+        mockParamsWithError,
+      );
+    });
+  });
+
+  describe('#handleConnectionRecovery', () => {
+    it('calls onCommitmentReached when connection was dropped and recovered', async () => {
+      await signatureMonitor.monitor(mockParams);
+
+      // Simulate connection recovery
+      await onConnectionRecoveryCallback();
+
+      expect(mockParams.onCommitmentReached).toHaveBeenCalledWith(mockParams);
     });
   });
 });

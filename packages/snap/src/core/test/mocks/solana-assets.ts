@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type { CaipAssetType } from '@metamask/utils';
 import { TOKEN_PROGRAM_ADDRESS, type Mint } from '@solana-program/token';
+import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
 import type { Account } from '@solana/kit';
 import { address, lamports } from '@solana/kit';
 
 import type { SolanaTokenMetadata } from '../../clients/token-metadata-client/types';
-import {
-  KnownCaip19Id,
-  Network,
-  TOKEN_2022_PROGRAM_ADDRESS,
-} from '../../constants/solana';
+import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { SolanaAsset } from '../../types/solana';
 
 export const SOLANA_MOCK_TOKEN: SolanaAsset = {

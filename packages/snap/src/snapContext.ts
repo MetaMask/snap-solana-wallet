@@ -25,6 +25,7 @@ import { NftService } from './core/services/nft/NftService';
 import type { IStateManager } from './core/services/state/IStateManager';
 import type { UnencryptedStateValue } from './core/services/state/State';
 import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
+import { AccountMonitor } from './core/services/subscriptions/AccountMonitor';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
@@ -62,6 +63,7 @@ export type SnapExecutionContext = {
   subscriptionService: SubscriptionService;
   eventEmitter: EventEmitter;
   nameResolutionService: NameResolutionService;
+  //   accountsService: AccountsService;
 };
 
 const configProvider = new ConfigProvider();
@@ -104,6 +106,12 @@ const signatureMonitor = new SignatureMonitor(
   logger,
 );
 
+const accountMonitor = new AccountMonitor(
+  subscriptionService,
+  connection,
+  logger,
+);
+
 const transactionHelper = new TransactionHelper(connection, logger);
 const sendSolBuilder = new SendSolBuilder(connection, logger);
 const sendSplTokenBuilder = new SendSplTokenBuilder(
@@ -130,6 +138,8 @@ const assetsService = new AssetsService({
   tokenMetadataService,
   cache: inMemoryCache,
   tokenPricesService,
+  accountMonitor,
+  eventEmitter,
 });
 
 const transactionsService = new TransactionsService({

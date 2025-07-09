@@ -10,6 +10,8 @@ export enum RpcRequestMethod {
 export enum TestDappRpcRequestMethod {
   TestSetupAllConnections = 'testSetupAllConnections',
   TestCloseAllConnections = 'testCloseAllConnections',
-  TestSubscribeToAccount = 'testSubscribeToAccount',
-  TestUnsubscribeFromAccount = 'testUnsubscribeFromAccount',
+  TestListSubscriptions = 'testListSubscriptions',
+  TestOnStart = 'testOnStart',
+  TestOnInstall = 'testOnInstall',
+  TestOnUpdate = 'testOnUpdate',
 }

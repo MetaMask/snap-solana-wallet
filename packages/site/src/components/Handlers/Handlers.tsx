@@ -1,5 +1,6 @@
 import { Text as ChakraText, Flex, Stack } from '@chakra-ui/react';
 
+import { Lifecycle } from './Lifecycle';
 import { OnProtocolRequest } from './OnProtocolRequest';
 import { WebSockets } from './WebSockets';
 
@@ -11,6 +12,7 @@ export const Handlers = () => (
     <Stack direction="row" gap="5" wrap="wrap">
       <OnProtocolRequest />
       <WebSockets />
+      <Lifecycle />
     </Stack>
   </Flex>
 );

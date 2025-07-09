@@ -300,6 +300,8 @@ export class SolanaKeyring implements Keyring {
           : {}),
       });
 
+      await this.#assetsService.monitorAccountAssets(solanaKeyringAccount);
+
       return keyringAccount;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating account');
@@ -321,9 +323,13 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, DeleteAccountStruct);
 
+      const account = await this.getAccountOrThrow(accountId);
+
       await this.#deleteAccountFromState(accountId);
 
       await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
+
+      await this.#assetsService.stopMonitorAccountAssets(account);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
       throw error;
