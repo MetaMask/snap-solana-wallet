@@ -336,7 +336,7 @@ describe('AssetsService', () => {
       await mockEventEmitter.emitSync('onStart');
 
       /**
-       * We expect 8 calls to monitor:
+       * We expect 20 calls to monitor:
        * - Monitor the native asset for each account in each network (2 accounts × 2 networks = 4)
        * - Monitor the token assets for each account (2 accounts × 2 networks × 2 program IDs x 2 tokens = 16)
        */
