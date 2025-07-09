@@ -1,4 +1,5 @@
-import { KeyringEvent } from '@metamask/keyring-api';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { KeyringEvent, TransactionStatus } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { address as asAddress } from '@solana/kit';
 
@@ -7,8 +8,6 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../test/mocks/solana-keyring-accounts';
-import type { MockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
-import { startMockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { MOCK_GET_SIGNATURES_FOR_ADDRESS } from '../../test/mocks/transactions';
 import { ADDRESS_1_TRANSACTION_1_DATA } from '../../test/mocks/transactions-data/address-1/transaction-1';
 import { ADDRESS_1_TRANSACTION_2_DATA } from '../../test/mocks/transactions-data/address-1/transaction-2';
@@ -19,8 +18,9 @@ import { ADDRESS_2_TRANSACTION_2_DATA } from '../../test/mocks/transactions-data
 import { ADDRESS_2_TRANSACTION_3_DATA } from '../../test/mocks/transactions-data/address-2/transaction-3';
 import { ADDRESS_2_TRANSACTION_4_DATA } from '../../test/mocks/transactions-data/address-2/transaction-4';
 import { ConfigProvider } from '../config';
-import { SolanaConnection } from '../connection/SolanaConnection';
+import type { SolanaConnection } from '../connection/SolanaConnection';
 import { mockLogger } from '../mocks/logger';
+import { createMockConnection } from '../mocks/mockConnection';
 import { InMemoryState } from '../state/InMemoryState';
 import type { IStateManager } from '../state/IStateManager';
 import {
@@ -29,29 +29,22 @@ import {
 } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from './TransactionsService';
+import { mapRpcTransaction } from './utils/mapRpcTransaction';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   emitSnapKeyringEvent: jest.fn(),
 }));
 
 describe('TransactionsService', () => {
-  let mockSolanaRpc: MockSolanaRpc;
   let mockState: IStateManager<UnencryptedStateValue>;
   let mockConfigProvider: ConfigProvider;
   let mockTokenMetadataService: TokenMetadataService;
+  let mockConnection: SolanaConnection;
   let service: TransactionsService;
-
-  beforeAll(() => {
-    mockSolanaRpc = startMockSolanaRpc();
-  });
-
-  afterAll(() => {
-    mockSolanaRpc.shutdown();
-  });
 
   beforeEach(() => {
     mockConfigProvider = new ConfigProvider();
-    const connection = new SolanaConnection(mockConfigProvider);
+    mockConnection = createMockConnection();
 
     mockTokenMetadataService = {
       getTokensMetadata: jest.fn(),
@@ -60,7 +53,7 @@ describe('TransactionsService', () => {
     mockState = new InMemoryState(DEFAULT_UNENCRYPTED_STATE);
 
     service = new TransactionsService({
-      connection,
+      connection: mockConnection,
       logger: mockLogger,
       tokenMetadataService: mockTokenMetadataService,
       state: mockState,
@@ -74,13 +67,12 @@ describe('TransactionsService', () => {
   });
 
   describe('fetchLatestSignatures', () => {
-    it('should fetch and return signatures for the given address', async () => {
-      const { mockResolvedResultOnce } = mockSolanaRpc;
-
-      mockResolvedResultOnce({
-        method: 'getSignaturesForAddress',
-        result: MOCK_GET_SIGNATURES_FOR_ADDRESS,
-      });
+    it('fetches and returns signatures for the given address', async () => {
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getSignaturesForAddress: jest.fn().mockReturnValue({
+          send: jest.fn().mockResolvedValue(MOCK_GET_SIGNATURES_FOR_ADDRESS),
+        }),
+      } as any);
 
       const result = await service.fetchLatestSignatures(
         Network.Localnet,
@@ -537,6 +529,148 @@ describe('TransactionsService', () => {
           },
         );
       });
+    });
+  });
+
+  describe('fetchBySignature', () => {
+    const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+    const mockScope = Network.Mainnet;
+    const mockTransaction = ADDRESS_1_TRANSACTION_1_DATA;
+    const mockSignature =
+      '3pCGrAVxQ7h5oKV9pjzTZx4br3EpQChuJzWXi93CQMfapbSoqDt8hiJMRQRti1UzC6saoBdBjL2gBw1ekfJjqixG';
+
+    it('fetches and returns a transaction by signature', async () => {
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getTransaction: jest.fn().mockReturnValue({
+          send: jest.fn().mockResolvedValue(mockTransaction),
+        }),
+      } as any);
+
+      const result = await service.fetchBySignature(
+        mockSignature,
+        mockAccount,
+        mockScope,
+      );
+
+      expect(result).toMatchObject({
+        account: mockAccount.id,
+      });
+    });
+
+    it('returns null if the transaction is not found', async () => {
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getTransaction: jest.fn().mockReturnValue({
+          send: jest.fn().mockResolvedValue(null),
+        }),
+      } as any);
+
+      const result = await service.fetchBySignature(
+        mockSignature,
+        mockAccount,
+        mockScope,
+      );
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('saveTransaction', () => {
+    const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+
+    const mockTransaction = mapRpcTransaction({
+      transactionData: ADDRESS_1_TRANSACTION_1_DATA,
+      account: mockAccount,
+      scope: Network.Mainnet,
+    })!;
+
+    it('saves a transaction to the state when there are no existing transactions', async () => {
+      jest.spyOn(mockState, 'getKey').mockResolvedValue([]);
+      const setKeySpy = jest.spyOn(mockState, 'setKey');
+
+      await service.saveTransaction(mockTransaction, mockAccount);
+
+      expect(setKeySpy).toHaveBeenCalledWith(`transactions.${mockAccount.id}`, [
+        mockTransaction,
+      ]);
+    });
+
+    it('adds a transaction to the state when there are existing transactions', async () => {
+      const mockExistingTransaction = mapRpcTransaction({
+        transactionData: ADDRESS_1_TRANSACTION_2_DATA,
+        account: mockAccount,
+        scope: Network.Mainnet,
+      })!;
+      jest
+        .spyOn(mockState, 'getKey')
+        .mockResolvedValue([mockExistingTransaction]);
+      const setKeySpy = jest.spyOn(mockState, 'setKey');
+
+      await service.saveTransaction(mockTransaction, mockAccount);
+
+      expect(setKeySpy).toHaveBeenCalledWith(`transactions.${mockAccount.id}`, [
+        mockExistingTransaction,
+        mockTransaction,
+      ]);
+    });
+
+    it('overrides a transaction in the state when it already exists with the same id', async () => {
+      const mockExistingTransaction = {
+        ...mockTransaction,
+        status: TransactionStatus.Submitted,
+      };
+      jest
+        .spyOn(mockState, 'getKey')
+        .mockResolvedValue([mockExistingTransaction]);
+      const setKeySpy = jest.spyOn(mockState, 'setKey');
+
+      await service.saveTransaction(mockTransaction, mockAccount);
+
+      expect(setKeySpy).toHaveBeenCalledWith(`transactions.${mockAccount.id}`, [
+        mockTransaction,
+      ]);
+    });
+
+    it('saves its signature to the state when there are no existing signatures', async () => {
+      jest.spyOn(mockState, 'getKey').mockResolvedValue([]);
+      const setKeySpy = jest.spyOn(mockState, 'setKey');
+
+      await service.saveTransaction(mockTransaction, mockAccount);
+
+      expect(setKeySpy).toHaveBeenCalledWith(
+        `signatures.${mockAccount.address}`,
+        [mockTransaction.id],
+      );
+    });
+
+    it('adds a signature to the state when there are existing signatures', async () => {
+      const mockExistingSignature = 'existing-signature';
+      jest
+        .spyOn(mockState, 'getKey')
+        .mockResolvedValue([mockExistingSignature]);
+      const setKeySpy = jest.spyOn(mockState, 'setKey');
+
+      await service.saveTransaction(mockTransaction, mockAccount);
+
+      expect(setKeySpy).toHaveBeenCalledWith(
+        `signatures.${mockAccount.address}`,
+        [mockExistingSignature, mockTransaction.id],
+      );
+    });
+
+    it('skips saving the signature if it already exists in the state', async () => {
+      jest
+        .spyOn(mockState, 'getKey')
+        .mockResolvedValueOnce([mockTransaction])
+        .mockResolvedValueOnce([mockTransaction.id]);
+      const setKeySpy = jest.spyOn(mockState, 'setKey');
+
+      await service.saveTransaction(mockTransaction, mockAccount);
+
+      expect(setKeySpy).toHaveBeenCalledTimes(1); // Only the call to save the transaction is made
+      expect(setKeySpy).not.toHaveBeenCalledWith(
+        `signatures.${mockAccount.address}`,
+        [mockTransaction.id],
+      );
     });
   });
 });

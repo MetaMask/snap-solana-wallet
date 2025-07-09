@@ -1,4 +1,5 @@
 import { SolMethod } from '@metamask/keyring-api';
+import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 
 import { Network } from '../../constants/solana';
@@ -10,13 +11,17 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../../test/mocks/solana-keyring-accounts';
+import { ADDRESS_1_TRANSACTION_1_DATA } from '../../test/mocks/transactions-data/address-1/transaction-1';
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
-import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
+import type { AnalyticsService } from '../analytics/AnalyticsService';
+import type { AssetsService } from '../assets/AssetsService';
 import type { SolanaConnection } from '../connection';
 import { MOCK_EXECUTION_SCENARIOS } from '../execution/mocks/scenarios';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
+import type { SignatureMonitor } from '../subscriptions';
+import type { TransactionsService } from '../transactions/TransactionsService';
 import {
   MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
   MOCK_SIGN_IN_REQUEST,
@@ -33,17 +38,39 @@ jest.mock('../../utils/getBip32Entropy', () => ({
   getBip32Entropy: getBip32EntropyMock,
 }));
 
+jest.mock('@metamask/keyring-snap-sdk', () => ({
+  emitSnapKeyringEvent: jest.fn(),
+}));
+
 describe('WalletService', () => {
-  let mockLogger: ILogger;
   let mockConnection: SolanaConnection;
+  let mockTransactionsService: TransactionsService;
+  let mockAssetsService: AssetsService;
+  let mockAnalyticsService: AnalyticsService;
   let mockTransactionHelper: TransactionHelper;
+  let mockSignatureMonitor: SignatureMonitor;
   let service: WalletService;
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
+  let onCommitmentReachedCallback: (params: any) => Promise<void>;
 
   beforeEach(() => {
-    mockLogger = logger;
-
     mockConnection = createMockConnection();
+
+    mockTransactionsService = {
+      fetchBySignature: jest
+        .fn()
+        .mockResolvedValue(ADDRESS_1_TRANSACTION_1_DATA),
+      saveTransaction: jest.fn(),
+    } as unknown as TransactionsService;
+
+    mockAssetsService = {
+      refreshAssets: jest.fn(),
+    } as unknown as AssetsService;
+
+    mockAnalyticsService = {
+      trackEventTransactionSubmitted: jest.fn(),
+      trackEventTransactionFinalized: jest.fn(),
+    } as unknown as AnalyticsService;
 
     mockTransactionHelper = {
       getLatestBlockhash: jest.fn(),
@@ -52,10 +79,26 @@ describe('WalletService', () => {
       waitForTransactionCommitment: jest.fn(),
     } as unknown as TransactionHelper;
 
+    mockSignatureMonitor = {
+      monitor: jest.fn(),
+    } as unknown as SignatureMonitor;
+
+    // Mock the monitor method to capture the onCommitmentReached callback
+    (mockSignatureMonitor.monitor as jest.Mock).mockImplementation(
+      async (params) => {
+        onCommitmentReachedCallback = params.onCommitmentReached;
+        return Promise.resolve();
+      },
+    );
+
     service = new WalletService(
+      mockTransactionsService,
+      mockAssetsService,
+      mockAnalyticsService,
       mockConnection,
       mockTransactionHelper,
-      mockLogger,
+      mockSignatureMonitor,
+      logger,
     );
 
     (globalThis as any).snap = {
@@ -237,6 +280,39 @@ describe('WalletService', () => {
             service.signTransaction(fromAccount, request),
           ).rejects.toThrow(/At path/u);
         });
+
+        it('notifies the extension when the transaction is confirmed', async () => {
+          const request = wrapKeyringRequest({
+            method: SolMethod.SignTransaction,
+            params: {
+              account: {
+                address: fromAccount.address,
+              },
+              transaction: transactionMessageBase64Encoded,
+              scope,
+            },
+          });
+
+          await service.signTransaction(fromAccount, request);
+
+          // Simulate the commitment being reached
+          await onCommitmentReachedCallback({
+            signature,
+            commitment: 'confirmed',
+            network: scope,
+            onCommitmentReached: onCommitmentReachedCallback,
+          });
+
+          expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+            snap,
+            'notify:accountTransactionsUpdated',
+            {
+              transactions: {
+                [fromAccount.id]: [ADDRESS_1_TRANSACTION_1_DATA],
+              },
+            },
+          );
+        });
       });
 
       describe(`Scenario ${name}: signAndSendTransaction`, () => {
@@ -262,12 +338,10 @@ describe('WalletService', () => {
             {},
           );
 
-          expect(
-            mockTransactionHelper.waitForTransactionCommitment,
-          ).toHaveBeenCalledWith(
-            expect.any(String),
-            'confirmed',
-            expect.any(String),
+          expect(mockSignatureMonitor.monitor).toHaveBeenCalledWith(
+            expect.objectContaining({
+              commitment: 'confirmed',
+            }),
           );
         });
 
@@ -282,107 +356,179 @@ describe('WalletService', () => {
             },
           );
 
-          expect(
-            mockTransactionHelper.waitForTransactionCommitment,
-          ).toHaveBeenCalledWith(
-            expect.any(String),
-            'finalized',
-            expect.any(String),
+          expect(mockSignatureMonitor.monitor).toHaveBeenCalledWith(
+            expect.objectContaining({
+              commitment: 'finalized',
+            }),
           );
         });
 
-        it('defaults commitment to "confirmed" if "processed" is provided', async () => {
+        it('tracks an analytics event when the transaction is submitted', async () => {
           await service.signAndSendTransaction(
             fromAccount,
             transactionMessageBase64Encoded,
             scope,
             'https://metamask.io',
-            {
-              commitment: 'processed',
-            },
           );
 
           expect(
-            mockTransactionHelper.waitForTransactionCommitment,
+            mockAnalyticsService.trackEventTransactionSubmitted,
           ).toHaveBeenCalledWith(
-            expect.any(String),
-            'confirmed',
-            expect.any(String),
+            fromAccount,
+            transactionMessageBase64Encoded,
+            signature,
+            {
+              scope,
+              origin: 'https://metamask.io',
+            },
           );
+        });
+
+        it('tracks an analytics event when the transaction is confirmed', async () => {
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            'https://metamask.io',
+          );
+
+          // Simulate the commitment being reached
+          await onCommitmentReachedCallback({
+            signature,
+            commitment: 'confirmed',
+            network: scope,
+            onCommitmentReached: onCommitmentReachedCallback,
+          });
+
+          expect(
+            mockAnalyticsService.trackEventTransactionFinalized,
+          ).toHaveBeenCalledWith(fromAccount, ADDRESS_1_TRANSACTION_1_DATA, {
+            scope,
+            origin: 'https://metamask.io',
+          });
+        });
+
+        it('notifies the extension when the transaction is confirmed', async () => {
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            'https://metamask.io',
+          );
+
+          // Simulate the commitment being reached
+          await onCommitmentReachedCallback({
+            signature,
+            commitment: 'confirmed',
+            network: scope,
+            onCommitmentReached: onCommitmentReachedCallback,
+          });
+
+          expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+            snap,
+            'notify:accountTransactionsUpdated',
+            {
+              transactions: {
+                [fromAccount.id]: [ADDRESS_1_TRANSACTION_1_DATA],
+              },
+            },
+          );
+        });
+
+        // TODO: Remove this once we listen to accounts and token accounts via websockets
+        it('refreshes the assets when the transaction is confirmed', async () => {
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            'https://metamask.io',
+          );
+
+          // Simulate the commitment being reached
+          await onCommitmentReachedCallback({
+            signature,
+            commitment: 'confirmed',
+            network: scope,
+            onCommitmentReached: onCommitmentReachedCallback,
+          });
+
+          expect(mockAssetsService.refreshAssets).toHaveBeenCalledWith([
+            fromAccount,
+          ]);
+        });
+      });
+
+      describe('signMessage', () => {
+        it('returns the signed message and is properly verified', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
+          const request = wrapKeyringRequest(
+            MOCK_SIGN_MESSAGE_REQUEST as unknown as JsonRpcRequest,
+          );
+
+          const result = await service.signMessage(account, request);
+
+          expect(result).toStrictEqual(MOCK_SIGN_MESSAGE_RESPONSE);
+
+          const verified = await service.verifySignature(
+            account,
+            result.signature,
+            result.signedMessage,
+          );
+
+          expect(verified).toBe(true);
+        });
+
+        it('rejects invalid requests', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+          const request = wrapKeyringRequest({
+            ...MOCK_SIGN_MESSAGE_REQUEST,
+            params: {},
+          } as unknown as JsonRpcRequest);
+
+          await expect(service.signMessage(account, request)).rejects.toThrow(
+            /At path/u,
+          );
+        });
+      });
+
+      describe('signIn', () => {
+        it('returns the signed message', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_2;
+          const request = wrapKeyringRequest(
+            MOCK_SIGN_IN_REQUEST as unknown as JsonRpcRequest,
+          );
+
+          const result = await service.signIn(account, request);
+
+          expect(result).toStrictEqual(MOCK_SIGN_IN_RESPONSE);
+        });
+
+        it('rejects invalid requests', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+          const request = wrapKeyringRequest({
+            ...MOCK_SIGN_IN_REQUEST,
+            params: undefined,
+          } as unknown as JsonRpcRequest);
+
+          await expect(service.signIn(account, request)).rejects.toThrow(
+            /At path/u,
+          );
+        });
+      });
+
+      describe('verifySignature', () => {
+        it('returns true for a valid signature', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
+
+          const result = await service.verifySignature(
+            account,
+            MOCK_SIGN_MESSAGE_RESPONSE.signature,
+            MOCK_SIGN_MESSAGE_RESPONSE.signedMessage,
+          );
+
+          expect(result).toBe(true);
         });
       });
     },
   );
-
-  describe('signMessage', () => {
-    it('returns the signed message and is properly verified', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
-      const request = wrapKeyringRequest(
-        MOCK_SIGN_MESSAGE_REQUEST as unknown as JsonRpcRequest,
-      );
-
-      const result = await service.signMessage(account, request);
-
-      expect(result).toStrictEqual(MOCK_SIGN_MESSAGE_RESPONSE);
-
-      const verified = await service.verifySignature(
-        account,
-        result.signature,
-        result.signedMessage,
-      );
-
-      expect(verified).toBe(true);
-    });
-
-    it('rejects invalid requests', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-      const request = wrapKeyringRequest({
-        ...MOCK_SIGN_MESSAGE_REQUEST,
-        params: {},
-      } as unknown as JsonRpcRequest);
-
-      await expect(service.signMessage(account, request)).rejects.toThrow(
-        /At path/u,
-      );
-    });
-  });
-
-  describe('signIn', () => {
-    it('returns the signed message', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_2;
-      const request = wrapKeyringRequest(
-        MOCK_SIGN_IN_REQUEST as unknown as JsonRpcRequest,
-      );
-
-      const result = await service.signIn(account, request);
-
-      expect(result).toStrictEqual(MOCK_SIGN_IN_RESPONSE);
-    });
-
-    it('rejects invalid requests', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-      const request = wrapKeyringRequest({
-        ...MOCK_SIGN_IN_REQUEST,
-        params: undefined,
-      } as unknown as JsonRpcRequest);
-
-      await expect(service.signIn(account, request)).rejects.toThrow(
-        /At path/u,
-      );
-    });
-  });
-
-  describe('verifySignature', () => {
-    it('returns true for a valid signature', async () => {
-      const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
-
-      const result = await service.verifySignature(
-        account,
-        MOCK_SIGN_MESSAGE_RESPONSE.signature,
-        MOCK_SIGN_MESSAGE_RESPONSE.signedMessage,
-      );
-
-      expect(result).toBe(true);
-    });
-  });
 });

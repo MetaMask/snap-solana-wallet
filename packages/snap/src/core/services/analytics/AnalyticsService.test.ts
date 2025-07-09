@@ -17,6 +17,7 @@ const snap = {
 describe('AnalyticsService', () => {
   let analyticsService: AnalyticsService;
   let loggerSpy: jest.SpyInstance;
+  const loggerPrefix = '[📣 AnalyticsService]';
 
   const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
   const mockBase64Transaction = 'dGVzdCB0cmFuc2FjdGlvbiBkYXRh';
@@ -48,7 +49,8 @@ describe('AnalyticsService', () => {
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
-        '[📣 AnalyticsService] Tracking event transaction added',
+        loggerPrefix,
+        'Tracking event transaction added',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -69,16 +71,16 @@ describe('AnalyticsService', () => {
       });
     });
 
-    it('throws error for invalid base64 transaction', async () => {
+    it('does not throw error for invalid base64 transaction', async () => {
       const invalidBase64 = 'invalid-base64!@#';
 
-      await expect(
-        analyticsService.trackEventTransactionAdded(
+      expect(
+        await analyticsService.trackEventTransactionAdded(
           mockAccount,
           invalidBase64,
           mockMetadata,
         ),
-      ).rejects.toThrow();
+      ).toBeUndefined();
     });
   });
 
@@ -91,7 +93,8 @@ describe('AnalyticsService', () => {
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
-        '[📣 AnalyticsService] Tracking event transaction approved',
+        loggerPrefix,
+        'Tracking event transaction approved',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -112,16 +115,16 @@ describe('AnalyticsService', () => {
       });
     });
 
-    it('throws error for invalid base64 transaction', async () => {
+    it('does not throw error for invalid base64 transaction', async () => {
       const invalidBase64 = 'invalid-base64!@#';
 
-      await expect(
-        analyticsService.trackEventTransactionApproved(
+      expect(
+        await analyticsService.trackEventTransactionApproved(
           mockAccount,
           invalidBase64,
           mockMetadata,
         ),
-      ).rejects.toThrow();
+      ).toBeUndefined();
     });
   });
 
@@ -135,7 +138,8 @@ describe('AnalyticsService', () => {
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
-        '[📣 AnalyticsService] Tracking event transaction submitted',
+        loggerPrefix,
+        'Tracking event transaction submitted',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -156,17 +160,17 @@ describe('AnalyticsService', () => {
       });
     });
 
-    it('throws error for invalid base64 transaction', async () => {
+    it('does not throw error for invalid base64 transaction', async () => {
       const invalidBase64 = 'invalid-base64!@#';
 
-      await expect(
-        analyticsService.trackEventTransactionSubmitted(
+      expect(
+        await analyticsService.trackEventTransactionSubmitted(
           mockAccount,
           invalidBase64,
           mockSignature,
           mockMetadata,
         ),
-      ).rejects.toThrow();
+      ).toBeUndefined();
     });
   });
 
@@ -227,7 +231,8 @@ describe('AnalyticsService', () => {
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
-        '[📣 AnalyticsService] Tracking event transaction finalized',
+        loggerPrefix,
+        'Tracking event transaction finalized',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -260,7 +265,8 @@ describe('AnalyticsService', () => {
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
-        '[📣 AnalyticsService] Tracking event transaction rejected',
+        loggerPrefix,
+        'Tracking event transaction rejected',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -281,16 +287,16 @@ describe('AnalyticsService', () => {
       });
     });
 
-    it('throws error for invalid base64 transaction', async () => {
+    it('does not throw error for invalid base64 transaction', async () => {
       const invalidBase64 = 'invalid-base64!@#';
 
-      await expect(
-        analyticsService.trackEventTransactionRejected(
+      expect(
+        await analyticsService.trackEventTransactionRejected(
           mockAccount,
           invalidBase64,
           mockMetadata,
         ),
-      ).rejects.toThrow();
+      ).toBeUndefined();
     });
   });
 
@@ -312,7 +318,8 @@ describe('AnalyticsService', () => {
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
-        '[📣 AnalyticsService] Tracking event security alert detected',
+        loggerPrefix,
+        'Tracking event security alert detected',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -352,7 +359,8 @@ describe('AnalyticsService', () => {
       );
 
       expect(loggerSpy).toHaveBeenCalledWith(
-        '[📣 AnalyticsService] Tracking event security scan completed',
+        loggerPrefix,
+        'Tracking event security scan completed',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -410,17 +418,17 @@ describe('AnalyticsService', () => {
   });
 
   describe('error handling', () => {
-    it('handles snap.request errors gracefully', async () => {
+    it('does not throw error on snap.request errors', async () => {
       const error = new Error('Snap request failed');
       mockSnapRequest.mockRejectedValue(error);
 
-      await expect(
-        analyticsService.trackEventTransactionAdded(
+      expect(
+        await analyticsService.trackEventTransactionAdded(
           mockAccount,
           mockBase64Transaction,
           mockMetadata,
         ),
-      ).rejects.toThrow('Snap request failed');
+      ).toBeUndefined();
     });
   });
 });

@@ -6,9 +6,11 @@ import {
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import {
   address as asAddress,
+  signature as asSignature,
   type Address,
   type Signature,
 } from '@solana/kit';
+import { uniq, uniqBy } from 'lodash';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import { Network } from '../../constants/solana';
@@ -19,6 +21,7 @@ import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { SignatureMapping } from './types';
+import { isSpam } from './utils/isSpam';
 import { mapRpcTransaction } from './utils/mapRpcTransaction';
 
 export class TransactionsService {
@@ -52,13 +55,16 @@ export class TransactionsService {
     this.#configProvider = configProvider;
   }
 
-  async fetchLatestAddressTransactions(address: Address, limit: number) {
+  async fetchLatestAccountTransactions(
+    account: SolanaKeyringAccount,
+    limit: number,
+  ) {
     const scopes = this.#configProvider.get().activeNetworks;
 
     const transactions = (
       await Promise.all(
         scopes.map(async (scope) =>
-          this.#fetchAddressTransactions(scope, address, {
+          this.#fetchAccountTransactions(account, scope, {
             limit,
           }),
         ),
@@ -70,22 +76,23 @@ export class TransactionsService {
     return transactions;
   }
 
-  async #fetchAddressTransactions(
+  async #fetchAccountTransactions(
+    account: SolanaKeyringAccount,
     scope: Network,
-    address: Address,
     pagination: { limit: number; next?: Signature | null },
   ): Promise<{
     data: Transaction[];
     next: Signature | null;
   }> {
-    /**
-     * First get signatures
-     */
+    const { address } = account;
+    const addressAsAddress = asAddress(address);
+
+    // First fetch the signatures
     const signatures = (
       await this.#connection
         .getRpc(scope)
         .getSignaturesForAddress(
-          address,
+          addressAsAddress,
           pagination.next
             ? {
                 limit: pagination.limit,
@@ -103,43 +110,27 @@ export class TransactionsService {
       ...new Set([...existingSinatures, ...signatures]),
     ]);
 
-    /**
-     * Now fetch their transaction data
-     */
-    const transactionsData = await this.getTransactionsDataFromSignatures({
-      scope,
-      signatures,
-    });
-
-    /**
-     * Map it to the expected format from the Keyring API
-     */
-    const mappedTransactionsData = transactionsData.reduce<Transaction[]>(
-      (transactions, transactionData) => {
-        const mappedTransaction = mapRpcTransaction({
-          scope,
-          address,
+    // Fetch, clean up and map transactions
+    const transactions = (
+      await this.getTransactionsDataFromSignatures({
+        scope,
+        signatures,
+      })
+    )
+      .filter((item) => item !== null)
+      .map((transactionData) =>
+        mapRpcTransaction({
           transactionData,
-        });
-
-        /**
-         * Filter out unmapped transactions
-         */
-        if (mappedTransaction) {
-          transactions.push(mappedTransaction);
-        }
-
-        return transactions;
-      },
-      [],
-    );
+          account,
+          scope,
+        }),
+      )
+      .filter((item) => item !== null)
+      .filter((item) => !isSpam(item, account));
 
     const transactionsByAccountWithTokenMetadata =
       await this.#populateAccountTransactionAssetUnits({
-        [address]: mappedTransactionsData.map((tx) => ({
-          ...tx,
-          account: address,
-        })),
+        [address]: transactions,
       });
 
     const next =
@@ -199,6 +190,93 @@ export class TransactionsService {
     );
 
     return transactionsData;
+  }
+
+  /**
+   * Fetches a transaction from the RPC and maps it to the expected format from the Keyring API.
+   * @param signature - The signature of the transaction to fetch.
+   * @param account - The account that the transaction belongs to.
+   * @param scope - The network of the transaction.
+   * @returns The mapped transaction or `null` if the transaction is not found.
+   */
+  async fetchBySignature(
+    signature: string,
+    account: SolanaKeyringAccount,
+    scope: Network,
+  ): Promise<Transaction | null> {
+    const transactionData = await this.#connection
+      .getRpc(scope)
+      .getTransaction(asSignature(signature), {
+        maxSupportedTransactionVersion: 0,
+      })
+      .send();
+
+    if (!transactionData) {
+      return null;
+    }
+
+    return mapRpcTransaction({
+      transactionData,
+      scope,
+      account,
+    });
+  }
+
+  /**
+   * Saves a transaction and its signature to the state.
+   * @param transaction - The transaction to save.
+   * @param account - The account that the transaction belongs to.
+   */
+  async saveTransaction(
+    transaction: Transaction,
+    account: SolanaKeyringAccount,
+  ): Promise<void> {
+    const { id: accountId, address: accountAddress } = account;
+    const { id: signature } = transaction;
+
+    const saveTransaction = async () => {
+      const existingTransactions =
+        (await this.#state.getKey<Transaction[]>(
+          `transactions.${accountId}`,
+        )) ?? [];
+
+      // If a there is a transaction with the same signature, override it
+      const sameSignatureTransactionIndex = existingTransactions.findIndex(
+        (tx) => tx.id === signature,
+      );
+      if (sameSignatureTransactionIndex !== -1) {
+        existingTransactions[sameSignatureTransactionIndex] = transaction;
+      }
+
+      const allTransactions = uniqBy(
+        [...existingTransactions, transaction],
+        'id',
+      );
+
+      await this.#state.setKey(`transactions.${accountId}`, allTransactions);
+    };
+
+    const saveSignature = async () => {
+      const existingSinatures =
+        (await this.#state.getKey<Signature[]>(
+          `signatures.${accountAddress}`,
+        )) ?? [];
+
+      // Skip saving the signature if it already exists in the state
+      if (
+        existingSinatures
+          .map((item) => item.toString())
+          .includes(signature.toString())
+      ) {
+        return;
+      }
+
+      const allSignatures = uniq([...existingSinatures, signature]);
+
+      await this.#state.setKey(`signatures.${accountAddress}`, allSignatures);
+    };
+
+    await Promise.all([saveTransaction(), saveSignature()]);
   }
 
   /**
@@ -409,27 +487,20 @@ export class TransactionsService {
         const accountNetworkSet = accountMap.get(scope) as Set<string>;
 
         const accountTransactions = transactionsData
-          .filter((txData) => {
-            const signature = txData?.transaction?.signatures[0];
+          .filter((item) => item !== null)
+          .filter((item) => {
+            const signature = item?.transaction?.signatures[0];
             return signature && accountNetworkSet.has(signature);
           })
-          .map((txData) => {
-            const mappedTx = mapRpcTransaction({
+          .map((transactionData) =>
+            mapRpcTransaction({
+              transactionData,
+              account,
               scope,
-              address: account.address as Address,
-              transactionData: txData,
-            });
-
-            if (!mappedTx) {
-              return null;
-            }
-
-            return {
-              ...mappedTx,
-              account: account.id,
-            };
-          })
-          .filter((tx): tx is Transaction => tx !== null);
+            }),
+          )
+          .filter((item) => item !== null)
+          .filter((item) => !isSpam(item, account));
 
         newTransactions[account.id]?.push(...accountTransactions);
       }

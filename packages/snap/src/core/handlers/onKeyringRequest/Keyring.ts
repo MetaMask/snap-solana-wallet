@@ -31,7 +31,7 @@ import {
 import { assert, integer } from '@metamask/superstruct';
 import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
-import { address as asAddress, getAddressDecoder } from '@solana/kit';
+import { getAddressDecoder } from '@solana/kit';
 import { sortBy } from 'lodash';
 
 import {
@@ -493,15 +493,11 @@ export class SolanaKeyring implements Keyring {
        * We'll fetch the transactions from the blockchain and store them in the state.
        */
       if (!allTransactions.length) {
-        const transactions = (
-          await this.#transactionsService.fetchLatestAddressTransactions(
-            asAddress(keyringAccount.address),
+        const transactions =
+          await this.#transactionsService.fetchLatestAccountTransactions(
+            keyringAccount,
             pagination.limit,
-          )
-        ).map((tx) => ({
-          ...tx,
-          account: keyringAccount.id,
-        }));
+          );
 
         await this.#state.setKey(
           `transactions.${keyringAccount.id}`,

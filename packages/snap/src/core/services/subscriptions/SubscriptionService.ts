@@ -1,6 +1,7 @@
 import type { WebSocketEvent } from '@metamask/snaps-sdk';
 import type { JsonRpcFailure } from '@metamask/utils';
 import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
+import { get } from 'lodash';
 
 import type {
   PendingSubscription,
@@ -77,6 +78,10 @@ export class SubscriptionService {
       'onTestSubscribeToAccount',
       this.#testSubscribeToAccount.bind(this),
     );
+    eventEmitter.on(
+      'onTestUnsubscribeFromAccount',
+      this.#testUnsubscribeFromAccount.bind(this),
+    );
   }
 
   /**
@@ -145,7 +150,7 @@ export class SubscriptionService {
     /**
      * Register a callback that will send the message when the connection is reestablished. It covers both cases:
      * - The connection was lost then re-established -> we need to re-subscribe.
-     * - The connection was not yet established, and we need to re-subscribe when it is established.
+     * - The connection was not yet established, and we need to subscribe when it is established.
      */
     this.#connectionService.onConnectionRecovery(network, async () => {
       const futureConnectionId =
@@ -158,6 +163,12 @@ export class SubscriptionService {
     // If the connection is open, send the message immediately.
     if (connectionId) {
       await sendSubscriptionMessage(connectionId);
+    } else {
+      this.#logger.info(
+        this.loggerPrefix,
+        `No connection found for network ${network}, opening a new one`,
+      );
+      await this.#connectionService.openConnection(network);
     }
 
     return pendingSubscription.id;
@@ -180,7 +191,7 @@ export class SubscriptionService {
 
     const { id, network, unsubscribeMethod } = subscription;
 
-    // If the subscription is active, we need to unsubscribe from the RPC and remove it from the active map.
+    // If the subscription is active, we need to unsubscribe from the RPC
     if (subscription.status === 'confirmed') {
       const connectionId =
         await this.#connectionService.getConnectionIdByNetwork(network);
@@ -475,6 +486,10 @@ export class SubscriptionService {
     await this.#subscriptionRepository.deleteAll();
   }
 
+  #generateId(): string {
+    return globalThis.crypto.randomUUID();
+  }
+
   /**
    * DELETE: Temporary method to test a subscription.
    */
@@ -510,7 +525,17 @@ export class SubscriptionService {
     await this.subscribe(subscriptionRequest, callbacks);
   }
 
-  #generateId(): string {
-    return globalThis.crypto.randomUUID();
+  async #testUnsubscribeFromAccount(): Promise<void> {
+    const allSubscriptions = await this.#subscriptionRepository.getAll();
+    const subscriptionForAccount = allSubscriptions.find(
+      (subscription) =>
+        subscription.method === 'accountSubscribe' &&
+        get(subscription, 'params[0]') ===
+          '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+    );
+
+    if (subscriptionForAccount) {
+      await this.unsubscribe(subscriptionForAccount.id);
+    }
   }
 }

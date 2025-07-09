@@ -89,7 +89,7 @@ export class WebSocketConnectionService {
     // Open the connections for the active networks that are not already open
     const openingPromises = activeNetworks
       .filter((network) => !isConnectionOpen(network))
-      .map(async (network) => this.#openConnection(network));
+      .map(async (network) => this.openConnection(network));
 
     // Close the connections for the inactive networks that are already open
     const closingPromises = inactiveNetworks
@@ -104,7 +104,7 @@ export class WebSocketConnectionService {
    * @param network - The network to open a connection for.
    * @returns A promise that resolves to the connection.
    */
-  async #openConnection(network: Network): Promise<WebSocketConnection> {
+  async openConnection(network: Network): Promise<WebSocketConnection> {
     this.#logger.info(
       this.#loggerPrefix,
       `Opening connection for network ${network}`,
@@ -308,7 +308,7 @@ export class WebSocketConnectionService {
 
   async #handleDisconnected(network: Network): Promise<void> {
     // Attempt to reconnect
-    await this.#openConnection(network);
+    await this.openConnection(network);
   }
 
   /**

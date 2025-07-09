@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
+  KeyringEvent,
   type KeyringRequest,
   SolMethod,
-  type Transaction,
 } from '@metamask/keyring-api';
+import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
 import type { Commitment, SignatureBytes } from '@solana/kit';
@@ -23,7 +24,6 @@ import {
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { Caip10Address, Network } from '../../constants/solana';
-import { ScheduleBackgroundEventMethod } from '../../handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';
 import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
@@ -36,9 +36,12 @@ import {
   Base64Struct,
   NetworkStruct,
 } from '../../validation/structs';
+import type { AnalyticsService } from '../analytics/AnalyticsService';
+import type { AssetsService } from '../assets/AssetsService';
 import type { SolanaConnection } from '../connection';
 import type { TransactionHelper } from '../execution/TransactionHelper';
-import { mapRpcTransaction } from '../transactions/utils/mapRpcTransaction';
+import type { SignatureMonitor } from '../subscriptions';
+import type { TransactionsService } from '../transactions/TransactionsService';
 import type {
   SolanaSignAndSendTransactionOptions,
   SolanaSignAndSendTransactionResponse,
@@ -59,19 +62,37 @@ import {
 } from './structs';
 
 export class WalletService {
+  readonly #transactionsService: TransactionsService;
+
+  readonly #assetsService: AssetsService;
+
+  readonly #analyticsService: AnalyticsService;
+
   readonly #connection: SolanaConnection;
 
   readonly #transactionHelper: TransactionHelper;
 
+  readonly #signatureMonitor: SignatureMonitor;
+
   readonly #logger: ILogger;
 
+  readonly #loggerPrefix = '[👛 WalletService]';
+
   constructor(
+    transactionsService: TransactionsService,
+    assetsService: AssetsService,
+    analyticsService: AnalyticsService,
     connection: SolanaConnection,
     transactionHelper: TransactionHelper,
+    signatureMonitor: SignatureMonitor,
     _logger = logger,
   ) {
+    this.#transactionsService = transactionsService;
+    this.#assetsService = assetsService;
+    this.#analyticsService = analyticsService;
     this.#connection = connection;
     this.#transactionHelper = transactionHelper;
+    this.#signatureMonitor = signatureMonitor;
     this.#logger = _logger;
   }
 
@@ -94,6 +115,12 @@ export class WalletService {
     scope: Network,
     request: SolanaWalletRequest,
   ): Promise<Caip10Address> {
+    this.#logger.log(this.#loggerPrefix, 'Resolving account address', {
+      keyringAccounts,
+      scope,
+      request,
+    });
+
     const { method, params } = request;
 
     const accountsWithThisScope = keyringAccounts.filter((account) =>
@@ -152,6 +179,11 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignTransactionResponse> {
+    this.#logger.log(this.#loggerPrefix, 'Signing transaction', {
+      account,
+      request,
+    });
+
     assert(request.request, SolanaSignTransactionRequestStruct);
     assert(request.scope, NetworkStruct);
 
@@ -182,23 +214,30 @@ export class WalletService {
 
     assert(result, SolanaSignTransactionResponseStruct);
 
-    // TODO: This is a temporary fix to ensure that transactions signed by the
-    // extension but sent by a dApp, which is a common pattern in Solana, are
-    // found faster and added to the ActivityList. If we don't do this, users
-    // will have their transaction sent but will have to wait for the cronjob.
+    const signature = getSignatureFromTransaction(partiallySignedTransaction);
 
-    await snap.request({
-      method: 'snap_scheduleBackgroundEvent',
-      params: {
-        duration: 'PT3S',
-        request: {
-          method: ScheduleBackgroundEventMethod.OnSignTransaction,
-          params: {
-            accountId: account.id,
-          },
+    // Send analytics and subscribe to the signature
+    await Promise.allSettled([
+      this.#signatureMonitor.monitor({
+        network: scope,
+        signature,
+        commitment: 'confirmed',
+        onCommitmentReached: async (params) => {
+          await this.#handleTransactionConfirmed(
+            params.signature,
+            account,
+            scope,
+            request.origin,
+          );
         },
-      },
-    });
+      }),
+      // Do we do that?
+      //   this.#analyticsService.trackEventTransactionSubmitted(
+      //     account,
+      //     signedTransactionBase64,
+      //     signature,
+      //   ),
+    ]);
 
     return result;
   }
@@ -224,6 +263,12 @@ export class WalletService {
     origin: string,
     options?: SolanaSignAndSendTransactionOptions,
   ): Promise<SolanaSignAndSendTransactionResponse> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Signing and sending transaction',
+      account,
+    );
+
     const signConfig: DecompileTransactionMessageFetchingLookupTablesConfig =
       options?.minContextSlot
         ? {
@@ -275,86 +320,115 @@ export class WalletService {
       sendConfig,
     );
 
-    // Trigger the side effects that need to happen when the transaction is submitted
-    await snap.request({
-      method: 'snap_scheduleBackgroundEvent',
-      params: {
-        duration: 'PT1S',
-        request: {
-          method: ScheduleBackgroundEventMethod.OnTransactionSubmitted,
-          params: {
-            accountId: account.id,
-            transactionMessageBase64Encoded,
-            signature,
-            metadata: {
-              scope,
-              origin,
-            },
-          },
-        },
+    await this.#handleTransactionSubmitted(
+      signature,
+      transactionMessageBase64Encoded,
+      account,
+      scope,
+      origin,
+    );
+
+    await this.#signatureMonitor.monitor({
+      network: scope,
+      signature,
+      commitment: options?.commitment ?? 'confirmed',
+      onCommitmentReached: async (params) => {
+        await this.#handleTransactionConfirmed(
+          params.signature,
+          account,
+          scope,
+          origin,
+        );
       },
     });
 
     const result = {
       signature,
     };
-
     assert(result, SolanaSignAndSendTransactionResponseStruct);
-
-    /**
-     * If the commitment is `processed`, we default to `confirmed`.
-     * This is because we poll the RPC with `getTransaction` to check if the
-     * transaction has been confirmed, and this method does not support
-     * `processed` as a commitment. A solution would have been to simply not
-     * wait when `processed` is provided, but this would prevents us from
-     * fetching the transaction, mapping it, and triggering all the related
-     * side effects.
-     *
-     * If the commitment is not provided, we default to `confirmed`.
-     */
-    const commitment =
-      !options?.commitment || options?.commitment === 'processed'
-        ? 'confirmed'
-        : options?.commitment;
-
-    const transaction =
-      await this.#transactionHelper.waitForTransactionCommitment(
-        signature,
-        commitment,
-        scope,
-      );
-
-    const mappedTransaction = mapRpcTransaction({
-      scope,
-      address: asAddress(account.address),
-      transactionData: transaction,
-    });
-
-    const mappedTransactionWithAccountId: Transaction = {
-      ...mappedTransaction,
-      account: account.id,
-    } as Transaction;
-
-    // Trigger the side effects that need to happen when the transaction is finalized (failed or confirmed)
-    await snap.request({
-      method: 'snap_scheduleBackgroundEvent',
-      params: {
-        duration: 'PT1S',
-        request: {
-          method: ScheduleBackgroundEventMethod.OnTransactionFinalized,
-          params: {
-            accountId: account.id,
-            transaction: mappedTransactionWithAccountId,
-            metadata: {
-              scope,
-              origin,
-            },
-          },
-        },
-      },
-    });
-
     return result;
+  }
+
+  async #handleTransactionSubmitted(
+    signature: string,
+    transactionMessageBase64Encoded: string,
+    account: SolanaKeyringAccount,
+    network: Network,
+    origin: string,
+  ): Promise<void> {
+    this.#logger.info(this.#loggerPrefix, 'Handling transaction submitted', {
+      signature,
+      transactionMessageBase64Encoded,
+      account,
+      network,
+      origin,
+    });
+
+    await this.#analyticsService.trackEventTransactionSubmitted(
+      account,
+      transactionMessageBase64Encoded,
+      signature,
+      {
+        scope: network,
+        origin,
+      },
+    );
+  }
+
+  /**
+   * Triggers the side effects that need to happen when a the user's transaction is finalized (failed or confirmed).
+   *
+   * @param signature - The signature of the transaction.
+   * @param account - The account that the transaction belongs to.
+   * @param network - The network of the transaction.
+   * @param origin - The origin of the transaction.
+   */
+  async #handleTransactionConfirmed(
+    signature: string,
+    account: SolanaKeyringAccount,
+    network: Network,
+    origin: string,
+  ): Promise<void> {
+    this.#logger.info(this.#loggerPrefix, 'Handling transaction confirmed', {
+      signature,
+      account,
+      network,
+      origin,
+    });
+
+    const transaction = await this.#transactionsService.fetchBySignature(
+      signature,
+      account,
+      network,
+    );
+
+    if (!transaction) {
+      throw new Error(
+        `Transaction with signature ${signature} not found on network ${network}`,
+      );
+    }
+
+    await this.#transactionsService.saveTransaction(transaction, account);
+
+    await Promise.allSettled([
+      // TODO: Remove this once we listen to accounts and token accounts via websockets
+      this.#assetsService.refreshAssets([account]),
+      // Bubble up the new transaction to the extension
+      emitSnapKeyringEvent(snap, KeyringEvent.AccountTransactionsUpdated, {
+        transactions: {
+          [account.id]: [transaction],
+        },
+      }),
+      // Track in analytics
+      this.#analyticsService.trackEventTransactionFinalized(
+        account,
+        transaction,
+        {
+          scope: network,
+          origin,
+        },
+      ),
+    ]);
   }
 
   /**
@@ -375,7 +449,15 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignMessageResponse> {
+    this.#logger.log(this.#loggerPrefix, 'Signing message', account, request);
+
     assert(request.request, SolanaSignMessageRequestStruct);
+
+    const { address, entropySource, derivationPath } = account;
+    const addressAsAddress = asAddress(address);
+
+    const { scope } = request;
+    assert(scope, NetworkStruct);
 
     // message is base64 encoded
     const { message } = request.request.params;
@@ -383,8 +465,8 @@ export class WalletService {
     const messageUtf8 = getUtf8Codec().decode(messageBytes);
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
-      entropySource: account.entropySource,
-      derivationPath: account.derivationPath,
+      entropySource,
+      derivationPath,
     });
 
     const signer =
@@ -399,8 +481,7 @@ export class WalletService {
     // Equivalent to - but more compact than - an undefined check + throw error
     assert(messageSignatureBytesMap, object());
 
-    const messageSignatureBytes =
-      messageSignatureBytesMap[asAddress(account.address)];
+    const messageSignatureBytes = messageSignatureBytesMap[addressAsAddress];
 
     // Equivalent to - but more compact than - an undefined check + throw error
     assert(messageSignatureBytes, instance(Uint8Array));
@@ -433,6 +514,8 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignInResponse> {
+    this.#logger.log(this.#loggerPrefix, 'Signing in', account, request);
+
     assert(request.request, SolanaSignInRequestStruct);
 
     const { address } = account;
@@ -490,6 +573,12 @@ export class WalletService {
     signatureBase58: Infer<typeof Base58Struct>,
     messageBase64: Infer<typeof Base64Struct>,
   ): Promise<boolean> {
+    this.#logger.log(this.#loggerPrefix, 'Verifying signature', {
+      account,
+      signatureBase58,
+      messageBase64,
+    });
+
     assert(signatureBase58, Base58Struct);
     assert(messageBase64, Base64Struct);
 
@@ -542,41 +631,56 @@ export class WalletService {
     // ...
     // - ${resources[n]}
 
-    let message = `${signInParams.domain} wants you to sign in with your Solana account:\n`;
-    message += `${signInParams.address}`;
+    const {
+      domain,
+      address,
+      statement,
+      uri,
+      version,
+      chainId,
+      nonce,
+      issuedAt,
+      expirationTime,
+      notBefore,
+      requestId,
+      resources,
+    } = signInParams;
 
-    if (signInParams.statement) {
-      message += `\n\n${signInParams.statement}`;
+    let message = `${domain} wants you to sign in with your Solana account:\n`;
+    message += `${address}`;
+
+    if (statement) {
+      message += `\n\n${statement}`;
     }
 
     const fields: string[] = [];
-    if (signInParams.uri) {
-      fields.push(`URI: ${signInParams.uri}`);
+    if (uri) {
+      fields.push(`URI: ${uri}`);
     }
-    if (signInParams.version) {
-      fields.push(`Version: ${signInParams.version}`);
+    if (version) {
+      fields.push(`Version: ${version}`);
     }
-    if (signInParams.chainId) {
-      fields.push(`Chain ID: ${signInParams.chainId}`);
+    if (chainId) {
+      fields.push(`Chain ID: ${chainId}`);
     }
-    if (signInParams.nonce) {
-      fields.push(`Nonce: ${signInParams.nonce}`);
+    if (nonce) {
+      fields.push(`Nonce: ${nonce}`);
     }
-    if (signInParams.issuedAt) {
-      fields.push(`Issued At: ${signInParams.issuedAt}`);
+    if (issuedAt) {
+      fields.push(`Issued At: ${issuedAt}`);
     }
-    if (signInParams.expirationTime) {
-      fields.push(`Expiration Time: ${signInParams.expirationTime}`);
+    if (expirationTime) {
+      fields.push(`Expiration Time: ${expirationTime}`);
     }
-    if (signInParams.notBefore) {
-      fields.push(`Not Before: ${signInParams.notBefore}`);
+    if (notBefore) {
+      fields.push(`Not Before: ${notBefore}`);
     }
-    if (signInParams.requestId) {
-      fields.push(`Request ID: ${signInParams.requestId}`);
+    if (requestId) {
+      fields.push(`Request ID: ${requestId}`);
     }
-    if (signInParams.resources) {
+    if (resources) {
       fields.push(`Resources:`);
-      for (const resource of signInParams.resources) {
+      for (const resource of resources) {
         fields.push(`- ${resource}`);
       }
     }
