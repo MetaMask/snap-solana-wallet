@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.36.0]
+
+### Uncategorized
+
+- feat: monitor signed txs to detect confirmation ([#452](https://github.com/MetaMask/snap-solana-wallet/pull/452))
+- Simplify map rpc transaction ([#451](https://github.com/MetaMask/snap-solana-wallet/pull/451))
+- Nwnt 382 solana snap migrate execution flow from http polling to websockets ([#450](https://github.com/MetaMask/snap-solana-wallet/pull/450))
+
 ## [1.35.2]
 
 ### Fixed
@@ -725,7 +733,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.2...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.36.0...HEAD
+[1.36.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.2...v1.36.0
 [1.35.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.1...v1.35.2
 [1.35.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.35.0...v1.35.1
 [1.35.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.34.0...v1.35.0
