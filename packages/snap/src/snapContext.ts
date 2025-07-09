@@ -178,7 +178,6 @@ const keyring = new SolanaKeyring({
   assetsService,
   walletService,
   confirmationHandler,
-  accountMonitor,
 });
 
 const nftService = new NftService(connection, logger);
