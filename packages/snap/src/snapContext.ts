@@ -215,7 +215,6 @@ const snapContext: SnapExecutionContext = {
 };
 
 export {
-  //   accountsService,
   analyticsService,
   assetsService,
   clientRequestHandler,
