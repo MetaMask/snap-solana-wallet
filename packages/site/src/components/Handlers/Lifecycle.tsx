@@ -40,6 +40,9 @@ export const Lifecycle = () => {
         title: 'Simulated OnUpdate lifecycle event',
       },
     );
+    await invokeSnap({
+      method: TestDappRpcRequestMethod.TestOnUpdate,
+    });
   };
 
   return (
