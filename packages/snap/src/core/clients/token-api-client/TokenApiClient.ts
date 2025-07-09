@@ -1,18 +1,17 @@
-import type { CaipAssetType } from '@metamask/keyring-api';
-import { array, assert } from '@metamask/superstruct';
+import type { FungibleAssetMetadata } from '@metamask/snaps-sdk';
+import { array, assert, type Infer } from '@metamask/superstruct';
 import { CaipAssetTypeStruct, parseCaipAssetType } from '@metamask/utils';
 
-import { Network } from '../../constants/solana';
+import type { TokenCaipAssetType } from '../../constants/solana';
+import { Network, TokenCaipAssetTypeStruct } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
-import { NftService } from '../../services/nft/NftService';
 import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { UrlStruct } from '../../validation/structs';
 import { TokenMetadataResponseStruct } from './structs';
-import type { SolanaTokenMetadata, TokenMetadata } from './types';
 
-export class TokenMetadataClient {
+export class TokenApiClient {
   readonly #fetch: typeof globalThis.fetch;
 
   readonly #logger: ILogger;
@@ -44,9 +43,9 @@ export class TokenMetadataClient {
   }
 
   async #fetchTokenMetadataBatch(
-    assetTypes: CaipAssetType[],
-  ): Promise<TokenMetadata[]> {
-    assert(assetTypes, array(CaipAssetTypeStruct));
+    assetTypes: TokenCaipAssetType[],
+  ): Promise<Infer<typeof TokenMetadataResponseStruct>> {
+    assert(assetTypes, array(TokenCaipAssetTypeStruct));
 
     const url = buildUrl({
       baseUrl: this.#baseUrl,
@@ -63,35 +62,34 @@ export class TokenMetadataClient {
     }
 
     const data = await response.json();
+
     assert(data, TokenMetadataResponseStruct);
 
     return data;
   }
 
   async getTokenMetadataFromAddresses(
-    assetTypes: CaipAssetType[],
-  ): Promise<Record<CaipAssetType, SolanaTokenMetadata>> {
+    assetTypes: TokenCaipAssetType[],
+  ): Promise<Record<TokenCaipAssetType, FungibleAssetMetadata>> {
     try {
       assert(assetTypes, array(CaipAssetTypeStruct));
 
-      // The Token API only supports the networks in TokenMetadataClient.supportedNetworks
+      // The Token API only supports the networks in TokenApiClient.supportedNetworks
       const supportedAssetTypes = assetTypes.filter((assetType) => {
         const { chainId } = parseCaipAssetType(assetType);
-        return TokenMetadataClient.supportedNetworks.includes(
-          chainId as Network,
-        );
+        return TokenApiClient.supportedNetworks.includes(chainId as Network);
       });
 
       if (supportedAssetTypes.length !== assetTypes.length) {
         this.#logger.warn(
-          `[TokenMetadataClient] Received some asset types on networks that the Token API doesn't support. They will be ignored. Supported networks: ${TokenMetadataClient.supportedNetworks.join(
+          `[TokenApiClient] Received some asset types on networks that the Token API doesn't support. They will be ignored. Supported networks: ${TokenApiClient.supportedNetworks.join(
             ', ',
           )}`,
         );
       }
 
       // Split addresses into chunks
-      const chunks: CaipAssetType[][] = [];
+      const chunks: TokenCaipAssetType[][] = [];
       for (let i = 0; i < supportedAssetTypes.length; i += this.#chunkSize) {
         chunks.push(supportedAssetTypes.slice(i, i + this.#chunkSize));
       }
@@ -102,7 +100,10 @@ export class TokenMetadataClient {
       );
 
       // Flatten and process all metadata
-      const tokenMetadataMap = new Map<string, SolanaTokenMetadata>();
+      const tokenMetadataMap = new Map<
+        TokenCaipAssetType,
+        FungibleAssetMetadata
+      >();
 
       tokenMetadataResponses.flat().forEach((metadata) => {
         const tokenSymbol = metadata?.symbol;
@@ -110,23 +111,26 @@ export class TokenMetadataClient {
         const tokenDecimals = metadata?.decimals;
 
         if (!tokenSymbol || !tokenNameOrSymbol) {
-          this.#logger.warn(`No metadata for ${metadata.assetId}`);
+          this.#logger.warn(
+            `No metadata for ${metadata.assetId as TokenCaipAssetType}`,
+          );
           return;
         }
 
-        tokenMetadataMap.set(metadata.assetId, {
+        tokenMetadataMap.set(metadata.assetId as TokenCaipAssetType, {
           name: tokenNameOrSymbol,
           symbol: tokenSymbol,
-          fungible: !NftService.isMaybeNonFungible({
-            tokenAmount: { decimals: tokenDecimals },
-          }) as unknown as true, // TODO: Remove this cast once the changes in https://github.com/MetaMask/SIPs/pull/174 are implemented on the snap SDK
+          fungible: true,
           iconUrl:
             metadata?.iconUrl ??
             buildUrl({
               baseUrl: this.#tokenIconBaseUrl,
               path: '/api/v2/tokenIcons/assets/{assetId}.png',
               pathParams: {
-                assetId: metadata.assetId.replace(/:/gu, '/'),
+                assetId: (metadata.assetId as TokenCaipAssetType).replace(
+                  /:/gu,
+                  '/',
+                ),
               },
             }),
           units: [

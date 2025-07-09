@@ -1,4 +1,4 @@
-import type { Network } from '../constants/solana';
+import type { Network, TokenCaipAssetType } from '../constants/solana';
 
 /**
  * Converts a token address to a CAIP-19 identifier.
@@ -10,6 +10,6 @@ import type { Network } from '../constants/solana';
 export function tokenAddressToCaip19(
   scope: Network,
   address: string,
-): `${string}:${string}/${string}:${string}` {
+): TokenCaipAssetType {
   return `${scope}/token:${address}`;
 }

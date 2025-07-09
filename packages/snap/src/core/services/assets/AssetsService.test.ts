@@ -6,6 +6,8 @@ import { address, lamports } from '@solana/kit';
 import { EventEmitter } from '../../../infrastructure/event-emitter/EventEmitter';
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
+import { MOCK_NFTS_LIST_RESPONSE_MAPPED } from '../../clients/nft-api/mocks/mockNftsListResponseMapped';
+import type { NftApiClient } from '../../clients/nft-api/NftApiClient';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { Serializable } from '../../serialization/types';
 import {
@@ -48,6 +50,7 @@ describe('AssetsService', () => {
   let mockConfigProvider: ConfigProvider;
   let mockTokenMetadataService: TokenMetadataService;
   let mockTokenPricesService: TokenPricesService;
+  let mockNftApiClient: NftApiClient;
   let mockState: IStateManager<UnencryptedStateValue>;
   let stateSetKeySpy: jest.SpyInstance;
   let mockCache: ICache<Serializable>;
@@ -84,6 +87,12 @@ describe('AssetsService', () => {
 
     mockCache = new InMemoryCache(mockLogger);
 
+    mockNftApiClient = {
+      listAddressSolanaNfts: jest
+        .fn()
+        .mockResolvedValue(MOCK_NFTS_LIST_RESPONSE_MAPPED.items),
+    } as unknown as NftApiClient;
+
     mockAccountMonitor = {
       monitor: jest.fn(),
     } as unknown as AccountMonitor;
@@ -111,6 +120,7 @@ describe('AssetsService', () => {
       tokenMetadataService: mockTokenMetadataService,
       tokenPricesService: mockTokenPricesService,
       cache: mockCache,
+      nftApiClient: mockNftApiClient,
       accountMonitor: mockAccountMonitor,
       eventEmitter: mockEventEmitter,
     });
@@ -123,11 +133,15 @@ describe('AssetsService', () => {
         scopes: [Network.Localnet],
       };
 
+      // Mock NFT API to return empty array for this test
+      jest
+        .spyOn(mockNftApiClient, 'listAddressSolanaNfts')
+        .mockResolvedValueOnce([]);
+
       const assets = await assetsService.listAccountAssets(mockAccount);
 
       expect(assets).toStrictEqual([
         SOLANA_MOCK_TOKEN.assetType,
-        ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.assetType),
         ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.assetType),
       ]);
     });

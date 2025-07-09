@@ -1,10 +1,11 @@
 import type { ICache } from './core/caching/ICache';
 import { InMemoryCache } from './core/caching/InMemoryCache';
 import { StateCache } from './core/caching/StateCache';
+import { NftApiClient } from './core/clients/nft-api/NftApiClient';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
-import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
-import { ClientRequestHandler } from './core/handlers';
+import { TokenApiClient } from './core/clients/token-api-client/TokenApiClient';
+import { ClientRequestHandler } from './core/handlers/onClientRequest';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
@@ -63,7 +64,6 @@ export type SnapExecutionContext = {
   subscriptionService: SubscriptionService;
   eventEmitter: EventEmitter;
   nameResolutionService: NameResolutionService;
-  //   accountsService: AccountsService;
 };
 
 const configProvider = new ConfigProvider();
@@ -119,11 +119,12 @@ const sendSplTokenBuilder = new SendSplTokenBuilder(
   transactionHelper,
   logger,
 );
-const tokenMetadataClient = new TokenMetadataClient(configProvider);
 const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);
+const tokenApiClient = new TokenApiClient(configProvider);
+const nftApiClient = new NftApiClient(configProvider, inMemoryCache);
 
 const tokenMetadataService = new TokenMetadataService({
-  tokenMetadataClient,
+  tokenApiClient,
   logger,
 });
 
@@ -138,6 +139,7 @@ const assetsService = new AssetsService({
   tokenMetadataService,
   cache: inMemoryCache,
   tokenPricesService,
+  nftApiClient,
   accountMonitor,
   eventEmitter,
 });
@@ -145,7 +147,7 @@ const assetsService = new AssetsService({
 const transactionsService = new TransactionsService({
   logger,
   connection,
-  tokenMetadataService,
+  assetsService,
   state,
   configProvider,
 });
@@ -231,7 +233,7 @@ export {
   state,
   subscriptionRepository,
   subscriptionService,
-  tokenMetadataClient,
+  tokenApiClient,
   tokenMetadataService,
   tokenPricesService,
   transactionHelper,
