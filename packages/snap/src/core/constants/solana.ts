@@ -1,5 +1,4 @@
 import { define, pattern, string } from '@metamask/superstruct';
-import { address } from '@solana/kit';
 
 /* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';
@@ -152,10 +151,6 @@ export const TokenMetadata = {
     decimals: 6,
   },
 } as const;
-
-export const TOKEN_2022_PROGRAM_ADDRESS = address(
-  'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
-);
 
 export const Networks = {
   [Network.Mainnet]: {
