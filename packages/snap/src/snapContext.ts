@@ -128,7 +128,11 @@ const tokenMetadataService = new TokenMetadataService({
   logger,
 });
 
-const tokenPricesService = new TokenPricesService(priceApiClient);
+const tokenPricesService = new TokenPricesService({
+  configProvider,
+  priceApiClient,
+  logger,
+});
 const nameResolutionService = new NameResolutionService(connection);
 
 const assetsService = new AssetsService({

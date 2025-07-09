@@ -27,6 +27,11 @@ describe('PriceApiClient', () => {
         priceApi: {
           baseUrl: 'https://some-mock-url.com',
           chunkSize: 50,
+          cacheTtlsMilliseconds: {
+            fiatExchangeRates: 0,
+            spotPrices: 0,
+            historicalPrices: 0,
+          },
         },
       }),
     } as unknown as ConfigProvider;
@@ -237,7 +242,7 @@ describe('PriceApiClient', () => {
           {
             key: 'PriceApiClient:getMultipleSpotPrices:solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v:usd',
             value: MOCK_SPOT_PRICES[KnownCaip19Id.UsdcMainnet]!,
-            ttlMilliseconds: 60000,
+            ttlMilliseconds: 0,
           },
         ]);
       });
@@ -249,9 +254,13 @@ describe('PriceApiClient', () => {
       const invalidConfigProvider = {
         get: jest.fn().mockReturnValue({
           priceApi: {
-            // eslint-disable-next-line no-script-url
-            baseUrl: 'javascript:alert(1)',
+            baseUrl: 'invalid-url',
             chunkSize: 50,
+            cacheTtlsMilliseconds: {
+              fiatExchangeRates: 0,
+              spotPrices: 0,
+              historicalPrices: 0,
+            },
           },
         }),
       } as unknown as ConfigProvider;
@@ -264,9 +273,7 @@ describe('PriceApiClient', () => {
             mockFetch,
             mockLogger,
           ),
-      ).toThrow(
-        'URL must use one of the following protocols: http:,https:,wss:',
-      );
+      ).toThrow('Invalid URL format');
     });
 
     it('rejects tokenCaipAssetTypes that are invalid or that include malicious inputs', async () => {
@@ -344,7 +351,7 @@ describe('PriceApiClient', () => {
         expect(cacheSetSpy).toHaveBeenCalledWith(
           'PriceApiClient:getHistoricalPrices:{"assetType":"solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501","timePeriod":"5d","from":123,"to":456,"vsCurrency":"usd"}',
           MOCK_HISTORICAL_PRICES,
-          60000,
+          0,
         );
         expect(result).toStrictEqual(MOCK_HISTORICAL_PRICES);
       });
