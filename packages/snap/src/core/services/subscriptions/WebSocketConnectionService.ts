@@ -52,16 +52,16 @@ export class WebSocketConnectionService {
     this.#reconnectDelayMilliseconds = reconnectDelayMilliseconds;
 
     // When the snap starts / updates / installs, we setup all the connections
-    eventEmitter.on('onStart', this.setupAllConnections.bind(this));
-    eventEmitter.on('onUpdate', this.setupAllConnections.bind(this));
-    eventEmitter.on('onInstall', this.setupAllConnections.bind(this));
+    eventEmitter.on('onStart', this.#setupAllConnections.bind(this));
+    eventEmitter.on('onUpdate', this.#setupAllConnections.bind(this));
+    eventEmitter.on('onInstall', this.#setupAllConnections.bind(this));
 
     eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
 
     // Temporary binds to enable manual testing from the test dapp
     eventEmitter.on(
       'onTestSetupAllConnections',
-      this.setupAllConnections.bind(this),
+      this.#setupAllConnections.bind(this),
     );
     eventEmitter.on(
       'onTestCloseAllConnections',
@@ -75,9 +75,11 @@ export class WebSocketConnectionService {
    * - Closes the connections for all disabled networks.
    * @returns A promise that resolves when the connections are setup.
    */
-  async setupAllConnections(): Promise<void> {
+  async #setupAllConnections(): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `Setting up all connections`);
-    console.log(this.#loggerPrefix, this.#connectionRecoveryCallbacks);
+
+    // Clean up the connection recovery callbacks for all networks
+    this.#connectionRecoveryCallbacks.clear();
 
     const { activeNetworks } = this.#configProvider.get();
     const inactiveNetworks = difference(Object.values(Network), activeNetworks);
@@ -181,9 +183,6 @@ export class WebSocketConnectionService {
       this.#loggerPrefix,
       `Closing connection for network ${network}`,
     );
-
-    // Clean up the connection recovery callbacks for this network
-    this.#connectionRecoveryCallbacks.delete(network);
 
     // Early return if the connection does not exist
     const existingConnection =

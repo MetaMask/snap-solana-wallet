@@ -538,26 +538,18 @@ export class AssetsService {
       onAccountChanged: async (
         notification: AccountNotification,
         params: AccountMonitoringParams,
-      ) =>
-        await this.#handleTokenAssetChanged(
-          account,
-          tokenAccount,
-          notification,
-          params,
-        ),
+      ) => await this.#handleTokenAssetChanged(account, notification, params),
     });
   }
 
   /**
    * Handles the notification when the account's token account changed.
    * @param account - The account that the token account changed for.
-   * @param tokenAccount - The token account that changed.
    * @param notification - The notification that triggered the event.
    * @param params - The parameters for the event.
    */
   async #handleTokenAssetChanged(
     account: SolanaKeyringAccount,
-    tokenAccount: TokenAccountWithMetadata,
     notification: AccountNotification,
     params: AccountMonitoringParams,
   ): Promise<void> {
@@ -567,15 +559,23 @@ export class AssetsService {
     });
 
     const { id: accountId } = account;
-    const { pubkey: address } = tokenAccount;
     const { network } = params;
 
-    const uiAmount = get(
-      notification,
-      'value.data.parsed.info.tokenAmount.uiAmount',
-    );
+    const mint = get(notification, 'value.data.parsed.info.mint');
+    if (!mint) {
+      this.#logger.error(
+        this.#loggerPrefix,
+        'No mint found in token account changed event',
+        { notification, params },
+      );
+      return;
+    }
 
-    if (typeof uiAmount !== 'number') {
+    const uiAmountString = get(
+      notification,
+      'value.data.parsed.info.tokenAmount.uiAmountString',
+    );
+    if (!uiAmountString) {
       this.#logger.error(
         this.#loggerPrefix,
         'No amount found in token account changed event',
@@ -587,10 +587,10 @@ export class AssetsService {
       return;
     }
 
-    const assetType = tokenAddressToCaip19(network, address);
+    const assetType = tokenAddressToCaip19(network, mint);
 
     const balance = {
-      amount: uiAmount,
+      amount: uiAmountString,
       unit: 'TODO',
     };
 
