@@ -7,7 +7,7 @@ import { Duration, parseCaipAssetType } from '@metamask/utils';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import type { Address } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
-import { map, uniq } from 'lodash';
+import { get, map, uniq } from 'lodash';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure/event-emitter/EventEmitter';
@@ -385,7 +385,12 @@ export class AssetsService {
     return marketData;
   }
 
+  /**
+   * Monitors all assets for all accounts in all active networks.
+   */
   async #monitorAllAccountsAssets(): Promise<void> {
+    const { activeNetworks } = this.#configProvider.get();
+
     const accountsById =
       (await this.#state.getKey<UnencryptedStateValue['keyringAccounts']>(
         'keyringAccounts',
@@ -395,31 +400,49 @@ export class AssetsService {
 
     await Promise.allSettled(
       accounts.map(async (account) => {
-        const assets = await this.listAccountAssets(account);
-        await Promise.allSettled(
-          assets.map(async (asset) => {
-            await this.#monitorAccountAsset(account, asset);
-          }),
-        );
+        await this.#monitorAccountAssets(account, activeNetworks);
       }),
     );
   }
 
-  async #monitorAccountAsset(
+  /**
+   * Monitors all assets for a single account across all passed networks.
+   * @param account - The account to monitor the assets for.
+   * @param networks - The networks to monitor the assets for.
+   */
+  async #monitorAccountAssets(
     account: SolanaKeyringAccount,
-    asset: CaipAssetType,
+    networks: Network[],
   ): Promise<void> {
-    const isNative = asset.endsWith(SolanaCaip19Tokens.SOL);
-    if (isNative) {
-      await this.#monitorAccountNativeAsset(asset, account);
-    } else {
-      await this.#monitorAccountTokenAsset(asset, account);
-    }
+    // Monitor native assets across all passed networks
+    await Promise.allSettled(
+      networks.map(async (network) => {
+        await this.#monitorAccountNativeAsset(account, network);
+      }),
+    );
+
+    // Monitor token assets across all passed networks
+    const tokenAccounts = await this.#getTokenAccountsByOwnerMultiple(
+      asAddress(account.address),
+      [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+      networks,
+    );
+
+    await Promise.allSettled(
+      tokenAccounts.map(async (tokenAccount) => {
+        await this.#monitorAccountTokenAsset(account, tokenAccount);
+      }),
+    );
   }
 
+  /**
+   * Monitors the native asset (SOL) for the given account in the given network.
+   * @param account - The account to monitor the native asset for.
+   * @param network - The network to monitor the native asset for.
+   */
   async #monitorAccountNativeAsset(
-    asset: CaipAssetType,
     account: SolanaKeyringAccount,
+    network: Network,
   ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Monitoring native asset balance', {
       account,
@@ -427,23 +450,27 @@ export class AssetsService {
 
     // To monitor the native asset (SOL), we need to monitor the user's account
     const { address } = account;
-    const { chainId } = parseCaipAssetType(asset);
 
     await this.#accountMonitor.monitor({
       address,
       commitment: 'confirmed',
-      encoding: 'jsonParsed',
-      network: chainId as Network,
+      network,
       onAccountChanged: async (
-        notification: AccountNotification<typeof params.encoding>,
+        notification: AccountNotification,
         params: AccountMonitoringParams,
       ) => await this.#handleNativeAssetChanged(account, notification, params),
     });
   }
 
+  /**
+   * Handles the notification when the account's native asset changed.
+   * @param account - The account that the native asset changed for.
+   * @param notification - The notification that triggered the event.
+   * @param params - The parameters for the event.
+   */
   async #handleNativeAssetChanged(
     account: SolanaKeyringAccount,
-    notification: AccountNotification<typeof params.encoding>,
+    notification: AccountNotification,
     params: AccountMonitoringParams,
   ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Native asset balance changed', {
@@ -452,7 +479,7 @@ export class AssetsService {
     });
 
     const { id: accountId } = account;
-    const { address, network } = params;
+    const { network } = params;
 
     const lamports = notification.value?.lamports;
     if (!lamports) {
@@ -488,37 +515,96 @@ export class AssetsService {
     ]);
   }
 
+  /**
+   * Monitors the token account owned by the given account in the given network.
+   * @param account - The account to monitor the token account for.
+   * @param tokenAccount - The token account to monitor.
+   */
   async #monitorAccountTokenAsset(
-    asset: CaipAssetType,
     account: SolanaKeyringAccount,
+    tokenAccount: TokenAccountWithMetadata,
   ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Monitoring token asset balance', {
-      asset,
       account,
+      tokenAccount,
     });
 
-    const { assetReference: address, chainId } = parseCaipAssetType(asset);
+    const { pubkey: address, scope: network } = tokenAccount;
 
     await this.#accountMonitor.monitor({
       address,
       commitment: 'confirmed',
-      encoding: 'jsonParsed',
-      network: chainId as Network,
+      network,
       onAccountChanged: async (
-        notification: AccountNotification<typeof params.encoding>,
+        notification: AccountNotification,
         params: AccountMonitoringParams,
-      ) => await this.#handleTokenAssetChanged(account, notification, params),
+      ) =>
+        await this.#handleTokenAssetChanged(
+          account,
+          tokenAccount,
+          notification,
+          params,
+        ),
     });
   }
 
+  /**
+   * Handles the notification when the account's token account changed.
+   * @param account - The account that the token account changed for.
+   * @param tokenAccount - The token account that changed.
+   * @param notification - The notification that triggered the event.
+   * @param params - The parameters for the event.
+   */
   async #handleTokenAssetChanged(
     account: SolanaKeyringAccount,
-    notification: AccountNotification<typeof params.encoding>,
+    tokenAccount: TokenAccountWithMetadata,
+    notification: AccountNotification,
     params: AccountMonitoringParams,
   ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Token asset changed', {
       notification,
       params,
     });
+
+    const { id: accountId } = account;
+    const { pubkey: address } = tokenAccount;
+    const { network } = params;
+
+    const uiAmount = get(
+      notification,
+      'value.data.parsed.info.tokenAmount.uiAmount',
+    );
+
+    if (typeof uiAmount !== 'number') {
+      this.#logger.error(
+        this.#loggerPrefix,
+        'No amount found in token account changed event',
+        {
+          notification,
+          params,
+        },
+      );
+      return;
+    }
+
+    const assetType = tokenAddressToCaip19(network, address);
+
+    const balance = {
+      amount: uiAmount,
+      unit: 'TODO',
+    };
+
+    await Promise.allSettled([
+      // Update the state
+      this.#state.setKey(`assets.${accountId}.${assetType}`, balance),
+      // Notify the extension
+      emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
+        balances: {
+          [accountId]: {
+            [assetType]: balance,
+          },
+        },
+      }),
+    ]);
   }
 }

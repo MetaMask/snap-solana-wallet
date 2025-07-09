@@ -14,7 +14,6 @@ import {
   WebSocketConnectionRepository,
   WebSocketConnectionService,
 } from './core/services';
-//  import { AccountsService } from './core/services/accounts/AccountsService';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
@@ -170,13 +169,6 @@ const transactionScanService = new TransactionScanService(
   logger,
 );
 
-// const accountsService = new AccountsService(
-//   accountMonitor,
-//   state,
-//   eventEmitter,
-//   logger,
-// );
-
 const confirmationHandler = new ConfirmationHandler();
 
 const keyring = new SolanaKeyring({
@@ -221,7 +213,6 @@ const snapContext: SnapExecutionContext = {
   subscriptionService,
   eventEmitter,
   nameResolutionService,
-  //   accountsService,
 };
 
 export {
