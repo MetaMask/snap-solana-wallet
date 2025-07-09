@@ -411,8 +411,6 @@ export class WalletService {
     await this.#transactionsService.saveTransaction(transaction, account);
 
     await Promise.allSettled([
-      // TODO: Remove this once we listen to accounts and token accounts via websockets
-      this.#assetsService.refreshAssets([account]),
       // Bubble up the new transaction to the extension
       emitSnapKeyringEvent(snap, KeyringEvent.AccountTransactionsUpdated, {
         transactions: {
