@@ -591,7 +591,17 @@ export class AssetsService {
 
     const balance = {
       amount: uiAmountString,
-      unit: '', // I think we can leave empty. The extension is not using it. Otherwise we should fetch the token metadata.
+      /**
+       * TODO: I think we can leave empty, because it looks like the extension is not using it.
+       * Which is convenient, because we don't have to fetch the token metadata.
+       *
+       * Either it's a design issue with the API of `KeyringEvent.AccountBalancesUpdated`,
+       * in that case it could be relaxed, a the field `unit` could become optional.
+       *
+       * Either it's an implementation issue on the extension side, and we're not using the field
+       * `unit` as we should.
+       */
+      unit: '',
     };
 
     await Promise.allSettled([

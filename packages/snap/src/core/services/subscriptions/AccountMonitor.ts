@@ -46,7 +46,7 @@ export class AccountMonitor {
   }
 
   /**
-   * Monitors an account for changes on a given network, and executes the passed
+   * Monitors an RPC account for changes on a given network, and executes the passed
    * callback when the account changes.
    *
    * It subscribes to the RPC WebSocket API, to receive a notification
@@ -95,7 +95,15 @@ export class AccountMonitor {
 
     const { onAccountChanged } = params;
 
-    await onAccountChanged(notification, params);
+    try {
+      await onAccountChanged(notification, params);
+    } catch (error) {
+      this.#logger.warn(
+        this.#loggerPrefix,
+        `⚠️ Error calling onAccountChanged callback`,
+        error,
+      );
+    }
   }
 
   async #handleConnectionRecovery(
