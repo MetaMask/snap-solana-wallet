@@ -389,8 +389,6 @@ export class AssetsService {
    * Monitors all assets for all accounts in all active networks.
    */
   async #monitorAllAccountsAssets(): Promise<void> {
-    const { activeNetworks } = this.#configProvider.get();
-
     const accountsById =
       (await this.#state.getKey<UnencryptedStateValue['keyringAccounts']>(
         'keyringAccounts',
@@ -400,23 +398,27 @@ export class AssetsService {
 
     await Promise.allSettled(
       accounts.map(async (account) => {
-        await this.#monitorAccountAssets(account, activeNetworks);
+        await this.monitorAccountAssets(account);
       }),
     );
   }
 
   /**
-   * Monitors all assets for a single account across all passed networks.
+   * Monitors all assets for a single account across all active networks.
    * @param account - The account to monitor the assets for.
-   * @param networks - The networks to monitor the assets for.
    */
-  async #monitorAccountAssets(
-    account: SolanaKeyringAccount,
-    networks: Network[],
-  ): Promise<void> {
+  async monitorAccountAssets(account: SolanaKeyringAccount): Promise<void> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Starting to monitor all assets of account',
+      account,
+    );
+
+    const { activeNetworks } = this.#configProvider.get();
+
     // Monitor native assets across all passed networks
     await Promise.allSettled(
-      networks.map(async (network) => {
+      activeNetworks.map(async (network) => {
         await this.#monitorAccountNativeAsset(account, network);
       }),
     );
@@ -425,7 +427,7 @@ export class AssetsService {
     const tokenAccounts = await this.#getTokenAccountsByOwnerMultiple(
       asAddress(account.address),
       [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-      networks,
+      activeNetworks,
     );
 
     await Promise.allSettled(
@@ -446,6 +448,7 @@ export class AssetsService {
   ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Monitoring native asset balance', {
       account,
+      network,
     });
 
     // To monitor the native asset (SOL), we need to monitor the user's account
@@ -474,6 +477,7 @@ export class AssetsService {
     params: AccountMonitoringParams,
   ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Native asset balance changed', {
+      account,
       notification,
       params,
     });
@@ -554,6 +558,7 @@ export class AssetsService {
     params: AccountMonitoringParams,
   ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Token asset changed', {
+      account,
       notification,
       params,
     });

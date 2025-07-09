@@ -300,6 +300,8 @@ export class SolanaKeyring implements Keyring {
           : {}),
       });
 
+      await this.#assetsService.monitorAccountAssets(solanaKeyringAccount);
+
       return keyringAccount;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating account');

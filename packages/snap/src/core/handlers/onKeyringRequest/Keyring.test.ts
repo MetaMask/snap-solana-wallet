@@ -87,6 +87,7 @@ describe('SolanaKeyring', () => {
     mockAssetsService = {
       listAccountAssets: jest.fn(),
       getAccountBalances: jest.fn(),
+      monitorAccountAssets: jest.fn(),
     } as unknown as AssetsService;
 
     mockWalletService = {
@@ -510,6 +511,16 @@ describe('SolanaKeyring', () => {
           account,
         });
       });
+    });
+
+    it('monitors the account assets', async () => {
+      await keyring.createAccount();
+
+      expect(mockAssetsService.monitorAccountAssets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.any(String),
+        }),
+      );
     });
 
     it('throws when deriving address fails', async () => {
