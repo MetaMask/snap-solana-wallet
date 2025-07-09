@@ -596,10 +596,10 @@ export class AssetsService {
        * Which is convenient, because we don't have to fetch the token metadata.
        *
        * Either it's a design issue with the API of `KeyringEvent.AccountBalancesUpdated`,
-       * in that case it could be relaxed, a the field `unit` could become optional.
+       * in that case it could be relaxed, and the field could become optional.
        *
        * Either it's an implementation issue on the extension side, and we're not using the field
-       * `unit` as we should.
+       * as we should.
        */
       unit: '',
     };
