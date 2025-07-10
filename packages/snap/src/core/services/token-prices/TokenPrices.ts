@@ -10,7 +10,7 @@ import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { pick } from 'lodash';
 
-import { PriceApiClient } from '../../clients/price-api/PriceApiClient';
+import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import type { SpotPrice } from '../../clients/price-api/types';
 import {
   GET_HISTORICAL_PRICES_RESPONSE_NULL_OBJECT,
@@ -18,7 +18,8 @@ import {
   type FiatTicker,
 } from '../../clients/price-api/types';
 import { isFiat } from '../../utils/isFiat';
-import logger, { type ILogger } from '../../utils/logger';
+import { type ILogger } from '../../utils/logger';
+import type { ConfigProvider } from '../config';
 import type { HistoricalPrice } from './types';
 
 export class TokenPricesService {
@@ -26,9 +27,26 @@ export class TokenPricesService {
 
   readonly #logger: ILogger;
 
-  constructor(priceApiClient: PriceApiClient, _logger: ILogger = logger) {
+  readonly cacheTtlsMilliseconds: {
+    fiatExchangeRates: number;
+    spotPrices: number;
+    historicalPrices: number;
+  };
+
+  constructor({
+    configProvider,
+    priceApiClient,
+    logger,
+  }: {
+    configProvider: ConfigProvider;
+    priceApiClient: PriceApiClient;
+    logger: ILogger;
+  }) {
     this.#priceApiClient = priceApiClient;
-    this.#logger = _logger;
+    this.#logger = logger;
+
+    const { cacheTtlsMilliseconds } = configProvider.get().priceApi;
+    this.cacheTtlsMilliseconds = cacheTtlsMilliseconds;
   }
 
   /**
@@ -182,8 +200,7 @@ export class TokenPricesService {
       result[from][to] = {
         rate,
         conversionTime: now,
-        expirationTime:
-          now + PriceApiClient.cacheTtlsMilliseconds.historicalPrices, // Convoluted syntax enforced by TS config 'exactOptionalPropertyTypes: true'
+        expirationTime: now + this.cacheTtlsMilliseconds.historicalPrices,
       };
     });
 
@@ -387,8 +404,7 @@ export class TokenPricesService {
     const result: HistoricalPrice = {
       intervals,
       updateTime: now,
-      expirationTime:
-        now + PriceApiClient.cacheTtlsMilliseconds.historicalPrices,
+      expirationTime: now + this.cacheTtlsMilliseconds.historicalPrices,
     };
 
     return result;

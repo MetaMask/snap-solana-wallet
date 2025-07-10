@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-globals */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
-import { CaipAssetTypeStruct, Duration } from '@metamask/utils';
+import { CaipAssetTypeStruct } from '@metamask/utils';
 import { mapKeys } from 'lodash';
 
 import type { ICache } from '../../caching/ICache';
@@ -39,10 +39,10 @@ export class PriceApiClient {
 
   readonly #cache: ICache<Serializable>;
 
-  public static readonly cacheTtlsMilliseconds = {
-    fiatExchangeRates: Duration.Minute,
-    spotPrices: Duration.Minute,
-    historicalPrices: Duration.Minute,
+  readonly cacheTtlsMilliseconds: {
+    fiatExchangeRates: number;
+    spotPrices: number;
+    historicalPrices: number;
   };
 
   constructor(
@@ -51,7 +51,8 @@ export class PriceApiClient {
     _fetch: typeof globalThis.fetch = globalThis.fetch,
     _logger: ILogger = logger,
   ) {
-    const { baseUrl, chunkSize } = configProvider.get().priceApi;
+    const { baseUrl, chunkSize, cacheTtlsMilliseconds } =
+      configProvider.get().priceApi;
 
     assert(baseUrl, UrlStruct);
 
@@ -59,6 +60,7 @@ export class PriceApiClient {
     this.#logger = _logger;
     this.#baseUrl = baseUrl;
     this.#chunkSize = chunkSize;
+    this.cacheTtlsMilliseconds = cacheTtlsMilliseconds;
 
     this.#cache = _cache;
   }
@@ -84,28 +86,32 @@ export class PriceApiClient {
   /**
    * Business logic for `getMultipleSpotPrices`.
    *
-   * @param tokenCaip19Ids - The CAIP-19 IDs of the tokens to get the spot prices for.
+   * @param tokenCaipAssetTypes - The CAIP-19 IDs of the tokens to get the spot prices for.
    * @param vsCurrency - The currency to convert the prices to.
    * @returns The spot prices for the tokens.
    */
   async #getMultipleSpotPrices_INTERNAL(
-    tokenCaip19Ids: CaipAssetType[],
+    tokenCaipAssetTypes: CaipAssetType[],
     vsCurrency: VsCurrencyParam | string = 'usd',
   ): Promise<SpotPrices> {
     try {
-      assert(tokenCaip19Ids, array(CaipAssetTypeStruct));
+      assert(tokenCaipAssetTypes, array(CaipAssetTypeStruct));
       assert(vsCurrency, VsCurrencyParamStruct);
 
-      if (tokenCaip19Ids.length === 0) {
+      if (tokenCaipAssetTypes.length === 0) {
         return {};
       }
 
-      const uniqueTokenCaip19Ids = [...new Set(tokenCaip19Ids)];
+      const uniqueTokenCaipAssetTypes = [...new Set(tokenCaipAssetTypes)];
 
-      // Split uniqueTokenCaip19Ids into chunks
+      // Split uniqueTokenCaipAssetTypes into chunks
       const chunks: CaipAssetType[][] = [];
-      for (let i = 0; i < uniqueTokenCaip19Ids.length; i += this.#chunkSize) {
-        chunks.push(uniqueTokenCaip19Ids.slice(i, i + this.#chunkSize));
+      for (
+        let i = 0;
+        i < uniqueTokenCaipAssetTypes.length;
+        i += this.#chunkSize
+      ) {
+        chunks.push(uniqueTokenCaipAssetTypes.slice(i, i + this.#chunkSize));
       }
 
       // Make parallel requests for each chunk
@@ -142,10 +148,10 @@ export class PriceApiClient {
 
       // Store in the cache
       await this.#cache.mset(
-        tokenCaip19Ids.map((tokenCaip19Id) => ({
-          key: `PriceApiClient:getMultipleSpotPrices:${tokenCaip19Id}:${vsCurrency}`,
-          value: spotPrices[tokenCaip19Id],
-          ttlMilliseconds: PriceApiClient.cacheTtlsMilliseconds.spotPrices,
+        tokenCaipAssetTypes.map((tokenCaipAssetType) => ({
+          key: `PriceApiClient:getMultipleSpotPrices:${tokenCaipAssetType}:${vsCurrency}`,
+          value: spotPrices[tokenCaipAssetType],
+          ttlMilliseconds: this.cacheTtlsMilliseconds.spotPrices,
         })),
       );
 
@@ -175,8 +181,8 @@ export class PriceApiClient {
     const cacheKeyPrefix = 'PriceApiClient:getMultipleSpotPrices';
 
     // Shorthand method to generate the cache key
-    const toCacheKey = (tokenCaip19Id: CaipAssetType) =>
-      `${cacheKeyPrefix}:${tokenCaip19Id}:${vsCurrency}`;
+    const toCacheKey = (tokenCaipAssetType: CaipAssetType) =>
+      `${cacheKeyPrefix}:${tokenCaipAssetType}:${vsCurrency}`;
 
     // Parses back the cache key
     const parseCacheKey = (key: string) => {
@@ -219,11 +225,13 @@ export class PriceApiClient {
 
     // Cache the data
     await this.#cache.mset(
-      Object.entries(nonCachedSpotPrices).map(([tokenCaip19Id, spotPrice]) => ({
-        key: toCacheKey(tokenCaip19Id as CaipAssetType),
-        value: spotPrice,
-        ttlMilliseconds: PriceApiClient.cacheTtlsMilliseconds.spotPrices,
-      })),
+      Object.entries(nonCachedSpotPrices).map(
+        ([tokenCaipAssetType, spotPrice]) => ({
+          key: toCacheKey(tokenCaipAssetType as CaipAssetType),
+          value: spotPrice,
+          ttlMilliseconds: this.cacheTtlsMilliseconds.spotPrices,
+        }),
+      ),
     );
 
     return {
@@ -305,7 +313,7 @@ export class PriceApiClient {
       this.#cache,
       {
         functionName: 'PriceApiClient:getHistoricalPrices',
-        ttlMilliseconds: PriceApiClient.cacheTtlsMilliseconds.historicalPrices,
+        ttlMilliseconds: this.cacheTtlsMilliseconds.historicalPrices,
       },
     )(params);
   }

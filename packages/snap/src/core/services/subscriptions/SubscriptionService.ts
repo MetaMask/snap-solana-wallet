@@ -82,6 +82,10 @@ export class SubscriptionService {
       'onTestUnsubscribeFromAccount',
       this.#testUnsubscribeFromAccount.bind(this),
     );
+    eventEmitter.on(
+      'onTestListSubscriptions',
+      this.#testListSubscriptions.bind(this),
+    );
   }
 
   /**
@@ -537,5 +541,10 @@ export class SubscriptionService {
     if (subscriptionForAccount) {
       await this.unsubscribe(subscriptionForAccount.id);
     }
+  }
+
+  async #testListSubscriptions(): Promise<void> {
+    const subscriptions = await this.#subscriptionRepository.getAll();
+    this.#logger.info(this.loggerPrefix, `Subscriptions`, subscriptions);
   }
 }

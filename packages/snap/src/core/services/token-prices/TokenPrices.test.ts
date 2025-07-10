@@ -1,9 +1,13 @@
+import { Duration } from '@metamask/utils';
+
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { MOCK_HISTORICAL_PRICES } from '../../clients/price-api/mocks/historical-prices';
 import { MOCK_SPOT_PRICES } from '../../clients/price-api/mocks/spot-prices';
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import type { SpotPrice } from '../../clients/price-api/types';
 import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
+import { ConfigProvider } from '../config';
+import { mockLogger } from '../mocks/logger';
 import { TokenPricesService } from './TokenPrices';
 
 describe('TokenPricesService', () => {
@@ -25,15 +29,26 @@ describe('TokenPricesService', () => {
 
   let tokenPricesService: TokenPricesService;
   let mockPriceApiClient: PriceApiClient;
+  let mockConfigProvider: ConfigProvider;
 
   beforeEach(() => {
     mockPriceApiClient = {
       getFiatExchangeRates: jest.fn().mockResolvedValue(MOCK_EXCHANGE_RATES),
       getMultipleSpotPrices: jest.fn().mockResolvedValue(MOCK_SPOT_PRICES),
       getHistoricalPrices: jest.fn().mockResolvedValue(MOCK_HISTORICAL_PRICES),
+      cacheTtlsMilliseconds: {
+        historicalPrices: Duration.Hour,
+        spotPrices: Duration.Hour,
+      },
     } as unknown as PriceApiClient;
 
-    tokenPricesService = new TokenPricesService(mockPriceApiClient);
+    mockConfigProvider = new ConfigProvider();
+
+    tokenPricesService = new TokenPricesService({
+      priceApiClient: mockPriceApiClient,
+      configProvider: mockConfigProvider,
+      logger: mockLogger,
+    });
   });
 
   describe('getMultipleTokenConversions', () => {

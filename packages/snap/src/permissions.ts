@@ -39,8 +39,10 @@ const dappPermissions = isDev
       // Methods specific to the test dapp
       TestDappRpcRequestMethod.TestSetupAllConnections,
       TestDappRpcRequestMethod.TestCloseAllConnections,
-      TestDappRpcRequestMethod.TestSubscribeToAccount,
-      TestDappRpcRequestMethod.TestUnsubscribeFromAccount,
+      TestDappRpcRequestMethod.TestListSubscriptions,
+      TestDappRpcRequestMethod.TestOnStart,
+      TestDappRpcRequestMethod.TestOnInstall,
+      TestDappRpcRequestMethod.TestOnUpdate,
     ])
   : new Set([]);
 

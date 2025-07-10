@@ -1,4 +1,4 @@
-import { address } from '@solana/kit';
+import { define, pattern, string } from '@metamask/superstruct';
 
 /* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';
@@ -27,12 +27,62 @@ export enum KnownCaip19Id {
   SolLocalnet = `${Network.Localnet}/slip44:501`,
   UsdcMainnet = `${Network.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
   UsdcDevnet = `${Network.Devnet}/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
-  UsdcLocalnet = `${Network.Localnet}/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
+  UsdcLocalnet = `${Network.Localnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
   EurcMainnet = `${Network.Mainnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   EurcDevnet = `${Network.Devnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   EurcLocalnet = `${Network.Localnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   Ai16zLocalnet = `${Network.Localnet}/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC`,
 }
+
+export type NativeCaipAssetType = `${Network}/slip44:501`;
+export type TokenCaipAssetType = `${Network}/token:${string}`;
+export type NftCaipAssetType = `${Network}/nft:${string}`;
+
+/**
+ * Validates a Solana native CAIP-19 ID (e.g., "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501")
+ */
+export const NativeCaipAssetTypeStruct = pattern(
+  string(),
+  /^solana:[a-zA-Z0-9]+\/slip44:501$/u,
+);
+
+/**
+ * Validates a Solana token CAIP-19 ID (e.g., "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+ */
+export const TokenCaipAssetTypeStruct = pattern(
+  string(),
+  /^solana:[a-zA-Z0-9]+\/token:[a-zA-Z0-9]+$/u,
+);
+
+/**
+ * Validates a Solana NFT CAIP-19 ID (e.g., "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/nft:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+ */
+export const NftCaipAssetTypeStruct = pattern(
+  string(),
+  /^solana:[a-zA-Z0-9]+\/nft:[a-zA-Z0-9]+$/u,
+);
+
+/**
+ * Custom struct that validates a string and returns it as TokenCaipAssetType
+ * This is useful when the API returns a generic string that needs to be validated
+ * and typed as TokenCaipAssetType
+ */
+export const TokenCaipAssetTypeFromStringStruct = define(
+  'TokenCaipAssetTypeFromString',
+  (value) => {
+    if (typeof value !== 'string') {
+      return `Expected a string, but received: ${typeof value}`;
+    }
+
+    const [error] = TokenCaipAssetTypeStruct.validate(value);
+
+    if (error) {
+      return error;
+    }
+
+    return true;
+  },
+);
 
 export const NETWORK_TO_EXPLORER_CLUSTER = {
   [Network.Mainnet]: undefined,
@@ -97,14 +147,10 @@ export const TokenMetadata = {
   [KnownCaip19Id.UsdcLocalnet]: {
     symbol: 'USDC',
     caip19Id: KnownCaip19Id.UsdcLocalnet,
-    address: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
     decimals: 6,
   },
 } as const;
-
-export const TOKEN_2022_PROGRAM_ADDRESS = address(
-  'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
-);
 
 export const Networks = {
   [Network.Mainnet]: {

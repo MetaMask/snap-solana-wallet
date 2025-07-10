@@ -434,28 +434,6 @@ describe('WalletService', () => {
             },
           );
         });
-
-        // TODO: Remove this once we listen to accounts and token accounts via websockets
-        it('refreshes the assets when the transaction is confirmed', async () => {
-          await service.signAndSendTransaction(
-            fromAccount,
-            transactionMessageBase64Encoded,
-            scope,
-            'https://metamask.io',
-          );
-
-          // Simulate the commitment being reached
-          await onCommitmentReachedCallback({
-            signature,
-            commitment: 'confirmed',
-            network: scope,
-            onCommitmentReached: onCommitmentReachedCallback,
-          });
-
-          expect(mockAssetsService.refreshAssets).toHaveBeenCalledWith([
-            fromAccount,
-          ]);
-        });
       });
 
       describe('signMessage', () => {

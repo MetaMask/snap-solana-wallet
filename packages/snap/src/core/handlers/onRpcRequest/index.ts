@@ -18,12 +18,20 @@ export const handlers: Record<RpcRequestMethod, OnRpcRequestHandler> = {
     await eventEmitter.emitSync('onTestCloseAllConnections');
     return null;
   },
-  [TestDappRpcRequestMethod.TestSubscribeToAccount as any]: async () => {
-    await eventEmitter.emitSync('onTestSubscribeToAccount');
+  [TestDappRpcRequestMethod.TestListSubscriptions as any]: async () => {
+    await eventEmitter.emitSync('onTestListSubscriptions');
     return null;
   },
-  [TestDappRpcRequestMethod.TestUnsubscribeFromAccount as any]: async () => {
-    await eventEmitter.emitSync('onTestUnsubscribeFromAccount');
+  [TestDappRpcRequestMethod.TestOnStart as any]: async () => {
+    await eventEmitter.emitSync('onStart');
+    return null;
+  },
+  [TestDappRpcRequestMethod.TestOnInstall as any]: async () => {
+    await eventEmitter.emitSync('onInstall');
+    return null;
+  },
+  [TestDappRpcRequestMethod.TestOnUpdate as any]: async () => {
+    await eventEmitter.emitSync('onUpdate');
     return null;
   },
 };
