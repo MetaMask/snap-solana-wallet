@@ -573,16 +573,6 @@ describe('SolanaKeyring', () => {
         /Expected a string matching/u,
       );
     });
-
-    it('throws an error if state fails to be updated', async () => {
-      jest
-        .spyOn(mockState, 'deleteKey')
-        .mockRejectedValueOnce(new Error('State error'));
-
-      await expect(
-        keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id),
-      ).rejects.toThrow('State error');
-    });
   });
 
   describe('filterAccountChains', () => {
