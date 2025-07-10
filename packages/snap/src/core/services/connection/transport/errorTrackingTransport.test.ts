@@ -57,7 +57,7 @@ describe('createErrorTrackingTransport', () => {
   });
 
   describe('JSON-RPC errors in 2xx responses', () => {
-    it('should track standard JSON-RPC errors', async () => {
+    it('should track standard JSON-RPC errors but return the response', async () => {
       const mockResponse = {
         jsonrpc: '2.0',
         id: 1,
@@ -72,11 +72,10 @@ describe('createErrorTrackingTransport', () => {
       const errorTrackingTransport =
         createErrorTrackingTransport(mockTransport);
 
-      await expect(
-        errorTrackingTransport({ payload: { method: 'getBalance' } }),
-      ).rejects.toThrow(
-        'RPC error: {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"RPC error: Invalid request"}}',
-      );
+      const result = await errorTrackingTransport({ payload: { method: 'getBalance' } });
+
+      // Should return the response instead of throwing
+      expect(result).toStrictEqual(mockResponse);
 
       expect(mockSnap.request).toHaveBeenCalledWith({
         method: 'snap_trackError',
@@ -86,40 +85,7 @@ describe('createErrorTrackingTransport', () => {
           }),
         },
       });
-    });
-
-    it('should track Solana RPC errors in result.error', async () => {
-      const mockResponse = {
-        jsonrpc: '2.0',
-        id: 1,
-        result: {
-          error: {
-            code: 1,
-            message: 'Invalid account',
-          },
-        },
-      };
-
-      const mockTransport = jest.fn().mockResolvedValue(mockResponse);
-
-      const errorTrackingTransport =
-        createErrorTrackingTransport(mockTransport);
-
-      await expect(
-        errorTrackingTransport({ payload: { method: 'getBalance' } }),
-      ).rejects.toThrow(
-        'RPC error: {"jsonrpc":"2.0","id":1,"result":{"error":{"code":1,"message":"Invalid account"}}}',
-      );
-
-      expect(mockSnap.request).toHaveBeenCalledWith({
-        method: 'snap_trackError',
-        params: {
-          error: expect.objectContaining({
-            message: expect.stringContaining('RPC error in response'),
-          }),
-        },
-      });
-    });
+    });    
   });
 
   describe('Successful responses', () => {

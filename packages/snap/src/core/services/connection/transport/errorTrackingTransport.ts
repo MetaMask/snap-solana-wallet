@@ -1,3 +1,4 @@
+import { isSolanaError } from '@solana/kit';
 import { getJsonError } from '@metamask/snaps-sdk';
 import { isJsonRpcError, isJsonRpcFailure } from '@metamask/utils';
 import { type RpcTransport } from '@solana/kit';
@@ -54,8 +55,8 @@ function isErrorResponse(response: any): boolean {
     return true;
   }
 
-  // Also check for Solana RPC error format
-  if (response?.result?.err || response?.result?.error) {
+  // Also check for Solana RPC error
+  if (isSolanaError(response)) {
     return true;
   }
 
@@ -145,8 +146,9 @@ export const createErrorTrackingTransport = (
 
         await trackError(errorInfo);
 
-        // Also re-throw the error to maintain the original behavior
-        throw new Error(`RPC error: ${JSON.stringify(response)}`);
+        // Returns the response to the caller for direct handling instead of throwing,
+        // this maintains the original error flow
+        return response as TResponse;
       }
 
       return response as TResponse;
