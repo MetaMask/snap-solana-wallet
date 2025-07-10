@@ -39,6 +39,7 @@ import {
   type SolanaKeyringAccount,
 } from '../../../entities';
 import type { Network } from '../../constants/solana';
+import type { KeyringAccountMonitor } from '../../services';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { IStateManager } from '../../services/state/IStateManager';
@@ -78,6 +79,8 @@ export class SolanaKeyring implements Keyring {
 
   readonly #confirmationHandler: ConfirmationHandler;
 
+  readonly #keyringAccountMonitor: KeyringAccountMonitor;
+
   constructor({
     state,
     logger,
@@ -85,6 +88,7 @@ export class SolanaKeyring implements Keyring {
     assetsService,
     walletService,
     confirmationHandler,
+    keyringAccountMonitor,
   }: {
     state: IStateManager<UnencryptedStateValue>;
     logger: ILogger;
@@ -92,6 +96,7 @@ export class SolanaKeyring implements Keyring {
     assetsService: AssetsService;
     walletService: WalletService;
     confirmationHandler: ConfirmationHandler;
+    keyringAccountMonitor: KeyringAccountMonitor;
   }) {
     this.#state = state;
     this.#logger = logger;
@@ -99,6 +104,7 @@ export class SolanaKeyring implements Keyring {
     this.#assetsService = assetsService;
     this.#walletService = walletService;
     this.#confirmationHandler = confirmationHandler;
+    this.#keyringAccountMonitor = keyringAccountMonitor;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -300,7 +306,9 @@ export class SolanaKeyring implements Keyring {
           : {}),
       });
 
-      await this.#assetsService.monitorAccountAssets(solanaKeyringAccount);
+      await this.#keyringAccountMonitor.monitorKeyringAccount(
+        solanaKeyringAccount,
+      );
 
       return keyringAccount;
     } catch (error: any) {
@@ -330,7 +338,7 @@ export class SolanaKeyring implements Keyring {
       // If we successfully deleted the account on the extension, we can proceed with cleaning up
       await Promise.allSettled([
         this.#deleteAccountFromState(accountId),
-        this.#assetsService.stopMonitorAccountAssets(account),
+        this.#keyringAccountMonitor.stopMonitorAccountAssets(account),
       ]);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');

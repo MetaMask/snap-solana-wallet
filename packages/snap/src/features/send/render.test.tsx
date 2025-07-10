@@ -268,7 +268,8 @@ describe('Send', () => {
 
     mockResolvedResult({
       method: 'getTokenAccountsByOwner',
-      result: MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result,
+      result:
+        MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result as any,
     });
 
     mockResolvedResult({

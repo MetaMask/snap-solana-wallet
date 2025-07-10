@@ -7,6 +7,7 @@ import { signature } from '@solana/kit';
 
 import { asStrictKeyringAccount } from '../../../entities';
 import { KnownCaip19Id, Network } from '../../constants/solana';
+import type { KeyringAccountMonitor } from '../../services';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import { InMemoryState } from '../../services/state/InMemoryState';
@@ -68,6 +69,7 @@ describe('SolanaKeyring', () => {
   let mockAssetsService: AssetsService;
   let mockConfirmationHandler: ConfirmationHandler;
   let mockTransactionsService: jest.Mocked<TransactionsService>;
+  let mockKeyringAccountMonitor: KeyringAccountMonitor;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -107,6 +109,11 @@ describe('SolanaKeyring', () => {
       fetchLatestSignatures: jest.fn(),
     } as unknown as jest.Mocked<TransactionsService>;
 
+    mockKeyringAccountMonitor = {
+      monitorKeyringAccount: jest.fn(),
+      stopMonitorAccountAssets: jest.fn(),
+    } as unknown as KeyringAccountMonitor;
+
     keyring = new SolanaKeyring({
       state: mockState,
       logger,
@@ -114,6 +121,7 @@ describe('SolanaKeyring', () => {
       assetsService: mockAssetsService,
       walletService: mockWalletService,
       confirmationHandler: mockConfirmationHandler,
+      keyringAccountMonitor: mockKeyringAccountMonitor,
     });
   });
 
@@ -231,6 +239,7 @@ describe('SolanaKeyring', () => {
         assetsService: mockAssetsService,
         walletService: mockWalletService,
         confirmationHandler: mockConfirmationHandler,
+        keyringAccountMonitor: mockKeyringAccountMonitor,
       });
     });
 
@@ -517,7 +526,9 @@ describe('SolanaKeyring', () => {
     it('monitors the account assets', async () => {
       await keyring.createAccount();
 
-      expect(mockAssetsService.monitorAccountAssets).toHaveBeenCalledWith(
+      expect(
+        mockKeyringAccountMonitor.monitorKeyringAccount,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           id: expect.any(String),
         }),
@@ -563,9 +574,9 @@ describe('SolanaKeyring', () => {
     it('stops monitoring the account assets', async () => {
       await keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id);
 
-      expect(mockAssetsService.stopMonitorAccountAssets).toHaveBeenCalledWith(
-        MOCK_SOLANA_KEYRING_ACCOUNT_1,
-      );
+      expect(
+        mockKeyringAccountMonitor.stopMonitorAccountAssets,
+      ).toHaveBeenCalledWith(MOCK_SOLANA_KEYRING_ACCOUNT_1);
     });
 
     it('throws an error if account provided is not a uuid', async () => {
