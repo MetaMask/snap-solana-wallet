@@ -64,8 +64,10 @@ async function onSourceAccountSelectorValueChange({
   event: InputChangeEvent;
   context: SendContext;
 }) {
-  context.fromAccountId = event.value as string;
+  const accountData = event.value as { accountId: string; addresses: string[] };
+  context.fromAccountId = accountData.accountId;
   context.error = null;
+
   context.validation[SendFormNames.SourceAccountSelector] =
     validateField<SendFormNames>(
       SendFormNames.SourceAccountSelector,

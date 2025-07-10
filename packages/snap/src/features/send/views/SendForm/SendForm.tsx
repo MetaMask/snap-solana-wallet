@@ -1,4 +1,5 @@
 import {
+  AccountSelector,
   AssetSelector,
   Banner,
   Box,
@@ -10,6 +11,7 @@ import {
   Text,
 } from '@metamask/snaps-sdk/jsx';
 import { isNullOrUndefined } from '@metamask/utils';
+import type { Caip10Address } from 'src/core/constants/solana';
 
 import { Navigation } from '../../../../core/components/Navigation/Navigation';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
@@ -17,10 +19,9 @@ import { formatCrypto } from '../../../../core/utils/formatCrypto';
 import { formatFiat } from '../../../../core/utils/formatFiat';
 import { i18n } from '../../../../core/utils/i18n';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
-import { AccountSelector } from '../../components/AccountSelector/AccountSelector';
 import { AmountInput } from '../../components/AmountInput/AmountInput';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
-import { getNativeTokenPrice, getSelectedTokenPrice } from '../../selectors';
+import { getSelectedTokenPrice } from '../../selectors';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 
 type SendFormProps = {
@@ -62,11 +63,11 @@ export const SendForm = ({
   const selectedAccount = accounts.find(
     (account) => account.id === fromAccountId,
   );
-  const selectedAccountAddress = selectedAccount?.address
-    ? addressToCaip10(scope, selectedAccount.address)
-    : '';
+  const selectedAccountAddress: Caip10Address | undefined =
+    selectedAccount?.address
+      ? addressToCaip10(scope, selectedAccount.address)
+      : undefined;
 
-  const nativePrice = getNativeTokenPrice(context);
   const selectedTokenPrice = getSelectedTokenPrice(context);
 
   const balanceUndefinedOrZero =
@@ -149,19 +150,22 @@ export const SendForm = ({
           <Box>{null}</Box>
           <Box>{null}</Box>
           <Box>{null}</Box>
-          <AccountSelector
-            name={SendFormNames.SourceAccountSelector}
-            scope={scope}
+
+          <Field
+            label={translate('send.fromField')}
             error={
               validation?.[SendFormNames.SourceAccountSelector]?.message ?? ''
             }
-            accounts={accounts}
-            selectedAccountId={fromAccountId}
-            balances={balances}
-            price={nativePrice ?? null}
-            locale={locale}
-            currency={currency}
-          />
+          >
+            <AccountSelector
+              name={SendFormNames.SourceAccountSelector}
+              chainIds={[scope]}
+              value={selectedAccountAddress ?? undefined}
+              hideExternalAccounts
+              switchGlobalAccount
+            />
+          </Field>
+
           <Box>{null}</Box>
           <Box>{null}</Box>
           <Box>{null}</Box>
