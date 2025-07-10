@@ -183,6 +183,7 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
   rpcAcccountMonitor,
   accountService,
   assetsService,
+  transactionsService,
   configProvider,
   eventEmitter,
   logger,

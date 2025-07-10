@@ -21,6 +21,7 @@ import type {
   RpcAccountMonitor,
   RpcAccountMonitoringParams,
 } from '../subscriptions';
+import type { TransactionsService } from '../transactions/TransactionsService';
 import type { AccountService } from './AccountService';
 
 /**
@@ -36,6 +37,8 @@ export class KeyringAccountMonitor {
 
   readonly #assetsService: AssetsService;
 
+  readonly #transactionsService: TransactionsService;
+
   readonly #configProvider: ConfigProvider;
 
   readonly #logger: ILogger;
@@ -46,6 +49,7 @@ export class KeyringAccountMonitor {
     rpcAccountMonitor: RpcAccountMonitor,
     accountService: AccountService,
     assetsService: AssetsService,
+    transactionsService: TransactionsService,
     configProvider: ConfigProvider,
     eventEmitter: EventEmitter,
     logger: ILogger,
@@ -53,10 +57,13 @@ export class KeyringAccountMonitor {
     this.#rpcAccountMonitor = rpcAccountMonitor;
     this.#accountService = accountService;
     this.#assetsService = assetsService;
+    this.#transactionsService = transactionsService;
     this.#configProvider = configProvider;
     this.#logger = logger;
 
     eventEmitter.on('onStart', this.#monitorAllKeyringAccounts.bind(this));
+    eventEmitter.on('onUpdate', this.#monitorAllKeyringAccounts.bind(this));
+    eventEmitter.on('onInstall', this.#monitorAllKeyringAccounts.bind(this));
   }
 
   async #monitorAllKeyringAccounts(): Promise<void> {

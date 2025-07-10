@@ -13,6 +13,7 @@ import type { Config } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
 import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/mockSolanaRpcResponses';
 import type { RpcAccountMonitor } from '../subscriptions';
+import type { TransactionsService } from '../transactions/TransactionsService';
 import type { AccountService } from './AccountService';
 import { KeyringAccountMonitor } from './KeyringAccountMonitor';
 
@@ -21,6 +22,7 @@ describe('KeyringAccountMonitor', () => {
   let mockRpcAccountMonitor: RpcAccountMonitor;
   let mockAccountService: AccountService;
   let mockAssetsService: AssetsService;
+  let mockTransactionsService: TransactionsService;
   let mockConfigProvider: ConfigProvider;
   let mockEventEmitter: EventEmitter;
   let onAccountChanged: (notification: any, params: any) => Promise<void>;
@@ -67,6 +69,8 @@ describe('KeyringAccountMonitor', () => {
       saveAsset: jest.fn(),
     } as unknown as AssetsService;
 
+    mockTransactionsService = {} as unknown as TransactionsService;
+
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
         activeNetworks: [Network.Mainnet],
@@ -79,6 +83,7 @@ describe('KeyringAccountMonitor', () => {
       mockRpcAccountMonitor,
       mockAccountService,
       mockAssetsService,
+      mockTransactionsService,
       mockConfigProvider,
       mockEventEmitter,
       mockLogger,
