@@ -252,7 +252,7 @@ describe('KeyringAccountMonitor', () => {
     });
   });
 
-  describe('stopMonitorAccountAssets', () => {
+  describe('stopMonitorKeyringAccount', () => {
     it('stops monitoring the account native and token assets on all active networks', async () => {
       const account = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
 
@@ -269,7 +269,7 @@ describe('KeyringAccountMonitor', () => {
         // No token asset for the rest
         .mockResolvedValue([]);
 
-      await keyringAccountMonitor.stopMonitorAccountAssets(account);
+      await keyringAccountMonitor.stopMonitorKeyringAccount(account);
 
       /**
        * List of expected calls to stopMonitoring:

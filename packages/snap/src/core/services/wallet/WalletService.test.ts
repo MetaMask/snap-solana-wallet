@@ -1,5 +1,4 @@
 import { SolMethod } from '@metamask/keyring-api';
-import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 
 import { Network } from '../../constants/solana';
@@ -281,7 +280,7 @@ describe('WalletService', () => {
           ).rejects.toThrow(/At path/u);
         });
 
-        it('notifies the extension when the transaction is confirmed', async () => {
+        it('saves the transaction when the transaction is confirmed', async () => {
           const request = wrapKeyringRequest({
             method: SolMethod.SignTransaction,
             params: {
@@ -303,14 +302,9 @@ describe('WalletService', () => {
             onCommitmentReached: onCommitmentReachedCallback,
           });
 
-          expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
-            snap,
-            'notify:accountTransactionsUpdated',
-            {
-              transactions: {
-                [fromAccount.id]: [ADDRESS_1_TRANSACTION_1_DATA],
-              },
-            },
+          expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+            ADDRESS_1_TRANSACTION_1_DATA,
+            fromAccount,
           );
         });
       });
@@ -408,7 +402,7 @@ describe('WalletService', () => {
           });
         });
 
-        it('notifies the extension when the transaction is confirmed', async () => {
+        it('saves the transaction when the transaction is confirmed', async () => {
           await service.signAndSendTransaction(
             fromAccount,
             transactionMessageBase64Encoded,
@@ -424,14 +418,9 @@ describe('WalletService', () => {
             onCommitmentReached: onCommitmentReachedCallback,
           });
 
-          expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
-            snap,
-            'notify:accountTransactionsUpdated',
-            {
-              transactions: {
-                [fromAccount.id]: [ADDRESS_1_TRANSACTION_1_DATA],
-              },
-            },
+          expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+            ADDRESS_1_TRANSACTION_1_DATA,
+            fromAccount,
           );
         });
       });

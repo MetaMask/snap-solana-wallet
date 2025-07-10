@@ -717,5 +717,19 @@ describe('TransactionsService', () => {
         [mockTransaction.id],
       );
     });
+
+    it('emits a transaction updated event to the extension', async () => {
+      await service.saveTransaction(mockTransaction, mockAccount);
+
+      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+        expect.anything(),
+        KeyringEvent.AccountTransactionsUpdated,
+        {
+          transactions: expect.objectContaining({
+            [mockAccount.id]: [mockTransaction],
+          }),
+        },
+      );
+    });
   });
 });

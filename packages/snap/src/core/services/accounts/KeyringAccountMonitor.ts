@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/check-indentation */
 import type { CaipAssetType } from '@metamask/snaps-sdk';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
@@ -6,8 +7,7 @@ import { get } from 'lodash';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
-import type { Network } from '../../constants/solana';
-import { SolanaCaip19Tokens } from '../../constants/solana';
+import { Network, SolanaCaip19Tokens } from '../../constants/solana';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
@@ -45,6 +45,37 @@ export class KeyringAccountMonitor {
 
   readonly #loggerPrefix = '[🗝️ KeyringAccountMonitor]';
 
+  /**
+   * A map that stores the monitored keyring accounts and their monitored token accounts.
+   *
+   * Maps network > account address > token account address.
+   *
+   * {
+   *   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': new Map([
+   *     'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP': new Set([
+   *       '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg', // USDC token account for this user on mainnet
+   *       'DJGpJufSnVDriDczovhcQRyxamKtt87PHQ7TJEcVB6ta', // ai16z token account for this user on mainnet
+   *     ]),
+   *     'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo': new Set([]), // This account might have no tokens on this network
+   *   ]),
+   *   'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': new Map([
+   *     'FvS1p2dQnhWNrHyuVpJRU5mkYRkSTrubXHs4XrAn3PGo': new Set([
+   *       'GiKryKnGJxdFacNXx7nHBvWdF3oZb6N6SQerKpfkdgUE', // EURC token account for this user on devnet
+   *       '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU', // USDC token account for this user on devnet
+   *     ]),
+   *   ]),
+   * }
+   */
+  readonly #monitoredAccounts: Record<Network, Map<string, Set<string>>> =
+    Object.values(Network).reduce<Record<Network, Map<string, Set<string>>>>(
+      (acc, network) => {
+        acc[network] = new Map();
+        return acc;
+      },
+      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
+      {} as Record<Network, Map<string, Set<string>>>,
+    );
+
   constructor(
     rpcAccountMonitor: RpcAccountMonitor,
     accountService: AccountService,
@@ -68,6 +99,11 @@ export class KeyringAccountMonitor {
 
   async #monitorAllKeyringAccounts(): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Monitoring all keyring accounts');
+    console.log(
+      this.#loggerPrefix,
+      'monitoredAccounts',
+      this.#monitoredAccounts,
+    );
 
     const accounts = await this.#accountService.getAll();
 
@@ -80,30 +116,50 @@ export class KeyringAccountMonitor {
 
   async monitorKeyringAccount(account: SolanaKeyringAccount): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Monitoring keyring account', account);
+    const { address } = account;
 
     const { activeNetworks } = this.#configProvider.get();
 
-    // Get token accounts
-    const tokenAccounts =
-      await this.#assetsService.getTokenAccountsByOwnerMultiple(
-        asAddress(account.address),
-        [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-        activeNetworks,
+    const promises = activeNetworks.map(async (network) => {
+      if (this.#monitoredAccounts[network].has(address)) {
+        this.#logger.log(
+          this.#loggerPrefix,
+          'Already monitoring keyring account',
+          {
+            account,
+            network,
+          },
+        );
+        return;
+      }
+
+      this.#monitoredAccounts[network].set(address, new Set());
+
+      // Get token accounts
+      const tokenAccounts =
+        await this.#assetsService.getTokenAccountsByOwnerMultiple(
+          asAddress(address),
+          [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+          [network],
+        );
+
+      // Monitor native assets on this network
+      const nativeAssetsPromise = this.#monitorAccountNativeAsset(
+        account,
+        network,
       );
 
-    // Monitor native assets across all active networks
-    const nativeAssetsPromises = activeNetworks.map(async (network) =>
-      this.#monitorAccountNativeAsset(account, network),
-    );
+      // Monitor token assets on this network
+      const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
+        this.#monitorAccountTokenAsset(account, tokenAccount),
+      );
 
-    // Monitor token assets across all active networks
-    const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
-      this.#monitorAccountTokenAsset(account, tokenAccount),
-    );
+      // TODO: Monitor NFTs?
 
-    // TODO: Monitor NFTs?
+      await Promise.allSettled([nativeAssetsPromise, ...tokenAssetsPromises]);
+    });
 
-    await Promise.allSettled([...nativeAssetsPromises, ...tokenAssetsPromises]);
+    await Promise.allSettled(promises);
   }
 
   /**
@@ -220,6 +276,19 @@ export class KeyringAccountMonitor {
       params,
     });
 
+    await Promise.allSettled([
+      // Update the balance of the token asset
+      this.#updateTokenAssetBalance(account, notification, params),
+      // Fetch and save the transaction that caused the token asset change.
+      this.#saveCausingTransaction(account, notification, params),
+    ]);
+  }
+
+  async #updateTokenAssetBalance(
+    account: SolanaKeyringAccount,
+    notification: AccountNotification,
+    params: RpcAccountMonitoringParams,
+  ): Promise<void> {
     const { network } = params;
 
     const mint = get(notification, 'value.data.parsed.info.mint');
@@ -269,10 +338,82 @@ export class KeyringAccountMonitor {
   }
 
   /**
+   * Fetch the transaction that caused the token asset change and save it.
+   * This is to cover the case where the balance changed due to a "receive" (transfer from another account outside of the extension).
+   *
+   * Note that we don't need to check here if the transaction already exists in the state, because the TransactionService avoids saving duplicates in the state.
+   *
+   * @param account - The account that the token asset changed for.
+   * @param notification - The notification that triggered the event.
+   * @param params - The parameters for the event.
+   */
+  async #saveCausingTransaction(
+    account: SolanaKeyringAccount,
+    notification: AccountNotification,
+    params: RpcAccountMonitoringParams,
+  ): Promise<void> {
+    const { network, address } = params;
+
+    const signature = (
+      await this.#transactionsService.fetchLatestSignatures(
+        network,
+        asAddress(address),
+        1,
+      )
+    )[0];
+
+    if (!signature) {
+      this.#logger.error(this.#loggerPrefix, 'No signature found', {
+        account,
+        notification,
+        params,
+      });
+      return;
+    }
+
+    const transaction = await this.#transactionsService.fetchBySignature(
+      signature,
+      account,
+      network,
+    );
+
+    if (!transaction) {
+      this.#logger.error(this.#loggerPrefix, 'No transaction found', {
+        account,
+        notification,
+        params,
+      });
+      return;
+    }
+
+    await this.#transactionsService.saveTransaction(transaction, account);
+  }
+
+  /**
+   * Stops monitoring all assets for all accounts across all active networks.
+   */
+  async stopMonitorAllKeyringAccounts(): Promise<void> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Stopping to monitor all keyring accounts',
+    );
+
+    const accounts = await this.#accountService.getAll();
+
+    await Promise.allSettled(
+      accounts.map(
+        async (account) => await this.stopMonitorKeyringAccount(account),
+      ),
+    );
+  }
+
+  /**
    * Stops monitoring all assets for a single account across all active networks.
    * @param account - The account to monitor the assets for.
    */
-  async stopMonitorAccountAssets(account: SolanaKeyringAccount): Promise<void> {
+  async stopMonitorKeyringAccount(
+    account: SolanaKeyringAccount,
+  ): Promise<void> {
     this.#logger.log(
       this.#loggerPrefix,
       'Stopping to monitor all assets of account',
@@ -288,6 +429,11 @@ export class KeyringAccountMonitor {
         [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
         activeNetworks,
       );
+
+    // Clean up the monitored accounts map
+    activeNetworks.forEach((network) => {
+      this.#monitoredAccounts[network].delete(address);
+    });
 
     // Stop monitoring native assets across all activeNetworks networks
     const nativeAssetsPromises = activeNetworks.map(async (network) =>

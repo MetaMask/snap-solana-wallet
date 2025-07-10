@@ -1,10 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-  KeyringEvent,
-  type KeyringRequest,
-  SolMethod,
-} from '@metamask/keyring-api';
-import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
+import { type KeyringRequest, SolMethod } from '@metamask/keyring-api';
 import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
 import type { Commitment, SignatureBytes } from '@solana/kit';
@@ -410,23 +405,15 @@ export class WalletService {
 
     await this.#transactionsService.saveTransaction(transaction, account);
 
-    await Promise.allSettled([
-      // Bubble up the new transaction to the extension
-      emitSnapKeyringEvent(snap, KeyringEvent.AccountTransactionsUpdated, {
-        transactions: {
-          [account.id]: [transaction],
-        },
-      }),
-      // Track in analytics
-      this.#analyticsService.trackEventTransactionFinalized(
-        account,
-        transaction,
-        {
-          scope: network,
-          origin,
-        },
-      ),
-    ]);
+    // Track in analytics
+    await this.#analyticsService.trackEventTransactionFinalized(
+      account,
+      transaction,
+      {
+        scope: network,
+        origin,
+      },
+    );
   }
 
   /**
