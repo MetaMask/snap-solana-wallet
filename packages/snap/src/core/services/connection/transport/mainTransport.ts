@@ -30,8 +30,8 @@ export const createMainTransport = (urls: string[]) => {
   return pipe(
     urls,
     forEach(createToggleInfuraBigtableLookupsTransport), // For each URL, create a transport that toggles BigTable lookups on Infura
-    createFailoverTransport, // Wrap the list of above transports into a single transport that fails over each wrapped transport on failure
+    (transports) => createFailoverTransport(transports, urls), // Wrap the list of above transports into a single transport that fails over each wrapped transport on failure, passing URLs for error tracking
     createRetryingTransport, // Wrap the previous transport into a transport that retries failed requests
-    (transport) => createErrorTrackingTransport(transport, urls[0]), // Add error tracking as the most outer layer
+    (transport) => createErrorTrackingTransport(transport), // Add error tracking as the most outer layer
   );
 };

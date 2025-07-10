@@ -16,10 +16,8 @@ describe('createErrorTrackingTransport', () => {
         .fn()
         .mockRejectedValue(new Error('HTTP 500 Internal Server Error'));
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
@@ -40,10 +38,8 @@ describe('createErrorTrackingTransport', () => {
         .fn()
         .mockRejectedValue(new Error('Network timeout'));
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
@@ -73,10 +69,8 @@ describe('createErrorTrackingTransport', () => {
 
       const mockTransport = jest.fn().mockResolvedValue(mockResponse);
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
@@ -108,10 +102,8 @@ describe('createErrorTrackingTransport', () => {
 
       const mockTransport = jest.fn().mockResolvedValue(mockResponse);
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
@@ -142,10 +134,8 @@ describe('createErrorTrackingTransport', () => {
 
       const mockTransport = jest.fn().mockResolvedValue(mockResponse);
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       const result = await errorTrackingTransport({
         payload: { method: 'getBalance' },
@@ -164,10 +154,8 @@ describe('createErrorTrackingTransport', () => {
 
       const mockTransport = jest.fn().mockResolvedValue(mockResponse);
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       const result = await errorTrackingTransport({
         payload: { method: 'getBalance' },
@@ -185,10 +173,8 @@ describe('createErrorTrackingTransport', () => {
         .mockRejectedValue(new Error('Network error'));
       mockSnap.request.mockRejectedValue(new Error('Tracking failed'));
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
@@ -204,10 +190,8 @@ describe('createErrorTrackingTransport', () => {
         .fn()
         .mockRejectedValue(new Error('Test error'));
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
@@ -223,16 +207,39 @@ describe('createErrorTrackingTransport', () => {
       });
     });
 
+    it('should extract currentUrl from error object when available', async () => {
+      const mockError = new Error('Network error');
+      (mockError as any).currentUrl = 'https://api2.example.com';
+
+      const mockTransport = jest.fn().mockRejectedValue(mockError);
+
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
+
+      await expect(
+        errorTrackingTransport({ payload: { method: 'getBalance' } }),
+      ).rejects.toThrow('Network error');
+
+      expect(mockSnap.request).toHaveBeenCalledWith({
+        method: 'snap_trackError',
+        params: {
+          error: expect.objectContaining({
+            message: expect.stringContaining(
+              '"url":"https://api2.example.com"',
+            ),
+          }),
+        },
+      });
+    });
+
     it('should extract status codes from errors', async () => {
       const mockError = new Error('HTTP 404 Not Found');
       (mockError as any).status = 404;
 
       const mockTransport = jest.fn().mockRejectedValue(mockError);
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
@@ -253,10 +260,8 @@ describe('createErrorTrackingTransport', () => {
     it('should handle string errors', async () => {
       const mockTransport = jest.fn().mockRejectedValue('Simple string error');
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
@@ -278,10 +283,8 @@ describe('createErrorTrackingTransport', () => {
       const mockError = { error: { code: -32000, message: 'Server error' } };
       const mockTransport = jest.fn().mockRejectedValue(mockError);
 
-      const errorTrackingTransport = createErrorTrackingTransport(
-        mockTransport,
-        'https://api.example.com',
-      );
+      const errorTrackingTransport =
+        createErrorTrackingTransport(mockTransport);
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),

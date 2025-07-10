@@ -67,19 +67,18 @@ function isErrorResponse(response: any): boolean {
  *
  * @param error - The error to extract information from.
  * @param method - The RPC method that was called.
- * @param url - The URL of the RPC endpoint (optional).
  * @returns The extracted error information.
  */
-function extractErrorInfo(
-  error: any,
-  method: string,
-  url?: string,
-): ErrorTrackingInfo {
+function extractErrorInfo(error: any, method: string): ErrorTrackingInfo {
   const errorInfo: ErrorTrackingInfo = {
     method,
-    url,
     errorMessage: 'Unknown error',
   };
+
+  // Check if the error has a currentUrl property (from failover transport)
+  if (error?.currentUrl) {
+    errorInfo.url = error.currentUrl;
+  }
 
   // Handle different error formats
   if (error instanceof Error) {
@@ -116,14 +115,13 @@ function extractErrorInfo(
 /**
  * Creates an error tracking transport that wraps the provided base transport.
  * It tracks both 4xx/5xx HTTP errors and 2xx responses with error information.
+ * The URL will be extracted from the error object when available (e.g., from failover transport).
  *
  * @param baseTransport - The base transport to wrap.
- * @param url - The URL of the RPC endpoint (optional, for tracking purposes).
  * @returns The error tracking transport.
  */
 export const createErrorTrackingTransport = (
   baseTransport: RpcTransport,
-  url?: string,
 ): RpcTransport => {
   return async <TResponse>(
     ...args: Parameters<RpcTransport>
@@ -140,7 +138,6 @@ export const createErrorTrackingTransport = (
       if (isErrorResponse(response)) {
         const errorInfo: ErrorTrackingInfo = {
           method,
-          url,
           errorMessage: `RPC error in response: ${JSON.stringify(response)}`,
           responseData: response,
           requestParams: payload,
@@ -154,7 +151,7 @@ export const createErrorTrackingTransport = (
 
       return response as TResponse;
     } catch (error) {
-      const errorInfo = extractErrorInfo(error, method, url);
+      const errorInfo = extractErrorInfo(error, method);
       // Track the error
       await trackError(errorInfo);
 
