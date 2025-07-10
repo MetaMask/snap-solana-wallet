@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Digite o endereço público"
+      "message": "Enter public address or domain name"
     },
     "send.fromRequiredError": {
       "message": "Conta obrigatória"
@@ -47,7 +47,22 @@
       "message": "O endereço é obrigatório"
     },
     "send.toInvalidError": {
-      "message": "Endereço Solana inválido"
+      "message": "Invalid Solana address or domain name"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Unable to resolve domain name"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolving domain name..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domain name resolved."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Unable to resolve domain name."
     },
     "send.insufficientBalance": {
       "message": "Saldo insuficiente"

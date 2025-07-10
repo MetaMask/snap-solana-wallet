@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Ilagay ang pampublikong address"
+      "message": "Enter public address or domain name"
     },
     "send.fromRequiredError": {
       "message": "Kinakailangan ang account"
@@ -47,7 +47,22 @@
       "message": "Kinakailangan ang address na pupuntahan"
     },
     "send.toInvalidError": {
-      "message": "Hindi valid na address ng Solana"
+      "message": "Invalid Solana address or domain name"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Unable to resolve domain name"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolving domain name..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domain name resolved."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Unable to resolve domain name."
     },
     "send.insufficientBalance": {
       "message": "Hindi sapat ang balanse"
