@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-globals */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
-import { CaipAssetTypeStruct, Duration } from '@metamask/utils';
+import { CaipAssetTypeStruct } from '@metamask/utils';
 import { mapKeys } from 'lodash';
 
 import type { ICache } from '../../caching/ICache';
@@ -39,10 +39,10 @@ export class PriceApiClient {
 
   readonly #cache: ICache<Serializable>;
 
-  public static readonly cacheTtlsMilliseconds = {
-    fiatExchangeRates: Duration.Minute,
-    spotPrices: Duration.Minute,
-    historicalPrices: Duration.Minute,
+  readonly cacheTtlsMilliseconds: {
+    fiatExchangeRates: number;
+    spotPrices: number;
+    historicalPrices: number;
   };
 
   constructor(
@@ -51,7 +51,8 @@ export class PriceApiClient {
     _fetch: typeof globalThis.fetch = globalThis.fetch,
     _logger: ILogger = logger,
   ) {
-    const { baseUrl, chunkSize } = configProvider.get().priceApi;
+    const { baseUrl, chunkSize, cacheTtlsMilliseconds } =
+      configProvider.get().priceApi;
 
     assert(baseUrl, UrlStruct);
 
@@ -59,6 +60,7 @@ export class PriceApiClient {
     this.#logger = _logger;
     this.#baseUrl = baseUrl;
     this.#chunkSize = chunkSize;
+    this.cacheTtlsMilliseconds = cacheTtlsMilliseconds;
 
     this.#cache = _cache;
   }
@@ -149,7 +151,7 @@ export class PriceApiClient {
         tokenCaipAssetTypes.map((tokenCaipAssetType) => ({
           key: `PriceApiClient:getMultipleSpotPrices:${tokenCaipAssetType}:${vsCurrency}`,
           value: spotPrices[tokenCaipAssetType],
-          ttlMilliseconds: PriceApiClient.cacheTtlsMilliseconds.spotPrices,
+          ttlMilliseconds: this.cacheTtlsMilliseconds.spotPrices,
         })),
       );
 
@@ -227,7 +229,7 @@ export class PriceApiClient {
         ([tokenCaipAssetType, spotPrice]) => ({
           key: toCacheKey(tokenCaipAssetType as CaipAssetType),
           value: spotPrice,
-          ttlMilliseconds: PriceApiClient.cacheTtlsMilliseconds.spotPrices,
+          ttlMilliseconds: this.cacheTtlsMilliseconds.spotPrices,
         }),
       ),
     );
@@ -311,7 +313,7 @@ export class PriceApiClient {
       this.#cache,
       {
         functionName: 'PriceApiClient:getHistoricalPrices',
-        ttlMilliseconds: PriceApiClient.cacheTtlsMilliseconds.historicalPrices,
+        ttlMilliseconds: this.cacheTtlsMilliseconds.historicalPrices,
       },
     )(params);
   }

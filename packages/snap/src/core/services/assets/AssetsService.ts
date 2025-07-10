@@ -172,13 +172,21 @@ export class AssetsService {
 
     const accountAddress = asAddress(account.address);
 
-    const [nativeAssetsIds, tokenAssetsIds, nftAssetsIds] = await Promise.all([
+    const [
+      nativeAssetsIds,
+      tokenAssetsIds,
+      // nftAssetsIds
+    ] = await Promise.all([
       this.#listAddressNativeAssets(),
       this.#listAddressTokenAssets(accountAddress),
-      this.#listAddressNftAssets(accountAddress),
+      // this.#listAddressNftAssets(accountAddress),
     ]);
 
-    return uniq([...nativeAssetsIds, ...tokenAssetsIds, ...nftAssetsIds]);
+    return uniq([
+      ...nativeAssetsIds,
+      ...tokenAssetsIds,
+      // ...nftAssetsIds
+    ]);
   }
 
   #splitAssetsByType(assetTypes: CaipAssetType[]) {

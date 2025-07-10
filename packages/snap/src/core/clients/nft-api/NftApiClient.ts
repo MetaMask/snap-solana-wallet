@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-restricted-globals */
 import { assert } from '@metamask/superstruct';
-import { Duration } from '@metamask/utils';
 
 import type { ICache } from '../../caching/ICache';
 import { useCache } from '../../caching/useCache';
@@ -28,9 +27,9 @@ export class NftApiClient {
 
   readonly #cache: ICache<Serializable>;
 
-  readonly #cacheTtlsMilliseconds = {
-    listAddressSolanaNfts: Duration.Minute,
-    getNftMetadata: Duration.Minute,
+  readonly #cacheTtlsMilliseconds: {
+    listAddressSolanaNfts: number;
+    getNftMetadata: number;
   };
 
   constructor(

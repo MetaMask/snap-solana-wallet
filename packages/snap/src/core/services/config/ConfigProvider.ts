@@ -65,6 +65,11 @@ export type Config = {
   priceApi: {
     baseUrl: string;
     chunkSize: number;
+    cacheTtlsMilliseconds: {
+      fiatExchangeRates: number;
+      spotPrices: number;
+      historicalPrices: number;
+    };
   };
   tokenApi: {
     baseUrl: string;
@@ -168,6 +173,11 @@ export class ConfigProvider {
             ? environment.LOCAL_API_BASE_URL
             : environment.PRICE_API_BASE_URL,
         chunkSize: 50,
+        cacheTtlsMilliseconds: {
+          fiatExchangeRates: Duration.Minute,
+          spotPrices: Duration.Minute,
+          historicalPrices: Duration.Minute,
+        },
       },
       tokenApi: {
         baseUrl:
