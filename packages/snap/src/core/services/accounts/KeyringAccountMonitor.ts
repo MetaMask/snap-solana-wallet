@@ -66,15 +66,8 @@ export class KeyringAccountMonitor {
    *   ]),
    * }
    */
-  readonly #monitoredAccounts: Record<Network, Map<string, Set<string>>> =
-    Object.values(Network).reduce<Record<Network, Map<string, Set<string>>>>(
-      (acc, network) => {
-        acc[network] = new Map();
-        return acc;
-      },
-      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
-      {} as Record<Network, Map<string, Set<string>>>,
-    );
+  #monitoredAccounts: Record<Network, Map<string, Set<string>>> =
+    createMonitoredAccountsMap();
 
   constructor(
     rpcAccountMonitor: RpcAccountMonitor,
@@ -104,6 +97,9 @@ export class KeyringAccountMonitor {
       'monitoredAccounts',
       this.#monitoredAccounts,
     );
+
+    // Clean up the monitored accounts map
+    this.#monitoredAccounts = createMonitoredAccountsMap();
 
     const accounts = await this.#accountService.getAll();
 
@@ -450,4 +446,24 @@ export class KeyringAccountMonitor {
 
     await Promise.allSettled([...nativeAssetsPromises, ...tokenAssetsPromises]);
   }
+}
+
+/**
+ * Creates a map of networks to maps of account addresses to sets of token account addresses.
+ * @returns The map of networks to maps of account addresses to sets of token account addresses.
+ */
+function createMonitoredAccountsMap(): Record<
+  Network,
+  Map<string, Set<string>>
+> {
+  return Object.values(Network).reduce<
+    Record<Network, Map<string, Set<string>>>
+  >(
+    (acc, network) => {
+      acc[network] = new Map();
+      return acc;
+    },
+    // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
+    {} as Record<Network, Map<string, Set<string>>>,
+  );
 }
