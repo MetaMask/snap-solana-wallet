@@ -94,12 +94,12 @@ describe('createErrorTrackingTransport', () => {
       });
     });
 
-    it('should track Solana RPC errors in result.err', async () => {
+    it('should track Solana RPC errors in result.error', async () => {
       const mockResponse = {
         jsonrpc: '2.0',
         id: 1,
         result: {
-          err: {
+          error: {
             code: 1,
             message: 'Invalid account',
           },
@@ -116,7 +116,7 @@ describe('createErrorTrackingTransport', () => {
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
       ).rejects.toThrow(
-        'RPC error: {"jsonrpc":"2.0","id":1,"result":{"err":{"code":1,"message":"Invalid account"}}}',
+        'RPC error: {"jsonrpc":"2.0","id":1,"result":{"error":{"code":1,"message":"Invalid account"}}}',
       );
 
       expect(mockSnap.request).toHaveBeenCalledWith({

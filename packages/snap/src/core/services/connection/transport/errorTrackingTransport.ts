@@ -1,5 +1,5 @@
-import { isJsonRpcError, isJsonRpcFailure } from '@metamask/utils';
 import { getJsonError } from '@metamask/snaps-sdk';
+import { isJsonRpcError, isJsonRpcFailure } from '@metamask/utils';
 import { type RpcTransport } from '@solana/kit';
 
 import logger from '../../../utils/logger';
@@ -7,7 +7,7 @@ import logger from '../../../utils/logger';
 /**
  * Error information that will be tracked.
  */
-interface ErrorTrackingInfo {
+type ErrorTrackingInfo = {
   method: string;
   url?: string | undefined;
   statusCode?: number | undefined;
@@ -15,7 +15,7 @@ interface ErrorTrackingInfo {
   errorStack?: string | undefined;
   responseData?: any | undefined;
   requestParams?: any | undefined;
-}
+};
 
 /**
  * Tracks an error using the snap's error tracking mechanism.
@@ -54,8 +54,8 @@ function isErrorResponse(response: any): boolean {
     return true;
   }
 
-  // Also check for Solana RPC error format (result.err)
-  if (response?.result?.err) {
+  // Also check for Solana RPC error format
+  if (response?.result?.err || response?.result?.error) {
     return true;
   }
 
