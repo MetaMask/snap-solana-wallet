@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Εισάγετε τη δημόσια διεύθυνση"
+      "message": "Enter public address or domain name"
     },
     "send.fromRequiredError": {
       "message": "Απαιτείται ο λογαριασμός"
@@ -47,7 +47,22 @@
       "message": "Απαιτείται η διεύθυνση"
     },
     "send.toInvalidError": {
-      "message": "Μη έγκυρη διεύθυνση Solana"
+      "message": "Invalid Solana address or domain name"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Unable to resolve domain name"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolving domain name..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domain name resolved."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Unable to resolve domain name."
     },
     "send.insufficientBalance": {
       "message": "Ανεπαρκές υπόλοιπο"
