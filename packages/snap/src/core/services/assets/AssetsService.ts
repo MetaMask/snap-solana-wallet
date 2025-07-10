@@ -164,6 +164,12 @@ export class AssetsService {
   async listAccountAssets(
     account: SolanaKeyringAccount,
   ): Promise<CaipAssetType[]> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Fetching all assets for account',
+      account,
+    );
+
     const accountAddress = asAddress(account.address);
 
     const [nativeAssetsIds, tokenAssetsIds, nftAssetsIds] = await Promise.all([
@@ -280,6 +286,12 @@ export class AssetsService {
   async getAssetsMetadata(
     assetTypes: CaipAssetType[],
   ): Promise<Record<CaipAssetType, AssetMetadata | null>> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Fetching metadata for assets',
+      assetTypes,
+    );
+
     const { nativeAssetTypes, tokenAssetTypes, nftAssetTypes } =
       this.#splitAssetsByType(assetTypes);
 
@@ -392,6 +404,13 @@ export class AssetsService {
     account: SolanaKeyringAccount,
     assetTypes: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Fetching balances for account',
+      account,
+      assetTypes,
+    );
+
     /**
      * There will be 3 sources of balances data:
      * - The balances for native assets, which are fetched from the RPC
@@ -530,12 +549,13 @@ export class AssetsService {
    */
   async refreshAssets(accounts: SolanaKeyringAccount[]): Promise<void> {
     if (accounts.length === 0) {
-      this.#logger.info('[AssetsService] No accounts found');
+      this.#logger.log(this.#loggerPrefix, 'No accounts passed');
       return;
     }
 
     this.#logger.log(
-      `[AssetsService] Refreshing assets for ${accounts.length} accounts`,
+      this.#loggerPrefix,
+      `Refreshing assets for ${accounts.length} accounts`,
     );
 
     const assets =
@@ -544,7 +564,8 @@ export class AssetsService {
 
     for (const account of accounts) {
       this.#logger.log(
-        `[AssetsService] Fetching all assets for ${account.address} in all networks`,
+        this.#loggerPrefix,
+        `Fetching all assets for ${account.address} in all networks`,
       );
       const accountAssets = await this.listAccountAssets(account);
       const previousAssets = assets[account.id];
@@ -561,9 +582,10 @@ export class AssetsService {
       } = diffArrays(previousCaip19Assets, currentCaip19Assets);
 
       if (assetsChanged) {
-        this.#logger.info(
+        this.#logger.log(
+          this.#loggerPrefix,
+          `Found updated assets for ${account.address}`,
           { assetsAdded, assetsDeleted, assetsChanged },
-          `[refreshAssets] Found updated assets for ${account.address}`,
         );
 
         await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
@@ -592,9 +614,10 @@ export class AssetsService {
       } = diffObjects(previousBalances ?? {}, accountBalances);
 
       if (balancesHaveChange) {
-        this.#logger.info(
+        this.#logger.log(
+          this.#loggerPrefix,
+          `Found updated balances for ${account.address}`,
           { balancesAdded, balancesDeleted, balancesChanged },
-          `[BalancesService] Found updated balances for ${account.address}`,
         );
 
         await emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
