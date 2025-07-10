@@ -72,7 +72,9 @@ describe('createErrorTrackingTransport', () => {
       const errorTrackingTransport =
         createErrorTrackingTransport(mockTransport);
 
-      const result = await errorTrackingTransport({ payload: { method: 'getBalance' } });
+      const result = await errorTrackingTransport({
+        payload: { method: 'getBalance' },
+      });
 
       // Should return the response instead of throwing
       expect(result).toStrictEqual(mockResponse);
@@ -85,7 +87,7 @@ describe('createErrorTrackingTransport', () => {
           }),
         },
       });
-    });    
+    });
   });
 
   describe('Successful responses', () => {
