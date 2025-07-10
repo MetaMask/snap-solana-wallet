@@ -546,14 +546,59 @@ describe('TransactionsService', () => {
         }),
       } as any);
 
+      jest.spyOn(mockAssetsService, 'getAssetsMetadata').mockResolvedValue({
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr':
+          {
+            fungible: true,
+            iconUrl: '',
+            units: [{ decimals: 6, symbol: 'EURC', name: 'EURC' }],
+            symbol: 'EURC',
+            name: 'EURC',
+          },
+      });
+
       const result = await service.fetchBySignature(
         mockSignature,
         mockAccount,
         mockScope,
       );
 
-      expect(result).toMatchObject({
-        account: mockAccount.id,
+      expect(result).toStrictEqual({
+        id: 'signature-1',
+        account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
+        timestamp: 1737042268,
+        chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        status: 'confirmed',
+        type: 'receive',
+        from: [
+          {
+            address: 'H3sjyipQtXAJkvWNkXhDgped7k323kAba8QMwCLcV79w',
+            asset: {
+              fungible: true,
+              type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
+              unit: 'EURC',
+              amount: '10',
+            },
+          },
+        ],
+        to: [
+          {
+            address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+            asset: {
+              fungible: true,
+              type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
+              unit: 'EURC',
+              amount: '10',
+            },
+          },
+        ],
+        fees: [],
+        events: [
+          {
+            status: 'confirmed',
+            timestamp: 1737042268,
+          },
+        ],
       });
     });
 

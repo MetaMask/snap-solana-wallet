@@ -215,11 +215,21 @@ export class TransactionsService {
       return null;
     }
 
-    return mapRpcTransaction({
+    const transaction = mapRpcTransaction({
       transactionData,
       scope,
       account,
     });
+
+    if (!transaction) {
+      return null;
+    }
+
+    const withTokenMetadata = await this.#populateAccountTransactionAssetUnits({
+      [account.id]: [transaction],
+    });
+
+    return withTokenMetadata[account.id]?.[0] ?? null;
   }
 
   /**
