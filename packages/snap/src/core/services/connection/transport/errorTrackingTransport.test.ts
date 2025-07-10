@@ -23,7 +23,7 @@ describe('createErrorTrackingTransport', () => {
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
-      ).rejects.toThrow();
+      ).rejects.toThrow('HTTP 500 Internal Server Error');
 
       expect(mockSnap.request).toHaveBeenCalledWith({
         method: 'snap_trackError',
@@ -47,7 +47,7 @@ describe('createErrorTrackingTransport', () => {
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
-      ).rejects.toThrow();
+      ).rejects.toThrow('Network timeout');
 
       expect(mockSnap.request).toHaveBeenCalledWith({
         method: 'snap_trackError',
@@ -80,7 +80,9 @@ describe('createErrorTrackingTransport', () => {
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
-      ).rejects.toThrow();
+      ).rejects.toThrow(
+        'RPC error: {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"RPC error: Invalid request"}}',
+      );
 
       expect(mockSnap.request).toHaveBeenCalledWith({
         method: 'snap_trackError',
@@ -113,7 +115,9 @@ describe('createErrorTrackingTransport', () => {
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
-      ).rejects.toThrow();
+      ).rejects.toThrow(
+        'RPC error: {"jsonrpc":"2.0","id":1,"result":{"err":{"code":1,"message":"Invalid account"}}}',
+      );
 
       expect(mockSnap.request).toHaveBeenCalledWith({
         method: 'snap_trackError',
@@ -147,7 +151,7 @@ describe('createErrorTrackingTransport', () => {
         payload: { method: 'getBalance' },
       });
 
-      expect(result).toEqual(mockResponse);
+      expect(result).toStrictEqual(mockResponse);
       expect(mockSnap.request).not.toHaveBeenCalled();
     });
 
@@ -169,7 +173,7 @@ describe('createErrorTrackingTransport', () => {
         payload: { method: 'getBalance' },
       });
 
-      expect(result).toEqual(mockResponse);
+      expect(result).toStrictEqual(mockResponse);
       expect(mockSnap.request).not.toHaveBeenCalled();
     });
   });
@@ -207,7 +211,7 @@ describe('createErrorTrackingTransport', () => {
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
-      ).rejects.toThrow();
+      ).rejects.toThrow('Test error');
 
       expect(mockSnap.request).toHaveBeenCalledWith({
         method: 'snap_trackError',
@@ -232,7 +236,7 @@ describe('createErrorTrackingTransport', () => {
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
-      ).rejects.toThrow();
+      ).rejects.toThrow('HTTP 404 Not Found');
 
       expect(mockSnap.request).toHaveBeenCalledWith({
         method: 'snap_trackError',
@@ -281,7 +285,7 @@ describe('createErrorTrackingTransport', () => {
 
       await expect(
         errorTrackingTransport({ payload: { method: 'getBalance' } }),
-      ).rejects.toThrow();
+      ).rejects.toThrow('{"code":-32000,"message":"Server error"}');
 
       expect(mockSnap.request).toHaveBeenCalledWith({
         method: 'snap_trackError',

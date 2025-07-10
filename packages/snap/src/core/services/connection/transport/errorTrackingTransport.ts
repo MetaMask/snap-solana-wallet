@@ -1,6 +1,6 @@
-import { type RpcTransport } from '@solana/kit';
 import { isJsonRpcError, isJsonRpcFailure } from '@metamask/utils';
 import { getJsonError } from '@metamask/snaps-sdk';
+import { type RpcTransport } from '@solana/kit';
 
 import logger from '../../../utils/logger';
 
@@ -20,6 +20,8 @@ interface ErrorTrackingInfo {
 /**
  * Tracks an error using the snap's error tracking mechanism.
  * This function safely handles the error tracking without throwing errors.
+ *
+ * @param errorInfo - The error information to track.
  */
 async function trackError(errorInfo: ErrorTrackingInfo): Promise<void> {
   try {
@@ -43,6 +45,9 @@ async function trackError(errorInfo: ErrorTrackingInfo): Promise<void> {
 /**
  * Checks if a response is indeed an error, even if it's a 2xx status code.
  * Uses metamask/utils to detect JSON-RPC errors.
+ *
+ * @param response - The response to check for errors.
+ * @returns True if the response contains an error, false otherwise.
  */
 function isErrorResponse(response: any): boolean {
   if (isJsonRpcError(response) || isJsonRpcFailure(response)) {
@@ -59,6 +64,11 @@ function isErrorResponse(response: any): boolean {
 
 /**
  * Extracts error information from various error response formats.
+ *
+ * @param error - The error to extract information from.
+ * @param method - The RPC method that was called.
+ * @param url - The URL of the RPC endpoint (optional).
+ * @returns The extracted error information.
  */
 function extractErrorInfo(
   error: any,
@@ -153,7 +163,7 @@ export const createErrorTrackingTransport = (
       if (error instanceof Error) {
         throw error;
       } else {
-        throw new Error(String(error));
+        throw new Error(errorInfo.errorMessage);
       }
     }
   };
