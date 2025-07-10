@@ -95,6 +95,7 @@ describe('AssetsService', () => {
 
     mockAccountMonitor = {
       monitor: jest.fn(),
+      stopMonitoring: jest.fn(),
     } as unknown as AccountMonitor;
 
     // Mock the monitor method to capture the onAccountChanged callback
@@ -523,6 +524,62 @@ describe('AssetsService', () => {
             },
           },
         },
+      );
+    });
+  });
+
+  describe('stopMonitorAccountAssets', () => {
+    it('stops monitoring the account native and token assets on all active networks', async () => {
+      const account = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
+
+      // Setup 2 active networks
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet, Network.Devnet],
+      } as unknown as Config);
+
+      // Set up assets
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getTokenAccountsByOwner: jest.fn().mockReturnValue({
+          send: jest
+            .fn()
+            // 2 token assets on first network and first program ID
+            .mockResolvedValueOnce({
+              value:
+                MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result
+                  .value,
+            })
+            // No token asset for the rest
+            .mockResolvedValue({
+              value: [],
+            }),
+        }),
+      } as any);
+
+      await assetsService.stopMonitorAccountAssets(account);
+
+      /**
+       * List of expected calls to stopMonitoring:
+       * - 1 for the native asset on Mainnet and Devnet -> 2 calls
+       * - 1 for token asset on token-program on Mainnet -> 1 call
+       * - 1 for token asset on token-2022-program on Mainnet -> 1 call
+       * - no token asset on Devnet -> 0 call
+       */
+      expect(mockAccountMonitor.stopMonitoring).toHaveBeenCalledTimes(4);
+      expect(mockAccountMonitor.stopMonitoring).toHaveBeenCalledWith(
+        'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+        Network.Mainnet,
+      );
+      expect(mockAccountMonitor.stopMonitoring).toHaveBeenCalledWith(
+        'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+        Network.Devnet,
+      );
+      expect(mockAccountMonitor.stopMonitoring).toHaveBeenCalledWith(
+        '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
+        Network.Mainnet,
+      );
+      expect(mockAccountMonitor.stopMonitoring).toHaveBeenCalledWith(
+        'DJGpJufSnVDriDczovhcQRyxamKtt87PHQ7TJEcVB6ta',
+        Network.Mainnet,
       );
     });
   });

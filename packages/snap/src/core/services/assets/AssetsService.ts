@@ -887,7 +887,10 @@ export class AssetsService {
 
     // Stop monitoring token assets across all active networks
     const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
-      this.#accountMonitor.stopMonitoring(address, tokenAccount.scope),
+      this.#accountMonitor.stopMonitoring(
+        tokenAccount.pubkey,
+        tokenAccount.scope,
+      ),
     );
 
     await Promise.allSettled([...nativeAssetsPromises, ...tokenAssetsPromises]);
