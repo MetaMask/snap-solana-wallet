@@ -1,5 +1,4 @@
 import { define, pattern, string } from '@metamask/superstruct';
-import { address } from '@solana/kit';
 
 /* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';
@@ -28,7 +27,7 @@ export enum KnownCaip19Id {
   SolLocalnet = `${Network.Localnet}/slip44:501`,
   UsdcMainnet = `${Network.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
   UsdcDevnet = `${Network.Devnet}/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
-  UsdcLocalnet = `${Network.Localnet}/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
+  UsdcLocalnet = `${Network.Localnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
   EurcMainnet = `${Network.Mainnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   EurcDevnet = `${Network.Devnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   EurcLocalnet = `${Network.Localnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
@@ -148,14 +147,10 @@ export const TokenMetadata = {
   [KnownCaip19Id.UsdcLocalnet]: {
     symbol: 'USDC',
     caip19Id: KnownCaip19Id.UsdcLocalnet,
-    address: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
     decimals: 6,
   },
 } as const;
-
-export const TOKEN_2022_PROGRAM_ADDRESS = address(
-  'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
-);
 
 export const Networks = {
   [Network.Mainnet]: {

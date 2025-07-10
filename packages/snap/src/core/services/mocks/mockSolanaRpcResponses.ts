@@ -128,7 +128,7 @@ export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
           data: {
             parsed: {
               info: {
-                mint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU', // USDC
+                mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
                 owner: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
                 isNative: false,
                 tokenAmount: {
@@ -139,6 +139,7 @@ export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
             },
           },
         },
+        pubkey: '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
       },
       {
         account: {
@@ -156,6 +157,7 @@ export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
             },
           },
         },
+        pubkey: 'DJGpJufSnVDriDczovhcQRyxamKtt87PHQ7TJEcVB6ta',
       },
     ],
   },

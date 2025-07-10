@@ -8,6 +8,7 @@ import type {
 import type { CaipAssetType } from '@metamask/utils';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
+import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
 import type { Address } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 import { get, map, uniq } from 'lodash';
@@ -23,11 +24,7 @@ import type {
   NftCaipAssetType,
   TokenCaipAssetType,
 } from '../../constants/solana';
-import {
-  Network,
-  SolanaCaip19Tokens,
-  TOKEN_2022_PROGRAM_ADDRESS,
-} from '../../constants/solana';
+import { Network, SolanaCaip19Tokens } from '../../constants/solana';
 import type {
   GetTokenAccountsByOwnerResponse,
   TokenAccountInfoWithJsonData,
@@ -167,6 +164,12 @@ export class AssetsService {
   async listAccountAssets(
     account: SolanaKeyringAccount,
   ): Promise<CaipAssetType[]> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Fetching all assets for account',
+      account,
+    );
+
     const accountAddress = asAddress(account.address);
 
     const [nativeAssetsIds, tokenAssetsIds, nftAssetsIds] = await Promise.all([
@@ -283,6 +286,12 @@ export class AssetsService {
   async getAssetsMetadata(
     assetTypes: CaipAssetType[],
   ): Promise<Record<CaipAssetType, AssetMetadata | null>> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Fetching metadata for assets',
+      assetTypes,
+    );
+
     const { nativeAssetTypes, tokenAssetTypes, nftAssetTypes } =
       this.#splitAssetsByType(assetTypes);
 
@@ -395,6 +404,13 @@ export class AssetsService {
     account: SolanaKeyringAccount,
     assetTypes: CaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Fetching balances for account',
+      account,
+      assetTypes,
+    );
+
     /**
      * There will be 3 sources of balances data:
      * - The balances for native assets, which are fetched from the RPC
@@ -533,12 +549,13 @@ export class AssetsService {
    */
   async refreshAssets(accounts: SolanaKeyringAccount[]): Promise<void> {
     if (accounts.length === 0) {
-      this.#logger.info('[AssetsService] No accounts found');
+      this.#logger.log(this.#loggerPrefix, 'No accounts passed');
       return;
     }
 
     this.#logger.log(
-      `[AssetsService] Refreshing assets for ${accounts.length} accounts`,
+      this.#loggerPrefix,
+      `Refreshing assets for ${accounts.length} accounts`,
     );
 
     const assets =
@@ -547,7 +564,8 @@ export class AssetsService {
 
     for (const account of accounts) {
       this.#logger.log(
-        `[AssetsService] Fetching all assets for ${account.address} in all networks`,
+        this.#loggerPrefix,
+        `Fetching all assets for ${account.address} in all networks`,
       );
       const accountAssets = await this.listAccountAssets(account);
       const previousAssets = assets[account.id];
@@ -564,9 +582,10 @@ export class AssetsService {
       } = diffArrays(previousCaip19Assets, currentCaip19Assets);
 
       if (assetsChanged) {
-        this.#logger.info(
+        this.#logger.log(
+          this.#loggerPrefix,
+          `Found updated assets for ${account.address}`,
           { assetsAdded, assetsDeleted, assetsChanged },
-          `[refreshAssets] Found updated assets for ${account.address}`,
         );
 
         await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
@@ -595,9 +614,10 @@ export class AssetsService {
       } = diffObjects(previousBalances ?? {}, accountBalances);
 
       if (balancesHaveChange) {
-        this.#logger.info(
+        this.#logger.log(
+          this.#loggerPrefix,
+          `Found updated balances for ${account.address}`,
           { balancesAdded, balancesDeleted, balancesChanged },
-          `[BalancesService] Found updated balances for ${account.address}`,
         );
 
         await emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
@@ -658,25 +678,23 @@ export class AssetsService {
 
     const { activeNetworks } = this.#configProvider.get();
 
-    // Monitor native assets across all passed networks
-    await Promise.allSettled(
-      activeNetworks.map(async (network) => {
-        await this.#monitorAccountNativeAsset(account, network);
-      }),
-    );
-
-    // Monitor token assets across all passed networks
     const tokenAccounts = await this.#getTokenAccountsByOwnerMultiple(
       asAddress(account.address),
       [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
       activeNetworks,
     );
 
-    await Promise.allSettled(
-      tokenAccounts.map(async (tokenAccount) => {
-        await this.#monitorAccountTokenAsset(account, tokenAccount);
-      }),
+    // Monitor native assets across all active networks
+    const nativeAssetsPromises = activeNetworks.map(async (network) =>
+      this.#monitorAccountNativeAsset(account, network),
     );
+
+    // Monitor token assets across all active networks
+    const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
+      this.#monitorAccountTokenAsset(account, tokenAccount),
+    );
+
+    await Promise.allSettled([...nativeAssetsPromises, ...tokenAssetsPromises]);
   }
 
   /**
@@ -863,5 +881,41 @@ export class AssetsService {
         },
       }),
     ]);
+  }
+
+  /**
+   * Stops monitoring all assets for a single account across all active networks.
+   * @param account - The account to monitor the assets for.
+   */
+  async stopMonitorAccountAssets(account: SolanaKeyringAccount): Promise<void> {
+    this.#logger.log(
+      this.#loggerPrefix,
+      'Stopping to monitor all assets of account',
+      account,
+    );
+
+    const { address } = account;
+    const { activeNetworks } = this.#configProvider.get();
+
+    const tokenAccounts = await this.#getTokenAccountsByOwnerMultiple(
+      asAddress(address),
+      [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+      activeNetworks,
+    );
+
+    // Stop monitoring native assets across all activeNetworks networks
+    const nativeAssetsPromises = activeNetworks.map(async (network) =>
+      this.#accountMonitor.stopMonitoring(address, network),
+    );
+
+    // Stop monitoring token assets across all active networks
+    const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
+      this.#accountMonitor.stopMonitoring(
+        tokenAccount.pubkey,
+        tokenAccount.scope,
+      ),
+    );
+
+    await Promise.allSettled([...nativeAssetsPromises, ...tokenAssetsPromises]);
   }
 }

@@ -35,6 +35,9 @@ export class AccountMonitor {
 
   readonly #loggerPrefix = '[👤 AccountMonitor]';
 
+  // Map of address -> network -> subscriptionId
+  readonly #subscriptions: Map<string, Map<Network, string>> = new Map();
+
   constructor(
     subscriptionService: SubscriptionService,
     connection: SolanaConnection,
@@ -80,6 +83,8 @@ export class AccountMonitor {
         },
       },
     );
+
+    this.#setSubscription(address, network, subscriptionId);
 
     return subscriptionId;
   }
@@ -128,7 +133,67 @@ export class AccountMonitor {
     await onAccountChanged(account, params);
   }
 
-  async stopMonitoring(subscriptionId: string): Promise<void> {
-    await this.#subscriptionService.unsubscribe(subscriptionId);
+  /**
+   * Stops monitoring an account for changes on a given network.
+   * @param address - The account address.
+   * @param network - The network.
+   */
+  async stopMonitoring(address: string, network: Network): Promise<void> {
+    this.#logger.info(this.#loggerPrefix, `Stopping monitoring`, {
+      address,
+      network,
+    });
+
+    const subscriptionId = this.#getSubscription(address, network);
+    if (subscriptionId) {
+      await this.#subscriptionService.unsubscribe(subscriptionId);
+    }
+
+    this.#removeSubscription(address, network);
+  }
+
+  /**
+   * Stores the subscription ID for a given address and network.
+   * @param address - The account address.
+   * @param network - The network.
+   * @param subscriptionId - The subscription ID.
+   */
+  #setSubscription(
+    address: string,
+    network: Network,
+    subscriptionId: string,
+  ): void {
+    let networkMap = this.#subscriptions.get(address);
+    if (!networkMap) {
+      networkMap = new Map<Network, string>();
+      this.#subscriptions.set(address, networkMap);
+    }
+    networkMap.set(network, subscriptionId);
+  }
+
+  /**
+   * Retrieves the subscription ID for a given address and network.
+   * @param address - The account address.
+   * @param network - The network.
+   * @returns The subscription ID, or undefined if not found.
+   */
+  #getSubscription(address: string, network: Network): string | undefined {
+    const networkMap = this.#subscriptions.get(address);
+    return networkMap?.get(network);
+  }
+
+  /**
+   * Removes the subscription ID for a given address and network.
+   * @param address - The account address.
+   * @param network - The network.
+   */
+  #removeSubscription(address: string, network: Network): void {
+    const networkMap = this.#subscriptions.get(address);
+    if (networkMap) {
+      networkMap.delete(network);
+      if (networkMap.size === 0) {
+        this.#subscriptions.delete(address);
+      }
+    }
   }
 }

@@ -20,7 +20,7 @@ export const NetworkProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [network, setNetwork] = useState<Network>(Network.Devnet);
+  const [network, setNetwork] = useState<Network>(Network.Mainnet);
 
   return (
     <NetworkContext.Provider value={{ network, setNetwork }}>
