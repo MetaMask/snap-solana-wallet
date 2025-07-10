@@ -8,9 +8,9 @@ export enum RpcRequestMethod {
  * to allow specific flows for manual testing.
  */
 export enum TestDappRpcRequestMethod {
-  TestSetupAllConnections = 'testSetupAllConnections',
-  TestCloseAllConnections = 'testCloseAllConnections',
-  TestListSubscriptions = 'testListSubscriptions',
+  ListWebSockets = 'listWebSockets',
+  ConnectWebSocket = 'connectWebSocket',
+  ListSubscriptions = 'listSubscriptions',
   TestOnStart = 'testOnStart',
   TestOnInstall = 'testOnInstall',
   TestOnUpdate = 'testOnUpdate',

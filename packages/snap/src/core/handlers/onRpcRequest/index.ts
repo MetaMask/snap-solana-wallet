@@ -10,16 +10,17 @@ export const handlers: Record<RpcRequestMethod, OnRpcRequestHandler> = {
   [RpcRequestMethod.GetFeeForTransaction]: getFeeForTransaction,
 
   // Methods specific to the test dapp
-  [TestDappRpcRequestMethod.TestSetupAllConnections as any]: async () => {
-    await eventEmitter.emitSync('onTestSetupAllConnections');
+  [TestDappRpcRequestMethod.ListWebSockets as any]: async () => {
+    await eventEmitter.emitSync('onListWebSockets');
     return null;
   },
-  [TestDappRpcRequestMethod.TestCloseAllConnections as any]: async () => {
-    await eventEmitter.emitSync('onTestCloseAllConnections');
+  [TestDappRpcRequestMethod.ConnectWebSocket as any]: async (request: any) => {
+    const { network } = request.request.params;
+    await eventEmitter.emitSync('onConnectWebSocket', network);
     return null;
   },
-  [TestDappRpcRequestMethod.TestListSubscriptions as any]: async () => {
-    await eventEmitter.emitSync('onTestListSubscriptions');
+  [TestDappRpcRequestMethod.ListSubscriptions as any]: async () => {
+    await eventEmitter.emitSync('onListSubscriptions');
     return null;
   },
   [TestDappRpcRequestMethod.TestOnStart as any]: async () => {

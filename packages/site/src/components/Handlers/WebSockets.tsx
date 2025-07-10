@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Button, Card, Flex } from '@chakra-ui/react';
+import { Button, Card, Text as ChakraText, Flex } from '@chakra-ui/react';
 
+import { Network } from '../../../../snap/src/core/constants/solana';
 import { TestDappRpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
 import { useInvokeSnap } from '../../hooks';
 import { useShowToasterForResponse } from '../../hooks/useToasterForResponse';
@@ -9,44 +10,36 @@ export const WebSockets = () => {
   const invokeSnap = useInvokeSnap();
   const { showToasterForResponse } = useShowToasterForResponse();
 
-  const setupAllConnections = async () => {
+  const showSuccessToast = (title: string) =>
     showToasterForResponse(
       { result: 'ok' },
       {
-        title: 'Initiated WebSocket connections to all active networks',
-        description: `Inspect the offscreen console`,
+        title,
       },
     );
 
+  const listConnections = async () => {
     await invokeSnap({
-      method: TestDappRpcRequestMethod.TestSetupAllConnections,
+      method: TestDappRpcRequestMethod.ListWebSockets,
     });
+    showSuccessToast('Initiated WebSocket connections to all active networks');
   };
 
-  const closeAllConnections = async () => {
-    showToasterForResponse(
-      { result: 'ok' },
-      {
-        title: 'Closed all WebSocket connections',
-      },
-    );
+  const reconnectWebSocket = async (network: Network) => {
     await invokeSnap({
-      method: TestDappRpcRequestMethod.TestCloseAllConnections,
+      method: TestDappRpcRequestMethod.ConnectWebSocket,
+      params: {
+        network,
+      },
     });
+    showSuccessToast('Simulated a WebSocket reconnection');
   };
 
   const listSubscriptions = async () => {
     await invokeSnap({
-      method: TestDappRpcRequestMethod.TestListSubscriptions,
+      method: TestDappRpcRequestMethod.ListSubscriptions,
     });
-
-    showToasterForResponse(
-      { result: 'ok' },
-      {
-        title: 'Listed subscriptions',
-        description: `Inspect the offscreen console`,
-      },
-    );
+    showSuccessToast('Listed subscriptions');
   };
 
   return (
@@ -55,26 +48,30 @@ export const WebSockets = () => {
         <Card.Title>WebSockets</Card.Title>
       </Card.Header>
       <Card.Body gap="2">
-        <Flex>
-          <Button
-            variant="outline"
-            onClick={setupAllConnections}
-            marginRight="1"
-          >
-            Setup all connections
-          </Button>
-          <Button
-            variant="outline"
-            onClick={closeAllConnections}
-            marginRight="1"
-          >
-            Close all connections
-          </Button>
-        </Flex>
-        <Flex>
-          <Button variant="outline" onClick={listSubscriptions} marginRight="1">
-            List subscriptions
-          </Button>
+        <Flex direction="column" gap="4">
+          <Flex direction="column" gap="1">
+            <ChakraText>Connections</ChakraText>
+            <Button variant="outline" onClick={listConnections}>
+              List connections
+            </Button>
+            <Flex gap="1">
+              <Button
+                variant="outline"
+                onClick={async () => reconnectWebSocket(Network.Mainnet)}
+                marginRight="1"
+              >
+                Reconnect Mainnet
+              </Button>
+            </Flex>
+          </Flex>
+          <Flex direction="column" gap="1">
+            <ChakraText>Subscriptions</ChakraText>
+            <Flex gap="1">
+              <Button variant="outline" onClick={listSubscriptions}>
+                List subscriptions
+              </Button>
+            </Flex>
+          </Flex>
         </Flex>
       </Card.Body>
     </Card.Root>

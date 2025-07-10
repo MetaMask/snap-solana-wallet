@@ -58,15 +58,9 @@ export class WebSocketConnectionService {
 
     eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
 
-    // Temporary binds to enable manual testing from the test dapp
-    eventEmitter.on(
-      'onTestSetupAllConnections',
-      this.#setupAllConnections.bind(this),
-    );
-    eventEmitter.on(
-      'onTestCloseAllConnections',
-      this.#closeAllConnections.bind(this),
-    );
+    // Specific binds to enable manual testing from the test dapp
+    eventEmitter.on('onListWebSockets', this.#listConnections.bind(this));
+    eventEmitter.on('onConnectWebSocket', this.#handleConnected.bind(this));
   }
 
   /**
@@ -313,19 +307,9 @@ export class WebSocketConnectionService {
     await this.openConnection(network);
   }
 
-  /**
-   * Closes connections for all networks.
-   * This is used to test the connection recovery mechanism.
-   */
-  async #closeAllConnections(): Promise<void> {
-    this.#logger.info(this.#loggerPrefix, `Closing all connections`);
+  async #listConnections(): Promise<void> {
+    const connections = await this.#connectionRepository.getAll();
 
-    const allNetworks = Object.values(Network);
-
-    const closePromises = allNetworks.map(async (network) => {
-      await this.#closeConnection(network);
-    });
-
-    await Promise.allSettled(closePromises);
+    this.#logger.info(this.#loggerPrefix, `All connections`, connections);
   }
 }

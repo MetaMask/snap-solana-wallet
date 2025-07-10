@@ -37,9 +37,9 @@ const dappPermissions = isDev
       // Client methods
       ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
       // Methods specific to the test dapp
-      TestDappRpcRequestMethod.TestSetupAllConnections,
-      TestDappRpcRequestMethod.TestCloseAllConnections,
-      TestDappRpcRequestMethod.TestListSubscriptions,
+      TestDappRpcRequestMethod.ListWebSockets,
+      TestDappRpcRequestMethod.ConnectWebSocket,
+      TestDappRpcRequestMethod.ListSubscriptions,
       TestDappRpcRequestMethod.TestOnStart,
       TestDappRpcRequestMethod.TestOnInstall,
       TestDappRpcRequestMethod.TestOnUpdate,
