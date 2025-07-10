@@ -147,7 +147,7 @@ export const TokenMetadata = {
   [KnownCaip19Id.UsdcLocalnet]: {
     symbol: 'USDC',
     caip19Id: KnownCaip19Id.UsdcLocalnet,
-    address: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
     decimals: 6,
   },
 } as const;

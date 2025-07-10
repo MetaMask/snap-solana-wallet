@@ -325,11 +325,13 @@ export class SolanaKeyring implements Keyring {
 
       const account = await this.getAccountOrThrow(accountId);
 
-      await this.#deleteAccountFromState(accountId);
-
       await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
 
-      await this.#assetsService.stopMonitorAccountAssets(account);
+      // If we successfully deleted the account on the extension, we can proceed with cleaning up
+      await Promise.allSettled([
+        this.#deleteAccountFromState(accountId),
+        this.#assetsService.stopMonitorAccountAssets(account),
+      ]);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
       throw error;
