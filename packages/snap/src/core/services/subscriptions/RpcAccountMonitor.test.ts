@@ -3,12 +3,12 @@ import { address, lamports } from '@solana/kit';
 import { Network } from '../../constants/solana';
 import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
-import type { AccountNotification } from './AccountMonitor';
-import { AccountMonitor } from './AccountMonitor';
+import type { AccountNotification } from './RpcAccountMonitor';
+import { RpcAccountMonitor } from './RpcAccountMonitor';
 import type { SubscriptionService } from './SubscriptionService';
 
-describe('AccountMonitor', () => {
-  let accountMonitor: AccountMonitor;
+describe('RpcAccountMonitor', () => {
+  let rpcAccountMonitor: RpcAccountMonitor;
   let mockSubscriptionService: SubscriptionService;
   let mockConnection: SolanaConnection;
   let onConnectionRecoveryCallback: () => Promise<void>;
@@ -79,7 +79,7 @@ describe('AccountMonitor', () => {
       })),
     } as unknown as SolanaConnection;
 
-    accountMonitor = new AccountMonitor(
+    rpcAccountMonitor = new RpcAccountMonitor(
       mockSubscriptionService,
       mockConnection,
       mockLogger,
@@ -88,7 +88,7 @@ describe('AccountMonitor', () => {
 
   describe('monitor', () => {
     it('registers a subscription to accountSubscribe', async () => {
-      await accountMonitor.monitor(params);
+      await rpcAccountMonitor.monitor(params);
 
       expect(mockSubscriptionService.subscribe).toHaveBeenCalledWith(
         {
@@ -108,14 +108,14 @@ describe('AccountMonitor', () => {
     });
 
     it('returns the subscription ID', async () => {
-      const subscriptionId = await accountMonitor.monitor(params);
+      const subscriptionId = await rpcAccountMonitor.monitor(params);
       expect(subscriptionId).toBe(mockSubscriptionId);
     });
   });
 
   describe('#handleNotification', () => {
     it('calls the onAccountChanged callback when the account changes', async () => {
-      await accountMonitor.monitor(params);
+      await rpcAccountMonitor.monitor(params);
 
       // Simulate notification received
       await onNotificationCallback(mockAccountInfo);
@@ -134,7 +134,7 @@ describe('AccountMonitor', () => {
         onAccountChanged: jest.fn().mockRejectedValue(new Error('test')),
       };
 
-      expect(await accountMonitor.monitor(paramsWithError)).toBe(
+      expect(await rpcAccountMonitor.monitor(paramsWithError)).toBe(
         mockSubscriptionId,
       );
 
@@ -150,7 +150,7 @@ describe('AccountMonitor', () => {
 
   describe('#handleConnectionRecovery', () => {
     it('calls the onAccountChanged callback when the account changes', async () => {
-      await accountMonitor.monitor(params);
+      await rpcAccountMonitor.monitor(params);
 
       // Simulate connection recovery
       await onConnectionRecoveryCallback();
@@ -164,9 +164,9 @@ describe('AccountMonitor', () => {
 
   describe('stopMonitoring', () => {
     it('unsubscribes from the subscription', async () => {
-      await accountMonitor.monitor(params);
+      await rpcAccountMonitor.monitor(params);
 
-      await accountMonitor.stopMonitoring(params.address, params.network);
+      await rpcAccountMonitor.stopMonitoring(params.address, params.network);
 
       expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
         mockSubscriptionId,
@@ -174,7 +174,7 @@ describe('AccountMonitor', () => {
     });
 
     it('doesnt fail if the subscription is not found', async () => {
-      await accountMonitor.stopMonitoring(params.address, params.network);
+      await rpcAccountMonitor.stopMonitoring(params.address, params.network);
 
       expect(mockSubscriptionService.unsubscribe).not.toHaveBeenCalled();
     });

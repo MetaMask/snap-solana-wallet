@@ -41,10 +41,10 @@ import type { SolanaConnection } from '../connection';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import type {
-  AccountMonitor,
-  AccountMonitoringParams,
   AccountNotification,
-} from '../subscriptions/AccountMonitor';
+  RpcAccountMonitor,
+  RpcAccountMonitoringParams,
+} from '../subscriptions/RpcAccountMonitor';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import type { AssetMetadata, NonFungibleAssetMetadata } from './type';
@@ -77,7 +77,7 @@ export class AssetsService {
 
   readonly #nftApiClient: NftApiClient;
 
-  readonly #accountMonitor: AccountMonitor;
+  readonly #accountMonitor: RpcAccountMonitor;
 
   readonly #activeNetworks: Network[];
 
@@ -105,7 +105,7 @@ export class AssetsService {
     tokenPricesService: TokenPricesService;
     cache: ICache<Serializable>;
     nftApiClient: NftApiClient;
-    accountMonitor: AccountMonitor;
+    accountMonitor: RpcAccountMonitor;
     eventEmitter: EventEmitter;
   }) {
     this.#logger = logger;
@@ -728,7 +728,7 @@ export class AssetsService {
       network,
       onAccountChanged: async (
         notification: AccountNotification,
-        params: AccountMonitoringParams,
+        params: RpcAccountMonitoringParams,
       ) => await this.#handleNativeAssetChanged(account, notification, params),
     });
   }
@@ -742,7 +742,7 @@ export class AssetsService {
   async #handleNativeAssetChanged(
     account: SolanaKeyringAccount,
     notification: AccountNotification,
-    params: AccountMonitoringParams,
+    params: RpcAccountMonitoringParams,
   ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Native asset balance changed', {
       account,
@@ -809,7 +809,7 @@ export class AssetsService {
       network,
       onAccountChanged: async (
         notification: AccountNotification,
-        params: AccountMonitoringParams,
+        params: RpcAccountMonitoringParams,
       ) => await this.#handleTokenAssetChanged(account, notification, params),
     });
   }
@@ -823,7 +823,7 @@ export class AssetsService {
   async #handleTokenAssetChanged(
     account: SolanaKeyringAccount,
     notification: AccountNotification,
-    params: AccountMonitoringParams,
+    params: RpcAccountMonitoringParams,
   ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Token asset changed', {
       account,

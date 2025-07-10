@@ -29,7 +29,7 @@ import { InMemoryState } from '../state/InMemoryState';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import { DEFAULT_UNENCRYPTED_STATE } from '../state/State';
-import type { AccountMonitor } from '../subscriptions/AccountMonitor';
+import type { RpcAccountMonitor } from '../subscriptions/RpcAccountMonitor';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import { AssetsService } from './AssetsService';
@@ -54,7 +54,7 @@ describe('AssetsService', () => {
   let mockState: IStateManager<UnencryptedStateValue>;
   let stateSetKeySpy: jest.SpyInstance;
   let mockCache: ICache<Serializable>;
-  let mockAccountMonitor: AccountMonitor;
+  let mockAccountMonitor: RpcAccountMonitor;
   let mockEventEmitter: EventEmitter;
   let onAccountChanged: (notification: any, params: any) => Promise<void>;
 
@@ -96,7 +96,7 @@ describe('AssetsService', () => {
     mockAccountMonitor = {
       monitor: jest.fn(),
       stopMonitoring: jest.fn(),
-    } as unknown as AccountMonitor;
+    } as unknown as RpcAccountMonitor;
 
     // Mock the monitor method to capture the onAccountChanged callback
     (mockAccountMonitor.monitor as jest.Mock).mockImplementation(

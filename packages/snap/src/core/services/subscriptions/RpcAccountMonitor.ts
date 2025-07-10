@@ -11,13 +11,13 @@ import type { ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import type { SubscriptionService } from './SubscriptionService';
 
-export type AccountMonitoringParams = {
+export type RpcAccountMonitoringParams = {
   address: string;
   commitment: Commitment;
   network: Network;
   onAccountChanged: (
     message: any,
-    params: AccountMonitoringParams,
+    params: RpcAccountMonitoringParams,
   ) => Promise<void>;
 };
 
@@ -26,14 +26,14 @@ export type AccountNotification = SolanaRpcResponse<
   GetAccountInfoApiResponse<AccountInfoWithJsonData>
 >;
 
-export class AccountMonitor {
+export class RpcAccountMonitor {
   readonly #subscriptionService: SubscriptionService;
 
   readonly #connection: SolanaConnection;
 
   readonly #logger: ILogger;
 
-  readonly #loggerPrefix = '[👤 AccountMonitor]';
+  readonly #loggerPrefix = '[👤 RpcAccountMonitor]';
 
   // Map of address -> network -> subscriptionId
   readonly #subscriptions: Map<string, Map<Network, string>> = new Map();
@@ -62,7 +62,7 @@ export class AccountMonitor {
    * @param params - The parameters for the account monitor.
    * @returns The subscription ID.
    */
-  async monitor(params: AccountMonitoringParams): Promise<string> {
+  async monitor(params: RpcAccountMonitoringParams): Promise<string> {
     this.#logger.info(this.#loggerPrefix, `Monitoring account`, params);
 
     const { network, address, commitment } = params;
@@ -91,7 +91,7 @@ export class AccountMonitor {
 
   async #handleNotification(
     notification: AccountNotification,
-    params: AccountMonitoringParams,
+    params: RpcAccountMonitoringParams,
   ): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `Account changed`, {
       notification,
@@ -112,7 +112,7 @@ export class AccountMonitor {
   }
 
   async #handleConnectionRecovery(
-    params: AccountMonitoringParams,
+    params: RpcAccountMonitoringParams,
   ): Promise<void> {
     this.#logger.info(this.#loggerPrefix, `Connection recovery`, {
       params,
