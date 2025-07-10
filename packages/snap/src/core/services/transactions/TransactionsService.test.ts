@@ -17,6 +17,7 @@ import { ADDRESS_2_TRANSACTION_1_DATA } from '../../test/mocks/transactions-data
 import { ADDRESS_2_TRANSACTION_2_DATA } from '../../test/mocks/transactions-data/address-2/transaction-2';
 import { ADDRESS_2_TRANSACTION_3_DATA } from '../../test/mocks/transactions-data/address-2/transaction-3';
 import { ADDRESS_2_TRANSACTION_4_DATA } from '../../test/mocks/transactions-data/address-2/transaction-4';
+import type { AssetsService } from '../assets/AssetsService';
 import { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection/SolanaConnection';
 import { mockLogger } from '../mocks/logger';
@@ -27,7 +28,6 @@ import {
   DEFAULT_UNENCRYPTED_STATE,
   type UnencryptedStateValue,
 } from '../state/State';
-import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionsService } from './TransactionsService';
 import { mapRpcTransaction } from './utils/mapRpcTransaction';
 
@@ -38,24 +38,24 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 describe('TransactionsService', () => {
   let mockState: IStateManager<UnencryptedStateValue>;
   let mockConfigProvider: ConfigProvider;
-  let mockTokenMetadataService: TokenMetadataService;
   let mockConnection: SolanaConnection;
+  let mockAssetsService: AssetsService;
   let service: TransactionsService;
 
   beforeEach(() => {
     mockConfigProvider = new ConfigProvider();
     mockConnection = createMockConnection();
 
-    mockTokenMetadataService = {
-      getTokensMetadata: jest.fn(),
-    } as unknown as TokenMetadataService;
+    mockAssetsService = {
+      getAssetsMetadata: jest.fn(),
+    } as unknown as AssetsService;
 
     mockState = new InMemoryState(DEFAULT_UNENCRYPTED_STATE);
 
     service = new TransactionsService({
       connection: mockConnection,
       logger: mockLogger,
-      tokenMetadataService: mockTokenMetadataService,
+      assetsService: mockAssetsService,
       state: mockState,
       configProvider: mockConfigProvider,
     });
@@ -181,7 +181,7 @@ describe('TransactionsService', () => {
         } as any);
 
         jest
-          .spyOn(mockTokenMetadataService, 'getTokensMetadata')
+          .spyOn(mockAssetsService, 'getAssetsMetadata')
           .mockResolvedValue({});
 
         jest
@@ -405,7 +405,7 @@ describe('TransactionsService', () => {
         } as any);
 
         jest
-          .spyOn(mockTokenMetadataService, 'getTokensMetadata')
+          .spyOn(mockAssetsService, 'getAssetsMetadata')
           .mockResolvedValue({});
 
         jest

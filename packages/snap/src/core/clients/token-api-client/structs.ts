@@ -5,13 +5,13 @@ import {
   optional,
   string,
 } from '@metamask/superstruct';
-import { CaipAssetTypeStruct } from '@metamask/utils';
 
+import { TokenCaipAssetTypeFromStringStruct } from '../../constants/solana';
 import { UrlStruct } from '../../validation/structs';
 
 export const TokenMetadataStruct = object({
   decimals: integer(),
-  assetId: CaipAssetTypeStruct,
+  assetId: TokenCaipAssetTypeFromStringStruct,
   name: optional(string()),
   symbol: optional(string()),
   iconUrl: optional(UrlStruct),

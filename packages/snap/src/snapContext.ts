@@ -1,10 +1,11 @@
 import type { ICache } from './core/caching/ICache';
 import { InMemoryCache } from './core/caching/InMemoryCache';
 import { StateCache } from './core/caching/StateCache';
+import { NftApiClient } from './core/clients/nft-api/NftApiClient';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
-import { TokenMetadataClient } from './core/clients/token-metadata-client/TokenMetadataClient';
-import { ClientRequestHandler } from './core/handlers';
+import { TokenApiClient } from './core/clients/token-api-client/TokenApiClient';
+import { ClientRequestHandler } from './core/handlers/onClientRequest';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
@@ -25,6 +26,7 @@ import { NftService } from './core/services/nft/NftService';
 import type { IStateManager } from './core/services/state/IStateManager';
 import type { UnencryptedStateValue } from './core/services/state/State';
 import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
+import { AccountMonitor } from './core/services/subscriptions/AccountMonitor';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
@@ -104,6 +106,12 @@ const signatureMonitor = new SignatureMonitor(
   logger,
 );
 
+const accountMonitor = new AccountMonitor(
+  subscriptionService,
+  connection,
+  logger,
+);
+
 const transactionHelper = new TransactionHelper(connection, logger);
 const sendSolBuilder = new SendSolBuilder(connection, logger);
 const sendSplTokenBuilder = new SendSplTokenBuilder(
@@ -111,11 +119,12 @@ const sendSplTokenBuilder = new SendSplTokenBuilder(
   transactionHelper,
   logger,
 );
-const tokenMetadataClient = new TokenMetadataClient(configProvider);
 const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);
+const tokenApiClient = new TokenApiClient(configProvider);
+const nftApiClient = new NftApiClient(configProvider, inMemoryCache);
 
 const tokenMetadataService = new TokenMetadataService({
-  tokenMetadataClient,
+  tokenApiClient,
   logger,
 });
 
@@ -130,12 +139,15 @@ const assetsService = new AssetsService({
   tokenMetadataService,
   cache: inMemoryCache,
   tokenPricesService,
+  nftApiClient,
+  accountMonitor,
+  eventEmitter,
 });
 
 const transactionsService = new TransactionsService({
   logger,
   connection,
-  tokenMetadataService,
+  assetsService,
   state,
   configProvider,
 });
@@ -221,7 +233,7 @@ export {
   state,
   subscriptionRepository,
   subscriptionService,
-  tokenMetadataClient,
+  tokenApiClient,
   tokenMetadataService,
   tokenPricesService,
   transactionHelper,

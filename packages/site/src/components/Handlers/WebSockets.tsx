@@ -35,31 +35,15 @@ export const WebSockets = () => {
     });
   };
 
-  const subscribeToAccount = async () => {
+  const listSubscriptions = async () => {
     await invokeSnap({
-      method: TestDappRpcRequestMethod.TestSubscribeToAccount,
+      method: TestDappRpcRequestMethod.TestListSubscriptions,
     });
 
     showToasterForResponse(
       { result: 'ok' },
       {
-        title:
-          'Initiated subscription to account 8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
-        description: `Inspect the offscreen console`,
-      },
-    );
-  };
-
-  const unsubscribeFromAccount = async () => {
-    await invokeSnap({
-      method: TestDappRpcRequestMethod.TestUnsubscribeFromAccount,
-    });
-
-    showToasterForResponse(
-      { result: 'ok' },
-      {
-        title:
-          'Initiated unsubscription to account 8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+        title: 'Listed subscriptions',
         description: `Inspect the offscreen console`,
       },
     );
@@ -88,19 +72,8 @@ export const WebSockets = () => {
           </Button>
         </Flex>
         <Flex>
-          <Button
-            variant="outline"
-            onClick={subscribeToAccount}
-            marginRight="1"
-          >
-            Subscribe to account
-          </Button>
-          <Button
-            variant="outline"
-            onClick={unsubscribeFromAccount}
-            marginRight="1"
-          >
-            Unsubscribe from account
+          <Button variant="outline" onClick={listSubscriptions} marginRight="1">
+            List subscriptions
           </Button>
         </Flex>
       </Card.Body>

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type { CaipAssetType } from '@metamask/keyring-api';
 
+import type { TokenCaipAssetType } from '../../constants/solana';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
-import { TokenMetadataClient } from './TokenMetadataClient';
+import { TokenApiClient } from './TokenApiClient';
 
 const MOCK_METADATA_RESPONSE = [
   {
@@ -24,14 +24,14 @@ const MOCK_METADATA_RESPONSE = [
   },
 ];
 
-describe('TokenMetadataClient', () => {
+describe('TokenApiClient', () => {
   const mockFetch = jest.fn();
   const mockLogger = {
     error: jest.fn(console.error),
     warn: jest.fn(console.error),
   } as unknown as ILogger;
 
-  let client: TokenMetadataClient;
+  let client: TokenApiClient;
   let mockConfigProvider: ConfigProvider;
 
   beforeEach(() => {
@@ -49,7 +49,7 @@ describe('TokenMetadataClient', () => {
       }),
     } as unknown as ConfigProvider;
 
-    client = new TokenMetadataClient(mockConfigProvider, mockFetch, mockLogger);
+    client = new TokenApiClient(mockConfigProvider, mockFetch, mockLogger);
   });
 
   describe('constructor', () => {
@@ -63,8 +63,7 @@ describe('TokenMetadataClient', () => {
       } as unknown as ConfigProvider;
 
       expect(
-        () =>
-          new TokenMetadataClient(invalidConfigProvider, mockFetch, mockLogger),
+        () => new TokenApiClient(invalidConfigProvider, mockFetch, mockLogger),
       ).toThrow('Invalid URL format');
     });
   });
@@ -135,7 +134,7 @@ describe('TokenMetadataClient', () => {
     it('rejects caip19Ids that are invalid', async () => {
       await expect(
         client.getTokenMetadataFromAddresses([
-          'invalid-caip19-id' as CaipAssetType,
+          'invalid-caip19-id' as TokenCaipAssetType,
         ]),
       ).rejects.toThrow(
         'At path: 0 -- Expected a value of type `CaipAssetType`, but received: `"invalid-caip19-id"`',
@@ -145,8 +144,8 @@ describe('TokenMetadataClient', () => {
     it('rejects caip19Ids that include malicious inputs', async () => {
       await expect(
         client.getTokenMetadataFromAddresses([
-          KnownCaip19Id.SolLocalnet,
-          'INVALID<script>alert(1)</script>' as CaipAssetType,
+          KnownCaip19Id.EurcLocalnet,
+          'INVALID<script>alert(1)</script>' as TokenCaipAssetType,
         ]),
       ).rejects.toThrow(
         'At path: 1 -- Expected a value of type `CaipAssetType`, but received: `"INVALID<script>alert(1)</script>"`',
@@ -192,7 +191,7 @@ describe('TokenMetadataClient', () => {
       await expect(
         client.getTokenMetadataFromAddresses(tokenAddresses),
       ).rejects.toThrow(
-        'At path: 0.assetId -- Expected a value of type `CaipAssetType`, but received: `"bad-asset-id"`',
+        'Expected a string matching `/^solana:[a-zA-Z0-9]+\\/token:[a-zA-Z0-9]+$/` but received "bad-asset-id"',
       );
     });
 

@@ -1,27 +1,27 @@
-import type { CaipAssetType } from '@metamask/keyring-api';
 import { getImageComponent } from '@metamask/snaps-sdk';
 
-import type { TokenMetadataClient } from '../../clients/token-metadata-client/TokenMetadataClient';
+import type { TokenApiClient } from '../../clients/token-api-client/TokenApiClient';
+import type { TokenCaipAssetType } from '../../constants/solana';
 import QUESTION_MARK_SVG from '../../img/question-mark.svg';
 import type { ILogger } from '../../utils/logger';
 
 export class TokenMetadataService {
-  readonly #tokenMetadataClient: TokenMetadataClient;
+  readonly #tokenApiClient: TokenApiClient;
 
   readonly #logger: ILogger;
 
   constructor({
-    tokenMetadataClient,
+    tokenApiClient,
     logger,
   }: {
-    tokenMetadataClient: TokenMetadataClient;
+    tokenApiClient: TokenApiClient;
     logger: ILogger;
   }) {
-    this.#tokenMetadataClient = tokenMetadataClient;
+    this.#tokenApiClient = tokenApiClient;
     this.#logger = logger;
   }
 
-  async getTokensMetadata(assetTypes: CaipAssetType[]) {
+  async getTokensMetadata(assetTypes: TokenCaipAssetType[]) {
     if (assetTypes.length === 0) {
       this.#logger.warn(
         `No tokens to get metadata for ${assetTypes.join(', ')}`,
@@ -30,7 +30,7 @@ export class TokenMetadataService {
     }
 
     const tokenMetadata =
-      await this.#tokenMetadataClient.getTokenMetadataFromAddresses(assetTypes);
+      await this.#tokenApiClient.getTokenMetadataFromAddresses(assetTypes);
 
     return tokenMetadata;
   }

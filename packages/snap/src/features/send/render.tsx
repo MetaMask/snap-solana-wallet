@@ -12,10 +12,10 @@ import {
   updateInterface,
 } from '../../core/utils/interface';
 import {
+  assetsService,
   connection,
   priceApiClient,
   state,
-  tokenMetadataService,
 } from '../../snapContext';
 import { Send } from './Send';
 import type { SendContext } from './types';
@@ -109,8 +109,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const dialogPromise = showDialog(id);
 
-  const tokenMetadataPromise = tokenMetadataService
-    .getTokensMetadata([context.tokenCaipId])
+  const tokenMetadataPromise = assetsService
+    .getAssetsMetadata([context.tokenCaipId])
     .then((metadata) => {
       const tokenMetadata = metadata[context.tokenCaipId];
 
