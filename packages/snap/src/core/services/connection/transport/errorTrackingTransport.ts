@@ -29,7 +29,7 @@ async function trackError(errorInfo: ErrorTrackingInfo): Promise<void> {
         error: getJsonError(new Error(JSON.stringify(errorInfo))),
       },
     });
-    
+
     logger.info(
       `[🚌 ErrorTrackingTransport] Error tracked: ${errorInfo.method} - ${errorInfo.errorMessage}`,
     );
@@ -48,19 +48,23 @@ function isErrorResponse(response: any): boolean {
   if (isJsonRpcError(response) || isJsonRpcFailure(response)) {
     return true;
   }
-  
+
   // Also check for Solana RPC error format (result.err)
   if (response?.result?.err) {
     return true;
   }
-  
+
   return false;
 }
 
 /**
  * Extracts error information from various error response formats.
  */
-function extractErrorInfo(error: any, method: string, url?: string): ErrorTrackingInfo {
+function extractErrorInfo(
+  error: any,
+  method: string,
+  url?: string,
+): ErrorTrackingInfo {
   const errorInfo: ErrorTrackingInfo = {
     method,
     url,
@@ -76,9 +80,10 @@ function extractErrorInfo(error: any, method: string, url?: string): ErrorTracki
   } else if (error?.message) {
     errorInfo.errorMessage = error.message;
   } else if (error?.error) {
-    errorInfo.errorMessage = typeof error.error === 'string' 
-      ? error.error 
-      : JSON.stringify(error.error);
+    errorInfo.errorMessage =
+      typeof error.error === 'string'
+        ? error.error
+        : JSON.stringify(error.error);
   }
 
   // Get status code if available
@@ -117,9 +122,7 @@ export const createErrorTrackingTransport = (
     const { method } = payload as any;
 
     try {
-      logger.info(
-        `[🚌 ErrorTrackingTransport] Making RPC request: ${method}`,
-      );
+      logger.info(`[🚌 ErrorTrackingTransport] Making RPC request: ${method}`);
 
       const response = await baseTransport(...args);
 
@@ -134,7 +137,7 @@ export const createErrorTrackingTransport = (
         };
 
         await trackError(errorInfo);
-        
+
         // Also re-throw the error to maintain the original behavior
         throw new Error(`RPC error: ${JSON.stringify(response)}`);
       }
@@ -146,7 +149,12 @@ export const createErrorTrackingTransport = (
       await trackError(errorInfo);
 
       // And re-throw the original error to maintain the transport chain flow
-      throw error;
+      // If error is not an Error instance, convert it
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error(String(error));
+      }
     }
   };
 };
