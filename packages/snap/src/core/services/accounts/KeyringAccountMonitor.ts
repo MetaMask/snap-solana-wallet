@@ -142,6 +142,11 @@ export class KeyringAccountMonitor {
       (network) => !this.#monitoredAccounts[network].has(address),
     );
 
+    // Record the account as monitored
+    nonMonitoredNetworks.forEach((network) => {
+      this.#monitoredAccounts[network].set(address, new Set());
+    });
+
     // Get token accounts
     const tokenAccounts =
       await this.#assetsService.getTokenAccountsByOwnerMultiple(
@@ -151,9 +156,11 @@ export class KeyringAccountMonitor {
       );
 
     // Monitor token assets on this network
-    const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
-      this.#monitorAccountTokenAsset(account, tokenAccount),
-    );
+    const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) => {
+      const { pubkey: tokenAccountAddress, scope: network } = tokenAccount;
+      this.#monitoredAccounts[network].get(address)?.add(tokenAccountAddress);
+      return this.#monitorAccountTokenAsset(account, tokenAccount);
+    });
 
     // Monitor native assets on this network
     const nativeAssetsPromises = nonMonitoredNetworks.map(async (network) =>

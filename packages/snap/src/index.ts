@@ -290,9 +290,6 @@ export const onUpdate: OnUpdateHandler = async () =>
 
 export const onInstall: OnInstallHandler = async () =>
   withCatchAndThrowSnapError(async () => {
-    console.log(
-      'onInstallonInstallonInstallonInstallonInstallonInstallonInstallonInstall',
-    );
     await eventEmitter.emitSync('onInstall');
   });
 

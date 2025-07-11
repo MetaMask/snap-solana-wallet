@@ -156,6 +156,24 @@ describe('KeyringAccountMonitor', () => {
       expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(4);
     });
 
+    it('does not monitor an account already monitored', async () => {
+      // Setup 1 active network
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet],
+      } as unknown as Config);
+
+      // Set up no assets for simplicity
+      jest
+        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+        .mockResolvedValue([]);
+
+      // Try to monitor the same account twice
+      await keyringAccountMonitor.monitorKeyringAccount(account);
+      await keyringAccountMonitor.monitorKeyringAccount(account);
+
+      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(1);
+    });
+
     describe('when receiving a notification', () => {
       const mockSignature = signature(
         '4Pjp2FVBTA2FQCbF3UurnHES3hz2Zx5pTJeVEVhvcCCS7m5CytKqLvcQUGiUMPSBVW5V3dL5N8jwXpT8eV52Sw7b',
