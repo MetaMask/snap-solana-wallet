@@ -247,6 +247,24 @@ describe('KeyringAccountMonitor', () => {
             account,
           );
         });
+
+        it('does not save the new balance of the native asset when lamports is missing', async () => {
+          const mockNotificationWithMissingMint = {
+            value: {
+              lamports: undefined,
+            },
+          } as unknown as AccountNotification;
+
+          await keyringAccountMonitor.monitorKeyringAccount(account);
+
+          const nativeAssetCallback = accountCallbacks.get(account.address)!;
+          await nativeAssetCallback(
+            mockNotificationWithMissingMint,
+            mockParams,
+          );
+
+          expect(mockAssetsService.saveAsset).not.toHaveBeenCalled();
+        });
       });
 
       describe('when a token asset changed', () => {
@@ -309,6 +327,103 @@ describe('KeyringAccountMonitor', () => {
             mockCausingTransaction,
             account,
           );
+        });
+
+        it('does not save the new balance of the token asset when mint address is missing', async () => {
+          const mockNotificationWithMissingMint = {
+            value: {
+              data: {
+                parsed: {
+                  info: {
+                    mint: undefined,
+                  },
+                },
+              },
+            },
+          } as unknown as AccountNotification;
+
+          await keyringAccountMonitor.monitorKeyringAccount(account);
+
+          const tokenAccountCallback = accountCallbacks.get(
+            mockTokenAccount.pubkey,
+          )!;
+          await tokenAccountCallback(
+            mockNotificationWithMissingMint,
+            mockParams,
+          );
+
+          expect(mockAssetsService.saveAsset).not.toHaveBeenCalled();
+        });
+
+        it('does not save the new balance of the token asset when uiAmountString is missing', async () => {
+          const mockNotificationWithMissingMint = {
+            value: {
+              data: {
+                parsed: {
+                  info: {
+                    mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                    tokenAmount: {
+                      uiAmountString: undefined,
+                    },
+                  },
+                },
+              },
+            },
+          } as unknown as AccountNotification;
+
+          await keyringAccountMonitor.monitorKeyringAccount(account);
+
+          const tokenAccountCallback = accountCallbacks.get(
+            mockTokenAccount.pubkey,
+          )!;
+          await tokenAccountCallback(
+            mockNotificationWithMissingMint,
+            mockParams,
+          );
+
+          expect(mockAssetsService.saveAsset).not.toHaveBeenCalled();
+        });
+
+        describe('when #saveCausingTransaction encounters errors', () => {
+          it('handles when no signatures are found', async () => {
+            // No signatures found for the token account
+            jest
+              .spyOn(mockTransactionsService, 'fetchLatestSignatures')
+              .mockResolvedValue([]);
+
+            await keyringAccountMonitor.monitorKeyringAccount(account);
+
+            const tokenAccountCallback = accountCallbacks.get(
+              mockTokenAccount.pubkey,
+            )!;
+            await tokenAccountCallback(mockNotification, mockParams);
+
+            expect(mockLogger.error).toHaveBeenCalledWith(
+              expect.stringContaining('KeyringAccountMonitor'),
+              'No signature found',
+              expect.any(Object),
+            );
+          });
+
+          it('handles when transaction is not found', async () => {
+            // No transaction found for the token account
+            jest
+              .spyOn(mockTransactionsService, 'fetchBySignature')
+              .mockResolvedValue(null);
+
+            await keyringAccountMonitor.monitorKeyringAccount(account);
+
+            const tokenAccountCallback = accountCallbacks.get(
+              mockTokenAccount.pubkey,
+            )!;
+            await tokenAccountCallback(mockNotification, mockParams);
+
+            expect(mockLogger.error).toHaveBeenCalledWith(
+              expect.stringContaining('KeyringAccountMonitor'),
+              'No transaction found',
+              expect.any(Object),
+            );
+          });
         });
       });
     });
