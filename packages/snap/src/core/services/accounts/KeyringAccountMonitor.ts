@@ -51,7 +51,7 @@ export class KeyringAccountMonitor {
   readonly #loggerPrefix = '[🗝️ KeyringAccountMonitor]';
 
   /**
-   * A map that stores the monitored keyring accounts and their monitored token accounts.
+   * A map that stores the monitored keyring accounts and their monitored native asset and token accounts.
    *
    * Maps account id > network > monitored addresses.
    *
@@ -78,7 +78,7 @@ export class KeyringAccountMonitor {
    *   ]),
    * }
    */
-  #monitoredAccounts: Map<string, Map<Network, Set<string>>> = new Map();
+  #monitoredKeyringAccounts: Map<string, Map<Network, Set<string>>> = new Map();
 
   constructor(
     rpcAccountMonitor: RpcAccountMonitor,
@@ -104,8 +104,10 @@ export class KeyringAccountMonitor {
   async #monitorAllKeyringAccounts(): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Monitoring all keyring accounts');
 
-    // Clean up the monitored accounts map
-    this.#monitoredAccounts.clear();
+    console.log(
+      '🐦‍🔥🐦‍🔥🐦‍🔥🐦‍🔥🐦‍🔥🐦‍🔥this.#monitoredAccounts',
+      this.#monitoredKeyringAccounts,
+    );
 
     const accounts = await this.#accountService.getAll();
 
@@ -119,41 +121,15 @@ export class KeyringAccountMonitor {
   async monitorKeyringAccount(account: SolanaKeyringAccount): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Monitoring keyring account', account);
 
-    const { id, address, scopes } = account;
+    const { address } = account;
     const { activeNetworks } = this.#configProvider.get();
-
-    // Initialize account map if it doesn't exist
-    if (!this.#monitoredAccounts.has(id)) {
-      this.#monitoredAccounts.set(id, new Map());
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const networksMonitored = this.#monitoredAccounts.get(id)!;
-
-    const networksToMonitor = activeNetworks
-      // Only monitor networks that are in the account's scopes
-      .filter((network) => scopes.includes(network))
-      // Only monitor networks that are not already monitored
-      .filter((network) => !networksMonitored.has(network));
-
-    // Initialize network sets for non-monitored networks
-    networksToMonitor.forEach((network) => {
-      networksMonitored.set(network, new Set());
-    });
-
-    if (networksToMonitor.length === 0) {
-      this.#logger.log(this.#loggerPrefix, 'No networks to monitor', {
-        account,
-      });
-      return;
-    }
 
     // Get token accounts
     const tokenAccounts = await this.#assetsService
       .getTokenAccountsByOwnerMultiple(
         asAddress(address),
         [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-        networksToMonitor,
+        activeNetworks,
       )
       .catch((error) => {
         this.#logger.error(this.#loggerPrefix, 'Error getting token accounts', {
@@ -164,23 +140,14 @@ export class KeyringAccountMonitor {
       });
 
     // Monitor native assets on this network
-    const nativeAssetsPromises = networksToMonitor.map(async (network) =>
+    const nativeAssetsPromises = activeNetworks.map(async (network) =>
       this.#monitorAccountNativeAsset(account, network),
     );
 
     // Monitor token assets on this network
-    const tokenAssetsPromises = tokenAccounts
-      // Only monitor token assets that are not already monitored
-      .filter(
-        (tokenAccount) =>
-          !this.#monitoredAccounts
-            .get(id)
-            ?.get(tokenAccount.scope)
-            ?.has(tokenAccount.pubkey),
-      )
-      .map(async (tokenAccount) =>
-        this.#monitorAccountTokenAsset(account, tokenAccount),
-      );
+    const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
+      this.#monitorAccountTokenAsset(account, tokenAccount),
+    );
 
     await Promise.allSettled([...tokenAssetsPromises, ...nativeAssetsPromises]);
   }
@@ -201,6 +168,28 @@ export class KeyringAccountMonitor {
 
     const { address, id: accountId } = account;
 
+    if (!account.scopes.includes(network)) {
+      this.#logger.log(
+        this.#loggerPrefix,
+        'Account does not have scope for network',
+        {
+          account,
+          network,
+        },
+      );
+      return;
+    }
+
+    if (
+      this.#monitoredKeyringAccounts.get(accountId)?.get(network)?.has(address)
+    ) {
+      this.#logger.log(this.#loggerPrefix, 'Native asset already monitored', {
+        account,
+        network,
+      });
+      return;
+    }
+
     await this.#rpcAccountMonitor.monitor({
       address,
       commitment: 'confirmed',
@@ -212,7 +201,7 @@ export class KeyringAccountMonitor {
     });
 
     // Add the native account address to the monitored set
-    this.#monitoredAccounts.get(accountId)?.get(network)?.add(address);
+    this.#saveMonitoredAddress(accountId, network, address);
   }
 
   /**
@@ -285,6 +274,19 @@ export class KeyringAccountMonitor {
     const { pubkey: tokenAddress, scope: network } = tokenAccount;
     const { id: accountId } = account;
 
+    if (
+      this.#monitoredKeyringAccounts
+        .get(accountId)
+        ?.get(network)
+        ?.has(tokenAddress)
+    ) {
+      this.#logger.log(this.#loggerPrefix, 'Token asset already monitored', {
+        account,
+        tokenAccount,
+      });
+      return;
+    }
+
     await this.#rpcAccountMonitor.monitor({
       address: tokenAddress,
       commitment: 'confirmed',
@@ -296,7 +298,7 @@ export class KeyringAccountMonitor {
     });
 
     // Add the token account address to the monitored set
-    this.#monitoredAccounts.get(accountId)?.get(network)?.add(tokenAddress);
+    this.#saveMonitoredAddress(accountId, network, tokenAddress);
   }
 
   /**
@@ -427,7 +429,7 @@ export class KeyringAccountMonitor {
       );
 
     // Clean up the monitored accounts map
-    this.#monitoredAccounts.delete(id);
+    this.#monitoredKeyringAccounts.delete(id);
 
     // Stop monitoring native assets across all activeNetworks networks
     const nativeAssetsPromises = activeNetworks.map(async (network) =>
@@ -443,5 +445,18 @@ export class KeyringAccountMonitor {
     );
 
     await Promise.allSettled([...nativeAssetsPromises, ...tokenAssetsPromises]);
+  }
+
+  #saveMonitoredAddress(accountId: string, network: Network, address: string) {
+    if (!this.#monitoredKeyringAccounts.has(accountId)) {
+      this.#monitoredKeyringAccounts.set(accountId, new Map());
+    }
+
+    if (!this.#monitoredKeyringAccounts.get(accountId)?.has(network)) {
+      this.#monitoredKeyringAccounts.get(accountId)?.set(network, new Set());
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.#monitoredKeyringAccounts.get(accountId)!.get(network)!.add(address);
   }
 }

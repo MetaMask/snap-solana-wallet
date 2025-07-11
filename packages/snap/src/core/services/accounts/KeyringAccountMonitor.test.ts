@@ -191,6 +191,11 @@ describe('KeyringAccountMonitor', () => {
         activeNetworks: [Network.Mainnet],
       } as unknown as Config);
 
+      // Set up no assets for simplicity
+      jest
+        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+        .mockResolvedValue([]);
+
       const accountWithDifferentScopes = {
         ...account,
         scopes: [Network.Devnet],
@@ -203,7 +208,7 @@ describe('KeyringAccountMonitor', () => {
       expect(mockRpcAccountMonitor.monitor).not.toHaveBeenCalled();
     });
 
-    it('does not monitor an account on a network that is already monitored', async () => {
+    it('does not monitor an native asset that is already monitored', async () => {
       // Setup 1 active network
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
         activeNetworks: [Network.Mainnet],
@@ -219,6 +224,28 @@ describe('KeyringAccountMonitor', () => {
       await keyringAccountMonitor.monitorKeyringAccount(account);
 
       expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not monitor a token asset that is already monitored', async () => {
+      // Setup 1 active network
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet],
+      } as unknown as Config);
+
+      // Set up 1 token asset
+      jest
+        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+        .mockResolvedValue([mockTokenAccountWithMetadata0]);
+
+      // Try to monitor the same account twice
+      await keyringAccountMonitor.monitorKeyringAccount(account);
+
+      // 1 call to monitor the native asset, 1 call to monitor the token asset
+      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(2);
+      (mockRpcAccountMonitor.monitor as jest.Mock).mockReset();
+
+      await keyringAccountMonitor.monitorKeyringAccount(account);
+      expect(mockRpcAccountMonitor.monitor).not.toHaveBeenCalled();
     });
 
     it('handles error when getTokenAccountsByOwnerMultiple fails', async () => {
