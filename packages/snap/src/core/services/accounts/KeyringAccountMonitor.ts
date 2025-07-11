@@ -104,11 +104,6 @@ export class KeyringAccountMonitor {
   async #monitorAllKeyringAccounts(): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Monitoring all keyring accounts');
 
-    console.log(
-      '🐦‍🔥🐦‍🔥🐦‍🔥🐦‍🔥🐦‍🔥🐦‍🔥this.#monitoredAccounts',
-      this.#monitoredKeyringAccounts,
-    );
-
     const accounts = await this.#accountService.getAll();
 
     await Promise.allSettled(
