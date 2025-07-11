@@ -27,8 +27,12 @@ import type { AccountService } from './AccountService';
 /**
  * Business logic for monitoring keyring accounts via WebSockets:
  *
- * It monitors the native asset (SOL) for the given account, and all the token assets for the given account.
- * Whenever one of these changes, it saves the new balance.
+ * - It gets updates when the balance of the native asset (SOL) changes by subscribing to the RPC account.
+ * - It gets updates when the balance of token assets change by subscribing to each RPC token account.
+ *
+ * On each update:
+ * - It saves the new balance. Under the hood, AssetsService also notifies the extension.
+ * - It fetches the transaction that caused the native asset or token asset to change and saves it. Under the hood, TransactionsService also notifies the extension.
  */
 export class KeyringAccountMonitor {
   readonly #rpcAccountMonitor: RpcAccountMonitor;
