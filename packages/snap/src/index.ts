@@ -274,9 +274,9 @@ export const onClientRequest: OnClientRequestHandler = async ({ request }) => {
 };
 
 export const onWebSocketEvent: OnWebSocketEventHandler = async ({ event }) =>
-  withCatchAndThrowSnapError(async () =>
-    eventEmitter.emitSync('onWebSocketEvent', event),
-  );
+  withCatchAndThrowSnapError(async () => {
+    await eventEmitter.emitSync('onWebSocketEvent', event);
+  });
 
 export const onStart: OnStartHandler = async () =>
   withCatchAndThrowSnapError(async () => {
