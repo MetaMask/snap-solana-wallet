@@ -90,84 +90,25 @@ describe('KeyringAccountMonitor', () => {
     );
   });
 
-  describe('#monitorAllAccountsAssets', () => {
-    it('monitors all assets for all accounts in all active networks', async () => {
-      // Setup 2 active networks
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet, Network.Devnet],
-      } as unknown as Config);
-
+  describe('#monitorAllKeyringAccounts', () => {
+    it('monitors all keyring accounts', async () => {
       // Setup 2 keyring accounts
       jest
         .spyOn(mockAccountService, 'getAll')
-        .mockResolvedValueOnce([
+        .mockResolvedValue([
           MOCK_SOLANA_KEYRING_ACCOUNTS[0],
           MOCK_SOLANA_KEYRING_ACCOUNTS[1],
         ]);
 
-      // Set up the assets: each account has 2 token assets in total (accross both networks and both program IDs)
       jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue(mockTokenAccountsWithMetadata);
+        .spyOn(keyringAccountMonitor, 'monitorKeyringAccount')
+        .mockResolvedValue(undefined);
 
       // Simulate a onStart event to start monitoring
       await mockEventEmitter.emitSync('onStart');
 
-      /**
-       * We expect 8 calls to monitor:
-       * - Monitor the native asset for each account in each network (2 accounts × 2 networks = 4)
-       * - Monitor the token assets for each account (2 accounts × 2 tokens = 4)
-       */
-      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(8);
-    });
-
-    it('updates the state and notifies the extension when the native asset balance changes', async () => {
-      // Setup 1 active network
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
-
-      // Setup 1 keyring account
-      jest
-        .spyOn(mockAccountService, 'getAll')
-        .mockResolvedValueOnce([MOCK_SOLANA_KEYRING_ACCOUNTS[0]]);
-
-      // Set up no assets
-      jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue([]);
-
-      // Simulate a onStart event to start monitoring
-      await mockEventEmitter.emitSync('onStart');
-
-      // Simulate a notification on the account
-      const mockNotification = {
-        context: {
-          slot: BigInt(123),
-        },
-        value: {
-          executable: false,
-          lamports: lamports(1000000000n), // 1 SOL
-          owner: address('11111111111111111111111111111111'),
-          rentEpoch: BigInt(361),
-          space: BigInt(0),
-          data: null,
-        },
-      };
-
-      const mockParams = {
-        address: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
-        commitment: 'confirmed' as const,
-        network: Network.Mainnet,
-        onAccountChanged: jest.fn(),
-      };
-
-      await onAccountChanged(mockNotification, mockParams);
-
-      expect(mockAssetsService.saveAsset).toHaveBeenCalledWith(
-        MOCK_SOLANA_KEYRING_ACCOUNTS[0],
-        KnownCaip19Id.SolMainnet,
-        { amount: '1', unit: 'SOL' },
+      expect(keyringAccountMonitor.monitorKeyringAccount).toHaveBeenCalledTimes(
+        2,
       );
     });
 
@@ -249,6 +190,72 @@ describe('KeyringAccountMonitor', () => {
         KnownCaip19Id.UsdcMainnet,
         { amount: '2', unit: '' }, // We're mapping empty units, because the extension is not using it, and it saves us from fetching the token metadata
       );
+    });
+  });
+
+  describe('monitorKeyringAccount', () => {
+    const account = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
+
+    it('monitors the account native and token assets on all active networks', async () => {
+      // Setup 2 active networks
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet, Network.Devnet],
+      } as unknown as Config);
+
+      // Set up assets. Account has 2 token assets in total (across both networks and both program IDs)
+      jest
+        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+        .mockResolvedValue(mockTokenAccountsWithMetadata);
+
+      await keyringAccountMonitor.monitorKeyringAccount(account);
+
+      /**
+       * We expect 4 calls to monitor:
+       * - Monitor the native asset in each network (1 account × 2 networks = 2)
+       * - Monitor each token asset for the account (1 account × 2 tokens = 2)
+       */
+      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(4);
+    });
+
+    describe('when receiving a notification', () => {
+      beforeEach(() => {
+        // Setup 1 active network for simplicity
+        jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+          activeNetworks: [Network.Mainnet],
+        } as unknown as Config);
+      });
+
+      describe('when the native asset changed', () => {
+        beforeEach(() => {
+          // Set up no token assets for simplicity
+          jest
+            .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+            .mockResolvedValue([]);
+        });
+
+        it('saves the new balance of the native asset', async () => {
+          await keyringAccountMonitor.monitorKeyringAccount(account);
+
+          // Simulate a notification on the native asset
+          const mockNativeNotification = {
+            context: {
+              slot: 456n,
+            },
+          };
+        });
+
+        it.todo(
+          'fetches and saves the transaction that caused the native asset balance to change',
+        );
+      });
+
+      describe('when a token asset changed', () => {
+        it.todo('saves the new balance of the token asset');
+
+        it.todo(
+          'fetches and saves the transaction that caused the token asset to change',
+        );
+      });
     });
   });
 

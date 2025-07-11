@@ -279,13 +279,22 @@ export const onWebSocketEvent: OnWebSocketEventHandler = async ({ event }) =>
   );
 
 export const onStart: OnStartHandler = async () =>
-  withCatchAndThrowSnapError(async () => eventEmitter.emitSync('onStart'));
+  withCatchAndThrowSnapError(async () => {
+    await eventEmitter.emitSync('onStart');
+  });
 
 export const onUpdate: OnUpdateHandler = async () =>
-  withCatchAndThrowSnapError(async () => eventEmitter.emitSync('onUpdate'));
+  withCatchAndThrowSnapError(async () => {
+    await eventEmitter.emitSync('onUpdate');
+  });
 
 export const onInstall: OnInstallHandler = async () =>
-  withCatchAndThrowSnapError(async () => eventEmitter.emitSync('onInstall'));
+  withCatchAndThrowSnapError(async () => {
+    console.log(
+      'onInstallonInstallonInstallonInstallonInstallonInstallonInstallonInstall',
+    );
+    await eventEmitter.emitSync('onInstall');
+  });
 
 export const onNameLookup: OnNameLookupHandler = async (request) => {
   const result = await withCatchAndThrowSnapError(async () =>
