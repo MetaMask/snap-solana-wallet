@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { address, lamports } from '@solana/kit';
+import type { Transaction } from '@metamask/keyring-api';
+import { lamports, signature } from '@solana/kit';
 
 import { EventEmitter } from '../../../infrastructure';
 import { KnownCaip19Id, Network } from '../../constants/solana';
@@ -12,7 +13,11 @@ import type { ConfigProvider } from '../config';
 import type { Config } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
 import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/mockSolanaRpcResponses';
-import type { RpcAccountMonitor } from '../subscriptions';
+import type {
+  AccountNotification,
+  RpcAccountMonitor,
+  RpcAccountMonitoringParams,
+} from '../subscriptions';
 import type { TransactionsService } from '../transactions/TransactionsService';
 import type { AccountService } from './AccountService';
 import { KeyringAccountMonitor } from './KeyringAccountMonitor';
@@ -25,7 +30,15 @@ describe('KeyringAccountMonitor', () => {
   let mockTransactionsService: TransactionsService;
   let mockConfigProvider: ConfigProvider;
   let mockEventEmitter: EventEmitter;
-  let onAccountChanged: (notification: any, params: any) => Promise<void>;
+
+  // Store multiple callbacks keyed by address
+  const accountCallbacks: Map<
+    string,
+    (
+      notification: AccountNotification,
+      params: RpcAccountMonitoringParams,
+    ) => Promise<void>
+  > = new Map();
 
   const mockTokenAccountWithMetadata0 = {
     ...MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value[0],
@@ -53,9 +66,11 @@ describe('KeyringAccountMonitor', () => {
     } as unknown as RpcAccountMonitor;
 
     // Mock the monitor method to capture the onAccountChanged callback
+    // Mock the monitor method to capture ALL onAccountChanged callbacks
     (mockRpcAccountMonitor.monitor as jest.Mock).mockImplementation(
       async (params) => {
-        onAccountChanged = params.onAccountChanged;
+        // Store the callback keyed by the address being monitored
+        accountCallbacks.set(params.address, params.onAccountChanged);
         return Promise.resolve();
       },
     );
@@ -69,7 +84,11 @@ describe('KeyringAccountMonitor', () => {
       saveAsset: jest.fn(),
     } as unknown as AssetsService;
 
-    mockTransactionsService = {} as unknown as TransactionsService;
+    mockTransactionsService = {
+      fetchLatestSignatures: jest.fn(),
+      fetchBySignature: jest.fn(),
+      saveTransaction: jest.fn(),
+    } as unknown as TransactionsService;
 
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
@@ -111,86 +130,6 @@ describe('KeyringAccountMonitor', () => {
         2,
       );
     });
-
-    it('updates state and emits event when token account balance changes', async () => {
-      // Setup 1 active network
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
-
-      // Setup 1 keyring account
-      jest
-        .spyOn(mockAccountService, 'getAll')
-        .mockResolvedValueOnce([MOCK_SOLANA_KEYRING_ACCOUNTS[0]]);
-
-      // Account has 1 token asset on Mainnet for first program ID, and nothing else
-      jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue(mockTokenAccountsWithMetadata.slice(0, 1));
-
-      // Mock token account to be monitored
-      const mockTokenAccount = {
-        pubkey: address('AxjEBpbCGoDuNP5CP7B8y1cWs76vEM3bwhJdvUGVn8Aw'),
-        scope: Network.Mainnet,
-        mint: address('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-        assetType: KnownCaip19Id.UsdcMainnet,
-        amount: '1000000', // 1 USDC (assuming 6 decimals)
-        decimals: 6,
-        owner: MOCK_SOLANA_KEYRING_ACCOUNTS[0].address,
-      };
-
-      // Simulate a onStart event to start monitoring
-      await mockEventEmitter.emitSync('onStart');
-
-      // Simulate a notification on the token account
-      const mockTokenNotification = {
-        context: {
-          slot: 456n,
-        },
-        value: {
-          data: {
-            parsed: {
-              info: {
-                isNative: false,
-                mint: mockTokenAccount.mint,
-                owner: mockTokenAccount.owner,
-                state: 'initialized',
-                tokenAmount: {
-                  amount: '2000000', // 2 USDC
-                  decimals: 6,
-                  uiAmount: 2,
-                  uiAmountString: '2',
-                },
-              },
-              type: 'account',
-            },
-            program: 'spl-token',
-            space: 165,
-          },
-          executable: false,
-          lamports: lamports(1000000000n), // 1 SOL
-          owner: address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-          rentEpoch: 18446744073709551615n,
-          space: 165n,
-        },
-      };
-
-      const mockTokenParams = {
-        address: mockTokenAccount.pubkey,
-        commitment: 'confirmed' as const,
-        network: Network.Mainnet,
-        onAccountChanged: jest.fn(),
-      };
-
-      // Call the token account onAccountChanged handler
-      await onAccountChanged(mockTokenNotification, mockTokenParams);
-
-      expect(mockAssetsService.saveAsset).toHaveBeenCalledWith(
-        MOCK_SOLANA_KEYRING_ACCOUNTS[0],
-        KnownCaip19Id.UsdcMainnet,
-        { amount: '2', unit: '' }, // We're mapping empty units, because the extension is not using it, and it saves us from fetching the token metadata
-      );
-    });
   });
 
   describe('monitorKeyringAccount', () => {
@@ -218,14 +157,43 @@ describe('KeyringAccountMonitor', () => {
     });
 
     describe('when receiving a notification', () => {
+      const mockSignature = signature(
+        '4Pjp2FVBTA2FQCbF3UurnHES3hz2Zx5pTJeVEVhvcCCS7m5CytKqLvcQUGiUMPSBVW5V3dL5N8jwXpT8eV52Sw7b',
+      );
+
+      const mockCausingTransaction = {
+        id: mockSignature.toString(),
+      } as unknown as Transaction;
+
       beforeEach(() => {
         // Setup 1 active network for simplicity
         jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
           activeNetworks: [Network.Mainnet],
         } as unknown as Config);
+
+        jest
+          .spyOn(mockTransactionsService, 'fetchLatestSignatures')
+          .mockResolvedValue([mockSignature]);
+
+        jest
+          .spyOn(mockTransactionsService, 'fetchBySignature')
+          .mockResolvedValue(mockCausingTransaction);
       });
 
       describe('when the native asset changed', () => {
+        const mockNotification = {
+          value: {
+            lamports: lamports(1000000000n), // 1 SOL
+          },
+        } as unknown as AccountNotification;
+
+        const mockParams = {
+          address: account.address,
+          commitment: 'confirmed' as const,
+          network: Network.Mainnet,
+          onAccountChanged: jest.fn(),
+        };
+
         beforeEach(() => {
           // Set up no token assets for simplicity
           jest
@@ -236,21 +204,79 @@ describe('KeyringAccountMonitor', () => {
         it('saves the new balance of the native asset', async () => {
           await keyringAccountMonitor.monitorKeyringAccount(account);
 
-          // Simulate a notification on the native asset
-          const mockNativeNotification = {
-            context: {
-              slot: 456n,
-            },
-          };
+          // Get the specific callback for the token account and call it
+          const tokenAccountCallback = accountCallbacks.get(account.address)!;
+          await tokenAccountCallback(mockNotification, mockParams);
+
+          expect(mockAssetsService.saveAsset).toHaveBeenCalledWith(
+            account,
+            KnownCaip19Id.SolMainnet,
+            { amount: '1', unit: 'SOL' },
+          );
         });
 
-        it.todo(
-          'fetches and saves the transaction that caused the native asset balance to change',
-        );
+        it('fetches and saves the transaction that caused the native asset balance to change', async () => {
+          await keyringAccountMonitor.monitorKeyringAccount(account);
+
+          // Get the specific callback for the token account
+          const tokenAccountCallback = accountCallbacks.get(account.address)!;
+
+          // Call the callback
+          await tokenAccountCallback(mockNotification, mockParams);
+
+          expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+            mockCausingTransaction,
+            account,
+          );
+        });
       });
 
       describe('when a token asset changed', () => {
-        it.todo('saves the new balance of the token asset');
+        const mockTokenAccount = mockTokenAccountWithMetadata0;
+
+        const mockNotification = {
+          value: {
+            data: {
+              parsed: {
+                info: {
+                  mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                  tokenAmount: {
+                    uiAmountString: '123456789',
+                  },
+                },
+              },
+            },
+          },
+        } as unknown as AccountNotification;
+
+        const mockParams = {
+          address: mockTokenAccount.pubkey,
+          commitment: 'confirmed' as const,
+          network: Network.Mainnet,
+          onAccountChanged: jest.fn(),
+        };
+
+        beforeEach(() => {
+          jest
+            .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+            .mockResolvedValue([mockTokenAccount]);
+        });
+
+        it('saves the new balance of the token asset', async () => {
+          await keyringAccountMonitor.monitorKeyringAccount(account);
+
+          // Get the specific callback for the token account and call it
+          const tokenAccountCallback = accountCallbacks.get(
+            mockTokenAccount.pubkey,
+          )!;
+          await tokenAccountCallback(mockNotification, mockParams);
+
+          expect(mockAssetsService.saveAsset).toHaveBeenCalledWith(
+            account,
+            KnownCaip19Id.UsdcMainnet,
+            { amount: '123456789', unit: '' },
+          );
+        });
 
         it.todo(
           'fetches and saves the transaction that caused the token asset to change',

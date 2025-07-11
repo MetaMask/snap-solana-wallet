@@ -408,24 +408,6 @@ export class KeyringAccountMonitor {
     await this.#transactionsService.saveTransaction(transaction, account);
   }
 
-  //   /**
-  //    * Stops monitoring all assets for all accounts across all active networks.
-  //    */
-  //   async stopMonitorAllKeyringAccounts(): Promise<void> {
-  //     this.#logger.log(
-  //       this.#loggerPrefix,
-  //       'Stopping to monitor all keyring accounts',
-  //     );
-
-  //     const accounts = await this.#accountService.getAll();
-
-  //     await Promise.allSettled(
-  //       accounts.map(
-  //         async (account) => await this.stopMonitorKeyringAccount(account),
-  //       ),
-  //     );
-  //   }
-
   /**
    * Stops monitoring all assets for a single account across all active networks.
    * @param account - The account to monitor the assets for.

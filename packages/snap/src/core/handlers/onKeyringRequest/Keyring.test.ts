@@ -111,7 +111,7 @@ describe('SolanaKeyring', () => {
 
     mockKeyringAccountMonitor = {
       monitorKeyringAccount: jest.fn(),
-      stopMonitorAccountAssets: jest.fn(),
+      stopMonitorKeyringAccount: jest.fn(),
     } as unknown as KeyringAccountMonitor;
 
     keyring = new SolanaKeyring({
@@ -575,7 +575,7 @@ describe('SolanaKeyring', () => {
       await keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id);
 
       expect(
-        mockKeyringAccountMonitor.stopMonitorAccountAssets,
+        mockKeyringAccountMonitor.stopMonitorKeyringAccount,
       ).toHaveBeenCalledWith(MOCK_SOLANA_KEYRING_ACCOUNT_1);
     });
 
