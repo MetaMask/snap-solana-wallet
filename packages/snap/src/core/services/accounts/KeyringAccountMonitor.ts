@@ -216,11 +216,25 @@ export class KeyringAccountMonitor {
       params,
     });
 
-    await Promise.allSettled([
+    await Promise.all([
       // Update the balance of the native asset
-      this.#updateNativeAssetBalance(account, notification, params),
+      this.#updateNativeAssetBalance(account, notification, params).catch(
+        (error) => {
+          this.#logger.error(
+            this.#loggerPrefix,
+            'Error updating native asset balance',
+            error,
+          );
+        },
+      ),
       // Fetch and save the transaction that caused the native asset change.
-      this.#saveCausingTransaction(account, params),
+      this.#saveCausingTransaction(account, params).catch((error) => {
+        this.#logger.error(
+          this.#loggerPrefix,
+          'Error saving causing transaction',
+          error,
+        );
+      }),
     ]);
   }
 
@@ -313,11 +327,25 @@ export class KeyringAccountMonitor {
       params,
     });
 
-    await Promise.allSettled([
+    await Promise.all([
       // Update the balance of the token asset
-      this.#updateTokenAssetBalance(account, notification, params),
+      this.#updateTokenAssetBalance(account, notification, params).catch(
+        (error) => {
+          this.#logger.error(
+            this.#loggerPrefix,
+            'Error updating token asset balance',
+            error,
+          );
+        },
+      ),
       // Fetch and save the transaction that caused the token asset change.
-      this.#saveCausingTransaction(account, params),
+      this.#saveCausingTransaction(account, params).catch((error) => {
+        this.#logger.error(
+          this.#loggerPrefix,
+          'Error saving causing transaction',
+          error,
+        );
+      }),
     ]);
   }
 
