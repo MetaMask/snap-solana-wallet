@@ -156,7 +156,7 @@ describe('KeyringAccountMonitor', () => {
       expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(4);
     });
 
-    it('does not monitor an account already monitored', async () => {
+    it('does not monitor an account on a network that is already monitored', async () => {
       // Setup 1 active network
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
         activeNetworks: [Network.Mainnet],
@@ -296,9 +296,20 @@ describe('KeyringAccountMonitor', () => {
           );
         });
 
-        it.todo(
-          'fetches and saves the transaction that caused the token asset to change',
-        );
+        it('fetches and saves the transaction that caused the token asset to change', async () => {
+          await keyringAccountMonitor.monitorKeyringAccount(account);
+
+          // Get the specific callback for the token account and call it
+          const tokenAccountCallback = accountCallbacks.get(
+            mockTokenAccount.pubkey,
+          )!;
+          await tokenAccountCallback(mockNotification, mockParams);
+
+          expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+            mockCausingTransaction,
+            account,
+          );
+        });
       });
     });
   });
