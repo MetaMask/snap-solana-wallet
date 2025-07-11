@@ -287,6 +287,13 @@ export class TransactionsService {
     };
 
     await Promise.all([saveTransaction(), saveSignature()]);
+
+    // Bubble up the transaction to the extension
+    await emitSnapKeyringEvent(snap, KeyringEvent.AccountTransactionsUpdated, {
+      transactions: {
+        [account.id]: [transaction],
+      },
+    });
   }
 
   /**

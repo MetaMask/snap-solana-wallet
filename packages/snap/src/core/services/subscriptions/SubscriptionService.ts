@@ -1,7 +1,6 @@
 import type { WebSocketEvent } from '@metamask/snaps-sdk';
 import type { JsonRpcFailure } from '@metamask/utils';
 import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
-import { get } from 'lodash';
 
 import type {
   PendingSubscription,
@@ -9,7 +8,6 @@ import type {
   SubscriptionRequest,
 } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
-import { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { SubscriptionRepository } from './SubscriptionRepository';
 import type { WebSocketConnectionService } from './WebSocketConnectionService';
@@ -73,19 +71,8 @@ export class SubscriptionService {
     eventEmitter.on('onStart', this.#clearSubscriptions.bind(this));
     eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
 
-    // Temporary bind to enable manual testing from the test dapp
-    eventEmitter.on(
-      'onTestSubscribeToAccount',
-      this.#testSubscribeToAccount.bind(this),
-    );
-    eventEmitter.on(
-      'onTestUnsubscribeFromAccount',
-      this.#testUnsubscribeFromAccount.bind(this),
-    );
-    eventEmitter.on(
-      'onTestListSubscriptions',
-      this.#testListSubscriptions.bind(this),
-    );
+    // Specific binds to enable manual testing from the test dapp
+    eventEmitter.on('onListSubscriptions', this.#listSubscriptions.bind(this));
   }
 
   /**
@@ -494,56 +481,7 @@ export class SubscriptionService {
     return globalThis.crypto.randomUUID();
   }
 
-  /**
-   * DELETE: Temporary method to test a subscription.
-   */
-  async #testSubscribeToAccount(): Promise<void> {
-    const subscriptionRequest: SubscriptionRequest = {
-      method: 'accountSubscribe',
-      unsubscribeMethod: 'accountUnsubscribe',
-      network: Network.Mainnet,
-      params: [
-        '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC', // LUKAzPV8dDbVykTVT14pCGKzFfNcgZgRbAXB8AGdKx3
-        { commitment: 'confirmed' },
-      ],
-    };
-
-    this.#logger.info(
-      this.loggerPrefix,
-      `Testing subscription`,
-      subscriptionRequest,
-    );
-
-    const callbacks: SubscriptionCallbacks = {
-      onNotification: async (message: any) => {
-        this.#logger.info(this.loggerPrefix, `onNotification`, message);
-      },
-      onSubscriptionFailed: async (error: any) => {
-        this.#logger.info(this.loggerPrefix, `onSubscriptionFailed`, error);
-      },
-      onConnectionRecovery: async () => {
-        this.#logger.info(this.loggerPrefix, `onConnectionRecovery`);
-      },
-    };
-
-    await this.subscribe(subscriptionRequest, callbacks);
-  }
-
-  async #testUnsubscribeFromAccount(): Promise<void> {
-    const allSubscriptions = await this.#subscriptionRepository.getAll();
-    const subscriptionForAccount = allSubscriptions.find(
-      (subscription) =>
-        subscription.method === 'accountSubscribe' &&
-        get(subscription, 'params[0]') ===
-          '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
-    );
-
-    if (subscriptionForAccount) {
-      await this.unsubscribe(subscriptionForAccount.id);
-    }
-  }
-
-  async #testListSubscriptions(): Promise<void> {
+  async #listSubscriptions(): Promise<void> {
     const subscriptions = await this.#subscriptionRepository.getAll();
     this.#logger.info(this.loggerPrefix, `Subscriptions`, subscriptions);
   }
