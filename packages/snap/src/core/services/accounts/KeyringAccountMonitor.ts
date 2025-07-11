@@ -134,12 +134,12 @@ export class KeyringAccountMonitor {
         return [];
       });
 
-    // Monitor native assets on this network
+    // Monitor native assets
     const nativeAssetsPromises = activeNetworks.map(async (network) =>
       this.#monitorAccountNativeAsset(account, network),
     );
 
-    // Monitor token assets on this network
+    // Monitor token assets
     const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
       this.#monitorAccountTokenAsset(account, tokenAccount),
     );
