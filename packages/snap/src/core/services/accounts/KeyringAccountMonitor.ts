@@ -197,6 +197,25 @@ export class KeyringAccountMonitor {
     notification: AccountNotification,
     params: RpcAccountMonitoringParams,
   ): Promise<void> {
+    this.#logger.log(this.#loggerPrefix, 'Native asset changed', {
+      account,
+      notification,
+      params,
+    });
+
+    await Promise.allSettled([
+      // Update the balance of the native asset
+      this.#updateNativeAssetBalance(account, notification, params),
+      // Fetch and save the transaction that caused the native asset change.
+      this.#saveCausingTransaction(account, notification, params),
+    ]);
+  }
+
+  async #updateNativeAssetBalance(
+    account: SolanaKeyringAccount,
+    notification: AccountNotification,
+    params: RpcAccountMonitoringParams,
+  ): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Native asset balance changed', {
       account,
       notification,
@@ -334,12 +353,10 @@ export class KeyringAccountMonitor {
   }
 
   /**
-   * Fetch the transaction that caused the token asset change and save it.
+   * Fetch the transaction that caused the RPC account (native asset or token asset) to change and save it.
    * This is to cover the case where the balance changed due to a "receive" (transfer from another account outside of the extension).
    *
-   * Note that we don't need to check here if the transaction already exists in the state, because the TransactionService avoids saving duplicates in the state.
-   *
-   * @param account - The account that the token asset changed for.
+   * @param account - The keyring account that the RPC account changed for.
    * @param notification - The notification that triggered the event.
    * @param params - The parameters for the event.
    */
@@ -382,6 +399,7 @@ export class KeyringAccountMonitor {
       return;
     }
 
+    // Note that the TransactionService will avoid saving duplicates in the state.
     await this.#transactionsService.saveTransaction(transaction, account);
   }
 
