@@ -135,7 +135,7 @@ describe('KeyringAccountMonitor', () => {
   describe('monitorKeyringAccount', () => {
     const account = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
 
-    it('monitors the account native and token assets on all active networks', async () => {
+    it('monitors the account native and token assets', async () => {
       // Setup 2 active networks
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
         activeNetworks: [Network.Mainnet, Network.Devnet],
@@ -156,6 +156,53 @@ describe('KeyringAccountMonitor', () => {
       expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(4);
     });
 
+    it('respects account scopes when monitoring multiple networks', async () => {
+      const accountWithLimitedScopes = {
+        ...account,
+        scopes: [Network.Mainnet], // Only mainnet, not devnet
+      };
+
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet, Network.Devnet],
+      } as unknown as Config);
+
+      // Set up no assets for simplicity
+      jest
+        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+        .mockResolvedValue([]);
+
+      await keyringAccountMonitor.monitorKeyringAccount(
+        accountWithLimitedScopes,
+      );
+
+      // Should only monitor mainnet (1 native asset), not devnet
+      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(1);
+      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: account.address,
+          network: Network.Mainnet,
+        }),
+      );
+    });
+
+    it("does not monitor an account on an active network that is not in the account's scopes", async () => {
+      // Setup 1 active network
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet],
+      } as unknown as Config);
+
+      const accountWithDifferentScopes = {
+        ...account,
+        scopes: [Network.Devnet],
+      };
+
+      await keyringAccountMonitor.monitorKeyringAccount(
+        accountWithDifferentScopes,
+      );
+
+      expect(mockRpcAccountMonitor.monitor).not.toHaveBeenCalled();
+    });
+
     it('does not monitor an account on a network that is already monitored', async () => {
       // Setup 1 active network
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
@@ -172,6 +219,20 @@ describe('KeyringAccountMonitor', () => {
       await keyringAccountMonitor.monitorKeyringAccount(account);
 
       expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles error when getTokenAccountsByOwnerMultiple fails', async () => {
+      jest
+        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+        .mockRejectedValue(new Error('RPC failure'));
+
+      await keyringAccountMonitor.monitorKeyringAccount(account);
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('KeyringAccountMonitor'),
+        'Error getting token accounts',
+        expect.any(Object),
+      );
     });
 
     describe('when receiving a notification', () => {
@@ -398,11 +459,9 @@ describe('KeyringAccountMonitor', () => {
             )!;
             await tokenAccountCallback(mockNotification, mockParams);
 
-            expect(mockLogger.error).toHaveBeenCalledWith(
-              expect.stringContaining('KeyringAccountMonitor'),
-              'No signature found',
-              expect.any(Object),
-            );
+            expect(
+              mockTransactionsService.saveTransaction,
+            ).not.toHaveBeenCalled();
           });
 
           it('handles when transaction is not found', async () => {
@@ -418,11 +477,9 @@ describe('KeyringAccountMonitor', () => {
             )!;
             await tokenAccountCallback(mockNotification, mockParams);
 
-            expect(mockLogger.error).toHaveBeenCalledWith(
-              expect.stringContaining('KeyringAccountMonitor'),
-              'No transaction found',
-              expect.any(Object),
-            );
+            expect(
+              mockTransactionsService.saveTransaction,
+            ).not.toHaveBeenCalled();
           });
         });
       });

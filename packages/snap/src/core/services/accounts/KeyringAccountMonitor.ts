@@ -103,11 +103,6 @@ export class KeyringAccountMonitor {
 
   async #monitorAllKeyringAccounts(): Promise<void> {
     this.#logger.log(this.#loggerPrefix, 'Monitoring all keyring accounts');
-    console.log(
-      this.#loggerPrefix,
-      'monitoredAccounts',
-      this.#monitoredAccounts,
-    );
 
     // Clean up the monitored accounts map
     this.#monitoredAccounts.clear();
@@ -146,13 +141,27 @@ export class KeyringAccountMonitor {
       networksMonitored.set(network, new Set());
     });
 
+    if (networksToMonitor.length === 0) {
+      this.#logger.log(this.#loggerPrefix, 'No networks to monitor', {
+        account,
+      });
+      return;
+    }
+
     // Get token accounts
-    const tokenAccounts =
-      await this.#assetsService.getTokenAccountsByOwnerMultiple(
+    const tokenAccounts = await this.#assetsService
+      .getTokenAccountsByOwnerMultiple(
         asAddress(address),
         [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
         networksToMonitor,
-      );
+      )
+      .catch((error) => {
+        this.#logger.error(this.#loggerPrefix, 'Error getting token accounts', {
+          account,
+          error,
+        });
+        return [];
+      });
 
     // Monitor native assets on this network
     const nativeAssetsPromises = networksToMonitor.map(async (network) =>
@@ -160,9 +169,18 @@ export class KeyringAccountMonitor {
     );
 
     // Monitor token assets on this network
-    const tokenAssetsPromises = tokenAccounts.map(async (tokenAccount) =>
-      this.#monitorAccountTokenAsset(account, tokenAccount),
-    );
+    const tokenAssetsPromises = tokenAccounts
+      // Only monitor token assets that are not already monitored
+      .filter(
+        (tokenAccount) =>
+          !this.#monitoredAccounts
+            .get(id)
+            ?.get(tokenAccount.scope)
+            ?.has(tokenAccount.pubkey),
+      )
+      .map(async (tokenAccount) =>
+        this.#monitorAccountTokenAsset(account, tokenAccount),
+      );
 
     await Promise.allSettled([...tokenAssetsPromises, ...nativeAssetsPromises]);
   }
@@ -218,7 +236,7 @@ export class KeyringAccountMonitor {
       // Update the balance of the native asset
       this.#updateNativeAssetBalance(account, notification, params),
       // Fetch and save the transaction that caused the native asset change.
-      this.#saveCausingTransaction(account, notification, params),
+      this.#saveCausingTransaction(account, params),
     ]);
   }
 
@@ -237,15 +255,7 @@ export class KeyringAccountMonitor {
 
     const lamports = notification.value?.lamports;
     if (!lamports) {
-      this.#logger.error(
-        this.#loggerPrefix,
-        'No balance found in account changed event',
-        {
-          notification,
-          params,
-        },
-      );
-      return;
+      throw new Error('No balance found in account changed event');
     }
 
     const balance = {
@@ -310,7 +320,7 @@ export class KeyringAccountMonitor {
       // Update the balance of the token asset
       this.#updateTokenAssetBalance(account, notification, params),
       // Fetch and save the transaction that caused the token asset change.
-      this.#saveCausingTransaction(account, notification, params),
+      this.#saveCausingTransaction(account, params),
     ]);
   }
 
@@ -323,12 +333,7 @@ export class KeyringAccountMonitor {
 
     const mint = get(notification, 'value.data.parsed.info.mint');
     if (!mint) {
-      this.#logger.error(
-        this.#loggerPrefix,
-        'No mint found in token account changed event',
-        { notification, params },
-      );
-      return;
+      throw new Error('No mint found in token account changed event');
     }
 
     const uiAmountString = get(
@@ -336,15 +341,7 @@ export class KeyringAccountMonitor {
       'value.data.parsed.info.tokenAmount.uiAmountString',
     );
     if (!uiAmountString) {
-      this.#logger.error(
-        this.#loggerPrefix,
-        'No amount found in token account changed event',
-        {
-          notification,
-          params,
-        },
-      );
-      return;
+      throw new Error('No uiAmountString found in token account changed event');
     }
 
     const assetType = tokenAddressToCaip19(network, mint);
@@ -372,12 +369,10 @@ export class KeyringAccountMonitor {
    * This is to cover the case where the balance changed due to a "receive" (transfer from another account outside of the extension).
    *
    * @param account - The keyring account that the RPC account changed for.
-   * @param notification - The notification that triggered the event.
    * @param params - The parameters for the event.
    */
   async #saveCausingTransaction(
     account: SolanaKeyringAccount,
-    notification: AccountNotification,
     params: RpcAccountMonitoringParams,
   ): Promise<void> {
     const { network, address } = params;
@@ -388,15 +383,10 @@ export class KeyringAccountMonitor {
         asAddress(address),
         1,
       )
-    )[0];
+    )?.[0];
 
     if (!signature) {
-      this.#logger.error(this.#loggerPrefix, 'No signature found', {
-        account,
-        notification,
-        params,
-      });
-      return;
+      throw new Error('No signature found');
     }
 
     const transaction = await this.#transactionsService.fetchBySignature(
@@ -406,12 +396,7 @@ export class KeyringAccountMonitor {
     );
 
     if (!transaction) {
-      this.#logger.error(this.#loggerPrefix, 'No transaction found', {
-        account,
-        notification,
-        params,
-      });
-      return;
+      throw new Error('No transaction found');
     }
 
     // Note that the TransactionService will avoid saving duplicates in the state.
