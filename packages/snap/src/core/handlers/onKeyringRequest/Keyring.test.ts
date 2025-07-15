@@ -10,6 +10,7 @@ import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { KeyringAccountMonitor } from '../../services';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
+import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import { InMemoryState } from '../../services/state/InMemoryState';
 import type { IStateManager } from '../../services/state/IStateManager';
 import {
@@ -70,6 +71,7 @@ describe('SolanaKeyring', () => {
   let mockConfirmationHandler: ConfirmationHandler;
   let mockTransactionsService: jest.Mocked<TransactionsService>;
   let mockKeyringAccountMonitor: KeyringAccountMonitor;
+  let mockNameResolutionService: NameResolutionService;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -114,6 +116,10 @@ describe('SolanaKeyring', () => {
       stopMonitorKeyringAccount: jest.fn(),
     } as unknown as KeyringAccountMonitor;
 
+    mockNameResolutionService = {
+      resolveAddress: jest.fn(),
+    } as unknown as NameResolutionService;
+
     keyring = new SolanaKeyring({
       state: mockState,
       logger,
@@ -122,6 +128,7 @@ describe('SolanaKeyring', () => {
       walletService: mockWalletService,
       confirmationHandler: mockConfirmationHandler,
       keyringAccountMonitor: mockKeyringAccountMonitor,
+      nameResolutionService: mockNameResolutionService,
     });
   });
 
@@ -240,6 +247,7 @@ describe('SolanaKeyring', () => {
         walletService: mockWalletService,
         confirmationHandler: mockConfirmationHandler,
         keyringAccountMonitor: mockKeyringAccountMonitor,
+        nameResolutionService: mockNameResolutionService,
       });
     });
 
