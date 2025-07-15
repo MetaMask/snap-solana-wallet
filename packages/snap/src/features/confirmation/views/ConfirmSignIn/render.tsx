@@ -9,7 +9,6 @@ import {
   showDialog,
 } from '../../../../core/utils/interface';
 import type { SolanaKeyringAccount } from '../../../../entities';
-import { nameResolutionService } from '../../../../snapContext';
 import type { ConfirmSignInProps } from './ConfirmSignIn';
 import { ConfirmSignIn } from './ConfirmSignIn';
 
@@ -32,14 +31,7 @@ export async function render(
     origin,
   } = request;
 
-  const [preferences, domain] = await Promise.all([
-    getPreferences(),
-    nameResolutionService.resolveAddress(scope, account.address),
-  ]);
-
-  if (account) {
-    account.domain = domain;
-  }
+  const preferences = await getPreferences();
 
   const id = await createInterface(
     <ConfirmSignIn

@@ -106,6 +106,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
   context.accounts = Object.values(keyringAccounts);
   context.preferences = preferences;
   context.tokenPrices = tokenPrices ?? {};
+  context.fromDomain = keyringAccounts[context.fromAccountId]?.domain ?? null;
 
   const id = await createInterface(<Send context={context} />, context);
 

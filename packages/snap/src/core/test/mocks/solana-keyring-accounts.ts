@@ -32,6 +32,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_0: SolanaKeyringAccount = {
   index: 0,
   type: 'solana:data-account',
   id: '4b445722-6766-4f99-ade5-c2c9295f21d0',
+  domain: null,
   options: {
     entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     derivationPath: `m/44'/501'/0'/0'`,
@@ -63,6 +64,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_1: SolanaKeyringAccount = {
   index: 1,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174001',
+  domain: null,
   options: {
     entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     derivationPath: `m/44'/501'/1'/0'`,
@@ -89,6 +91,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_2: SolanaKeyringAccount = {
   index: 2,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174002',
+  domain: null,
   options: {
     entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     derivationPath: `m/44'/501'/2'/0'`,
@@ -115,6 +118,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_3: SolanaKeyringAccount = {
   index: 3,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174003',
+  domain: null,
   options: {
     entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     derivationPath: `m/44'/501'/3'/0'`,
@@ -141,6 +145,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_4: SolanaKeyringAccount = {
   index: 4,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174004',
+  domain: null,
   options: {
     entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     derivationPath: `m/44'/501'/4'/0'`,
@@ -167,6 +172,7 @@ export const MOCK_SOLANA_KEYRING_ACCOUNT_5: SolanaKeyringAccount = {
   index: 5,
   type: 'solana:data-account',
   id: '123e4567-e89b-12d3-a456-426614174005',
+  domain: null,
   options: {
     entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
     derivationPath: `m/44'/501'/5'/0'`,
@@ -194,6 +200,7 @@ export const MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0: SolanaKeyringAccount =
     id: '123e4567-e89b-12d3-a456-426614174006',
     type: 'solana:data-account',
     address: '8fi28SQKWhzCaH5c2RrHLbpgQJctNG6NFrfZyCj51rJX',
+    domain: null,
     options: {
       entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
       derivationPath: `m/44'/501'/0'/0'`,
@@ -222,6 +229,7 @@ export const MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1: SolanaKeyringAccount =
     id: '123e4567-e89b-12d3-a456-426614174007',
     type: 'solana:data-account',
     address: '4yQr5hGkYfXykkv8Q7YxAGBxkB9bd9ntLL7hJaz1tGTv',
+    domain: null,
     options: {
       entropySource: MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
       derivationPath: `m/44'/501'/1'/0'`,

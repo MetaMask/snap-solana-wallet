@@ -8,7 +8,7 @@ export type SolanaKeyringAccount = {
   entropySource: EntropySourceId;
   derivationPath: `m/${string}`;
   index: number;
-  domain?: string | null;
+  domain: string | null;
 } & KeyringAccount;
 
 /**

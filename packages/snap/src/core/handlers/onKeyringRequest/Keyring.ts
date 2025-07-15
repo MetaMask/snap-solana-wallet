@@ -38,7 +38,8 @@ import {
   asStrictKeyringAccount,
   type SolanaKeyringAccount,
 } from '../../../entities';
-import type { Network } from '../../constants/solana';
+import { nameResolutionService } from '../../../snapContext';
+import { Network } from '../../constants/solana';
 import type { KeyringAccountMonitor } from '../../services';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
@@ -130,6 +131,13 @@ export class SolanaKeyring implements Keyring {
       const account = await this.#state.getKey<SolanaKeyringAccount>(
         `keyringAccounts.${accountId}`,
       );
+
+      if (account) {
+        account.domain = await nameResolutionService.resolveAddress(
+          Network.Mainnet,
+          account.address,
+        );
+      }
 
       return account;
     } catch (error: any) {
@@ -254,6 +262,7 @@ export class SolanaKeyring implements Keyring {
         index,
         type: SolAccountType.DataAccount,
         address: accountAddress,
+        domain: null,
         scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
         options: {
           ...remainingOptions,
