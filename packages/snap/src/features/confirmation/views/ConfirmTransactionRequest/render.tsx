@@ -10,6 +10,7 @@ import {
   showDialog,
   updateInterface,
 } from '../../../../core/utils/interface';
+import logger from '../../../../core/utils/logger';
 import { extractInstructionsFromUnknownBase64String } from '../../../../entities';
 import {
   connection,
@@ -85,7 +86,7 @@ export async function render(
       context.advanced.instructions = instructions;
     })
     .catch((error) => {
-      console.error(error);
+      logger.error(error);
       context.advanced.instructions = [];
     });
 

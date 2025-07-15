@@ -1,6 +1,7 @@
 /* eslint-disable no-void */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Serializable } from '../serialization/types';
+import logger from '../utils/logger';
 import type { ICache } from './ICache';
 
 /**
@@ -69,7 +70,7 @@ export const useCache = <TArgs extends any[], TResult extends Serializable>(
       }
     } catch (error) {
       // Log cache get errors but proceed to execute the function
-      console.error(`Cache get error for key "${cacheKey}":`, error);
+      logger.error(`Cache get error for key "${cacheKey}":`, error);
     }
 
     // Execute the original function
@@ -78,7 +79,7 @@ export const useCache = <TArgs extends any[], TResult extends Serializable>(
     // Cache the result, handle potential errors silently
     // We don't await this, allowing it to happen in the background
     void cache.set(cacheKey, result, ttlMilliseconds).catch((error) => {
-      console.error(`Cache set error for key "${cacheKey}":`, error);
+      logger.error(`Cache set error for key "${cacheKey}":`, error);
     });
 
     return result;

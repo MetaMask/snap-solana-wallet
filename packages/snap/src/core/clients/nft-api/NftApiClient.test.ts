@@ -3,7 +3,7 @@ import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
 import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
-import type { ILogger } from '../../utils/logger';
+import { mockLogger } from '../../services/mocks/logger';
 import { MOCK_NFT_METADATA_RESPONSE_MAPPED } from './mocks/mockNftMetadataResponseMapped';
 import { MOCK_NFT_METADATA_RESPONSE_RAW } from './mocks/mockNftMetadataResponseRaw';
 import { MOCK_NFTS_LIST_RESPONSE_MAPPED } from './mocks/mockNftsListResponseMapped';
@@ -11,11 +11,6 @@ import { MOCK_NFTS_LIST_RESPONSE_RAW } from './mocks/mockNftsListResponseRaw';
 import { NftApiClient } from './NftApiClient';
 
 const mockFetch = jest.fn();
-const mockLogger = {
-  info: jest.fn(console.info),
-  error: jest.fn(console.error),
-  warn: jest.fn(console.error),
-} as unknown as ILogger;
 let mockCache: ICache<Serializable>;
 
 describe('NftApiClient', () => {
