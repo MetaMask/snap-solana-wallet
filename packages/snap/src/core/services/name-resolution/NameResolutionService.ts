@@ -6,13 +6,17 @@ import type { Address } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 
 import type { Network } from '../../constants/solana';
+import type { ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection/SolanaConnection';
 
 export class NameResolutionService {
   #connection: SolanaConnection;
 
-  constructor(connection: SolanaConnection) {
+  #logger: ILogger;
+
+  constructor(connection: SolanaConnection, logger: ILogger) {
     this.#connection = connection;
+    this.#logger = logger;
   }
 
   async resolveDomain(scope: Network, domain: string): Promise<Address> {
@@ -20,9 +24,21 @@ export class NameResolutionService {
     return resolveDomain(connection, domain);
   }
 
-  async resolveAddress(scope: Network, address: string): Promise<string> {
-    const connection = this.#connection.getRpc(scope);
-    return (await getPrimaryDomain(connection, asAddress(address)))
-      .domainAddress;
+  async resolveAddress(
+    scope: Network,
+    address: string,
+  ): Promise<string | null> {
+    try {
+      const connection = this.#connection.getRpc(scope);
+      const primaryDomain = await getPrimaryDomain(
+        connection,
+        asAddress(address),
+      );
+
+      return `${primaryDomain.domainName}.sol`;
+    } catch (error) {
+      this.#logger.error('Error resolving address', error);
+      return null;
+    }
   }
 }

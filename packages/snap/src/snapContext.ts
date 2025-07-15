@@ -135,7 +135,7 @@ const tokenPricesService = new TokenPricesService({
   priceApiClient,
   logger,
 });
-const nameResolutionService = new NameResolutionService(connection);
+const nameResolutionService = new NameResolutionService(connection, logger);
 
 const assetsService = new AssetsService({
   connection,

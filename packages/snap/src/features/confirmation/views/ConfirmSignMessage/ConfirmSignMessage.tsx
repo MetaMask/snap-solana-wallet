@@ -13,6 +13,7 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
+import { Domain } from '../../../../core/components/Domain/Domain';
 import { Networks, type Network } from '../../../../core/constants/solana';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
@@ -82,7 +83,11 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
             <Text fontWeight="medium" color="alternative">
               {translate('confirmation.account')}
             </Text>
-            <Address address={addressCaip10} truncate displayName avatar />
+            {account.domain ? (
+              <Domain domain={account.domain} scope={scope} address={address} />
+            ) : (
+              <Address address={addressCaip10} truncate displayName avatar />
+            )}
           </Box>
           <Box alignment="space-between" direction="horizontal">
             <Text fontWeight="medium" color="alternative">

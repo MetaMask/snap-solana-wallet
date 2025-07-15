@@ -11,6 +11,7 @@ import {
   showDialog,
 } from '../../../../core/utils/interface';
 import type { SolanaKeyringAccount } from '../../../../entities';
+import { nameResolutionService } from '../../../../snapContext';
 import { ConfirmSignMessage } from './ConfirmSignMessage';
 
 /**
@@ -37,11 +38,17 @@ export async function render(
   const messageBytes = getBase64Codec().encode(messageBase64);
   const messageUtf8 = getUtf8Codec().decode(messageBytes);
 
-  const locale = await getPreferences()
-    .then((preferences) => {
-      return preferences.locale;
-    })
-    .catch(() => FALLBACK_LANGUAGE);
+  // get them both into a Promise.all
+  const [locale, domain] = await Promise.all([
+    getPreferences()
+      .then((preferences) => preferences.locale)
+      .catch(() => FALLBACK_LANGUAGE),
+    nameResolutionService.resolveAddress(scope, account.address),
+  ]);
+
+  if (account) {
+    account.domain = domain;
+  }
 
   const id = await createInterface(
     <ConfirmSignMessage

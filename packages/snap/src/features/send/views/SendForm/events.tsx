@@ -468,7 +468,17 @@ async function onSendButtonClick({
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
-  const [tokenPrices, tokenImage] = await Promise.all([
+  const fromAddress = context.accounts.find(
+    (account) => account.id === context.fromAccountId,
+  )?.address;
+
+  const [fromDomain, toDomain, tokenPrices, tokenImage] = await Promise.all([
+    fromAddress
+      ? nameResolutionService.resolveAddress(context.scope, fromAddress)
+      : null,
+    context.toAddress
+      ? nameResolutionService.resolveAddress(context.scope, context.toAddress)
+      : null,
     priceApiClient
       .getMultipleSpotPrices(context.assets, context.preferences.currency)
       .then((prices) => prices)
@@ -486,14 +496,18 @@ async function onSendButtonClick({
       : null,
   ]);
 
-  if (tokenPrices && tokenImage) {
+  updatedContext.fromDomain = fromDomain;
+  updatedContext.toDomain = toDomain;
+
+  if (tokenPrices) {
     updatedContext.tokenPrices = tokenPrices;
-    updatedContext.selectedTokenMetadata = context.selectedTokenMetadata
-      ? {
-          ...context.selectedTokenMetadata,
-          imageSvg: tokenImage,
-        }
-      : null;
+  }
+
+  if (tokenImage && context.selectedTokenMetadata) {
+    updatedContext.selectedTokenMetadata = {
+      ...context.selectedTokenMetadata,
+      imageSvg: tokenImage,
+    };
   }
 
   updatedContext.loading = false;

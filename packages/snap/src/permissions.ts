@@ -61,9 +61,6 @@ const metamaskPermissions = new Set([
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
   RpcRequestMethod.GetFeeForTransaction,
-  // Protocol methods
-  SolanaProtocolRequestMethod.GetGenesisHash,
-  SolanaProtocolRequestMethod.GetLatestBlockhash,
   // Client methods
   ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
 ]);

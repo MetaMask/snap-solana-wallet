@@ -12,6 +12,7 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
+import { Domain } from '../../../../core/components/Domain/Domain';
 import { Networks, type Network } from '../../../../core/constants/solana';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import type { Preferences } from '../../../../core/types/snap';
@@ -128,12 +129,20 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
             }
             variant={isBadAccount ? 'warning' : 'default'}
           >
-            <Address
-              address={accountAddressCaip10}
-              truncate
-              displayName
-              avatar
-            />
+            {account.domain ? (
+              <Domain
+                domain={account.domain}
+                scope={scope}
+                address={account.address}
+              />
+            ) : (
+              <Address
+                address={accountAddressCaip10}
+                truncate
+                displayName
+                avatar
+              />
+            )}
           </Row>
         </Section>
 

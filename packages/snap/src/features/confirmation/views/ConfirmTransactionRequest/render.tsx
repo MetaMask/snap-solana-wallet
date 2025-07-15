@@ -13,6 +13,7 @@ import {
 import { extractInstructionsFromUnknownBase64String } from '../../../../entities';
 import {
   connection,
+  nameResolutionService,
   priceApiClient,
   state,
   transactionHelper,
@@ -146,7 +147,20 @@ export async function render(
       updatedContext1.feeEstimatedInSol = null;
     });
 
-  await Promise.all([tokenPricesPromise, transactionFeePromise]);
+  const domainPromise = nameResolutionService
+    .resolveAddress(context.scope, context.account?.address ?? '')
+    .then((domain) => {
+      if (updatedContext1.account) {
+        updatedContext1.account.domain = domain;
+      }
+    })
+    .catch(() => {
+      if (updatedContext1.account) {
+        updatedContext1.account.domain = null;
+      }
+    });
+
+  await Promise.all([tokenPricesPromise, transactionFeePromise, domainPromise]);
 
   await updateInterface(
     id,
