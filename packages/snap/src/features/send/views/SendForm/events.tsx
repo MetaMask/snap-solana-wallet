@@ -468,7 +468,14 @@ async function onSendButtonClick({
 
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
 
-  const [toDomain, tokenPrices, tokenImage] = await Promise.all([
+  const fromAddress = context.accounts.find(
+    (account) => account.id === context.fromAccountId,
+  )?.address;
+
+  const [fromDomain, toDomain, tokenPrices, tokenImage] = await Promise.all([
+    fromAddress
+      ? nameResolutionService.resolveAddress(context.scope, fromAddress)
+      : null,
     context.toAddress
       ? nameResolutionService.resolveAddress(context.scope, context.toAddress)
       : null,
@@ -489,6 +496,7 @@ async function onSendButtonClick({
       : null,
   ]);
 
+  updatedContext.fromDomain = fromDomain;
   updatedContext.toDomain = toDomain;
 
   if (tokenPrices) {
