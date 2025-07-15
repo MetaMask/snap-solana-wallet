@@ -303,9 +303,7 @@ export class WalletService {
       ...(options?.maxRetries
         ? { maxRetries: BigInt(options.maxRetries) }
         : {}),
-      ...(options?.skipPreflight === undefined
-        ? { skipPreflight: true }
-        : { skipPreflight: options?.skipPreflight }),
+      skipPreflight: options?.skipPreflight ?? true,
       // Set to 'confirmed' as required to be defined, but ignored by sendTransactionWithoutConfirming.
       // This is because RPC Subscriptions rely on websockets, which are unavailable in the Snap environment.
       // We compensate for this with `waitForTransactionCommitment`.
