@@ -252,9 +252,9 @@ export const onAssetsConversion: OnAssetsConversionHandler = async (params) => {
 
 export const onProtocolRequest: OnProtocolRequestHandler = async (params) => {
   const { origin, request } = params;
-  
+
   validateOrigin(origin, request.method);
-  
+
   const result = await withCatchAndThrowSnapError(async () =>
     onProtocolRequestHandler(params),
   );
