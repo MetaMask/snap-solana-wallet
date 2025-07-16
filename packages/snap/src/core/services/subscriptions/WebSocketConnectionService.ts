@@ -238,17 +238,15 @@ export class WebSocketConnectionService {
       return;
     }
 
-    const { caip2Id } = network;
-
-    // Attempt to reconnect with exponential backoff
-    const currentAttempts = this.#retryAttempts.get(caip2Id) ?? 0;
-    const nextAttempt = currentAttempts + 1;
-    this.#retryAttempts.set(caip2Id, nextAttempt);
-    await this.#attemptReconnect(caip2Id, nextAttempt);
+    await this.#attemptReconnect(network.caip2Id);
   }
 
-  async #attemptReconnect(network: Network, attempts: number): Promise<void> {
-    if (attempts > this.#maxReconnectAttempts) {
+  async #attemptReconnect(network: Network): Promise<void> {
+    const currentAttempts = this.#retryAttempts.get(network) ?? 0;
+    const nextAttempt = currentAttempts + 1;
+    this.#retryAttempts.set(network, nextAttempt);
+
+    if (nextAttempt > this.#maxReconnectAttempts) {
       this.#logger.error(
         this.#loggerPrefix,
         `❌ Failed to reconnect to ${network} after ${this.#maxReconnectAttempts}/${this.#maxReconnectAttempts} attempts. Giving up.`,
@@ -256,10 +254,11 @@ export class WebSocketConnectionService {
       return;
     }
 
-    const delay = this.#reconnectDelayMilliseconds * Math.pow(2, attempts - 1);
+    const delay =
+      this.#reconnectDelayMilliseconds * Math.pow(2, currentAttempts);
     this.#logger.warn(
       this.#loggerPrefix,
-      `❌ Disconnected from ${network}. Will try reconnecting in ${delay}ms (attempt ${attempts}/${this.#maxReconnectAttempts})`,
+      `❌ Disconnected from ${network}. Will try reconnecting in ${delay}ms (attempt ${nextAttempt}/${this.#maxReconnectAttempts})`,
     );
 
     await new Promise<void>((resolve) => {
