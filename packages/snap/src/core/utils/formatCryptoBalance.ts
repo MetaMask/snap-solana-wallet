@@ -1,5 +1,7 @@
 import BigNumber from 'bignumber.js';
 
+import logger from './logger';
+
 const MIN_AMOUNT = 0.000001;
 const MAX_SIGNIFICANT_DECIMAL_PLACES = 3;
 const ZERO_DISPLAY = '0';
@@ -88,7 +90,7 @@ export function formatCryptoBalance(
 
     return formattedAmount;
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     return ZERO_DISPLAY;
   }
 }

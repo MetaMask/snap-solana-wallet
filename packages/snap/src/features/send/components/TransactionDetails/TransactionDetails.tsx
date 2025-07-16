@@ -8,6 +8,7 @@ import {
   Value,
 } from '@metamask/snaps-sdk/jsx';
 
+import { Domain } from '../../../../core/components/Domain/Domain';
 import { Networks } from '../../../../core/constants/solana';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCrypto } from '../../../../core/utils/formatCrypto';
@@ -32,6 +33,8 @@ export const TransactionDetails = ({ context }: TransactionDetailsProps) => {
     transaction,
     feePaidInSol,
     tokenPrices,
+    fromDomain,
+    toDomain,
   } = context;
   const translate = i18n(locale);
 
@@ -58,19 +61,27 @@ export const TransactionDetails = ({ context }: TransactionDetailsProps) => {
     <Box>
       <Section>
         <Row label={translate('send.confirmation.from')}>
-          <Link href={getSolanaExplorerUrl(scope, 'address', fromAddress)}>
-            <Address address={fromAddressCaip2} displayName />
-          </Link>
+          {fromDomain ? (
+            <Domain domain={fromDomain} scope={scope} address={fromAddress} />
+          ) : (
+            <Link href={getSolanaExplorerUrl(scope, 'address', fromAddress)}>
+              <Address address={fromAddressCaip2} displayName />
+            </Link>
+          )}
         </Row>
 
         {toAddress ? (
           <Row label={translate('send.confirmation.recipient')}>
-            <Link href={getSolanaExplorerUrl(scope, 'address', toAddress)}>
-              <Address
-                address={addressToCaip10(scope, toAddress)}
-                displayName
-              />
-            </Link>
+            {toDomain ? (
+              <Domain domain={toDomain} scope={scope} address={toAddress} />
+            ) : (
+              <Link href={getSolanaExplorerUrl(scope, 'address', toAddress)}>
+                <Address
+                  address={addressToCaip10(scope, toAddress)}
+                  displayName
+                />
+              </Link>
+            )}
           </Row>
         ) : null}
       </Section>

@@ -1,3 +1,5 @@
+import logger from './logger';
+
 export type CancellablePromise<ReturnType> = Promise<ReturnType> & {
   cancel: () => void;
 };
@@ -94,7 +96,7 @@ export function withoutConcurrency<ReturnType>(
     if (currentTask) {
       if (typeof currentTask.cancel === 'function') {
         const message = 'Cancelling previous task';
-        console.warn(message);
+        logger.warn(message);
         currentTask.cancel();
       }
     }

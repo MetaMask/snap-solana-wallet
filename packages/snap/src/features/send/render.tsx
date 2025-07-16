@@ -26,8 +26,10 @@ import { StartSendTransactionFlowParamsStruct } from './views/SendForm/validatio
 export const DEFAULT_SEND_CONTEXT: SendContext = {
   scope: Network.Mainnet,
   fromAccountId: '',
+  fromDomain: null,
   amount: '',
   destinationAddressOrDomain: null,
+  toDomain: null,
   toAddress: null,
   domainResolutionStatus: null,
   feeEstimatedInSol: '0',

@@ -32,6 +32,8 @@ describe('SendForm events', () => {
   const baseContext: SendContext = {
     fromAccountId: mockAccount.id,
     toAddress: mockToAddress,
+    fromDomain: null,
+    toDomain: null,
     balances: {
       [mockAccount.id]: {
         [KnownCaip19Id.SolLocalnet]: {

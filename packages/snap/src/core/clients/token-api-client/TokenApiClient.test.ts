@@ -3,7 +3,7 @@
 import type { TokenCaipAssetType } from '../../constants/solana';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
-import type { ILogger } from '../../utils/logger';
+import { mockLogger } from '../../services/mocks/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import { TokenApiClient } from './TokenApiClient';
 
@@ -26,10 +26,6 @@ const MOCK_METADATA_RESPONSE = [
 
 describe('TokenApiClient', () => {
   const mockFetch = jest.fn();
-  const mockLogger = {
-    error: jest.fn(console.error),
-    warn: jest.fn(console.error),
-  } as unknown as ILogger;
 
   let client: TokenApiClient;
   let mockConfigProvider: ConfigProvider;

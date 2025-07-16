@@ -49,11 +49,13 @@ export type SendTokenMetadata = {
 export type SendContext = {
   scope: Network;
   fromAccountId: string;
+  fromDomain: string | null;
   amount: string | null;
   tokenCaipId: CaipAssetType;
   destinationAddressOrDomain: string | null;
   domainResolutionStatus: FetchStatus | null;
   toAddress: string | null;
+  toDomain: string | null;
   accounts: SolanaKeyringAccount[];
   feeEstimatedInSol: string | null;
   feePaidInSol: string | null;
