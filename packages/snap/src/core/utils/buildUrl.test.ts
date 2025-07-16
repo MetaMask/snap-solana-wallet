@@ -39,6 +39,17 @@ describe('buildUrl', () => {
     expect(result).toBe('https://api.example.com/users/123');
   });
 
+  it('encodes path parameters to prevent path traversal attacks', () => {
+    const result = buildUrl({
+      baseUrl: 'https://api.example.com',
+      path: '/tokens/{assetId}',
+      pathParams: { assetId: 'solana:mainnet:token123' },
+    });
+    expect(result).toBe(
+      'https://api.example.com/tokens/solana%3Amainnet%3Atoken123',
+    );
+  });
+
   it('handles trailing slash in base URL', () => {
     const result = buildUrl({
       baseUrl: 'https://api.example.com/',
@@ -72,7 +83,7 @@ describe('buildUrl', () => {
     ).toThrow('URL contains potentially malicious patterns');
   });
 
-  it('prevents path traversal attacks', () => {
+  it('prevents path traversal attacks by encoding path parameters', () => {
     const result = buildUrl({
       baseUrl: 'https://api.example.com',
       path: '/../../../etc/passwd',

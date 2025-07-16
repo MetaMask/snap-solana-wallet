@@ -346,7 +346,7 @@ describe('PriceApiClient', () => {
         });
 
         expect(mockFetch).toHaveBeenCalledWith(
-          'https://some-mock-url.com/v3/historical-prices/solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501?timePeriod=5d&from=123&to=456&vsCurrency=usd',
+          'https://some-mock-url.com/v3/historical-prices/solana%3A5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp%2Fslip44%3A501?timePeriod=5d&from=123&to=456&vsCurrency=usd',
         );
         expect(cacheSetSpy).toHaveBeenCalledWith(
           'PriceApiClient:getHistoricalPrices:{"assetType":"solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501","timePeriod":"5d","from":123,"to":456,"vsCurrency":"usd"}',
