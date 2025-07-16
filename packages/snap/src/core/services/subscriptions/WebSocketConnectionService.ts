@@ -264,8 +264,13 @@ export class WebSocketConnectionService {
     await new Promise<void>((resolve) => {
       setTimeout(() => {
         this.openConnection(network)
-          .catch(() => {
-            // Do nothing here. If the connection fails to open, we receive a disconnect event,
+          .catch((error) => {
+            this.#logger.info(
+              this.#loggerPrefix,
+              `Error opening connection for ${network}`,
+              error,
+            );
+            // Do nothing else here. If the connection fails to open, we receive a disconnect event,
             // that will be handled by the #handleDisconnected method.
           })
           .finally(() => resolve());
