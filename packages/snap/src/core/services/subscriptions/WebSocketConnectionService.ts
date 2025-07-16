@@ -265,7 +265,8 @@ export class WebSocketConnectionService {
       setTimeout(() => {
         this.openConnection(network)
           .catch(() => {
-            // Do nothing
+            // Do nothing here. If the connection fails to open, we receive a disconnect event,
+            // that will be handled by the #handleDisconnected method.
           })
           .finally(() => resolve());
       }, delay);
