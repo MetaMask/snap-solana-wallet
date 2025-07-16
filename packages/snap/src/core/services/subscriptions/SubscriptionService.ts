@@ -163,12 +163,6 @@ export class SubscriptionService {
     // If the connection is open, send the message immediately.
     if (connectionId) {
       await sendSubscriptionMessage(connectionId);
-    } else {
-      this.#logger.info(
-        this.loggerPrefix,
-        `No connection found for network ${network}, opening a new one`,
-      );
-      await this.#connectionService.openConnection(network);
     }
 
     return pendingSubscription.id;

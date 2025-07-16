@@ -551,7 +551,7 @@ describe('SubscriptionService', () => {
     });
 
     describe('when a subscription request is sent, but no open connection', () => {
-      it('saves the subscription request, opens the connection, and sends it once the connection is opened', async () => {
+      it('saves the subscription request, and sends it once the connection is opened', async () => {
         // Mock the getConnectionIdByNetwork to simulate connection state changes
         jest
           .spyOn(mockWebSocketConnectionService, 'getConnectionIdByNetwork')
@@ -585,11 +585,6 @@ describe('SubscriptionService', () => {
         expect(connectionRecoveryCallbacks.get(mockNetwork)?.[0]).toBe(
           callbacks.onConnectionRecovery,
         );
-
-        // Verify that the connection was opened
-        expect(
-          mockWebSocketConnectionService.openConnection,
-        ).toHaveBeenCalledWith(mockNetwork);
 
         // Now, let's establish the connection
         jest
