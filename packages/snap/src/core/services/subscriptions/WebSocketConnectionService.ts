@@ -1,4 +1,8 @@
-import type { WebSocketEvent } from '@metamask/snaps-sdk';
+import type {
+  WebSocketCloseEvent,
+  WebSocketEvent,
+  WebSocketOpenEvent,
+} from '@metamask/snaps-sdk';
 
 import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
@@ -167,7 +171,7 @@ export class WebSocketConnectionService {
     }
   }
 
-  async #handleConnected(event: WebSocketEvent): Promise<void> {
+  async #handleConnected(event: WebSocketOpenEvent): Promise<void> {
     const { id: connectionId } = event;
     const connection = await this.#connectionRepository.getById(connectionId);
 
@@ -215,7 +219,9 @@ export class WebSocketConnectionService {
     await Promise.allSettled(recoveryPromises);
   }
 
-  async #handleDisconnected(event: WebSocketEvent): Promise<void> {
+  async #handleDisconnected(event: WebSocketCloseEvent): Promise<void> {
+    // Here, we cannot rely on this.#connectionRepository.getById() because the connection doesn't exist anymore,
+    // so we need to find the network from the event origin
     const { origin } = event;
 
     const { networks } = this.#configProvider.get();
