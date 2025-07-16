@@ -109,8 +109,8 @@ describe('KeyringAccountMonitor', () => {
     );
   });
 
-  describe('#monitorAllKeyringAccounts', () => {
-    it('monitors all keyring accounts', async () => {
+  describe('#initialize', () => {
+    it('starts monitoring all keyring accounts', async () => {
       // Setup 2 keyring accounts
       jest
         .spyOn(mockAccountService, 'getAll')
@@ -119,16 +119,44 @@ describe('KeyringAccountMonitor', () => {
           MOCK_SOLANA_KEYRING_ACCOUNTS[1],
         ]);
 
+      // Set up no assets for simplicity. We'll just monitor that native asset
       jest
-        .spyOn(keyringAccountMonitor, 'monitorKeyringAccount')
-        .mockResolvedValue(undefined);
+        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+        .mockResolvedValue([]);
 
       // Simulate a onStart event to start monitoring
       await mockEventEmitter.emitSync('onStart');
 
-      expect(keyringAccountMonitor.monitorKeyringAccount).toHaveBeenCalledTimes(
-        2,
-      );
+      // 2 accounts => 2 native assets to monitor
+      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(2);
+    });
+
+    it('stops monitoring all previously monitored keyring accounts', async () => {
+      // Setup 2 keyring accounts, already being monitored
+      jest
+        .spyOn(mockAccountService, 'getAll')
+        .mockResolvedValue([
+          MOCK_SOLANA_KEYRING_ACCOUNTS[0],
+          MOCK_SOLANA_KEYRING_ACCOUNTS[1],
+        ]);
+
+      // Set up no assets for simplicity. We'll just monitor that native asset
+      jest
+        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
+        .mockResolvedValue([]);
+
+      // Set up the service to monitor the 2 accounts
+      await mockEventEmitter.emitSync('onStart');
+      (mockRpcAccountMonitor.monitor as jest.Mock).mockReset();
+
+      // Simulate a new event to re-initialize
+      await mockEventEmitter.emitSync('onUpdate');
+
+      // 2 accounts to stop monitoring
+      expect(mockRpcAccountMonitor.stopMonitoring).toHaveBeenCalledTimes(2);
+
+      // 2 accounts to monitor again
+      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(2);
     });
   });
 

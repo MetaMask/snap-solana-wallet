@@ -67,12 +67,21 @@ export class SubscriptionService {
     this.#subscriptionRepository = subscriptionRepository;
     this.#logger = logger;
 
-    // When the extension starts, it has lost all its websockets, so we need to clear the subscriptions.
-    eventEmitter.on('onStart', this.#clearSubscriptions.bind(this));
+    // When the extension starts, or that the snap is updated / installed, the Snap platform has lost all its previously opened websockets, so we need to re-initialize
+    eventEmitter.on('onStart', this.#initialize.bind(this));
+    eventEmitter.on('onUpdate', this.#initialize.bind(this));
+    eventEmitter.on('onInstall', this.#initialize.bind(this));
+
     eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
 
     // Specific binds to enable manual testing from the test dapp
     eventEmitter.on('onListSubscriptions', this.#listSubscriptions.bind(this));
+  }
+
+  async #initialize(): Promise<void> {
+    this.#logger.info(this.loggerPrefix, `Initializing`);
+
+    await this.#clearSubscriptions();
   }
 
   /**
@@ -474,7 +483,9 @@ export class SubscriptionService {
 
   async #clearSubscriptions(): Promise<void> {
     this.#logger.info(this.loggerPrefix, `Clearing subscriptions`);
+
     await this.#subscriptionRepository.deleteAll();
+    this.#callbacks.clear();
   }
 
   #generateId(): string {
@@ -483,6 +494,9 @@ export class SubscriptionService {
 
   async #listSubscriptions(): Promise<void> {
     const subscriptions = await this.#subscriptionRepository.getAll();
-    this.#logger.info(this.loggerPrefix, `Subscriptions`, subscriptions);
+    this.#logger.info(this.loggerPrefix, `Subscriptions`, {
+      subscriptions,
+      callbacks: this.#callbacks,
+    });
   }
 }

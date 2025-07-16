@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /**
  * A simple logger utility that provides methods for logging messages at different levels.
  * For now, it's just a wrapper around console.
@@ -48,6 +49,14 @@ const logger: ILogger = {
   warn: withNoopInProduction(console.warn),
   debug: withNoopInProduction(console.debug),
   error: withNoopInProduction(withSolanaErrorLogging(console.error)),
+};
+
+export const noOpLogger: ILogger = {
+  log: () => {},
+  info: () => {},
+  warn: () => {},
+  debug: () => {},
+  error: () => {},
 };
 
 export default logger;

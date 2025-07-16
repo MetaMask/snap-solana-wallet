@@ -96,16 +96,31 @@ export class KeyringAccountMonitor {
     this.#configProvider = configProvider;
     this.#logger = logger;
 
-    eventEmitter.on('onStart', this.#monitorAllKeyringAccounts.bind(this));
-    eventEmitter.on('onUpdate', this.#monitorAllKeyringAccounts.bind(this));
-    eventEmitter.on('onInstall', this.#monitorAllKeyringAccounts.bind(this));
+    // When the extension starts, or that the snap is updated / installed, the Snap platform has lost all its previously opened websockets, so we need to re-initialize
+    eventEmitter.on('onStart', this.#initialize.bind(this));
+    eventEmitter.on('onUpdate', this.#initialize.bind(this));
+    eventEmitter.on('onInstall', this.#initialize.bind(this));
   }
 
-  async #monitorAllKeyringAccounts(): Promise<void> {
-    this.#logger.log(this.#loggerPrefix, 'Monitoring all keyring accounts');
+  async #initialize(): Promise<void> {
+    this.#logger.info(this.#loggerPrefix, `Initializing`);
 
     const accounts = await this.#accountService.getAll();
 
+    // Ensure a clean start by stopping monitoring all accounts
+    const monitoredAccountIds = Array.from(
+      this.#monitoredKeyringAccounts.keys(),
+    );
+    await Promise.allSettled(
+      monitoredAccountIds.map(async (accountId) => {
+        const account = accounts.find((item) => item.id === accountId);
+        if (account) {
+          await this.stopMonitorKeyringAccount(account);
+        }
+      }),
+    );
+
+    // Monitor all accounts
     await Promise.allSettled(
       accounts.map(async (account) => {
         await this.monitorKeyringAccount(account);

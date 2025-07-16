@@ -91,7 +91,7 @@ export type Config = {
       getNftMetadata: number;
     };
   };
-  subscription: {
+  subscriptions: {
     maxReconnectAttempts: number;
     reconnectDelayMilliseconds: number;
   };
@@ -208,7 +208,7 @@ export class ConfigProvider {
           getNftMetadata: Duration.Minute,
         },
       },
-      subscription: {
+      subscriptions: {
         maxReconnectAttempts: 5,
         reconnectDelayMilliseconds: Duration.Second,
       },

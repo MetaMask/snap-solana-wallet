@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button, Card, Text as ChakraText, Flex } from '@chakra-ui/react';
 
-import { Network } from '../../../../snap/src/core/constants/solana';
 import { TestDappRpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
 import { useInvokeSnap } from '../../hooks';
 import { useShowToasterForResponse } from '../../hooks/useToasterForResponse';
@@ -25,16 +24,6 @@ export const WebSockets = () => {
     showSuccessToast('Initiated WebSocket connections to all active networks');
   };
 
-  const reconnectWebSocket = async (network: Network) => {
-    await invokeSnap({
-      method: TestDappRpcRequestMethod.ConnectWebSocket,
-      params: {
-        network,
-      },
-    });
-    showSuccessToast('Simulated a WebSocket reconnection');
-  };
-
   const listSubscriptions = async () => {
     await invokeSnap({
       method: TestDappRpcRequestMethod.ListSubscriptions,
@@ -54,15 +43,6 @@ export const WebSockets = () => {
             <Button variant="outline" onClick={listConnections}>
               List connections
             </Button>
-            <Flex gap="1">
-              <Button
-                variant="outline"
-                onClick={async () => reconnectWebSocket(Network.Mainnet)}
-                marginRight="1"
-              >
-                Reconnect Mainnet
-              </Button>
-            </Flex>
           </Flex>
           <Flex direction="column" gap="1">
             <ChakraText>Subscriptions</ChakraText>

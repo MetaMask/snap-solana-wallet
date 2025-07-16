@@ -9,7 +9,6 @@ export enum RpcRequestMethod {
  */
 export enum TestDappRpcRequestMethod {
   ListWebSockets = 'listWebSockets',
-  ConnectWebSocket = 'connectWebSocket',
   ListSubscriptions = 'listSubscriptions',
   TestOnStart = 'testOnStart',
   TestOnInstall = 'testOnInstall',

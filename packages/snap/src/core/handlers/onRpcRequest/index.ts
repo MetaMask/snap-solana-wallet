@@ -14,11 +14,6 @@ export const handlers: Record<RpcRequestMethod, OnRpcRequestHandler> = {
     await eventEmitter.emitSync('onListWebSockets');
     return null;
   },
-  [TestDappRpcRequestMethod.ConnectWebSocket as any]: async (request: any) => {
-    const { network } = request.request.params;
-    await eventEmitter.emitSync('onConnectWebSocket', network);
-    return null;
-  },
   [TestDappRpcRequestMethod.ListSubscriptions as any]: async () => {
     await eventEmitter.emitSync('onListSubscriptions');
     return null;

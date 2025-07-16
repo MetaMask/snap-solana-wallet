@@ -60,7 +60,7 @@ describe('WebSocketConnectionService', () => {
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
         networks: mockNetworksConfig,
-        subscription: {
+        subscriptions: {
           maxReconnectAttempts: 5,
           reconnectDelayMilliseconds: 1, // To speed up the tests
         },
@@ -82,85 +82,18 @@ describe('WebSocketConnectionService', () => {
     );
   });
 
-  describe('#setupAllConnections', () => {
-    it('opens the connections for the active networks that are not already open', async () => {
+  describe('#initialize', () => {
+    it('opens the connections for all active networks', async () => {
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
         activeNetworks: [Network.Mainnet, Network.Devnet],
       } as unknown as Config);
 
-      // Init with an existing connection for Mainnet. We expect to only open the connection for Devnet.
-      const mockConnectionMainnet = createMockWebSocketConnection();
-
-      jest
-        .spyOn(mockWebSocketConnectionRepository, 'getAll')
-        .mockResolvedValueOnce([mockConnectionMainnet]);
-
-      jest
-        .spyOn(mockWebSocketConnectionRepository, 'save')
-        .mockResolvedValueOnce(mockConnectionMainnet);
+      jest.spyOn(service, 'openConnection').mockResolvedValueOnce(undefined);
 
       // Simulate the snap start event
       await mockEventEmitter.emitSync('onStart');
 
-      expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(1);
-      expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledWith({
-        network: Network.Devnet,
-        url: 'wss://some-mock-url2.com/ws/v3/some-id',
-        protocols: [],
-      });
-    });
-
-    it('does nothing for active networks that are already open', async () => {
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
-
-      const mockConnection = createMockWebSocketConnection();
-
-      jest
-        .spyOn(mockWebSocketConnectionRepository, 'getAll')
-        .mockResolvedValueOnce([mockConnection]);
-
-      // Simulate the snap start event
-      await mockEventEmitter.emitSync('onStart');
-
-      expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(0);
-    });
-
-    it('closes the connections for the inactive networks that are open', async () => {
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [],
-      } as unknown as Config);
-
-      const openConnection = createMockWebSocketConnection();
-
-      jest
-        .spyOn(mockWebSocketConnectionRepository, 'getAll')
-        .mockResolvedValueOnce([openConnection]);
-
-      jest
-        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
-        .mockResolvedValueOnce(openConnection);
-
-      // Simulate the snap start event
-      await mockEventEmitter.emitSync('onStart');
-
-      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledTimes(1);
-    });
-
-    it('does nothing for inactive networks that are not open', async () => {
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [],
-      } as unknown as Config);
-
-      jest
-        .spyOn(mockWebSocketConnectionRepository, 'getAll')
-        .mockResolvedValueOnce([]);
-
-      // Simulate the snap start event
-      await mockEventEmitter.emitSync('onStart');
-
-      expect(mockWebSocketConnectionRepository.delete).not.toHaveBeenCalled();
+      expect(service.openConnection).toHaveBeenCalledTimes(2);
     });
 
     it('clears existing recovery callbacks', async () => {
@@ -192,40 +125,25 @@ describe('WebSocketConnectionService', () => {
       expect(recoveryCallback).not.toHaveBeenCalled();
     });
 
-    describe('when the connection fails', () => {
-      beforeEach(() => {
-        jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-          activeNetworks: [Network.Mainnet],
-        } as unknown as Config);
-
+    describe('openConnection', () => {
+      it('opens the connection for the network', async () => {
         jest
-          .spyOn(mockWebSocketConnectionRepository, 'getAll')
-          .mockResolvedValueOnce([]);
+          .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
+          .mockResolvedValue(null);
+
+        await service.openConnection(Network.Mainnet);
+
+        expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(1);
       });
 
-      it('retries until it succeeds, when attempts < 5', async () => {
-        const mockConnection = createMockWebSocketConnection();
-
+      it('does nothing if the connection already exists', async () => {
         jest
-          .spyOn(mockWebSocketConnectionRepository, 'save')
-          .mockRejectedValueOnce(new Error('Connection failed')) // 1st call is the fail attempt
-          .mockResolvedValueOnce(mockConnection); // 2nd call is the success attempt
+          .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
+          .mockResolvedValue(createMockWebSocketConnection());
 
-        // Simulate the snap start event
-        await mockEventEmitter.emitSync('onStart');
+        await service.openConnection(Network.Mainnet);
 
-        expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(2);
-      });
-
-      it('retries up to the max number of attempts', async () => {
-        jest
-          .spyOn(mockWebSocketConnectionRepository, 'save')
-          .mockRejectedValue(new Error('Connection failed'));
-
-        // Simulate the snap start event
-        await mockEventEmitter.emitSync('onStart');
-
-        expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(5);
+        expect(mockWebSocketConnectionRepository.save).not.toHaveBeenCalled();
       });
     });
   });
@@ -275,14 +193,65 @@ describe('WebSocketConnectionService', () => {
           .mockResolvedValueOnce(mockConnection);
       });
 
-      it('attempts to reconnect', async () => {
-        // Send the connect event
+      it('attempts to reconnect until it succeeds, up to max attempts', async () => {
+        // 1st and 2nd calls are the fail attempts, 3rd is the success attempt
+        jest
+          .spyOn(mockWebSocketConnectionRepository, 'save')
+          .mockRejectedValueOnce(new Error('Connection failed'))
+          .mockRejectedValueOnce(new Error('Connection failed'))
+          .mockResolvedValueOnce(createMockWebSocketConnection());
+
+        // Send the initial disconnect event
         await mockEventEmitter.emitSync('onWebSocketEvent', {
           id: mockConnectionId,
           type: 'close',
+          origin: 'wss://some-mock-url.com',
         });
 
-        expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(1);
+        // The first 2 attemps at reconnecting will fail. Each failure will emit its own disconnect event.
+        await mockEventEmitter.emitSync('onWebSocketEvent', {
+          id: mockConnectionId,
+          type: 'close',
+          origin: 'wss://some-mock-url.com',
+        });
+        await mockEventEmitter.emitSync('onWebSocketEvent', {
+          id: mockConnectionId,
+          type: 'close',
+          origin: 'wss://some-mock-url.com',
+        });
+        // The 3rd attempt at reconnecting will succeed. This will emit a connect event.
+        await mockEventEmitter.emitSync('onWebSocketEvent', {
+          id: mockConnectionId,
+          type: 'open',
+          origin: 'wss://some-mock-url.com',
+        });
+
+        expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(3);
+      });
+
+      it('retries up to the max number of attempts', async () => {
+        jest
+          .spyOn(mockWebSocketConnectionRepository, 'save')
+          .mockRejectedValue(new Error('Connection failed'));
+
+        // Send the initial disconnect event
+        await mockEventEmitter.emitSync('onWebSocketEvent', {
+          id: mockConnectionId,
+          type: 'close',
+          origin: 'wss://some-mock-url.com',
+        });
+
+        // Send many disconnect events, more than the max number of attempts
+        for (let i = 0; i < 10; i++) {
+          await mockEventEmitter.emitSync('onWebSocketEvent', {
+            id: mockConnectionId,
+            type: 'close',
+            origin: 'wss://some-mock-url.com',
+          });
+        }
+
+        // Check that we do not retry more than the max
+        expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(5);
       });
     });
   });
