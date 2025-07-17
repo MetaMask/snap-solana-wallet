@@ -207,6 +207,20 @@ describe('WalletService', () => {
         service.resolveAccountAddress(accounts, scope, request),
       ).rejects.toThrow('No accounts with this scope');
     });
+
+    it('rejects a SignIn request with an address that does not belong to the keyring accounts', async () => {
+      const request = {
+        ...MOCK_SIGN_IN_REQUEST,
+        params: {
+          ...MOCK_SIGN_IN_REQUEST.params,
+          address: 'non-existent-address',
+        },
+      } as unknown as SolanaWalletRequest;
+
+      await expect(
+        service.resolveAccountAddress(mockAccounts, scope, request),
+      ).rejects.toThrow('Account not found');
+    });
   });
 
   describe.each(MOCK_EXECUTION_SCENARIOS)(
