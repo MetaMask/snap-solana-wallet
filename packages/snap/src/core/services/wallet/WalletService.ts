@@ -55,6 +55,7 @@ import {
   type SolanaSignTransactionResponse,
   SolanaSignTransactionResponseStruct,
 } from './structs';
+import { UnauthorizedError } from '@metamask/snaps-sdk';
 
 export class WalletService {
   readonly #transactionsService: TransactionsService;
@@ -447,6 +448,23 @@ export class WalletService {
 
     const { scope } = request;
     assert(scope, NetworkStruct);
+
+    // Get the account address from the request parameters
+    const { account: requestAccount } = request.request.params;
+
+    try {
+      asAddress(requestAccount.address);
+    } catch {
+      throw new UnauthorizedError('Invalid Solana address format');
+    }
+
+    // Check that the account address in the request parameters matches the account used for signing
+    // If it doesn't match, throw the same error MM throws when the account is not authorized
+    if (requestAccount.address !== address) {
+      throw new UnauthorizedError(
+        'The requested account and/or method has not been authorized by the user.',
+      );
+    }
 
     // message is base64 encoded
     const { message } = request.request.params;
