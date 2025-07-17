@@ -126,29 +126,23 @@ export class WalletService {
       throw new Error('No accounts with this scope');
     }
 
+    let addressToValidate: string;
+
     switch (method) {
       case SolMethod.SignIn: {
         const { address } = params;
         if (!address) {
           throw new Error('No address');
         }
-        return addressToCaip10(scope, address);
+        addressToValidate = address;
+        break;
       }
       case SolMethod.SignAndSendTransaction:
       case SolMethod.SignMessage:
       case SolMethod.SignTransaction: {
         const { account } = params;
-
-        // Check if the account is in the list of accounts held in the keyring.
-        const address = accountsWithThisScope.find(
-          (a) => a.address === account.address,
-        )?.address;
-
-        if (!address) {
-          throw new Error('Account not found');
-        }
-
-        return addressToCaip10(scope, address);
+        addressToValidate = account.address;
+        break;
       }
       default: {
         // This code is unreachable because the "validateRequest" function
@@ -157,6 +151,16 @@ export class WalletService {
         throw new Error('Unsupported method');
       }
     }
+
+    const foundAccount = accountsWithThisScope.find(
+      (a) => a.address === addressToValidate,
+    );
+
+    if (!foundAccount) {
+      throw new Error('Account not found');
+    }
+
+    return addressToCaip10(scope, addressToValidate);
   }
 
   /**
