@@ -647,17 +647,40 @@ export class AssetsService {
   ): Promise<void> {
     const { id: accountId } = account;
 
-    await Promise.allSettled([
-      // Update the state
-      this.#state.setKey(`assets.${accountId}.${assetType}`, balance),
-      // Notify the extension
-      emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
+    const previousBalance = await this.#state.getKey<Balance>(
+      `assets.${accountId}.${assetType}`,
+    );
+    const isNew = !previousBalance;
+    if (isNew) {
+      await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
+        assets: {
+          [account.id]: {
+            added: [assetType],
+            removed: [],
+          },
+        },
+      });
+    }
+
+    // Promise that will update the state
+    const updateState = this.#state.setKey(
+      `assets.${accountId}.${assetType}`,
+      balance,
+    );
+
+    // Promise that will notify the extension about the new balance
+    const notifiyExtensionNewBalance = emitSnapKeyringEvent(
+      snap,
+      KeyringEvent.AccountBalancesUpdated,
+      {
         balances: {
           [accountId]: {
             [assetType]: balance,
           },
         },
-      }),
-    ]);
+      },
+    );
+
+    await Promise.allSettled([updateState, notifiyExtensionNewBalance]);
   }
 }
