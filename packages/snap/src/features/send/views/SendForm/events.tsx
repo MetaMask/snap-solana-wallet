@@ -491,6 +491,7 @@ async function onSendButtonClick({
             pathParams: {
               assetId: context.selectedTokenMetadata?.asset.replace(/:/gu, '/'),
             },
+            encodePathParams: false,
           }),
         )
       : null,

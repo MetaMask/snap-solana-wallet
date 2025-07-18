@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { type KeyringRequest, SolMethod } from '@metamask/keyring-api';
+import { UnauthorizedError } from '@metamask/snaps-sdk';
 import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
 import type { Commitment, SignatureBytes } from '@solana/kit';
@@ -43,6 +44,7 @@ import type {
   SolanaSignInRequest,
   SolanaWalletRequest,
 } from './structs';
+
 import {
   SolanaSignAndSendTransactionResponseStruct,
   SolanaSignInRequestStruct,
@@ -55,7 +57,6 @@ import {
   type SolanaSignTransactionResponse,
   SolanaSignTransactionResponseStruct,
 } from './structs';
-import { UnauthorizedError } from '@metamask/snaps-sdk';
 
 export class WalletService {
   readonly #transactionsService: TransactionsService;
