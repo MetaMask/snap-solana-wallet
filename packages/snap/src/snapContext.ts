@@ -98,6 +98,7 @@ const subscriptionRepository = new SubscriptionRepository(state);
 const subscriptionService = new SubscriptionService(
   webSocketConnectionService,
   subscriptionRepository,
+  configProvider,
   eventEmitter,
   logger,
 );
@@ -180,7 +181,8 @@ const confirmationHandler = new ConfirmationHandler();
 const accountService = new AccountService(state);
 
 const keyringAccountMonitor = new KeyringAccountMonitor(
-  rpcAcccountMonitor,
+  webSocketConnectionService,
+  subscriptionService,
   accountService,
   assetsService,
   transactionsService,

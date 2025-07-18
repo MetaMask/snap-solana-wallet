@@ -1,14 +1,32 @@
 import type { GetWebSocketsResult } from '@metamask/snaps-sdk';
 import type { JsonRpcParams } from '@metamask/utils';
+import type {
+  AccountInfoBase,
+  AccountInfoWithJsonData,
+  SolanaRpcResponse,
+} from '@solana/kit';
 
 import type { Network } from '../core/constants/solana';
+
+export type SubscribeMethod =
+  | 'accountSubscribe'
+  | 'programSubscribe'
+  | 'signatureSubscribe';
+
+export const subscribeMethodToUnsubscribeMethod: Record<
+  SubscribeMethod,
+  string
+> = {
+  accountSubscribe: 'accountUnsubscribe',
+  programSubscribe: 'programUnsubscribe',
+  signatureSubscribe: 'signatureUnsubscribe',
+};
 
 /**
  * A request to subscribe to a JSON-RPC subscription.
  */
 export type SubscriptionRequest = {
-  method: string;
-  unsubscribeMethod: string;
+  method: SubscribeMethod;
   params: JsonRpcParams;
   network: Network;
 };
@@ -79,3 +97,68 @@ export type ConfirmedSubscription = Omit<PendingSubscription, 'status'> & {
 
 // Union type for all states
 export type Subscription = PendingSubscription | ConfirmedSubscription;
+
+type GetAccountInfoApiResponse<TData> = (AccountInfoBase & TData) | null;
+
+/**
+ * A message that we receive from the RPC WebSocket server after subscribing to
+ * `accountSubscribe`, notifying us that the account has changed.
+ */
+export type AccountNotification = {
+  jsonrpc: string;
+  method: string;
+  params: {
+    subscription: number;
+    result: SolanaRpcResponse<
+      GetAccountInfoApiResponse<AccountInfoWithJsonData>
+    >;
+  };
+};
+
+/**
+ * A message that we receive from the RPC WebSocket server after subscribing to
+ * `programSubscribe`, notifying us that the program has changed.
+ */
+export type ProgramNotification = {
+  jsonrpc: string;
+  method: string;
+  params: {
+    subscription: number;
+    result: SolanaRpcResponse<
+      GetAccountInfoApiResponse<AccountInfoWithJsonData>
+    >;
+  };
+};
+
+export type TokenInfo = {
+  owner: string;
+  mint: string;
+  tokenAmount: {
+    uiAmountString: string;
+  };
+};
+
+/**
+ * A message that we receive from the RPC WebSocket server after a subscription request,
+ * that confirms that the subscription was successfully established.
+ */
+export type SubscriptionConfirmation = {
+  jsonrpc: string;
+  id: string | number;
+  result: number;
+};
+
+export type AccountNotificationHandler = (
+  notification: AccountNotification,
+  address: string,
+) => Promise<void>;
+
+export type ProgramNotificationHandler = (
+  notification: ProgramNotification,
+  programId: string,
+  network: Network,
+) => Promise<void>;
+
+export type NotificationHandler =
+  | AccountNotificationHandler
+  | ProgramNotificationHandler;

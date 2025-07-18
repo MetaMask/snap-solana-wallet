@@ -2,7 +2,7 @@ import { signature as asSignature } from '@solana/kit';
 
 import type { Commitment } from '../../../entities';
 import type { Network } from '../../constants/solana';
-import type { ILogger } from '../../utils/logger';
+import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import type { SubscriptionService } from './SubscriptionService';
 
@@ -20,8 +20,6 @@ export class SignatureMonitor {
 
   readonly #logger: ILogger;
 
-  readonly #loggerPrefix = '[✍️ SignatureMonitor]';
-
   constructor(
     subscriptionService: SubscriptionService,
     connection: SolanaConnection,
@@ -29,7 +27,7 @@ export class SignatureMonitor {
   ) {
     this.#subscriptionService = subscriptionService;
     this.#connection = connection;
-    this.#logger = logger;
+    this.#logger = createPrefixedLogger(logger, '[✍️ SignatureMonitor]');
   }
 
   /**
@@ -51,14 +49,13 @@ export class SignatureMonitor {
    * @param params - The parameters for the signature watcher.
    */
   async monitor(params: Params): Promise<void> {
-    this.#logger.info(this.#loggerPrefix, `Monitoring signature`, params);
+    this.#logger.info(`Monitoring signature`, params);
 
     const { network, signature, commitment } = params;
 
     await this.#subscriptionService.subscribe(
       {
         method: 'signatureSubscribe',
-        unsubscribeMethod: 'signatureUnsubscribe',
         network,
         params: [
           signature,
@@ -68,15 +65,15 @@ export class SignatureMonitor {
           },
         ],
       },
-      {
-        onNotification: async (message: any) => {
-          // The notification message isn't useful. If we get here, we know the signature has reached the desired commitment.
-          await this.#handleNotification(params);
-        },
-        onConnectionRecovery: async () => {
-          await this.#handleConnectionRecovery(params);
-        },
-      },
+      //   {
+      //     onNotification: async (message: any) => {
+      //       // The notification message isn't useful. If we get here, we know the signature has reached the desired commitment.
+      //       await this.#handleNotification(params);
+      //     },
+      //     onConnectionRecovery: async () => {
+      //       await this.#handleConnectionRecovery(params);
+      //     },
+      //   },
     );
   }
 
@@ -90,18 +87,13 @@ export class SignatureMonitor {
      */
 
     this.#logger.info(
-      this.#loggerPrefix,
       `🎉 Signature ${signature} reached commitment "${commitment}"`,
     );
 
     try {
       await onCommitmentReached(params);
     } catch (error) {
-      this.#logger.warn(
-        this.#loggerPrefix,
-        `⚠️ Error calling onCommitmentReached callback`,
-        error,
-      );
+      this.#logger.warn(`⚠️ Error calling onCommitmentReached callback`, error);
     }
 
     /**
@@ -126,7 +118,6 @@ export class SignatureMonitor {
       await this.#handleNotification(params);
     } else {
       this.#logger.warn(
-        this.#loggerPrefix,
         `⚠️ Signature ${signature} not found via HTTP fetch during connection recovery`,
       );
     }
@@ -156,20 +147,17 @@ export class SignatureMonitor {
 
       if (confirmationStatus) {
         this.#logger.info(
-          this.#loggerPrefix,
           `✅ Signature ${signature} found via HTTP fetch during connection recovery with confirmation status ${confirmationStatus}`,
         );
         return confirmationStatus;
       }
 
       this.#logger.warn(
-        this.#loggerPrefix,
         `⚠️ Signature ${signature} not found via HTTP fetch during connection recovery`,
       );
       return undefined;
     } catch (error) {
       this.#logger.warn(
-        this.#loggerPrefix,
         `⚠️ Could not fetch confirmation status for signature ${signature}`,
         error,
       );

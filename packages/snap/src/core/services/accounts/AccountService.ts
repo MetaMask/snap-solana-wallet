@@ -21,4 +21,10 @@ export class AccountService {
 
     return Object.values(accounts ?? {});
   }
+
+  async findByAddress(address: string): Promise<SolanaKeyringAccount | null> {
+    const accounts = await this.getAll();
+
+    return accounts.find((account) => account.address === address) ?? null;
+  }
 }

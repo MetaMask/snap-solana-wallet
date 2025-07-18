@@ -4,9 +4,10 @@ import type {
   WebSocketOpenEvent,
 } from '@metamask/snaps-sdk';
 
+import type { WebSocketConnection } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
-import type { ILogger } from '../../utils/logger';
+import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
 import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
 
@@ -27,16 +28,18 @@ export class WebSocketConnectionService {
 
   readonly #connectionRepository: WebSocketConnectionRepository;
 
-  readonly #logger: ILogger;
+  readonly #eventEmitter: EventEmitter;
 
-  readonly #loggerPrefix = '[🔌 WebSocketConnectionService]';
+  readonly #logger: ILogger;
 
   readonly #maxReconnectAttempts: number;
 
   readonly #reconnectDelayMilliseconds: number;
 
-  readonly #connectionRecoveryCallbacks: Map<Network, (() => Promise<void>)[]> =
-    new Map();
+  readonly #connectionRecoveryCallbacks: Map<
+    Network,
+    ((network: Network) => Promise<void>)[]
+  > = new Map();
 
   readonly #retryAttempts: Map<Network, number> = new Map();
 
@@ -51,28 +54,39 @@ export class WebSocketConnectionService {
 
     this.#connectionRepository = connectionRepository;
     this.#configProvider = configProvider;
-    this.#logger = logger;
+    this.#eventEmitter = eventEmitter;
+    this.#logger = createPrefixedLogger(
+      logger,
+      '[🔌 WebSocketConnectionService]',
+    );
     this.#maxReconnectAttempts = maxReconnectAttempts;
     this.#reconnectDelayMilliseconds = reconnectDelayMilliseconds;
 
-    // When the extension starts, or that the snap is updated / installed, the Snap platform has lost all its previously opened websockets, so we need to re-initialize
-    eventEmitter.on('onStart', this.#initialize.bind(this));
-    eventEmitter.on('onUpdate', this.#initialize.bind(this));
-    eventEmitter.on('onInstall', this.#initialize.bind(this));
-
-    eventEmitter.on('onWebSocketEvent', this.#handleWebSocketEvent.bind(this));
-
-    // Specific binds to enable manual testing from the test dapp
-    eventEmitter.on('onListWebSockets', this.#listConnections.bind(this));
+    this.#bindHandlers();
   }
 
-  async #initialize(): Promise<void> {
-    this.#logger.log(this.#loggerPrefix, `Setting up all connections`);
+  #bindHandlers(): void {
+    // When the extension starts, or that the snap is updated / installed, the Snap platform has lost all its previously opened websockets, so we need to re-initialize
+    this.#eventEmitter.on('onStart', this.#handleOnStart.bind(this));
+    this.#eventEmitter.on('onUpdate', this.#handleOnStart.bind(this));
+    this.#eventEmitter.on('onInstall', this.#handleOnStart.bind(this));
+
+    this.#eventEmitter.on(
+      'onWebSocketEvent',
+      this.#handleWebSocketEvent.bind(this),
+    );
+
+    // Specific binds to enable manual testing from the test dapp
+    this.#eventEmitter.on('onListWebSockets', this.#listConnections.bind(this));
+  }
+
+  async #handleOnStart(): Promise<void> {
+    this.#logger.log(`Handling onStart/onUpdate/onInstall`);
 
     const { activeNetworks } = this.#configProvider.get();
 
     // Clean up the connection recovery callbacks and retry attempts for all networks
-    this.#connectionRecoveryCallbacks.clear();
+    // this.#connectionRecoveryCallbacks.clear();
     this.#retryAttempts.clear();
 
     // Open the connections for the active networks
@@ -89,10 +103,7 @@ export class WebSocketConnectionService {
    * @returns A promise that resolves to the connection.
    */
   async openConnection(network: Network): Promise<void> {
-    this.#logger.log(
-      this.#loggerPrefix,
-      `Opening connection for network ${network}`,
-    );
+    this.#logger.log(`Opening connection for network ${network}`);
 
     const networkConfig = this.#configProvider.getNetworkBy('caip2Id', network);
     const { webSocketUrl } = networkConfig;
@@ -102,11 +113,7 @@ export class WebSocketConnectionService {
       await this.#connectionRepository.findByNetwork(network);
 
     if (existingConnection) {
-      this.#logger.log(
-        this.#loggerPrefix,
-        `Connection for network ${network} already exists`,
-        existingConnection,
-      );
+      this.#logger.log(`✅ Connection for network ${network} already exists`);
       return;
     }
 
@@ -122,7 +129,10 @@ export class WebSocketConnectionService {
    * @param network - The network to register the callback for.
    * @param callback - The callback function to register.
    */
-  onConnectionRecovery(network: Network, callback: () => Promise<void>): void {
+  onConnectionRecovery(
+    network: Network,
+    callback: (network: Network) => Promise<void>,
+  ): void {
     const existingCallbacks =
       this.#connectionRecoveryCallbacks.get(network) ?? [];
 
@@ -143,6 +153,15 @@ export class WebSocketConnectionService {
     return connection?.id ?? null;
   }
 
+  /**
+   * Gets the connection for the specified ID.
+   * @param id - The ID of the connection to get.
+   * @returns The connection, or null if no connection exists for the ID.
+   */
+  async getById(id: string): Promise<WebSocketConnection | null> {
+    return this.#connectionRepository.getById(id);
+  }
+
   async #handleWebSocketEvent(event: WebSocketEvent): Promise<void> {
     // We only care about open and close events, that inform us about connection lifecycle
     if (event.type !== 'open' && event.type !== 'close') {
@@ -151,10 +170,7 @@ export class WebSocketConnectionService {
 
     const { id: connectionId, type } = event;
 
-    this.#logger.log(
-      this.#loggerPrefix,
-      `Handling connection event "${type}" for ${connectionId}`,
-    );
+    this.#logger.log(`Handling connection event "${type}" for ${connectionId}`);
 
     switch (type) {
       case 'open':
@@ -164,10 +180,7 @@ export class WebSocketConnectionService {
         await this.#handleDisconnected(event);
         break;
       default:
-        this.#logger.warn(
-          this.#loggerPrefix,
-          `Unknown connection event type: ${type}`,
-        );
+        this.#logger.warn(`Unknown connection event type: ${type}`);
     }
   }
 
@@ -176,18 +189,11 @@ export class WebSocketConnectionService {
     const connection = await this.#connectionRepository.getById(connectionId);
 
     if (!connection) {
-      this.#logger.warn(
-        this.#loggerPrefix,
-        `No connection found with id: ${connectionId}`,
-      );
+      this.#logger.warn(`No connection found with id: ${connectionId}`);
       return;
     }
 
-    this.#logger.log(
-      this.#loggerPrefix,
-      `✅ Connected to ${connectionId}`,
-      event,
-    );
+    this.#logger.log(`✅ Connected to ${connectionId}`, event);
 
     const { network } = connection;
 
@@ -197,7 +203,6 @@ export class WebSocketConnectionService {
     const callbacks = this.#connectionRecoveryCallbacks.get(network) ?? [];
 
     this.#logger.log(
-      this.#loggerPrefix,
       `Triggering ${callbacks.length} connection recovery callbacks`,
       network,
     );
@@ -206,13 +211,9 @@ export class WebSocketConnectionService {
     const recoveryPromises =
       callbacks.map(async (callback) => {
         try {
-          await callback();
+          await callback(network);
         } catch (error) {
-          this.#logger.error(
-            this.#loggerPrefix,
-            `Error in connection recovery callback:`,
-            error,
-          );
+          this.#logger.error(`Error in connection recovery callback:`, error);
         }
       }) ?? [];
 
@@ -230,11 +231,7 @@ export class WebSocketConnectionService {
     );
 
     if (!network) {
-      this.#logger.warn(
-        this.#loggerPrefix,
-        `No network found for origin`,
-        origin,
-      );
+      this.#logger.warn(`No network found for origin`, origin);
       return;
     }
 
@@ -248,7 +245,6 @@ export class WebSocketConnectionService {
 
     if (nextAttempt > this.#maxReconnectAttempts) {
       this.#logger.error(
-        this.#loggerPrefix,
         `❌ Failed to reconnect to ${network} after ${this.#maxReconnectAttempts}/${this.#maxReconnectAttempts} attempts. Giving up.`,
       );
       return;
@@ -257,7 +253,6 @@ export class WebSocketConnectionService {
     const delay =
       this.#reconnectDelayMilliseconds * Math.pow(2, currentAttempts);
     this.#logger.warn(
-      this.#loggerPrefix,
       `❌ Disconnected from ${network}. Will try reconnecting in ${delay}ms (attempt ${nextAttempt}/${this.#maxReconnectAttempts})`,
     );
 
@@ -265,11 +260,7 @@ export class WebSocketConnectionService {
       setTimeout(() => {
         this.openConnection(network)
           .catch((error) => {
-            this.#logger.info(
-              this.#loggerPrefix,
-              `Error opening connection for ${network}`,
-              error,
-            );
+            this.#logger.info(`Error opening connection for ${network}`, error);
             // Do nothing else here. If the connection fails to open, we receive a disconnect event,
             // that will be handled by the #handleDisconnected method.
           })
@@ -281,9 +272,9 @@ export class WebSocketConnectionService {
   async #listConnections(): Promise<void> {
     const connections = await this.#connectionRepository.getAll();
 
-    this.#logger.log(this.#loggerPrefix, `All connections`, {
+    this.#logger.log(`All connections`, {
       connections,
-      callbacks: this.#connectionRecoveryCallbacks,
+      connectionRecoveryCallbacks: this.#connectionRecoveryCallbacks,
     });
   }
 }

@@ -1,11 +1,6 @@
-import type {
-  AccountInfoBase,
-  AccountInfoWithJsonData,
-  SolanaRpcResponse,
-} from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 
-import type { Commitment } from '../../../entities';
+import type { AccountNotification, Commitment } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
@@ -20,11 +15,6 @@ export type RpcAccountMonitoringParams = {
     params: RpcAccountMonitoringParams,
   ) => Promise<void>;
 };
-
-type GetAccountInfoApiResponse<TData> = (AccountInfoBase & TData) | null;
-export type AccountNotification = SolanaRpcResponse<
-  GetAccountInfoApiResponse<AccountInfoWithJsonData>
->;
 
 export class RpcAccountMonitor {
   readonly #subscriptionService: SubscriptionService;
@@ -70,18 +60,17 @@ export class RpcAccountMonitor {
     const subscriptionId = await this.#subscriptionService.subscribe(
       {
         method: 'accountSubscribe',
-        unsubscribeMethod: 'accountUnsubscribe',
         network,
         params: [address, { commitment, encoding: 'jsonParsed' }],
       },
-      {
-        onNotification: async (notification: AccountNotification) => {
-          await this.#handleNotification(notification, params);
-        },
-        onConnectionRecovery: async () => {
-          await this.#handleConnectionRecovery(params);
-        },
-      },
+      //   {
+      //     onNotification: async (notification: AccountNotification) => {
+      //       await this.#handleNotification(notification, params);
+      //     },
+      //     onConnectionRecovery: async () => {
+      //       await this.#handleConnectionRecovery(params);
+      //     },
+      //   },
     );
 
     this.#setSubscription(address, network, subscriptionId);

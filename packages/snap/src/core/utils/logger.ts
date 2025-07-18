@@ -59,4 +59,21 @@ export const noOpLogger: ILogger = {
   error: () => {},
 };
 
+export const createPrefixedLogger = (
+  _logger: ILogger,
+  prefix: string,
+): ILogger => {
+  return new Proxy(logger, {
+    get(target, prop: keyof ILogger) {
+      const method = target[prop];
+      if (typeof method === 'function') {
+        return (message: string, ...args: any[]) => {
+          return method.call(target, prefix, message, ...args);
+        };
+      }
+      return method;
+    },
+  });
+};
+
 export default logger;
