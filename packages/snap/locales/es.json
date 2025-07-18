@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Introduzca la dirección pública"
+      "message": "Ingresa la dirección pública o el nombre del dominio"
     },
     "send.fromRequiredError": {
       "message": "La cuenta es obligatoria"
@@ -47,7 +47,22 @@
       "message": "La dirección del destinatario es obligatoria"
     },
     "send.toInvalidError": {
-      "message": "Dirección de Solana no válida"
+      "message": "Dirección o nombre de dominio de Solana no válido"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "No se puede resolver el nombre de dominio"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Dominio"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolviendo nombre de dominio..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Nombre de dominio resuelto."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "No se puede resolver el nombre de dominio."
     },
     "send.insufficientBalance": {
       "message": "Saldo insuficiente"
@@ -152,10 +167,10 @@
       "message": "Solicitud de transacción"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "Solicitud de inicio de sesión"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "Envío y confirmación de transacción"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Desconocida"
@@ -176,7 +191,7 @@
       "message": "Solicitud de"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "Este es el sitio que te pide tu confirmación."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Esta transacción se revirtió durante la simulación."
@@ -209,7 +224,7 @@
       "message": "Un sitio quiere que inicie sesión para demostrar que usted es el titular de esta cuenta."
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "Dominio"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Dominio desconocido"
@@ -251,7 +266,7 @@
       "message": "Recursos"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "Este sitio te pide que inicies sesión con el dominio incorrecto."
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Ya existe una cuenta con la misma dirección."
@@ -263,7 +278,7 @@
       "message": "La transacción se revirtió porque se superó la tolerancia de deslizamiento."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "Se produjo un error desconocido."
     }
   }
 }

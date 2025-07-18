@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Nhập địa chỉ công khai"
+      "message": "Nhập địa chỉ công khai hoặc tên miền"
     },
     "send.fromRequiredError": {
       "message": "Bắt buộc nhập tài khoản"
@@ -47,7 +47,22 @@
       "message": "Bắt buộc nhập địa chỉ gửi đến"
     },
     "send.toInvalidError": {
-      "message": "Địa chỉ Solana không hợp lệ"
+      "message": "Địa chỉ Solana hoặc tên miền không hợp lệ"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Không thể phân giải tên miền"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Tên miền"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Đang phân giải tên miền..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Tên miền đã được phân giải."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Không thể phân giải tên miền."
     },
     "send.insufficientBalance": {
       "message": "Không đủ số dư"
@@ -152,10 +167,10 @@
       "message": "Yêu cầu giao dịch"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "Yêu cầu ký"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "Gửi và xác nhận giao dịch"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Không xác định"
@@ -176,7 +191,7 @@
       "message": "Yêu cầu từ"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "Đây là trang web yêu cầu bạn xác nhận."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Giao dịch này đã được hoàn lại trong quá trình mô phỏng."
@@ -209,7 +224,7 @@
       "message": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này."
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "Tên miền"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Miền không xác định"
@@ -251,7 +266,7 @@
       "message": "Tài nguyên"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "Trang web này đang yêu cầu bạn đăng nhập bằng tên miền không đúng."
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Đã tồn tại tài khoản với cùng địa chỉ này."
@@ -263,7 +278,7 @@
       "message": "Giao dịch đã được hoàn tác vì vượt quá ngưỡng trượt giá cho phép."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "Đã xảy ra lỗi không xác định."
     }
   }
 }

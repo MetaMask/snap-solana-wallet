@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Digite o endereço público"
+      "message": "Insira o endereço público ou nome de domínio"
     },
     "send.fromRequiredError": {
       "message": "Conta obrigatória"
@@ -47,7 +47,22 @@
       "message": "O endereço é obrigatório"
     },
     "send.toInvalidError": {
-      "message": "Endereço Solana inválido"
+      "message": "Endereço ou nome de domínio Solana inválido"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Não foi possível resolver o nome de domínio"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domínio"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Resolvendo nome de domínio..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Nome de domínio resolvido."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Não foi possível resolver o nome de domínio."
     },
     "send.insufficientBalance": {
       "message": "Saldo insuficiente"
@@ -152,10 +167,10 @@
       "message": "Solicitação de transação"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "Solicitação de assinatura"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "Enviando e confirmando transação"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Desconhecida"
@@ -176,7 +191,7 @@
       "message": "Solicitação de"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "Este é o site que solicita sua confirmação."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Esta transação foi revertida durante a simulação."
@@ -209,7 +224,7 @@
       "message": "Um site deseja que você faça login para comprovar que você é o titular desta conta."
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "Domínio"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Domínio desconhecido"
@@ -251,7 +266,7 @@
       "message": "Recursos"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "Este site está solicitando que você faça login usando o domínio incorreto."
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Já existe uma conta com o mesmo endereço."
@@ -263,7 +278,7 @@
       "message": "A transação foi revertida porque a tolerância de slippage foi excedida."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "Ocorreu um erro desconhecido."
     }
   }
 }

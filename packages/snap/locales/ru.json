@@ -29,7 +29,7 @@
       "message": "Токен"
     },
     "send.toPlaceholder": {
-      "message": "Введите публичный адрес"
+      "message": "Введите публичный адрес или доменное имя"
     },
     "send.fromRequiredError": {
       "message": "Требуется счет"
@@ -47,7 +47,22 @@
       "message": "Требуется адрес получателя"
     },
     "send.toInvalidError": {
-      "message": "Неверный адрес Solana"
+      "message": "Недействительный адрес Solana или доменное имя"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Невозможно разрешить доменное имя"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Домен"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Разрешение доменного имени..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Доменное имя разрешено."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Невозможно разрешить доменное имя."
     },
     "send.insufficientBalance": {
       "message": "Недостаточный баланс"
@@ -152,10 +167,10 @@
       "message": "Запрос транзакции"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "Запрос на подпись"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "Отправка и подтверждение транзакции"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Неизвестно"
@@ -176,7 +191,7 @@
       "message": "Запрос от"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "Это сайт, запрашивающий ваше подтверждение."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Эта транзакция была отменена во время моделирования."
@@ -209,7 +224,7 @@
       "message": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета."
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "Домен"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Неизвестный домен"
@@ -251,7 +266,7 @@
       "message": "Ресурсы"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "Этот сайт просит вас войти в систему, используя неправильный домен."
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Счет с тем же адресом уже существует."
@@ -263,7 +278,7 @@
       "message": "Транзакция возвращена, потому что толерантность к проскальзыванию превышена."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "Произошла неизвестная ошибка."
     }
   }
 }

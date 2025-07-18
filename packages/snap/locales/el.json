@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Εισάγετε τη δημόσια διεύθυνση"
+      "message": "Εισάγετε τη δημόσια διεύθυνση ή το όνομα τομέα"
     },
     "send.fromRequiredError": {
       "message": "Απαιτείται ο λογαριασμός"
@@ -47,7 +47,22 @@
       "message": "Απαιτείται η διεύθυνση"
     },
     "send.toInvalidError": {
-      "message": "Μη έγκυρη διεύθυνση Solana"
+      "message": "Μη έγκυρη διεύθυνση της Solana ή όνομα τομέα"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Δεν ήταν δυνατή η επίλυση του ονόματος τομέα"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Τομέας"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Επίλυση ονόματος τομέα..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Το όνομα τομέα επιλύθηκε."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Δεν ήταν δυνατή η επίλυση του ονόματος τομέα."
     },
     "send.insufficientBalance": {
       "message": "Ανεπαρκές υπόλοιπο"
@@ -152,10 +167,10 @@
       "message": "Αίτημα συναλλαγής"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "Αίτημα υπογραφής"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "Αποστολή και επιβεβαίωση συναλλαγής"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Άγνωστο"
@@ -176,7 +191,7 @@
       "message": "Ζητήθηκε από"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "Αυτός είναι ο ιστότοπος που ζητά την επιβεβαίωσή σας."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Η συναλλαγή αυτή ακυρώθηκε κατά τη διάρκεια της προσομοίωσης."
@@ -209,7 +224,7 @@
       "message": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού."
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "Τομέας"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Άγνωστος τομέας"
@@ -251,7 +266,7 @@
       "message": "Πόροι"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "Αυτός ο ιστότοπος σας ζητά να συνδεθείτε χρησιμοποιώντας λάθος τομέα."
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Υπάρχει ήδη ένας λογαριασμός με την ίδια διεύθυνση."
@@ -263,7 +278,7 @@
       "message": "Η συναλλαγή ακυρώθηκε επειδή ξεπεράστηκε το όριο αποδεκτής απόκλισης."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "Παρουσιάστηκε κάποιο άγνωστο σφάλμα."
     }
   }
 }

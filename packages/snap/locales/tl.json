@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Ilagay ang pampublikong address"
+      "message": "Ilagay ang pampublikong address o pangalan ng domain"
     },
     "send.fromRequiredError": {
       "message": "Kinakailangan ang account"
@@ -47,7 +47,22 @@
       "message": "Kinakailangan ang address na pupuntahan"
     },
     "send.toInvalidError": {
-      "message": "Hindi valid na address ng Solana"
+      "message": "Hindi wastong address ng Solana o pangalan ng domain"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Hindi malutas ang pangalan ng domain"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Nilulutas ang pangalan ng domain..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Nalutas ang pangalan ng domain."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Hindi malutas ang pangalan ng domain."
     },
     "send.insufficientBalance": {
       "message": "Hindi sapat ang balanse"
@@ -152,10 +167,10 @@
       "message": "Hiling na transaksyon"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "Kahilingan sa paglagda"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "Ipinapadala at kinukumpirma ang transaksyon"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Hindi alam"
@@ -176,7 +191,7 @@
       "message": "Kahilingan mula sa/kay"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "Hinihingi ng site na ito ang iyong kumpirmasyon."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Binawi ang transaksyong ito habang nagsa-simulate."
@@ -251,7 +266,7 @@
       "message": "Mga Mapagkukunan"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "Hinihingi ng site na ito na mag-sign in ka gamit ang maling domain."
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "May umiiral nang account na may kaparehong address."
@@ -263,7 +278,7 @@
       "message": "Ibinalik ang transaksyon dahil lumampas sa slippage tolerance."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "Nagkaroon ng hindi matukoy na error."
     }
   }
 }
