@@ -361,10 +361,16 @@ export class KeyringAccountMonitor {
       throw new Error('No balance found in account changed event');
     }
 
-    // await Promise.all([
-    //   this.#updateNativeAssetBalance(keyringAccount, network, lamports),
-    //   this.#saveCausingTransaction(keyringAccount, network, address),
-    // ]);
+    const assetType: CaipAssetType = `${network}/${SolanaCaip19Tokens.SOL}`;
+    const balance = {
+      amount: fromTokenUnits(lamports, 9),
+      unit: 'SOL',
+    };
+
+    await Promise.all([
+      this.#assetsService.saveAsset(keyringAccount, assetType, balance),
+      this.#saveCausingTransaction(keyringAccount, network, address),
+    ]);
   }
 
   async #handleProgramNotification(
