@@ -470,6 +470,23 @@ describe('WalletService', () => {
             /At path/u,
           );
         });
+
+        it('rejects when account address in request does not match signing account', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
+          const request = wrapKeyringRequest({
+            ...MOCK_SIGN_MESSAGE_REQUEST,
+            params: {
+              ...MOCK_SIGN_MESSAGE_REQUEST.params,
+              account: {
+                address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+              },
+            },
+          } as unknown as JsonRpcRequest);
+
+          await expect(service.signMessage(account, request)).rejects.toThrow(
+            'The requested account and/or method has not been authorized by the user.',
+          );
+        });
       });
 
       describe('signIn', () => {
