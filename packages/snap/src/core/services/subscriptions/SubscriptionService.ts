@@ -3,16 +3,16 @@ import type { WebSocketEvent } from '@metamask/snaps-sdk';
 import type { JsonRpcFailure } from '@metamask/utils';
 import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
 
-import {
-  subscribeMethodToUnsubscribeMethod,
-  type AccountNotification,
-  type NotificationHandler,
-  type PendingSubscription,
-  type ProgramNotification,
-  type SubscribeMethod,
-  type SubscriptionConfirmation,
-  type SubscriptionRequest,
+import type {
+  Notification,
+  NotificationHandler,
+  PendingSubscription,
+  SubscribeMethod,
+  Subscription,
+  SubscriptionConfirmation,
+  SubscriptionRequest,
 } from '../../../entities';
+import { subscribeMethodToUnsubscribeMethod } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
@@ -42,11 +42,8 @@ export class SubscriptionService {
 
   readonly #logger: ILogger;
 
-  // Callbacks that will be called when a notification is received.
-  readonly #notificationHandlers: Map<
-    SubscribeMethod,
-    Map<Network, Set<NotificationHandler>>
-  > = new Map();
+  readonly #notificationHandlers: Map<string, Set<NotificationHandler>> =
+    new Map();
 
   constructor(
     connectionService: WebSocketConnectionService,
@@ -65,11 +62,6 @@ export class SubscriptionService {
   }
 
   #bindHandlers(): void {
-    // When the extension starts, or that the snap is updated / installed, the Snap platform has lost all its previously opened websockets, so we need to re-initialize
-    this.#eventEmitter.on('onStart', this.#handleOnStart.bind(this));
-    this.#eventEmitter.on('onUpdate', this.#handleOnStart.bind(this));
-    this.#eventEmitter.on('onInstall', this.#handleOnStart.bind(this));
-
     this.#eventEmitter.on(
       'onWebSocketEvent',
       this.#handleWebSocketEvent.bind(this),
@@ -82,7 +74,7 @@ export class SubscriptionService {
     );
 
     /**
-     * Register callbacks that will automatically re-subscribe when the connection is reestablished. It covers both cases:
+     * Register handlers that will automatically re-subscribe when the connection is reestablished. It covers both cases:
      * - The connection was lost then re-established -> we need to re-subscribe.
      * - The connection was not yet established, and we need to subscribe when it is established.
      */
@@ -95,28 +87,41 @@ export class SubscriptionService {
     });
   }
 
-  async #handleOnStart(): Promise<void> {
-    this.#logger.info(`Handling onStart/onUpdate/onInstall`);
-    await this.#clearSubscriptions();
-  }
-
+  /**
+   * Registers a handler for whenever a WebSocket notification is received for a given method and network.
+   * @param method - The method to register the handler for.
+   * @param network - The network to register the handler for.
+   * @param handler - The unified handler that receives notification and subscription.
+   */
   registerNotificationHandler(
     method: SubscribeMethod,
     network: Network,
     handler: NotificationHandler,
-  ) {
+  ): void {
     this.#logger.info(`Registering notification handler`, {
       network,
       method,
       handler,
     });
-    if (!this.#notificationHandlers.has(method)) {
-      this.#notificationHandlers.set(method, new Map());
+
+    const key = `${method}:${network}`;
+    if (!this.#notificationHandlers.has(key)) {
+      this.#notificationHandlers.set(key, new Set());
     }
-    if (!this.#notificationHandlers.get(method)?.has(network)) {
-      this.#notificationHandlers.get(method)!.set(network, new Set());
-    }
-    this.#notificationHandlers.get(method)!.get(network)!.add(handler);
+    this.#notificationHandlers.get(key)!.add(handler);
+  }
+
+  /**
+   * Registers a handler for whenever the connection is re-established.
+   * Simply re-exposes the method `onConnectionRecovery` from the connection service.
+   * @param network - The network to register the handler for.
+   * @param handler - The handler to register.
+   */
+  registerConnectionRecoveryHandler(
+    network: Network,
+    handler: (network: Network) => Promise<void>,
+  ): void {
+    this.#connectionService.onConnectionRecovery(network, handler);
   }
 
   /**
@@ -147,8 +152,7 @@ export class SubscriptionService {
     // When it gets confirmed, we will update the status to 'active'.
     await this.#subscriptionRepository.save(pendingSubscription);
 
-    const connectionId =
-      await this.#connectionService.getConnectionIdByNetwork(network);
+    const connection = await this.#connectionService.findByNetwork(network);
 
     const sendSubscriptionMessage = async (_connectionId: string) => {
       const message: JsonRpcRequest = {
@@ -162,30 +166,17 @@ export class SubscriptionService {
       }
     };
 
-    // /**
-    //  * Register a callback that will send the message when the connection is reestablished. It covers both cases:
-    //  * - The connection was lost then re-established -> we need to re-subscribe.
-    //  * - The connection was not yet established, and we need to subscribe when it is established.
-    //  */
-    // this.#connectionService.onConnectionRecovery(network, async () => {
-    //   const futureConnectionId =
-    //     await this.#connectionService.getConnectionIdByNetwork(network);
-    //   if (futureConnectionId) {
-    //     await sendSubscriptionMessage(futureConnectionId);
-    //   }
-    // });
-
     // If the connection is open, send the message immediately.
-    // If not, the subscription will be sent when the connection is reestablished via the #reSubscribe callback.
-    if (connectionId) {
-      await sendSubscriptionMessage(connectionId);
+    // If not, the subscription will be sent when the connection is reestablished via the #reSubscribe handler.
+    if (connection) {
+      await sendSubscriptionMessage(connection.id);
     }
 
     return pendingSubscription.id;
   }
 
   async unsubscribe(subscriptionId: string): Promise<void> {
-    this.#logger.info(`Unsubscribing`, subscriptionId);
+    this.#logger.info(`Unsubscribing from`, subscriptionId);
 
     // Attempt to find the subscription in the repository
     const subscription =
@@ -197,15 +188,18 @@ export class SubscriptionService {
     }
 
     const { id, network, method } = subscription;
+
+    // Delete the subscription from the repository.
+    await this.#subscriptionRepository.delete(id);
+
     const unsubscribeMethod = subscribeMethodToUnsubscribeMethod[method];
 
-    // If the subscription is active, we need to unsubscribe from the RPC
+    // If the subscription was active, we need to unsubscribe from the RPC
     if (subscription.status === 'confirmed') {
-      const connectionId =
-        await this.#connectionService.getConnectionIdByNetwork(network);
+      const connection = await this.#connectionService.findByNetwork(network);
 
-      if (connectionId) {
-        await this.#sendMessage(connectionId, {
+      if (connection) {
+        await this.#sendMessage(connection.id, {
           jsonrpc: '2.0',
           id: this.#generateId(),
           method: unsubscribeMethod,
@@ -213,9 +207,10 @@ export class SubscriptionService {
         });
       }
     }
+  }
 
-    // Whatever the status is, we delete the subscription from the repository.
-    await this.#subscriptionRepository.delete(id);
+  async getAll(): Promise<Subscription[]> {
+    return this.#subscriptionRepository.getAll();
   }
 
   async #handleWebSocketEvent(message: WebSocketEvent): Promise<void> {
@@ -225,7 +220,7 @@ export class SubscriptionService {
     }
 
     const parsedMessage = parseWebSocketMessage(message);
-    const connection = await this.#connectionService.getById(message.id);
+    const connection = await this.#connectionService.findById(message.id);
     if (!connection) {
       return;
     }
@@ -234,14 +229,10 @@ export class SubscriptionService {
 
     switch (parsedMessage.method) {
       case 'accountNotification':
-        await this.#routeAccountNotification(
-          parsedMessage as AccountNotification,
-          connection.network,
-        );
-        break;
       case 'programNotification':
-        await this.#routeProgramNotification(
-          parsedMessage as ProgramNotification,
+      case 'signatureNotification':
+        await this.#routeNotification(
+          parsedMessage as Notification,
           connection.network,
         );
         break;
@@ -258,8 +249,8 @@ export class SubscriptionService {
     }
   }
 
-  async #routeAccountNotification(
-    notification: AccountNotification,
+  async #routeNotification(
+    notification: Notification,
     network: Network,
   ): Promise<void> {
     const { subscription: rpcSubscriptionId } = notification.params;
@@ -273,64 +264,23 @@ export class SubscriptionService {
       return;
     }
 
-    const [address] = subscription.params as [string];
-    if (!address) {
-      this.#logger.warn('No address found for account notification', {
-        subscription,
-        notification,
-      });
-      return;
-    }
+    const key = `${subscription.method}:${network}`;
+    const handlers = this.#notificationHandlers.get(key);
 
-    const handlers = this.#notificationHandlers
-      .get('accountSubscribe')
-      ?.get(network);
     if (handlers && handlers.size > 0) {
       const results = await Promise.allSettled(
         Array.from(handlers).map(async (handler) =>
-          handler(notification, address, network),
+          handler(notification as any, subscription),
         ),
       );
 
       // Log failures but don't stop other handlers
       results.forEach((item) => {
         if (item.status === 'rejected') {
-          this.#logger.error('Account handler failed:', item.reason);
-        }
-      });
-    }
-  }
-
-  async #routeProgramNotification(
-    notification: ProgramNotification,
-    network: Network,
-  ): Promise<void> {
-    const { subscription: rpcSubscriptionId } = notification.params;
-
-    const subscription = await this.#subscriptionRepository.findBy(
-      'rpcSubscriptionId',
-      rpcSubscriptionId,
-    );
-    if (!subscription) {
-      return;
-    }
-
-    const [programId] = subscription.params as [string];
-
-    const handlers = this.#notificationHandlers
-      .get('programSubscribe')
-      ?.get(network);
-    if (handlers && handlers.size > 0) {
-      const results = await Promise.allSettled(
-        Array.from(handlers).map(async (handler) =>
-          handler(notification, programId, network),
-        ),
-      );
-
-      // Log failures but don't stop other handlers
-      results.forEach((item) => {
-        if (item.status === 'rejected') {
-          this.#logger.error('Program handler failed:', item.reason);
+          this.#logger.error(
+            `Handler failed for ${subscription.method}:`,
+            item.reason,
+          );
         }
       });
     }
@@ -484,12 +434,6 @@ export class SubscriptionService {
     }
   }
 
-  async #clearSubscriptions(): Promise<void> {
-    this.#logger.info(`Clearing subscriptions`);
-
-    await this.#subscriptionRepository.deleteAll();
-  }
-
   #generateId(): string {
     return globalThis.crypto.randomUUID();
   }
@@ -510,11 +454,16 @@ export class SubscriptionService {
     this.#logger.info(
       `Re-subscribing to all subscriptions for network ${network}`,
     );
-    const subscriptions = (await this.#subscriptionRepository.getAll()).filter(
-      (subscription) => subscription.network === network,
-    );
+
+    const subscriptionsThisNetwork = (
+      await this.#subscriptionRepository.getAll()
+    ).filter((subscription) => subscription.network === network);
+
+    const ids = subscriptionsThisNetwork.map((subscription) => subscription.id);
+    await this.#subscriptionRepository.deleteMany(ids);
+
     await Promise.allSettled(
-      subscriptions.map(async (subscription) => {
+      subscriptionsThisNetwork.map(async (subscription) => {
         await this.subscribe(subscription);
       }),
     );

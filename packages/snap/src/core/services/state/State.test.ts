@@ -375,4 +375,19 @@ describe('State', () => {
       });
     });
   });
+
+  describe('deleteKeys', () => {
+    it('deletes multiple keys', async () => {
+      await state.deleteKeys(['users.0.age', 'users.1.name']);
+
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_manageState',
+        params: {
+          operation: 'update',
+          newState: { users: [{ name: 'John' }, { age: 25 }] },
+          encrypted: false,
+        },
+      });
+    });
+  });
 });

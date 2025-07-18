@@ -11,19 +11,17 @@ import type {
   AccountNotification,
   ProgramNotification,
   SolanaKeyringAccount,
+  Subscription,
 } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
-import { Network, SolanaCaip19Tokens } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
+import { SolanaCaip19Tokens } from '../../constants/solana';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
-import type {
-  RpcAccountMonitoringParams,
-  SubscriptionService,
-  WebSocketConnectionService,
-} from '../subscriptions';
+import type { SubscriptionService } from '../subscriptions';
 import type { TransactionsService } from '../transactions/TransactionsService';
 import type { AccountService } from './AccountService';
 
@@ -38,8 +36,6 @@ import type { AccountService } from './AccountService';
  * - It fetches the transaction that caused the native asset or token asset to change and saves it. Under the hood, TransactionsService also notifies the extension.
  */
 export class KeyringAccountMonitor {
-  readonly #webSocketConnectionService: WebSocketConnectionService;
-
   readonly #subscriptionService: SubscriptionService;
 
   readonly #accountService: AccountService;
@@ -74,7 +70,6 @@ export class KeyringAccountMonitor {
   ];
 
   constructor(
-    webSocketConnectionService: WebSocketConnectionService,
     subscriptionService: SubscriptionService,
     accountService: AccountService,
     assetsService: AssetsService,
@@ -83,7 +78,6 @@ export class KeyringAccountMonitor {
     eventEmitter: EventEmitter,
     logger: ILogger,
   ) {
-    this.#webSocketConnectionService = webSocketConnectionService;
     this.#subscriptionService = subscriptionService;
     this.#accountService = accountService;
     this.#assetsService = assetsService;
@@ -99,9 +93,9 @@ export class KeyringAccountMonitor {
     this.#logger.info('Binding handlers');
 
     // When the extension starts, or that the snap is updated / installed, the Snap platform has lost all its previously opened websockets, so we need to re-initialize
-    this.#eventEmitter.on('onStart', this.#handleOnStart.bind(this));
-    this.#eventEmitter.on('onUpdate', this.#handleOnStart.bind(this));
-    this.#eventEmitter.on('onInstall', this.#handleOnStart.bind(this));
+    // this.#eventEmitter.on('onStart', this.#handleOnStart.bind(this));
+    // this.#eventEmitter.on('onUpdate', this.#handleOnStart.bind(this));
+    // this.#eventEmitter.on('onInstall', this.#handleOnStart.bind(this));
 
     const { activeNetworks } = this.#configProvider.get();
 
@@ -121,7 +115,7 @@ export class KeyringAccountMonitor {
 
     // Register the connection recovery callback that will handle missed messages.
     activeNetworks.forEach((network) => {
-      this.#webSocketConnectionService.onConnectionRecovery(
+      this.#subscriptionService.registerConnectionRecoveryHandler(
         network,
         this.#handleConnectionRecovery.bind(this),
       );
@@ -157,19 +151,29 @@ export class KeyringAccountMonitor {
   async monitorKeyringAccount(account: SolanaKeyringAccount): Promise<void> {
     this.#logger.log('Monitoring keyring account', account);
 
-    const { address } = account;
+    const { address, id } = account;
     const { activeNetworks } = this.#configProvider.get();
 
+    const isNotMonitoredOnNetwork = (network: Network) =>
+      !this.#monitoredKeyringAccounts.get(id)?.has(network);
+
     // Monitor native assets
-    const nativeAssetsPromises = activeNetworks.map(async (network) =>
-      this.#monitorAccountNativeAsset(account, network),
-    );
+    const nativeAssetsPromises = activeNetworks
+      .filter(isNotMonitoredOnNetwork)
+      .map(async (network) =>
+        this.#monitorAccountNativeAsset(account, network),
+      );
 
     // Monitor token assets
-    const tokenProgramPromises = this.#tokenProgramsAddresses.map(
-      async (tokenProgramAddress) =>
-        this.#monitorProgramByOwner(tokenProgramAddress, address),
-    );
+    const tokenProgramPromises = activeNetworks
+      .filter(isNotMonitoredOnNetwork)
+      .map(async (network) => {
+        await Promise.all(
+          this.#tokenProgramsAddresses.map(async (tokenProgramAddress) =>
+            this.#monitorProgramByOwner(tokenProgramAddress, address, network),
+          ),
+        );
+      });
 
     await Promise.allSettled([
       ...tokenProgramPromises,
@@ -193,16 +197,19 @@ export class KeyringAccountMonitor {
 
     const { address, id: accountId } = account;
 
-    if (!account.scopes.includes(network)) {
-      this.#logger.log('Account does not have scope for network', {
-        account,
-        network,
-      });
+    const subscriptions = await this.#subscriptionService.getAll();
+    const isMonitoredOnNetwork = subscriptions.some(
+      (subscription) =>
+        subscription.method === 'accountSubscribe' &&
+        get(subscription, 'params[0]') === address &&
+        subscription.network === network,
+    );
+    if (isMonitoredOnNetwork) {
       return;
     }
 
-    if (this.#monitoredKeyringAccounts.get(accountId)?.has(network)) {
-      this.#logger.log('Native asset already monitored', {
+    if (!account.scopes.includes(network)) {
+      this.#logger.log('Account does not have scope for network', {
         account,
         network,
       });
@@ -215,75 +222,36 @@ export class KeyringAccountMonitor {
       params: [address, { commitment: 'confirmed', encoding: 'jsonParsed' }],
     });
 
-    // await this.#rpcAccountMonitor.monitor({
-    //   address,
-    //   commitment: 'confirmed',
-    //   network,
-    //   onAccountChanged: async (
-    //     notification: AccountNotification,
-    //     params: RpcAccountMonitoringParams,
-    //   ) => await this.#handleNativeAssetChanged(account, notification, params),
-    // });
-
     // Add the native account address to the monitored set
     this.#saveMonitoredAccountOnNetwork(accountId, network);
-  }
-
-  /**
-   * Handles the notification when the account's native asset changed.
-   * @param account - The account that the native asset changed for.
-   * @param notification - The notification that triggered the event.
-   * @param params - The parameters for the event.
-   */
-  async #handleNativeAssetChanged(
-    account: SolanaKeyringAccount,
-    notification: AccountNotification,
-    params: RpcAccountMonitoringParams,
-  ): Promise<void> {
-    this.#logger.log('Native asset changed', {
-      account,
-      notification,
-      params,
-    });
-
-    const { network, address } = params;
-    const lamports = notification.params.result.value?.lamports;
-    if (!lamports) {
-      throw new Error('No balance found in account changed event');
-    }
-
-    const assetType: CaipAssetType = `${network}/${SolanaCaip19Tokens.SOL}`;
-    const balance = {
-      amount: fromTokenUnits(lamports, 9),
-      unit: 'SOL',
-    };
-
-    await Promise.all([
-      // Update the balance of the native asset
-      this.#assetsService
-        .saveAsset(account, assetType, balance)
-        .catch((error) => {
-          this.#logger.error('Error updating native asset balance', error);
-        }),
-      // Fetch and save the transaction that caused the native asset change.
-      this.#saveCausingTransaction(account, network, address).catch((error) => {
-        this.#logger.error('Error saving causing transaction', error);
-      }),
-    ]);
   }
 
   async #monitorProgramByOwner(
     tokenProgramAddress: string,
     ownerAddress: string,
+    network: Network,
   ): Promise<void> {
     this.#logger.log('Monitoring token program by owner', {
       tokenProgramAddress,
       ownerAddress,
     });
 
+    const subscriptions = await this.#subscriptionService.getAll();
+    const isMonitoredOnNetwork = subscriptions.some(
+      (subscription) =>
+        subscription.method === 'programSubscribe' &&
+        get(subscription, 'params[0]') === tokenProgramAddress &&
+        get(subscription, 'params[1].filters[0].memcmp.bytes') ===
+          ownerAddress &&
+        subscription.network === network,
+    );
+    if (isMonitoredOnNetwork) {
+      return;
+    }
+
     await this.#subscriptionService.subscribe({
       method: 'programSubscribe',
-      network: Network.Mainnet,
+      network,
       params: [
         tokenProgramAddress,
         {
@@ -303,52 +271,21 @@ export class KeyringAccountMonitor {
     });
   }
 
-  //   async #handleWebSocketEvent(event: WebSocketEvent): Promise<void> {
-  //     // We only care about actual messages, not open or close events.
-  //     if (event.type !== 'message') {
-  //       return;
-  //     }
-  //     const message = attachMessageJsonParsed(event);
-
-  //     const connection = await this.#webSocketConnectionService.getById(
-  //       message.id,
-  //     );
-  //     if (!connection) {
-  //       throw new Error('No connection found for message');
-  //     }
-
-  //     const { network } = connection;
-
-  //     switch (message.jsonParsed.method) {
-  //       case 'accountNotification':
-  //         await this.#handleAccountNotification(
-  //           message as WebSocketMessageWithJsonParsed<AccountNotification>,
-  //           network,
-  //         );
-  //         break;
-  //       case 'programNotification':
-  //         await this.#handleProgramNotification(
-  //           message as WebSocketMessageWithJsonParsed<ProgramNotification>,
-  //           network,
-  //         );
-  //         break;
-  //       default:
-  //       // Do nothing, this message isn't for us.
-  //     }
-  //   }
-
   async #handleAccountNotification(
     notification: AccountNotification,
-    address: string,
-    network: Network,
+    subscription: Subscription,
   ): Promise<void> {
     this.#logger.info('Account notification received', {
       notification,
-      address,
-      network,
+      subscription,
     });
+    const { network } = subscription;
 
-    // Find the keyring account by address
+    const address = get(subscription, 'params[0]');
+    assert(address, string());
+
+    // This notification could be for any RPC account.
+    // Here, we only handle "actual" accounts, not token accounts.
     const keyringAccount = await this.#accountService.findByAddress(address);
     if (!keyringAccount) {
       this.#logger.info('No keyring account found for address', address);
@@ -375,20 +312,23 @@ export class KeyringAccountMonitor {
 
   async #handleProgramNotification(
     notification: ProgramNotification,
-    programId: string,
-    network: Network,
+    subscription: Subscription,
   ): Promise<void> {
     this.#logger.info('Handling program notification', {
       notification,
-      network,
-      programId,
+      subscription,
     });
 
+    const { network } = subscription;
+
+    const programAddress = get(subscription, 'params[0]');
+    assert(programAddress, string());
+
     if (
-      programId !== TOKEN_PROGRAM_ADDRESS &&
-      programId !== TOKEN_2022_PROGRAM_ADDRESS
+      programAddress !== TOKEN_PROGRAM_ADDRESS &&
+      programAddress !== TOKEN_2022_PROGRAM_ADDRESS
     ) {
-      this.#logger.warn('Program not supported', programId);
+      this.#logger.warn('Program not supported', programAddress);
       return;
     }
 
@@ -535,9 +475,20 @@ export class KeyringAccountMonitor {
     this.#logger.info('Handling connection recovery', { network });
 
     const accounts = await this.#accountService.getAll();
-    const accountPreviouslyMonitoredOnThisNetwork = accounts.filter((account) =>
-      this.#monitoredKeyringAccounts.get(account.id)?.has(network),
+
+    const subscriptions = await this.#subscriptionService.getAll();
+    const accountSubscriptions = subscriptions.filter(
+      (subscription) =>
+        subscription.network === network &&
+        subscription.method === 'accountSubscribe',
     );
+
+    const accountPreviouslyMonitoredOnThisNetwork = accounts.filter((account) =>
+      accountSubscriptions.some(
+        (subscription) => get(subscription, 'params[0]') === account.address,
+      ),
+    );
+
     if (!accountPreviouslyMonitoredOnThisNetwork.length) {
       return;
     }

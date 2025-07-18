@@ -4,7 +4,10 @@ import type {
   WebSocketOpenEvent,
 } from '@metamask/snaps-sdk';
 
-import type { WebSocketConnection } from '../../../entities';
+import type {
+  ConnectionRecoveryHandler,
+  WebSocketConnection,
+} from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
@@ -36,9 +39,9 @@ export class WebSocketConnectionService {
 
   readonly #reconnectDelayMilliseconds: number;
 
-  readonly #connectionRecoveryCallbacks: Map<
+  readonly #connectionRecoveryHandlers: Map<
     Network,
-    ((network: Network) => Promise<void>)[]
+    ConnectionRecoveryHandler[]
   > = new Map();
 
   readonly #retryAttempts: Map<Network, number> = new Map();
@@ -85,8 +88,6 @@ export class WebSocketConnectionService {
 
     const { activeNetworks } = this.#configProvider.get();
 
-    // Clean up the connection recovery callbacks and retry attempts for all networks
-    // this.#connectionRecoveryCallbacks.clear();
     this.#retryAttempts.clear();
 
     // Open the connections for the active networks
@@ -125,20 +126,20 @@ export class WebSocketConnectionService {
   }
 
   /**
-   * Registers a callback to be called when connection is recovered.
-   * @param network - The network to register the callback for.
-   * @param callback - The callback function to register.
+   * Registers a handler to be called when connection is recovered.
+   * @param network - The network to register the handler for.
+   * @param handler - The handler function to register.
    */
   onConnectionRecovery(
     network: Network,
-    callback: (network: Network) => Promise<void>,
+    handler: ConnectionRecoveryHandler,
   ): void {
-    const existingCallbacks =
-      this.#connectionRecoveryCallbacks.get(network) ?? [];
+    const existingHandlers =
+      this.#connectionRecoveryHandlers.get(network) ?? [];
 
-    this.#connectionRecoveryCallbacks.set(network, [
-      ...existingCallbacks,
-      callback,
+    this.#connectionRecoveryHandlers.set(network, [
+      ...existingHandlers,
+      handler,
     ]);
   }
 
@@ -147,10 +148,9 @@ export class WebSocketConnectionService {
    * @param network - The network to get the connection ID for.
    * @returns The connection ID, or null if no connection exists for the network.
    */
-  async getConnectionIdByNetwork(network: Network): Promise<string | null> {
+  async findByNetwork(network: Network): Promise<WebSocketConnection | null> {
     const connection = await this.#connectionRepository.findByNetwork(network);
-
-    return connection?.id ?? null;
+    return connection ?? null;
   }
 
   /**
@@ -158,7 +158,7 @@ export class WebSocketConnectionService {
    * @param id - The ID of the connection to get.
    * @returns The connection, or null if no connection exists for the ID.
    */
-  async getById(id: string): Promise<WebSocketConnection | null> {
+  async findById(id: string): Promise<WebSocketConnection | null> {
     return this.#connectionRepository.getById(id);
   }
 
@@ -200,20 +200,20 @@ export class WebSocketConnectionService {
     // Reset retry attempts on successful connection
     this.#retryAttempts.delete(network);
 
-    const callbacks = this.#connectionRecoveryCallbacks.get(network) ?? [];
+    const handlers = this.#connectionRecoveryHandlers.get(network) ?? [];
 
     this.#logger.log(
-      `Triggering ${callbacks.length} connection recovery callbacks`,
+      `Triggering ${handlers.length} connection recovery handlers`,
       network,
     );
 
-    // Trigger all recovery callbacks
+    // Trigger all recovery handlers
     const recoveryPromises =
-      callbacks.map(async (callback) => {
+      handlers.map(async (handler) => {
         try {
-          await callback(network);
+          await handler(network);
         } catch (error) {
-          this.#logger.error(`Error in connection recovery callback:`, error);
+          this.#logger.error(`Error in connection recovery handler`, error);
         }
       }) ?? [];
 
@@ -274,7 +274,7 @@ export class WebSocketConnectionService {
 
     this.#logger.log(`All connections`, {
       connections,
-      connectionRecoveryCallbacks: this.#connectionRecoveryCallbacks,
+      connectionRecoveryHandlers: this.#connectionRecoveryHandlers,
     });
   }
 }

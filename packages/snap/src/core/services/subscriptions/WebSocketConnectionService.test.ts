@@ -96,16 +96,16 @@ describe('WebSocketConnectionService', () => {
       expect(service.openConnection).toHaveBeenCalledTimes(2);
     });
 
-    it('clears existing recovery callbacks', async () => {
-      // We register a recovery callback for Mainnet. We expect it to be cleared when the method is executed.
-      const recoveryCallback = jest.fn();
-      service.onConnectionRecovery(Network.Mainnet, recoveryCallback);
+    it('clears existing recovery handlers', async () => {
+      // We register a recovery handler for Mainnet. We expect it to be cleared when the method is executed.
+      const recoveryHandler = jest.fn();
+      service.onConnectionRecovery(Network.Mainnet, recoveryHandler);
 
       /**
        * Setup Mainnet as active network, but it has no connection, so calling setupAllConnections will:
-       * - clear the recovery callback
+       * - clear the recovery handler
        * - open the connection
-       * - upon opening, we will trigger all recovery callbacks
+       * - upon opening, we will trigger all recovery handlers
        * - but since they have been cleared, they should not be called
        */
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
@@ -121,8 +121,8 @@ describe('WebSocketConnectionService', () => {
       // Simulate the snap start event
       await mockEventEmitter.emitSync('onStart');
 
-      // The connection has recovered, but the recovery callback should not have been called because it was cleared
-      expect(recoveryCallback).not.toHaveBeenCalled();
+      // The connection has recovered, but the recovery handler should not have been called because it was cleared
+      expect(recoveryHandler).not.toHaveBeenCalled();
     });
 
     describe('openConnection', () => {
@@ -162,12 +162,12 @@ describe('WebSocketConnectionService', () => {
           .mockResolvedValueOnce(mockConnection);
       });
 
-      it('triggers all the recovery callbacks', async () => {
-        const recoveryCallback0 = jest.fn();
-        const recoveryCallback1 = jest.fn();
+      it('triggers all the recovery handlers', async () => {
+        const recoveryHandler0 = jest.fn();
+        const recoveryHandler1 = jest.fn();
 
-        service.onConnectionRecovery(Network.Mainnet, recoveryCallback0);
-        service.onConnectionRecovery(Network.Mainnet, recoveryCallback1);
+        service.onConnectionRecovery(Network.Mainnet, recoveryHandler0);
+        service.onConnectionRecovery(Network.Mainnet, recoveryHandler1);
 
         // Send the connect event
         await mockEventEmitter.emitSync('onWebSocketEvent', {
@@ -175,8 +175,8 @@ describe('WebSocketConnectionService', () => {
           type: 'open',
         });
 
-        expect(recoveryCallback0).toHaveBeenCalled();
-        expect(recoveryCallback1).toHaveBeenCalled();
+        expect(recoveryHandler0).toHaveBeenCalled();
+        expect(recoveryHandler1).toHaveBeenCalled();
       });
     });
 
@@ -263,9 +263,7 @@ describe('WebSocketConnectionService', () => {
         .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
         .mockResolvedValueOnce(mockConnection);
 
-      const connectionId = await service.getConnectionIdByNetwork(
-        Network.Mainnet,
-      );
+      const connectionId = await service.findByNetwork(Network.Mainnet);
 
       expect(connectionId).toBe(mockConnectionId);
     });
