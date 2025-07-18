@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { type KeyringRequest, SolMethod } from '@metamask/keyring-api';
-import { UnauthorizedError } from '@metamask/snaps-sdk';
 import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
 import type { Commitment, SignatureBytes } from '@solana/kit';
@@ -44,7 +43,6 @@ import type {
   SolanaSignInRequest,
   SolanaWalletRequest,
 } from './structs';
-
 import {
   SolanaSignAndSendTransactionResponseStruct,
   SolanaSignInRequestStruct,
@@ -456,13 +454,13 @@ export class WalletService {
     try {
       asAddress(requestAccount.address);
     } catch {
-      throw new UnauthorizedError('Invalid Solana address format');
+      throw new Error('Invalid Solana address format');
     }
 
     // Check that the account address in the request parameters matches the account used for signing
     // If it doesn't match, throw the same error MM throws when the account is not authorized
     if (requestAccount.address !== address) {
-      throw new UnauthorizedError(
+      throw new Error(
         'The requested account and/or method has not been authorized by the user.',
       );
     }
