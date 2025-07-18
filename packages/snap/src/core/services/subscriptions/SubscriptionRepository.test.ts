@@ -10,7 +10,6 @@ const createMockSubscription = (id: string): Subscription => ({
   status: 'pending',
   requestId: id,
   method: 'accountSubscribe',
-  unsubscribeMethod: 'accountUnsubscribe',
   params: [],
   createdAt: new Date().toISOString(),
 });
@@ -26,6 +25,7 @@ describe('SubscriptionRepository', () => {
       setKey: jest.fn(),
       update: jest.fn(),
       deleteKey: jest.fn(),
+      deleteKeys: jest.fn(),
     };
 
     repository = new SubscriptionRepository(mockStateManager);
