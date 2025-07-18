@@ -164,6 +164,39 @@ export class WalletService {
   }
 
   /**
+   * Validates that the account address in the request parameters matches the signing account.
+   * This prevents unauthorized account usage and authorization bypass.
+   *
+   * @param account - The account used for signing.
+   * @param request - The request containing the account address to validate.
+   * @throws If the account address is invalid or doesn't match the signing account.
+   */
+  #validateAccountAddress(
+    account: SolanaKeyringAccount,
+    request: KeyringRequest,
+  ): void {
+    const { address } = account;
+
+    const { account: requestAccount } = request.request.params as {
+      account: { address: string };
+    };
+
+    try {
+      asAddress(requestAccount.address);
+    } catch {
+      throw new Error('Invalid Solana address format');
+    }
+
+    // Check that the account address in the request parameters matches the account used for signing
+    // If it doesn't match, throw the same error MM throws when the account is not authorized
+    if (requestAccount.address !== address) {
+      throw new Error(
+        'The requested account and/or method has not been authorized by the user.',
+      );
+    }
+  }
+
+  /**
    * Signs a transaction.
    *
    * For a detailed visual representation of the transaction signing flow, see the
@@ -185,6 +218,8 @@ export class WalletService {
 
     assert(request.request, SolanaSignTransactionRequestStruct);
     assert(request.scope, NetworkStruct);
+
+    this.#validateAccountAddress(account, request);
 
     const { transaction, scope, options } = request.request.params;
 
@@ -448,22 +483,7 @@ export class WalletService {
     const { scope } = request;
     assert(scope, NetworkStruct);
 
-    // Get the account address from the request parameters
-    const { account: requestAccount } = request.request.params;
-
-    try {
-      asAddress(requestAccount.address);
-    } catch {
-      throw new Error('Invalid Solana address format');
-    }
-
-    // Check that the account address in the request parameters matches the account used for signing
-    // If it doesn't match, throw the same error MM throws when the account is not authorized
-    if (requestAccount.address !== address) {
-      throw new Error(
-        'The requested account and/or method has not been authorized by the user.',
-      );
-    }
+    this.#validateAccountAddress(account, request);
 
     // message is base64 encoded
     const { message } = request.request.params;
