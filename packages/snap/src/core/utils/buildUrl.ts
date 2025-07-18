@@ -29,8 +29,7 @@ export function buildUrl(params: BuildUrlParams): string {
     if (value === undefined) {
       throw new Error(`Path parameter ${key} is undefined`);
     }
-
-    return encodeURIComponent(value);
+    return value;
   });
 
   const cleanPath = pathWithParams
