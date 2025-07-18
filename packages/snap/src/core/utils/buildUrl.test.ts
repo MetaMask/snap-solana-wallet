@@ -126,4 +126,40 @@ describe('buildUrl', () => {
     });
     expect(result).toBe('https://api.example.com/path/to/resource');
   });
+
+  it('does not encode path parameters when encodePathParams is false', () => {
+    const result = buildUrl({
+      baseUrl: 'https://api.example.com',
+      path: '/tokens/{assetId}',
+      pathParams: { assetId: 'solana:mainnet:token123' },
+      encodePathParams: false,
+    });
+    expect(result).toBe(
+      'https://api.example.com/tokens/solana:mainnet:token123',
+    );
+  });
+  
+  it('encodes path parameters when encodePathParams is explicitly true', () => {
+    const result = buildUrl({
+      baseUrl: 'https://api.example.com',
+      path: '/tokens/{assetId}',
+      pathParams: { assetId: 'solana:mainnet:token123' },
+      encodePathParams: true,
+    });
+    expect(result).toBe(
+      'https://api.example.com/tokens/solana%3Amainnet%3Atoken123',
+    );
+  });
+  
+  it('maintains backward compatibility by encoding path parameters by default', () => {
+    const result = buildUrl({
+      baseUrl: 'https://api.example.com',
+      path: '/tokens/{assetId}',
+      pathParams: { assetId: 'solana:mainnet:token123' },
+      // encodePathParams not specified - should default to true
+    });
+    expect(result).toBe(
+      'https://api.example.com/tokens/solana%3Amainnet%3Atoken123',
+    );
+  });
 });
