@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Genel adres girin"
+      "message": "Genel adres veya alan adı girin"
     },
     "send.fromRequiredError": {
       "message": "Hesap gereklidir"
@@ -47,7 +47,22 @@
       "message": "Alıcı adres gereklidir"
     },
     "send.toInvalidError": {
-      "message": "Solana adresi geçersiz"
+      "message": "Solana adresi veya alan adı geçersiz"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Alan adı çözümlenemiyor"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Alan"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Alan adı çözümleniyor..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Alan adı çözümlendi."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Alan adı çözümlenemiyor."
     },
     "send.insufficientBalance": {
       "message": "Bakiye yetersiz"
@@ -152,10 +167,10 @@
       "message": "İşlem talebi"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "İmza talebi"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "İşlem gönderiliyor ve onaylanıyor"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Bilinmeyen"
@@ -176,7 +191,7 @@
       "message": "Talebi gönderen"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "Bu site tarafından onayınız isteniyor."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Bu işlem simülasyon sırasında geri döndürüldü."
@@ -209,7 +224,7 @@
       "message": "Bir site, bu hesabın size ait olduğunu kanıtlamanız için giriş yapmanızı istiyor."
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "Alan"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "Bilinmeyen alan"
@@ -251,7 +266,7 @@
       "message": "Kaynaklar"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "Bu site sizden yanlış alanı kullanarak giriş yapmanızı istiyor."
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Halihazırda aynı adrese sahip bir hesap mevcut."
@@ -263,7 +278,7 @@
       "message": "Kayma toleransı aşıldığı için işlem geri döndürüldü."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "Bilinmeyen bir hata oluştu."
     }
   }
 }

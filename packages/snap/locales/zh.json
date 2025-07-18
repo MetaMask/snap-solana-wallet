@@ -29,7 +29,7 @@
       "message": "代币"
     },
     "send.toPlaceholder": {
-      "message": "输入公共地址"
+      "message": "输入公钥或域名"
     },
     "send.fromRequiredError": {
       "message": "账户为必填项"
@@ -47,7 +47,22 @@
       "message": "接收者地址为必填项"
     },
     "send.toInvalidError": {
-      "message": "Solana 地址无效"
+      "message": "无效的 Solana 地址或域名"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "无法解析域名"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "域"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "正在解析域名……"
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "域名已解析。"
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "无法解析域名。"
     },
     "send.insufficientBalance": {
       "message": "余额不足"
@@ -152,10 +167,10 @@
       "message": "交易请求"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "签名请求"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "正在发送并确认交易"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "未知"
@@ -176,7 +191,7 @@
       "message": "请求来自"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "这是要求您确认的网站。"
     },
     "confirmation.simulationErrorTitle": {
       "message": "此交易在模拟期间被撤销。"
@@ -209,7 +224,7 @@
       "message": "网站要求您登录以验证账户所有权。"
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "域"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "未知域名"
@@ -251,7 +266,7 @@
       "message": "资源"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "此网站要求您使用错误的域名登录。"
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "已存在使用相同地址的账户."
@@ -263,7 +278,7 @@
       "message": "该交易因超出滑点容差上限而撤销。"
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "出现未知错误。"
     }
   }
 }

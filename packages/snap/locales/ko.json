@@ -29,7 +29,7 @@
       "message": "토큰"
     },
     "send.toPlaceholder": {
-      "message": "공개 주소 입력"
+      "message": "공개 주소 또는 도메인 이름 입력"
     },
     "send.fromRequiredError": {
       "message": "계정은 필수입니다"
@@ -47,7 +47,22 @@
       "message": "수신 주소는 필수입니다"
     },
     "send.toInvalidError": {
-      "message": "잘못된 Solana 주소"
+      "message": "잘못된 솔라나 주소 또는 도메인 이름"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "도메인 이름을 찾을 수 없습니다"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "도메인"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "도메인 이름을 찾는 중..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "도메인 이름을 찾았습니다."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "도메인 이름을 찾을 수 없습니다."
     },
     "send.insufficientBalance": {
       "message": "잔액 부족"
@@ -152,10 +167,10 @@
       "message": "트랜잭션 요청"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "서명 요청"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "트랜잭션 전송 및 컨펌 중"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "알 수 없음"
@@ -176,7 +191,7 @@
       "message": "요청자:"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "이 사이트에서 회원님의 컨펌을 요청합니다."
     },
     "confirmation.simulationErrorTitle": {
       "message": "이 트랜잭션은 시뮬레이션 중에 이전 상태로 되돌아갔습니다."
@@ -209,7 +224,7 @@
       "message": "회원님이 이 계정을 소유하고 있음을 확인하기 위해 로그인을 요청하는 사이트가 있습니다."
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "도메인"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "알 수 없는 도메인"
@@ -251,7 +266,7 @@
       "message": "리소스"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "이 사이트는 잘못된 도메인으로 로그인하도록 요청하고 있습니다."
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "동일한 주소의 계정이 이미 존재합니다."
@@ -263,7 +278,7 @@
       "message": "슬리피지 허용 범위를 초과하여 트랜잭션이 이전 상태로 되돌아갔습니다."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "알 수 없는 오류가 발생했습니다."
     }
   }
 }

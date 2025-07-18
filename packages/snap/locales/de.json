@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Öffentliche Adresse eingeben"
+      "message": "Öffentliche Adresse oder Domainname eingeben"
     },
     "send.fromRequiredError": {
       "message": "Konto erforderlich"
@@ -47,7 +47,22 @@
       "message": "Adresse des Empfängers ist erforderlich"
     },
     "send.toInvalidError": {
-      "message": "Ungültige Solana-Adresse"
+      "message": "Ungültige Solana-Adresse oder Domainname"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Domainname kann nicht aufgelöst werden"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Auflösen des Domainnamens ..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Domainname aufgelöst."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Domainname kann nicht aufgelöst werden."
     },
     "send.insufficientBalance": {
       "message": "Unzureichendes Guthaben"
@@ -152,10 +167,10 @@
       "message": "Transaktionsanfrage"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "Anmeldeanfrage"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "Transaktion senden und bestätigen"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Unbekannt"
@@ -176,7 +191,7 @@
       "message": "Anfrage von"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "Dies ist die Website, die Sie um Ihre Bestätigung bittet."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Diese Transaktion wurde während der Simulation zurückgesetzt."
@@ -251,19 +266,19 @@
       "message": "Ressourcen"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "Diese Website fordert Sie auf, sich mit der falschen Domain anzumelden."
     },
     "transactionScan.errors.accountAlreadyInUse": {
-      "message": "An account with the same address already exists."
+      "message": "Es besteht bereits ein Konto mit derselben Adresse."
     },
     "transactionScan.errors.insufficientSol": {
-      "message": "Account does not have enough SOL to perform the operation."
+      "message": "Das Konto verfügt nicht über genügend SOL, um den Vorgang durchzuführen."
     },
     "transactionScan.errors.slippageToleranceExceeded": {
       "message": "Die Transaktion wurde aufgrund einer Überschreitung der Slippage-Toleranz zurückgesetzt."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "Ein unbekannter Fehler ist aufgetreten."
     }
   }
 }

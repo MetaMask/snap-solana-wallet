@@ -29,7 +29,7 @@
       "message": "टोकन"
     },
     "send.toPlaceholder": {
-      "message": "पब्लिक एड्रेस डालें"
+      "message": "पब्लिक एड्रेस या डोमेन नाम डालें"
     },
     "send.fromRequiredError": {
       "message": "अकाउंट होना ज़रूरी है"
@@ -47,7 +47,22 @@
       "message": "जिसको भेजा जा रहा है उसका एड्रेस होना चाहिए"
     },
     "send.toInvalidError": {
-      "message": "सोलाना का अमान्य पता"
+      "message": "गलत Solana एड्रेस या डोमेन नाम"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "डोमेन नाम समाधान करने में असमर्थ"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "डोमेन"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "डोमेन नाम का समाधान किया जा रहा है..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "डोमेन नाम का समाधान किया गया।"
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "डोमेन नाम समाधान करने में असमर्थ।"
     },
     "send.insufficientBalance": {
       "message": "कम बैलेंस"
@@ -152,10 +167,10 @@
       "message": "ट्रांसेक्शन रिक्वेस्ट"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "साइन करने का अनुरोध"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "ट्रांसेक्शन भेजना और कन्फर्म करना"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "अज्ञात"
@@ -176,7 +191,7 @@
       "message": "इनसे मिला अनुरोध"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "यह वही साइट है जो आपका कन्फर्मेशन मांग रही है।"
     },
     "confirmation.simulationErrorTitle": {
       "message": "सिमुलेशन के दौरान ये ट्रांसेक्शन वापस कर दिया गया।"
@@ -209,7 +224,7 @@
       "message": "एक साइट चाहती है कि आप यह साबित करने के लिए साइन इन करें कि यह अकाउंट आपका है।"
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "डोमेन"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "अज्ञात डोमेन"
@@ -251,19 +266,19 @@
       "message": "संसाधन"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "यह साइट आपसे गलत डोमेन का उपयोग करके साइन इन करने के लिए कह रही है।"
     },
     "transactionScan.errors.accountAlreadyInUse": {
-      "message": "An account with the same address already exists."
+      "message": "समान एड्रेस वाला एक अकाउंट पहले से मौजूद है।"
     },
     "transactionScan.errors.insufficientSol": {
-      "message": "Account does not have enough SOL to perform the operation."
+      "message": "इस क्रिया को पूरा करने के लिए अकाउंट में पर्याप्त SOL नहीं है।"
     },
     "transactionScan.errors.slippageToleranceExceeded": {
       "message": "ट्रांसेक्शन को वापस कर दिया गया क्योंकि स्लिपेज (slippage) टॉलरेंस की सीमा पार हो गई थी।"
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "एक अज्ञात गड़बड़ी हुई।"
     }
   }
 }

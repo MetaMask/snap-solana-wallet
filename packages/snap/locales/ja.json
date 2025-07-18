@@ -29,7 +29,7 @@
       "message": "トークン"
     },
     "send.toPlaceholder": {
-      "message": "パブリックアドレスを入力してください"
+      "message": "パブリックアドレスまたはドメイン名を入力してください"
     },
     "send.fromRequiredError": {
       "message": "アカウントが必要です"
@@ -47,7 +47,22 @@
       "message": "送り先のアドレスが必要です"
     },
     "send.toInvalidError": {
-      "message": "Solanaアドレスが無効です"
+      "message": "Solanaアドレスまたはドメイン名が無効です"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "ドメイン名を解決できません"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "ドメイン"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "ドメイン名を解決しています…"
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "ドメイン名が解決しました。"
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "ドメイン名を解決できません。"
     },
     "send.insufficientBalance": {
       "message": "残高が不十分です"
@@ -152,10 +167,10 @@
       "message": "トランザクションリクエスト"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "署名要求"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "トランザクションの送信と確定"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "不明"
@@ -176,7 +191,7 @@
       "message": "要求元"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "これが承認を要求しているサイトです。"
     },
     "confirmation.simulationErrorTitle": {
       "message": "このトランザクションはシミュレーション中に取り消されました。"
@@ -209,7 +224,7 @@
       "message": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。"
     },
     "confirmation.signIn.domain": {
-      "message": "Domain"
+      "message": "ドメイン"
     },
     "confirmation.signIn.unknownDomain": {
       "message": "不明なドメイン"
@@ -251,7 +266,7 @@
       "message": "リソース"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "このサイトは正しくないドメインでのサインインを求めています。"
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "同じアドレスのアカウントがすでに存在します."
@@ -263,7 +278,7 @@
       "message": "スリッページの許容範囲を超えたため、トランザクションが取り消されました。"
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "不明なエラーが発生しました。"
     }
   }
 }

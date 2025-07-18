@@ -29,7 +29,7 @@
       "message": "Token"
     },
     "send.toPlaceholder": {
-      "message": "Masukkan alamat publik"
+      "message": "Masukkan alamat publik atau nama domain"
     },
     "send.fromRequiredError": {
       "message": "Akun diperlukan"
@@ -47,7 +47,22 @@
       "message": "Alamat kirim diperlukan"
     },
     "send.toInvalidError": {
-      "message": "Alamat Solana tidak valid"
+      "message": "Alamat atau nama domain Solana tidak valid"
+    },
+    "send.toInvalidErrorDomain": {
+      "message": "Tidak dapat menetapkan nama domain"
+    },
+    "send.toDomainResolutionStatus.initial": {
+      "message": "Domain"
+    },
+    "send.toDomainResolutionStatus.fetching": {
+      "message": "Menetapkan nama domain..."
+    },
+    "send.toDomainResolutionStatus.fetched": {
+      "message": "Nama domain ditetapkan."
+    },
+    "send.toDomainResolutionStatus.error": {
+      "message": "Tidak dapat menetapkan nama domain."
     },
     "send.insufficientBalance": {
       "message": "Saldo tidak cukup"
@@ -152,10 +167,10 @@
       "message": "Permintaan transaksi"
     },
     "confirmation.signTransaction.title": {
-      "message": "Signing request"
+      "message": "Permintaan penandatanganan"
     },
     "confirmation.sendAndConfirmTransaction.title": {
-      "message": "Sending and confirming transaction"
+      "message": "Mengirim dan mengonfirmasi transaksi"
     },
     "confirmation.advanced.unknownInstruction": {
       "message": "Tidak dikenal"
@@ -176,7 +191,7 @@
       "message": "Permintaan dari"
     },
     "confirmation.origin.tooltip": {
-      "message": "This is the site asking for your confirmation."
+      "message": "Ini merupakan situs yang meminta konfirmasi Anda."
     },
     "confirmation.simulationErrorTitle": {
       "message": "Transaksi ini dikembalikan selama simulasi."
@@ -251,7 +266,7 @@
       "message": "Sumber daya"
     },
     "confirmation.signIn.badDomain": {
-      "message": "This site is asking you to sign in using the wrong domain."
+      "message": "Situs ini meminta Anda masuk menggunakan domain yang salah."
     },
     "transactionScan.errors.accountAlreadyInUse": {
       "message": "Akun dengan alamat yang sama sudah ada."
@@ -263,7 +278,7 @@
       "message": "Transaksi dibatalkan karena toleransi selip telah terlampaui."
     },
     "transactionScan.errors.unknownError": {
-      "message": "An unknown error occurred."
+      "message": "Terjadi kesalahan tidak dikenal."
     }
   }
 }
