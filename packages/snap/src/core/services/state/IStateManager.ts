@@ -82,4 +82,18 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
    * ```
    */
   deleteKey(key: string): Promise<void>;
+  /**
+   * Deletes multiple keys in the state object in a single operation.
+   * The keys are a json path to the value to delete.
+   *
+   * @example
+   * ```typescript
+   * const state = await stateManager.get();
+   * // state is { users: [ { name: 'Alice', age: 20 }, { name: 'Bob', age: 25 } ] }
+   *
+   * await stateManager.deleteKeys(['users.0.age', 'users.1.name']);
+   * // state is now { users: [ { name: 'Alice' }, { age: 25 } ] }
+   * ```
+   */
+  deleteKeys(keys: string[]): Promise<void>;
 };

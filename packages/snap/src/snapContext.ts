@@ -28,7 +28,6 @@ import { NftService } from './core/services/nft/NftService';
 import type { IStateManager } from './core/services/state/IStateManager';
 import type { UnencryptedStateValue } from './core/services/state/State';
 import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
-import { RpcAccountMonitor } from './core/services/subscriptions/RpcAccountMonitor';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
@@ -80,6 +79,8 @@ const state = new State({
 const stateCache = new StateCache(state, logger);
 const inMemoryCache = new InMemoryCache(logger);
 
+const accountService = new AccountService(state);
+
 const connection = new SolanaConnection(configProvider);
 
 const webSocketConnectionRepository = new WebSocketConnectionRepository(
@@ -98,19 +99,8 @@ const subscriptionRepository = new SubscriptionRepository(state);
 const subscriptionService = new SubscriptionService(
   webSocketConnectionService,
   subscriptionRepository,
+  configProvider,
   eventEmitter,
-  logger,
-);
-
-const signatureMonitor = new SignatureMonitor(
-  subscriptionService,
-  connection,
-  logger,
-);
-
-const rpcAcccountMonitor = new RpcAccountMonitor(
-  subscriptionService,
-  connection,
   logger,
 );
 
@@ -158,6 +148,16 @@ const transactionsService = new TransactionsService({
 
 const analyticsService = new AnalyticsService(logger);
 
+const signatureMonitor = new SignatureMonitor(
+  subscriptionService,
+  accountService,
+  transactionsService,
+  analyticsService,
+  connection,
+  configProvider,
+  logger,
+);
+
 const walletService = new WalletService(
   transactionsService,
   assetsService,
@@ -177,10 +177,8 @@ const transactionScanService = new TransactionScanService(
 
 const confirmationHandler = new ConfirmationHandler();
 
-const accountService = new AccountService(state);
-
 const keyringAccountMonitor = new KeyringAccountMonitor(
-  rpcAcccountMonitor,
+  subscriptionService,
   accountService,
   assetsService,
   transactionsService,

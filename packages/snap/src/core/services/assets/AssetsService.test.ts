@@ -319,4 +319,96 @@ describe('AssetsService', () => {
       );
     });
   });
+
+  describe('saveAsset', () => {
+    it('notifies the extension if it is a new asset', async () => {
+      jest.spyOn(mockState, 'getKey').mockResolvedValueOnce(undefined);
+
+      await assetsService.saveAsset(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        KnownCaip19Id.EurcMainnet,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+
+      // 1 for the asset list updated, 1 for the balances updated
+      expect(emitSnapKeyringEvent).toHaveBeenCalledTimes(2);
+      expect(emitSnapKeyringEvent).toHaveBeenNthCalledWith(
+        1,
+        snap,
+        KeyringEvent.AccountAssetListUpdated,
+        {
+          assets: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              added: [KnownCaip19Id.EurcMainnet],
+              removed: [],
+            },
+          },
+        },
+      );
+    });
+
+    it('does not notify the extension if it is not a new asset', async () => {
+      jest.spyOn(mockState, 'getKey').mockResolvedValueOnce({
+        amount: '1234',
+        unit: 'EURC',
+      });
+
+      await assetsService.saveAsset(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        KnownCaip19Id.EurcMainnet,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+
+      // 1 for the balances updated only
+      expect(emitSnapKeyringEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('updates the state', async () => {
+      await assetsService.saveAsset(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        KnownCaip19Id.EurcMainnet,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+
+      expect(stateSetKeySpy).toHaveBeenCalledWith(
+        `assets.${MOCK_SOLANA_KEYRING_ACCOUNT_0.id}.${KnownCaip19Id.EurcMainnet}`,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+    });
+
+    it('notifies the extension about the new balance', async () => {
+      await assetsService.saveAsset(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        KnownCaip19Id.EurcMainnet,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+
+      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+        snap,
+        KeyringEvent.AccountBalancesUpdated,
+        {
+          balances: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [KnownCaip19Id.EurcMainnet]: { amount: '1234', unit: 'EURC' },
+            },
+          },
+        },
+      );
+    });
+  });
 });

@@ -217,19 +217,13 @@ export class WalletService {
 
     // Send analytics and subscribe to the signature
     await Promise.allSettled([
-      this.#signatureMonitor.monitor({
-        network: scope,
+      this.#signatureMonitor.monitor(
         signature,
-        commitment: 'confirmed',
-        onCommitmentReached: async (params) => {
-          await this.#handleTransactionConfirmed(
-            params.signature,
-            account,
-            scope,
-            request.origin,
-          );
-        },
-      }),
+        account.id,
+        'confirmed',
+        scope,
+        request.origin,
+      ),
       // Do we do that?
       //   this.#analyticsService.trackEventTransactionSubmitted(
       //     account,
@@ -327,19 +321,13 @@ export class WalletService {
       origin,
     );
 
-    await this.#signatureMonitor.monitor({
-      network: scope,
+    await this.#signatureMonitor.monitor(
       signature,
-      commitment: options?.commitment ?? 'confirmed',
-      onCommitmentReached: async (params) => {
-        await this.#handleTransactionConfirmed(
-          params.signature,
-          account,
-          scope,
-          origin,
-        );
-      },
-    });
+      account.id,
+      options?.commitment ?? 'confirmed',
+      scope,
+      origin,
+    );
 
     const result = {
       signature,
