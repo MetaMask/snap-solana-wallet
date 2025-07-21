@@ -467,11 +467,8 @@ export class SubscriptionService {
       metadata: request.metadata ?? null,
     };
 
-    // Sort keys for consistent serialization
-    const inputString = JSON.stringify(
-      hashInput,
-      Object.keys(hashInput).sort(),
-    );
+    // Use deterministic serialization that sorts keys at all levels
+    const inputString = this.#deterministicStringify(hashInput);
     const encoder = new TextEncoder();
     const data = encoder.encode(inputString);
 
@@ -483,6 +480,37 @@ export class SubscriptionService {
       .join('');
 
     return hashHex;
+  }
+
+  /**
+   * Recursively sorts object keys at all levels to ensure deterministic serialization.
+   * This guarantees that identical objects always produce identical JSON strings.
+   * @param obj - The object to stringify deterministically.
+   * @returns A deterministic JSON string representation.
+   */
+  #deterministicStringify(obj: any): string {
+    if (obj === null || obj === undefined) {
+      return JSON.stringify(obj);
+    }
+
+    if (typeof obj !== 'object') {
+      return JSON.stringify(obj);
+    }
+
+    if (Array.isArray(obj)) {
+      return `[${obj
+        .map((item) => this.#deterministicStringify(item))
+        .join(',')}]`;
+    }
+
+    // For objects, sort keys and recursively stringify values
+    const sortedKeys = Object.keys(obj).sort();
+    const pairs = sortedKeys.map((key) => {
+      const value = this.#deterministicStringify(obj[key]);
+      return `"${key}":${value}`;
+    });
+
+    return `{${pairs.join(',')}}`;
   }
 
   async #listSubscriptions(): Promise<void> {

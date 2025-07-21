@@ -241,6 +241,65 @@ describe('SubscriptionService', () => {
         expect(mockSubscriptionRepository.save).toHaveBeenCalledTimes(1);
       });
 
+      it('generates IDs that are independent of the request key order', async () => {
+        const request1 = {
+          method: 'accountSubscribe' as const,
+          network: Network.Mainnet,
+          params: [
+            {
+              commitment: 'confirmed',
+              encoding: 'jsonParsed',
+            },
+          ],
+        };
+
+        // Same request, but with the keys in a different order
+        const request2 = {
+          network: Network.Mainnet,
+          method: 'accountSubscribe' as const,
+          params: [
+            {
+              encoding: 'jsonParsed',
+              commitment: 'confirmed',
+            },
+          ],
+        };
+
+        const subscriptionId1 = await service.subscribe(request1);
+        const subscriptionId2 = await service.subscribe(request2);
+
+        expect(subscriptionId1).toBe(subscriptionId2);
+      });
+
+      it('generates IDs that are different for requests with different keys', async () => {
+        const request1 = {
+          method: 'accountSubscribe' as const,
+          network: Network.Mainnet,
+          params: [
+            {
+              commitment: 'confirmed',
+              encoding: 'jsonParsed',
+            },
+          ],
+        };
+
+        const request2 = {
+          method: 'accountSubscribe' as const,
+          network: Network.Mainnet,
+          params: [
+            {
+              commitment: 'finalized',
+              encoding: 'jsonParsed',
+            },
+          ],
+        };
+
+        const subscriptionId1 = await service.subscribe(request1);
+        const subscriptionId2 = await service.subscribe(request2);
+
+        expect(subscriptionId1).not.toBe(subscriptionId2);
+      });
+
       it('deletes the stale pending subscription when re-subscribing', async () => {
         const request = createMockSubscriptionRequest();
         const subscriptionId1 = await service.subscribe(request);
