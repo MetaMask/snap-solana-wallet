@@ -9,6 +9,10 @@ import type {
 import type { Network } from '../core/constants/solana';
 import type { Serializable } from '../core/serialization/types';
 
+export type WebSocketConnection = GetWebSocketsResult[number] & {
+  readonly network: Network;
+};
+
 export type SubscribeMethod =
   | 'accountSubscribe'
   | 'programSubscribe'
@@ -35,10 +39,6 @@ export type SubscriptionRequest = {
   };
 };
 
-export type WebSocketConnection = GetWebSocketsResult[number] & {
-  readonly network: Network;
-};
-
 /**
  * Once the Subscriber acknowledges the subscription request,
  * it generates a subscription ID, and the subscription is pending (waiting for the confirmation message).
@@ -48,6 +48,16 @@ export type PendingSubscription = SubscriptionRequest & {
   readonly status: 'pending';
   readonly requestId: string; // Same a the field `id`
   readonly createdAt: string; // ISO string
+};
+
+/**
+ * A message that we receive from the RPC WebSocket server after a subscription request,
+ * that confirms that the subscription was successfully established.
+ */
+export type SubscriptionConfirmation = {
+  jsonrpc: string;
+  id: string | number;
+  result: number;
 };
 
 // After server confirms the subscription
@@ -108,16 +118,6 @@ export type Notification =
   | AccountNotification
   | ProgramNotification
   | SignatureNotification;
-
-/**
- * A message that we receive from the RPC WebSocket server after a subscription request,
- * that confirms that the subscription was successfully established.
- */
-export type SubscriptionConfirmation = {
-  jsonrpc: string;
-  id: string | number;
-  result: number;
-};
 
 export type AccountNotificationHandler = (
   notification: AccountNotification,
