@@ -117,11 +117,13 @@ export class SignatureMonitor {
       },
     };
 
-    await this.#subscriptionService.subscribe(subscriptionRequest);
+    const subscriptionId =
+      await this.#subscriptionService.subscribe(subscriptionRequest);
 
     this.#subscriptionService.registerConnectionRecoveryHandler(
       network,
-      async () => this.#handleConnectionRecovery(subscriptionRequest),
+      async () =>
+        this.#handleConnectionRecovery(subscriptionRequest, subscriptionId),
     );
   }
 
@@ -202,6 +204,7 @@ export class SignatureMonitor {
 
   async #handleConnectionRecovery(
     subscriptionRequest: SubscriptionRequest,
+    subscriptionId: string,
   ): Promise<void> {
     try {
       this.#logger.info('Handling connection recovery', subscriptionRequest);
@@ -241,9 +244,14 @@ export class SignatureMonitor {
         },
       };
 
+      const fakeSubscription: Subscription = {
+        ...subscriptionRequest,
+        id: subscriptionId,
+      } as Subscription;
+
       await this.#handleSignatureNotification(
         fakeNotification,
-        subscriptionRequest as unknown as Subscription,
+        fakeSubscription,
       );
     } catch (error) {
       this.#logger.error('Error handling connection recovery', error);
