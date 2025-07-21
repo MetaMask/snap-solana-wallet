@@ -183,6 +183,7 @@ export class SignatureMonitor {
 
           break;
         case 'confirmed':
+        case 'finalized':
           await this.#transactionsService.saveTransaction(transaction, account);
           await this.#analyticsService.trackEventTransactionFinalized(
             account,
