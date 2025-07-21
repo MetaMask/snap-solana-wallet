@@ -2,7 +2,6 @@
 import type { Transaction } from '@metamask/keyring-api';
 
 import type {
-  Commitment,
   ConnectionRecoveryHandler,
   SignatureNotification,
   SignatureNotificationHandler,
@@ -150,49 +149,7 @@ describe('SignatureMonitor', () => {
   });
 
   describe('#handleSignatureNotification', () => {
-    it('when the tx is confirmed, it saves the transaction, tracks an event in analytics, and unsubscribes', async () => {
-      const mockNotification = {} as unknown as SignatureNotification;
-      const mockSubscription = {
-        id: 'subscription-id-123',
-        method: 'signatureSubscribe',
-        network: Network.Mainnet,
-        params: [signature, { commitment, enableReceivedNotification: false }],
-        metadata: {
-          accountId,
-          origin,
-        },
-      } as unknown as Subscription;
-
-      await signatureMonitor.monitor(
-        signature,
-        accountId,
-        'confirmed' as Commitment,
-        network,
-        origin,
-      );
-
-      // Simulate notification received
-      const handler = notificationHandlers[0]!;
-      await handler(mockNotification, mockSubscription);
-
-      expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
-        mockTransaction,
-        mockAccount,
-      );
-
-      expect(
-        mockAnalyticsService.trackEventTransactionFinalized,
-      ).toHaveBeenCalledWith(mockAccount, mockTransaction, {
-        origin,
-        scope: network,
-      });
-
-      expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
-        mockSubscription.id,
-      );
-    });
-
-    it('when the tx is submitted, it saves the transaction, tracks an event in analytics, and unsubscribes', async () => {
+    it('when the tx is processed, it saves the transaction, tracks an event in analytics, and unsubscribes', async () => {
       const mockNotification = {} as unknown as SignatureNotification;
       const mockSubscription = {
         id: 'subscription-id-123',
@@ -200,7 +157,7 @@ describe('SignatureMonitor', () => {
         network: Network.Mainnet,
         params: [
           signature,
-          { commitment: 'submitted', enableReceivedNotification: false },
+          { commitment: 'processed', enableReceivedNotification: false },
         ],
         metadata: {
           accountId,
@@ -211,7 +168,7 @@ describe('SignatureMonitor', () => {
       await signatureMonitor.monitor(
         signature,
         accountId,
-        'submitted' as Commitment,
+        'processed',
         network,
         origin,
       );
@@ -228,6 +185,48 @@ describe('SignatureMonitor', () => {
       expect(
         mockAnalyticsService.trackEventTransactionSubmitted,
       ).toHaveBeenCalledWith(mockAccount, signature, {
+        origin,
+        scope: network,
+      });
+
+      expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
+        mockSubscription.id,
+      );
+    });
+
+    it('when the tx is confirmed, it saves the transaction, tracks an event in analytics, and unsubscribes', async () => {
+      const mockNotification = {} as unknown as SignatureNotification;
+      const mockSubscription = {
+        id: 'subscription-id-123',
+        method: 'signatureSubscribe',
+        network: Network.Mainnet,
+        params: [signature, { commitment, enableReceivedNotification: false }],
+        metadata: {
+          accountId,
+          origin,
+        },
+      } as unknown as Subscription;
+
+      await signatureMonitor.monitor(
+        signature,
+        accountId,
+        'confirmed',
+        network,
+        origin,
+      );
+
+      // Simulate notification received
+      const handler = notificationHandlers[0]!;
+      await handler(mockNotification, mockSubscription);
+
+      expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+        mockTransaction,
+        mockAccount,
+      );
+
+      expect(
+        mockAnalyticsService.trackEventTransactionFinalized,
+      ).toHaveBeenCalledWith(mockAccount, mockTransaction, {
         origin,
         scope: network,
       });

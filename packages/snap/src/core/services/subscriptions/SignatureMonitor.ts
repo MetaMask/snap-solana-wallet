@@ -2,11 +2,12 @@ import { assert, string } from '@metamask/superstruct';
 import { signature as asSignature } from '@solana/kit';
 import { get } from 'lodash';
 
-import type {
-  Commitment,
-  SignatureNotification,
-  Subscription,
-  SubscriptionRequest,
+import {
+  CommitmentStruct,
+  type Commitment,
+  type SignatureNotification,
+  type Subscription,
+  type SubscriptionRequest,
 } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
@@ -169,7 +170,7 @@ export class SignatureMonitor {
       }
 
       switch (commitment) {
-        case 'submitted':
+        case 'processed':
           await this.#transactionsService.saveTransaction(transaction, account);
           await this.#analyticsService.trackEventTransactionSubmitted(
             account,
@@ -216,14 +217,19 @@ export class SignatureMonitor {
       assert(signature, string());
 
       const commitment = get(subscriptionRequest, 'params[1].commitment');
-      assert(commitment, string());
+      assert(commitment, CommitmentStruct);
 
       const confirmationStatus = await this.#fetchConfirmationStatus(
         signature,
         network,
       );
+      if (!confirmationStatus) {
+        throw new Error(
+          `Signature ${signature} not found via HTTP fetch during connection recovery`,
+        );
+      }
 
-      if (commitment !== confirmationStatus) {
+      if (!this.#hasAtLeastCommitmentLevel(commitment, confirmationStatus)) {
         this.#logger.info(
           'Signature did not reach the desired commitment while connection was down. Skipping.',
         );
@@ -287,4 +293,24 @@ export class SignatureMonitor {
 
     return confirmationStatus;
   }
+
+  /**
+   * Checks if the commitment level is at least the minimum level,
+   * based on the hierarchy of commitment levels `processed < confirmed < finalized`.
+   *
+   * @param commitment - The commitment level to check.
+   * @param minimumLevel - The minimum level to check against.
+   * @returns True if the commitment level is at least the minimum level, false otherwise.
+   */
+  #hasAtLeastCommitmentLevel = (
+    commitment: Commitment,
+    minimumLevel: Commitment,
+  ) => {
+    return (
+      minimumLevel === commitment ||
+      (minimumLevel === 'processed' &&
+        (commitment === 'confirmed' || commitment === 'finalized')) ||
+      (minimumLevel === 'confirmed' && commitment === 'finalized')
+    );
+  };
 }
