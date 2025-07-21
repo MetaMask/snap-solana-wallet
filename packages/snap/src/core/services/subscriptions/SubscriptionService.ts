@@ -130,6 +130,9 @@ export class SubscriptionService {
    * - If the connection is not established, the subscription request is saved and will be sent later, when the connection is established.
    * - It re-subscribes automatically when the connection is re-established.
    *
+   * Subscription is idempotent. If the same request is sent multiple times, it will only be saved once,
+   * and the returned ID is deterministic of the request: same request -> same ID.
+   *
    * @param request - The subscription request.
    * @returns The ID of the subscription.
    */
@@ -138,7 +141,20 @@ export class SubscriptionService {
 
     const { method, params, network } = request;
 
-    const id = this.#generateId();
+    const id = await this.#generateId(request);
+
+    // Check if a subscription with this ID already exists
+    const existingSubscription = await this.#subscriptionRepository.getById(id);
+
+    if (existingSubscription) {
+      // If it's confirmed, just return the existing ID
+      if (existingSubscription.status === 'confirmed') {
+        return id;
+      }
+
+      // If it's pending, delete and proceed to recreate, to handle stale pending subscriptions
+      await this.#subscriptionRepository.delete(id);
+    }
 
     const pendingSubscription: PendingSubscription = {
       ...request,
@@ -201,7 +217,7 @@ export class SubscriptionService {
       if (connection) {
         await this.#sendMessage(connection.id, {
           jsonrpc: '2.0',
-          id: this.#generateId(),
+          id: await this.#generateId(this.#asRequest(subscription)),
           method: unsubscribeMethod,
           params: [subscription.rpcSubscriptionId],
         });
@@ -434,8 +450,39 @@ export class SubscriptionService {
     }
   }
 
-  #generateId(): string {
-    return globalThis.crypto.randomUUID();
+  /**
+   * Generates a deterministic ID for a subscription request.
+   * This allows for idempotent subscriptions: same request -> same ID.
+   * It also avoids duplicate subscriptions.
+   * @param request - The subscription request.
+   * @returns The ID of the subscription.
+   */
+  async #generateId(request: SubscriptionRequest): Promise<string> {
+    // Create a deterministic hash from the essential request components
+    const hashInput = {
+      method: request.method,
+      params: request.params,
+      network: request.network,
+      // Include metadata for uniqueness but normalize it
+      metadata: request.metadata ?? null,
+    };
+
+    // Sort keys for consistent serialization
+    const inputString = JSON.stringify(
+      hashInput,
+      Object.keys(hashInput).sort(),
+    );
+    const encoder = new TextEncoder();
+    const data = encoder.encode(inputString);
+
+    // Generate SHA-256 hash and return first 32 chars for readability
+    const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    return hashHex;
   }
 
   async #listSubscriptions(): Promise<void> {
@@ -444,6 +491,15 @@ export class SubscriptionService {
       subscriptions,
       notificationHandlers: this.#notificationHandlers,
     });
+  }
+
+  #asRequest(subscription: Subscription): SubscriptionRequest {
+    return {
+      method: subscription.method,
+      params: subscription.params,
+      network: subscription.network,
+      ...(subscription.metadata ? { metadata: subscription.metadata } : {}),
+    };
   }
 
   /**

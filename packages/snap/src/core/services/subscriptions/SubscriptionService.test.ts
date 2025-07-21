@@ -213,6 +213,74 @@ describe('SubscriptionService', () => {
           },
         });
       });
+
+      it('returns the same ID for the same request', async () => {
+        const request = createMockSubscriptionRequest();
+        const subscriptionId1 = await service.subscribe(request);
+        const subscriptionId2 = await service.subscribe(request);
+
+        expect(subscriptionId1).toBe(subscriptionId2);
+      });
+
+      it('does not create duplicate subscriptions when the first one is confirmed', async () => {
+        const request = createMockSubscriptionRequest();
+        const subscriptionId1 = await service.subscribe(request);
+
+        // Mock the repository to return the first subscription as confirmed
+        jest.spyOn(mockSubscriptionRepository, 'getById').mockResolvedValue({
+          ...request,
+          id: subscriptionId1,
+          status: 'confirmed',
+        } as ConfirmedSubscription);
+
+        const subscriptionId2 = await service.subscribe(request);
+        const subscriptionId3 = await service.subscribe(request);
+
+        expect(subscriptionId1).toBe(subscriptionId2);
+        expect(subscriptionId2).toBe(subscriptionId3);
+        expect(mockSubscriptionRepository.save).toHaveBeenCalledTimes(1);
+      });
+
+      it('deletes the stale pending subscription when re-subscribing', async () => {
+        const request = createMockSubscriptionRequest();
+        const subscriptionId1 = await service.subscribe(request);
+
+        const mockPendingSubscription1: PendingSubscription = {
+          ...request,
+          id: subscriptionId1,
+          status: 'pending',
+          requestId: subscriptionId1,
+          createdAt: '2024-01-01T00:00:00.000Z',
+        };
+
+        expect(mockSubscriptionRepository.save).toHaveBeenCalledWith({
+          ...mockPendingSubscription1,
+          createdAt: expect.any(String),
+        });
+
+        // Mock the repository to return the first subscription as pending
+        jest
+          .spyOn(mockSubscriptionRepository, 'getById')
+          .mockResolvedValue(mockPendingSubscription1);
+
+        await service.subscribe(request);
+
+        const mockPendingSubscription2: PendingSubscription = {
+          ...request,
+          id: subscriptionId1,
+          status: 'pending',
+          requestId: subscriptionId1,
+          createdAt: '2024-01-01T01:00:00.000Z',
+        };
+
+        expect(mockSubscriptionRepository.delete).toHaveBeenCalledWith(
+          subscriptionId1,
+        );
+        expect(mockSubscriptionRepository.save).toHaveBeenCalledWith({
+          ...mockPendingSubscription2,
+          createdAt: expect.any(String),
+        });
+      });
     });
 
     // See 'complex flows' below for when the connection is not (yet) open.
