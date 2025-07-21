@@ -148,42 +148,78 @@ export class KeyringAccountMonitor {
     );
   }
 
+  /**
+   * Monitors the native and token assets for a single account across all active networks.
+   * @param account - The account to monitor the assets for.
+   */
   async monitorKeyringAccount(account: SolanaKeyringAccount): Promise<void> {
-    this.#logger.log('Monitoring keyring account', account);
+    try {
+      this.#logger.log('Monitoring keyring account', account);
+
+      const { id } = account;
+      const { activeNetworks } = this.#configProvider.get();
+
+      if (this.#monitoredKeyringAccounts.has(id)) {
+        this.#logger.log('Account is already being monitored', account);
+        return;
+      }
+
+      const shouldMonitorOnNetwork = (network: Network) =>
+        account.scopes.includes(network);
+
+      // Monitor native assets
+      const nativeAssetsPromises = activeNetworks
+        .filter(shouldMonitorOnNetwork)
+        .map(async (network) =>
+          this.#monitorAccountNativeAsset(account, network),
+        );
+
+      // Monitor token assets
+      const tokenProgramPromises = activeNetworks
+        .filter(shouldMonitorOnNetwork)
+        .map(async (network) => {
+          await Promise.all(
+            this.#tokenProgramsAddresses.map(async (tokenProgramAddress) =>
+              this.#monitorProgramByOwner(
+                account,
+                tokenProgramAddress,
+                network,
+              ),
+            ),
+          );
+        });
+
+      await Promise.all([...tokenProgramPromises, ...nativeAssetsPromises]);
+    } catch (error) {
+      this.#logger.error('Error monitoring keyring account', error);
+      await this.stopMonitorKeyringAccount(account);
+      throw error;
+    }
+  }
+
+  /**
+   * Stops monitoring all assets for a single account across all active networks.
+   * @param account - The account to monitor the assets for.
+   */
+  async stopMonitorKeyringAccount(
+    account: SolanaKeyringAccount,
+  ): Promise<void> {
+    this.#logger.log('Stopping to monitor all assets of account', account);
 
     const { id } = account;
-    const { activeNetworks } = this.#configProvider.get();
 
-    if (this.#monitoredKeyringAccounts.has(id)) {
-      this.#logger.log('Account is already being monitored', account);
-      return;
+    // Unsubscribe from all subscriptions for the account
+    const subscriptionIds = this.#monitoredKeyringAccounts.get(id);
+    if (subscriptionIds) {
+      await Promise.allSettled(
+        Array.from(subscriptionIds).map(async (subscriptionId) =>
+          this.#subscriptionService.unsubscribe(subscriptionId),
+        ),
+      );
     }
 
-    const shouldMonitorOnNetwork = (network: Network) =>
-      account.scopes.includes(network);
-
-    // Monitor native assets
-    const nativeAssetsPromises = activeNetworks
-      .filter(shouldMonitorOnNetwork)
-      .map(async (network) =>
-        this.#monitorAccountNativeAsset(account, network),
-      );
-
-    // Monitor token assets
-    const tokenProgramPromises = activeNetworks
-      .filter(shouldMonitorOnNetwork)
-      .map(async (network) => {
-        await Promise.all(
-          this.#tokenProgramsAddresses.map(async (tokenProgramAddress) =>
-            this.#monitorProgramByOwner(account, tokenProgramAddress, network),
-          ),
-        );
-      });
-
-    await Promise.allSettled([
-      ...tokenProgramPromises,
-      ...nativeAssetsPromises,
-    ]);
+    // Clean up the monitored accounts map
+    this.#monitoredKeyringAccounts.delete(id);
   }
 
   /**
@@ -201,25 +237,6 @@ export class KeyringAccountMonitor {
     });
 
     const { address, id: accountId } = account;
-
-    // const subscriptions = await this.#subscriptionService.getAll();
-    // const isMonitoredOnNetwork = subscriptions.some(
-    //   (subscription) =>
-    //     subscription.method === 'accountSubscribe' &&
-    //     get(subscription, 'params[0]') === address &&
-    //     subscription.network === network,
-    // );
-    // if (isMonitoredOnNetwork) {
-    //   return;
-    // }
-
-    // if (!account.scopes.includes(network)) {
-    //   this.#logger.log('Account does not have scope for network', {
-    //     account,
-    //     network,
-    //   });
-    //   return;
-    // }
 
     const subscriptionId = await this.#subscriptionService.subscribe({
       method: 'accountSubscribe',
@@ -243,18 +260,6 @@ export class KeyringAccountMonitor {
     });
 
     const { address, id: accountId } = account;
-
-    // const subscriptions = await this.#subscriptionService.getAll();
-    // const isMonitoredOnNetwork = subscriptions.some(
-    //   (subscription) =>
-    //     subscription.method === 'programSubscribe' &&
-    //     get(subscription, 'params[0]') === tokenProgramAddress &&
-    //     get(subscription, 'params[1].filters[0].memcmp.bytes') === address &&
-    //     subscription.network === network,
-    // );
-    // if (isMonitoredOnNetwork) {
-    //   return;
-    // }
 
     const subscriptionId = await this.#subscriptionService.subscribe({
       method: 'programSubscribe',
@@ -285,40 +290,42 @@ export class KeyringAccountMonitor {
     notification: AccountNotification,
     subscription: Subscription,
   ): Promise<void> {
-    this.#logger.info('Account notification received', {
-      notification,
-      subscription,
-    });
-    const { network } = subscription;
+    try {
+      this.#logger.info('Account notification received', {
+        notification,
+        subscription,
+      });
+      const { network } = subscription;
 
-    const address = get(subscription, 'params[0]');
-    assert(address, string());
+      const address = get(subscription, 'params[0]');
+      assert(address, string());
 
-    // This notification could be for any RPC account.
-    // Here, we only handle "actual" accounts, not token accounts.
-    const keyringAccount = await this.#accountService.findByAddress(address);
-    if (!keyringAccount) {
-      this.#logger.warn('No keyring account found for address');
-      return;
+      // This notification could be for any RPC account.
+      // Here, we only handle "actual" accounts, not token accounts.
+      const keyringAccount = await this.#accountService.findByAddress(address);
+      if (!keyringAccount) {
+        throw new Error(`No keyring account found for address: ${address}`);
+      }
+
+      // Handle the notification with clean data
+      const lamports = get(notification, 'params.result.value.lamports');
+      if (!lamports) {
+        throw new Error('No balance found in account changed event');
+      }
+
+      const assetType: CaipAssetType = `${network}/${SolanaCaip19Tokens.SOL}`;
+      const balance = {
+        amount: fromTokenUnits(lamports, 9),
+        unit: 'SOL',
+      };
+
+      await Promise.all([
+        this.#assetsService.saveAsset(keyringAccount, assetType, balance),
+        this.#saveCausingTransaction(keyringAccount, network, address),
+      ]);
+    } catch (error) {
+      this.#logger.error('Error handling account notification', error);
     }
-
-    // Handle the notification with clean data
-    const lamports = get(notification, 'params.result.value.lamports');
-    if (!lamports) {
-      this.#logger.warn('No balance found in account changed event');
-      return;
-    }
-
-    const assetType: CaipAssetType = `${network}/${SolanaCaip19Tokens.SOL}`;
-    const balance = {
-      amount: fromTokenUnits(lamports, 9),
-      unit: 'SOL',
-    };
-
-    await Promise.all([
-      this.#assetsService.saveAsset(keyringAccount, assetType, balance),
-      this.#saveCausingTransaction(keyringAccount, network, address),
-    ]);
   }
 
   async #handleProgramNotification(
@@ -371,7 +378,7 @@ export class KeyringAccountMonitor {
         throw new Error(`No keyring account found with address: ${owner}`);
       }
 
-      await Promise.allSettled([
+      await Promise.all([
         // Update the balance of the token asset
         this.#assetsService.saveAsset(keyringAccount, assetType, {
           amount: uiAmountString,
@@ -425,31 +432,6 @@ export class KeyringAccountMonitor {
   }
 
   /**
-   * Stops monitoring all assets for a single account across all active networks.
-   * @param account - The account to monitor the assets for.
-   */
-  async stopMonitorKeyringAccount(
-    account: SolanaKeyringAccount,
-  ): Promise<void> {
-    this.#logger.log('Stopping to monitor all assets of account', account);
-
-    const { id } = account;
-
-    // Unsubscribe from all subscriptions for the account
-    const subscriptionIds = this.#monitoredKeyringAccounts.get(id);
-    if (subscriptionIds) {
-      await Promise.allSettled(
-        Array.from(subscriptionIds).map(async (subscriptionId) =>
-          this.#subscriptionService.unsubscribe(subscriptionId),
-        ),
-      );
-    }
-
-    // Clean up the monitored accounts map
-    this.#monitoredKeyringAccounts.delete(id);
-  }
-
-  /**
    * Record in the local state that the account is being monitored on the given network.
    * @param accountId - The id of the account to record.
    * @param subscriptionId - The ID of the subscription that is monitoring the account.
@@ -463,30 +445,36 @@ export class KeyringAccountMonitor {
   }
 
   async #handleConnectionRecovery(network: Network): Promise<void> {
-    this.#logger.info('Handling connection recovery', { network });
+    try {
+      this.#logger.info('Handling connection recovery', { network });
 
-    const accounts = await this.#accountService.getAll();
+      const accounts = await this.#accountService.getAll();
 
-    const subscriptions = await this.#subscriptionService.getAll();
-    const accountSubscriptions = subscriptions.filter(
-      (subscription) =>
-        subscription.network === network &&
-        subscription.method === 'accountSubscribe',
-    );
+      const subscriptions = await this.#subscriptionService.getAll();
+      const accountSubscriptions = subscriptions.filter(
+        (subscription) =>
+          subscription.network === network &&
+          subscription.method === 'accountSubscribe',
+      );
 
-    const accountPreviouslyMonitoredOnThisNetwork = accounts.filter((account) =>
-      accountSubscriptions.some(
-        (subscription) => get(subscription, 'params[0]') === account.address,
-      ),
-    );
+      const accountPreviouslyMonitoredOnThisNetwork = accounts.filter(
+        (account) =>
+          accountSubscriptions.some(
+            (subscription) =>
+              get(subscription, 'params[0]') === account.address,
+          ),
+      );
 
-    if (!accountPreviouslyMonitoredOnThisNetwork.length) {
-      return;
+      if (!accountPreviouslyMonitoredOnThisNetwork.length) {
+        return;
+      }
+
+      // Recover from potential missed messages by refreshing the assets of the accounts that were previously monitored on this network
+      await this.#assetsService.refreshAssets(
+        accountPreviouslyMonitoredOnThisNetwork,
+      );
+    } catch (error) {
+      this.#logger.error('Error handling connection recovery', error);
     }
-
-    // Recover from potential missed messages by refreshing the assets of the accounts that were previously monitored on this network
-    await this.#assetsService.refreshAssets(
-      accountPreviouslyMonitoredOnThisNetwork,
-    );
   }
 }

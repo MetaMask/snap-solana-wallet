@@ -133,35 +133,39 @@ export class SignatureMonitor {
     _notification: SignatureNotification,
     subscription: Subscription,
   ): Promise<void> {
-    /**
-     * We don't need need to compare the commitment with the confirmation status.
-     * By design of the RPC API, if we receive a notification, then it means
-     * that the transaction has reached the desired commitment.
-     */
+    try {
+      /**
+       * We don't need need to compare the commitment with the confirmation status.
+       * By design of the RPC API, if we receive a notification, then it means
+       * that the transaction has reached the desired commitment.
+       */
 
-    const { network } = subscription;
+      const { network } = subscription;
 
-    const signature = get(subscription, 'params[0]');
-    assert(signature, string());
+      const signature = get(subscription, 'params[0]');
+      assert(signature, string());
 
-    const commitment = get(subscription, 'params[1].commitment');
-    assert(commitment, string());
+      const commitment = get(subscription, 'params[1].commitment');
+      assert(commitment, string());
 
-    const accountId = subscription.metadata?.accountId;
-    assert(accountId, string());
+      const accountId = subscription.metadata?.accountId;
+      assert(accountId, string());
 
-    const origin = subscription.metadata?.origin;
-    assert(origin, string());
+      const origin = subscription.metadata?.origin;
+      assert(origin, string());
 
-    switch (commitment) {
-      case 'confirmed':
-        await this.#handleConfirmed(signature, accountId, origin, network);
-        break;
-      default:
-        this.#logger.warn(`⚠️ Commitment ${commitment} not supported`);
+      switch (commitment) {
+        case 'confirmed':
+          await this.#handleConfirmed(signature, accountId, origin, network);
+          break;
+        default:
+          this.#logger.warn(`⚠️ Commitment ${commitment} not supported`);
+      }
+
+      await this.#subscriptionService.unsubscribe(subscription.id);
+    } catch (error) {
+      this.#logger.error('Error handling signature notification', error);
     }
-
-    await this.#subscriptionService.unsubscribe(subscription.id);
   }
 
   async #handleConfirmed(
@@ -215,24 +219,28 @@ export class SignatureMonitor {
     network: Network,
     origin: string,
   ): Promise<void> {
-    this.#logger.info('Handling connection recovery', {
-      network,
-      signature,
-      commitment,
-      origin,
-    });
+    try {
+      this.#logger.info('Handling connection recovery', {
+        network,
+        signature,
+        commitment,
+        origin,
+      });
 
-    const confirmationStatus = await this.#fetchConfirmationStatus(
-      signature,
-      network,
-    );
+      const confirmationStatus = await this.#fetchConfirmationStatus(
+        signature,
+        network,
+      );
 
-    switch (confirmationStatus) {
-      case 'confirmed':
-        await this.#handleConfirmed(signature, accountId, origin, network);
-        break;
-      default:
-        this.#logger.warn(`⚠️ Commitment ${commitment} not supported`);
+      switch (confirmationStatus) {
+        case 'confirmed':
+          await this.#handleConfirmed(signature, accountId, origin, network);
+          break;
+        default:
+          this.#logger.warn(`⚠️ Commitment ${commitment} not supported`);
+      }
+    } catch (error) {
+      this.#logger.error('Error handling connection recovery', error);
     }
   }
 
@@ -247,34 +255,22 @@ export class SignatureMonitor {
     signature: string,
     network: Network,
   ): Promise<Commitment | undefined> {
-    try {
-      const confirmationStatuses = await this.#connection
-        .getRpc(network)
-        .getSignatureStatuses([asSignature(signature)], {
-          searchTransactionHistory: true,
-        })
-        .send();
+    const confirmationStatuses = await this.#connection
+      .getRpc(network)
+      .getSignatureStatuses([asSignature(signature)], {
+        searchTransactionHistory: true,
+      })
+      .send();
 
-      const confirmationStatus =
-        confirmationStatuses.value[0]?.confirmationStatus;
+    const confirmationStatus =
+      confirmationStatuses.value[0]?.confirmationStatus;
 
-      if (confirmationStatus) {
-        this.#logger.info(
-          `✅ Signature ${signature} found via HTTP fetch during connection recovery with confirmation status ${confirmationStatus}`,
-        );
-        return confirmationStatus;
-      }
-
-      this.#logger.warn(
-        `⚠️ Signature ${signature} not found via HTTP fetch during connection recovery`,
+    if (!confirmationStatus) {
+      throw new Error(
+        `Signature ${signature} not found via HTTP fetch during connection recovery`,
       );
-      return undefined;
-    } catch (error) {
-      this.#logger.warn(
-        `⚠️ Could not fetch confirmation status for signature ${signature}`,
-        error,
-      );
-      return undefined;
     }
+
+    return confirmationStatus;
   }
 }
