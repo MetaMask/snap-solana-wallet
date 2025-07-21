@@ -109,14 +109,6 @@ export type Notification =
   | ProgramNotification
   | SignatureNotification;
 
-export type TokenInfo = {
-  owner: string;
-  mint: string;
-  tokenAmount: {
-    uiAmountString: string;
-  };
-};
-
 /**
  * A message that we receive from the RPC WebSocket server after a subscription request,
  * that confirms that the subscription was successfully established.
