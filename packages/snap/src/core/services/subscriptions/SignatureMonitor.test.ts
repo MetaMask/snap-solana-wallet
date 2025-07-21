@@ -2,6 +2,7 @@
 import type { Transaction } from '@metamask/keyring-api';
 
 import type {
+  Commitment,
   ConnectionRecoveryHandler,
   SignatureNotification,
   SignatureNotificationHandler,
@@ -76,6 +77,7 @@ describe('SignatureMonitor', () => {
 
     mockAnalyticsService = {
       trackEventTransactionFinalized: jest.fn(),
+      trackEventTransactionSubmitted: jest.fn(),
     } as unknown as AnalyticsService;
 
     mockConnection = {
@@ -148,7 +150,7 @@ describe('SignatureMonitor', () => {
   });
 
   describe('#handleSignatureNotification', () => {
-    it('saves the transaction when it is confirmed, tracks an event in analytics, and unsubscribes', async () => {
+    it('when the tx is confirmed, it saves the transaction, tracks an event in analytics, and unsubscribes', async () => {
       const mockNotification = {} as unknown as SignatureNotification;
       const mockSubscription = {
         id: 'subscription-id-123',
@@ -164,7 +166,7 @@ describe('SignatureMonitor', () => {
       await signatureMonitor.monitor(
         signature,
         accountId,
-        commitment,
+        'confirmed' as Commitment,
         network,
         origin,
       );
@@ -189,10 +191,55 @@ describe('SignatureMonitor', () => {
         mockSubscription.id,
       );
     });
+
+    it('when the tx is submitted, it saves the transaction, tracks an event in analytics, and unsubscribes', async () => {
+      const mockNotification = {} as unknown as SignatureNotification;
+      const mockSubscription = {
+        id: 'subscription-id-123',
+        method: 'signatureSubscribe',
+        network: Network.Mainnet,
+        params: [
+          signature,
+          { commitment: 'submitted', enableReceivedNotification: false },
+        ],
+        metadata: {
+          accountId,
+          origin,
+        },
+      } as unknown as Subscription;
+
+      await signatureMonitor.monitor(
+        signature,
+        accountId,
+        'submitted' as Commitment,
+        network,
+        origin,
+      );
+
+      // Simulate notification received
+      const handler = notificationHandlers[0]!;
+      await handler(mockNotification, mockSubscription);
+
+      expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+        mockTransaction,
+        mockAccount,
+      );
+
+      expect(
+        mockAnalyticsService.trackEventTransactionSubmitted,
+      ).toHaveBeenCalledWith(mockAccount, signature, {
+        origin,
+        scope: network,
+      });
+
+      expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
+        mockSubscription.id,
+      );
+    });
   });
 
   describe('#handleConnectionRecovery', () => {
-    it('fetches and saves the transaction when connection was dropped and recovered', async () => {
+    it('fetches, saves the transaction and tracks an event in analytics when connection was dropped and recovered', async () => {
       await signatureMonitor.monitor(
         signature,
         accountId,
@@ -210,6 +257,9 @@ describe('SignatureMonitor', () => {
 
       expect(mockTransactionsService.fetchBySignature).toHaveBeenCalled();
       expect(mockTransactionsService.saveTransaction).toHaveBeenCalled();
+      expect(
+        mockAnalyticsService.trackEventTransactionFinalized,
+      ).toHaveBeenCalled();
     });
   });
 });

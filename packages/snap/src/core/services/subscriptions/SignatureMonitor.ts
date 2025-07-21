@@ -6,6 +6,7 @@ import type {
   Commitment,
   SignatureNotification,
   Subscription,
+  SubscriptionRequest,
 } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
@@ -64,7 +65,7 @@ export class SignatureMonitor {
   }
 
   /**
-   * Monitors a signature for a given network, and executes the passed callback
+   * Monitors a user's signature for a given network, and handles side effects
    * when the transaction with the given signature reaches the specified
    * commitment level.
    *
@@ -100,7 +101,7 @@ export class SignatureMonitor {
       origin,
     });
 
-    await this.#subscriptionService.subscribe({
+    const subscriptionRequest: SubscriptionRequest = {
       method: 'signatureSubscribe',
       network,
       params: [
@@ -114,18 +115,13 @@ export class SignatureMonitor {
         accountId,
         origin,
       },
-    });
+    };
+
+    await this.#subscriptionService.subscribe(subscriptionRequest);
 
     this.#subscriptionService.registerConnectionRecoveryHandler(
       network,
-      async () =>
-        this.#handleConnectionRecovery(
-          signature,
-          accountId,
-          commitment,
-          network,
-          origin,
-        ),
+      async () => this.#handleConnectionRecovery(subscriptionRequest),
     );
   }
 
@@ -154,9 +150,45 @@ export class SignatureMonitor {
       const origin = subscription.metadata?.origin;
       assert(origin, string());
 
+      const account = await this.#accountService.findById(accountId);
+      if (!account) {
+        throw new Error(`Account not found: ${accountId}`);
+      }
+
+      const transaction = await this.#transactionsService.fetchBySignature(
+        signature,
+        account,
+        network,
+      );
+      if (!transaction) {
+        throw new Error(
+          `Transaction with signature ${signature} not found on network ${network}`,
+        );
+      }
+
       switch (commitment) {
+        case 'submitted':
+          await this.#transactionsService.saveTransaction(transaction, account);
+          await this.#analyticsService.trackEventTransactionSubmitted(
+            account,
+            signature,
+            {
+              scope: network,
+              origin,
+            },
+          );
+
+          break;
         case 'confirmed':
-          await this.#handleConfirmed(signature, accountId, origin, network);
+          await this.#transactionsService.saveTransaction(transaction, account);
+          await this.#analyticsService.trackEventTransactionFinalized(
+            account,
+            transaction,
+            {
+              scope: network,
+              origin,
+            },
+          );
           break;
         default:
           this.#logger.warn(`⚠️ Commitment ${commitment} not supported`);
@@ -168,77 +200,51 @@ export class SignatureMonitor {
     }
   }
 
-  async #handleConfirmed(
-    signature: string,
-    accountId: string,
-    origin: string,
-    network: Network,
-  ): Promise<void> {
-    this.#logger.info('Handling transaction confirmed', {
-      signature,
-      accountId,
-      network,
-      origin,
-    });
-
-    const account = await this.#accountService.findById(accountId);
-    if (!account) {
-      this.#logger.warn('Account not found', accountId);
-      return;
-    }
-
-    const transaction = await this.#transactionsService.fetchBySignature(
-      signature,
-      account,
-      network,
-    );
-
-    if (!transaction) {
-      throw new Error(
-        `Transaction with signature ${signature} not found on network ${network}`,
-      );
-    }
-
-    await this.#transactionsService.saveTransaction(transaction, account);
-
-    // Track in analytics
-    await this.#analyticsService.trackEventTransactionFinalized(
-      account,
-      transaction,
-      {
-        scope: network,
-        origin,
-      },
-    );
-  }
-
   async #handleConnectionRecovery(
-    signature: string,
-    accountId: string,
-    commitment: Commitment,
-    network: Network,
-    origin: string,
+    subscriptionRequest: SubscriptionRequest,
   ): Promise<void> {
     try {
-      this.#logger.info('Handling connection recovery', {
-        network,
-        signature,
-        commitment,
-        origin,
-      });
+      this.#logger.info('Handling connection recovery', subscriptionRequest);
+
+      const { network } = subscriptionRequest;
+      assert(network, string());
+
+      const signature = get(subscriptionRequest, 'params[0]');
+      assert(signature, string());
+
+      const commitment = get(subscriptionRequest, 'params[1].commitment');
+      assert(commitment, string());
 
       const confirmationStatus = await this.#fetchConfirmationStatus(
         signature,
         network,
       );
 
-      switch (confirmationStatus) {
-        case 'confirmed':
-          await this.#handleConfirmed(signature, accountId, origin, network);
-          break;
-        default:
-          this.#logger.warn(`⚠️ Commitment ${commitment} not supported`);
+      if (commitment !== confirmationStatus) {
+        this.#logger.info(
+          'Signature did not reach the desired commitment while connection was down. Skipping.',
+        );
+        return;
       }
+
+      // If the signature reached the desired commitment, we simulate a notification, so that it's handled.
+      const fakeNotification: SignatureNotification = {
+        jsonrpc: '2.0',
+        method: 'signatureSubscribe',
+        params: {
+          subscription: 1,
+          result: {
+            context: { slot: BigInt(0) },
+            // eslint-disable-next-line id-denylist
+            value: { err: null },
+          },
+        },
+      };
+
+      await this.#handleSignatureNotification(
+        fakeNotification,
+        subscriptionRequest as unknown as Subscription,
+      );
     } catch (error) {
       this.#logger.error('Error handling connection recovery', error);
     }

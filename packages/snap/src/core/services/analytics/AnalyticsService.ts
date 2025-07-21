@@ -25,13 +25,10 @@ export class AnalyticsService {
 
   async trackEventTransactionAdded(
     account: SolanaKeyringAccount,
-    base64EncodedTransaction: string,
     metadata: TransactionMetadata,
   ): Promise<void> {
     try {
       this.#logger.log(this.#loggerPrefix, 'Tracking event transaction added');
-
-      assert(base64EncodedTransaction, Base64Struct);
 
       await snap.request({
         method: 'snap_trackEvent',
@@ -55,7 +52,6 @@ export class AnalyticsService {
         'Error tracking event transaction added',
         {
           error,
-          base64EncodedTransaction,
           metadata,
         },
       );
@@ -64,7 +60,6 @@ export class AnalyticsService {
 
   async trackEventTransactionApproved(
     account: SolanaKeyringAccount,
-    base64EncodedTransaction: string,
     metadata: TransactionMetadata,
   ): Promise<void> {
     try {
@@ -72,8 +67,6 @@ export class AnalyticsService {
         this.#loggerPrefix,
         'Tracking event transaction approved',
       );
-
-      assert(base64EncodedTransaction, Base64Struct);
 
       await snap.request({
         method: 'snap_trackEvent',
@@ -97,7 +90,6 @@ export class AnalyticsService {
         'Error tracking event transaction approved',
         {
           error,
-          base64EncodedTransaction,
           metadata,
         },
       );
@@ -106,7 +98,6 @@ export class AnalyticsService {
 
   async trackEventTransactionSubmitted(
     account: SolanaKeyringAccount,
-    transactionMessageBase64Encoded: string,
     signature: string,
     metadata: TransactionMetadata,
   ): Promise<void> {
@@ -115,8 +106,6 @@ export class AnalyticsService {
         this.#loggerPrefix,
         'Tracking event transaction submitted',
       );
-
-      assert(transactionMessageBase64Encoded, Base64Struct);
 
       await snap.request({
         method: 'snap_trackEvent',
@@ -140,7 +129,6 @@ export class AnalyticsService {
         'Error tracking event transaction submitted',
         {
           error,
-          transactionMessageBase64Encoded,
           signature,
           metadata,
         },
@@ -234,7 +222,6 @@ export class AnalyticsService {
 
   async trackEventSecurityAlertDetected(
     account: SolanaKeyringAccount,
-    base64EncodedTransaction: string,
     origin: string,
     scope: Network,
     securityAlertResponse: SecurityAlertResponse,
@@ -246,8 +233,6 @@ export class AnalyticsService {
         this.#loggerPrefix,
         'Tracking event security alert detected',
       );
-
-      assert(base64EncodedTransaction, Base64Struct);
 
       await snap.request({
         method: 'snap_trackEvent',
@@ -274,7 +259,6 @@ export class AnalyticsService {
         'Error tracking event security alert detected',
         {
           error,
-          base64EncodedTransaction,
           origin,
           scope,
           securityAlertResponse,
@@ -287,7 +271,6 @@ export class AnalyticsService {
 
   async trackEventSecurityScanCompleted(
     account: SolanaKeyringAccount,
-    base64EncodedTransaction: string,
     origin: string,
     scope: Network,
     scanStatus: ScanStatus,
@@ -298,8 +281,6 @@ export class AnalyticsService {
         this.#loggerPrefix,
         'Tracking event security scan completed',
       );
-
-      assert(base64EncodedTransaction, Base64Struct);
 
       await snap.request({
         method: 'snap_trackEvent',
@@ -325,7 +306,6 @@ export class AnalyticsService {
         'Error tracking event security scan completed',
         {
           error,
-          base64EncodedTransaction,
           origin,
           scope,
           scanStatus,

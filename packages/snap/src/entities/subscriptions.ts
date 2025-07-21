@@ -31,8 +31,6 @@ export type SubscriptionRequest = {
   params: JsonRpcParams;
   network: Network;
   metadata?: {
-    accountId?: string;
-    origin?: string;
     [key: string]: Serializable;
   };
 };

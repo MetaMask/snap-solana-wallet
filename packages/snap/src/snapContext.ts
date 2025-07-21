@@ -159,9 +159,6 @@ const signatureMonitor = new SignatureMonitor(
 );
 
 const walletService = new WalletService(
-  transactionsService,
-  assetsService,
-  analyticsService,
   connection,
   transactionHelper,
   signatureMonitor,
