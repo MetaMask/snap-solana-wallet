@@ -24,6 +24,14 @@ import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
+import {
+  sanitizeDomain,
+  sanitizeSolanaAddress,
+  sanitizeUri,
+  sanitizeTimestamp,
+  sanitizeForSignInMessage,
+  sanitizeResources,
+} from '../../utils/sanitize';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import {
@@ -635,41 +643,55 @@ export class WalletService {
       resources,
     } = signInParams;
 
-    let message = `${domain} wants you to sign in with your Solana account:\n`;
-    message += `${address}`;
+    // Sanitize inputs to prevent control character injection in the message
+    const sanitizedDomain = domain ? sanitizeDomain(domain) : '';
+    const sanitizedAddress = address ? sanitizeSolanaAddress(address) : '';
+    const sanitizedStatement = statement ? sanitizeForSignInMessage(statement, 1000) : '';
+    const sanitizedUri = uri ? sanitizeUri(uri) : '';
+    const sanitizedVersion = version ? sanitizeForSignInMessage(version, 10) : '';
+    const sanitizedChainId = chainId ? sanitizeForSignInMessage(chainId, 50) : '';
+    const sanitizedNonce = nonce ? sanitizeForSignInMessage(nonce, 100) : '';
+    const sanitizedIssuedAt = issuedAt ? sanitizeTimestamp(issuedAt) : '';
+    const sanitizedExpirationTime = expirationTime ? sanitizeTimestamp(expirationTime) : '';
+    const sanitizedNotBefore = notBefore ? sanitizeTimestamp(notBefore) : '';
+    const sanitizedRequestId = requestId ? sanitizeForSignInMessage(requestId, 100) : '';
+    const sanitizedResources = resources ? sanitizeResources(resources) : [];
 
-    if (statement) {
-      message += `\n\n${statement}`;
+    let message = `${sanitizedDomain} wants you to sign in with your Solana account:\n`;
+    message += `${sanitizedAddress}`;
+
+    if (sanitizedStatement) {
+      message += `\n\n${sanitizedStatement}`;
     }
 
     const fields: string[] = [];
-    if (uri) {
-      fields.push(`URI: ${uri}`);
+    if (sanitizedUri) {
+      fields.push(`URI: ${sanitizedUri}`);
     }
-    if (version) {
-      fields.push(`Version: ${version}`);
+    if (sanitizedVersion) {
+      fields.push(`Version: ${sanitizedVersion}`);
     }
-    if (chainId) {
-      fields.push(`Chain ID: ${chainId}`);
+    if (sanitizedChainId) {
+      fields.push(`Chain ID: ${sanitizedChainId}`);
     }
-    if (nonce) {
-      fields.push(`Nonce: ${nonce}`);
+    if (sanitizedNonce) {
+      fields.push(`Nonce: ${sanitizedNonce}`);
     }
-    if (issuedAt) {
-      fields.push(`Issued At: ${issuedAt}`);
+    if (sanitizedIssuedAt) {
+      fields.push(`Issued At: ${sanitizedIssuedAt}`);
     }
-    if (expirationTime) {
-      fields.push(`Expiration Time: ${expirationTime}`);
+    if (sanitizedExpirationTime) {
+      fields.push(`Expiration Time: ${sanitizedExpirationTime}`);
     }
-    if (notBefore) {
-      fields.push(`Not Before: ${notBefore}`);
+    if (sanitizedNotBefore) {
+      fields.push(`Not Before: ${sanitizedNotBefore}`);
     }
-    if (requestId) {
-      fields.push(`Request ID: ${requestId}`);
+    if (sanitizedRequestId) {
+      fields.push(`Request ID: ${sanitizedRequestId}`);
     }
-    if (resources) {
+    if (sanitizedResources.length > 0) {
       fields.push(`Resources:`);
-      for (const resource of resources) {
+      for (const resource of sanitizedResources) {
         fields.push(`- ${resource}`);
       }
     }

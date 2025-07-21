@@ -18,6 +18,14 @@ import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import type { Preferences } from '../../../../core/types/snap';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { i18n } from '../../../../core/utils/i18n';
+import {
+  sanitizeDomain,
+  sanitizeSolanaAddress,
+  sanitizeUri,
+  sanitizeTimestamp,
+  sanitizeForSignInMessage,
+  sanitizeResources,
+} from '../../../../core/utils/sanitize';
 import type { SolanaKeyringAccount } from '../../../../entities';
 import { BasicNullableField } from '../../components/BasicNullableField/BasicNullableField';
 import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';
@@ -71,11 +79,27 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
     address,
   } = params;
 
+  // Sanitize all user-controlled inputs to prevent control character injection
+  const sanitizedDomain = sanitizeDomain(domain ?? '');
+  const sanitizedAddress = sanitizeSolanaAddress(address ?? '');
+  const sanitizedStatement = sanitizeForSignInMessage(statement ?? '', 1000);
+  const sanitizedUri = sanitizeUri(uri ?? '');
+  const sanitizedVersion = sanitizeForSignInMessage(version ?? '', 10);
+  const sanitizedChainId = sanitizeForSignInMessage(chainId ?? '', 50);
+  const sanitizedNonce = sanitizeForSignInMessage(nonce ?? '', 100);
+  const sanitizedIssuedAt = sanitizeTimestamp(issuedAt ?? '');
+  const sanitizedExpirationTime = sanitizeTimestamp(expirationTime ?? '');
+  const sanitizedNotBefore = sanitizeTimestamp(notBefore ?? '');
+  const sanitizedRequestId = sanitizeForSignInMessage(requestId ?? '', 100);
+  const sanitizedResources = sanitizeResources(resources ?? []);
+
   const accountAddressCaip10 = addressToCaip10(scope, account.address);
-  const signInAddressCaip10 = address ? addressToCaip10(scope, address) : null;
+  const signInAddressCaip10 = sanitizedAddress
+    ? addressToCaip10(scope, sanitizedAddress)
+    : null;
 
   const isBadAccount = signInAddressCaip10 !== accountAddressCaip10;
-  const isBadDomain = domain !== originHostname;
+  const isBadDomain = sanitizedDomain !== originHostname;
 
   return (
     <Container>
@@ -116,7 +140,8 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
             }
           >
             <Text>
-              {domain ?? translate('confirmation.signIn.unknownDomain')}
+              {sanitizedDomain ||
+                translate('confirmation.signIn.unknownDomain')}
             </Text>
           </Row>
 
@@ -150,9 +175,9 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
           <Text fontWeight="medium">
             {translate('confirmation.signIn.message')}
           </Text>
-          <Text>{statement ?? ''}</Text>
+          <Text>{sanitizedStatement}</Text>
 
-          <BasicNullableField label="URL" value={uri} />
+          <BasicNullableField label="URL" value={sanitizedUri} />
 
           <Box alignment="space-between" direction="horizontal">
             <Text fontWeight="medium" color="alternative">
@@ -185,40 +210,40 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
 
           <BasicNullableField
             label={translate('confirmation.signIn.version')}
-            value={version}
+            value={sanitizedVersion}
           />
           <BasicNullableField
             label={translate('confirmation.signIn.chainId')}
-            value={chainId}
+            value={sanitizedChainId}
           />
           <BasicNullableField
             label={translate('confirmation.signIn.nonce')}
-            value={nonce}
+            value={sanitizedNonce}
           />
           <BasicNullableField
             label={translate('confirmation.signIn.issuedAt')}
-            value={issuedAt}
+            value={sanitizedIssuedAt}
           />
           <BasicNullableField
             label={translate('confirmation.signIn.expirationTime')}
-            value={expirationTime}
+            value={sanitizedExpirationTime}
           />
           <BasicNullableField
             label={translate('confirmation.signIn.notBefore')}
-            value={notBefore}
+            value={sanitizedNotBefore}
           />
           <BasicNullableField
             label={translate('confirmation.signIn.requestId')}
-            value={requestId}
+            value={sanitizedRequestId}
           />
 
-          {resources && resources.length > 0 ? (
+          {sanitizedResources.length > 0 ? (
             <Box alignment="space-between" direction="vertical">
               <Text fontWeight="medium" color="alternative">
                 {translate('confirmation.signIn.resources')}
               </Text>
               <Box direction="vertical">
-                {resources.map((resource) => (
+                {sanitizedResources.map((resource) => (
                   <Text key={resource}>{resource}</Text>
                 ))}
               </Box>
