@@ -27,7 +27,6 @@ import { InMemoryState } from '../state/InMemoryState';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import { DEFAULT_UNENCRYPTED_STATE } from '../state/State';
-import type { RpcAccountMonitor } from '../subscriptions/RpcAccountMonitor';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import { AssetsService } from './AssetsService';
@@ -52,9 +51,7 @@ describe('AssetsService', () => {
   let mockState: IStateManager<UnencryptedStateValue>;
   let stateSetKeySpy: jest.SpyInstance;
   let mockCache: ICache<Serializable>;
-  let mockAccountMonitor: RpcAccountMonitor;
   let mockEventEmitter: EventEmitter;
-  let onAccountChanged: (notification: any, params: any) => Promise<void>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -90,19 +87,6 @@ describe('AssetsService', () => {
         .fn()
         .mockResolvedValue(MOCK_NFTS_LIST_RESPONSE_MAPPED.items),
     } as unknown as NftApiClient;
-
-    mockAccountMonitor = {
-      monitor: jest.fn(),
-      stopMonitoring: jest.fn(),
-    } as unknown as RpcAccountMonitor;
-
-    // Mock the monitor method to capture the onAccountChanged callback
-    (mockAccountMonitor.monitor as jest.Mock).mockImplementation(
-      async (params) => {
-        onAccountChanged = params.onAccountChanged;
-        return Promise.resolve();
-      },
-    );
 
     mockEventEmitter = new EventEmitter(mockLogger);
 
