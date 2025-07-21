@@ -1,19 +1,9 @@
 import { InternalError, type OnCronjobHandler } from '@metamask/snaps-sdk';
-import {
-  assert,
-  literal,
-  nullable,
-  object,
-  string,
-} from '@metamask/superstruct';
+import { assert, literal, object, string } from '@metamask/superstruct';
 
 import { analyticsService, keyring } from '../../../../snapContext';
 import logger from '../../../utils/logger';
-import {
-  Base64Struct,
-  NetworkStruct,
-  UuidStruct,
-} from '../../../validation/structs';
+import { NetworkStruct, UuidStruct } from '../../../validation/structs';
 import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const OnTransactionRejectedRequestStruct = object({
@@ -22,8 +12,6 @@ export const OnTransactionRejectedRequestStruct = object({
   method: literal(ScheduleBackgroundEventMethod.OnTransactionRejected),
   params: object({
     accountId: UuidStruct,
-    /** The base64 encoded transaction or transaction message. */
-    base64EncodedTransaction: Base64Struct,
     metadata: object({
       scope: NetworkStruct,
       origin: string(),
@@ -44,15 +32,11 @@ export const onTransactionRejected: OnCronjobHandler = async ({ request }) => {
 
     assert(request, OnTransactionRejectedRequestStruct);
 
-    const { accountId, base64EncodedTransaction, metadata } = request.params;
+    const { accountId, metadata } = request.params;
 
     const account = await keyring.getAccountOrThrow(accountId);
 
-    await analyticsService.trackEventTransactionRejected(
-      account,
-      base64EncodedTransaction,
-      metadata,
-    );
+    await analyticsService.trackEventTransactionRejected(account, metadata);
   } catch (error) {
     logger.error(error);
     throw new InternalError(error as string) as Error;

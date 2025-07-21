@@ -91,7 +91,6 @@ export class ConfirmationHandler {
           method: ScheduleBackgroundEventMethod.OnTransactionAdded,
           params: {
             accountId,
-            base64EncodedTransaction,
             metadata: {
               scope,
               origin,
@@ -120,7 +119,6 @@ export class ConfirmationHandler {
             method: ScheduleBackgroundEventMethod.OnTransactionApproved,
             params: {
               accountId,
-              base64EncodedTransaction,
               metadata: {
                 scope,
                 origin,
@@ -142,7 +140,6 @@ export class ConfirmationHandler {
           method: ScheduleBackgroundEventMethod.OnTransactionRejected,
           params: {
             accountId,
-            base64EncodedTransaction,
             metadata: {
               scope,
               origin,

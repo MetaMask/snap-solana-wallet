@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type { Transaction } from '@metamask/keyring-api';
-import { assert } from '@metamask/superstruct';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { Network, TransactionMetadata } from '../../constants/solana';
 import logger from '../../utils/logger';
-import { Base64Struct } from '../../validation/structs';
 import type {
   ScanStatus,
   SecurityAlertResponse,
@@ -180,7 +178,6 @@ export class AnalyticsService {
 
   async trackEventTransactionRejected(
     account: SolanaKeyringAccount,
-    base64EncodedTransaction: string,
     metadata: TransactionMetadata,
   ): Promise<void> {
     try {
@@ -188,8 +185,6 @@ export class AnalyticsService {
         this.#loggerPrefix,
         'Tracking event transaction rejected',
       );
-
-      assert(base64EncodedTransaction, Base64Struct);
 
       await snap.request({
         method: 'snap_trackEvent',
@@ -213,7 +208,6 @@ export class AnalyticsService {
         'Error tracking event transaction rejected',
         {
           error,
-          base64EncodedTransaction,
           metadata,
         },
       );
