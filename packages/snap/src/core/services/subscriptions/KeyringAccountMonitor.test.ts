@@ -391,7 +391,7 @@ describe('KeyringAccountMonitor', () => {
         const handler = accountNotificationHandlers[0]!;
         await expect(
           handler(mockNotificationWithMissingLamports, mockSubscription),
-        ).rejects.toThrow('No balance found in account changed event');
+        ).rejects.toThrow('Expected a number, but received: undefined');
       });
     });
 

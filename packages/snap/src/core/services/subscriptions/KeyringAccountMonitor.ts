@@ -1,5 +1,5 @@
 /* eslint-disable jsdoc/check-indentation */
-import { assert, string } from '@metamask/superstruct';
+import { assert, number, string } from '@metamask/superstruct';
 import type { CaipAssetType } from '@metamask/utils';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
@@ -308,10 +308,8 @@ export class KeyringAccountMonitor {
     }
 
     // Handle the notification with clean data
-    const lamports = get(notification, 'params.result.value.lamports');
-    if (!lamports) {
-      throw new Error('No balance found in account changed event');
-    }
+    const { lamports } = notification.params.result.value;
+    assert(lamports, number());
 
     const assetType: CaipAssetType = `${network}/${SolanaCaip19Tokens.SOL}`;
     const balance = {
@@ -346,25 +344,17 @@ export class KeyringAccountMonitor {
       throw new Error(`Program not supported: ${programAddress}`);
     }
 
-    const owner = get(
-      notification,
-      'params.result.value.account.data.parsed.info.owner',
-    );
+    const { owner } = notification.params.result.value.account.data.parsed.info;
     assert(owner, string());
 
-    const mint = get(
-      notification,
-      'params.result.value.account.data.parsed.info.mint',
-    );
+    const { mint } = notification.params.result.value.account.data.parsed.info;
     assert(mint, string());
 
-    const uiAmountString = get(
-      notification,
-      'params.result.value.account.data.parsed.info.tokenAmount.uiAmountString',
-    );
+    const { uiAmountString } =
+      notification.params.result.value.account.data.parsed.info.tokenAmount;
     assert(uiAmountString, string());
 
-    const pubkey = get(notification, 'params.result.value.pubkey');
+    const { pubkey } = notification.params.result.value;
     assert(pubkey, string());
 
     const assetType = tokenAddressToCaip19(network, mint);
