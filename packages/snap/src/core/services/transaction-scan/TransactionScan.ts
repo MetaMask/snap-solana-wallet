@@ -81,7 +81,6 @@ export class TransactionScanService {
         if (account) {
           await this.#analyticsService.trackEventSecurityScanCompleted(
             account,
-            transaction,
             origin,
             scope,
             ScanStatus.ERROR,
@@ -109,7 +108,6 @@ export class TransactionScanService {
         const analyticsPromises = [
           this.#analyticsService.trackEventSecurityScanCompleted(
             account,
-            transaction,
             origin,
             scope,
             scanStatus,
@@ -128,7 +126,6 @@ export class TransactionScanService {
           analyticsPromises.push(
             this.#analyticsService.trackEventSecurityAlertDetected(
               account,
-              transaction,
               origin,
               scope,
               securityAlertType,
@@ -178,7 +175,6 @@ export class TransactionScanService {
       if (account) {
         await this.#analyticsService.trackEventSecurityScanCompleted(
           account,
-          transaction,
           origin,
           scope,
           ScanStatus.ERROR,
