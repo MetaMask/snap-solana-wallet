@@ -13,17 +13,6 @@ export type JsonRpcWebSocketMessage<TNotification> = {
   };
 };
 
-// export type WebSocketMessageWithJsonParsed<TNotification> = WebSocketMessage & {
-//   jsonParsed: {
-//     jsonrpc: string;
-//     method: string;
-//     params: {
-//       subscription: number;
-//       result: TNotification;
-//     };
-//   };
-// };
-
 export const parseWebSocketMessage = <TNotification>(
   event: WebSocketMessage,
 ): JsonRpcWebSocketMessage<TNotification> => {
