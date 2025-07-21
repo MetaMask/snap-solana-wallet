@@ -154,7 +154,7 @@ describe('SubscriptionService', () => {
     } as unknown as WebSocketConnectionService;
 
     mockSubscriptionRepository = {
-      getAll: jest.fn(),
+      getAll: jest.fn().mockResolvedValue([]),
       getById: jest.fn(),
       save: jest.fn(),
       update: jest.fn(),
@@ -256,92 +256,122 @@ describe('SubscriptionService', () => {
   });
 
   describe('#handleWebSocketEvent', () => {
-    // describe('when the message is a notification', () => {
-    //   describe('when there is no confirmed subscription for the message', () => {
-    //     it('logs a warning and does nothing', async () => {
-    //       jest
-    //         .spyOn(mockSubscriptionRepository, 'getById')
-    //         .mockResolvedValue(undefined);
-    //       const notification = createMockNotification();
+    it('returns without failing when there is no connection', async () => {
+      jest
+        .spyOn(mockWebSocketConnectionService, 'findById')
+        .mockResolvedValue(null);
 
-    //       await mockEventEmitter.emitSync('onWebSocketEvent', notification);
+      expect(
+        await mockEventEmitter.emitSync('onWebSocketEvent', {}),
+      ).toBeUndefined();
+    });
 
-    //       expect(mockLogger.warn).toHaveBeenCalledWith(
-    //         loggerScope,
-    //         'Received a notification, but no matching confirmed subscription found for RPC subscription ID: 98765.',
-    //       );
-    //     });
-    //   });
+    describe('when the message is a notification', () => {
+      describe('when there is no confirmed subscription for the message', () => {
+        it('returns without failing', async () => {
+          jest
+            .spyOn(mockSubscriptionRepository, 'getById')
+            .mockResolvedValue(undefined);
+          const notification = createMockNotificationMessage();
 
-    //   describe('when there is a confirmed subscription for the message', () => {
-    //     let request: SubscriptionRequest;
-    //     // let callbacks: SubscriptionCallbacks;
+          expect(
+            await mockEventEmitter.emitSync('onWebSocketEvent', notification),
+          ).toBeUndefined();
+        });
+      });
 
-    //     beforeEach(async () => {
-    //       request = createMockSubscriptionRequest();
-    //       //   callbacks = createMockSubscriptionCallbacks();
+      describe('when there is a confirmed subscription for the message', () => {
+        let request: SubscriptionRequest;
+        let confirmedSubscription: ConfirmedSubscription;
 
-    //       const subscriptionId = await service.subscribe(request);
+        beforeEach(async () => {
+          request = createMockSubscriptionRequest();
 
-    //       const confirmationMessage = createMockConfirmationMessage(
-    //         subscriptionId,
-    //         98765,
-    //       );
+          const subscriptionId = await service.subscribe(request);
 
-    //       await mockEventEmitter.emitSync('onWebSocketEvent', {
-    //         event: confirmationMessage,
-    //       });
+          const confirmationMessage = createMockConfirmationMessage(
+            subscriptionId,
+            98765,
+          );
 
-    //       const confirmedSubscription: ConfirmedSubscription = {
-    //         ...request,
-    //         id: subscriptionId,
-    //         rpcSubscriptionId: 98765,
-    //         status: 'confirmed',
-    //         requestId: subscriptionId,
-    //         createdAt: '2024-01-01T00:00:00.000Z',
-    //         confirmedAt: '2024-01-02T00:00:00.000Z',
-    //       };
+          await mockEventEmitter.emitSync('onWebSocketEvent', {
+            event: confirmationMessage,
+          });
 
-    //       jest
-    //         .spyOn(mockSubscriptionRepository, 'findBy')
-    //         .mockResolvedValue(confirmedSubscription);
-    //     });
+          confirmedSubscription = {
+            ...request,
+            id: subscriptionId,
+            rpcSubscriptionId: 98765,
+            status: 'confirmed',
+            requestId: subscriptionId,
+            createdAt: '2024-01-01T00:00:00.000Z',
+            confirmedAt: '2024-01-02T00:00:00.000Z',
+          };
 
-    //     it('handles a notification', async () => {
-    //       const notification = createMockNotification(undefined, undefined, {
-    //         context: { Slot: 348893275 },
-    //         value: { lamports: 116044436802 },
-    //       });
+          jest
+            .spyOn(mockSubscriptionRepository, 'findBy')
+            .mockResolvedValue(confirmedSubscription);
+        });
 
-    //       await mockEventEmitter.emitSync('onWebSocketEvent', notification);
+        it('call the registered handler when a notification is received', async () => {
+          // Register a handler for the notification.
+          const handler = jest.fn();
+          service.registerNotificationHandler(
+            'accountSubscribe',
+            mockNetwork,
+            handler,
+          );
 
-    //       //   expect(callbacks.onNotification).toHaveBeenCalledWith({
-    //       //     context: { Slot: 348893275 },
-    //       //     value: { lamports: 116044436802 },
-    //       //   });
-    //     });
+          const notification = createMockNotificationMessage(
+            undefined,
+            undefined,
+            {
+              context: { Slot: 348893275 },
+              value: { lamports: 116044436802 },
+            },
+          );
 
-    //     // it('catches errors on the subscription callback', async () => {
-    //     //   const error = new Error('Subscription callback error');
-    //     //   jest
-    //     //     .spyOn(callbacks, 'onNotification')
-    //     //     .mockImplementation()
-    //     //     .mockRejectedValue(error);
-    //     //   const notification = createMockNotification(undefined, undefined, {
-    //     //     context: { Slot: 348893275 },
-    //     //     value: { lamports: 116044436802 },
-    //     //   });
+          await mockEventEmitter.emitSync('onWebSocketEvent', notification);
 
-    //     //   await mockEventEmitter.emitSync('onWebSocketEvent', notification);
+          expect(handler).toHaveBeenCalledWith(
+            {
+              jsonrpc: '2.0',
+              method: 'accountNotification',
+              params: {
+                subscription: 98765,
+                result: {
+                  context: { Slot: 348893275 },
+                  value: { lamports: 116044436802 },
+                },
+              },
+            },
+            confirmedSubscription,
+          );
+        });
 
-    //     //   expect(mockLogger.error).toHaveBeenCalledWith(
-    //     //     loggerScope,
-    //     //     'Error in subscription callback for 98765:',
-    //     //     error,
-    //     //   );
-    //     // });
-    //   });
-    // });
+        it('catches errors with failing handlers', async () => {
+          const handler = jest.fn().mockRejectedValue(new Error('Error'));
+          service.registerNotificationHandler(
+            'accountSubscribe',
+            mockNetwork,
+            handler,
+          );
+
+          const notification = createMockNotificationMessage(
+            undefined,
+            undefined,
+            {
+              context: { Slot: 348893275 },
+              value: { lamports: 116044436802 },
+            },
+          );
+
+          expect(
+            await mockEventEmitter.emitSync('onWebSocketEvent', notification),
+          ).toBeUndefined();
+        });
+      });
+    });
 
     describe('when the message is a subscription confirmation', () => {
       describe('when there is no subscription for the message', () => {
@@ -514,16 +544,6 @@ describe('SubscriptionService', () => {
   });
 
   describe('re-subscription scenarios', () => {
-    // let connectionRecoveryHandlers: Map<
-    //   Network,
-    //   ((network: Network) => Promise<void>)[]
-    // >;
-
-    // beforeEach(() => {
-    //   jest.clearAllMocks();
-
-    // });
-
     describe('when a subscription request is sent, but no open connection', () => {
       it('saves the subscription request, and sends it once the connection is opened', async () => {
         // Mock findByNetwork to return null initially, then connection for re-subscription
@@ -579,151 +599,137 @@ describe('SubscriptionService', () => {
       });
     });
 
-    //     describe('when the connection is lost BEFORE the subscription is confirmed', () => {
-    //       it('re-sends the subscription request when the connection is reestablished', async () => {
-    //         const request = createMockSubscriptionRequest();
-    //         const handlers = createMockSubscriptionHandlers();
-    //         const subscriptionId = await service.subscribe(request, handlers);
+    describe('when the connection is lost BEFORE the subscription is confirmed', () => {
+      it('re-sends the subscription request when the connection is reestablished', async () => {
+        const request = createMockSubscriptionRequest();
+        const subscriptionId = await service.subscribe(request);
 
-    //         const pendingSubscription: PendingSubscription = {
-    //           ...request,
-    //           id: subscriptionId,
-    //           status: 'pending',
-    //           requestId: subscriptionId,
-    //           createdAt: expect.any(String),
-    //         };
+        const pendingSubscription: PendingSubscription = {
+          ...request,
+          id: subscriptionId,
+          status: 'pending',
+          requestId: subscriptionId,
+          createdAt: expect.any(String),
+        };
 
-    //         // Verify that the subscription request was saved
-    //         expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
-    //           pendingSubscription,
-    //         );
+        // Verify that the subscription request was saved
+        expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
+          pendingSubscription,
+        );
 
-    //         // Verify that the connection request was sent
-    //         expect(snap.request).toHaveBeenCalledWith({
-    //           method: 'snap_sendWebSocketMessage',
-    //           params: {
-    //             id: mockConnectionId,
-    //             message: JSON.stringify({
-    //               jsonrpc: '2.0',
-    //               id: subscriptionId,
-    //               method: 'some-method',
-    //               params: [],
-    //             }),
-    //           },
-    //         });
+        // Verify that the subscription request was sent
+        expect(snap.request).toHaveBeenCalledWith({
+          method: 'snap_sendWebSocketMessage',
+          params: {
+            id: mockConnectionId,
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              id: subscriptionId,
+              method: 'accountSubscribe',
+              params: [],
+            }),
+          },
+        });
 
-    //         // Do not confirm the subscription yet
+        // Do not confirm the subscription yet
 
-    //         // Now, simulate a disconnection (this has no direct effect, it's just for clarity of the test)
-    //         await simulateDisconnection(mockEventEmitter, mockConnectionId);
+        // Now, simulate a disconnection (this has no direct effect, it's just for clarity of the test)
+        await simulateDisconnection(mockEventEmitter, mockConnectionId);
 
-    //         // Simulate a reconnection
-    //         await simulateReconnection(mockEventEmitter, mockConnectionId);
+        // Simulate a reconnection
+        await simulateReconnection(mockEventEmitter, mockConnectionId);
 
-    //         // Manually trigger the connection recovery callbacks since we can't mock the private method #handleWebSocketEvent
-    //         await triggerConnectionRecoveryHandlers(
-    //           connectionRecoveryHandlers,
-    //           mockNetwork,
-    //         );
+        // Manually trigger the connection recovery callbacks since we can't mock the private method #handleWebSocketEvent
+        await triggerConnectionRecoveryHandlers(
+          connectionRecoveryHandlers,
+          mockNetwork,
+        );
 
-    //         // Verify that the subscription request was sent again
-    //         expect(snap.request).toHaveBeenCalledWith({
-    //           method: 'snap_sendWebSocketMessage',
-    //           params: {
-    //             id: mockConnectionId,
-    //             message: JSON.stringify({
-    //               jsonrpc: '2.0',
-    //               id: subscriptionId,
-    //               method: 'some-method',
-    //               params: [],
-    //             }),
-    //           },
-    //         });
+        // Verify that the subscription request was sent again
+        expect(snap.request).toHaveBeenCalledWith({
+          method: 'snap_sendWebSocketMessage',
+          params: {
+            id: mockConnectionId,
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              id: subscriptionId,
+              method: 'accountSubscribe',
+              params: [],
+            }),
+          },
+        });
+      });
+    });
 
-    //         // Verify that the onConnectionRecovery handler was called
-    //         expect(handlers.onConnectionRecovery).toHaveBeenCalledWith();
-    //       });
-    //     });
+    describe('when the connection is lost AFTER the subscription is confirmed', () => {
+      it('re-sends the subscription request when the connection is reestablished', async () => {
+        const request = createMockSubscriptionRequest();
+        const subscriptionId = await service.subscribe(request);
 
-    //     describe('when the connection is lost AFTER the subscription is confirmed', () => {
-    //       it('re-sends the subscription request when the connection is reestablished', async () => {
-    //         const request = createMockSubscriptionRequest();
-    //         const handlers = createMockSubscriptionHandlers();
-    //         const subscriptionId = await service.subscribe(request, handlers);
+        const pendingSubscription: PendingSubscription = {
+          ...request,
+          id: subscriptionId,
+          status: 'pending',
+          requestId: subscriptionId,
+          createdAt: expect.any(String),
+        };
 
-    //         const pendingSubscription: PendingSubscription = {
-    //           ...request,
-    //           id: subscriptionId,
-    //           status: 'pending',
-    //           requestId: subscriptionId,
-    //           createdAt: expect.any(String),
-    //         };
+        // Verify that the subscription request was saved
+        expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
+          pendingSubscription,
+        );
 
-    //         // Verify that the subscription request was saved
-    //         expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
-    //           pendingSubscription,
-    //         );
+        // Verify that the connection request was sent
+        expect(snap.request).toHaveBeenCalledWith({
+          method: 'snap_sendWebSocketMessage',
+          params: {
+            id: mockConnectionId,
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              id: subscriptionId,
+              method: 'accountSubscribe',
+              params: [],
+            }),
+          },
+        });
 
-    //         // Verify that the connection request was sent
-    //         expect(snap.request).toHaveBeenCalledWith({
-    //           method: 'snap_sendWebSocketMessage',
-    //           params: {
-    //             id: mockConnectionId,
-    //             message: JSON.stringify({
-    //               jsonrpc: '2.0',
-    //               id: subscriptionId,
-    //               method: 'some-method',
-    //               params: [],
-    //             }),
-    //           },
-    //         });
+        // Confirm the subscription
+        const confirmationMessage = createMockConfirmationMessage(
+          subscriptionId,
+          98765,
+        );
+        await mockEventEmitter.emitSync(
+          'onWebSocketEvent',
+          confirmationMessage,
+        );
 
-    //         // Confirm the subscription
-    //         const confirmationMessage = createMockConfirmationMessage(
-    //           subscriptionId,
-    //           98765,
-    //         );
-    //         await mockEventEmitter.emitSync(
-    //           'onWebSocketEvent',
-    //           confirmationMessage,
-    //         );
+        jest.spyOn(mockSubscriptionRepository, 'findBy').mockResolvedValue({
+          ...pendingSubscription,
+          status: 'confirmed',
+          rpcSubscriptionId: 98765,
+          confirmedAt: expect.any(String),
+        });
 
-    //         jest.spyOn(mockSubscriptionRepository, 'findBy').mockResolvedValue({
-    //           ...pendingSubscription,
-    //           status: 'confirmed',
-    //           rpcSubscriptionId: 98765,
-    //           confirmedAt: expect.any(String),
-    //         });
+        // Now, simulate a disconnection (this has no direct effect, it's just for clarity of the test)
+        await simulateDisconnection(mockEventEmitter, mockConnectionId);
 
-    //         // Now, simulate a disconnection (this has no direct effect, it's just for clarity of the test)
-    //         await simulateDisconnection(mockEventEmitter, mockConnectionId);
+        // Simulate a reconnection
+        await simulateReconnection(mockEventEmitter, mockConnectionId);
 
-    //         // Simulate a reconnection
-    //         await simulateReconnection(mockEventEmitter, mockConnectionId);
-
-    //         // Verify that the subscription request was sent again
-    //         expect(snap.request).toHaveBeenCalledWith({
-    //           method: 'snap_sendWebSocketMessage',
-    //           params: {
-    //             id: mockConnectionId,
-    //             message: JSON.stringify({
-    //               jsonrpc: '2.0',
-    //               id: subscriptionId,
-    //               method: 'some-method',
-    //               params: [],
-    //             }),
-    //           },
-    //         });
-
-    //         // Manually trigger the connection recovery callbacks since we can't mock the private method #handleWebSocketEvent
-    //         await triggerConnectionRecoveryHandlers(
-    //           connectionRecoveryHandlers,
-    //           mockNetwork,
-    //         );
-
-    //         // Verify that the onConnectionRecovery handler was called
-    //         expect(handlers.onConnectionRecovery).toHaveBeenCalledWith();
-    //       });
-    //     });
+        // Verify that the subscription request was sent again
+        expect(snap.request).toHaveBeenCalledWith({
+          method: 'snap_sendWebSocketMessage',
+          params: {
+            id: mockConnectionId,
+            message: JSON.stringify({
+              jsonrpc: '2.0',
+              id: subscriptionId,
+              method: 'accountSubscribe',
+              params: [],
+            }),
+          },
+        });
+      });
+    });
   });
 });
