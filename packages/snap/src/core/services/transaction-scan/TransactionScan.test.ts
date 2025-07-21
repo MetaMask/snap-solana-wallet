@@ -121,7 +121,6 @@ describe('TransactionScan', () => {
         mockAnalyticsService.trackEventSecurityScanCompleted,
       ).toHaveBeenCalledWith(
         mockAccount,
-        'transaction',
         'https://metamask.io',
         Network.Mainnet,
         ScanStatus.SUCCESS,
@@ -171,7 +170,6 @@ describe('TransactionScan', () => {
         mockAnalyticsService.trackEventSecurityScanCompleted,
       ).toHaveBeenCalledWith(
         mockAccount,
-        'transaction',
         'https://metamask.io',
         Network.Mainnet,
         ScanStatus.SUCCESS,
@@ -182,7 +180,6 @@ describe('TransactionScan', () => {
         mockAnalyticsService.trackEventSecurityAlertDetected,
       ).toHaveBeenCalledWith(
         mockAccount,
-        'transaction',
         'https://metamask.io',
         Network.Mainnet,
         SecurityAlertResponse.Warning,
@@ -211,7 +208,6 @@ describe('TransactionScan', () => {
         mockAnalyticsService.trackEventSecurityScanCompleted,
       ).toHaveBeenCalledWith(
         mockAccount,
-        'transaction',
         'https://metamask.io',
         Network.Mainnet,
         ScanStatus.ERROR,
@@ -262,7 +258,6 @@ describe('TransactionScan', () => {
         mockAnalyticsService.trackEventSecurityAlertDetected,
       ).toHaveBeenCalledWith(
         mockAccount,
-        'transaction',
         'https://metamask.io',
         Network.Mainnet,
         SecurityAlertResponse.Warning,
@@ -312,7 +307,6 @@ describe('TransactionScan', () => {
         mockAnalyticsService.trackEventSecurityAlertDetected,
       ).toHaveBeenCalledWith(
         mockAccount,
-        'transaction',
         'https://metamask.io',
         Network.Mainnet,
         SecurityAlertResponse.Warning,
