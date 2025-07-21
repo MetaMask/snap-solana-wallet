@@ -79,7 +79,7 @@ const state = new State({
 const stateCache = new StateCache(state, logger);
 const inMemoryCache = new InMemoryCache(logger);
 
-const accountService = new AccountsService(state);
+const accountsService = new AccountsService(state);
 
 const connection = new SolanaConnection(configProvider);
 
@@ -150,7 +150,7 @@ const analyticsService = new AnalyticsService(logger);
 
 const signatureMonitor = new SignatureMonitor(
   subscriptionService,
-  accountService,
+  accountsService,
   transactionsService,
   analyticsService,
   connection,
@@ -176,7 +176,7 @@ const confirmationHandler = new ConfirmationHandler();
 
 const keyringAccountMonitor = new KeyringAccountMonitor(
   subscriptionService,
-  accountService,
+  accountsService,
   assetsService,
   transactionsService,
   configProvider,
