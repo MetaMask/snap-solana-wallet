@@ -548,7 +548,7 @@ export class SubscriptionService {
 
     await Promise.allSettled(
       subscriptionsThisNetwork.map(async (subscription) => {
-        await this.subscribe(subscription);
+        await this.subscribe(this.#asRequest(subscription));
       }),
     );
   }
