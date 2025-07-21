@@ -78,7 +78,7 @@ type GetAccountInfoApiResponse<TData> = (AccountInfoBase & TData) | null;
  */
 export type AccountNotification = {
   jsonrpc: string;
-  method: string;
+  method: 'accountNotification';
   params: {
     subscription: number;
     result: SolanaRpcResponse<
@@ -93,7 +93,7 @@ export type AccountNotification = {
  */
 export type ProgramNotification = {
   jsonrpc: string;
-  method: string;
+  method: 'programNotification';
   params: {
     subscription: number;
     result: SolanaRpcResponse<
@@ -104,7 +104,7 @@ export type ProgramNotification = {
 
 export type SignatureNotification = {
   jsonrpc: string;
-  method: string;
+  method: 'signatureNotification';
   params: {
     subscription: number;
     result: SolanaRpcResponse<{

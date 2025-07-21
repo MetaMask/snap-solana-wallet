@@ -240,7 +240,7 @@ export class SignatureMonitor {
       // If the signature reached the desired commitment, we simulate a notification, so that it's handled.
       const fakeNotification: SignatureNotification = {
         jsonrpc: '2.0',
-        method: 'signatureSubscribe',
+        method: 'signatureNotification',
         params: {
           subscription: 1,
           result: {
