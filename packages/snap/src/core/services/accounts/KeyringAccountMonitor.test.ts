@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import type { Transaction } from '@metamask/keyring-api';
+import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { lamports, signature } from '@solana/kit';
 
+import type {
+  AccountNotification,
+  Notification,
+  ProgramNotification,
+  Subscription,
+} from '../../../entities';
 import { EventEmitter } from '../../../infrastructure';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
@@ -13,70 +21,87 @@ import type { ConfigProvider } from '../config';
 import type { Config } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
 import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/mockSolanaRpcResponses';
-import type {
-  AccountNotification,
-  RpcAccountMonitor,
-  RpcAccountMonitoringParams,
-} from '../subscriptions';
+import type { SubscriptionService } from '../subscriptions/SubscriptionService';
 import type { TransactionsService } from '../transactions/TransactionsService';
 import type { AccountService } from './AccountService';
 import { KeyringAccountMonitor } from './KeyringAccountMonitor';
 
 describe('KeyringAccountMonitor', () => {
   let keyringAccountMonitor: KeyringAccountMonitor;
-  let mockRpcAccountMonitor: RpcAccountMonitor;
+  let mockSubscriptionService: SubscriptionService;
   let mockAccountService: AccountService;
   let mockAssetsService: AssetsService;
   let mockTransactionsService: TransactionsService;
   let mockConfigProvider: ConfigProvider;
   let mockEventEmitter: EventEmitter;
 
-  // Store multiple callbacks keyed by address
-  const accountCallbacks: Map<
-    string,
-    (
-      notification: AccountNotification,
-      params: RpcAccountMonitoringParams,
-    ) => Promise<void>
-  > = new Map();
+  let notificationHandlers: ((
+    notification: Notification,
+    params: any,
+  ) => Promise<void>)[] = [];
 
-  const mockTokenAccountWithMetadata0 = {
-    ...MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value[0],
+  //   const mockTokenAccountWithMetadata0 = {
+  //     ...MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value[0],
+  //     scope: Network.Mainnet,
+  //     assetType: KnownCaip19Id.UsdcMainnet,
+  //   } as unknown as TokenAccountWithMetadata;
+
+  //   const mockTokenAccountWithMetadata1 = {
+  //     ...MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value[1],
+  //     scope: Network.Mainnet,
+  //     assetType: KnownCaip19Id.UsdcMainnet,
+  //   } as unknown as TokenAccountWithMetadata;
+
+  //   const mockTokenAccountsWithMetadata: TokenAccountWithMetadata[] = [
+  //     mockTokenAccountWithMetadata0,
+  //     mockTokenAccountWithMetadata1,
+  //   ];
+
+  const mockTokenAccount =
+    MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value[0]!;
+  const mockTokenAccountWithMetadata = {
+    ...mockTokenAccount,
     scope: Network.Mainnet,
     assetType: KnownCaip19Id.UsdcMainnet,
   } as unknown as TokenAccountWithMetadata;
-
-  const mockTokenAccountWithMetadata1 = {
-    ...MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value[1],
-    scope: Network.Mainnet,
-    assetType: KnownCaip19Id.UsdcMainnet,
-  } as unknown as TokenAccountWithMetadata;
-
-  const mockTokenAccountsWithMetadata: TokenAccountWithMetadata[] = [
-    mockTokenAccountWithMetadata0,
-    mockTokenAccountWithMetadata1,
-  ];
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockRpcAccountMonitor = {
-      monitor: jest.fn(),
-      stopMonitoring: jest.fn(),
-    } as unknown as RpcAccountMonitor;
+    // // Mock the monitor method to capture the onAccountChanged callback
+    // // Mock the monitor method to capture ALL onAccountChanged callbacks
+    // (mockRpcAccountMonitor.monitor as jest.Mock).mockImplementation(
+    //   async (params) => {
+    //     // Store the callback keyed by the address being monitored
+    //     accountCallbacks.set(params.address, params.onAccountChanged);
+    //     return Promise.resolve();
+    //   },
+    // );
 
-    // Mock the monitor method to capture the onAccountChanged callback
-    // Mock the monitor method to capture ALL onAccountChanged callbacks
-    (mockRpcAccountMonitor.monitor as jest.Mock).mockImplementation(
-      async (params) => {
-        // Store the callback keyed by the address being monitored
-        accountCallbacks.set(params.address, params.onAccountChanged);
-        return Promise.resolve();
-      },
-    );
+    notificationHandlers = [];
+
+    mockSubscriptionService = {
+      subscribe: jest.fn().mockImplementation(async (request) => {
+        // Return a simple hash of the request for testing purposes
+        return JSON.stringify(request)
+          .split('')
+          .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+          .toString();
+      }),
+      unsubscribe: jest.fn(),
+      getAll: jest.fn().mockResolvedValue([]),
+      registerNotificationHandler: jest
+        .fn()
+        .mockImplementation(async (method, network, handler) => {
+          notificationHandlers.push(handler);
+        }),
+      //   registerNotificationHandler: jest.fn(),
+      registerConnectionRecoveryHandler: jest.fn(),
+    } as unknown as SubscriptionService;
 
     mockAccountService = {
       getAll: jest.fn(),
+      findByAddress: jest.fn(),
     } as unknown as AccountService;
 
     mockAssetsService = {
@@ -99,7 +124,7 @@ describe('KeyringAccountMonitor', () => {
     mockEventEmitter = new EventEmitter(mockLogger);
 
     keyringAccountMonitor = new KeyringAccountMonitor(
-      mockRpcAccountMonitor,
+      mockSubscriptionService,
       mockAccountService,
       mockAssetsService,
       mockTransactionsService,
@@ -109,7 +134,25 @@ describe('KeyringAccountMonitor', () => {
     );
   });
 
-  describe('#initialize', () => {
+  describe('constructor', () => {
+    it('registers handlers for account and program notifications', () => {
+      expect(
+        mockSubscriptionService.registerNotificationHandler,
+      ).toHaveBeenCalledWith(
+        'accountSubscribe',
+        Network.Mainnet,
+        expect.any(Function),
+      );
+    });
+
+    it('registers handlers for connection recovery', () => {
+      expect(
+        mockSubscriptionService.registerConnectionRecoveryHandler,
+      ).toHaveBeenCalledWith(Network.Mainnet, expect.any(Function));
+    });
+  });
+
+  describe('#handleOnStart', () => {
     it('starts monitoring all keyring accounts', async () => {
       // Setup 2 keyring accounts
       jest
@@ -119,20 +162,39 @@ describe('KeyringAccountMonitor', () => {
           MOCK_SOLANA_KEYRING_ACCOUNTS[1],
         ]);
 
-      // Set up no assets for simplicity. We'll just monitor that native asset
       jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue([]);
+        .spyOn(keyringAccountMonitor, 'stopMonitorKeyringAccount')
+        .mockResolvedValue(undefined);
+
+      jest
+        .spyOn(keyringAccountMonitor, 'monitorKeyringAccount')
+        .mockResolvedValue(undefined);
 
       // Simulate a onStart event to start monitoring
       await mockEventEmitter.emitSync('onStart');
 
-      // 2 accounts => 2 native assets to monitor
-      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(2);
+      // No account previously monitored
+      expect(
+        keyringAccountMonitor.stopMonitorKeyringAccount,
+      ).not.toHaveBeenCalled();
+
+      // 2 accounts to monitor
+      expect(keyringAccountMonitor.monitorKeyringAccount).toHaveBeenCalledTimes(
+        2,
+      );
     });
 
     it('stops monitoring all previously monitored keyring accounts', async () => {
       // Setup 2 keyring accounts, already being monitored
+      const accounts = [
+        MOCK_SOLANA_KEYRING_ACCOUNTS[0]!,
+        MOCK_SOLANA_KEYRING_ACCOUNTS[1]!,
+      ] as const;
+
+      await keyringAccountMonitor.monitorKeyringAccount(accounts[0]);
+      await keyringAccountMonitor.monitorKeyringAccount(accounts[1]);
+      (mockSubscriptionService.subscribe as jest.Mock).mockClear();
+
       jest
         .spyOn(mockAccountService, 'getAll')
         .mockResolvedValue([
@@ -140,23 +202,26 @@ describe('KeyringAccountMonitor', () => {
           MOCK_SOLANA_KEYRING_ACCOUNTS[1],
         ]);
 
-      // Set up no assets for simplicity. We'll just monitor that native asset
       jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue([]);
+        .spyOn(keyringAccountMonitor, 'stopMonitorKeyringAccount')
+        .mockResolvedValue(undefined);
 
-      // Set up the service to monitor the 2 accounts
+      jest
+        .spyOn(keyringAccountMonitor, 'monitorKeyringAccount')
+        .mockResolvedValue(undefined);
+
+      // Simulate an onStart event to re-initialize the monitor
       await mockEventEmitter.emitSync('onStart');
-      (mockRpcAccountMonitor.monitor as jest.Mock).mockReset();
-
-      // Simulate a new event to re-initialize
-      await mockEventEmitter.emitSync('onUpdate');
 
       // 2 accounts to stop monitoring
-      expect(mockRpcAccountMonitor.stopMonitoring).toHaveBeenCalledTimes(2);
+      expect(
+        keyringAccountMonitor.stopMonitorKeyringAccount,
+      ).toHaveBeenCalledTimes(2);
 
       // 2 accounts to monitor again
-      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(2);
+      expect(keyringAccountMonitor.monitorKeyringAccount).toHaveBeenCalledTimes(
+        2,
+      );
     });
   });
 
@@ -169,19 +234,15 @@ describe('KeyringAccountMonitor', () => {
         activeNetworks: [Network.Mainnet, Network.Devnet],
       } as unknown as Config);
 
-      // Set up assets. Account has 2 token assets in total (across both networks and both program IDs)
-      jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue(mockTokenAccountsWithMetadata);
-
       await keyringAccountMonitor.monitorKeyringAccount(account);
 
       /**
-       * We expect 4 calls to monitor:
-       * - Monitor the native asset in each network (1 account × 2 networks = 2)
-       * - Monitor each token asset for the account (1 account × 2 tokens = 2)
+       * To monitor the account, we expect 3 calls per network:
+       * - 1 call to monitor the native asset
+       * - 2 calls to monitor each of the token programs
+       * We have 2 networks, 2 * 3 = 6 calls in total
        */
-      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(4);
+      expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(6);
     });
 
     it('respects account scopes when monitoring multiple networks', async () => {
@@ -194,23 +255,12 @@ describe('KeyringAccountMonitor', () => {
         activeNetworks: [Network.Mainnet, Network.Devnet],
       } as unknown as Config);
 
-      // Set up no assets for simplicity
-      jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue([]);
-
       await keyringAccountMonitor.monitorKeyringAccount(
         accountWithLimitedScopes,
       );
 
       // Should only monitor mainnet (1 native asset), not devnet
-      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(1);
-      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: account.address,
-          network: Network.Mainnet,
-        }),
-      );
+      expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(3);
     });
 
     it("does not monitor an account on an active network that is not in the account's scopes", async () => {
@@ -218,11 +268,6 @@ describe('KeyringAccountMonitor', () => {
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
         activeNetworks: [Network.Mainnet],
       } as unknown as Config);
-
-      // Set up no assets for simplicity
-      jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue([]);
 
       const accountWithDifferentScopes = {
         ...account,
@@ -233,61 +278,20 @@ describe('KeyringAccountMonitor', () => {
         accountWithDifferentScopes,
       );
 
-      expect(mockRpcAccountMonitor.monitor).not.toHaveBeenCalled();
+      expect(mockSubscriptionService.subscribe).not.toHaveBeenCalled();
     });
 
-    it('does not monitor an native asset that is already monitored', async () => {
+    it('does not monitor an account that is already monitored', async () => {
       // Setup 1 active network
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
         activeNetworks: [Network.Mainnet],
       } as unknown as Config);
 
-      // Set up no assets for simplicity
-      jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue([]);
-
       // Try to monitor the same account twice
       await keyringAccountMonitor.monitorKeyringAccount(account);
       await keyringAccountMonitor.monitorKeyringAccount(account);
 
-      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not monitor a token asset that is already monitored', async () => {
-      // Setup 1 active network
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
-
-      // Set up 1 token asset
-      jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockResolvedValue([mockTokenAccountWithMetadata0]);
-
-      // Try to monitor the same account twice
-      await keyringAccountMonitor.monitorKeyringAccount(account);
-
-      // 1 call to monitor the native asset, 1 call to monitor the token asset
-      expect(mockRpcAccountMonitor.monitor).toHaveBeenCalledTimes(2);
-      (mockRpcAccountMonitor.monitor as jest.Mock).mockReset();
-
-      await keyringAccountMonitor.monitorKeyringAccount(account);
-      expect(mockRpcAccountMonitor.monitor).not.toHaveBeenCalled();
-    });
-
-    it('handles error when getTokenAccountsByOwnerMultiple fails', async () => {
-      jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        .mockRejectedValue(new Error('RPC failure'));
-
-      await keyringAccountMonitor.monitorKeyringAccount(account);
-
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining('KeyringAccountMonitor'),
-        'Error getting token accounts',
-        expect.any(Object),
-      );
+      expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(3);
     });
 
     describe('when receiving a notification', () => {
@@ -312,51 +316,57 @@ describe('KeyringAccountMonitor', () => {
         jest
           .spyOn(mockTransactionsService, 'fetchBySignature')
           .mockResolvedValue(mockCausingTransaction);
+
+        jest
+          .spyOn(mockAccountService, 'findByAddress')
+          .mockResolvedValue(account);
       });
 
       describe('when the native asset changed', () => {
         const mockNotification = {
-          value: {
-            lamports: lamports(1000000000n), // 1 SOL
+          params: {
+            result: {
+              value: {
+                lamports: lamports(1000000000n), // 1 SOL
+              },
+            },
           },
         } as unknown as AccountNotification;
 
-        const mockParams = {
-          address: account.address,
-          commitment: 'confirmed' as const,
+        const mockSubscription = {
+          method: 'accountSubscribe',
           network: Network.Mainnet,
-          onAccountChanged: jest.fn(),
-        };
-
-        beforeEach(() => {
-          // Set up no token assets for simplicity
-          jest
-            .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-            .mockResolvedValue([]);
-        });
+          params: [account.address, { commitment: 'confirmed' as const }],
+        } as unknown as Subscription;
 
         it('saves the new balance of the native asset', async () => {
           await keyringAccountMonitor.monitorKeyringAccount(account);
 
-          // Get the specific callback for the token account and call it
-          const tokenAccountCallback = accountCallbacks.get(account.address)!;
-          await tokenAccountCallback(mockNotification, mockParams);
+          // Send the notification by manually calling the handler
+          const handler = notificationHandlers[0]!;
+          await handler(mockNotification, mockSubscription);
 
           expect(mockAssetsService.saveAsset).toHaveBeenCalledWith(
             account,
             KnownCaip19Id.SolMainnet,
-            { amount: '1', unit: 'SOL' },
+            {
+              amount: '1',
+              unit: 'SOL',
+            },
+          );
+
+          expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+            mockCausingTransaction,
+            account,
           );
         });
 
         it('fetches and saves the transaction that caused the native asset balance to change', async () => {
           await keyringAccountMonitor.monitorKeyringAccount(account);
 
-          // Get the specific callback for the token account
-          const tokenAccountCallback = accountCallbacks.get(account.address)!;
-
-          // Call the callback
-          await tokenAccountCallback(mockNotification, mockParams);
+          // Send the notification by manually calling the handler
+          const handler = notificationHandlers[0]!;
+          await handler(mockNotification, mockSubscription);
 
           expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
             mockCausingTransaction,
@@ -373,71 +383,65 @@ describe('KeyringAccountMonitor', () => {
 
           await keyringAccountMonitor.monitorKeyringAccount(account);
 
-          const nativeAssetCallback = accountCallbacks.get(account.address)!;
-          await nativeAssetCallback(
-            mockNotificationWithMissingMint,
-            mockParams,
-          );
+          const handler = notificationHandlers[0]!;
+          await handler(mockNotificationWithMissingMint, mockSubscription);
 
           expect(mockAssetsService.saveAsset).not.toHaveBeenCalled();
         });
       });
 
       describe('when a token asset changed', () => {
-        const mockTokenAccount = mockTokenAccountWithMetadata0;
-
         const mockNotification = {
-          value: {
-            data: {
-              parsed: {
-                info: {
-                  mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                  tokenAmount: {
-                    uiAmountString: '123456789',
+          params: {
+            result: {
+              value: {
+                account: {
+                  data: {
+                    parsed: {
+                      info: {
+                        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                        owner: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+                        tokenAmount: {
+                          uiAmountString: '123456789',
+                        },
+                      },
+                    },
                   },
                 },
+                pubkey: '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
               },
             },
           },
-        } as unknown as AccountNotification;
+        } as unknown as ProgramNotification;
 
-        const mockParams = {
-          address: mockTokenAccount.pubkey,
-          commitment: 'confirmed' as const,
+        const mockSubscription = {
+          method: 'programSubscribe',
           network: Network.Mainnet,
-          onAccountChanged: jest.fn(),
-        };
+          params: [TOKEN_PROGRAM_ADDRESS, { commitment: 'confirmed' as const }],
+        } as unknown as Subscription;
 
-        beforeEach(() => {
-          jest
-            .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-            .mockResolvedValue([mockTokenAccount]);
-        });
-
-        it('saves the new balance of the token asset', async () => {
+        it('saves the new balance of the token asset and the transaction that caused it', async () => {
           await keyringAccountMonitor.monitorKeyringAccount(account);
 
-          // Get the specific callback for the token account and call it
-          const tokenAccountCallback = accountCallbacks.get(
-            mockTokenAccount.pubkey,
-          )!;
-          await tokenAccountCallback(mockNotification, mockParams);
+          const handler = notificationHandlers[1]!;
+          await handler(mockNotification, mockSubscription);
 
           expect(mockAssetsService.saveAsset).toHaveBeenCalledWith(
             account,
             KnownCaip19Id.UsdcMainnet,
             { amount: '123456789', unit: '' },
           );
+          expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+            mockCausingTransaction,
+            account,
+          );
         });
 
         it('fetches and saves the transaction that caused the token asset to change', async () => {
           await keyringAccountMonitor.monitorKeyringAccount(account);
 
-          // Get the specific callback for the token account and call it
-          const tokenAccountCallback = accountCallbacks.get(
-            mockTokenAccount.pubkey,
-          )!;
-          await tokenAccountCallback(mockNotification, mockParams);
+          const handler = notificationHandlers[1]!;
+          await handler(mockNotification, mockSubscription);
 
           expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
             mockCausingTransaction,
@@ -460,13 +464,8 @@ describe('KeyringAccountMonitor', () => {
 
           await keyringAccountMonitor.monitorKeyringAccount(account);
 
-          const tokenAccountCallback = accountCallbacks.get(
-            mockTokenAccount.pubkey,
-          )!;
-          await tokenAccountCallback(
-            mockNotificationWithMissingMint,
-            mockParams,
-          );
+          const handler = notificationHandlers[1]!;
+          await handler(mockNotificationWithMissingMint, mockSubscription);
 
           expect(mockAssetsService.saveAsset).not.toHaveBeenCalled();
         });
@@ -489,13 +488,8 @@ describe('KeyringAccountMonitor', () => {
 
           await keyringAccountMonitor.monitorKeyringAccount(account);
 
-          const tokenAccountCallback = accountCallbacks.get(
-            mockTokenAccount.pubkey,
-          )!;
-          await tokenAccountCallback(
-            mockNotificationWithMissingMint,
-            mockParams,
-          );
+          const handler = notificationHandlers[1]!;
+          await handler(mockNotificationWithMissingMint, mockSubscription);
 
           expect(mockAssetsService.saveAsset).not.toHaveBeenCalled();
         });
@@ -509,10 +503,8 @@ describe('KeyringAccountMonitor', () => {
 
             await keyringAccountMonitor.monitorKeyringAccount(account);
 
-            const tokenAccountCallback = accountCallbacks.get(
-              mockTokenAccount.pubkey,
-            )!;
-            await tokenAccountCallback(mockNotification, mockParams);
+            const handler = notificationHandlers[1]!;
+            await handler(mockNotification, mockSubscription);
 
             expect(
               mockTransactionsService.saveTransaction,
@@ -527,10 +519,8 @@ describe('KeyringAccountMonitor', () => {
 
             await keyringAccountMonitor.monitorKeyringAccount(account);
 
-            const tokenAccountCallback = accountCallbacks.get(
-              mockTokenAccount.pubkey,
-            )!;
-            await tokenAccountCallback(mockNotification, mockParams);
+            const handler = notificationHandlers[1]!;
+            await handler(mockNotification, mockSubscription);
 
             expect(
               mockTransactionsService.saveTransaction,
@@ -550,40 +540,12 @@ describe('KeyringAccountMonitor', () => {
         activeNetworks: [Network.Mainnet, Network.Devnet],
       } as unknown as Config);
 
-      // Set up assets
-      jest
-        .spyOn(mockAssetsService, 'getTokenAccountsByOwnerMultiple')
-        // 2 token assets on first network and first program ID
-        .mockResolvedValueOnce(mockTokenAccountsWithMetadata)
-        // No token asset for the rest
-        .mockResolvedValue([]);
+      await keyringAccountMonitor.monitorKeyringAccount(account);
 
       await keyringAccountMonitor.stopMonitorKeyringAccount(account);
 
-      /**
-       * List of expected calls to stopMonitoring:
-       * - 1 for the native asset on Mainnet and Devnet -> 2 calls
-       * - 1 for token asset on token-program on Mainnet -> 1 call
-       * - 1 for token asset on token-2022-program on Mainnet -> 1 call
-       * - no token asset on Devnet -> 0 call
-       */
-      expect(mockRpcAccountMonitor.stopMonitoring).toHaveBeenCalledTimes(4);
-      expect(mockRpcAccountMonitor.stopMonitoring).toHaveBeenCalledWith(
-        'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
-        Network.Mainnet,
-      );
-      expect(mockRpcAccountMonitor.stopMonitoring).toHaveBeenCalledWith(
-        'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
-        Network.Devnet,
-      );
-      expect(mockRpcAccountMonitor.stopMonitoring).toHaveBeenCalledWith(
-        '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
-        Network.Mainnet,
-      );
-      expect(mockRpcAccountMonitor.stopMonitoring).toHaveBeenCalledWith(
-        'DJGpJufSnVDriDczovhcQRyxamKtt87PHQ7TJEcVB6ta',
-        Network.Mainnet,
-      );
+      // Account has 2 networks, 2 * 3 = 6 calls in total
+      expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledTimes(6);
     });
   });
 });
