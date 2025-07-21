@@ -7,6 +7,7 @@ export type BuildUrlParams = {
   path: string;
   pathParams?: Record<string, string> | undefined;
   queryParams?: Record<string, string> | undefined;
+  encodePathParams?: boolean;
 };
 
 /**
@@ -20,7 +21,13 @@ export type BuildUrlParams = {
  * @returns The built URL.
  */
 export function buildUrl(params: BuildUrlParams): string {
-  const { baseUrl, path, pathParams, queryParams } = params;
+  const {
+    baseUrl,
+    path,
+    pathParams,
+    queryParams,
+    encodePathParams = true,
+  } = params;
 
   assert(baseUrl, UrlStruct);
 
@@ -30,7 +37,7 @@ export function buildUrl(params: BuildUrlParams): string {
       throw new Error(`Path parameter ${key} is undefined`);
     }
 
-    return encodeURIComponent(value);
+    return encodePathParams ? encodeURIComponent(value) : value;
   });
 
   const cleanPath = pathWithParams

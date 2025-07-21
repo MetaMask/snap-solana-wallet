@@ -181,6 +181,20 @@ describe('WalletService', () => {
         service.resolveAccountAddress(accounts, scope, request),
       ).rejects.toThrow('No accounts with this scope');
     });
+
+    it('rejects a SignIn request with an address that does not belong to the keyring accounts', async () => {
+      const request = {
+        ...MOCK_SIGN_IN_REQUEST,
+        params: {
+          ...MOCK_SIGN_IN_REQUEST.params,
+          address: 'non-existent-address',
+        },
+      } as unknown as SolanaWalletRequest;
+
+      await expect(
+        service.resolveAccountAddress(mockAccounts, scope, request),
+      ).rejects.toThrow('Account not found');
+    });
   });
 
   describe.each(MOCK_EXECUTION_SCENARIOS)(
@@ -340,6 +354,23 @@ describe('WalletService', () => {
 
           await expect(service.signMessage(account, request)).rejects.toThrow(
             /At path/u,
+          );
+        });
+
+        it('rejects when account address in request does not match signing account', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
+          const request = wrapKeyringRequest({
+            ...MOCK_SIGN_MESSAGE_REQUEST,
+            params: {
+              ...MOCK_SIGN_MESSAGE_REQUEST.params,
+              account: {
+                address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+              },
+            },
+          } as unknown as JsonRpcRequest);
+
+          await expect(service.signMessage(account, request)).rejects.toThrow(
+            'The requested account and/or method has not been authorized by the user.',
           );
         });
       });

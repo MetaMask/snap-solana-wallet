@@ -277,6 +277,7 @@ export class PriceApiClient {
       pathParams: {
         assetType: params.assetType,
       },
+      encodePathParams: false,
       queryParams: {
         ...(params.timePeriod && { timePeriod: params.timePeriod }),
         ...(params.from && { from: params.from.toString() }),
