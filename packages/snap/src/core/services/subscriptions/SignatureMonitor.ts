@@ -10,7 +10,7 @@ import type {
 } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
-import type { AccountService } from '../accounts/AccountService';
+import type { AccountsService } from '../accounts/AccountsService';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
@@ -20,7 +20,7 @@ import type { SubscriptionService } from './SubscriptionService';
 export class SignatureMonitor {
   readonly #subscriptionService: SubscriptionService;
 
-  readonly #accountService: AccountService;
+  readonly #accountService: AccountsService;
 
   readonly #transactionsService: TransactionsService;
 
@@ -34,7 +34,7 @@ export class SignatureMonitor {
 
   constructor(
     subscriptionService: SubscriptionService,
-    accountService: AccountService,
+    accountService: AccountsService,
     transactionsService: TransactionsService,
     analyticsService: AnalyticsService,
     connection: SolanaConnection,

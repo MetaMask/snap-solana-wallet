@@ -9,7 +9,7 @@ import { ClientRequestHandler } from './core/handlers/onClientRequest';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
-  AccountService,
+  AccountsService,
   KeyringAccountMonitor,
   SignatureMonitor,
   SubscriptionRepository,
@@ -79,7 +79,7 @@ const state = new State({
 const stateCache = new StateCache(state, logger);
 const inMemoryCache = new InMemoryCache(logger);
 
-const accountService = new AccountService(state);
+const accountService = new AccountsService(state);
 
 const connection = new SolanaConnection(configProvider);
 

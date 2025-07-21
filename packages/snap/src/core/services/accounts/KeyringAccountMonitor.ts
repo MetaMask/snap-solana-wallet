@@ -23,7 +23,7 @@ import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
 import type { SubscriptionService } from '../subscriptions';
 import type { TransactionsService } from '../transactions/TransactionsService';
-import type { AccountService } from './AccountService';
+import type { AccountsService } from './AccountsService';
 
 /**
  * Business logic for monitoring keyring accounts via WebSockets:
@@ -38,7 +38,7 @@ import type { AccountService } from './AccountService';
 export class KeyringAccountMonitor {
   readonly #subscriptionService: SubscriptionService;
 
-  readonly #accountService: AccountService;
+  readonly #accountService: AccountsService;
 
   readonly #assetsService: AssetsService;
 
@@ -71,7 +71,7 @@ export class KeyringAccountMonitor {
 
   constructor(
     subscriptionService: SubscriptionService,
-    accountService: AccountService,
+    accountService: AccountsService,
     assetsService: AssetsService,
     transactionsService: TransactionsService,
     configProvider: ConfigProvider,

@@ -2,7 +2,7 @@ import type { SolanaKeyringAccount } from '../../../entities';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 
-export class AccountService {
+export class AccountsService {
   readonly #state: IStateManager<UnencryptedStateValue>;
 
   constructor(state: IStateManager<UnencryptedStateValue>) {

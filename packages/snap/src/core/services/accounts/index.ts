@@ -1,2 +1,2 @@
-export * from './AccountService';
+export * from './AccountsService';
 export * from './KeyringAccountMonitor';

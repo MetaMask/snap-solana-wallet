@@ -20,13 +20,13 @@ import type { Config } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
 import type { SubscriptionService } from '../subscriptions/SubscriptionService';
 import type { TransactionsService } from '../transactions/TransactionsService';
-import type { AccountService } from './AccountService';
+import type { AccountsService } from './AccountsService';
 import { KeyringAccountMonitor } from './KeyringAccountMonitor';
 
 describe('KeyringAccountMonitor', () => {
   let keyringAccountMonitor: KeyringAccountMonitor;
   let mockSubscriptionService: SubscriptionService;
-  let mockAccountService: AccountService;
+  let mockAccountService: AccountsService;
   let mockAssetsService: AssetsService;
   let mockTransactionsService: TransactionsService;
   let mockConfigProvider: ConfigProvider;
@@ -65,7 +65,7 @@ describe('KeyringAccountMonitor', () => {
     mockAccountService = {
       getAll: jest.fn(),
       findByAddress: jest.fn(),
-    } as unknown as AccountService;
+    } as unknown as AccountsService;
 
     mockAssetsService = {
       getTokenAccountsByOwnerMultiple: jest.fn(),

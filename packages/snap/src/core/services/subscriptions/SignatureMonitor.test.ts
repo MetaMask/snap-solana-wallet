@@ -10,7 +10,7 @@ import type {
 } from '../../../entities';
 import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
-import type { AccountService } from '../accounts';
+import type { AccountsService } from '../accounts';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
 import type { Config } from '../config/ConfigProvider';
@@ -23,7 +23,7 @@ import type { SubscriptionService } from './SubscriptionService';
 describe('SignatureMonitor', () => {
   let signatureMonitor: SignatureMonitor;
   let mockSubscriptionService: SubscriptionService;
-  let mockAccountService: AccountService;
+  let mockAccountService: AccountsService;
   let mockTransactionsService: TransactionsService;
   let mockAnalyticsService: AnalyticsService;
   let mockConnection: SolanaConnection;
@@ -68,7 +68,7 @@ describe('SignatureMonitor', () => {
 
     mockAccountService = {
       findById: jest.fn().mockResolvedValue(mockAccount),
-    } as unknown as AccountService;
+    } as unknown as AccountsService;
 
     mockTransactionsService = {
       fetchBySignature: jest.fn().mockResolvedValue(mockTransaction),
