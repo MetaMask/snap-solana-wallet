@@ -63,7 +63,7 @@ export const createPrefixedLogger = (
   _logger: ILogger,
   prefix: string,
 ): ILogger => {
-  return new Proxy(logger, {
+  return new Proxy(_logger, {
     get(target, prop: keyof ILogger) {
       const method = target[prop];
       if (typeof method === 'function') {
