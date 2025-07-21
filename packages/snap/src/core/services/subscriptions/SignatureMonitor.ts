@@ -303,15 +303,15 @@ export class SignatureMonitor {
    * @param minimumLevel - The minimum level to check against.
    * @returns True if the commitment level is at least the minimum level, false otherwise.
    */
-  #hasAtLeastCommitmentLevel = (
+  #hasAtLeastCommitmentLevel(
     commitment: Commitment,
     minimumLevel: Commitment,
-  ) => {
+  ): boolean {
     return (
       minimumLevel === commitment ||
       (minimumLevel === 'processed' &&
         (commitment === 'confirmed' || commitment === 'finalized')) ||
       (minimumLevel === 'confirmed' && commitment === 'finalized')
     );
-  };
+  }
 }

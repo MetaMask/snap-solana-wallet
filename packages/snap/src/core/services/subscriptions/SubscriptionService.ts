@@ -504,7 +504,7 @@ export class SubscriptionService {
     }
 
     // For objects, sort keys and recursively stringify values
-    const sortedKeys = Object.keys(obj).sort();
+    const sortedKeys = Object.keys(obj).sort((a, b) => a.localeCompare(b));
     const pairs = sortedKeys.map((key) => {
       const value = this.#deterministicStringify(obj[key]);
       return `"${key}":${value}`;

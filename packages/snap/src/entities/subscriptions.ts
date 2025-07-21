@@ -66,8 +66,6 @@ export type ConfirmedSubscription = Omit<PendingSubscription, 'status'> & {
 // Union type for all states
 export type Subscription = PendingSubscription | ConfirmedSubscription;
 
-// type GetAccountInfoApiResponse<TData> = (AccountInfoBase & TData) | null;
-
 /**
  * A message that we receive from the RPC WebSocket server after subscribing to
  * `accountSubscribe`, notifying us that the account has changed.

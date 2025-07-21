@@ -62,7 +62,7 @@ export class KeyringAccountMonitor {
    *   ]),
    * }
    */
-  #monitoredKeyringAccounts: Map<string, Set<string>> = new Map();
+  readonly #monitoredKeyringAccounts: Map<string, Set<string>> = new Map();
 
   readonly #tokenProgramsAddresses = [
     TOKEN_PROGRAM_ADDRESS,
