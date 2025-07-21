@@ -256,16 +256,16 @@ describe('WebSocketConnectionService', () => {
     });
   });
 
-  describe('getConnectionIdByNetwork', () => {
+  describe('findByNetwork', () => {
     it('returns the connection ID for the network', async () => {
       const mockConnection = createMockWebSocketConnection();
       jest
         .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
         .mockResolvedValueOnce(mockConnection);
 
-      const connectionId = await service.findByNetwork(Network.Mainnet);
+      const connection = await service.findByNetwork(Network.Mainnet);
 
-      expect(connectionId).toBe(mockConnectionId);
+      expect(connection).toStrictEqual(mockConnection);
     });
   });
 });
