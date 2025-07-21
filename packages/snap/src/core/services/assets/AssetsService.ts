@@ -669,7 +669,7 @@ export class AssetsService {
     );
 
     // Promise that will notify the extension about the new balance
-    const notifiyExtensionNewBalance = emitSnapKeyringEvent(
+    const notifyExtensionNewBalance = emitSnapKeyringEvent(
       snap,
       KeyringEvent.AccountBalancesUpdated,
       {
@@ -681,6 +681,6 @@ export class AssetsService {
       },
     );
 
-    await Promise.allSettled([updateState, notifiyExtensionNewBalance]);
+    await Promise.allSettled([updateState, notifyExtensionNewBalance]);
   }
 }
