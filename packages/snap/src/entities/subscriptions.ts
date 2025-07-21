@@ -1,10 +1,6 @@
 import type { GetWebSocketsResult } from '@metamask/snaps-sdk';
 import type { JsonRpcParams } from '@metamask/utils';
-import type {
-  AccountInfoBase,
-  AccountInfoWithJsonData,
-  SolanaRpcResponse,
-} from '@solana/kit';
+import type { SolanaRpcResponse } from '@solana/kit';
 
 import type { Network } from '../core/constants/solana';
 import type { Serializable } from '../core/serialization/types';
@@ -70,7 +66,7 @@ export type ConfirmedSubscription = Omit<PendingSubscription, 'status'> & {
 // Union type for all states
 export type Subscription = PendingSubscription | ConfirmedSubscription;
 
-type GetAccountInfoApiResponse<TData> = (AccountInfoBase & TData) | null;
+// type GetAccountInfoApiResponse<TData> = (AccountInfoBase & TData) | null;
 
 /**
  * A message that we receive from the RPC WebSocket server after subscribing to
@@ -81,9 +77,18 @@ export type AccountNotification = {
   method: 'accountNotification';
   params: {
     subscription: number;
-    result: SolanaRpcResponse<
-      GetAccountInfoApiResponse<AccountInfoWithJsonData>
-    >;
+    result: {
+      context: {
+        slot: number;
+      };
+      value: {
+        data: object;
+        executable: boolean;
+        lamports: number;
+        owner: string;
+        rentEpoch: number | null;
+      };
+    };
   };
 };
 
@@ -96,9 +101,39 @@ export type ProgramNotification = {
   method: 'programNotification';
   params: {
     subscription: number;
-    result: SolanaRpcResponse<
-      GetAccountInfoApiResponse<AccountInfoWithJsonData>
-    >;
+    result: {
+      context: {
+        slot: number;
+      };
+      value: {
+        pubkey: string;
+        account: {
+          data: {
+            parsed: {
+              info: {
+                isNative: boolean;
+                mint: string;
+                owner: string;
+                state: string;
+                tokenAmount: {
+                  amount: string;
+                  decimals: number;
+                  uiAmount: number;
+                  uiAmountString: string;
+                };
+              };
+              type: string;
+            };
+            program: string;
+            space: number;
+          };
+          executable: boolean;
+          lamports: number;
+          owner: string;
+          rentEpoch: number | null;
+        };
+      };
+    };
   };
 };
 

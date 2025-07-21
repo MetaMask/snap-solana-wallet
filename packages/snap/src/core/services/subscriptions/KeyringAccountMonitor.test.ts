@@ -2,7 +2,7 @@
 
 import type { Transaction } from '@metamask/keyring-api';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
-import { lamports, signature } from '@solana/kit';
+import { signature } from '@solana/kit';
 
 import type {
   AccountNotification,
@@ -14,14 +14,14 @@ import type {
 import { EventEmitter } from '../../../infrastructure';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
+import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
 import type { Config } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
-import type { SubscriptionService } from '../subscriptions/SubscriptionService';
 import type { TransactionsService } from '../transactions/TransactionsService';
-import type { AccountsService } from './AccountsService';
 import { KeyringAccountMonitor } from './KeyringAccountMonitor';
+import type { SubscriptionService } from './SubscriptionService';
 
 describe('KeyringAccountMonitor', () => {
   let keyringAccountMonitor: KeyringAccountMonitor;
@@ -34,15 +34,14 @@ describe('KeyringAccountMonitor', () => {
 
   const account = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
 
-  let notificationHandlers: (
-    | AccountNotificationHandler
-    | ProgramNotificationHandler
-  )[] = [];
+  let accountNotificationHandlers: AccountNotificationHandler[] = [];
+  let programNotificationHandlers: ProgramNotificationHandler[] = [];
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    notificationHandlers = [];
+    accountNotificationHandlers = [];
+    programNotificationHandlers = [];
 
     mockSubscriptionService = {
       subscribe: jest.fn().mockImplementation(async (request) => {
@@ -56,8 +55,12 @@ describe('KeyringAccountMonitor', () => {
       getAll: jest.fn().mockResolvedValue([]),
       registerNotificationHandler: jest
         .fn()
-        .mockImplementation(async (method, network, handler) => {
-          notificationHandlers.push(handler);
+        .mockImplementation(async (method, _network, handler) => {
+          if (method === 'accountSubscribe') {
+            accountNotificationHandlers.push(handler);
+          } else if (method === 'programSubscribe') {
+            programNotificationHandlers.push(handler);
+          }
         }),
       registerConnectionRecoveryHandler: jest.fn(),
     } as unknown as SubscriptionService;
@@ -301,15 +304,25 @@ describe('KeyringAccountMonitor', () => {
     });
 
     describe('when the native asset changed', () => {
-      const mockNotification = {
+      const mockNotification: AccountNotification = {
+        jsonrpc: '2.0',
+        method: 'accountNotification',
         params: {
+          subscription: 1,
           result: {
+            context: {
+              slot: 1,
+            },
             value: {
-              lamports: lamports(1000000000n), // 1 SOL
+              data: {},
+              executable: false,
+              lamports: 1000000000, // 1 SOL
+              owner: '11111111111111111111111111111111',
+              rentEpoch: null,
             },
           },
         },
-      } as unknown as AccountNotification;
+      };
 
       const mockSubscription = {
         method: 'accountSubscribe',
@@ -321,7 +334,7 @@ describe('KeyringAccountMonitor', () => {
         await keyringAccountMonitor.monitorKeyringAccount(account);
 
         // Send the notification by manually calling the handler
-        const handler = notificationHandlers[0]!;
+        const handler = accountNotificationHandlers[0]!;
         await handler(mockNotification, mockSubscription);
 
         expect(mockAssetsService.saveAsset).toHaveBeenCalledWith(
@@ -343,7 +356,7 @@ describe('KeyringAccountMonitor', () => {
         await keyringAccountMonitor.monitorKeyringAccount(account);
 
         // Send the notification by manually calling the handler
-        const handler = notificationHandlers[0]!;
+        const handler = accountNotificationHandlers[0]!;
         await handler(mockNotification, mockSubscription);
 
         expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
@@ -352,45 +365,77 @@ describe('KeyringAccountMonitor', () => {
         );
       });
 
-      it('does not save the new balance of the native asset when lamports is missing', async () => {
-        const mockNotificationWithMissingMint = {
-          value: {
-            lamports: undefined,
+      it('throws an error when lamports is missing', async () => {
+        const mockNotificationWithMissingLamports: AccountNotification = {
+          jsonrpc: '2.0',
+          method: 'accountNotification',
+          params: {
+            subscription: 1,
+            result: {
+              context: {
+                slot: 1,
+              },
+              value: {
+                data: {},
+                executable: false,
+                lamports: undefined as unknown as number, // Lamports is missing
+                owner: '11111111111111111111111111111111',
+                rentEpoch: null,
+              },
+            },
           },
-        } as unknown as AccountNotification;
+        };
 
         await keyringAccountMonitor.monitorKeyringAccount(account);
 
-        const handler = notificationHandlers[0]!;
-        await handler(mockNotificationWithMissingMint, mockSubscription);
-
-        expect(mockAssetsService.saveAsset).not.toHaveBeenCalled();
+        const handler = accountNotificationHandlers[0]!;
+        await expect(
+          handler(mockNotificationWithMissingLamports, mockSubscription),
+        ).rejects.toThrow('No balance found in account changed event');
       });
     });
 
     describe('when a token asset changed', () => {
-      const mockNotification = {
+      const mockNotification: ProgramNotification = {
+        jsonrpc: '2.0',
+        method: 'programNotification',
         params: {
+          subscription: 1,
           result: {
+            context: {
+              slot: 1,
+            },
             value: {
               account: {
                 data: {
                   parsed: {
+                    type: 'account',
                     info: {
+                      isNative: false,
                       mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                      owner: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+                      owner: account.address,
+                      state: 'initialized',
                       tokenAmount: {
+                        amount: '123456789',
+                        decimals: 6,
+                        uiAmount: 123456789,
                         uiAmountString: '123456789',
                       },
                     },
                   },
+                  program: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                  space: 165,
                 },
+                executable: true,
+                lamports: 1000000000,
+                owner: account.address,
+                rentEpoch: 1,
               },
               pubkey: '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
             },
           },
         },
-      } as unknown as ProgramNotification;
+      };
 
       const mockSubscription = {
         method: 'programSubscribe',
@@ -401,7 +446,7 @@ describe('KeyringAccountMonitor', () => {
       it('saves the new balance of the token asset and the transaction that caused it', async () => {
         await keyringAccountMonitor.monitorKeyringAccount(account);
 
-        const handler = notificationHandlers[1]!;
+        const handler = programNotificationHandlers[0]!;
         await handler(mockNotification, mockSubscription);
 
         expect(mockAssetsService.saveAsset).toHaveBeenCalledWith(
@@ -418,7 +463,7 @@ describe('KeyringAccountMonitor', () => {
       it('fetches and saves the transaction that caused the token asset to change', async () => {
         await keyringAccountMonitor.monitorKeyringAccount(account);
 
-        const handler = notificationHandlers[1]!;
+        const handler = programNotificationHandlers[0]!;
         await handler(mockNotification, mockSubscription);
 
         expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
@@ -427,79 +472,138 @@ describe('KeyringAccountMonitor', () => {
         );
       });
 
-      it('does not save the new balance of the token asset when mint address is missing', async () => {
-        const mockNotificationWithMissingMint = {
-          value: {
-            data: {
-              parsed: {
-                info: {
-                  mint: undefined,
+      it('throws an error when mint address is missing', async () => {
+        const mockNotificationWithMissingMint: ProgramNotification = {
+          jsonrpc: '2.0',
+          method: 'programNotification',
+          params: {
+            subscription: 1,
+            result: {
+              context: {
+                slot: 1,
+              },
+              value: {
+                pubkey: '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
+                account: {
+                  data: {
+                    parsed: {
+                      info: {
+                        isNative: false,
+                        mint: undefined as unknown as string, // Mint is missing
+                        owner: account.address,
+                        state: 'initialized',
+                        tokenAmount: {
+                          amount: '20011079',
+                          decimals: 6,
+                          uiAmount: 20.011079,
+                          uiAmountString: '20.011079',
+                        },
+                      },
+                      type: 'account',
+                    },
+                    program: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                    space: 165,
+                  },
+                  executable: true,
+                  lamports: 1000000000,
+                  owner: account.address,
+                  rentEpoch: 1,
                 },
               },
             },
           },
-        } as unknown as AccountNotification;
+        };
 
         await keyringAccountMonitor.monitorKeyringAccount(account);
+        const handler = programNotificationHandlers[0]!;
 
-        const handler = notificationHandlers[1]!;
-        await handler(mockNotificationWithMissingMint, mockSubscription);
-
+        await expect(
+          handler(mockNotificationWithMissingMint, mockSubscription),
+        ).rejects.toThrow('Expected a string, but received: undefined');
         expect(mockAssetsService.saveAsset).not.toHaveBeenCalled();
       });
 
-      it('does not save the new balance of the token asset when uiAmountString is missing', async () => {
-        const mockNotificationWithMissingMint = {
-          value: {
-            data: {
-              parsed: {
-                info: {
-                  mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                  tokenAmount: {
-                    uiAmountString: undefined,
+      it('throws an error when uiAmountString is missing', async () => {
+        const mockNotificationWithMissingUiAmountString: ProgramNotification = {
+          jsonrpc: '2.0',
+          method: 'programNotification',
+          params: {
+            subscription: 1,
+            result: {
+              context: {
+                slot: 1,
+              },
+              value: {
+                pubkey: '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
+                account: {
+                  data: {
+                    parsed: {
+                      info: {
+                        isNative: false,
+                        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                        owner: account.address,
+                        state: 'initialized',
+                        tokenAmount: {
+                          amount: '20011079',
+                          decimals: 6,
+                          uiAmount: 20.011079,
+                          uiAmountString: undefined as unknown as string, // uiAmountString is missing
+                        },
+                      },
+                      type: 'account',
+                    },
+                    program: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                    space: 165,
                   },
+                  executable: true,
+                  lamports: 1000000000,
+                  owner: account.address,
+                  rentEpoch: 1,
                 },
               },
             },
           },
-        } as unknown as AccountNotification;
+        };
 
         await keyringAccountMonitor.monitorKeyringAccount(account);
+        const handler = programNotificationHandlers[0]!;
 
-        const handler = notificationHandlers[1]!;
-        await handler(mockNotificationWithMissingMint, mockSubscription);
-
+        await expect(
+          handler(mockNotificationWithMissingUiAmountString, mockSubscription),
+        ).rejects.toThrow('Expected a string, but received: undefined');
         expect(mockAssetsService.saveAsset).not.toHaveBeenCalled();
       });
 
       describe('when #saveCausingTransaction encounters errors', () => {
-        it('handles when no signatures are found', async () => {
+        it('throws an error when no signatures are found', async () => {
           // No signatures found for the token account
           jest
             .spyOn(mockTransactionsService, 'fetchLatestSignatures')
             .mockResolvedValue([]);
 
           await keyringAccountMonitor.monitorKeyringAccount(account);
+          const handler = programNotificationHandlers[0]!;
 
-          const handler = notificationHandlers[1]!;
-          await handler(mockNotification, mockSubscription);
-
+          await expect(
+            handler(mockNotification, mockSubscription),
+          ).rejects.toThrow('No signature found');
           expect(
             mockTransactionsService.saveTransaction,
           ).not.toHaveBeenCalled();
         });
 
-        it('handles when transaction is not found', async () => {
+        it('throws an error when transaction is not found', async () => {
           // No transaction found for the token account
           jest
             .spyOn(mockTransactionsService, 'fetchBySignature')
             .mockResolvedValue(null);
 
           await keyringAccountMonitor.monitorKeyringAccount(account);
+          const handler = programNotificationHandlers[0]!;
 
-          const handler = notificationHandlers[1]!;
-          await handler(mockNotification, mockSubscription);
-
+          await expect(
+            handler(mockNotification, mockSubscription),
+          ).rejects.toThrow('No transaction found');
           expect(
             mockTransactionsService.saveTransaction,
           ).not.toHaveBeenCalled();

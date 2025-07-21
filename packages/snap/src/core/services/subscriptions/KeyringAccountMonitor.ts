@@ -7,6 +7,7 @@ import type { Base58EncodedBytes } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
 import { get } from 'lodash';
 
+import type { SubscriptionService } from '.';
 import type {
   AccountNotification,
   ProgramNotification,
@@ -19,11 +20,10 @@ import { SolanaCaip19Tokens } from '../../constants/solana';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
+import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
-import type { SubscriptionService } from '../subscriptions';
 import type { TransactionsService } from '../transactions/TransactionsService';
-import type { AccountsService } from './AccountsService';
 
 /**
  * Business logic for monitoring keyring accounts via WebSockets:
@@ -290,106 +290,99 @@ export class KeyringAccountMonitor {
     notification: AccountNotification,
     subscription: Subscription,
   ): Promise<void> {
-    try {
-      this.#logger.info('Account notification received', {
-        notification,
-        subscription,
-      });
-      const { network } = subscription;
+    // try {
+    this.#logger.info('Account notification received', {
+      notification,
+      subscription,
+    });
+    const { network } = subscription;
 
-      const address = get(subscription, 'params[0]');
-      assert(address, string());
+    const address = get(subscription, 'params[0]');
+    assert(address, string());
 
-      // This notification could be for any RPC account.
-      // Here, we only handle "actual" accounts, not token accounts.
-      const keyringAccount = await this.#accountService.findByAddress(address);
-      if (!keyringAccount) {
-        throw new Error(`No keyring account found for address: ${address}`);
-      }
-
-      // Handle the notification with clean data
-      const lamports = get(notification, 'params.result.value.lamports');
-      if (!lamports) {
-        throw new Error('No balance found in account changed event');
-      }
-
-      const assetType: CaipAssetType = `${network}/${SolanaCaip19Tokens.SOL}`;
-      const balance = {
-        amount: fromTokenUnits(lamports, 9),
-        unit: 'SOL',
-      };
-
-      await Promise.all([
-        this.#assetsService.saveAsset(keyringAccount, assetType, balance),
-        this.#saveCausingTransaction(keyringAccount, network, address),
-      ]);
-    } catch (error) {
-      this.#logger.error('Error handling account notification', error);
+    // This notification could be for any RPC account.
+    // Here, we only handle "actual" accounts, not token accounts.
+    const keyringAccount = await this.#accountService.findByAddress(address);
+    if (!keyringAccount) {
+      throw new Error(`No keyring account found for address: ${address}`);
     }
+
+    // Handle the notification with clean data
+    const lamports = get(notification, 'params.result.value.lamports');
+    if (!lamports) {
+      throw new Error('No balance found in account changed event');
+    }
+
+    const assetType: CaipAssetType = `${network}/${SolanaCaip19Tokens.SOL}`;
+    const balance = {
+      amount: fromTokenUnits(lamports, 9),
+      unit: 'SOL',
+    };
+
+    await Promise.all([
+      this.#assetsService.saveAsset(keyringAccount, assetType, balance),
+      this.#saveCausingTransaction(keyringAccount, network, address),
+    ]);
   }
 
   async #handleProgramNotification(
     notification: ProgramNotification,
     subscription: Subscription,
   ): Promise<void> {
-    try {
-      this.#logger.info('Handling program notification', {
-        notification,
-        subscription,
-      });
+    this.#logger.info('Handling program notification', {
+      notification,
+      subscription,
+    });
 
-      const { network } = subscription;
+    const { network } = subscription;
 
-      const programAddress = get(subscription, 'params[0]');
-      assert(programAddress, string());
+    const programAddress = get(subscription, 'params[0]');
+    assert(programAddress, string());
 
-      if (
-        programAddress !== TOKEN_PROGRAM_ADDRESS &&
-        programAddress !== TOKEN_2022_PROGRAM_ADDRESS
-      ) {
-        throw new Error(`Program not supported: ${programAddress}`);
-      }
-
-      const owner = get(
-        notification,
-        'params.result.value.account.data.parsed.info.owner',
-      );
-      assert(owner, string());
-
-      const mint = get(
-        notification,
-        'params.result.value.account.data.parsed.info.mint',
-      );
-      assert(mint, string());
-
-      const uiAmountString = get(
-        notification,
-        'params.result.value.account.data.parsed.info.tokenAmount.uiAmountString',
-      );
-      assert(uiAmountString, string());
-
-      const pubkey = get(notification, 'params.result.value.pubkey');
-      assert(pubkey, string());
-
-      const assetType = tokenAddressToCaip19(network, mint);
-
-      const keyringAccount = await this.#accountService.findByAddress(owner);
-      if (!keyringAccount) {
-        throw new Error(`No keyring account found with address: ${owner}`);
-      }
-
-      await Promise.all([
-        // Update the balance of the token asset
-        this.#assetsService.saveAsset(keyringAccount, assetType, {
-          amount: uiAmountString,
-          unit: '',
-        }),
-        // Fetch and save the transaction that caused the token asset change.
-        this.#saveCausingTransaction(keyringAccount, network, pubkey),
-      ]);
-    } catch (error) {
-      this.#logger.error('Error handling program notification', error);
+    if (
+      programAddress !== TOKEN_PROGRAM_ADDRESS &&
+      programAddress !== TOKEN_2022_PROGRAM_ADDRESS
+    ) {
+      throw new Error(`Program not supported: ${programAddress}`);
     }
+
+    const owner = get(
+      notification,
+      'params.result.value.account.data.parsed.info.owner',
+    );
+    assert(owner, string());
+
+    const mint = get(
+      notification,
+      'params.result.value.account.data.parsed.info.mint',
+    );
+    assert(mint, string());
+
+    const uiAmountString = get(
+      notification,
+      'params.result.value.account.data.parsed.info.tokenAmount.uiAmountString',
+    );
+    assert(uiAmountString, string());
+
+    const pubkey = get(notification, 'params.result.value.pubkey');
+    assert(pubkey, string());
+
+    const assetType = tokenAddressToCaip19(network, mint);
+
+    const keyringAccount = await this.#accountService.findByAddress(owner);
+    if (!keyringAccount) {
+      throw new Error(`No keyring account found with address: ${owner}`);
+    }
+
+    await Promise.all([
+      // Update the balance of the token asset
+      this.#assetsService.saveAsset(keyringAccount, assetType, {
+        amount: uiAmountString,
+        unit: '',
+      }),
+      // Fetch and save the transaction that caused the token asset change.
+      this.#saveCausingTransaction(keyringAccount, network, pubkey),
+    ]);
   }
 
   /**
@@ -445,36 +438,30 @@ export class KeyringAccountMonitor {
   }
 
   async #handleConnectionRecovery(network: Network): Promise<void> {
-    try {
-      this.#logger.info('Handling connection recovery', { network });
+    this.#logger.info('Handling connection recovery', { network });
 
-      const accounts = await this.#accountService.getAll();
+    const accounts = await this.#accountService.getAll();
 
-      const subscriptions = await this.#subscriptionService.getAll();
-      const accountSubscriptions = subscriptions.filter(
-        (subscription) =>
-          subscription.network === network &&
-          subscription.method === 'accountSubscribe',
-      );
+    const subscriptions = await this.#subscriptionService.getAll();
+    const accountSubscriptions = subscriptions.filter(
+      (subscription) =>
+        subscription.network === network &&
+        subscription.method === 'accountSubscribe',
+    );
 
-      const accountPreviouslyMonitoredOnThisNetwork = accounts.filter(
-        (account) =>
-          accountSubscriptions.some(
-            (subscription) =>
-              get(subscription, 'params[0]') === account.address,
-          ),
-      );
+    const accountPreviouslyMonitoredOnThisNetwork = accounts.filter((account) =>
+      accountSubscriptions.some(
+        (subscription) => get(subscription, 'params[0]') === account.address,
+      ),
+    );
 
-      if (!accountPreviouslyMonitoredOnThisNetwork.length) {
-        return;
-      }
-
-      // Recover from potential missed messages by refreshing the assets of the accounts that were previously monitored on this network
-      await this.#assetsService.refreshAssets(
-        accountPreviouslyMonitoredOnThisNetwork,
-      );
-    } catch (error) {
-      this.#logger.error('Error handling connection recovery', error);
+    if (!accountPreviouslyMonitoredOnThisNetwork.length) {
+      return;
     }
+
+    // Recover from potential missed messages by refreshing the assets of the accounts that were previously monitored on this network
+    await this.#assetsService.refreshAssets(
+      accountPreviouslyMonitoredOnThisNetwork,
+    );
   }
 }
