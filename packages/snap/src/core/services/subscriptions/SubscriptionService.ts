@@ -205,9 +205,6 @@ export class SubscriptionService {
 
     const { id, network, method } = subscription;
 
-    // Delete the subscription from the repository.
-    await this.#subscriptionRepository.delete(id);
-
     const unsubscribeMethod = subscribeMethodToUnsubscribeMethod[method];
 
     // If the subscription was active, we need to unsubscribe from the RPC
@@ -217,12 +214,15 @@ export class SubscriptionService {
       if (connection) {
         await this.#sendMessage(connection.id, {
           jsonrpc: '2.0',
-          id: await this.#generateId(this.#asRequest(subscription)),
+          id: globalThis.crypto.randomUUID(),
           method: unsubscribeMethod,
           params: [subscription.rpcSubscriptionId],
         });
       }
     }
+
+    // Delete the subscription from the repository.
+    await this.#subscriptionRepository.delete(id);
   }
 
   async getAll(): Promise<Subscription[]> {
