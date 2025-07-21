@@ -229,7 +229,7 @@ export class SignatureMonitor {
         );
       }
 
-      if (!this.#hasAtLeastCommitmentLevel(commitment, confirmationStatus)) {
+      if (!this.#hasAtLeastCommitmentLevel(confirmationStatus, commitment)) {
         this.#logger.info(
           'Signature did not reach the desired commitment while connection was down. Skipping.',
         );

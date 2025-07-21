@@ -238,7 +238,7 @@ describe('SignatureMonitor', () => {
   });
 
   describe('#handleConnectionRecovery', () => {
-    it('fetches, saves the transaction and tracks an event in analytics when connection was dropped and recovered', async () => {
+    it('fetches, saves the transaction and tracks an event in analytics when connection was dropped and recovered, if the tx has reached the desired commitment', async () => {
       await signatureMonitor.monitor(
         signature,
         accountId,
@@ -260,5 +260,37 @@ describe('SignatureMonitor', () => {
         mockAnalyticsService.trackEventTransactionFinalized,
       ).toHaveBeenCalled();
     });
+  });
+
+  it('does nothing if the tx has not reached the desired commitment', async () => {
+    // The transaction is only processed, not confirmed
+    jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+      getSignatureStatuses: jest.fn().mockReturnValue({
+        send: jest.fn().mockReturnValue({
+          value: [{ confirmationStatus: 'processed' }],
+        }),
+      }),
+    } as any);
+
+    await signatureMonitor.monitor(
+      signature,
+      accountId,
+      'confirmed',
+      network,
+      origin,
+    );
+
+    (mockTransactionsService.fetchBySignature as jest.Mock).mockClear();
+    (mockTransactionsService.saveTransaction as jest.Mock).mockClear();
+
+    // Simulate connection recovery
+    const handler = connectionRecoveryHandlers[0]!;
+    await handler(network);
+
+    expect(mockTransactionsService.fetchBySignature).not.toHaveBeenCalled();
+    expect(mockTransactionsService.saveTransaction).not.toHaveBeenCalled();
+    expect(
+      mockAnalyticsService.trackEventTransactionFinalized,
+    ).not.toHaveBeenCalled();
   });
 });
