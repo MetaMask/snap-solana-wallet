@@ -33,6 +33,11 @@ export class SignatureMonitor {
 
   readonly #logger: ILogger;
 
+  readonly #pendingSubscriptions: Set<{
+    subscriptionRequest: SubscriptionRequest;
+    subscriptionId: string;
+  }> = new Set();
+
   constructor(
     subscriptionService: SubscriptionService,
     accountService: AccountsService,
@@ -61,6 +66,10 @@ export class SignatureMonitor {
         'signatureSubscribe',
         network,
         this.#handleSignatureNotification.bind(this),
+      );
+      this.#subscriptionService.registerConnectionRecoveryHandler(
+        network,
+        this.#handleConnectionRecovery.bind(this),
       );
     });
   }
@@ -121,11 +130,10 @@ export class SignatureMonitor {
     const subscriptionId =
       await this.#subscriptionService.subscribe(subscriptionRequest);
 
-    this.#subscriptionService.registerConnectionRecoveryHandler(
-      network,
-      async () =>
-        this.#handleConnectionRecovery(subscriptionRequest, subscriptionId),
-    );
+    this.#pendingSubscriptions.add({
+      subscriptionRequest,
+      subscriptionId,
+    });
   }
 
   async #handleSignatureNotification(
@@ -197,20 +205,39 @@ export class SignatureMonitor {
         default:
           this.#logger.warn(`⚠️ Commitment ${commitment} not supported`);
       }
-
-      await this.#subscriptionService.unsubscribe(subscription.id);
     } catch (error) {
       this.#logger.error('Error handling signature notification', error);
+    } finally {
+      // Always unsubscribe and clean up, regardless of success or failure
+      await this.#subscriptionService.unsubscribe(subscription.id);
+
+      this.#pendingSubscriptions.delete({
+        subscriptionRequest: subscription,
+        subscriptionId: subscription.id,
+      });
     }
   }
 
-  async #handleConnectionRecovery(
+  async #handleConnectionRecovery(): Promise<void> {
+    this.#logger.info('Handling connection recovery');
+
+    await Promise.all(
+      Array.from(this.#pendingSubscriptions).map(
+        async ({ subscriptionRequest, subscriptionId }) => {
+          await this.#recoverSignatureSubscription(
+            subscriptionRequest,
+            subscriptionId,
+          );
+        },
+      ),
+    );
+  }
+
+  async #recoverSignatureSubscription(
     subscriptionRequest: SubscriptionRequest,
     subscriptionId: string,
   ): Promise<void> {
     try {
-      this.#logger.info('Handling connection recovery', subscriptionRequest);
-
       const { network } = subscriptionRequest;
       assert(network, string());
 
@@ -260,6 +287,11 @@ export class SignatureMonitor {
         fakeNotification,
         fakeSubscription,
       );
+
+      this.#pendingSubscriptions.delete({
+        subscriptionRequest,
+        subscriptionId,
+      });
     } catch (error) {
       this.#logger.error('Error handling connection recovery', error);
     }
