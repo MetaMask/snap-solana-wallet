@@ -1,13 +1,13 @@
 /**
  * Sanitization utilities for preventing control character injection attacks.
+ * 
  * These utilities help to ensure that user-controlled input is safe for display
  * and processing in sign-in messages and other security-critical contexts.
  */
 
 /**
- * Removes or escapes control characters from a string.
- * Control characters include newlines, carriage returns, tabs, and other non-printable characters.
- *
+ * Removes control characters from a string.
+ * 
  * @param input - The string to sanitize
  * @returns The sanitized string with control characters removed
  */
@@ -23,16 +23,15 @@ export function sanitizeControlCharacters(input: string): string {
 }
 
 /**
- * Sanitizes a string for use in sign-in messages by removing control characters
- * and limiting length to prevent abuse.
- *
+ * Sanitizes a string for use in sign-in messages.
+ * 
  * @param input - The string to sanitize
- * @param maxLength - Maximum allowed length (default: 1000)
+ * @param maxLength - Maximum allowed length
  * @returns The sanitized string
  */
 export function sanitizeForSignInMessage(
   input: string,
-  maxLength: number = 1000,
+  maxLength = 1000,
 ): string {
   if (!input || typeof input !== 'string') {
     return input || '';
@@ -58,8 +57,8 @@ export function sanitizeForSignInMessage(
 }
 
 /**
- * Validates and sanitizes a domain name for use in sign-in messages.
- *
+ * Validates and sanitizes a domain name.
+ * 
  * @param domain - The domain to validate and sanitize
  * @returns The sanitized domain or empty string if invalid
  */
@@ -75,7 +74,7 @@ export function sanitizeDomain(domain: string): string {
   const domainMatch = sanitized.match(
     /^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+)/u,
   );
-  if (domainMatch && domainMatch[1]) {
+  if (domainMatch?.[1]) {
     sanitized = domainMatch[1];
   }
 
@@ -98,8 +97,8 @@ export function sanitizeDomain(domain: string): string {
 }
 
 /**
- * Validates and sanitizes a Solana address for use in sign-in messages.
- *
+ * Validates and sanitizes a Solana address.
+ * 
  * @param address - The address to validate and sanitize
  * @returns The sanitized address or empty string if invalid
  */
@@ -108,7 +107,7 @@ export function sanitizeSolanaAddress(address: string): string {
     return address || '';
   }
 
-  let sanitized = sanitizeControlCharacters(address);
+  const sanitized = sanitizeControlCharacters(address);
 
   // Basic Solana address validation (Base58 format)
   const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/u;
@@ -127,8 +126,7 @@ export function sanitizeSolanaAddress(address: string): string {
 
 /**
  * Validates and sanitizes a URI for use in sign-in messages.
- * Supports http, https, wss, and ipfs protocols.
- *
+ * 
  * @param uri - The URI to validate and sanitize
  * @returns The sanitized URI or empty string if invalid
  */
@@ -137,7 +135,7 @@ export function sanitizeUri(uri: string): string {
     return uri || '';
   }
 
-  let sanitized = sanitizeControlCharacters(uri);
+  const sanitized = sanitizeControlCharacters(uri);
 
   try {
     const url = new URL(sanitized);
@@ -155,9 +153,8 @@ export function sanitizeUri(uri: string): string {
 }
 
 /**
- * Validates and sanitizes a timestamp string for use in sign-in messages.
- * Expects ISO 8601 format (e.g., "2024-01-01T00:00:00.000Z").
- *
+ * Validates and sanitizes a timestamp string.
+ * 
  * @param timestamp - The timestamp to validate and sanitize
  * @returns The sanitized timestamp or empty string if invalid
  */
@@ -166,7 +163,7 @@ export function sanitizeTimestamp(timestamp: string): string {
     return timestamp || '';
   }
 
-  let sanitized = sanitizeControlCharacters(timestamp);
+  const sanitized = sanitizeControlCharacters(timestamp);
 
   // Basic ISO 8601 timestamp validation
   const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/u;
@@ -185,9 +182,8 @@ export function sanitizeTimestamp(timestamp: string): string {
 }
 
 /**
- * Validates and sanitizes an array of resource strings for use in sign-in messages.
- * Filters out invalid URIs and returns only valid resources.
- *
+ * Validates and sanitizes an array of resource strings.
+ * 
  * @param resources - The resources array to validate and sanitize
  * @returns The sanitized resources array
  */
