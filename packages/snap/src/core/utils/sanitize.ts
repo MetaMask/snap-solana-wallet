@@ -1,33 +1,23 @@
 /**
- * Sanitization utilities for preventing control character injection attacks.
- *
- * These utilities help to ensure that user-controlled input is safe for display
- * and processing in sign-in messages and other security-critical contexts.
- */
-
-/**
  * Removes control characters from a string.
- *
- * @param input - The string to sanitize
- * @returns The sanitized string with control characters removed
+ * @param input - The string to sanitize.
+ * @returns The sanitized string.
  */
 export function sanitizeControlCharacters(input: string): string {
   if (!input || typeof input !== 'string') {
     return input || '';
   }
 
-  // Remove all control characters (0x00-0x1F, 0x7F) except tab (0x09)
-  // Tabs are preserved because they're commonly used for formatting and safe
-  // Also removes some extended control characters (0x80-0x9F)
+  // Remove all control characters except tab
+  // eslint-disable-next-line no-control-regex
   return input.replace(/[\u0000-\u0008\u000A-\u001F\u007F]/gu, '');
 }
 
 /**
- * Sanitizes a string.
- *
- * @param input - The string to sanitize
- * @param maxLength - Maximum allowed length
- * @returns The sanitized string
+ * Sanitizes a string for use in sign-in messages.
+ * @param input - The string to sanitize.
+ * @param maxLength - Maximum allowed length.
+ * @returns The sanitized string.
  */
 export function sanitizeForSignInMessage(
   input: string,
@@ -58,9 +48,8 @@ export function sanitizeForSignInMessage(
 
 /**
  * Validates and sanitizes a domain name.
- *
- * @param domain - The domain to validate and sanitize
- * @returns The sanitized domain or empty string if invalid
+ * @param domain - The domain to validate and sanitize.
+ * @returns The sanitized domain or empty string if invalid.
  */
 export function sanitizeDomain(domain: string): string {
   if (!domain || typeof domain !== 'string') {
@@ -69,8 +58,7 @@ export function sanitizeDomain(domain: string): string {
 
   let sanitized = sanitizeControlCharacters(domain);
 
-  // For domains with control characters removed, try to extract a valid domain part
-  // This handles cases like "example.com\n<script>alert(1)</script>" -> "example.com"
+  // Extract valid domain part from potentially malicious input
   const domainMatch = sanitized.match(
     /^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+)/u,
   );
@@ -87,8 +75,6 @@ export function sanitizeDomain(domain: string): string {
   }
 
   // RFC 1035 domain name length limit
-  // This ensures that any domain name we accept follows the official DNS standard,
-  // preventing potential issues with DNS resolution or compatibility problems.
   if (sanitized.length > 253) {
     return '';
   }
@@ -98,9 +84,8 @@ export function sanitizeDomain(domain: string): string {
 
 /**
  * Validates and sanitizes a Solana address.
- *
- * @param address - The address to validate and sanitize
- * @returns The sanitized address or empty string if invalid
+ * @param address - The address to validate and sanitize.
+ * @returns The sanitized address or empty string if invalid.
  */
 export function sanitizeSolanaAddress(address: string): string {
   if (!address || typeof address !== 'string') {
@@ -126,9 +111,8 @@ export function sanitizeSolanaAddress(address: string): string {
 
 /**
  * Validates and sanitizes a URI.
- *
- * @param uri - The URI to validate and sanitize
- * @returns The sanitized URI or empty string if invalid
+ * @param uri - The URI to validate and sanitize.
+ * @returns The sanitized URI or empty string if invalid.
  */
 export function sanitizeUri(uri: string): string {
   if (!uri || typeof uri !== 'string') {
@@ -154,9 +138,8 @@ export function sanitizeUri(uri: string): string {
 
 /**
  * Validates and sanitizes a timestamp string.
- *
- * @param timestamp - The timestamp to validate and sanitize
- * @returns The sanitized timestamp or empty string if invalid
+ * @param timestamp - The timestamp to validate and sanitize.
+ * @returns The sanitized timestamp or empty string if invalid.
  */
 export function sanitizeTimestamp(timestamp: string): string {
   if (!timestamp || typeof timestamp !== 'string') {
@@ -183,9 +166,8 @@ export function sanitizeTimestamp(timestamp: string): string {
 
 /**
  * Validates and sanitizes an array of resource strings.
- *
- * @param resources - The resources array to validate and sanitize
- * @returns The sanitized resources array
+ * @param resources - The resources array to validate and sanitize.
+ * @returns The sanitized resources array.
  */
 export function sanitizeResources(resources: string[]): string[] {
   if (!Array.isArray(resources)) {

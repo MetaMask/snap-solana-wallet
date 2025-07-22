@@ -543,7 +543,7 @@ describe('WalletService', () => {
           // The validation will fail on the first invalid field it encounters
           // The specific error message depends on the validation order
           await expect(service.signIn(account, invalidRequest)).rejects.toThrow(
-            /Invalid (domain format|Solana address format|URI format|timestamp format)/,
+            /Invalid (domain format|Solana address format|URI format|timestamp format)/u,
           );
         });
       });
