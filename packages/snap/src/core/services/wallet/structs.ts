@@ -41,84 +41,84 @@ const WalletAccountStruct = type({
 
 const SolanaSignatureTypeStruct = literal('ed25519');
 
-// Validation functions for SIWS fields that validate format when provided
+// Validation functions for SIWS fields
 const validateDomain = refine(string(), 'domain', (value) => {
-  if (value === '') {
-    return true;
+  const sanitized = sanitizeDomain(value);
+  if (sanitized === '') {
+    return 'Invalid domain format';
   }
-  sanitizeDomain(value);
   return true;
 });
 
 const validateAddress = refine(string(), 'address', (value) => {
-  if (value === '') {
-    return true;
+  const sanitized = sanitizeSolanaAddress(value);
+  if (sanitized === '') {
+    return 'Invalid Solana address format';
   }
-  sanitizeSolanaAddress(value);
   return true;
 });
 
 const validateStatement = refine(string(), 'statement', (value) => {
-  if (value === '') {
-    return true;
+  const sanitized = sanitizeForSignInMessage(value, 1000);
+  if (sanitized === '') {
+    return 'Statement cannot be empty after sanitization';
   }
-  sanitizeForSignInMessage(value, 1000);
   return true;
 });
 
 const validateUri = refine(string(), 'uri', (value) => {
-  if (value === '') {
-    return true;
+  const sanitized = sanitizeUri(value);
+  if (sanitized === '') {
+    return 'Invalid URI format';
   }
-  sanitizeUri(value);
   return true;
 });
 
 const validateVersion = refine(string(), 'version', (value) => {
-  if (value === '') {
-    return true;
+  const sanitized = sanitizeForSignInMessage(value, 10);
+  if (sanitized === '') {
+    return 'Version cannot be empty after sanitization';
   }
-  sanitizeForSignInMessage(value, 10);
   return true;
 });
 
 const validateChainId = refine(string(), 'chainId', (value) => {
-  if (value === '') {
-    return true;
+  const sanitized = sanitizeForSignInMessage(value, 50);
+  if (sanitized === '') {
+    return 'Chain ID cannot be empty after sanitization';
   }
-  sanitizeForSignInMessage(value, 50);
   return true;
 });
 
 const validateNonce = refine(string(), 'nonce', (value) => {
-  if (value === '') {
-    return true;
+  const sanitized = sanitizeForSignInMessage(value, 100);
+  if (sanitized === '') {
+    return 'Nonce cannot be empty after sanitization';
   }
-  sanitizeForSignInMessage(value, 100);
   return true;
 });
 
 const validateTimestamp = refine(string(), 'timestamp', (value) => {
-  if (value === '') {
-    return true;
+  const sanitized = sanitizeTimestamp(value);
+  if (sanitized === '') {
+    return 'Invalid timestamp format';
   }
-  sanitizeTimestamp(value);
   return true;
 });
 
 const validateRequestId = refine(string(), 'requestId', (value) => {
-  if (value === '') {
-    return true;
+  const sanitized = sanitizeForSignInMessage(value, 100);
+  if (sanitized === '') {
+    return 'Request ID cannot be empty after sanitization';
   }
-  sanitizeForSignInMessage(value, 100);
   return true;
 });
 
 const validateResources = refine(array(string()), 'resources', (value) => {
-  if (value.length === 0) {
-    return true;
+  const sanitized = sanitizeResources(value);
+  if (sanitized.length === 0 && value.length > 0) {
+    return 'All resources are invalid';
   }
-  sanitizeResources(value);
   return true;
 });
 
