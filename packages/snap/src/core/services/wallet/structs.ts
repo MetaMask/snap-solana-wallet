@@ -15,7 +15,6 @@ import {
 } from '@metamask/superstruct';
 
 import { Network } from '../../constants/solana';
-import { Base58Struct, Base64Struct } from '../../validation/structs';
 import {
   sanitizeDomain,
   sanitizeSolanaAddress,
@@ -24,6 +23,7 @@ import {
   sanitizeForSignInMessage,
   sanitizeResources,
 } from '../../utils/sanitize';
+import { Base58Struct, Base64Struct } from '../../validation/structs';
 
 /**
  * Defines all structs derived from types defined in the Solana Wallet Standard.

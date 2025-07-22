@@ -24,6 +24,8 @@ import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
+import type { ILogger } from '../../utils/logger';
+import logger from '../../utils/logger';
 import {
   sanitizeDomain,
   sanitizeSolanaAddress,
@@ -32,8 +34,6 @@ import {
   sanitizeForSignInMessage,
   sanitizeResources,
 } from '../../utils/sanitize';
-import type { ILogger } from '../../utils/logger';
-import logger from '../../utils/logger';
 import {
   Base58Struct,
   Base64Struct,
@@ -646,15 +646,25 @@ export class WalletService {
     // Sanitize inputs to prevent control character injection in the message
     const sanitizedDomain = domain ? sanitizeDomain(domain) : '';
     const sanitizedAddress = address ? sanitizeSolanaAddress(address) : '';
-    const sanitizedStatement = statement ? sanitizeForSignInMessage(statement, 1000) : '';
+    const sanitizedStatement = statement
+      ? sanitizeForSignInMessage(statement, 1000)
+      : '';
     const sanitizedUri = uri ? sanitizeUri(uri) : '';
-    const sanitizedVersion = version ? sanitizeForSignInMessage(version, 10) : '';
-    const sanitizedChainId = chainId ? sanitizeForSignInMessage(chainId, 50) : '';
+    const sanitizedVersion = version
+      ? sanitizeForSignInMessage(version, 10)
+      : '';
+    const sanitizedChainId = chainId
+      ? sanitizeForSignInMessage(chainId, 50)
+      : '';
     const sanitizedNonce = nonce ? sanitizeForSignInMessage(nonce, 100) : '';
     const sanitizedIssuedAt = issuedAt ? sanitizeTimestamp(issuedAt) : '';
-    const sanitizedExpirationTime = expirationTime ? sanitizeTimestamp(expirationTime) : '';
+    const sanitizedExpirationTime = expirationTime
+      ? sanitizeTimestamp(expirationTime)
+      : '';
     const sanitizedNotBefore = notBefore ? sanitizeTimestamp(notBefore) : '';
-    const sanitizedRequestId = requestId ? sanitizeForSignInMessage(requestId, 100) : '';
+    const sanitizedRequestId = requestId
+      ? sanitizeForSignInMessage(requestId, 100)
+      : '';
     const sanitizedResources = resources ? sanitizeResources(resources) : [];
 
     let message = `${sanitizedDomain} wants you to sign in with your Solana account:\n`;

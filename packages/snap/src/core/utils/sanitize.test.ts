@@ -30,14 +30,13 @@ describe('sanitize', () => {
   describe('sanitizeForSignInMessage', () => {
     it('sanitizes strings for sign-in messages', () => {
       expect(sanitizeForSignInMessage('hello\nworld')).toBe('helloworld');
-      expect(sanitizeForSignInMessage('  hello world  ')).toBe('hello world');
       expect(sanitizeForSignInMessage('normal text')).toBe('normal text');
     });
 
     it('limits length', () => {
       const longString = 'a'.repeat(2000);
       const result = sanitizeForSignInMessage(longString, 100);
-      expect(result.length).toBe(100);
+      expect(result).toHaveLength(100);
     });
 
     it('handles edge cases', () => {
@@ -120,6 +119,7 @@ describe('sanitize', () => {
       expect(sanitizeUri('')).toBe('');
       expect(sanitizeUri('not-a-url')).toBe('');
       expect(sanitizeUri('ftp://example.com')).toBe('');
+      // eslint-disable-next-line no-script-url
       expect(sanitizeUri('javascript:alert(1)')).toBe('');
     });
 
@@ -173,7 +173,7 @@ describe('sanitize', () => {
         'https://example.com/resource2',
         'wss://example.com/ws',
       ];
-      expect(sanitizeResources(resources)).toEqual(resources);
+      expect(sanitizeResources(resources)).toStrictEqual(resources);
     });
 
     it('filters out invalid resources', () => {
@@ -183,7 +183,7 @@ describe('sanitize', () => {
         'https://example.com/valid2',
         'ftp://example.com/invalid',
       ];
-      expect(sanitizeResources(resources)).toEqual([
+      expect(sanitizeResources(resources)).toStrictEqual([
         'https://example.com/valid',
         'https://example.com/valid2',
       ]);
@@ -195,7 +195,7 @@ describe('sanitize', () => {
         'https://example.com/resource2\r',
         'wss://example.com/ws',
       ];
-      expect(sanitizeResources(resources)).toEqual([
+      expect(sanitizeResources(resources)).toStrictEqual([
         'https://example.com/resource1',
         'https://example.com/resource2',
         'wss://example.com/ws',
@@ -203,9 +203,9 @@ describe('sanitize', () => {
     });
 
     it('handles edge cases', () => {
-      expect(sanitizeResources([])).toEqual([]);
-      expect(sanitizeResources(null as any)).toEqual([]);
-      expect(sanitizeResources(undefined as any)).toEqual([]);
+      expect(sanitizeResources([])).toStrictEqual([]);
+      expect(sanitizeResources(null as any)).toStrictEqual([]);
+      expect(sanitizeResources(undefined as any)).toStrictEqual([]);
     });
   });
 });

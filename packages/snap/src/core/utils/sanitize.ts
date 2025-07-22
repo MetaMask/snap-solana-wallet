@@ -3,6 +3,7 @@
  * These utilities help to ensure that user-controlled input is safe for display
  * and processing in sign-in messages and other security-critical contexts.
  */
+
 /**
  * Removes or escapes control characters from a string.
  * Control characters include newlines, carriage returns, tabs, and other non-printable characters.
@@ -18,7 +19,7 @@ export function sanitizeControlCharacters(input: string): string {
   // Remove all control characters (0x00-0x1F, 0x7F) except tab (0x09)
   // Tabs are preserved because they're commonly used for formatting and safe
   // Also removes some extended control characters (0x80-0x9F)
-  return input.replace(/[\x00-\x08\x0A-\x1F\x7F]/gu, '');
+  return input.replace(/[\u0000-\u0008\u000A-\u001F\u007F]/gu, '');
 }
 
 /**
@@ -40,18 +41,18 @@ export function sanitizeForSignInMessage(
   // Removes control characters
   let sanitized = sanitizeControlCharacters(input);
 
+  // Limit length for all inputs
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength);
+  }
+
   // If sanitization didn't change anything, return the original
   if (sanitized === input) {
-    return input;
+    return sanitized;
   }
 
   // Trim whitespace
   sanitized = sanitized.trim();
-
-  // Limit length
-  if (sanitized.length > maxLength) {
-    sanitized = sanitized.substring(0, maxLength);
-  }
 
   return sanitized;
 }
@@ -69,14 +70,11 @@ export function sanitizeDomain(domain: string): string {
 
   let sanitized = sanitizeControlCharacters(domain);
 
-  // If sanitization didn't change anything, return the original
-  if (sanitized === domain) {
-    return domain;
-  }
-
   // For domains with control characters removed, try to extract a valid domain part
   // This handles cases like "example.com\n<script>alert(1)</script>" -> "example.com"
-  const domainMatch = sanitized.match(/^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+)/);
+  const domainMatch = sanitized.match(
+    /^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+)/u,
+  );
   if (domainMatch && domainMatch[1]) {
     sanitized = domainMatch[1];
   }
@@ -112,12 +110,7 @@ export function sanitizeSolanaAddress(address: string): string {
 
   let sanitized = sanitizeControlCharacters(address);
 
-  // If sanitization didn't change anything, return the original
-  if (sanitized === address) {
-    return address;
-  }
-
-  // Basic Solana address validation (Base58 format) - this ensures that the address is a valid Solana address
+  // Basic Solana address validation (Base58 format)
   const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/u;
 
   if (!base58Regex.test(sanitized)) {
@@ -134,6 +127,7 @@ export function sanitizeSolanaAddress(address: string): string {
 
 /**
  * Validates and sanitizes a URI for use in sign-in messages.
+ * Supports http, https, wss, and ipfs protocols.
  *
  * @param uri - The URI to validate and sanitize
  * @returns The sanitized URI or empty string if invalid
@@ -145,32 +139,15 @@ export function sanitizeUri(uri: string): string {
 
   let sanitized = sanitizeControlCharacters(uri);
 
-  // If sanitization didn't change anything, return the original
-  if (sanitized === uri) {
-    return uri;
-  }
-
-  // If sanitization removed characters, the URL might be invalid
   try {
-    new URL(sanitized);
-  } catch {
-    return '';
-  }
-
-  try {
-    // Basic URL validation
     const url = new URL(sanitized);
-
-    const allowedProtocols = ['http:', 'https:', 'wss:'];
+    const allowedProtocols = ['http:', 'https:', 'wss:', 'ipfs:'];
     if (!allowedProtocols.includes(url.protocol)) {
       return '';
     }
-
-    // Limit length
     if (sanitized.length > 2048) {
       return '';
     }
-
     return sanitized;
   } catch {
     return '';
@@ -179,6 +156,7 @@ export function sanitizeUri(uri: string): string {
 
 /**
  * Validates and sanitizes a timestamp string for use in sign-in messages.
+ * Expects ISO 8601 format (e.g., "2024-01-01T00:00:00.000Z").
  *
  * @param timestamp - The timestamp to validate and sanitize
  * @returns The sanitized timestamp or empty string if invalid
@@ -188,13 +166,7 @@ export function sanitizeTimestamp(timestamp: string): string {
     return timestamp || '';
   }
 
-  // Remove control characters
   let sanitized = sanitizeControlCharacters(timestamp);
-
-  // If sanitization didn't change anything, return the original
-  if (sanitized === timestamp) {
-    return timestamp;
-  }
 
   // Basic ISO 8601 timestamp validation
   const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/u;
@@ -214,6 +186,7 @@ export function sanitizeTimestamp(timestamp: string): string {
 
 /**
  * Validates and sanitizes an array of resource strings for use in sign-in messages.
+ * Filters out invalid URIs and returns only valid resources.
  *
  * @param resources - The resources array to validate and sanitize
  * @returns The sanitized resources array
@@ -235,13 +208,13 @@ export function sanitizeResources(resources: string[]): string[] {
       .filter((resource) => typeof resource === 'string')
       .every((resource) => {
         try {
-          new URL(resource);
+          const url = new URL(resource);
           return true;
         } catch {
           return false;
         }
       });
-    
+
     if (originalValid) {
       return resources;
     }
