@@ -1,7 +1,7 @@
 import { assert } from '@metamask/superstruct';
 
-import { sanitizeControlCharacters, sanitizeUri } from './sanitize';
 import { UrlStruct } from '../validation/structs';
+import { sanitizeControlCharacters, sanitizeUri } from './sanitize';
 
 export type BuildUrlParams = {
   baseUrl: string;
@@ -44,7 +44,9 @@ export function buildUrl(params: BuildUrlParams): string {
     }
     // Sanitize path parameter values to remove control characters
     const sanitizedValue = sanitizeControlCharacters(value);
-    return encodePathParams ? encodeURIComponent(sanitizedValue) : sanitizedValue;
+    return encodePathParams
+      ? encodeURIComponent(sanitizedValue)
+      : sanitizedValue;
   });
 
   const cleanPath = pathWithParams
@@ -53,7 +55,7 @@ export function buildUrl(params: BuildUrlParams): string {
     .replace(/\/+$/u, ''); // Remove trailing slashes
 
   const url = new URL(cleanPath, sanitizedBaseUrl);
-  
+
   Object.entries(queryParams ?? {})
     .filter(([_, value]) => value !== undefined)
     .filter(([_, value]) => value !== null)
