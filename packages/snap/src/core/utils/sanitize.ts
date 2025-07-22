@@ -1,13 +1,13 @@
 /**
  * Sanitization utilities for preventing control character injection attacks.
- * 
+ *
  * These utilities help to ensure that user-controlled input is safe for display
  * and processing in sign-in messages and other security-critical contexts.
  */
 
 /**
  * Removes control characters from a string.
- * 
+ *
  * @param input - The string to sanitize
  * @returns The sanitized string with control characters removed
  */
@@ -23,8 +23,8 @@ export function sanitizeControlCharacters(input: string): string {
 }
 
 /**
- * Sanitizes a string for use in sign-in messages.
- * 
+ * Sanitizes a string.
+ *
  * @param input - The string to sanitize
  * @param maxLength - Maximum allowed length
  * @returns The sanitized string
@@ -45,20 +45,20 @@ export function sanitizeForSignInMessage(
     sanitized = sanitized.substring(0, maxLength);
   }
 
+  // Trim whitespace
+  sanitized = sanitized.trim();
+
   // If sanitization didn't change anything, return the original
   if (sanitized === input) {
     return sanitized;
   }
-
-  // Trim whitespace
-  sanitized = sanitized.trim();
 
   return sanitized;
 }
 
 /**
  * Validates and sanitizes a domain name.
- * 
+ *
  * @param domain - The domain to validate and sanitize
  * @returns The sanitized domain or empty string if invalid
  */
@@ -98,7 +98,7 @@ export function sanitizeDomain(domain: string): string {
 
 /**
  * Validates and sanitizes a Solana address.
- * 
+ *
  * @param address - The address to validate and sanitize
  * @returns The sanitized address or empty string if invalid
  */
@@ -125,8 +125,8 @@ export function sanitizeSolanaAddress(address: string): string {
 }
 
 /**
- * Validates and sanitizes a URI for use in sign-in messages.
- * 
+ * Validates and sanitizes a URI.
+ *
  * @param uri - The URI to validate and sanitize
  * @returns The sanitized URI or empty string if invalid
  */
@@ -154,7 +154,7 @@ export function sanitizeUri(uri: string): string {
 
 /**
  * Validates and sanitizes a timestamp string.
- * 
+ *
  * @param timestamp - The timestamp to validate and sanitize
  * @returns The sanitized timestamp or empty string if invalid
  */
@@ -183,7 +183,7 @@ export function sanitizeTimestamp(timestamp: string): string {
 
 /**
  * Validates and sanitizes an array of resource strings.
- * 
+ *
  * @param resources - The resources array to validate and sanitize
  * @returns The sanitized resources array
  */
@@ -196,25 +196,6 @@ export function sanitizeResources(resources: string[]): string[] {
     .filter((resource) => typeof resource === 'string')
     .map((resource) => sanitizeUri(resource))
     .filter((resource) => resource !== '');
-
-  // If no resources were sanitized (all were invalid), return original if it was valid
-  if (sanitized.length === 0 && resources.length > 0) {
-    // Check if original resources were valid
-    const originalValid = resources
-      .filter((resource) => typeof resource === 'string')
-      .every((resource) => {
-        try {
-          const url = new URL(resource);
-          return true;
-        } catch {
-          return false;
-        }
-      });
-
-    if (originalValid) {
-      return resources;
-    }
-  }
 
   return sanitized;
 }
