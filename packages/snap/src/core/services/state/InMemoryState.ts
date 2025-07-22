@@ -43,4 +43,10 @@ export class InMemoryState<TStateValue extends Record<string, Serializable>>
     // Using lodash's unset to leverage the json path capabilities
     unset(this.#state, key);
   }
+
+  async deleteKeys(keys: string[]): Promise<void> {
+    keys.forEach((key) => {
+      unset(this.#state, key);
+    });
+  }
 }

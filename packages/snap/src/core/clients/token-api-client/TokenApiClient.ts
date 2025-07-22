@@ -132,6 +132,7 @@ export class TokenApiClient {
                   '/',
                 ),
               },
+              encodePathParams: false,
             }),
           units: [
             {

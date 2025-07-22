@@ -8,6 +8,7 @@ export type BuildUrlParams = {
   path: string;
   pathParams?: Record<string, string> | undefined;
   queryParams?: Record<string, string> | undefined;
+  encodePathParams?: boolean;
 };
 
 /**
@@ -21,7 +22,13 @@ export type BuildUrlParams = {
  * @returns The built URL.
  */
 export function buildUrl(params: BuildUrlParams): string {
-  const { baseUrl, path, pathParams, queryParams } = params;
+  const {
+    baseUrl,
+    path,
+    pathParams,
+    queryParams,
+    encodePathParams = true,
+  } = params;
 
   // Validate and sanitize base URL
   const sanitizedBaseUrl = sanitizeUri(baseUrl);
@@ -35,8 +42,8 @@ export function buildUrl(params: BuildUrlParams): string {
     if (value === undefined) {
       throw new Error(`Path parameter ${key} is undefined`);
     }
-    // Sanitize path parameter values to remove control characters
-    return sanitizeControlCharacters(value);
+
+    return encodePathParams ? encodeURIComponent(value) : value;
   });
 
   const cleanPath = pathWithParams

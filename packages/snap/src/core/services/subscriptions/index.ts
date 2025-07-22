@@ -1,4 +1,4 @@
-export * from './RpcAccountMonitor';
+export * from './KeyringAccountMonitor';
 export * from './SignatureMonitor';
 export * from './SubscriptionRepository';
 export * from './SubscriptionService';

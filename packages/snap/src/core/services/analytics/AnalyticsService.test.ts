@@ -20,7 +20,6 @@ describe('AnalyticsService', () => {
   const loggerPrefix = '[📣 AnalyticsService]';
 
   const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-  const mockBase64Transaction = 'dGVzdCB0cmFuc2FjdGlvbiBkYXRh';
   const mockScope = Network.Mainnet;
   const mockOrigin = 'https://metamask.io';
   const mockSignature = 'mockedSignature';
@@ -44,7 +43,6 @@ describe('AnalyticsService', () => {
     it('tracks transaction added event with origin', async () => {
       await analyticsService.trackEventTransactionAdded(
         mockAccount,
-        mockBase64Transaction,
         mockMetadata,
       );
 
@@ -70,25 +68,12 @@ describe('AnalyticsService', () => {
         },
       });
     });
-
-    it('does not throw error for invalid base64 transaction', async () => {
-      const invalidBase64 = 'invalid-base64!@#';
-
-      expect(
-        await analyticsService.trackEventTransactionAdded(
-          mockAccount,
-          invalidBase64,
-          mockMetadata,
-        ),
-      ).toBeUndefined();
-    });
   });
 
   describe('trackEventTransactionApproved', () => {
     it('tracks transaction approved event with origin', async () => {
       await analyticsService.trackEventTransactionApproved(
         mockAccount,
-        mockBase64Transaction,
         mockMetadata,
       );
 
@@ -114,25 +99,12 @@ describe('AnalyticsService', () => {
         },
       });
     });
-
-    it('does not throw error for invalid base64 transaction', async () => {
-      const invalidBase64 = 'invalid-base64!@#';
-
-      expect(
-        await analyticsService.trackEventTransactionApproved(
-          mockAccount,
-          invalidBase64,
-          mockMetadata,
-        ),
-      ).toBeUndefined();
-    });
   });
 
   describe('trackEventTransactionSubmitted', () => {
     it('tracks transaction submitted event with origin', async () => {
       await analyticsService.trackEventTransactionSubmitted(
         mockAccount,
-        mockBase64Transaction,
         mockSignature,
         mockMetadata,
       );
@@ -158,19 +130,6 @@ describe('AnalyticsService', () => {
           },
         },
       });
-    });
-
-    it('does not throw error for invalid base64 transaction', async () => {
-      const invalidBase64 = 'invalid-base64!@#';
-
-      expect(
-        await analyticsService.trackEventTransactionSubmitted(
-          mockAccount,
-          invalidBase64,
-          mockSignature,
-          mockMetadata,
-        ),
-      ).toBeUndefined();
     });
   });
 
@@ -260,7 +219,6 @@ describe('AnalyticsService', () => {
     it('tracks transaction rejected event with origin', async () => {
       await analyticsService.trackEventTransactionRejected(
         mockAccount,
-        mockBase64Transaction,
         mockMetadata,
       );
 
@@ -286,18 +244,6 @@ describe('AnalyticsService', () => {
         },
       });
     });
-
-    it('does not throw error for invalid base64 transaction', async () => {
-      const invalidBase64 = 'invalid-base64!@#';
-
-      expect(
-        await analyticsService.trackEventTransactionRejected(
-          mockAccount,
-          invalidBase64,
-          mockMetadata,
-        ),
-      ).toBeUndefined();
-    });
   });
 
   describe('trackEventSecurityAlertDetected', () => {
@@ -309,7 +255,6 @@ describe('AnalyticsService', () => {
 
       await analyticsService.trackEventSecurityAlertDetected(
         mockAccount,
-        mockBase64Transaction,
         mockOrigin,
         mockScope,
         securityAlertResponse,
@@ -351,7 +296,6 @@ describe('AnalyticsService', () => {
 
       await analyticsService.trackEventSecurityScanCompleted(
         mockAccount,
-        mockBase64Transaction,
         mockOrigin,
         mockScope,
         scanStatus,
@@ -389,7 +333,6 @@ describe('AnalyticsService', () => {
 
       await analyticsService.trackEventSecurityScanCompleted(
         mockAccount,
-        mockBase64Transaction,
         mockOrigin,
         mockScope,
         scanStatus,
@@ -425,7 +368,6 @@ describe('AnalyticsService', () => {
       expect(
         await analyticsService.trackEventTransactionAdded(
           mockAccount,
-          mockBase64Transaction,
           mockMetadata,
         ),
       ).toBeUndefined();

@@ -27,7 +27,6 @@ import { InMemoryState } from '../state/InMemoryState';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import { DEFAULT_UNENCRYPTED_STATE } from '../state/State';
-import type { RpcAccountMonitor } from '../subscriptions/RpcAccountMonitor';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import { AssetsService } from './AssetsService';
@@ -52,9 +51,7 @@ describe('AssetsService', () => {
   let mockState: IStateManager<UnencryptedStateValue>;
   let stateSetKeySpy: jest.SpyInstance;
   let mockCache: ICache<Serializable>;
-  let mockAccountMonitor: RpcAccountMonitor;
   let mockEventEmitter: EventEmitter;
-  let onAccountChanged: (notification: any, params: any) => Promise<void>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -90,19 +87,6 @@ describe('AssetsService', () => {
         .fn()
         .mockResolvedValue(MOCK_NFTS_LIST_RESPONSE_MAPPED.items),
     } as unknown as NftApiClient;
-
-    mockAccountMonitor = {
-      monitor: jest.fn(),
-      stopMonitoring: jest.fn(),
-    } as unknown as RpcAccountMonitor;
-
-    // Mock the monitor method to capture the onAccountChanged callback
-    (mockAccountMonitor.monitor as jest.Mock).mockImplementation(
-      async (params) => {
-        onAccountChanged = params.onAccountChanged;
-        return Promise.resolve();
-      },
-    );
 
     mockEventEmitter = new EventEmitter(mockLogger);
 
@@ -313,6 +297,98 @@ describe('AssetsService', () => {
             [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
               [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
               [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
+            },
+          },
+        },
+      );
+    });
+  });
+
+  describe('saveAsset', () => {
+    it('notifies the extension if it is a new asset', async () => {
+      jest.spyOn(mockState, 'getKey').mockResolvedValueOnce(undefined);
+
+      await assetsService.saveAsset(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        KnownCaip19Id.EurcMainnet,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+
+      // 1 for the asset list updated, 1 for the balances updated
+      expect(emitSnapKeyringEvent).toHaveBeenCalledTimes(2);
+      expect(emitSnapKeyringEvent).toHaveBeenNthCalledWith(
+        1,
+        snap,
+        KeyringEvent.AccountAssetListUpdated,
+        {
+          assets: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              added: [KnownCaip19Id.EurcMainnet],
+              removed: [],
+            },
+          },
+        },
+      );
+    });
+
+    it('does not notify the extension if it is not a new asset', async () => {
+      jest.spyOn(mockState, 'getKey').mockResolvedValueOnce({
+        amount: '1234',
+        unit: 'EURC',
+      });
+
+      await assetsService.saveAsset(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        KnownCaip19Id.EurcMainnet,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+
+      // 1 for the balances updated only
+      expect(emitSnapKeyringEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('updates the state', async () => {
+      await assetsService.saveAsset(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        KnownCaip19Id.EurcMainnet,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+
+      expect(stateSetKeySpy).toHaveBeenCalledWith(
+        `assets.${MOCK_SOLANA_KEYRING_ACCOUNT_0.id}.${KnownCaip19Id.EurcMainnet}`,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+    });
+
+    it('notifies the extension about the new balance', async () => {
+      await assetsService.saveAsset(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        KnownCaip19Id.EurcMainnet,
+        {
+          amount: '1234',
+          unit: 'EURC',
+        },
+      );
+
+      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+        snap,
+        KeyringEvent.AccountBalancesUpdated,
+        {
+          balances: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [KnownCaip19Id.EurcMainnet]: { amount: '1234', unit: 'EURC' },
             },
           },
         },

@@ -10,7 +10,6 @@ const createMockSubscription = (id: string): Subscription => ({
   status: 'pending',
   requestId: id,
   method: 'accountSubscribe',
-  unsubscribeMethod: 'accountUnsubscribe',
   params: [],
   createdAt: new Date().toISOString(),
 });
@@ -26,6 +25,7 @@ describe('SubscriptionRepository', () => {
       setKey: jest.fn(),
       update: jest.fn(),
       deleteKey: jest.fn(),
+      deleteKeys: jest.fn(),
     };
 
     repository = new SubscriptionRepository(mockStateManager);
@@ -50,6 +50,23 @@ describe('SubscriptionRepository', () => {
 
       const subscriptions = await repository.getAll();
       expect(subscriptions).toStrictEqual([subscription0, subscription1]);
+    });
+
+    it('returns empty array if there are no subscriptions', async () => {
+      jest.spyOn(mockStateManager, 'getKey').mockResolvedValue(undefined);
+
+      const subscriptions = await repository.getAll();
+      expect(subscriptions).toStrictEqual([]);
+    });
+  });
+
+  describe('getById', () => {
+    it('returns the subscription if it exists', async () => {
+      const subscription = createMockSubscription('0');
+      jest.spyOn(mockStateManager, 'getKey').mockResolvedValue(subscription);
+
+      const foundSubscription = await repository.getById(subscription.id);
+      expect(foundSubscription).toStrictEqual(subscription);
     });
   });
 
@@ -76,10 +93,16 @@ describe('SubscriptionRepository', () => {
     });
   });
 
-  describe('deleteAll', () => {
-    it('deletes all subscriptions', async () => {
-      await repository.deleteAll();
-      expect(mockStateManager.deleteKey).toHaveBeenCalledWith('subscriptions');
+  describe('deleteMany', () => {
+    it('deletes the subscriptions', async () => {
+      const subscription0 = createMockSubscription('0');
+      const subscription1 = createMockSubscription('1');
+
+      await repository.deleteMany([subscription0.id, subscription1.id]);
+      expect(mockStateManager.deleteKeys).toHaveBeenCalledWith([
+        'subscriptions.0',
+        'subscriptions.1',
+      ]);
     });
   });
 

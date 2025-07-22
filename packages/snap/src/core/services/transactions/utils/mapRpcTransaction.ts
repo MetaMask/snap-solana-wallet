@@ -5,7 +5,7 @@ import {
 } from '@metamask/keyring-api';
 import { address as asAddress, type Address } from '@solana/kit';
 
-import type { SolanaKeyringAccount } from '../../../../entities/keyring-account';
+import type { SolanaKeyringAccount } from '../../../../entities';
 import { type Network } from '../../../constants/solana';
 import type { SolanaTransaction } from '../../../types/solana';
 import logger from '../../../utils/logger';

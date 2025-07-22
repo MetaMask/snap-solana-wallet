@@ -42,8 +42,11 @@ export class SubscriptionRepository {
     await this.#state.deleteKey(`${this.#stateKey}.${subscriptionId}`);
   }
 
-  async deleteAll(): Promise<void> {
-    await this.#state.deleteKey(`${this.#stateKey}`);
+  async deleteMany(subscriptionIds: string[]): Promise<void> {
+    const keys = subscriptionIds.map(
+      (subscriptionId) => `${this.#stateKey}.${subscriptionId}`,
+    );
+    await this.#state.deleteKeys(keys);
   }
 
   async update(subscription: Subscription): Promise<void> {

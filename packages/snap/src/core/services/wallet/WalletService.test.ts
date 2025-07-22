@@ -10,17 +10,13 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
   MOCK_SOLANA_KEYRING_ACCOUNTS,
 } from '../../test/mocks/solana-keyring-accounts';
-import { ADDRESS_1_TRANSACTION_1_DATA } from '../../test/mocks/transactions-data/address-1/transaction-1';
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import logger from '../../utils/logger';
-import type { AnalyticsService } from '../analytics/AnalyticsService';
-import type { AssetsService } from '../assets/AssetsService';
 import type { SolanaConnection } from '../connection';
 import { MOCK_EXECUTION_SCENARIOS } from '../execution/mocks/scenarios';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
 import type { SignatureMonitor } from '../subscriptions';
-import type { TransactionsService } from '../transactions/TransactionsService';
 import {
   MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
   MOCK_SIGN_IN_REQUEST,
@@ -43,9 +39,6 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 
 describe('WalletService', () => {
   let mockConnection: SolanaConnection;
-  let mockTransactionsService: TransactionsService;
-  let mockAssetsService: AssetsService;
-  let mockAnalyticsService: AnalyticsService;
   let mockTransactionHelper: TransactionHelper;
   let mockSignatureMonitor: SignatureMonitor;
   let service: WalletService;
@@ -54,22 +47,6 @@ describe('WalletService', () => {
 
   beforeEach(() => {
     mockConnection = createMockConnection();
-
-    mockTransactionsService = {
-      fetchBySignature: jest
-        .fn()
-        .mockResolvedValue(ADDRESS_1_TRANSACTION_1_DATA),
-      saveTransaction: jest.fn(),
-    } as unknown as TransactionsService;
-
-    mockAssetsService = {
-      refreshAssets: jest.fn(),
-    } as unknown as AssetsService;
-
-    mockAnalyticsService = {
-      trackEventTransactionSubmitted: jest.fn(),
-      trackEventTransactionFinalized: jest.fn(),
-    } as unknown as AnalyticsService;
 
     mockTransactionHelper = {
       getLatestBlockhash: jest.fn(),
@@ -91,9 +68,6 @@ describe('WalletService', () => {
     );
 
     service = new WalletService(
-      mockTransactionsService,
-      mockAssetsService,
-      mockAnalyticsService,
       mockConnection,
       mockTransactionHelper,
       mockSignatureMonitor,
@@ -294,7 +268,7 @@ describe('WalletService', () => {
           ).rejects.toThrow(/At path/u);
         });
 
-        it('saves the transaction when the transaction is confirmed', async () => {
+        it('starts monitoring the transaction for commitment "confirmed"', async () => {
           const request = wrapKeyringRequest({
             method: SolMethod.SignTransaction,
             params: {
@@ -308,17 +282,12 @@ describe('WalletService', () => {
 
           await service.signTransaction(fromAccount, request);
 
-          // Simulate the commitment being reached
-          await onCommitmentReachedCallback({
+          expect(mockSignatureMonitor.monitor).toHaveBeenCalledWith(
             signature,
-            commitment: 'confirmed',
-            network: scope,
-            onCommitmentReached: onCommitmentReachedCallback,
-          });
-
-          expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
-            ADDRESS_1_TRANSACTION_1_DATA,
-            fromAccount,
+            fromAccount.id,
+            'confirmed',
+            scope,
+            'https://metamask.io',
           );
         });
       });
@@ -337,7 +306,7 @@ describe('WalletService', () => {
           });
         });
 
-        it('defaults commitment to "confirmed" if not provided', async () => {
+        it('starts monitoring the transaction for commitment "confirmed"', async () => {
           await service.signAndSendTransaction(
             fromAccount,
             transactionMessageBase64Encoded,
@@ -347,94 +316,11 @@ describe('WalletService', () => {
           );
 
           expect(mockSignatureMonitor.monitor).toHaveBeenCalledWith(
-            expect.objectContaining({
-              commitment: 'confirmed',
-            }),
-          );
-        });
-
-        it('uses the provided commitment if provided', async () => {
-          await service.signAndSendTransaction(
-            fromAccount,
-            transactionMessageBase64Encoded,
-            scope,
-            'https://metamask.io',
-            {
-              commitment: 'finalized',
-            },
-          );
-
-          expect(mockSignatureMonitor.monitor).toHaveBeenCalledWith(
-            expect.objectContaining({
-              commitment: 'finalized',
-            }),
-          );
-        });
-
-        it('tracks an analytics event when the transaction is submitted', async () => {
-          await service.signAndSendTransaction(
-            fromAccount,
-            transactionMessageBase64Encoded,
-            scope,
-            'https://metamask.io',
-          );
-
-          expect(
-            mockAnalyticsService.trackEventTransactionSubmitted,
-          ).toHaveBeenCalledWith(
-            fromAccount,
-            transactionMessageBase64Encoded,
             signature,
-            {
-              scope,
-              origin: 'https://metamask.io',
-            },
-          );
-        });
-
-        it('tracks an analytics event when the transaction is confirmed', async () => {
-          await service.signAndSendTransaction(
-            fromAccount,
-            transactionMessageBase64Encoded,
+            fromAccount.id,
+            'confirmed',
             scope,
             'https://metamask.io',
-          );
-
-          // Simulate the commitment being reached
-          await onCommitmentReachedCallback({
-            signature,
-            commitment: 'confirmed',
-            network: scope,
-            onCommitmentReached: onCommitmentReachedCallback,
-          });
-
-          expect(
-            mockAnalyticsService.trackEventTransactionFinalized,
-          ).toHaveBeenCalledWith(fromAccount, ADDRESS_1_TRANSACTION_1_DATA, {
-            scope,
-            origin: 'https://metamask.io',
-          });
-        });
-
-        it('saves the transaction when the transaction is confirmed', async () => {
-          await service.signAndSendTransaction(
-            fromAccount,
-            transactionMessageBase64Encoded,
-            scope,
-            'https://metamask.io',
-          );
-
-          // Simulate the commitment being reached
-          await onCommitmentReachedCallback({
-            signature,
-            commitment: 'confirmed',
-            network: scope,
-            onCommitmentReached: onCommitmentReachedCallback,
-          });
-
-          expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
-            ADDRESS_1_TRANSACTION_1_DATA,
-            fromAccount,
           );
         });
       });
@@ -468,6 +354,23 @@ describe('WalletService', () => {
 
           await expect(service.signMessage(account, request)).rejects.toThrow(
             /At path/u,
+          );
+        });
+
+        it('rejects when account address in request does not match signing account', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
+          const request = wrapKeyringRequest({
+            ...MOCK_SIGN_MESSAGE_REQUEST,
+            params: {
+              ...MOCK_SIGN_MESSAGE_REQUEST.params,
+              account: {
+                address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
+              },
+            },
+          } as unknown as JsonRpcRequest);
+
+          await expect(service.signMessage(account, request)).rejects.toThrow(
+            'The requested account and/or method has not been authorized by the user.',
           );
         });
       });
