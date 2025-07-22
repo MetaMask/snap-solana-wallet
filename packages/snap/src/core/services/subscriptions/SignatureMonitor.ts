@@ -33,10 +33,7 @@ export class SignatureMonitor {
 
   readonly #logger: ILogger;
 
-  readonly #pendingSubscriptions: Set<{
-    subscriptionRequest: SubscriptionRequest;
-    subscriptionId: string;
-  }> = new Set();
+  readonly #pendingSubscriptions: Map<string, SubscriptionRequest> = new Map(); // subscriptionId -> subscriptionRequest
 
   constructor(
     subscriptionService: SubscriptionService,
@@ -130,10 +127,7 @@ export class SignatureMonitor {
     const subscriptionId =
       await this.#subscriptionService.subscribe(subscriptionRequest);
 
-    this.#pendingSubscriptions.add({
-      subscriptionRequest,
-      subscriptionId,
-    });
+    this.#pendingSubscriptions.set(subscriptionId, subscriptionRequest);
   }
 
   async #handleSignatureNotification(
@@ -211,10 +205,7 @@ export class SignatureMonitor {
       // Always unsubscribe and clean up, regardless of success or failure
       await this.#subscriptionService.unsubscribe(subscription.id);
 
-      this.#pendingSubscriptions.delete({
-        subscriptionRequest: subscription,
-        subscriptionId: subscription.id,
-      });
+      this.#pendingSubscriptions.delete(subscription.id);
     }
   }
 
@@ -222,8 +213,8 @@ export class SignatureMonitor {
     this.#logger.info('Handling connection recovery');
 
     await Promise.all(
-      Array.from(this.#pendingSubscriptions).map(
-        async ({ subscriptionRequest, subscriptionId }) => {
+      Array.from(this.#pendingSubscriptions.entries()).map(
+        async ([subscriptionId, subscriptionRequest]) => {
           await this.#recoverSignatureSubscription(
             subscriptionRequest,
             subscriptionId,
@@ -288,10 +279,7 @@ export class SignatureMonitor {
         fakeSubscription,
       );
 
-      this.#pendingSubscriptions.delete({
-        subscriptionRequest,
-        subscriptionId,
-      });
+      this.#pendingSubscriptions.delete(subscriptionId);
     } catch (error) {
       this.#logger.error('Error handling connection recovery', error);
     }
