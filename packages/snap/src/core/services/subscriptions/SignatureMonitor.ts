@@ -145,7 +145,7 @@ export class SignatureMonitor {
       assert(signature, string());
 
       const commitment = get(subscription, 'params[1].commitment');
-      assert(commitment, string());
+      assert(commitment, CommitmentStruct);
 
       const accountId = subscription.metadata?.accountId;
       assert(accountId, string());
