@@ -73,7 +73,7 @@ const validateAddress = refine(string(), 'address', (value) => {
 const validateStatement = refine(string(), 'statement', (value) => {
   const sanitized = sanitizeForSignInMessage(value, 1000);
   if (sanitized === '') {
-    return 'Statement cannot be empty after sanitization';
+    return 'Statement cannot be empty. Control characters and excessive whitespace are removed for security. Please use plain text only.';
   }
   return true;
 });
@@ -89,7 +89,7 @@ const validateUri = refine(string(), 'uri', (value) => {
 const validateVersion = refine(string(), 'version', (value) => {
   const sanitized = sanitizeForSignInMessage(value, 10);
   if (sanitized === '') {
-    return 'Version cannot be empty after sanitization';
+    return 'Version cannot be empty.';
   }
   return true;
 });
@@ -97,7 +97,7 @@ const validateVersion = refine(string(), 'version', (value) => {
 const validateChainId = refine(string(), 'chainId', (value) => {
   const sanitized = sanitizeForSignInMessage(value, 50);
   if (sanitized === '') {
-    return 'Chain ID cannot be empty after sanitization';
+    return 'Chain ID cannot be empty.';
   }
   return true;
 });
@@ -105,7 +105,7 @@ const validateChainId = refine(string(), 'chainId', (value) => {
 const validateNonce = refine(string(), 'nonce', (value) => {
   const sanitized = sanitizeForSignInMessage(value, 100);
   if (sanitized === '') {
-    return 'Nonce cannot be empty after sanitization';
+    return 'Nonce cannot be empty.';
   }
   return true;
 });
@@ -121,7 +121,7 @@ const validateTimestamp = refine(string(), 'timestamp', (value) => {
 const validateRequestId = refine(string(), 'requestId', (value) => {
   const sanitized = sanitizeForSignInMessage(value, 100);
   if (sanitized === '') {
-    return 'Request ID cannot be empty after sanitization';
+    return 'Request ID cannot be empty.';
   }
   return true;
 });
