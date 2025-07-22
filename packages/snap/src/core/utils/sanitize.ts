@@ -5,7 +5,7 @@
  */
 export function sanitizeControlCharacters(input: string): string {
   if (!input || typeof input !== 'string') {
-    return input || '';
+    return '';
   }
 
   // Remove all control characters except tab
@@ -24,7 +24,7 @@ export function sanitizeForSignInMessage(
   maxLength = 1000,
 ): string {
   if (!input || typeof input !== 'string') {
-    return input || '';
+    return '';
   }
 
   // Removes control characters
@@ -53,7 +53,7 @@ export function sanitizeForSignInMessage(
  */
 export function sanitizeDomain(domain: string): string {
   if (!domain || typeof domain !== 'string') {
-    return domain || '';
+    return '';
   }
 
   let sanitized = sanitizeControlCharacters(domain);
@@ -89,7 +89,7 @@ export function sanitizeDomain(domain: string): string {
  */
 export function sanitizeSolanaAddress(address: string): string {
   if (!address || typeof address !== 'string') {
-    return address || '';
+    return '';
   }
 
   const sanitized = sanitizeControlCharacters(address);
@@ -116,7 +116,7 @@ export function sanitizeSolanaAddress(address: string): string {
  */
 export function sanitizeUri(uri: string): string {
   if (!uri || typeof uri !== 'string') {
-    return uri || '';
+    return '';
   }
 
   const sanitized = sanitizeControlCharacters(uri);
@@ -143,7 +143,7 @@ export function sanitizeUri(uri: string): string {
  */
 export function sanitizeTimestamp(timestamp: string): string {
   if (!timestamp || typeof timestamp !== 'string') {
-    return timestamp || '';
+    return '';
   }
 
   const sanitized = sanitizeControlCharacters(timestamp);
@@ -171,7 +171,7 @@ export function sanitizeTimestamp(timestamp: string): string {
  */
 export function sanitizeResources(resources: string[]): string[] {
   if (!Array.isArray(resources)) {
-    return resources || [];
+    return [];
   }
 
   const sanitized = resources

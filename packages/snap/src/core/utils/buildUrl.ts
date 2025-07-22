@@ -42,8 +42,9 @@ export function buildUrl(params: BuildUrlParams): string {
     if (value === undefined) {
       throw new Error(`Path parameter ${key} is undefined`);
     }
-
-    return encodePathParams ? encodeURIComponent(value) : value;
+    // Sanitize path parameter values to remove control characters
+    const sanitizedValue = sanitizeControlCharacters(value);
+    return encodePathParams ? encodeURIComponent(sanitizedValue) : sanitizedValue;
   });
 
   const cleanPath = pathWithParams
