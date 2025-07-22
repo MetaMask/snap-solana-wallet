@@ -35,14 +35,30 @@ import { Base58Struct, Base64Struct } from '../../validation/structs';
 
 const ScopeStringStruct = enums(Object.values(Network));
 
+// Strict validation for wallet account - critical for security
+const validateWalletAccount = refine(string(), 'address', (value) => {
+  if (!value || value === '') {
+    return 'Account address is required';
+  }
+  const sanitized = sanitizeSolanaAddress(value);
+  if (sanitized === '') {
+    return 'Invalid Solana address format';
+  }
+  return true;
+});
+
 const WalletAccountStruct = type({
-  address: string(),
+  address: validateWalletAccount,
 });
 
 const SolanaSignatureTypeStruct = literal('ed25519');
 
-// Validation functions for SIWS fields
+// Validation functions for SIWS fields that validate format when provided
 const validateDomain = refine(string(), 'domain', (value) => {
+  // Allow empty strings for optional fields
+  if (value === '') {
+    return true;
+  }
   const sanitized = sanitizeDomain(value);
   if (sanitized === '') {
     return 'Invalid domain format';
@@ -51,6 +67,10 @@ const validateDomain = refine(string(), 'domain', (value) => {
 });
 
 const validateAddress = refine(string(), 'address', (value) => {
+  // Allow empty strings for optional fields
+  if (value === '') {
+    return true;
+  }
   const sanitized = sanitizeSolanaAddress(value);
   if (sanitized === '') {
     return 'Invalid Solana address format';
@@ -59,6 +79,10 @@ const validateAddress = refine(string(), 'address', (value) => {
 });
 
 const validateStatement = refine(string(), 'statement', (value) => {
+  // Allow empty strings for optional fields
+  if (value === '') {
+    return true;
+  }
   const sanitized = sanitizeForSignInMessage(value, 1000);
   if (sanitized === '') {
     return 'Statement cannot be empty after sanitization';
@@ -67,6 +91,10 @@ const validateStatement = refine(string(), 'statement', (value) => {
 });
 
 const validateUri = refine(string(), 'uri', (value) => {
+  // Allow empty strings for optional fields
+  if (value === '') {
+    return true;
+  }
   const sanitized = sanitizeUri(value);
   if (sanitized === '') {
     return 'Invalid URI format';
@@ -75,6 +103,10 @@ const validateUri = refine(string(), 'uri', (value) => {
 });
 
 const validateVersion = refine(string(), 'version', (value) => {
+  // Allow empty strings for optional fields
+  if (value === '') {
+    return true;
+  }
   const sanitized = sanitizeForSignInMessage(value, 10);
   if (sanitized === '') {
     return 'Version cannot be empty after sanitization';
@@ -83,6 +115,10 @@ const validateVersion = refine(string(), 'version', (value) => {
 });
 
 const validateChainId = refine(string(), 'chainId', (value) => {
+  // Allow empty strings for optional fields
+  if (value === '') {
+    return true;
+  }
   const sanitized = sanitizeForSignInMessage(value, 50);
   if (sanitized === '') {
     return 'Chain ID cannot be empty after sanitization';
@@ -91,6 +127,10 @@ const validateChainId = refine(string(), 'chainId', (value) => {
 });
 
 const validateNonce = refine(string(), 'nonce', (value) => {
+  // Allow empty strings for optional fields
+  if (value === '') {
+    return true;
+  }
   const sanitized = sanitizeForSignInMessage(value, 100);
   if (sanitized === '') {
     return 'Nonce cannot be empty after sanitization';
@@ -99,6 +139,10 @@ const validateNonce = refine(string(), 'nonce', (value) => {
 });
 
 const validateTimestamp = refine(string(), 'timestamp', (value) => {
+  // Allow empty strings for optional fields
+  if (value === '') {
+    return true;
+  }
   const sanitized = sanitizeTimestamp(value);
   if (sanitized === '') {
     return 'Invalid timestamp format';
@@ -107,6 +151,10 @@ const validateTimestamp = refine(string(), 'timestamp', (value) => {
 });
 
 const validateRequestId = refine(string(), 'requestId', (value) => {
+  // Allow empty strings for optional fields
+  if (value === '') {
+    return true;
+  }
   const sanitized = sanitizeForSignInMessage(value, 100);
   if (sanitized === '') {
     return 'Request ID cannot be empty after sanitization';
@@ -115,6 +163,10 @@ const validateRequestId = refine(string(), 'requestId', (value) => {
 });
 
 const validateResources = refine(array(string()), 'resources', (value) => {
+  // Allow empty arrays for optional fields
+  if (value.length === 0) {
+    return true;
+  }
   const sanitized = sanitizeResources(value);
   if (sanitized.length === 0 && value.length > 0) {
     return 'All resources are invalid';
