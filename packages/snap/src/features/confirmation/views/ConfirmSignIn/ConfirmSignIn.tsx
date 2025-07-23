@@ -118,7 +118,7 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
             }
           >
             <Text>
-              {domain || translate('confirmation.signIn.unknownDomain')}
+              {domain ?? translate('confirmation.signIn.unknownDomain')}
             </Text>
           </Row>
 

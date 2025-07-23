@@ -566,8 +566,8 @@ export class WalletService {
 
     // The inputs are already sanitized by the struct validation
     // So there is no need to sanitize again here
-    let message = `${domain || ''} wants you to sign in with your Solana account:\n`;
-    message += `${address || ''}`;
+    let message = `${domain ?? ''} wants you to sign in with your Solana account:\n`;
+    message += `${address ?? ''}`;
 
     if (statement) {
       message += `\n\n${statement}`;
