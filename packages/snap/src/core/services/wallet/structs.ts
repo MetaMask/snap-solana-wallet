@@ -3,6 +3,7 @@ import type { Infer } from '@metamask/superstruct';
 import {
   array,
   boolean,
+  coerce,
   enums,
   literal,
   number,
@@ -35,120 +36,129 @@ import { Base58Struct, Base64Struct } from '../../validation/structs';
 
 const ScopeStringStruct = enums(Object.values(Network));
 
-// Strict validation for wallet account - critical for security
-const validateWalletAccount = refine(string(), 'address', (value) => {
-  if (!value || value === '') {
-    return 'Account address is required';
-  }
-  const sanitized = sanitizeSolanaAddress(value);
-  if (sanitized === '') {
-    return 'Invalid Solana address format';
-  }
-  return true;
-});
+// Sanitizing structs that transform values during validation
+const SanitizedSolanaAddressStruct = coerce(
+  string(),
+  string(),
+  (value: string) => {
+    if (!value || value === '') {
+      throw new Error('Account address is required');
+    }
+    const sanitized = sanitizeSolanaAddress(value);
+    if (sanitized === '') {
+      throw new Error('Invalid Solana address format');
+    }
+    return sanitized;
+  },
+);
 
 const WalletAccountStruct = type({
-  address: validateWalletAccount,
+  address: SanitizedSolanaAddressStruct,
 });
 
 const SolanaSignatureTypeStruct = literal('ed25519');
 
-// Validation functions for SIWS fields
-const validateDomain = refine(string(), 'domain', (value) => {
+// Sanitizing structs for SIWS fields
+const SanitizedDomainStruct = coerce(string(), string(), (value: string) => {
   const sanitized = sanitizeDomain(value);
   if (sanitized === '') {
-    return 'Invalid domain format';
+    throw new Error('Invalid domain format');
   }
-  return true;
+  return sanitized;
 });
 
-const validateAddress = refine(string(), 'address', (value) => {
+const SanitizedAddressStruct = coerce(string(), string(), (value: string) => {
   const sanitized = sanitizeSolanaAddress(value);
   if (sanitized === '') {
-    return 'Invalid Solana address format';
+    throw new Error('Invalid Solana address format');
   }
-  return true;
+  return sanitized;
 });
 
-const validateStatement = refine(string(), 'statement', (value) => {
+const SanitizedStatementStruct = coerce(string(), string(), (value: string) => {
   const sanitized = sanitizeForSignInMessage(value, 1000);
   if (sanitized === '') {
-    return 'Statement cannot be empty. Control characters and excessive whitespace are removed for security. Please use plain text only.';
+    throw new Error(
+      'Statement cannot be empty. Control characters and excessive whitespace are removed for security. Please use plain text only.',
+    );
   }
-  return true;
+  return sanitized;
 });
 
-const validateUri = refine(string(), 'uri', (value) => {
+const SanitizedUriStruct = coerce(string(), string(), (value: string) => {
   const sanitized = sanitizeUri(value);
   if (sanitized === '') {
-    return 'Invalid URI format';
+    throw new Error('Invalid URI format');
   }
-  return true;
+  return sanitized;
 });
 
-const validateVersion = refine(string(), 'version', (value) => {
+const SanitizedVersionStruct = coerce(string(), string(), (value: string) => {
   const sanitized = sanitizeForSignInMessage(value, 10);
   if (sanitized === '') {
-    return 'Version cannot be empty.';
+    throw new Error('Version cannot be empty.');
   }
-  return true;
+  return sanitized;
 });
 
-const validateChainId = refine(string(), 'chainId', (value) => {
+const SanitizedChainIdStruct = coerce(string(), string(), (value: string) => {
   const sanitized = sanitizeForSignInMessage(value, 50);
   if (sanitized === '') {
-    return 'Chain ID cannot be empty.';
+    throw new Error('Chain ID cannot be empty.');
   }
-  return true;
+  return sanitized;
 });
 
-const validateNonce = refine(string(), 'nonce', (value) => {
+const SanitizedNonceStruct = coerce(string(), string(), (value: string) => {
   const sanitized = sanitizeForSignInMessage(value, 100);
   if (sanitized === '') {
-    return 'Nonce cannot be empty.';
+    throw new Error('Nonce cannot be empty.');
   }
-  return true;
+  return sanitized;
 });
 
-const validateTimestamp = refine(string(), 'timestamp', (value) => {
+const SanitizedTimestampStruct = coerce(string(), string(), (value: string) => {
   const sanitized = sanitizeTimestamp(value);
   if (sanitized === '') {
-    return 'Invalid timestamp format';
+    throw new Error('Invalid timestamp format');
   }
-  return true;
+  return sanitized;
 });
 
-const validateRequestId = refine(string(), 'requestId', (value) => {
+const SanitizedRequestIdStruct = coerce(string(), string(), (value: string) => {
   const sanitized = sanitizeForSignInMessage(value, 100);
   if (sanitized === '') {
-    return 'Request ID cannot be empty.';
+    throw new Error('Request ID cannot be empty.');
   }
-  return true;
+  return sanitized;
 });
 
-const validateResources = refine(array(string()), 'resources', (value) => {
-  const sanitized = sanitizeResources(value);
-  if (sanitized.length === 0 && value.length > 0) {
-    return 'All resources are invalid';
-  }
-  return true;
-});
+const SanitizedResourcesStruct = coerce(
+  array(string()),
+  array(string()),
+  (value: string[]) => {
+    const sanitized = sanitizeResources(value);
+    if (sanitized.length === 0 && value.length > 0) {
+      throw new Error('All resources are invalid');
+    }
+    return sanitized;
+  },
+);
 
 const SolanaSignInInputStruct = type({
-  domain: optional(validateDomain),
-  address: optional(validateAddress),
-  statement: optional(validateStatement),
-  uri: optional(validateUri),
-  version: optional(validateVersion),
-  chainId: optional(validateChainId),
-  nonce: optional(validateNonce),
-  issuedAt: optional(validateTimestamp),
-  expirationTime: optional(validateTimestamp),
-  notBefore: optional(validateTimestamp),
-  requestId: optional(validateRequestId),
-  resources: optional(validateResources),
+  domain: optional(SanitizedDomainStruct),
+  address: optional(SanitizedAddressStruct),
+  statement: optional(SanitizedStatementStruct),
+  uri: optional(SanitizedUriStruct),
+  version: optional(SanitizedVersionStruct),
+  chainId: optional(SanitizedChainIdStruct),
+  nonce: optional(SanitizedNonceStruct),
+  issuedAt: optional(SanitizedTimestampStruct),
+  expirationTime: optional(SanitizedTimestampStruct),
+  notBefore: optional(SanitizedTimestampStruct),
+  requestId: optional(SanitizedRequestIdStruct),
+  resources: optional(SanitizedResourcesStruct),
 });
-
 const SolanaSignMessageInputStruct = type({
   account: WalletAccountStruct,
   message: Base64Struct,

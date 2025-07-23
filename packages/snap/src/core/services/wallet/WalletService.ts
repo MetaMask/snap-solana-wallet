@@ -564,65 +564,43 @@ export class WalletService {
       resources,
     } = signInParams;
 
-    // Sanitize inputs to prevent control character injection in the message
-    const sanitizedDomain = domain ? sanitizeDomain(domain) : '';
-    const sanitizedAddress = address ? sanitizeSolanaAddress(address) : '';
-    const sanitizedStatement = statement
-      ? sanitizeForSignInMessage(statement, 1000)
-      : '';
-    const sanitizedUri = uri ? sanitizeUri(uri) : '';
-    const sanitizedVersion = version
-      ? sanitizeForSignInMessage(version, 10)
-      : '';
-    const sanitizedChainId = chainId
-      ? sanitizeForSignInMessage(chainId, 50)
-      : '';
-    const sanitizedNonce = nonce ? sanitizeForSignInMessage(nonce, 100) : '';
-    const sanitizedIssuedAt = issuedAt ? sanitizeTimestamp(issuedAt) : '';
-    const sanitizedExpirationTime = expirationTime
-      ? sanitizeTimestamp(expirationTime)
-      : '';
-    const sanitizedNotBefore = notBefore ? sanitizeTimestamp(notBefore) : '';
-    const sanitizedRequestId = requestId
-      ? sanitizeForSignInMessage(requestId, 100)
-      : '';
-    const sanitizedResources = resources ? sanitizeResources(resources) : [];
+    // The inputs are already sanitized by the struct validation
+    // So there is no need to sanitize again here
+    let message = `${domain || ''} wants you to sign in with your Solana account:\n`;
+    message += `${address || ''}`;
 
-    let message = `${sanitizedDomain} wants you to sign in with your Solana account:\n`;
-    message += `${sanitizedAddress}`;
-
-    if (sanitizedStatement) {
-      message += `\n\n${sanitizedStatement}`;
+    if (statement) {
+      message += `\n\n${statement}`;
     }
 
     const fields: string[] = [];
-    if (sanitizedUri) {
-      fields.push(`URI: ${sanitizedUri}`);
+    if (uri) {
+      fields.push(`URI: ${uri}`);
     }
-    if (sanitizedVersion) {
-      fields.push(`Version: ${sanitizedVersion}`);
+    if (version) {
+      fields.push(`Version: ${version}`);
     }
-    if (sanitizedChainId) {
-      fields.push(`Chain ID: ${sanitizedChainId}`);
+    if (chainId) {
+      fields.push(`Chain ID: ${chainId}`);
     }
-    if (sanitizedNonce) {
-      fields.push(`Nonce: ${sanitizedNonce}`);
+    if (nonce) {
+      fields.push(`Nonce: ${nonce}`);
     }
-    if (sanitizedIssuedAt) {
-      fields.push(`Issued At: ${sanitizedIssuedAt}`);
+    if (issuedAt) {
+      fields.push(`Issued At: ${issuedAt}`);
     }
-    if (sanitizedExpirationTime) {
-      fields.push(`Expiration Time: ${sanitizedExpirationTime}`);
+    if (expirationTime) {
+      fields.push(`Expiration Time: ${expirationTime}`);
     }
-    if (sanitizedNotBefore) {
-      fields.push(`Not Before: ${sanitizedNotBefore}`);
+    if (notBefore) {
+      fields.push(`Not Before: ${notBefore}`);
     }
-    if (sanitizedRequestId) {
-      fields.push(`Request ID: ${sanitizedRequestId}`);
+    if (requestId) {
+      fields.push(`Request ID: ${requestId}`);
     }
-    if (sanitizedResources.length > 0) {
+    if (resources && resources.length > 0) {
       fields.push(`Resources:`);
-      for (const resource of sanitizedResources) {
+      for (const resource of resources) {
         fields.push(`- ${resource}`);
       }
     }

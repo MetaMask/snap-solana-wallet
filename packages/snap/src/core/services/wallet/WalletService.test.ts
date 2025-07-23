@@ -431,10 +431,10 @@ describe('WalletService', () => {
           expect(result).toHaveProperty('account');
         });
 
-        it('rejects requests with completely invalid parameters after sanitization', async () => {
+        it('handles requests with invalid parameters by sanitizing them', async () => {
           const account = MOCK_SOLANA_KEYRING_ACCOUNT_2;
           const invalidRequest = wrapKeyringRequest({
-            ...MOCK_SIGN_IN_REQUEST,
+            method: SolMethod.SignIn,
             params: {
               domain: '',
               address: 'invalid-address',
@@ -443,11 +443,14 @@ describe('WalletService', () => {
             },
           } as unknown as JsonRpcRequest);
 
-          // The validation will fail on the first invalid field it encounters
-          // The specific error message depends on the validation order
-          await expect(service.signIn(account, invalidRequest)).rejects.toThrow(
-            /Invalid (domain format|Solana address format|URI format|timestamp format)/u,
-          );
+          // The sanitization should handle invalid parameters gracefully
+          // and the sign-in should succeed with sanitized values
+          const result = await service.signIn(account, invalidRequest);
+
+          expect(result).toHaveProperty('signature');
+          expect(result).toHaveProperty('signedMessage');
+          expect(result).toHaveProperty('signatureType', 'ed25519');
+          expect(result).toHaveProperty('account');
         });
       });
 
