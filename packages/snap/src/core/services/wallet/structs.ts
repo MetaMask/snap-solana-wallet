@@ -86,51 +86,27 @@ const SanitizedStatementStruct = coerce(string(), string(), (value: string) => {
 });
 
 const SanitizedUriStruct = coerce(string(), string(), (value: string) => {
-  const sanitized = sanitizeUri(value);
-  if (sanitized === '') {
-    throw new Error('Invalid URI format');
-  }
-  return sanitized;
+  return sanitizeUri(value);
 });
 
 const SanitizedVersionStruct = coerce(string(), string(), (value: string) => {
-  const sanitized = sanitizeForSignInMessage(value, 10);
-  if (sanitized === '') {
-    throw new Error('Version cannot be empty.');
-  }
-  return sanitized;
+  return sanitizeForSignInMessage(value, 10);
 });
 
 const SanitizedChainIdStruct = coerce(string(), string(), (value: string) => {
-  const sanitized = sanitizeForSignInMessage(value, 50);
-  if (sanitized === '') {
-    throw new Error('Chain ID cannot be empty.');
-  }
-  return sanitized;
+  return sanitizeForSignInMessage(value, 50);
 });
 
 const SanitizedNonceStruct = coerce(string(), string(), (value: string) => {
-  const sanitized = sanitizeForSignInMessage(value, 100);
-  if (sanitized === '') {
-    throw new Error('Nonce cannot be empty.');
-  }
-  return sanitized;
+  return sanitizeForSignInMessage(value, 100);
 });
 
 const SanitizedTimestampStruct = coerce(string(), string(), (value: string) => {
-  const sanitized = sanitizeTimestamp(value);
-  if (sanitized === '') {
-    throw new Error('Invalid timestamp format');
-  }
-  return sanitized;
+  return sanitizeTimestamp(value);
 });
 
 const SanitizedRequestIdStruct = coerce(string(), string(), (value: string) => {
-  const sanitized = sanitizeForSignInMessage(value, 100);
-  if (sanitized === '') {
-    throw new Error('Request ID cannot be empty.');
-  }
-  return sanitized;
+  return sanitizeForSignInMessage(value, 100);
 });
 
 const SanitizedResourcesStruct = coerce(
@@ -138,9 +114,7 @@ const SanitizedResourcesStruct = coerce(
   array(string()),
   (value: string[]) => {
     const sanitized = sanitizeResources(value);
-    if (sanitized.length === 0 && value.length > 0) {
-      throw new Error('All resources are invalid');
-    }
+
     return sanitized;
   },
 );
