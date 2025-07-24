@@ -19,7 +19,10 @@ import { getClientStatus } from '../../utils/interface';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
-import { parseWebSocketMessage } from './parseWebSocketMessage';
+import {
+  type JsonRpcWebSocketMessage,
+  parseWebSocketMessage,
+} from './parseWebSocketMessage';
 import type { SubscriptionRepository } from './SubscriptionRepository';
 import type { WebSocketConnectionService } from './WebSocketConnectionService';
 
@@ -235,6 +238,27 @@ export class SubscriptionService {
     return this.#subscriptionRepository.getAll();
   }
 
+  async #handleTrackInactiveWebSocketMessage(
+    message: JsonRpcWebSocketMessage<unknown>,
+  ): Promise<void> {
+    /**
+     * Track inactive web socket messages only when the client is not active.
+     */
+    try {
+      const { active } = await getClientStatus();
+
+      if (active) {
+        return;
+      }
+
+      await this.#analyticsService.trackInactiveWebSocketMessage(message);
+    } catch (error) {
+      this.#logger.warn('Error tracking inactive web socket message', {
+        error,
+      });
+    }
+  }
+
   async #handleWebSocketEvent(message: WebSocketEvent): Promise<void> {
     // We only care about actual messages, not open or close events, which are handled by the connection service.
     if (message.type !== 'message') {
@@ -257,6 +281,7 @@ export class SubscriptionService {
           parsedMessage as Notification,
           connection.network,
         );
+        await this.#handleTrackInactiveWebSocketMessage(parsedMessage);
         break;
       default:
         // Handle subscription confirmations/errors
@@ -268,23 +293,6 @@ export class SubscriptionService {
           this.#logger.warn(`Received unknown message`, parsedMessage);
         }
         break;
-    }
-
-    /**
-     * Track inactive web socket messages only when the client is not active.
-     */
-    try {
-      const { active } = await getClientStatus();
-
-      if (active) {
-        return;
-      }
-
-      await this.#analyticsService.trackInactiveWebSocketMessage(parsedMessage);
-    } catch (error) {
-      this.#logger.warn('Error tracking inactive web socket message', {
-        error,
-      });
     }
   }
 

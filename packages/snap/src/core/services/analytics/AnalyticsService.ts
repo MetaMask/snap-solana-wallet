@@ -44,7 +44,7 @@ export class AnalyticsService {
       await this.#trackEvent('Inactive Solana WebSocket Message', {
         message: 'Inactive Solana web socket message',
         method: message.method,
-        subscription_id: message.params.subscription,
+        subscription_id: message?.params?.subscription,
         timestamp: Date.now(),
       });
     } catch (error) {
