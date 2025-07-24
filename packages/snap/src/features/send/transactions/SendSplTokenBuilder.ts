@@ -69,14 +69,6 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
     assert(mint, 'Mint is required');
 
-    const { privateKeyBytes } = await deriveSolanaKeypair({
-      entropySource: from.entropySource,
-      derivationPath: from.derivationPath,
-    });
-
-    const signer =
-      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
-
     const splTokenTokenAccount = await this.getTokenAccount<MaybeHasDecimals>({
       mint,
       network,
@@ -86,6 +78,17 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
     const tokenProgram = splTokenTokenAccount.programAddress;
     const decimals = this.getDecimals(splTokenTokenAccount);
     const amountInTokenUnits = toTokenUnits(amount, decimals);
+
+    const latestBlockhash =
+      await this.#transactionHelper.getLatestBlockhash(network);
+
+    const { privateKeyBytes } = await deriveSolanaKeypair({
+      entropySource: from.entropySource,
+      derivationPath: from.derivationPath,
+    });
+
+    const signer =
+      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
     const [fromTokenAccountAddress, toTokenAccountAddress] = await Promise.all([
       SendSplTokenBuilder.deriveAssociatedTokenAccountAddress({
@@ -99,9 +102,6 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
         tokenProgram,
       }),
     ]);
-
-    const latestBlockhash =
-      await this.#transactionHelper.getLatestBlockhash(network);
 
     const transactionMessage = pipe(
       createTransactionMessage({ version: 0 }),

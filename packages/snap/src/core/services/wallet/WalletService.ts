@@ -373,6 +373,7 @@ export class WalletService {
     const { message } = request.request.params;
     const messageBytes = getBase64Codec().encode(message);
     const messageUtf8 = getUtf8Codec().decode(messageBytes);
+    const signableMessage = createSignableMessage(messageUtf8);
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
       entropySource,
@@ -381,8 +382,6 @@ export class WalletService {
 
     const signer =
       await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
-
-    const signableMessage = createSignableMessage(messageUtf8);
 
     const [messageSignatureBytesMap] = await signer.signMessages([
       signableMessage,
@@ -492,6 +491,11 @@ export class WalletService {
     assert(signatureBase58, Base58Struct);
     assert(messageBase64, Base64Struct);
 
+    const signatureBytes = getBase58Codec().encode(
+      signatureBase58,
+    ) as SignatureBytes;
+    const messageBytes = getBase64Codec().encode(messageBase64);
+
     const { privateKeyBytes } = await deriveSolanaKeypair({
       entropySource: account.entropySource,
       derivationPath: account.derivationPath,
@@ -499,12 +503,6 @@ export class WalletService {
 
     const signer =
       await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
-
-    const signatureBytes = getBase58Codec().encode(
-      signatureBase58,
-    ) as SignatureBytes;
-
-    const messageBytes = getBase64Codec().encode(messageBase64);
 
     const verified = await verifySignature(
       signer.keyPair.publicKey,
