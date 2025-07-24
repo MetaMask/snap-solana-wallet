@@ -5,7 +5,7 @@ import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { AssetsService } from '../assets/AssetsService';
 import type { TransactionsService } from '../transactions';
 import type { AccountsRepository } from './AccountsRepository';
-import { CouldNotFetchTransactionsError } from './errors/CouldNotFetchTransactionsError';
+import { CouldNotSynchronizeTransactionsError } from './errors/CouldNotSynchronizeTransactionsError';
 
 export class AccountsService {
   readonly #accountsRepository: AccountsRepository;
@@ -52,7 +52,7 @@ export class AccountsService {
       await this.#transactionsService
         .synchronize(accountsToSync)
         .catch((error) => {
-          throw new CouldNotFetchTransactionsError(error);
+          throw new CouldNotSynchronizeTransactionsError(error);
         });
 
       const transactionsAfter =
@@ -68,12 +68,13 @@ export class AccountsService {
         accountIdsToRefresh.includes(account.id),
       );
 
+      // Perform a smart "only when needed" refresh of the assets
       await this.#assetsService.refreshAssets(accountsToRefresh);
     } catch (error) {
       this.#logger.error('Error syncing accounts', error);
 
-      if (error instanceof CouldNotFetchTransactionsError) {
-        // Perform a full, refresh of the assets
+      if (error instanceof CouldNotSynchronizeTransactionsError) {
+        // Perform a full refresh of the assets
         await this.#assetsService.refreshAssets(accountsToSync);
       } else {
         throw error;
