@@ -9,13 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0]
 
-### Uncategorized
+### Added
 
-- Sync accounts ([#475](https://github.com/MetaMask/snap-solana-wallet/pull/475))
-- Fix disconnection handling ([#467](https://github.com/MetaMask/snap-solana-wallet/pull/467))
-- Detect receive txs ([#461](https://github.com/MetaMask/snap-solana-wallet/pull/461))
-- feat: unsubscribe from delete account ([#458](https://github.com/MetaMask/snap-solana-wallet/pull/458))
-- [NWNT-383] feat: migrate accounts sync from HTTP polling to Websockets ([#453](https://github.com/MetaMask/snap-solana-wallet/pull/453))
+- Sync accounts buttons ([#475](https://github.com/MetaMask/snap-solana-wallet/pull/475))
+-  Detect receive transactions ([#461](https://github.com/MetaMask/snap-solana-wallet/pull/461))
+- Unsubscribe from delete account ([#458](https://github.com/MetaMask/snap-solana-wallet/pull/458))
+- Migrate accounts sync from HTTP polling to Websockets ([#453](https://github.com/MetaMask/snap-solana-wallet/pull/453))
+
+### Fixed
+
+- Disconnection handling ([#467](https://github.com/MetaMask/snap-solana-wallet/pull/467))
 
 ## [1.36.0]
 
