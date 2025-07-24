@@ -281,7 +281,6 @@ export class SubscriptionService {
           parsedMessage as Notification,
           connection.network,
         );
-        await this.#handleTrackInactiveWebSocketMessage(parsedMessage);
         break;
       default:
         // Handle subscription confirmations/errors
@@ -294,6 +293,9 @@ export class SubscriptionService {
         }
         break;
     }
+
+    // Track inactive web socket messages only after handling the message.
+    await this.#handleTrackInactiveWebSocketMessage(parsedMessage);
   }
 
   async #routeNotification(
