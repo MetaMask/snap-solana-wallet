@@ -9,29 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0]
 
-### Uncategorized
+### Added
 
-- feat: track inactive wss messages + removing account sync cronjobs ([#476](https://github.com/MetaMask/snap-solana-wallet/pull/476))
-- Sync accounts ([#475](https://github.com/MetaMask/snap-solana-wallet/pull/475))
-- feat: update balances & tx when new token is received ([#469](https://github.com/MetaMask/snap-solana-wallet/pull/469))
-- chore: adds check and throws error ([#471](https://github.com/MetaMask/snap-solana-wallet/pull/471))
-- Revert "fix: buildUrl function with potential vulnerability" ([#470](https://github.com/MetaMask/snap-solana-wallet/pull/470))
-- chore: validate address for Signin ([#468](https://github.com/MetaMask/snap-solana-wallet/pull/468))
-- Fix disconnection handling ([#467](https://github.com/MetaMask/snap-solana-wallet/pull/467))
-- fix: buildUrl function with potential vulnerability ([#466](https://github.com/MetaMask/snap-solana-wallet/pull/466))
-- feat: overwrite `skipPreflight` if comes from request ([#463](https://github.com/MetaMask/snap-solana-wallet/pull/463))
-- chore: Validate origin in method onProtocolRequest ([#465](https://github.com/MetaMask/snap-solana-wallet/pull/465))
-- chore: replace console with logger ([#464](https://github.com/MetaMask/snap-solana-wallet/pull/464))
-- feat: show SNS domains on UI ([#462](https://github.com/MetaMask/snap-solana-wallet/pull/462))
-- Detect receive txs ([#461](https://github.com/MetaMask/snap-solana-wallet/pull/461))
-- Move monitoring logic out of assets service ([#460](https://github.com/MetaMask/snap-solana-wallet/pull/460))
-- chore: adds errorTrackingTransport ([#456](https://github.com/MetaMask/snap-solana-wallet/pull/456))
+- Track inactive wss messages + removing account HTTP sync cronjobs ([#476](https://github.com/MetaMask/snap-solana-wallet/pull/476))
+- Update balances & transactions when new token is received ([#469](https://github.com/MetaMask/snap-solana-wallet/pull/469))
+- Overwrite `skipPreflight` if comes from request ([#463](https://github.com/MetaMask/snap-solana-wallet/pull/463))
+- Show SNS domains on UI ([#462](https://github.com/MetaMask/snap-solana-wallet/pull/462))
+- Detect WSS receive transactions ([#461](https://github.com/MetaMask/snap-solana-wallet/pull/461))
+- Adding `AccountSelector` component to send ([#445](https://github.com/MetaMask/snap-solana-wallet/pull/445))
+- WSS unsubscribe from deleted account ([#458](https://github.com/MetaMask/snap-solana-wallet/pull/458))
+- Migrate accounts sync from HTTP polling to Websockets ([#453](https://github.com/MetaMask/snap-solana-wallet/pull/453))
+- Support NFT assets ([#422](https://github.com/MetaMask/snap-solana-wallet/pull/422))
+
+### Changed
+
+- Rework Sync accounts ([#475](https://github.com/MetaMask/snap-solana-wallet/pull/475))
+- Replace `console` with `logger` ([#464](https://github.com/MetaMask/snap-solana-wallet/pull/464))
+- Move WSS monitoring logic out of `AssetsService` ([#460](https://github.com/MetaMask/snap-solana-wallet/pull/460))
+- Adds `errorTrackingTransport` ([#456](https://github.com/MetaMask/snap-solana-wallet/pull/456))
 - Populate asset units after mapping ([#459](https://github.com/MetaMask/snap-solana-wallet/pull/459))
-- chore: temporarily disable NFT assets fetching ([#457](https://github.com/MetaMask/snap-solana-wallet/pull/457))
-- fix: update tests after switching to snaps-sdk AccountSelector component ([#445](https://github.com/MetaMask/snap-solana-wallet/pull/445))
-- feat: unsubscribe from delete account ([#458](https://github.com/MetaMask/snap-solana-wallet/pull/458))
-- [NWNT-383] feat: migrate accounts sync from HTTP polling to Websockets ([#453](https://github.com/MetaMask/snap-solana-wallet/pull/453))
-- feat: support NFT assets ([#422](https://github.com/MetaMask/snap-solana-wallet/pull/422))
+- Temporarily disable NFT assets fetching ([#457](https://github.com/MetaMask/snap-solana-wallet/pull/457))
+
+### Fixed
+
+- Adds check and throws error for `buildUrl` ([#471](https://github.com/MetaMask/snap-solana-wallet/pull/471))
+- Validate address for Signin ([#468](https://github.com/MetaMask/snap-solana-wallet/pull/468))
+- WSS disconnection handling ([#467](https://github.com/MetaMask/snap-solana-wallet/pull/467))
+- `buildUrl` function with potential vulnerability ([#466](https://github.com/MetaMask/snap-solana-wallet/pull/466))
+- Validate origin in method `onProtocolRequest` ([#465](https://github.com/MetaMask/snap-solana-wallet/pull/465))
 
 ## [1.36.0]
 
