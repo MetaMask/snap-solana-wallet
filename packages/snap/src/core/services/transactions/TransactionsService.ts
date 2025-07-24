@@ -112,7 +112,6 @@ export class TransactionsService {
 
     const existingTransactions = await this.findByAccounts([account]);
     const existingSignatures = existingTransactions.map((tx) => tx.id);
-    this.#logger.log('existingTransactions', existingTransactions);
 
     const findLatestTransactionForAsset = async (asset: Asset) => {
       const { network, mint } = asset;
@@ -131,14 +130,8 @@ export class TransactionsService {
         );
 
       if (!existingTransaction) {
-        this.#logger.log('no existing transaction found for asset', asset);
         return null;
       }
-
-      this.#logger.log(
-        'existing transaction found for asset',
-        existingTransaction,
-      );
 
       return existingTransaction;
     };
@@ -291,6 +284,8 @@ export class TransactionsService {
   }
 
   async synchronize(accounts: SolanaKeyringAccount[]): Promise<void> {
+    this.#logger.log('Synchronizing transactions for accounts', accounts);
+
     const transactions = (
       await Promise.all(accounts.map(this.fetchAccountTransactions.bind(this)))
     ).flat();

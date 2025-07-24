@@ -49,8 +49,6 @@ export class AccountsService {
       const transactionsBefore =
         await this.#transactionsService.findByAccounts(accountsToSync);
 
-      this.#logger.log('transactionsBefore', transactionsBefore);
-
       await this.#transactionsService
         .synchronize(accountsToSync)
         .catch((error) => {
@@ -60,11 +58,7 @@ export class AccountsService {
       const transactionsAfter =
         await this.#transactionsService.findByAccounts(accountsToSync);
 
-      this.#logger.log('transactionsAfter', transactionsAfter);
-
       const diff = differenceBy(transactionsBefore, transactionsAfter, 'id');
-
-      this.#logger.log('diff', diff);
 
       const accountIdsToRefresh = uniq(
         diff.map((transaction) => transaction.account),
