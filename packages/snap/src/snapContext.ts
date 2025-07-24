@@ -82,6 +82,8 @@ const state = new State({
 const stateCache = new StateCache(state, logger);
 const inMemoryCache = new InMemoryCache(logger);
 
+const analyticsService = new AnalyticsService(logger);
+
 const connection = new SolanaConnection(configProvider);
 
 const webSocketConnectionRepository = new WebSocketConnectionRepository(
@@ -103,6 +105,7 @@ const subscriptionService = new SubscriptionService(
   configProvider,
   eventEmitter,
   logger,
+  analyticsService,
 );
 
 const transactionHelper = new TransactionHelper(connection, logger);
@@ -147,8 +150,6 @@ const transactionsService = new TransactionsService(
   configProvider,
   logger,
 );
-
-const analyticsService = new AnalyticsService(logger);
 
 const transactionScanService = new TransactionScanService(
   new SecurityAlertsApiClient(configProvider),

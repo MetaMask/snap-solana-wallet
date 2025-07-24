@@ -78,7 +78,7 @@ describe('onCronjob', () => {
     handlers[CronjobMethod.RefreshSend] = handler;
 
     const snap = {
-      request: jest.fn().mockResolvedValue({ locked: false }),
+      request: jest.fn().mockResolvedValue({ locked: false, active: true }),
     };
 
     (globalThis as any).snap = snap;
@@ -99,7 +99,7 @@ describe('onCronjob', () => {
     handlers[CronjobMethod.RefreshSend] = handler;
 
     const snap = {
-      request: jest.fn().mockResolvedValue({ locked: true }),
+      request: jest.fn().mockResolvedValue({ locked: true, active: true }),
     };
 
     (globalThis as any).snap = snap;
@@ -120,7 +120,7 @@ describe('onCronjob', () => {
     handlers[CronjobMethod.RefreshSend] = handler;
 
     const snap = {
-      request: jest.fn().mockResolvedValue({ active: false }),
+      request: jest.fn().mockResolvedValue({ active: false, locked: false }),
     };
 
     (globalThis as any).snap = snap;
