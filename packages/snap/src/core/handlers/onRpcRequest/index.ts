@@ -1,7 +1,7 @@
 import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 
 import { renderSend } from '../../../features/send/render';
-import { eventEmitter } from '../../../snapContext';
+import { accountsService, eventEmitter } from '../../../snapContext';
 import { getFeeForTransaction } from './getFeeForTransaction';
 import { RpcRequestMethod, TestDappRpcRequestMethod } from './types';
 
@@ -28,6 +28,10 @@ export const handlers: Record<RpcRequestMethod, OnRpcRequestHandler> = {
   },
   [TestDappRpcRequestMethod.TestOnUpdate as any]: async () => {
     await eventEmitter.emitSync('onUpdate');
+    return null;
+  },
+  [TestDappRpcRequestMethod.SynchronizeAccounts as any]: async () => {
+    await accountsService.synchronize();
     return null;
   },
 };

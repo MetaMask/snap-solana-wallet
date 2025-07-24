@@ -80,7 +80,7 @@ export const onAccountsRefresh: OnCronjobHandler = async () => {
     });
 
     await transactionsService
-      .refreshTransactions(accountsWithChanges)
+      .synchronize(accountsWithChanges)
       .catch((error) => {
         logger.warn(
           '[onAccountsRefresh] Caught error while refreshing transactions',

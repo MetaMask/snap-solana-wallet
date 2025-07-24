@@ -7,7 +7,10 @@ import { signature } from '@solana/kit';
 
 import { asStrictKeyringAccount } from '../../../entities';
 import { KnownCaip19Id, Network } from '../../constants/solana';
-import type { KeyringAccountMonitor } from '../../services';
+import type {
+  KeyringAccountMonitor,
+  TransactionsService,
+} from '../../services';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
@@ -17,7 +20,6 @@ import {
   DEFAULT_UNENCRYPTED_STATE,
   type UnencryptedStateValue,
 } from '../../services/state/State';
-import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { SOLANA_MOCK_TOKEN } from '../../test/mocks/solana-assets';

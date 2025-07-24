@@ -524,7 +524,6 @@ async function onSendButtonClick({
         method: ScheduleBackgroundEventMethod.OnTransactionAdded,
         params: {
           accountId: context.fromAccountId,
-          base64EncodedTransaction: context.transactionMessage,
           metadata: {
             scope: context.scope,
             origin: METAMASK_ORIGIN,

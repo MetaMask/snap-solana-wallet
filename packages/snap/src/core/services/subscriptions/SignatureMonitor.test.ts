@@ -15,7 +15,7 @@ import type { ConfigProvider } from '../config';
 import type { Config } from '../config/ConfigProvider';
 import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
-import type { TransactionsService } from '../transactions/TransactionsService';
+import type { TransactionsService } from '../transactions';
 import { SignatureMonitor } from './SignatureMonitor';
 import type { SubscriptionService } from './SubscriptionService';
 
@@ -71,7 +71,7 @@ describe('SignatureMonitor', () => {
 
     mockTransactionsService = {
       fetchBySignature: jest.fn().mockResolvedValue(mockTransaction),
-      saveTransaction: jest.fn(),
+      save: jest.fn(),
     } as unknown as TransactionsService;
 
     mockAnalyticsService = {
@@ -177,9 +177,8 @@ describe('SignatureMonitor', () => {
       const handler = notificationHandlers[0]!;
       await handler(mockNotification, mockSubscription);
 
-      expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+      expect(mockTransactionsService.save).toHaveBeenCalledWith(
         mockTransaction,
-        mockAccount,
       );
 
       expect(
@@ -219,9 +218,8 @@ describe('SignatureMonitor', () => {
       const handler = notificationHandlers[0]!;
       await handler(mockNotification, mockSubscription);
 
-      expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+      expect(mockTransactionsService.save).toHaveBeenCalledWith(
         mockTransaction,
-        mockAccount,
       );
 
       expect(
@@ -248,14 +246,14 @@ describe('SignatureMonitor', () => {
       );
 
       (mockTransactionsService.fetchBySignature as jest.Mock).mockClear();
-      (mockTransactionsService.saveTransaction as jest.Mock).mockClear();
+      (mockTransactionsService.save as jest.Mock).mockClear();
 
       // Simulate connection recovery
       const handler = connectionRecoveryHandlers[0]!;
       await handler(network);
 
       expect(mockTransactionsService.fetchBySignature).toHaveBeenCalled();
-      expect(mockTransactionsService.saveTransaction).toHaveBeenCalled();
+      expect(mockTransactionsService.save).toHaveBeenCalled();
       expect(
         mockAnalyticsService.trackEventTransactionFinalized,
       ).toHaveBeenCalled();
@@ -281,14 +279,14 @@ describe('SignatureMonitor', () => {
     );
 
     (mockTransactionsService.fetchBySignature as jest.Mock).mockClear();
-    (mockTransactionsService.saveTransaction as jest.Mock).mockClear();
+    (mockTransactionsService.save as jest.Mock).mockClear();
 
     // Simulate connection recovery
     const handler = connectionRecoveryHandlers[0]!;
     await handler(network);
 
     expect(mockTransactionsService.fetchBySignature).not.toHaveBeenCalled();
-    expect(mockTransactionsService.saveTransaction).not.toHaveBeenCalled();
+    expect(mockTransactionsService.save).not.toHaveBeenCalled();
     expect(
       mockAnalyticsService.trackEventTransactionFinalized,
     ).not.toHaveBeenCalled();

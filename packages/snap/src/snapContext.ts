@@ -9,11 +9,14 @@ import { ClientRequestHandler } from './core/handlers/onClientRequest';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
+  AccountsRepository,
   AccountsService,
   KeyringAccountMonitor,
   SignatureMonitor,
   SubscriptionRepository,
   SubscriptionService,
+  TransactionsRepository,
+  TransactionsService,
   WebSocketConnectionRepository,
   WebSocketConnectionService,
 } from './core/services';
@@ -31,7 +34,6 @@ import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
 import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
-import { TransactionsService } from './core/services/transactions/TransactionsService';
 import { WalletService } from './core/services/wallet/WalletService';
 import logger from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
@@ -65,6 +67,7 @@ export type SnapExecutionContext = {
   subscriptionService: SubscriptionService;
   eventEmitter: EventEmitter;
   nameResolutionService: NameResolutionService;
+  accountsService: AccountsService;
 };
 
 const configProvider = new ConfigProvider();
@@ -78,8 +81,6 @@ const state = new State({
 
 const stateCache = new StateCache(state, logger);
 const inMemoryCache = new InMemoryCache(logger);
-
-const accountsService = new AccountsService(state);
 
 const connection = new SolanaConnection(configProvider);
 
@@ -138,15 +139,33 @@ const assetsService = new AssetsService({
   nftApiClient,
 });
 
-const transactionsService = new TransactionsService({
-  logger,
-  connection,
+const transactionsRepository = new TransactionsRepository(state);
+const transactionsService = new TransactionsService(
+  transactionsRepository,
   assetsService,
-  state,
+  connection,
   configProvider,
-});
+  logger,
+);
 
 const analyticsService = new AnalyticsService(logger);
+
+const transactionScanService = new TransactionScanService(
+  new SecurityAlertsApiClient(configProvider),
+  tokenMetadataService,
+  analyticsService,
+  logger,
+);
+
+const accountsRepository = new AccountsRepository(state);
+const accountsService = new AccountsService(
+  accountsRepository,
+  transactionsService,
+  assetsService,
+  logger,
+);
+
+const confirmationHandler = new ConfirmationHandler();
 
 const signatureMonitor = new SignatureMonitor(
   subscriptionService,
@@ -158,22 +177,6 @@ const signatureMonitor = new SignatureMonitor(
   logger,
 );
 
-const walletService = new WalletService(
-  connection,
-  transactionHelper,
-  signatureMonitor,
-  logger,
-);
-
-const transactionScanService = new TransactionScanService(
-  new SecurityAlertsApiClient(configProvider),
-  tokenMetadataService,
-  analyticsService,
-  logger,
-);
-
-const confirmationHandler = new ConfirmationHandler();
-
 const keyringAccountMonitor = new KeyringAccountMonitor(
   subscriptionService,
   accountsService,
@@ -181,6 +184,13 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
   transactionsService,
   configProvider,
   eventEmitter,
+  logger,
+);
+
+const walletService = new WalletService(
+  connection,
+  transactionHelper,
+  signatureMonitor,
   logger,
 );
 
@@ -227,9 +237,11 @@ const snapContext: SnapExecutionContext = {
   subscriptionService,
   eventEmitter,
   nameResolutionService,
+  accountsService,
 };
 
 export {
+  accountsService,
   analyticsService,
   assetsService,
   clientRequestHandler,

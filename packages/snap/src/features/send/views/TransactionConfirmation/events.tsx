@@ -68,7 +68,6 @@ async function onCancelButtonClick({
         method: ScheduleBackgroundEventMethod.OnTransactionRejected,
         params: {
           accountId: fromAccountId,
-          base64EncodedTransaction: transactionMessage,
           metadata: {
             scope,
             origin: METAMASK_ORIGIN,
@@ -118,7 +117,6 @@ async function onConfirmButtonClick({
         method: ScheduleBackgroundEventMethod.OnTransactionApproved,
         params: {
           accountId: context.fromAccountId,
-          base64EncodedTransaction: context.transactionMessage,
           metadata: {
             scope: context.scope,
             origin: METAMASK_ORIGIN,

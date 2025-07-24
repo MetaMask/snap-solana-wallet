@@ -13,4 +13,5 @@ export enum TestDappRpcRequestMethod {
   TestOnStart = 'testOnStart',
   TestOnInstall = 'testOnInstall',
   TestOnUpdate = 'testOnUpdate',
+  SynchronizeAccounts = 'synchronizeAccounts',
 }

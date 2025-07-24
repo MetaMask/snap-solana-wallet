@@ -23,7 +23,7 @@ import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
-import type { TransactionsService } from '../transactions/TransactionsService';
+import type { TransactionsService } from '../transactions';
 
 /**
  * Business logic for monitoring keyring accounts via WebSockets:
@@ -411,7 +411,7 @@ export class KeyringAccountMonitor {
     }
 
     // Note that the TransactionService will avoid saving duplicates in the state.
-    await this.#transactionsService.saveTransaction(transaction, account);
+    await this.#transactionsService.save(transaction);
   }
 
   /**
@@ -427,6 +427,12 @@ export class KeyringAccountMonitor {
     this.#monitoredKeyringAccounts.get(accountId)?.add(subscriptionId);
   }
 
+  /**
+   * Recover from potential missed messages (while connection was down)
+   * by syncing all accounts that were previously monitored on this network.
+   *
+   * @param network - The network to handle the connection recovery for.
+   */
   async #handleConnectionRecovery(network: Network): Promise<void> {
     this.#logger.info('Handling connection recovery', { network });
 
@@ -449,8 +455,7 @@ export class KeyringAccountMonitor {
       return;
     }
 
-    // Recover from potential missed messages by refreshing the assets of the accounts that were previously monitored on this network
-    await this.#assetsService.refreshAssets(
+    await this.#accountService.synchronize(
       accountPreviouslyMonitoredOnThisNetwork,
     );
   }

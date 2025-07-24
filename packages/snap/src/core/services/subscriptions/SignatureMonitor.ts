@@ -15,7 +15,7 @@ import type { AccountsService } from '../accounts/AccountsService';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
-import type { TransactionsService } from '../transactions/TransactionsService';
+import type { TransactionsService } from '../transactions';
 import type { SubscriptionService } from './SubscriptionService';
 
 export class SignatureMonitor {
@@ -173,7 +173,7 @@ export class SignatureMonitor {
 
       switch (commitment) {
         case 'processed':
-          await this.#transactionsService.saveTransaction(transaction, account);
+          await this.#transactionsService.save(transaction);
           await this.#analyticsService.trackEventTransactionSubmitted(
             account,
             signature,
@@ -186,7 +186,7 @@ export class SignatureMonitor {
           break;
         case 'confirmed':
         case 'finalized':
-          await this.#transactionsService.saveTransaction(transaction, account);
+          await this.#transactionsService.save(transaction);
           await this.#analyticsService.trackEventTransactionFinalized(
             account,
             transaction,

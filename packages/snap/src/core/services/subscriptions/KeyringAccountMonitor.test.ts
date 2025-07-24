@@ -19,7 +19,7 @@ import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
 import type { Config } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
-import type { TransactionsService } from '../transactions/TransactionsService';
+import type { TransactionsService } from '../transactions';
 import { KeyringAccountMonitor } from './KeyringAccountMonitor';
 import type { SubscriptionService } from './SubscriptionService';
 
@@ -78,7 +78,7 @@ describe('KeyringAccountMonitor', () => {
     mockTransactionsService = {
       fetchLatestSignatures: jest.fn(),
       fetchBySignature: jest.fn(),
-      saveTransaction: jest.fn(),
+      save: jest.fn(),
     } as unknown as TransactionsService;
 
     mockConfigProvider = {
@@ -346,9 +346,8 @@ describe('KeyringAccountMonitor', () => {
           },
         );
 
-        expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+        expect(mockTransactionsService.save).toHaveBeenCalledWith(
           mockCausingTransaction,
-          account,
         );
       });
 
@@ -359,9 +358,8 @@ describe('KeyringAccountMonitor', () => {
         const handler = accountNotificationHandlers[0]!;
         await handler(mockNotification, mockSubscription);
 
-        expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+        expect(mockTransactionsService.save).toHaveBeenCalledWith(
           mockCausingTransaction,
-          account,
         );
       });
 
@@ -454,9 +452,8 @@ describe('KeyringAccountMonitor', () => {
           KnownCaip19Id.UsdcMainnet,
           { amount: '123456789', unit: '' },
         );
-        expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+        expect(mockTransactionsService.save).toHaveBeenCalledWith(
           mockCausingTransaction,
-          account,
         );
       });
 
@@ -466,9 +463,8 @@ describe('KeyringAccountMonitor', () => {
         const handler = programNotificationHandlers[0]!;
         await handler(mockNotification, mockSubscription);
 
-        expect(mockTransactionsService.saveTransaction).toHaveBeenCalledWith(
+        expect(mockTransactionsService.save).toHaveBeenCalledWith(
           mockCausingTransaction,
-          account,
         );
       });
 
@@ -587,9 +583,7 @@ describe('KeyringAccountMonitor', () => {
           await expect(
             handler(mockNotification, mockSubscription),
           ).rejects.toThrow('No signature found');
-          expect(
-            mockTransactionsService.saveTransaction,
-          ).not.toHaveBeenCalled();
+          expect(mockTransactionsService.save).not.toHaveBeenCalled();
         });
 
         it('throws an error when transaction is not found', async () => {
@@ -604,9 +598,7 @@ describe('KeyringAccountMonitor', () => {
           await expect(
             handler(mockNotification, mockSubscription),
           ).rejects.toThrow('No transaction found');
-          expect(
-            mockTransactionsService.saveTransaction,
-          ).not.toHaveBeenCalled();
+          expect(mockTransactionsService.save).not.toHaveBeenCalled();
         });
       });
     });

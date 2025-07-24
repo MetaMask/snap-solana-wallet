@@ -6,6 +6,7 @@ import type {
   EntropySourceId,
   KeyringEventPayload,
   MetaMaskOptions,
+  Pagination,
 } from '@metamask/keyring-api';
 import {
   KeyringEvent,
@@ -39,19 +40,21 @@ import {
   type SolanaKeyringAccount,
 } from '../../../entities';
 import { Network } from '../../constants/solana';
-import type { KeyringAccountMonitor } from '../../services';
+import type {
+  KeyringAccountMonitor,
+  TransactionsService,
+} from '../../services';
 import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import type { IStateManager } from '../../services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../services/state/State';
-import type { TransactionsService } from '../../services/transactions/TransactionsService';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
 import { listEntropySources } from '../../utils/interface';
-import type { ILogger } from '../../utils/logger';
+import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import {
   DeleteAccountStruct,
   GetAccounBalancesResponseStruct,
@@ -62,6 +65,7 @@ import {
   NetworkStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
+import { ScheduleBackgroundEventMethod } from '../onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import {
   DiscoverAccountsRequestStruct,
   SolanaKeyringRequestStruct,
@@ -104,7 +108,7 @@ export class SolanaKeyring implements Keyring {
     nameResolutionService: NameResolutionService;
   }) {
     this.#state = state;
-    this.#logger = logger;
+    this.#logger = createPrefixedLogger(logger, '[🔑 Keyring]');
     this.#transactionsService = transactionsService;
     this.#assetsService = assetsService;
     this.#walletService = walletService;
@@ -238,7 +242,7 @@ export class SolanaKeyring implements Keyring {
 
       if (sameAccount) {
         this.#logger.warn(
-          '[🔑 Keyring] An account already exists with the same derivation path and entropy source. Skipping account creation.',
+          'An account already exists with the same derivation path and entropy source. Skipping account creation.',
         );
         return asStrictKeyringAccount(sameAccount);
       }
@@ -323,6 +327,18 @@ export class SolanaKeyring implements Keyring {
       await this.#keyringAccountMonitor.monitorKeyringAccount(
         solanaKeyringAccount,
       );
+
+      // Schedule a synchronization of the account
+      await snap.request({
+        method: 'snap_scheduleBackgroundEvent',
+        params: {
+          duration: 'PT1S',
+          request: {
+            method: ScheduleBackgroundEventMethod.OnSynchronizeAccount,
+            params: { accountId: id },
+          },
+        },
+      });
 
       return keyringAccount;
     } catch (error: any) {
@@ -498,13 +514,14 @@ export class SolanaKeyring implements Keyring {
    */
   async listAccountTransactions(
     accountId: string,
-    pagination: { limit: number; next?: Signature | null },
+    pagination: Pagination,
   ): Promise<{
     data: Transaction[];
     next: Signature | null;
   }> {
     try {
       validateRequest({ accountId, pagination }, ListAccountTransactionsStruct);
+      const { limit, next } = pagination;
 
       const keyringAccount = await this.getAccount(accountId);
 
@@ -512,48 +529,25 @@ export class SolanaKeyring implements Keyring {
         throw new Error('Account not found');
       }
 
-      const allTransactions =
-        (await this.#state.getKey<Transaction[]>(
-          `transactions.${accountId}`,
-        )) ?? [];
-
-      /**
-       * If we don't have any transactions, we might need to bootstrap them as this may be the first call.
-       * We'll fetch the transactions from the blockchain and store them in the state.
-       */
-      if (!allTransactions.length) {
-        const transactions =
-          await this.#transactionsService.fetchLatestAccountTransactions(
-            keyringAccount,
-            pagination.limit,
-          );
-
-        await this.#state.setKey(
-          `transactions.${keyringAccount.id}`,
-          transactions,
-        );
-
-        return {
-          data: transactions,
-          next: null,
-        };
-      }
+      const transactions = await this.#transactionsService.findByAccounts([
+        keyringAccount,
+      ]);
 
       // Find the starting index based on the 'next' signature
-      const startIndex = pagination.next
-        ? allTransactions.findIndex((tx) => tx.id === pagination.next)
+      const startIndex = next
+        ? transactions.findIndex((tx) => tx.id === next)
         : 0;
 
       // Get transactions from startIndex to startIndex + limit
-      const accountTransactions = allTransactions.slice(
+      const accountTransactions = transactions.slice(
         startIndex,
-        startIndex + pagination.limit,
+        startIndex + limit,
       );
 
       // Determine the next signature for pagination
-      const hasMore = startIndex + pagination.limit < allTransactions.length;
+      const hasMore = startIndex + pagination.limit < transactions.length;
       const nextSignature = hasMore
-        ? ((allTransactions[startIndex + pagination.limit]?.id as Signature) ??
+        ? ((transactions[startIndex + pagination.limit]?.id as Signature) ??
           null)
         : null;
 

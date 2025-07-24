@@ -4,10 +4,10 @@ import { address } from '@solana/kit';
 
 import * as snapContext from '../../../../snapContext';
 import { Network } from '../../../constants/solana';
+import type { TransactionsService } from '../../../services';
 import type { AssetsService } from '../../../services/assets/AssetsService';
 import type { IStateManager } from '../../../services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../../services/state/State';
-import type { TransactionsService } from '../../../services/transactions/TransactionsService';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -28,7 +28,7 @@ jest.mock('../../../../snapContext', () => ({
   },
   transactionsService: {
     fetchLatestSignatures: jest.fn(),
-    refreshTransactions: jest.fn(),
+    synchronize: jest.fn(),
   },
 }));
 
@@ -80,7 +80,7 @@ describe('onAccountsRefresh', () => {
       );
 
       mockAssetsService.refreshAssets.mockResolvedValue();
-      mockTransactionsService.refreshTransactions.mockResolvedValue();
+      mockTransactionsService.synchronize.mockResolvedValue();
 
       const request = {
         id: '1',
@@ -116,10 +116,8 @@ describe('onAccountsRefresh', () => {
         accounts[0],
       ]);
 
-      expect(mockTransactionsService.refreshTransactions).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(mockTransactionsService.refreshTransactions).toHaveBeenCalledWith([
+      expect(mockTransactionsService.synchronize).toHaveBeenCalledTimes(1);
+      expect(mockTransactionsService.synchronize).toHaveBeenCalledWith([
         accounts[0],
       ]);
     });
@@ -136,7 +134,7 @@ describe('onAccountsRefresh', () => {
       ]);
 
       mockAssetsService.refreshAssets.mockResolvedValue();
-      mockTransactionsService.refreshTransactions.mockResolvedValue();
+      mockTransactionsService.synchronize.mockResolvedValue();
 
       await onAccountsRefresh({
         request: {
@@ -150,7 +148,7 @@ describe('onAccountsRefresh', () => {
       expect(mockAssetsService.refreshAssets).toHaveBeenCalledWith([
         accounts[0],
       ]);
-      expect(mockTransactionsService.refreshTransactions).toHaveBeenCalledWith([
+      expect(mockTransactionsService.synchronize).toHaveBeenCalledWith([
         accounts[0],
       ]);
     });
@@ -185,9 +183,7 @@ describe('onAccountsRefresh', () => {
       await onAccountsRefresh({ request });
 
       expect(mockAssetsService.refreshAssets).not.toHaveBeenCalled();
-      expect(
-        mockTransactionsService.refreshTransactions,
-      ).not.toHaveBeenCalled();
+      expect(mockTransactionsService.synchronize).not.toHaveBeenCalled();
     });
 
     it('skips refresh when no latest signatures are found', async () => {
@@ -207,9 +203,7 @@ describe('onAccountsRefresh', () => {
       await onAccountsRefresh({ request });
 
       expect(mockAssetsService.refreshAssets).not.toHaveBeenCalled();
-      expect(
-        mockTransactionsService.refreshTransactions,
-      ).not.toHaveBeenCalled();
+      expect(mockTransactionsService.synchronize).not.toHaveBeenCalled();
     });
   });
 
@@ -231,9 +225,7 @@ describe('onAccountsRefresh', () => {
         mockTransactionsService.fetchLatestSignatures,
       ).not.toHaveBeenCalled();
       expect(mockAssetsService.refreshAssets).not.toHaveBeenCalled();
-      expect(
-        mockTransactionsService.refreshTransactions,
-      ).not.toHaveBeenCalled();
+      expect(mockTransactionsService.synchronize).not.toHaveBeenCalled();
     });
   });
 
@@ -247,7 +239,7 @@ describe('onAccountsRefresh', () => {
         'newSig',
       ] as Signature[]);
       mockAssetsService.refreshAssets.mockRejectedValue(assetsError);
-      mockTransactionsService.refreshTransactions.mockResolvedValue();
+      mockTransactionsService.synchronize.mockResolvedValue();
 
       const request = {
         id: '1',
@@ -258,7 +250,7 @@ describe('onAccountsRefresh', () => {
 
       await onAccountsRefresh({ request });
 
-      expect(mockTransactionsService.refreshTransactions).toHaveBeenCalled(); // Should still continue
+      expect(mockTransactionsService.synchronize).toHaveBeenCalled(); // Should still continue
     });
 
     it('handles errors during transactions refresh gracefully', async () => {
@@ -270,9 +262,7 @@ describe('onAccountsRefresh', () => {
         'newSig',
       ] as Signature[]);
       mockAssetsService.refreshAssets.mockResolvedValue();
-      mockTransactionsService.refreshTransactions.mockRejectedValue(
-        transactionsError,
-      );
+      mockTransactionsService.synchronize.mockRejectedValue(transactionsError);
 
       const request = {
         id: '1',
