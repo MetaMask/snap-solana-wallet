@@ -350,13 +350,14 @@ export class AssetsService {
   async fetch(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
     this.#logger.info('Fetching assets for account', account);
 
-    const nativeAssets = await this.#fetchNativeAssets(account);
-
-    const tokenAccounts = await this.#fetchTokenAccountsMultiple(
-      [account],
-      [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-      this.#activeNetworks,
-    );
+    const [nativeAssets, tokenAccounts] = await Promise.all([
+      this.#fetchNativeAssets(account),
+      this.#fetchTokenAccountsMultiple(
+        [account],
+        [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+        this.#activeNetworks,
+      ),
+    ]);
 
     const tokensMetadata = await this.#tokenMetadataService.getTokensMetadata(
       tokenAccounts.map((tokenAccount) => tokenAccount.assetType),
