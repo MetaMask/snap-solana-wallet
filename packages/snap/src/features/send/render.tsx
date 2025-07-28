@@ -100,7 +100,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   context.balances = getBalancesInScope(scope, assetEntities);
   context.assets = assetEntities.map((asset) => asset.assetType);
-  context.accounts = Object.values(keyringAccounts ?? {});
+  context.accounts = keyringAccounts;
   context.preferences = preferences;
   context.tokenPrices = tokenPrices ?? {};
 
