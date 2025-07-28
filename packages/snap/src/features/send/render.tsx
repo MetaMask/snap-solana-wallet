@@ -92,7 +92,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   const [assetEntities, keyringAccounts, tokenPrices, preferences] =
     await Promise.all([
-      assetsService.getAll(),
+      assetsService.getByKeyringAccountId(account),
       accountsService.getAll(),
       state.getKey<UnencryptedStateValue['tokenPrices']>('tokenPrices'),
       getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),

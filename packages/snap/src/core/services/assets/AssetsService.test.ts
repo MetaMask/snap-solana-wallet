@@ -348,8 +348,8 @@ describe('AssetsService', () => {
         .spyOn(mockState, 'getKey')
         .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
 
-      const assets = await assetsService.getByAccount(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+      const assets = await assetsService.getByKeyringAccountId(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       );
 
       expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);

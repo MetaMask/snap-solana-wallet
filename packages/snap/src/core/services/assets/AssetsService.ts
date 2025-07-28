@@ -626,9 +626,11 @@ export class AssetsService {
     return Object.values(assetsByAccount).flat();
   }
 
-  async getByAccount(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
+  async getByKeyringAccountId(
+    keyringAccountId: string,
+  ): Promise<AssetEntity[]> {
     const assets = await this.#state.getKey<AssetEntity[]>(
-      `assetEntities.${account.id}`,
+      `assetEntities.${keyringAccountId}`,
     );
 
     return assets ?? [];
