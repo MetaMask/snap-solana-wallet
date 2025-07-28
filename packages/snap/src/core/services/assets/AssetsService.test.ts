@@ -245,6 +245,29 @@ describe('AssetsService', () => {
       );
     });
 
+    it('emits event "AccountAssetListUpdated" when an asset was saved with a zero balance some more is added', async () => {
+      await assetsService.saveMany([
+        { ...MOCK_ASSET_ENTITY_0, rawAmount: '0' },
+      ]);
+
+      await assetsService.saveMany([
+        { ...MOCK_ASSET_ENTITY_0, rawAmount: '1000000' },
+      ]);
+
+      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+        snap,
+        KeyringEvent.AccountAssetListUpdated,
+        {
+          assets: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              added: [MOCK_ASSET_ENTITY_0.assetType],
+              removed: [],
+            },
+          },
+        },
+      );
+    });
+
     it('emits event "AccountBalancesUpdated" when balances change', async () => {
       await assetsService.saveMany(MOCK_ASSET_ENTITIES);
 

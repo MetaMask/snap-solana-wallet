@@ -506,17 +506,27 @@ export class AssetsService {
       return newState;
     });
 
-    // Notify the extension about the new assets in a single event
-    const isNew = (asset: AssetEntity) =>
-      !savedAssets.find(
-        (savedAsset) =>
-          savedAsset.keyringAccountId === asset.keyringAccountId &&
-          savedAsset.assetType === asset.assetType,
-      );
-
     const hasZeroRawAmount = (asset: AssetEntity) => asset.rawAmount === '0';
     const hasNonZeroRawAmount = (asset: AssetEntity) =>
       !hasZeroRawAmount(asset);
+
+    // Notify the extension about the new assets in a single event
+    const isNew = (asset: AssetEntity) =>
+      !savedAssets.find(
+        (item) =>
+          item.keyringAccountId === asset.keyringAccountId &&
+          item.assetType === asset.assetType,
+      );
+
+    const wasSavedWithZeroRawAmount = (asset: AssetEntity) => {
+      const savedAsset = savedAssets.find(
+        (item) =>
+          item.keyringAccountId === asset.keyringAccountId &&
+          item.assetType === asset.assetType,
+      );
+
+      return savedAsset && hasZeroRawAmount(savedAsset);
+    };
 
     const assetListUpdatedPayload = assets.reduce<
       AccountAssetListUpdatedEvent['params']['assets']
@@ -526,7 +536,8 @@ export class AssetsService {
         [asset.keyringAccountId]: {
           added: [
             ...(acc[asset.keyringAccountId]?.added ?? []),
-            ...(isNew(asset) && hasNonZeroRawAmount(asset)
+            ...((isNew(asset) || wasSavedWithZeroRawAmount(asset)) &&
+            hasNonZeroRawAmount(asset)
               ? [asset.assetType]
               : []),
           ],
