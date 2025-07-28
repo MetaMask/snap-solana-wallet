@@ -388,7 +388,7 @@ export class SolanaKeyring implements Keyring {
       await this.getAccountOrThrow(accountId);
 
       const assetEntities =
-        await this.#assetsService.getByKeyringAccountId(accountId);
+        await this.#assetsService.findByKeyringAccountId(accountId);
 
       const result = assetEntities.map((asset) => asset.assetType);
 
@@ -416,7 +416,7 @@ export class SolanaKeyring implements Keyring {
       await this.getAccountOrThrow(accountId);
 
       const assetEntities =
-        await this.#assetsService.getByKeyringAccountId(accountId);
+        await this.#assetsService.findByKeyringAccountId(accountId);
       const assetEntitiesOnlyRequestedAssetTypes = assetEntities.filter(
         (asset) => assets.includes(asset.assetType),
       );

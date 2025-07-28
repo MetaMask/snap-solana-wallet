@@ -627,7 +627,7 @@ export class AssetsService {
     return Object.values(assetsByAccount).flat();
   }
 
-  async getByKeyringAccountId(
+  async findByKeyringAccountId(
     keyringAccountId: string,
   ): Promise<AssetEntity[]> {
     const assets = await this.#state.getKey<AssetEntity[]>(

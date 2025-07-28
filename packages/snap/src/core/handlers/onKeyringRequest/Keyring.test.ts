@@ -97,7 +97,7 @@ describe('SolanaKeyring', () => {
     });
 
     mockAssetsService = {
-      getByAccount: jest.fn(),
+      findByKeyringAccountId: jest.fn(),
     } as unknown as AssetsService;
 
     mockWalletService = {
@@ -170,7 +170,7 @@ describe('SolanaKeyring', () => {
   describe('listAccountAssets', () => {
     it('calls the assets service', async () => {
       jest
-        .spyOn(mockAssetsService, 'getByAccount')
+        .spyOn(mockAssetsService, 'findByKeyringAccountId')
         .mockResolvedValue(MOCK_ASSET_ENTITIES);
 
       const result = await keyring.listAccountAssets(
@@ -632,7 +632,7 @@ describe('SolanaKeyring', () => {
       } as unknown as AssetEntity;
 
       jest
-        .spyOn(mockAssetsService, 'getByAccount')
+        .spyOn(mockAssetsService, 'findByKeyringAccountId')
         .mockResolvedValue([invalidAsset]);
 
       await expect(
