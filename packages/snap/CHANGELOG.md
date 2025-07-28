@@ -11,9 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
-- feat: rework assets ([#479](https://github.com/MetaMask/snap-solana-wallet/pull/479))
-- chore: Excessive Data Access and Prolonged Sensitive Information Exposure ([#478](https://github.com/MetaMask/snap-solana-wallet/pull/478))
-- chore: Adds sanitization and prevents control character injection ([#472](https://github.com/MetaMask/snap-solana-wallet/pull/472))
+### Changed
+
+- Asset storage refactor and performance improvements ([#479](https://github.com/MetaMask/snap-solana-wallet/pull/479))
+
+### Fixed
+
+- Automatically remove assets from the list when their balance reaches zero ([#479](https://github.com/MetaMask/snap-solana-wallet/pull/479))
+
+### Security
+
+- Excessive data access and prolonged sensitive information exposure ([#478](https://github.com/MetaMask/snap-solana-wallet/pull/478))
+- Add sanitization and prevents control character injection ([#472](https://github.com/MetaMask/snap-solana-wallet/pull/472))
 
 ## [2.0.0]
 
