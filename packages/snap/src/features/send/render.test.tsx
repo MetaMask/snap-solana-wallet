@@ -175,6 +175,41 @@ describe('Send', () => {
       return res.json(mockSpotPrices);
     });
 
+    const mockAssetEntities = [
+      {
+        assetType: KnownCaip19Id.SolLocalnet,
+        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        network: Network.Localnet,
+        address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        symbol: 'SOL',
+        decimals: 9,
+        rawAmount: '123456789',
+        uiAmount: '0.123456789',
+      },
+      {
+        assetType: 'solana:123456789abcdef/token:address1',
+        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        network: Network.Localnet,
+        symbol: 'EURO-COIN',
+        mint: 'address1',
+        pubkey: 'pubkey1',
+        decimals: 6,
+        rawAmount: '123456789',
+        uiAmount: '123.456789',
+      },
+      {
+        assetType: 'solana:123456789abcdef/token:address2',
+        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        network: Network.Localnet,
+        symbol: 'USDC',
+        mint: 'address2',
+        pubkey: 'pubkey2',
+        decimals: 6,
+        rawAmount: '123456789',
+        uiAmount: '123.456789',
+      },
+    ];
+
     const initialState = {
       keyringAccounts: {
         [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
@@ -186,9 +221,9 @@ describe('Send', () => {
           entropySource: 'alternative',
         },
       },
-      assets: {
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
-        [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
+      assetEntities: {
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: mockAssetEntities,
+        [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: mockAssetEntities,
       },
     };
 
