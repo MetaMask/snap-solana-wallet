@@ -1,6 +1,8 @@
 import { type RpcTransport } from '@solana/kit';
 
-import logger from '../../../utils/logger';
+import { noOpLogger } from '../../../utils/logger';
+
+const logger = noOpLogger;
 
 /**
  * Creates a failover transport that switches to the next transport on failure.

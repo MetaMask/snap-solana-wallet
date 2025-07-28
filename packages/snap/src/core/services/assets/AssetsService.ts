@@ -1,4 +1,8 @@
-import type { Balance } from '@metamask/keyring-api';
+import type {
+  AccountAssetListUpdatedEvent,
+  AccountBalancesUpdatedEvent,
+  Balance,
+} from '@metamask/keyring-api';
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type {
@@ -9,11 +13,20 @@ import type { CaipAssetType } from '@metamask/utils';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
-import type { Address } from '@solana/kit';
+import type {
+  AccountInfoBase,
+  AccountInfoWithPubkey,
+  Address,
+} from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
-import { map, uniq } from 'lodash';
+import { cloneDeep } from 'lodash';
 
-import type { SolanaKeyringAccount } from '../../../entities';
+import type {
+  AssetEntity,
+  NativeAsset,
+  SolanaKeyringAccount,
+  TokenAsset,
+} from '../../../entities';
 import type { ICache } from '../../caching/ICache';
 import { useCache } from '../../caching/useCache';
 import type { NftApiClient } from '../../clients/nft-api/NftApiClient';
@@ -24,16 +37,11 @@ import type {
   TokenCaipAssetType,
 } from '../../constants/solana';
 import { Network, SolanaCaip19Tokens } from '../../constants/solana';
-import type {
-  GetTokenAccountsByOwnerResponse,
-  TokenAccountInfoWithJsonData,
-} from '../../sdk-extensions/rpc-api';
+import type { TokenAccountInfoWithJsonData } from '../../sdk-extensions/rpc-api';
 import type { Serializable } from '../../serialization/types';
-import { diffArrays } from '../../utils/diffArrays';
-import { diffObjects } from '../../utils/diffObjects';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
-import type { ILogger } from '../../utils/logger';
+import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
@@ -41,16 +49,17 @@ import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
-import type { AssetMetadata, NonFungibleAssetMetadata } from './type';
+import type { AssetMetadata, NonFungibleAssetMetadata } from './types';
 
 /**
  * Extends a token account as returned by the `getTokenAccountsByOwner` RPC method with the scope and the caip-19 asset type for convenience.
  */
-export type TokenAccountWithMetadata =
-  GetTokenAccountsByOwnerResponse<TokenAccountInfoWithJsonData>[number] & {
-    scope: Network;
-    assetType: CaipAssetType;
-  } & Serializable;
+type TokenAccountWithMetadata = {
+  token: AccountInfoWithPubkey<AccountInfoBase & TokenAccountInfoWithJsonData>;
+  scope: Network;
+  assetType: TokenCaipAssetType;
+  keyringAccount: SolanaKeyringAccount;
+} & Serializable;
 
 export class AssetsService {
   readonly #logger: ILogger;
@@ -96,7 +105,7 @@ export class AssetsService {
     cache: ICache<Serializable>;
     nftApiClient: NftApiClient;
   }) {
-    this.#logger = logger;
+    this.#logger = createPrefixedLogger(logger, '[🪙 AssetsService]');
     this.#connection = connection;
     this.#configProvider = configProvider;
     this.#state = state;
@@ -105,73 +114,6 @@ export class AssetsService {
     this.#cache = cache;
     this.#nftApiClient = nftApiClient;
     this.#activeNetworks = configProvider.get().activeNetworks;
-  }
-
-  async #listAddressNativeAssets(): Promise<NativeCaipAssetType[]> {
-    const nativeAssetsIds = this.#activeNetworks.map(
-      (network) => `${network}/${SolanaCaip19Tokens.SOL}` as const,
-    );
-
-    return nativeAssetsIds;
-  }
-
-  async #listAddressTokenAssets(
-    address: Address,
-  ): Promise<TokenCaipAssetType[]> {
-    const tokenAccounts = await this.getTokenAccountsByOwnerMultiple(
-      asAddress(address),
-      [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-      this.#activeNetworks,
-    );
-    const tokenIds = tokenAccounts.map(
-      (token) => token.assetType,
-    ) as TokenCaipAssetType[];
-
-    return tokenIds;
-  }
-
-  async #listAddressNftAssets(address: Address): Promise<NftCaipAssetType[]> {
-    const nftAssets = await this.#nftApiClient.listAddressSolanaNfts(address);
-
-    const nftAssetsIds = nftAssets.map(
-      (nft) => `${Network.Mainnet}/nft:${nft.tokenAddress}` as NftCaipAssetType,
-    );
-
-    return nftAssetsIds;
-  }
-
-  /**
-   * Fetches and returns the list of assets for the given account in all Solana networks. Includes native and token assets.
-   *
-   * @param account - The account to get the assets for.
-   * @returns CAIP-19 assets ids.
-   */
-  async listAccountAssets(
-    account: SolanaKeyringAccount,
-  ): Promise<CaipAssetType[]> {
-    this.#logger.log(
-      this.#loggerPrefix,
-      'Fetching all assets for account',
-      account,
-    );
-
-    const accountAddress = asAddress(account.address);
-
-    const [
-      nativeAssetsIds,
-      tokenAssetsIds,
-      // nftAssetsIds
-    ] = await Promise.all([
-      this.#listAddressNativeAssets(),
-      this.#listAddressTokenAssets(accountAddress),
-      // this.#listAddressNftAssets(accountAddress),
-    ]);
-
-    return uniq([
-      ...nativeAssetsIds,
-      ...tokenAssetsIds,
-      // ...nftAssetsIds
-    ]);
   }
 
   #splitAssetsByType(assetTypes: CaipAssetType[]) {
@@ -188,7 +130,7 @@ export class AssetsService {
     return { nativeAssetTypes, tokenAssetTypes, nftAssetTypes };
   }
 
-  getNativeTokensMetadata(
+  #getNativeTokensMetadata(
     assetTypes: NativeCaipAssetType[],
   ): Record<CaipAssetType, FungibleAssetMetadata | null> {
     const nativeTokensMetadata: Record<
@@ -216,7 +158,7 @@ export class AssetsService {
     return nativeTokensMetadata;
   }
 
-  async getTokensMetadata(
+  async #getTokensMetadata(
     assetTypes: TokenCaipAssetType[],
   ): Promise<Record<TokenCaipAssetType, FungibleAssetMetadata | null>> {
     const tokensMetadata =
@@ -225,7 +167,7 @@ export class AssetsService {
     return tokensMetadata;
   }
 
-  async getNftsMetadata(
+  async #getNftsMetadata(
     assetTypes: NftCaipAssetType[],
   ): Promise<Record<NftCaipAssetType, NonFungibleAssetMetadata | null>> {
     const nftsMetadata = await this.#nftApiClient.getNftsMetadata(
@@ -293,9 +235,9 @@ export class AssetsService {
       tokensMetadata,
       // nftMetadata,
     ] = await Promise.all([
-      this.getNativeTokensMetadata(nativeAssetTypes),
-      this.getTokensMetadata(tokenAssetTypes),
-      // this.getNftsMetadata(nftAssetTypes),
+      this.#getNativeTokensMetadata(nativeAssetTypes),
+      this.#getTokensMetadata(tokenAssetTypes),
+      // this.#getNftsMetadata(nftAssetTypes),
     ]);
 
     return {
@@ -311,13 +253,13 @@ export class AssetsService {
    *
    * It caches the results for each pair of scope and program id.
    *
-   * @param owner - The owner of the token accounts.
+   * @param accounts - The owners of the token accounts.
    * @param programIds - The program ids to fetch the token accounts for.
    * @param scopes - The networks to fetch the token accounts for.
    * @returns The token accounts augmented with the scope and the caip-19 asset type for convenience.
    */
-  async getTokenAccountsByOwnerMultiple(
-    owner: Address,
+  async #fetchTokenAccountsMultiple(
+    accounts: SolanaKeyringAccount[],
     programIds: Address[] = [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
     scopes: Network[] = [Network.Mainnet],
   ): Promise<TokenAccountWithMetadata[]> {
@@ -325,23 +267,29 @@ export class AssetsService {
       return [];
     }
 
-    // Create all pairs of scope and program id
-    const pairs = scopes.flatMap((scope) =>
-      programIds.map((programId) => ({ scope, programId })),
+    // Create all combinations of account, programId, and scope
+    const combinations = accounts.flatMap((account) =>
+      programIds.flatMap((programId) =>
+        scopes.map((scope) => ({ account, programId, scope })),
+      ),
     );
 
-    const getTokenAccountsByOwnerCached = useCache<
-      [Address, Address, Network],
+    const fetchTokenAccountsCached = useCache<
+      [SolanaKeyringAccount, Address, Network],
       TokenAccountWithMetadata[]
-    >(this.#getTokenAccountsByOwner.bind(this), this.#cache, {
-      functionName: 'AssetsService:getTokenAccountsByOwner',
+    >(this.#fetchTokenAccounts.bind(this), this.#cache, {
+      functionName: 'AssetsService:fetchTokenAccounts',
       ttlMilliseconds: AssetsService.cacheTtlsMilliseconds.tokenAccountsByOwner,
+      generateCacheKey: (functionName, args) => {
+        const [account, programId, scope] = args;
+        return `${functionName}:${account.id}:${programId}:${scope}`;
+      },
     });
 
-    const responses = await Promise.all(
-      pairs.map(async ({ scope, programId }) => {
-        const response = await getTokenAccountsByOwnerCached(
-          owner,
+    const responses = await Promise.allSettled(
+      combinations.map(async ({ account, programId, scope }) => {
+        const response = await fetchTokenAccountsCached(
+          account,
           programId,
           scope,
         );
@@ -349,25 +297,31 @@ export class AssetsService {
       }),
     );
 
-    return responses.flat();
+    return responses.flatMap((item) =>
+      item.status === 'fulfilled' ? item.value : [],
+    );
   }
 
   /**
    * Fetches the token accounts for the given owner and program id on the specified scope.
    *
-   * @param owner - The owner of the token accounts.
+   * @param account - The owner of the token accounts.
    * @param programId - The program id to fetch the token accounts for.
    * @param scope - The scope to fetch the token accounts for.
    * @returns The token accounts augmented with the scope and the caip-19 asset type for convenience.
    */
-  async #getTokenAccountsByOwner(
-    owner: Address,
+  async #fetchTokenAccounts(
+    account: SolanaKeyringAccount,
     programId: Address = TOKEN_PROGRAM_ADDRESS,
     scope: Network = Network.Mainnet,
   ): Promise<TokenAccountWithMetadata[]> {
     const response = await this.#connection
       .getRpc(scope)
-      .getTokenAccountsByOwner(owner, { programId }, { encoding: 'jsonParsed' })
+      .getTokenAccountsByOwner(
+        asAddress(account.address),
+        { programId },
+        { encoding: 'jsonParsed' },
+      )
       .send();
 
     const tokens = response.value;
@@ -376,136 +330,104 @@ export class AssetsService {
     return tokens.map(
       (token) =>
         ({
-          ...token,
+          token,
           scope,
           assetType: tokenAddressToCaip19(
             scope,
             token.account.data.parsed.info.mint,
           ),
+          keyringAccount: account,
         }) as TokenAccountWithMetadata,
     );
   }
 
   /**
-   * Fetches and returns the balances and metadata of the given account for the given assets.
+   * Fetches all assets for the given account.
    *
    * @param account - The account to get the balances for.
-   * @param assetTypes - The asset types to get the balances for (CAIP-19 ids).
    * @returns The balances and metadata of the account for the given assets.
    */
-  async getAccountBalances(
-    account: SolanaKeyringAccount,
-    assetTypes: CaipAssetType[],
-  ): Promise<Record<CaipAssetType, Balance>> {
-    this.#logger.log(
-      this.#loggerPrefix,
-      'Fetching balances for account',
-      account,
-      assetTypes,
+  async fetch(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
+    this.#logger.info('Fetching assets for account', account);
+
+    const nativeAssets = await this.#fetchNativeAssets(account);
+
+    const tokenAccounts = await this.#fetchTokenAccountsMultiple(
+      [account],
+      [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+      this.#activeNetworks,
     );
 
-    /**
-     * There will be 3 sources of balances data:
-     * - The balances for native assets, which are fetched from the RPC
-     * - The balances for token assets, which are fetched from the token accounts
-     * - The balances for NFT assets, which are always 1
-     */
-    const { nativeAssetTypes, tokenAssetTypes, nftAssetTypes } =
-      this.#splitAssetsByType(assetTypes);
+    const tokensMetadata = await this.#tokenMetadataService.getTokensMetadata(
+      tokenAccounts.map((tokenAccount) => tokenAccount.assetType),
+    );
 
-    const [
-      nativeBalances,
-      tokenBalances,
-      // nftBalances
-    ] = await Promise.all([
-      this.#getNativeBalances(account, nativeAssetTypes),
-      this.#getTokenBalances(account, tokenAssetTypes),
-      // this.#getNftBalances(account, nftAssetTypes),
-    ]);
+    const tokenAssets: TokenAsset[] = tokenAccounts
+      .filter((tokenAccount) => tokenAccount.assetType.includes('/token:'))
+      .map((tokenAccount) => {
+        const { assetType } = tokenAccount;
+        const { decimals, amount, uiAmountString } =
+          tokenAccount.token.account.data.parsed.info.tokenAmount;
 
-    return {
-      ...nativeBalances,
-      ...tokenBalances,
-      // ...nftBalances,
-    };
+        return {
+          assetType,
+          keyringAccountId: tokenAccount.keyringAccount.id,
+          network: tokenAccount.scope,
+          mint: tokenAccount.token.account.data.parsed.info.mint,
+          pubkey: tokenAccount.token.pubkey,
+          symbol: tokensMetadata[assetType]?.symbol ?? 'UNKNOWN',
+          decimals,
+          rawAmount: amount,
+          uiAmount: uiAmountString ?? fromTokenUnits(amount, decimals),
+        };
+      });
+
+    // const nftAssets = await this.#fetchNftAssets(account, tokenAccounts.filter(
+    //   (token) => token.assetType.includes('/nft:'),
+    // ));
+
+    return [
+      ...nativeAssets,
+      ...tokenAssets,
+      // ...nftAssets,
+    ];
   }
 
-  async #getNativeBalances(
+  async #fetchNativeAssets(
     account: SolanaKeyringAccount,
-    assetIds: NativeCaipAssetType[],
-  ): Promise<Record<CaipAssetType, Balance>> {
+  ): Promise<NativeAsset[]> {
+    const nativeAssetsIds = this.#activeNetworks.map(
+      (network) => `${network}/${SolanaCaip19Tokens.SOL}` as const,
+    );
+
     const accountAddress = asAddress(account.address);
 
-    const balancePromises = assetIds.map(async (assetId) => {
+    const balancePromises = nativeAssetsIds.map(async (assetId) => {
       const balance = await this.#connection
         .getRpc(getNetworkFromToken(assetId))
         .getBalance(accountAddress)
         .send();
 
-      return [
-        assetId,
-        {
-          unit: 'SOL',
-          amount: fromTokenUnits(balance.value, 9),
-        },
-      ] as const;
+      return {
+        assetType: assetId,
+        keyringAccountId: account.id,
+        network: getNetworkFromToken(assetId),
+        address: accountAddress,
+        symbol: 'SOL',
+        decimals: 9,
+        rawAmount: balance.value.toString(),
+        uiAmount: fromTokenUnits(balance.value, 9),
+      };
     });
 
-    const results = await Promise.all(balancePromises);
-    return Object.fromEntries(results);
-  }
-
-  async #getTokenBalances(
-    account: SolanaKeyringAccount,
-    assetIds: TokenCaipAssetType[],
-  ): Promise<Record<CaipAssetType, Balance>> {
-    const accountAddress = asAddress(account.address);
-    const tokensMetadata =
-      await this.#tokenMetadataService.getTokensMetadata(assetIds);
-
-    const scopes = uniq(map(assetIds, getNetworkFromToken));
-    const programIds = [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS];
-    const tokenAccounts = await this.getTokenAccountsByOwnerMultiple(
-      accountAddress,
-      programIds,
-      scopes,
+    const results = (await Promise.allSettled(balancePromises)).flatMap(
+      (item) => (item.status === 'fulfilled' ? item.value : []),
     );
 
-    const balances: Record<CaipAssetType, Balance> = {};
-
-    // For each requested asset type, retrieve the balance and metadata, and store that in the balances object
-    const promises = assetIds.map(async (assetType) => {
-      const tokenAccount = tokenAccounts.find(
-        (item: any) => item.assetType === assetType,
-      );
-
-      const balance = tokenAccount
-        ? BigInt(tokenAccount.account.data.parsed.info.tokenAmount.amount)
-        : BigInt(0); // If the user has no token account linked to a requested mint, default to 0
-
-      const metadata = tokensMetadata[assetType];
-
-      const amount = fromTokenUnits(balance, metadata?.units[0]?.decimals ?? 9);
-
-      balances[assetType] = { amount, unit: metadata?.symbol ?? 'UNKNOWN' };
-    });
-
-    await Promise.all(promises);
-
-    const previousAssets = await this.#state.getKey<
-      UnencryptedStateValue['assets']
-    >(`assets.${account.id}`);
-
-    const updatedAssets = {
-      ...previousAssets,
-      ...balances,
-    };
-    await this.#state.setKey(`assets.${account.id}`, updatedAssets);
-
-    return balances;
+    return results;
   }
 
-  async #getNftBalances(
+  async #fetchNftAssets(
     account: SolanaKeyringAccount,
     assetIds: NftCaipAssetType[],
   ): Promise<Record<CaipAssetType, Balance>> {
@@ -535,99 +457,7 @@ export class AssetsService {
     return balances;
   }
 
-  /**
-   * Fetches the assets for the given accounts and updates the state accordingly. Also emits events for any changes.
-   *
-   * @param accounts - The accounts to refresh the assets for.
-   */
-  async refreshAssets(accounts: SolanaKeyringAccount[]): Promise<void> {
-    if (accounts.length === 0) {
-      this.#logger.log(this.#loggerPrefix, 'No accounts passed');
-      return;
-    }
-
-    this.#logger.log(
-      this.#loggerPrefix,
-      `Refreshing assets for ${accounts.length} accounts`,
-    );
-
-    const assets =
-      (await this.#state.getKey<UnencryptedStateValue['assets']>('assets')) ??
-      {};
-
-    for (const account of accounts) {
-      this.#logger.log(
-        this.#loggerPrefix,
-        `Fetching all assets for ${account.address} in all networks`,
-      );
-      const accountAssets = await this.listAccountAssets(account);
-      const previousAssets = assets[account.id];
-      const previousCaip19Assets = Object.keys(
-        previousAssets ?? {},
-      ) as CaipAssetType[];
-      const currentCaip19Assets = accountAssets ?? {};
-
-      // Check if account assets have changed
-      const {
-        added: assetsAdded,
-        deleted: assetsDeleted,
-        hasDiff: assetsChanged,
-      } = diffArrays(previousCaip19Assets, currentCaip19Assets);
-
-      if (assetsChanged) {
-        this.#logger.log(
-          this.#loggerPrefix,
-          `Found updated assets for ${account.address}`,
-          { assetsAdded, assetsDeleted, assetsChanged },
-        );
-
-        await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
-          assets: {
-            [account.id]: {
-              added: assetsAdded,
-              removed: assetsDeleted,
-            },
-          },
-        });
-      }
-
-      const accountBalances = await this.getAccountBalances(
-        account,
-        accountAssets,
-      );
-
-      const previousBalances = assets[account.id];
-
-      // Check if balances have changed
-      const {
-        added: balancesAdded,
-        deleted: balancesDeleted,
-        changed: balancesChanged,
-        hasDiff: balancesHaveChange,
-      } = diffObjects(previousBalances ?? {}, accountBalances);
-
-      if (balancesHaveChange) {
-        this.#logger.log(
-          this.#loggerPrefix,
-          `Found updated balances for ${account.address}`,
-          { balancesAdded, balancesDeleted, balancesChanged },
-        );
-
-        await emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
-          balances: {
-            [account.id]: {
-              ...balancesAdded,
-              ...balancesChanged,
-            },
-          },
-        });
-
-        await this.#state.setKey(`assets.${account.id}`, accountBalances);
-      }
-    }
-  }
-
-  async getAssetsMarketData(
+  async fetchAssetsMarketData(
     assets: {
       asset: CaipAssetType;
       unit: CaipAssetType;
@@ -640,47 +470,156 @@ export class AssetsService {
     return marketData;
   }
 
-  async saveAsset(
-    account: SolanaKeyringAccount,
-    assetType: CaipAssetType,
-    balance: Balance,
-  ): Promise<void> {
-    const { id: accountId } = account;
+  async save(asset: AssetEntity): Promise<void> {
+    await this.saveMany([asset]);
+  }
 
-    const previousBalance = await this.#state.getKey<Balance>(
-      `assets.${accountId}.${assetType}`,
-    );
-    const isNew = !previousBalance;
-    if (isNew) {
-      await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
-        assets: {
-          [account.id]: {
-            added: [assetType],
-            removed: [],
-          },
+  async saveMany(assets: AssetEntity[]): Promise<void> {
+    this.#logger.info('Saving assets', assets);
+
+    const savedAssets = await this.getAll();
+
+    // Update the state atomically
+    await this.#state.update((stateValue) => {
+      const newState = cloneDeep(stateValue);
+      for (const asset of assets) {
+        const { keyringAccountId } = asset;
+        const accountAssets = cloneDeep(
+          newState.assetEntities[keyringAccountId] ?? [],
+        );
+
+        // Avoid duplicates. If same asset is already saved, override it.
+        const existingAssetIndex = accountAssets.findIndex(
+          (item) =>
+            item.assetType === asset.assetType &&
+            item.keyringAccountId === asset.keyringAccountId,
+        );
+
+        if (existingAssetIndex === -1) {
+          accountAssets.push(asset);
+        } else {
+          accountAssets[existingAssetIndex] = asset;
+        }
+
+        newState.assetEntities[keyringAccountId] = accountAssets;
+      }
+      return newState;
+    });
+
+    // Notify the extension about the new assets in a single event
+    const isNew = (asset: AssetEntity) =>
+      !savedAssets.find(
+        (savedAsset) =>
+          savedAsset.keyringAccountId === asset.keyringAccountId &&
+          savedAsset.assetType === asset.assetType,
+      );
+
+    const hasZeroRawAmount = (asset: AssetEntity) => asset.rawAmount === '0';
+    const hasNonZeroRawAmount = (asset: AssetEntity) =>
+      !hasZeroRawAmount(asset);
+
+    const assetListUpdatedPayload = assets.reduce<
+      AccountAssetListUpdatedEvent['params']['assets']
+    >(
+      (acc, asset) => ({
+        ...acc,
+        [asset.keyringAccountId]: {
+          added: [
+            ...(acc[asset.keyringAccountId]?.added ?? []),
+            ...(isNew(asset) && hasNonZeroRawAmount(asset)
+              ? [asset.assetType]
+              : []),
+          ],
+          removed: [
+            ...(acc[asset.keyringAccountId]?.removed ?? []),
+            ...(hasZeroRawAmount(asset) ? [asset.assetType] : []),
+          ],
         },
+      }),
+      {},
+    );
+
+    const isEmptyAccountAssetListUpdatedPayload = Object.values(
+      assetListUpdatedPayload,
+    )
+      .map((item) => item.added.length + item.removed.length)
+      .every((item) => item === 0);
+
+    if (!isEmptyAccountAssetListUpdatedPayload) {
+      await emitSnapKeyringEvent(snap, KeyringEvent.AccountAssetListUpdated, {
+        assets: assetListUpdatedPayload,
       });
     }
 
-    // Promise that will update the state
-    const updateState = this.#state.setKey(
-      `assets.${accountId}.${assetType}`,
-      balance,
-    );
+    // Notify the extension about the changed balances in a single event
 
-    // Promise that will notify the extension about the new balance
-    const notifyExtensionNewBalance = emitSnapKeyringEvent(
-      snap,
-      KeyringEvent.AccountBalancesUpdated,
-      {
-        balances: {
-          [accountId]: {
-            [assetType]: balance,
+    const hasChanged = (asset: AssetEntity) =>
+      AssetsService.hasChanged(asset, savedAssets);
+
+    const balancesUpdatedPayload = assets
+      .filter(hasNonZeroRawAmount)
+      .filter(hasChanged)
+      .reduce<AccountBalancesUpdatedEvent['params']['balances']>(
+        (acc, asset) => ({
+          ...acc,
+          [asset.keyringAccountId]: {
+            ...(acc[asset.keyringAccountId] ?? {}),
+            [asset.assetType]: {
+              unit: asset.symbol,
+              amount: asset.uiAmount,
+            },
           },
-        },
-      },
+        }),
+        {},
+      );
+    const isEmptyAccountBalancesUpdatedPayload = Object.values(
+      balancesUpdatedPayload,
+    )
+      .map((item) => Object.keys(item).length)
+      .every((item) => item === 0);
+
+    if (!isEmptyAccountBalancesUpdatedPayload) {
+      await emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
+        balances: balancesUpdatedPayload,
+      });
+    }
+  }
+
+  /**
+   * Checks if the asset has changed compared to passed assets lookup.
+   *
+   * @param asset - The asset to check.
+   * @param assetsLookup - The lookup table to check against.
+   * @returns True if the asset has changed, false otherwise.
+   */
+  static hasChanged(asset: AssetEntity, assetsLookup: AssetEntity[]): boolean {
+    const savedAsset = assetsLookup.find(
+      (item) =>
+        item.keyringAccountId === asset.keyringAccountId &&
+        item.assetType === asset.assetType,
     );
 
-    await Promise.allSettled([updateState, notifyExtensionNewBalance]);
+    if (!savedAsset) {
+      return true;
+    }
+
+    return savedAsset.rawAmount !== asset.rawAmount;
+  }
+
+  async getAll(): Promise<AssetEntity[]> {
+    const assetsByAccount =
+      (await this.#state.getKey<UnencryptedStateValue['assetEntities']>(
+        'assetEntities',
+      )) ?? {};
+
+    return Object.values(assetsByAccount).flat();
+  }
+
+  async getByAccount(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
+    const assets = await this.#state.getKey<AssetEntity[]>(
+      `assetEntities.${account.id}`,
+    );
+
+    return assets ?? [];
   }
 }

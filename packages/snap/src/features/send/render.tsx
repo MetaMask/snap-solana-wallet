@@ -93,15 +93,14 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),
   ]);
 
-  const { assets, keyringAccounts, tokenPrices } = stateValue;
+  const { assetEntities, keyringAccounts, tokenPrices } = stateValue;
 
-  context.balances = getBalancesInScope({
-    scope,
-    balances: assets,
-  });
+  context.balances = getBalancesInScope(scope, assetEntities);
 
-  const accountBalances = assets[context.fromAccountId] ?? {};
-  context.assets = Object.keys(accountBalances) as CaipAssetType[];
+  const assetTypes = Object.values(assetEntities)
+    .flat()
+    .map((asset) => asset.assetType);
+  context.assets = assetTypes;
 
   context.accounts = Object.values(keyringAccounts);
   context.preferences = preferences;

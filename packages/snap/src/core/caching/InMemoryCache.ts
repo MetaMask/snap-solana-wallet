@@ -1,7 +1,7 @@
 import { assert } from '@metamask/utils';
 
 import type { Serializable } from '../serialization/types';
-import type { ILogger } from '../utils/logger';
+import { createPrefixedLogger, type ILogger } from '../utils/logger';
 import type { ICache } from './ICache';
 import type { CacheEntry } from './types';
 
@@ -17,7 +17,7 @@ export class InMemoryCache implements ICache<Serializable> {
   public readonly logger: ILogger;
 
   constructor(logger: ILogger) {
-    this.logger = logger;
+    this.logger = createPrefixedLogger(logger, '[💾 InMemoryCache]');
   }
 
   #validateTtlOrThrow(ttlMilliseconds?: number): void {
@@ -130,12 +130,12 @@ export class InMemoryCache implements ICache<Serializable> {
     for (const key of keys) {
       const cacheEntry = this.#cache.get(key);
       if (!cacheEntry) {
-        this.logger.info(`[InMemoryCache] ❌ Cache miss for key "${key}"`);
+        this.logger.info(`❌ Cache miss for key "${key}"`);
         result[key] = undefined;
         continue;
       }
 
-      this.logger.info(`[InMemoryCache] 🎉 Cache hit for key "${key}"`);
+      this.logger.info(`🎉 Cache hit for key "${key}"`);
       result[key] = cacheEntry.value;
     }
 

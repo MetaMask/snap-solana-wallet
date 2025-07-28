@@ -1,6 +1,8 @@
 import { createDefaultRpcTransport, type RpcTransport } from '@solana/kit';
 
-import logger from '../../../utils/logger';
+import { noOpLogger } from '../../../utils/logger';
+
+const logger = noOpLogger;
 
 export const METHODS_THAT_NEED_BIGTABLE_LOOKUPS = [
   'getTransaction',

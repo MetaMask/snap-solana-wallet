@@ -1,23 +1,23 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
+import { cloneDeep } from 'lodash';
 
-import { EventEmitter } from '../../../infrastructure/event-emitter/EventEmitter';
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
 import { MOCK_NFTS_LIST_RESPONSE_MAPPED } from '../../clients/nft-api/mocks/mockNftsListResponseMapped';
 import type { NftApiClient } from '../../clients/nft-api/NftApiClient';
-import { KnownCaip19Id, Network } from '../../constants/solana';
+import { Network } from '../../constants/solana';
 import type { Serializable } from '../../serialization/types';
 import {
-  SOLANA_MOCK_SPL_TOKENS,
-  SOLANA_MOCK_TOKEN,
+  MOCK_ASSET_ENTITIES,
+  MOCK_ASSET_ENTITY_0,
+  MOCK_ASSET_ENTITY_1,
+  MOCK_ASSET_ENTITY_2,
   SOLANA_MOCK_TOKEN_METADATA,
-} from '../../test/mocks/solana-assets';
-import {
-  MOCK_SOLANA_KEYRING_ACCOUNT_0,
-  MOCK_SOLANA_KEYRING_ACCOUNTS,
-} from '../../test/mocks/solana-keyring-accounts';
+} from '../../test/mocks/asset-entities';
+import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
@@ -51,7 +51,6 @@ describe('AssetsService', () => {
   let mockState: IStateManager<UnencryptedStateValue>;
   let stateSetKeySpy: jest.SpyInstance;
   let mockCache: ICache<Serializable>;
-  let mockEventEmitter: EventEmitter;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -59,7 +58,7 @@ describe('AssetsService', () => {
 
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
-        activeNetworks: [Network.Localnet],
+        activeNetworks: [Network.Mainnet],
       }),
     } as unknown as ConfigProvider;
 
@@ -88,8 +87,6 @@ describe('AssetsService', () => {
         .mockResolvedValue(MOCK_NFTS_LIST_RESPONSE_MAPPED.items),
     } as unknown as NftApiClient;
 
-    mockEventEmitter = new EventEmitter(mockLogger);
-
     const snap = {
       request: jest.fn(),
     };
@@ -107,145 +104,128 @@ describe('AssetsService', () => {
     });
   });
 
-  describe('listAccountAssets', () => {
-    it('lists account assets', async () => {
-      const mockAccount = {
-        ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        scopes: [Network.Localnet],
+  describe('fetch', () => {
+    it('fetches native and token assets', async () => {
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getBalance: jest.fn().mockReturnValueOnce({
+          send: jest.fn().mockResolvedValue({
+            value: 1000000000, // Native balance on Mainnet
+          }),
+        }),
+        getTokenAccountsByOwner: jest.fn().mockReturnValue({
+          send: jest
+            .fn()
+            .mockResolvedValueOnce({
+              value:
+                MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result
+                  .value,
+            })
+            .mockResolvedValue({
+              value: [],
+            }),
+        }),
+      } as any);
+
+      const assets = await assetsService.fetch(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+
+      expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);
+    });
+
+    it('does not fail on individual RPC call failures to fetch native assets', async () => {
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getBalance: jest.fn().mockReturnValue({
+          send: jest
+            .fn()
+            .mockRejectedValueOnce(new Error('Error getting balance')),
+        }),
+        getTokenAccountsByOwner: jest.fn().mockReturnValue({
+          send: jest
+            .fn()
+            .mockResolvedValueOnce({
+              value:
+                MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result
+                  .value,
+            })
+            .mockResolvedValue({
+              value: [],
+            }),
+        }),
+      } as any);
+
+      const assets = await assetsService.fetch(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+
+      expect(assets).toStrictEqual([MOCK_ASSET_ENTITY_1, MOCK_ASSET_ENTITY_2]);
+    });
+
+    it('does not fail on individual RPC call failures to fetch token assets', async () => {
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getBalance: jest.fn().mockReturnValueOnce({
+          send: jest.fn().mockResolvedValue({
+            value: 1000000000, // Native balance on Mainnet
+          }),
+        }),
+        getTokenAccountsByOwner: jest.fn().mockReturnValue({
+          send: jest
+            .fn()
+            .mockRejectedValueOnce(new Error('Error getting token accounts')),
+        }),
+      } as any);
+
+      const assets = await assetsService.fetch(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+
+      expect(assets).toStrictEqual([MOCK_ASSET_ENTITY_0]);
+    });
+  });
+
+  describe('save', () => {
+    it('saves an asset', async () => {
+      const spy = jest
+        .spyOn(assetsService, 'saveMany')
+        .mockResolvedValueOnce(undefined);
+
+      await assetsService.save(MOCK_ASSET_ENTITY_0);
+
+      expect(spy).toHaveBeenCalledWith([MOCK_ASSET_ENTITY_0]);
+    });
+  });
+
+  describe('saveMany', () => {
+    it('saves multiple assets', async () => {
+      await assetsService.saveMany(MOCK_ASSET_ENTITIES);
+
+      const savedAssets = await mockState.getKey('assetEntities');
+      expect(savedAssets).toStrictEqual({
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_ASSET_ENTITIES,
+      });
+    });
+
+    it('overrides existing assets with the same assetType', async () => {
+      await assetsService.saveMany([MOCK_ASSET_ENTITY_1]);
+
+      const updatedAsset = {
+        ...MOCK_ASSET_ENTITY_1,
+        rawAmount: '123',
+        uiAmount: '123',
       };
 
-      // Mock NFT API to return empty array for this test
-      jest
-        .spyOn(mockNftApiClient, 'listAddressSolanaNfts')
-        .mockResolvedValueOnce([]);
+      await assetsService.saveMany([updatedAsset]);
 
-      const assets = await assetsService.listAccountAssets(mockAccount);
-
-      expect(assets).toStrictEqual([
-        SOLANA_MOCK_TOKEN.assetType,
-        ...SOLANA_MOCK_SPL_TOKENS.map((token) => token.assetType),
-      ]);
-    });
-  });
-
-  describe('getAccountBalances', () => {
-    it('gets account balance', async () => {
-      const accountBalance = await assetsService.getAccountBalances(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        [KnownCaip19Id.SolLocalnet],
-      );
-      expect(accountBalance).toStrictEqual({
-        [KnownCaip19Id.SolLocalnet]: {
-          amount: '0.123456789',
-          unit: 'SOL',
-        },
+      const savedAssets = await mockState.getKey('assetEntities');
+      expect(savedAssets).toStrictEqual({
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: [updatedAsset],
       });
     });
 
-    it('gets account and token balances', async () => {
-      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
-        getTokenAccountsByOwner: jest.fn().mockReturnValue({
-          send: jest.fn().mockResolvedValue({
-            value:
-              MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result.value,
-          }),
-        }),
-        getBalance: jest.fn().mockReturnValue({
-          send: jest.fn().mockResolvedValue({
-            value: 1250006150n,
-          }),
-        }),
-      } as any);
-
-      const accountBalance = await assetsService.getAccountBalances(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        [
-          KnownCaip19Id.SolLocalnet,
-          KnownCaip19Id.UsdcLocalnet,
-          KnownCaip19Id.Ai16zLocalnet,
-        ],
-      );
-      expect(accountBalance).toStrictEqual({
-        [KnownCaip19Id.SolLocalnet]: {
-          amount: '1.25000615',
-          unit: 'SOL',
+    it('emits event "AccountAssetListUpdated" when new assets are added and removed', async () => {
+      const addedAssets = [MOCK_ASSET_ENTITY_0, MOCK_ASSET_ENTITY_1];
+      const removedAssets = [
+        {
+          ...MOCK_ASSET_ENTITY_2,
+          rawAmount: '0',
         },
-        [KnownCaip19Id.UsdcLocalnet]: {
-          amount: '123.456789',
-          unit: 'USDC',
-        },
-        [KnownCaip19Id.Ai16zLocalnet]: {
-          amount: '0.987654321',
-          unit: 'AI16Z',
-        },
-      });
-    });
+      ];
 
-    it('throws an error if balance fails to be retrieved', async () => {
-      const mockSend = jest
-        .fn()
-        .mockRejectedValueOnce(new Error('Error getting assets'));
-      const mockGetBalance = jest.fn().mockReturnValue({ send: mockSend });
-      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
-        getBalance: mockGetBalance,
-        getTokenAccountsByOwner: mockGetBalance,
-      } as any);
-
-      await expect(
-        assetsService.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_0, [
-          KnownCaip19Id.SolMainnet,
-        ]),
-      ).rejects.toThrow('Error getting assets');
-    });
-  });
-
-  describe('refreshAssets', () => {
-    const mockAccounts = [
-      MOCK_SOLANA_KEYRING_ACCOUNTS[0],
-      MOCK_SOLANA_KEYRING_ACCOUNTS[1],
-    ];
-
-    it('skips if no accounts passed', async () => {
-      await assetsService.refreshAssets([]);
-
-      expect(stateSetKeySpy).not.toHaveBeenCalled();
-    });
-
-    it('emits events when assets list changes', async () => {
-      // Mock initial state
-      jest.spyOn(mockState, 'getKey').mockResolvedValueOnce({
-        [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
-          [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-        },
-      });
-
-      // Mock new assets being discovered for both accounts
-      jest
-        .spyOn(assetsService, 'listAccountAssets')
-        .mockResolvedValueOnce([
-          KnownCaip19Id.SolLocalnet,
-          KnownCaip19Id.UsdcLocalnet,
-        ])
-        .mockResolvedValueOnce([
-          KnownCaip19Id.SolLocalnet,
-          KnownCaip19Id.UsdcLocalnet,
-        ]);
-
-      // Mock balance fetching for both accounts
-      jest
-        .spyOn(assetsService, 'getAccountBalances')
-        .mockResolvedValueOnce({
-          [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-          [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
-        })
-        .mockResolvedValueOnce({
-          [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-          [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
-        });
-
-      await assetsService.refreshAssets(mockAccounts);
-
-      expect(emitSnapKeyringEvent).toHaveBeenCalledTimes(4);
+      await assetsService.saveMany([...addedAssets, ...removedAssets]);
 
       expect(emitSnapKeyringEvent).toHaveBeenNthCalledWith(
         1,
@@ -253,13 +233,20 @@ describe('AssetsService', () => {
         KeyringEvent.AccountAssetListUpdated,
         {
           assets: {
-            [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
-              added: [KnownCaip19Id.UsdcLocalnet],
-              removed: [],
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              added: [
+                MOCK_ASSET_ENTITY_0.assetType,
+                MOCK_ASSET_ENTITY_1.assetType,
+              ],
+              removed: [MOCK_ASSET_ENTITY_2.assetType],
             },
           },
         },
       );
+    });
+
+    it('emits event "AccountBalancesUpdated" when balances change', async () => {
+      await assetsService.saveMany(MOCK_ASSET_ENTITIES);
 
       expect(emitSnapKeyringEvent).toHaveBeenNthCalledWith(
         2,
@@ -267,132 +254,82 @@ describe('AssetsService', () => {
         KeyringEvent.AccountBalancesUpdated,
         {
           balances: {
-            [MOCK_SOLANA_KEYRING_ACCOUNTS[0].id]: {
-              [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [MOCK_ASSET_ENTITY_0.assetType]: {
+                unit: MOCK_ASSET_ENTITY_0.symbol,
+                amount: MOCK_ASSET_ENTITY_0.uiAmount,
+              },
+              [MOCK_ASSET_ENTITY_1.assetType]: {
+                unit: MOCK_ASSET_ENTITY_1.symbol,
+                amount: MOCK_ASSET_ENTITY_1.uiAmount,
+              },
+              [MOCK_ASSET_ENTITY_2.assetType]: {
+                unit: MOCK_ASSET_ENTITY_2.symbol,
+                amount: MOCK_ASSET_ENTITY_2.uiAmount,
+              },
             },
           },
         },
       );
+    });
 
-      expect(emitSnapKeyringEvent).toHaveBeenNthCalledWith(
-        3,
-        snap,
-        KeyringEvent.AccountAssetListUpdated,
-        {
-          assets: {
-            [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
-              added: [KnownCaip19Id.SolLocalnet, KnownCaip19Id.UsdcLocalnet],
-              removed: [],
-            },
-          },
-        },
-      );
+    it('does not emit events when no assets changed', async () => {
+      await assetsService.saveMany(MOCK_ASSET_ENTITIES);
+      (emitSnapKeyringEvent as jest.Mock).mockClear();
 
-      expect(emitSnapKeyringEvent).toHaveBeenNthCalledWith(
-        4,
-        snap,
-        KeyringEvent.AccountBalancesUpdated,
-        {
-          balances: {
-            [MOCK_SOLANA_KEYRING_ACCOUNTS[1].id]: {
-              [KnownCaip19Id.SolLocalnet]: { amount: '1', unit: 'SOL' },
-              [KnownCaip19Id.UsdcLocalnet]: { amount: '100', unit: 'USDC' },
-            },
-          },
-        },
-      );
+      await assetsService.saveMany(MOCK_ASSET_ENTITIES);
+
+      expect(emitSnapKeyringEvent).not.toHaveBeenCalled();
     });
   });
 
-  describe('saveAsset', () => {
-    it('notifies the extension if it is a new asset', async () => {
-      jest.spyOn(mockState, 'getKey').mockResolvedValueOnce(undefined);
+  describe('hasChanged', () => {
+    it('returns true if the asset has changed', () => {
+      const asset = cloneDeep(MOCK_ASSET_ENTITY_0);
+      asset.rawAmount = '123';
+      const assetsLookup = [MOCK_ASSET_ENTITY_0];
 
-      await assetsService.saveAsset(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        KnownCaip19Id.EurcMainnet,
-        {
-          amount: '1234',
-          unit: 'EURC',
-        },
-      );
-
-      // 1 for the asset list updated, 1 for the balances updated
-      expect(emitSnapKeyringEvent).toHaveBeenCalledTimes(2);
-      expect(emitSnapKeyringEvent).toHaveBeenNthCalledWith(
-        1,
-        snap,
-        KeyringEvent.AccountAssetListUpdated,
-        {
-          assets: {
-            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-              added: [KnownCaip19Id.EurcMainnet],
-              removed: [],
-            },
-          },
-        },
-      );
+      expect(AssetsService.hasChanged(asset, assetsLookup)).toBe(true);
     });
 
-    it('does not notify the extension if it is not a new asset', async () => {
+    it('returns true if the asset does not exist in the lookup', () => {
+      const asset = cloneDeep(MOCK_ASSET_ENTITY_0);
+      const assetsLookup = [MOCK_ASSET_ENTITY_1, MOCK_ASSET_ENTITY_2];
+
+      expect(AssetsService.hasChanged(asset, assetsLookup)).toBe(true);
+    });
+
+    it('returns false if the asset has not changed', () => {
+      const asset = cloneDeep(MOCK_ASSET_ENTITY_0);
+      const assetsLookup = [MOCK_ASSET_ENTITY_0];
+
+      expect(AssetsService.hasChanged(asset, assetsLookup)).toBe(false);
+    });
+  });
+
+  describe('getAll', () => {
+    it('returns all assets', async () => {
       jest.spyOn(mockState, 'getKey').mockResolvedValueOnce({
-        amount: '1234',
-        unit: 'EURC',
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_ASSET_ENTITIES,
       });
 
-      await assetsService.saveAsset(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        KnownCaip19Id.EurcMainnet,
-        {
-          amount: '1234',
-          unit: 'EURC',
-        },
-      );
+      const assets = await assetsService.getAll();
 
-      // 1 for the balances updated only
-      expect(emitSnapKeyringEvent).toHaveBeenCalledTimes(1);
+      expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);
     });
+  });
 
-    it('updates the state', async () => {
-      await assetsService.saveAsset(
+  describe('getByAccount', () => {
+    it('returns all assets for the account', async () => {
+      jest
+        .spyOn(mockState, 'getKey')
+        .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
+
+      const assets = await assetsService.getByAccount(
         MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        KnownCaip19Id.EurcMainnet,
-        {
-          amount: '1234',
-          unit: 'EURC',
-        },
       );
 
-      expect(stateSetKeySpy).toHaveBeenCalledWith(
-        `assets.${MOCK_SOLANA_KEYRING_ACCOUNT_0.id}.${KnownCaip19Id.EurcMainnet}`,
-        {
-          amount: '1234',
-          unit: 'EURC',
-        },
-      );
-    });
-
-    it('notifies the extension about the new balance', async () => {
-      await assetsService.saveAsset(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        KnownCaip19Id.EurcMainnet,
-        {
-          amount: '1234',
-          unit: 'EURC',
-        },
-      );
-
-      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
-        snap,
-        KeyringEvent.AccountBalancesUpdated,
-        {
-          balances: {
-            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-              [KnownCaip19Id.EurcMainnet]: { amount: '1234', unit: 'EURC' },
-            },
-          },
-        },
-      );
+      expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);
     });
   });
 });

@@ -5,6 +5,7 @@ import { SolMethod } from '@metamask/keyring-api';
 import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { signature } from '@solana/kit';
 
+import type { AssetEntity } from '../../../entities';
 import { asStrictKeyringAccount } from '../../../entities';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type {
@@ -22,7 +23,12 @@ import {
 } from '../../services/state/State';
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
 import type { WalletService } from '../../services/wallet/WalletService';
-import { SOLANA_MOCK_TOKEN } from '../../test/mocks/solana-assets';
+import {
+  MOCK_ASSET_ENTITIES,
+  MOCK_ASSET_ENTITY_0,
+  MOCK_ASSET_ENTITY_1,
+  MOCK_ASSET_ENTITY_2,
+} from '../../test/mocks/asset-entities';
 import {
   MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
   MOCK_SEED_PHRASE_ENTROPY_SOURCE,
@@ -91,10 +97,7 @@ describe('SolanaKeyring', () => {
     });
 
     mockAssetsService = {
-      listAccountAssets: jest.fn(),
-      getAccountBalances: jest.fn(),
-      monitorAccountAssets: jest.fn(),
-      stopMonitorAccountAssets: jest.fn(),
+      getByAccount: jest.fn(),
     } as unknown as AssetsService;
 
     mockWalletService = {
@@ -167,14 +170,18 @@ describe('SolanaKeyring', () => {
   describe('listAccountAssets', () => {
     it('calls the assets service', async () => {
       jest
-        .spyOn(mockAssetsService, 'listAccountAssets')
-        .mockResolvedValue([SOLANA_MOCK_TOKEN.assetType]);
+        .spyOn(mockAssetsService, 'getByAccount')
+        .mockResolvedValue(MOCK_ASSET_ENTITIES);
 
-      await keyring.listAccountAssets(MOCK_SOLANA_KEYRING_ACCOUNT_0.id);
-
-      expect(mockAssetsService.listAccountAssets).toHaveBeenCalledWith(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+      const result = await keyring.listAccountAssets(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       );
+
+      expect(result).toStrictEqual([
+        MOCK_ASSET_ENTITY_0.assetType,
+        MOCK_ASSET_ENTITY_1.assetType,
+        MOCK_ASSET_ENTITY_2.assetType,
+      ]);
     });
 
     it('throws and error if the account provided is not a uuid', async () => {
@@ -229,28 +236,11 @@ describe('SolanaKeyring', () => {
   });
 
   describe('createAccount', () => {
-    beforeEach(() => {
-      mockState = new InMemoryState({
+    beforeEach(async () => {
+      await mockState.update((state) => ({
+        ...state,
         keyringAccounts: {},
-        mapInterfaceNameToId: {},
-        assets: {},
-        transactions: {},
-        metadata: {},
-        tokenPrices: {},
-        signatures: {},
-        subscriptions: {},
-      });
-      // Start with no accounts
-      keyring = new SolanaKeyring({
-        state: mockState,
-        logger,
-        transactionsService: mockTransactionsService,
-        assetsService: mockAssetsService,
-        walletService: mockWalletService,
-        confirmationHandler: mockConfirmationHandler,
-        keyringAccountMonitor: mockKeyringAccountMonitor,
-        nameResolutionService: mockNameResolutionService,
-      });
+      }));
     });
 
     describe('when no parameters are provided', () => {
@@ -636,15 +626,14 @@ describe('SolanaKeyring', () => {
     });
 
     it('rejects invalid responses', async () => {
-      const invalidResponse = {
-        Bob: {
-          amount: '0.123456789',
-          unit: 'SOL',
-        },
-      };
+      const invalidAsset = {
+        ...MOCK_ASSET_ENTITY_0,
+        symbol: 4,
+      } as unknown as AssetEntity;
+
       jest
-        .spyOn(mockAssetsService, 'getAccountBalances')
-        .mockResolvedValue(invalidResponse);
+        .spyOn(mockAssetsService, 'getByAccount')
+        .mockResolvedValue([invalidAsset]);
 
       await expect(
         keyring.getAccountBalances(MOCK_SOLANA_KEYRING_ACCOUNT_1.id, [

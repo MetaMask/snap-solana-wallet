@@ -1,10 +1,9 @@
 import type { TokenApiClient } from '../../clients/token-api-client/TokenApiClient';
-import type { TokenCaipAssetType } from '../../constants/solana';
 import {
-  SOLANA_MOCK_SPL_TOKENS,
+  MOCK_ASSET_ENTITY_1,
+  MOCK_ASSET_ENTITY_2,
   SOLANA_MOCK_TOKEN_METADATA,
-} from '../../test/mocks/solana-assets';
-import type { SolanaAsset } from '../../types/solana';
+} from '../../test/mocks/asset-entities';
 import type { ILogger } from '../../utils/logger';
 import { TokenMetadataService } from './TokenMetadata';
 
@@ -12,6 +11,11 @@ describe('TokenMetadataService', () => {
   let tokenApiClient: TokenApiClient;
   let tokenMetadataService: TokenMetadataService;
   let logger: ILogger;
+
+  const assetTypes = [MOCK_ASSET_ENTITY_1, MOCK_ASSET_ENTITY_2].map(
+    (asset) => asset.assetType,
+  );
+
   beforeEach(() => {
     tokenApiClient = {
       getTokenMetadataFromAddresses: jest.fn(),
@@ -35,22 +39,18 @@ describe('TokenMetadataService', () => {
     });
 
     it('returns token metadata from client', async () => {
-      const tokens: SolanaAsset[] = SOLANA_MOCK_SPL_TOKENS;
       const mockMetadata = SOLANA_MOCK_TOKEN_METADATA;
 
       jest
         .spyOn(tokenApiClient, 'getTokenMetadataFromAddresses')
         .mockResolvedValue(mockMetadata);
 
-      const result = await tokenMetadataService.getTokensMetadata(
-        tokens.map((token) => token.assetType as TokenCaipAssetType),
-      );
+      const result = await tokenMetadataService.getTokensMetadata(assetTypes);
 
       expect(result).toStrictEqual(mockMetadata);
     });
 
     it('throws an error if the client fails to fetch token metadata', async () => {
-      const tokens: SolanaAsset[] = SOLANA_MOCK_SPL_TOKENS;
       const error = new Error('Error fetching token metadata');
 
       jest
@@ -58,9 +58,7 @@ describe('TokenMetadataService', () => {
         .mockRejectedValue(error);
 
       await expect(
-        tokenMetadataService.getTokensMetadata(
-          tokens.map((token) => token.assetType as TokenCaipAssetType),
-        ),
+        tokenMetadataService.getTokensMetadata(assetTypes),
       ).rejects.toThrow('Error fetching token metadata');
     });
   });

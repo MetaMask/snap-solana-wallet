@@ -16,7 +16,7 @@ describe('TokenCaipAssetTypeStruct', () => {
         KnownCaip19Id.EurcMainnet,
         KnownCaip19Id.EurcDevnet,
         KnownCaip19Id.EurcLocalnet,
-        KnownCaip19Id.Ai16zLocalnet,
+        KnownCaip19Id.Ai16zMainnet,
       ];
 
       validIds.forEach((id) => {
@@ -96,7 +96,7 @@ describe('TokenCaipAssetTypeFromStringStruct', () => {
         KnownCaip19Id.EurcMainnet,
         KnownCaip19Id.EurcDevnet,
         KnownCaip19Id.EurcLocalnet,
-        KnownCaip19Id.Ai16zLocalnet,
+        KnownCaip19Id.Ai16zMainnet,
       ];
 
       validIds.forEach((id) => {

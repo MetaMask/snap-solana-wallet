@@ -8,7 +8,7 @@ export const onAssetsMarketData: OnAssetsMarketDataHandler = async (params) => {
 
   const { assets } = params;
 
-  const marketData = await assetsService.getAssetsMarketData(assets);
+  const marketData = await assetsService.fetchAssetsMarketData(assets);
 
   return { marketData };
 };

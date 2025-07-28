@@ -7,7 +7,7 @@ import { onAssetsMarketData } from './onAssetsMarketData';
 
 jest.mock('../../../snapContext', () => ({
   assetsService: {
-    getAssetsMarketData: jest.fn(),
+    fetchAssetsMarketData: jest.fn(),
   },
 }));
 
@@ -89,7 +89,7 @@ describe('onAssetsMarketData', () => {
         },
       };
 
-      mockAssetsService.getAssetsMarketData.mockResolvedValue(mockMarketData);
+      mockAssetsService.fetchAssetsMarketData.mockResolvedValue(mockMarketData);
 
       const result = await onAssetsMarketData(params);
 
@@ -97,7 +97,7 @@ describe('onAssetsMarketData', () => {
         '[💰 onAssetsMarketData]',
         params,
       );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
+      expect(mockAssetsService.fetchAssetsMarketData).toHaveBeenCalledWith(
         params.assets,
       );
       expect(result).toStrictEqual({ marketData: mockMarketData });
@@ -138,7 +138,7 @@ describe('onAssetsMarketData', () => {
         },
       };
 
-      mockAssetsService.getAssetsMarketData.mockResolvedValue(mockMarketData);
+      mockAssetsService.fetchAssetsMarketData.mockResolvedValue(mockMarketData);
 
       const result = await onAssetsMarketData(params);
 
@@ -146,7 +146,7 @@ describe('onAssetsMarketData', () => {
         '[💰 onAssetsMarketData]',
         params,
       );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
+      expect(mockAssetsService.fetchAssetsMarketData).toHaveBeenCalledWith(
         params.assets,
       );
       expect(result).toStrictEqual({ marketData: mockMarketData });
@@ -164,7 +164,7 @@ describe('onAssetsMarketData', () => {
         },
       };
 
-      mockAssetsService.getAssetsMarketData.mockResolvedValue(mockMarketData);
+      mockAssetsService.fetchAssetsMarketData.mockResolvedValue(mockMarketData);
 
       const result = await onAssetsMarketData(params);
 
@@ -172,7 +172,7 @@ describe('onAssetsMarketData', () => {
         '[💰 onAssetsMarketData]',
         params,
       );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
+      expect(mockAssetsService.fetchAssetsMarketData).toHaveBeenCalledWith(
         params.assets,
       );
       expect(result).toStrictEqual({ marketData: mockMarketData });
@@ -185,7 +185,7 @@ describe('onAssetsMarketData', () => {
 
       const mockMarketData: Record<CaipAssetType, FungibleAssetMarketData> = {};
 
-      mockAssetsService.getAssetsMarketData.mockResolvedValue(mockMarketData);
+      mockAssetsService.fetchAssetsMarketData.mockResolvedValue(mockMarketData);
 
       const result = await onAssetsMarketData(params);
 
@@ -193,7 +193,7 @@ describe('onAssetsMarketData', () => {
         '[💰 onAssetsMarketData]',
         params,
       );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
+      expect(mockAssetsService.fetchAssetsMarketData).toHaveBeenCalledWith(
         params.assets,
       );
       expect(result).toStrictEqual({ marketData: mockMarketData });
@@ -215,7 +215,7 @@ describe('onAssetsMarketData', () => {
         },
       };
 
-      mockAssetsService.getAssetsMarketData.mockResolvedValue(mockMarketData);
+      mockAssetsService.fetchAssetsMarketData.mockResolvedValue(mockMarketData);
 
       const result = await onAssetsMarketData(params);
 
@@ -223,7 +223,7 @@ describe('onAssetsMarketData', () => {
         '[💰 onAssetsMarketData]',
         params,
       );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
+      expect(mockAssetsService.fetchAssetsMarketData).toHaveBeenCalledWith(
         params.assets,
       );
       expect(result).toStrictEqual({ marketData: mockMarketData });
@@ -247,7 +247,7 @@ describe('onAssetsMarketData', () => {
         },
       };
 
-      mockAssetsService.getAssetsMarketData.mockResolvedValue(mockMarketData);
+      mockAssetsService.fetchAssetsMarketData.mockResolvedValue(mockMarketData);
 
       const result = await onAssetsMarketData(params);
 
@@ -255,7 +255,7 @@ describe('onAssetsMarketData', () => {
         '[💰 onAssetsMarketData]',
         params,
       );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
+      expect(mockAssetsService.fetchAssetsMarketData).toHaveBeenCalledWith(
         params.assets,
       );
       expect(result).toStrictEqual({ marketData: mockMarketData });
@@ -281,7 +281,7 @@ describe('onAssetsMarketData', () => {
         },
       };
 
-      mockAssetsService.getAssetsMarketData.mockResolvedValue(mockMarketData);
+      mockAssetsService.fetchAssetsMarketData.mockResolvedValue(mockMarketData);
 
       const result = await onAssetsMarketData(params);
 
@@ -289,7 +289,7 @@ describe('onAssetsMarketData', () => {
         '[💰 onAssetsMarketData]',
         params,
       );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
+      expect(mockAssetsService.fetchAssetsMarketData).toHaveBeenCalledWith(
         params.assets,
       );
       expect(result).toStrictEqual({ marketData: mockMarketData });
@@ -316,7 +316,7 @@ describe('onAssetsMarketData', () => {
         },
       };
 
-      mockAssetsService.getAssetsMarketData.mockResolvedValue(mockMarketData);
+      mockAssetsService.fetchAssetsMarketData.mockResolvedValue(mockMarketData);
 
       const result = await onAssetsMarketData(params);
 
@@ -324,7 +324,7 @@ describe('onAssetsMarketData', () => {
         '[💰 onAssetsMarketData]',
         params,
       );
-      expect(mockAssetsService.getAssetsMarketData).toHaveBeenCalledWith(
+      expect(mockAssetsService.fetchAssetsMarketData).toHaveBeenCalledWith(
         params.assets,
       );
       expect(result).toStrictEqual({ marketData: mockMarketData });
@@ -345,7 +345,7 @@ describe('onAssetsMarketData', () => {
         [ETH]: { fungible: true },
       };
 
-      mockAssetsService.getAssetsMarketData.mockResolvedValue(mockMarketData);
+      mockAssetsService.fetchAssetsMarketData.mockResolvedValue(mockMarketData);
 
       await onAssetsMarketData(params);
 

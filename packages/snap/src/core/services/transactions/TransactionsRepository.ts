@@ -13,6 +13,14 @@ export class TransactionsRepository {
     this.#state = state;
   }
 
+  async getAll(): Promise<Transaction[]> {
+    const transactionsByAccount = await this.#state.getKey<
+      UnencryptedStateValue['transactions']
+    >(this.#stateKey);
+
+    return Object.values(transactionsByAccount ?? {}).flat();
+  }
+
   async findByAccountId(accountId: string): Promise<Transaction[]> {
     const transactions = await this.#state.getKey<Transaction[]>(
       `${this.#stateKey}.${accountId}`,

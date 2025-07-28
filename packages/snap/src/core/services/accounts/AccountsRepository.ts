@@ -28,4 +28,12 @@ export class AccountsRepository {
 
     return accounts.find((account) => account.address === address) ?? null;
   }
+
+  async save(account: SolanaKeyringAccount): Promise<void> {
+    await this.#state.setKey(`keyringAccounts.${account.id}`, account);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.#state.deleteKey(`keyringAccounts.${id}`);
+  }
 }

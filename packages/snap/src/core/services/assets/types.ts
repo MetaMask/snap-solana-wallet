@@ -1,5 +1,6 @@
-import type { FungibleAssetMetadata } from '@metamask/snaps-sdk';
+import type { CaipAssetType, FungibleAssetMetadata } from '@metamask/snaps-sdk';
 
+import type { Balance } from '../../clients/nft-api/types';
 import type { Caip10Address } from '../../constants/solana';
 
 export type NonFungibleAssetCollection = {
@@ -53,3 +54,9 @@ export type NonFungibleAssetMetadata = {
 };
 
 export type AssetMetadata = FungibleAssetMetadata | NonFungibleAssetMetadata;
+
+export type SaveAssetParams = {
+  accountId: string;
+  assetType: CaipAssetType;
+  balance: Balance;
+};

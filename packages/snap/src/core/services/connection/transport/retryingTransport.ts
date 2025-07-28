@@ -1,7 +1,9 @@
 import { type RpcTransport } from '@solana/kit';
 
-import logger from '../../../utils/logger';
+import { noOpLogger } from '../../../utils/logger';
 import { sleep } from '../../../utils/sleep';
+
+const logger = noOpLogger;
 
 // Set the maximum number of attempts to retry a request.
 const MAX_ATTEMPTS = 4;

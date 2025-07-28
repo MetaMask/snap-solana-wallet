@@ -5,8 +5,8 @@ import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
 import { MOCK_GET_SIGNATURES_FOR_ADDRESS } from '../../test/mocks/transactions';
 import { ADDRESS_1_TRANSACTION_1_DATA } from '../../test/mocks/transactions-data/address-1/transaction-1';
+import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService } from '../assets/AssetsService';
-import { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection/SolanaConnection';
 import { mockLogger } from '../mocks/logger';
 import { createMockConnection } from '../mocks/mockConnection';
@@ -19,7 +19,7 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 
 describe('TransactionsService', () => {
   let mockTransactionsRepository: TransactionsRepository;
-  let mockConfigProvider: ConfigProvider;
+  let mockAccountsService: AccountsService;
   let mockConnection: SolanaConnection;
   let mockAssetsService: AssetsService;
   let service: TransactionsService;
@@ -36,13 +36,15 @@ describe('TransactionsService', () => {
 
     mockConnection = createMockConnection();
 
-    mockConfigProvider = new ConfigProvider();
+    mockAccountsService = {
+      getAll: jest.fn(),
+    } as unknown as AccountsService;
 
     service = new TransactionsService(
       mockTransactionsRepository,
+      mockAccountsService,
       mockAssetsService,
       mockConnection,
-      mockConfigProvider,
       mockLogger,
     );
 
@@ -154,7 +156,7 @@ describe('TransactionsService', () => {
       const result = await service.fetchLatestSignatures(
         Network.Localnet,
         asAddress('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
-        10,
+        { limit: 10 },
       );
 
       expect(result).toStrictEqual([

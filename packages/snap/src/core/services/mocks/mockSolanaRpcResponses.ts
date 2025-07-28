@@ -134,6 +134,7 @@ export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
                 tokenAmount: {
                   amount: '123456789',
                   decimals: 6,
+                  uiAmountString: '123.456789',
                 },
               },
             },
@@ -152,6 +153,7 @@ export const MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE = {
                 tokenAmount: {
                   amount: '987654321',
                   decimals: 9,
+                  uiAmountString: '987.654321',
                 },
               },
             },

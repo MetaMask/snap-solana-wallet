@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { Balance, Transaction } from '@metamask/keyring-api';
-import type { CaipAssetType } from '@metamask/utils';
+import type { Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/kit';
-import { unset } from 'lodash';
+import { omit, unset } from 'lodash';
 
-import type { SolanaKeyringAccount, Subscription } from '../../../entities';
+import type {
+  AssetEntity,
+  SolanaKeyringAccount,
+  Subscription,
+} from '../../../entities';
+import type { EventEmitter } from '../../../infrastructure';
 import type { SpotPrices } from '../../clients/price-api/types';
 import { deserialize } from '../../serialization/deserialize';
 import { serialize } from '../../serialization/serialize';
@@ -22,7 +26,7 @@ export type UnencryptedStateValue = {
   // we need to store the exhaustive list of signatures (including spam)
   // to keep track of the transactions per account. The field transactions above only stores non-spam transactions, which break the refreshAccounts cronjob logic.
   signatures: Record<Address, Signature[]>;
-  assets: Record<AccountId, Record<CaipAssetType, Balance>>;
+  assetEntities: Record<AccountId, AssetEntity[]>;
   tokenPrices: SpotPrices;
   subscriptions: Record<string, Subscription>;
 };
@@ -32,7 +36,7 @@ export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
   mapInterfaceNameToId: {},
   transactions: {},
   signatures: {},
-  assets: {},
+  assetEntities: {},
   tokenPrices: {},
   subscriptions: {},
 };
@@ -62,8 +66,18 @@ export class State<TStateValue extends Record<string, Serializable>>
 {
   #config: StateConfig<TStateValue>;
 
-  constructor(config: StateConfig<TStateValue>) {
+  constructor(eventEmitter: EventEmitter, config: StateConfig<TStateValue>) {
     this.#config = config;
+
+    eventEmitter.on('onStart', this.#migrateState.bind(this));
+    eventEmitter.on('onUpdate', this.#migrateState.bind(this));
+    eventEmitter.on('onInstall', this.#migrateState.bind(this));
+  }
+
+  async #migrateState() {
+    await this.update((state) => {
+      return omit(state as any, ['assets']);
+    });
   }
 
   async get(): Promise<TStateValue> {

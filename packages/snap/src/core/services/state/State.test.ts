@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import BigNumber from 'bignumber.js';
 
+import { EventEmitter } from '../../../infrastructure/event-emitter/EventEmitter';
+import { mockLogger } from '../mocks/logger';
 import { State } from './State';
 
 const snap = {
@@ -34,9 +36,12 @@ const DEFAULT_STATE: MockStateValue = {
 
 describe('State', () => {
   let state: State<MockStateValue>;
+  let eventEmitter: EventEmitter;
 
   beforeEach(() => {
-    state = new State<MockStateValue>({
+    eventEmitter = new EventEmitter(mockLogger);
+
+    state = new State<MockStateValue>(eventEmitter, {
       encrypted: false,
       defaultState: DEFAULT_STATE,
     });
@@ -46,6 +51,16 @@ describe('State', () => {
 
   afterEach(() => {
     snap.request.mockReset();
+  });
+
+  describe('constructor', () => {
+    it('runs migrateState on onStart/onUpdate/onInstall events', async () => {
+      const spy = jest.spyOn(state, 'update');
+
+      await eventEmitter.emitSync('onStart');
+
+      expect(spy).toHaveBeenCalled();
+    });
   });
 
   describe('get', () => {

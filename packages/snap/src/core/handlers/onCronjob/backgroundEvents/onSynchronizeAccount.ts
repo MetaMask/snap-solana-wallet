@@ -1,7 +1,7 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 import { assert, literal, object, string } from '@metamask/superstruct';
 
-import { accountsService } from '../../../../snapContext';
+import { accountsService, accountsSynchronizer } from '../../../../snapContext';
 import { UuidStruct } from '../../../validation/structs';
 import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
@@ -24,5 +24,5 @@ export const onSynchronizeAccount: OnCronjobHandler = async ({ request }) => {
     throw new Error('Account not found');
   }
 
-  await accountsService.synchronize([account]);
+  await accountsSynchronizer.synchronize([account]);
 };

@@ -31,7 +31,7 @@ export enum KnownCaip19Id {
   EurcMainnet = `${Network.Mainnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   EurcDevnet = `${Network.Devnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
   EurcLocalnet = `${Network.Localnet}/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr`,
-  Ai16zLocalnet = `${Network.Localnet}/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC`,
+  Ai16zMainnet = `${Network.Mainnet}/token:HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC`,
 }
 
 export type NativeCaipAssetType = `${Network}/slip44:501`;

@@ -1,27 +1,19 @@
 import { KeyringEvent, type Transaction } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType } from '@metamask/utils';
-import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
-import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
-import type {
-  Address,
-  Commitment,
-  Signature,
-  Slot,
-  TransactionError,
-  UnixTimestamp,
-} from '@solana/kit';
+import type { Address, Commitment, Signature, Slot } from '@solana/kit';
 import { address as asAddress, signature as asSignature } from '@solana/kit';
 import { get, groupBy } from 'lodash';
 
+import type { AssetEntity } from '../../../entities';
 import type { SolanaKeyringAccount } from '../../../entities/keyring-account';
 import { type Network } from '../../constants/solana';
 import type { SolanaTransaction } from '../../types/solana';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
+import type { AccountsService } from '../accounts';
 import type { AssetsService } from '../assets/AssetsService';
-import type { AssetMetadata } from '../assets/type';
-import type { ConfigProvider } from '../config/ConfigProvider';
+import type { AssetMetadata } from '../assets/types';
 import type { SolanaConnection } from '../connection';
 import type { TransactionsRepository } from './TransactionsRepository';
 import { isSpam } from './utils/isSpam';
@@ -30,25 +22,25 @@ import { mapRpcTransaction } from './utils/mapRpcTransaction';
 export class TransactionsService {
   readonly #transactionsRepository: TransactionsRepository;
 
+  readonly #accountsService: AccountsService;
+
   readonly #assetsService: AssetsService;
 
   readonly #connection: SolanaConnection;
-
-  readonly #configProvider: ConfigProvider;
 
   readonly #logger: ILogger;
 
   constructor(
     transactionsRepository: TransactionsRepository,
+    accountsService: AccountsService,
     assetsService: AssetsService,
     connection: SolanaConnection,
-    configProvider: ConfigProvider,
     logger: ILogger,
   ) {
     this.#transactionsRepository = transactionsRepository;
+    this.#accountsService = accountsService;
     this.#assetsService = assetsService;
     this.#connection = connection;
-    this.#configProvider = configProvider;
     this.#logger = createPrefixedLogger(logger, '[💱 TransactionsService]');
   }
 
@@ -71,61 +63,43 @@ export class TransactionsService {
     );
   }
 
-  async fetchAccountTransactions(
-    account: SolanaKeyringAccount,
-  ): Promise<Transaction[]> {
-    const { activeNetworks } = this.#configProvider.get();
+  /**
+   * Fetches the transactions for the given assets.
+   * Only fetches the transactions that are not already in the state.
+   *
+   * @param assets - The assets to fetch the transactions for.
+   * @returns The transactions for the given assets.
+   */
+  async fetchAssetsTransactions(assets: AssetEntity[]): Promise<Transaction[]> {
+    const accounts = await this.#accountsService.getAll();
 
-    const tokenAccounts =
-      await this.#assetsService.getTokenAccountsByOwnerMultiple(
-        asAddress(account.address),
-        [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-        activeNetworks,
-      );
+    const findAccountById = (id: string) =>
+      accounts.find((account) => account.id === id);
 
-    type Asset = {
-      network: Network;
-      address: string;
-      mint: string;
-    };
-
-    const tokenAssets: Asset[] = tokenAccounts.map((item) => ({
-      network: item.scope,
-      address: item.pubkey,
-      mint: item.account.data.parsed.info.mint,
-    }));
-
-    const nativeAssets: Asset[] = activeNetworks.map((network) => ({
-      network,
-      address: account.address,
-      mint: account.address,
-    }));
-
-    const assets: Asset[] = [...tokenAssets, ...nativeAssets];
-
-    const caip19Ids = assets.map((asset) =>
-      tokenAddressToCaip19(asset.network, asset.mint),
-    );
+    const assetTypes = assets.map((asset) => asset.assetType);
 
     const assetsMetadata =
-      await this.#assetsService.getAssetsMetadata(caip19Ids);
+      await this.#assetsService.getAssetsMetadata(assetTypes);
 
-    const existingTransactions = await this.findByAccounts([account]);
-    const existingSignatures = existingTransactions.map((tx) => tx.id);
+    const savedTransactions = await this.#transactionsRepository.getAll();
 
-    const findLatestTransactionForAsset = async (asset: Asset) => {
-      const { network, mint } = asset;
-      const existingTransaction = existingTransactions
+    const findLatestTransactionForAsset = async (asset: AssetEntity) => {
+      const { network } = asset;
+      const addressOrMint = 'mint' in asset ? asset.mint : asset.address;
+
+      const existingTransaction = savedTransactions
         .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
         .find(
           (tx) =>
             tx.from.some(
               (from) =>
-                tokenAddressToCaip19(network, mint) === get(from, 'asset.type'),
+                tokenAddressToCaip19(network, addressOrMint) ===
+                get(from, 'asset.type'),
             ) ||
             tx.to.some(
               (to) =>
-                tokenAddressToCaip19(network, mint) === get(to, 'asset.type'),
+                tokenAddressToCaip19(network, addressOrMint) ===
+                get(to, 'asset.type'),
             ),
         );
 
@@ -136,77 +110,60 @@ export class TransactionsService {
       return existingTransaction;
     };
 
-    type SignatureWithNetwork = {
-      network: Network;
-      /** estimated production time of when transaction was processed. null if not available. */
-      blockTime: UnixTimestamp | null;
-      /** The transaction's cluster confirmation status */
-      confirmationStatus: Commitment | null;
-      /** Error if transaction failed, null if transaction succeeded. */
-      // eslint-disable-next-line id-denylist
-      err: TransactionError | null;
-      /** Memo associated with the transaction, null if no memo is present */
-      memo: string | null;
-      /** transaction signature as base-58 encoded string */
+    type SignatureWithAsset = {
       signature: Signature;
-      /** The slot that contains the block with the transaction */
-      slot: Slot;
+      asset: AssetEntity;
     };
 
-    const getSignaturesForAsset = async (
-      asset: Asset,
-    ): Promise<SignatureWithNetwork[]> => {
-      const { network, address } = asset;
+    const fetchSignaturesForAsset = async (
+      asset: AssetEntity,
+    ): Promise<SignatureWithAsset[]> => {
+      const { network } = asset;
+      const addressOrPubkey = 'pubkey' in asset ? asset.pubkey : asset.address;
 
       const latestTransaction = await findLatestTransactionForAsset(asset);
+
       const latestSignature = latestTransaction
         ? asSignature(latestTransaction?.id)
         : undefined;
 
       const response = await this.#connection
         .getRpc(network)
-        .getSignaturesForAddress(asAddress(address), {
+        .getSignaturesForAddress(asAddress(addressOrPubkey), {
           limit: 5,
           ...(latestSignature ? { until: latestSignature } : {}),
         })
         .send();
 
       return response.map((item) => ({
-        ...item,
-        network,
+        signature: item.signature,
+        asset,
       }));
     };
 
-    const signaturesWithNetwork = (
-      await Promise.all(assets.map(getSignaturesForAsset))
+    const signatures = (
+      await Promise.all(assets.map(fetchSignaturesForAsset))
     ).flat();
 
-    const signaturesToFetch = signaturesWithNetwork
-      // Only fetch the transactions that are not already in the state
-      .filter((item) => !existingSignatures.includes(item.signature))
-      .sort((a, b) => Number(b.slot - a.slot))
-      // Take the 20 most recent signatures
-      .slice(0, 20);
-
-    type TransactionWithNetwork = {
+    type TransactionWithAsset = {
       transaction: SolanaTransaction | null;
-      network: Network;
+      asset: AssetEntity;
     };
 
-    const getTransaction = async (
-      signatureWithNetwork: SignatureWithNetwork,
-    ): Promise<TransactionWithNetwork | null> => {
+    const fetchTransaction = async (
+      signatureWithAsset: SignatureWithAsset,
+    ): Promise<TransactionWithAsset | null> => {
       try {
-        const { signature, network } = signatureWithNetwork;
+        const { signature, asset } = signatureWithAsset;
         const transaction = await this.#connection
-          .getRpc(network)
+          .getRpc(asset.network)
           .getTransaction(asSignature(signature), {
             maxSupportedTransactionVersion: 0,
           })
           .send();
         return {
           transaction,
-          network,
+          asset,
         };
       } catch (error) {
         return null;
@@ -214,20 +171,24 @@ export class TransactionsService {
     };
 
     const transactions = (
-      await Promise.all(signaturesToFetch.map(getTransaction))
+      await Promise.all(signatures.map(fetchTransaction))
     ).filter((item) => item !== null);
 
     const mapTransaction = async (
-      transactionWithNetwork: TransactionWithNetwork,
+      transactionWithAsset: TransactionWithAsset,
     ) => {
-      const { transaction, network } = transactionWithNetwork;
+      const { transaction, asset } = transactionWithAsset;
       if (!transaction) {
+        return null;
+      }
+      const account = findAccountById(asset.keyringAccountId);
+      if (!account) {
         return null;
       }
       return this.#mapRpcTransactionToKeyringTransaction(
         transaction,
         account,
-        network,
+        asset.network,
         assetsMetadata,
       );
     };
@@ -236,7 +197,13 @@ export class TransactionsService {
       await Promise.all(transactions.map(mapTransaction))
     )
       .filter((item) => item !== null)
-      .filter((item) => !isSpam(item, account));
+      .filter((item) => {
+        const account = findAccountById(item.account);
+        if (!account) {
+          return false;
+        }
+        return !isSpam(item, account);
+      });
 
     return mappedTransactions;
   }
@@ -244,13 +211,21 @@ export class TransactionsService {
   async fetchLatestSignatures(
     scope: Network,
     address: Address,
-    limit: number,
+    config?: {
+      /** start searching backwards from this transaction signature. If not provided the search starts from the top of the highest max confirmed block. */
+      before?: Signature;
+      commitment?: Exclude<Commitment, 'processed'>;
+      /** maximum transaction signatures to return (between 1 and 1,000). Default: 1000 */
+      limit?: number;
+      /** The minimum slot that the request can be evaluated at */
+      minContextSlot?: Slot;
+      /** search until this transaction signature, if found before limit reached */
+      until?: Signature;
+    },
   ): Promise<Signature[]> {
     const signatureResponses = await this.#connection
       .getRpc(scope)
-      .getSignaturesForAddress(address, {
-        limit,
-      })
+      .getSignaturesForAddress(address, config)
       .send();
     const signatures = signatureResponses.map(({ signature }) => signature);
 
@@ -281,16 +256,6 @@ export class TransactionsService {
     await emitSnapKeyringEvent(snap, KeyringEvent.AccountTransactionsUpdated, {
       transactions: transactionsByAccountId,
     });
-  }
-
-  async synchronize(accounts: SolanaKeyringAccount[]): Promise<void> {
-    this.#logger.log('Synchronizing transactions for accounts', accounts);
-
-    const transactions = (
-      await Promise.all(accounts.map(this.fetchAccountTransactions.bind(this)))
-    ).flat();
-
-    await this.saveMany(transactions);
   }
 
   async #mapRpcTransactionToKeyringTransaction(

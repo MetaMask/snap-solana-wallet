@@ -1,9 +1,9 @@
-import type { CaipAssetType, OnCronjobHandler } from '@metamask/snaps-sdk';
+import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
 import { DEFAULT_SEND_CONTEXT } from '../../../../features/send/render';
 import { Send } from '../../../../features/send/Send';
 import type { SendContext } from '../../../../features/send/types';
-import { priceApiClient, state } from '../../../../snapContext';
+import { assetsService, priceApiClient, state } from '../../../../snapContext';
 import type { SpotPrices } from '../../../clients/price-api/types';
 import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
@@ -17,7 +17,7 @@ import { CronjobMethod } from './CronjobMethod';
 
 export const refreshSend: OnCronjobHandler = async () => {
   const [assets, mapInterfaceNameToId, preferences] = await Promise.all([
-    state.getKey<UnencryptedStateValue['assets']>('assets'),
+    assetsService.getAll(),
     state.getKey<UnencryptedStateValue['mapInterfaceNameToId']>(
       'mapInterfaceNameToId',
     ),
@@ -27,16 +27,14 @@ export const refreshSend: OnCronjobHandler = async () => {
   try {
     logger.info(`[${CronjobMethod.RefreshSend}] Cronjob triggered`);
 
-    const assetsFromAllAccounts = Object.values(assets ?? {}).flatMap(
-      (accountAssets) => Object.keys(accountAssets),
-    ) as CaipAssetType[];
+    const assetTypes = assets.flatMap((asset) => asset.assetType);
 
     let tokenPrices: SpotPrices = {};
 
     try {
       // First, fetch the token prices
       tokenPrices = await priceApiClient.getMultipleSpotPrices(
-        assetsFromAllAccounts,
+        assetTypes,
         preferences.currency,
       );
 

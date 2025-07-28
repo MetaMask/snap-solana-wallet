@@ -11,6 +11,7 @@ import type { Serializable } from './core/serialization/types';
 import {
   AccountsRepository,
   AccountsService,
+  AccountsSynchronizer,
   KeyringAccountMonitor,
   SignatureMonitor,
   SubscriptionRepository,
@@ -35,7 +36,7 @@ import { TokenMetadataService } from './core/services/token-metadata/TokenMetada
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
 import { WalletService } from './core/services/wallet/WalletService';
-import logger from './core/utils/logger';
+import logger, { noOpLogger } from './core/utils/logger';
 import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
 import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
 import { EventEmitter } from './infrastructure';
@@ -68,19 +69,20 @@ export type SnapExecutionContext = {
   eventEmitter: EventEmitter;
   nameResolutionService: NameResolutionService;
   accountsService: AccountsService;
+  accountsSynchronizer: AccountsSynchronizer;
 };
 
 const configProvider = new ConfigProvider();
 
 const eventEmitter = new EventEmitter(logger);
 
-const state = new State({
+const state = new State(eventEmitter, {
   encrypted: false,
   defaultState: DEFAULT_UNENCRYPTED_STATE,
 });
 
 const stateCache = new StateCache(state, logger);
-const inMemoryCache = new InMemoryCache(logger);
+const inMemoryCache = new InMemoryCache(noOpLogger);
 
 const analyticsService = new AnalyticsService(logger);
 
@@ -142,12 +144,22 @@ const assetsService = new AssetsService({
   nftApiClient,
 });
 
+const accountsRepository = new AccountsRepository(state);
+const accountsService = new AccountsService(accountsRepository);
+
 const transactionsRepository = new TransactionsRepository(state);
 const transactionsService = new TransactionsService(
   transactionsRepository,
+  accountsService,
   assetsService,
   connection,
-  configProvider,
+  logger,
+);
+
+const accountsSynchronizer = new AccountsSynchronizer(
+  accountsService,
+  assetsService,
+  transactionsService,
   logger,
 );
 
@@ -155,14 +167,6 @@ const transactionScanService = new TransactionScanService(
   new SecurityAlertsApiClient(configProvider),
   tokenMetadataService,
   analyticsService,
-  logger,
-);
-
-const accountsRepository = new AccountsRepository(state);
-const accountsService = new AccountsService(
-  accountsRepository,
-  transactionsService,
-  assetsService,
   logger,
 );
 
@@ -183,6 +187,7 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
   accountsService,
   assetsService,
   transactionsService,
+  accountsSynchronizer,
   configProvider,
   eventEmitter,
   logger,
@@ -239,10 +244,12 @@ const snapContext: SnapExecutionContext = {
   eventEmitter,
   nameResolutionService,
   accountsService,
+  accountsSynchronizer,
 };
 
 export {
   accountsService,
+  accountsSynchronizer,
   analyticsService,
   assetsService,
   clientRequestHandler,
