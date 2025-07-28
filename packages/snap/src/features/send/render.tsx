@@ -3,6 +3,7 @@ import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
 import { KnownCaip19Id, Network, Networks } from '../../core/constants/solana';
+import type { UnencryptedStateValue } from '../../core/services/state/State';
 import { lamportsToSol } from '../../core/utils/conversion';
 import {
   createInterface,
@@ -88,21 +89,23 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     loading: true,
   };
 
-  const [stateValue, preferences] = await Promise.all([
-    state.get(),
-    getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),
-  ]);
+  const [assetEntities, keyringAccounts, tokenPrices, preferences] = await Promise.all(
+    [
+      state.getKey<UnencryptedStateValue['assetEntities']>('assetEntities'),
+      state.getKey<UnencryptedStateValue['keyringAccounts']>('keyringAccounts'),
+      state.getKey<UnencryptedStateValue['tokenPrices']>('tokenPrices'),
+      getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),
+    ],
+  );
 
-  const { assetEntities, keyringAccounts, tokenPrices } = stateValue;
-
-  context.balances = getBalancesInScope(scope, assetEntities);
+context.balances = getBalancesInScope(scope, assetEntities);
 
   const assetTypes = Object.values(assetEntities)
     .flat()
     .map((asset) => asset.assetType);
   context.assets = assetTypes;
 
-  context.accounts = Object.values(keyringAccounts);
+  context.accounts = Object.values(keyringAccounts ?? {});
   context.preferences = preferences;
   context.tokenPrices = tokenPrices ?? {};
 

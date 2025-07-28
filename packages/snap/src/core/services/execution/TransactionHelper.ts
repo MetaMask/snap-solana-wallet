@@ -300,13 +300,6 @@ export class TransactionHelper {
     account: SolanaKeyringAccount,
     scope: Network,
   ): Promise<Readonly<Transaction & TransactionWithLifetime>> {
-    const { privateKeyBytes } = await deriveSolanaKeypair({
-      entropySource: account.entropySource,
-      derivationPath: account.derivationPath,
-    });
-    const signer =
-      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
-
     // First, make sure the transaction message has a fee payer, lifetime constraint and compute unit price
     const hasLifetimeConstraint =
       isTransactionMessageWithBlockhashLifetime(transactionMessage);
@@ -331,6 +324,13 @@ export class TransactionHelper {
      */
     const shouldSetComputeUnitLimit =
       !hasComputeUnitLimit || !hasComputeUnitPrice;
+
+    const { privateKeyBytes } = await deriveSolanaKeypair({
+      entropySource: account.entropySource,
+      derivationPath: account.derivationPath,
+    });
+    const signer =
+      await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
     const compilableTransactionMessage = await pipe(
       transactionMessage,

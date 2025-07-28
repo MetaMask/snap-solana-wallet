@@ -1,6 +1,7 @@
 import { assert } from '@metamask/superstruct';
 
 import { UrlStruct } from '../validation/structs';
+import { sanitizeControlCharacters, sanitizeUri } from './sanitize';
 
 export type BuildUrlParams = {
   baseUrl: string;
@@ -29,15 +30,23 @@ export function buildUrl(params: BuildUrlParams): string {
     encodePathParams = true,
   } = params;
 
-  assert(baseUrl, UrlStruct);
+  // Validate and sanitize base URL
+  const sanitizedBaseUrl = sanitizeUri(baseUrl);
+  if (sanitizedBaseUrl === '') {
+    throw new Error('Invalid URL format');
+  }
+  assert(sanitizedBaseUrl, UrlStruct);
 
   const pathWithParams = path.replace(/\{(\w+)\}/gu, (_, key: string) => {
     const value = pathParams?.[key];
     if (value === undefined) {
       throw new Error(`Path parameter ${key} is undefined`);
     }
-
-    return encodePathParams ? encodeURIComponent(value) : value;
+    // Sanitize path parameter values to remove control characters
+    const sanitizedValue = sanitizeControlCharacters(value);
+    return encodePathParams
+      ? encodeURIComponent(sanitizedValue)
+      : sanitizedValue;
   });
 
   const cleanPath = pathWithParams
@@ -45,13 +54,16 @@ export function buildUrl(params: BuildUrlParams): string {
     .replace(/\/+/gu, '/') // Replace multiple slashes with single
     .replace(/\/+$/u, ''); // Remove trailing slashes
 
-  const url = new URL(cleanPath, baseUrl);
+  const url = new URL(cleanPath, sanitizedBaseUrl);
+
   Object.entries(queryParams ?? {})
     .filter(([_, value]) => value !== undefined)
     .filter(([_, value]) => value !== null)
     .forEach(([key, value]) => {
       if (value) {
-        url.searchParams.append(key, value);
+        // Sanitize query parameter values to remove control characters
+        const sanitizedValue = sanitizeControlCharacters(value);
+        url.searchParams.append(key, sanitizedValue);
       }
     });
 

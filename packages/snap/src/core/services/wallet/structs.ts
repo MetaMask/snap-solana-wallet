@@ -3,6 +3,7 @@ import type { Infer } from '@metamask/superstruct';
 import {
   array,
   boolean,
+  coerce,
   enums,
   literal,
   number,
@@ -11,9 +12,18 @@ import {
   string,
   type,
   union,
+  refine,
 } from '@metamask/superstruct';
 
 import { Network } from '../../constants/solana';
+import {
+  sanitizeDomain,
+  sanitizeSolanaAddress,
+  sanitizeUri,
+  sanitizeTimestamp,
+  sanitizeForSignInMessage,
+  sanitizeResources,
+} from '../../utils/sanitize';
 import { Base58Struct, Base64Struct } from '../../validation/structs';
 
 /**
@@ -26,27 +36,103 @@ import { Base58Struct, Base64Struct } from '../../validation/structs';
 
 const ScopeStringStruct = enums(Object.values(Network));
 
+// Sanitizing structs that transform values during validation
+const SanitizedSolanaAddressStruct = coerce(
+  string(),
+  string(),
+  (value: string) => {
+    if (!value || value === '') {
+      throw new Error('Account address is required');
+    }
+    const sanitized = sanitizeSolanaAddress(value);
+    if (sanitized === '') {
+      throw new Error('Invalid Solana address format');
+    }
+    return sanitized;
+  },
+);
+
 const WalletAccountStruct = type({
-  address: string(),
+  address: SanitizedSolanaAddressStruct,
 });
 
 const SolanaSignatureTypeStruct = literal('ed25519');
 
-const SolanaSignInInputStruct = type({
-  domain: optional(string()),
-  address: optional(string()),
-  statement: optional(string()),
-  uri: optional(string()),
-  version: optional(string()),
-  chainId: optional(string()),
-  nonce: optional(string()),
-  issuedAt: optional(string()),
-  expirationTime: optional(string()),
-  notBefore: optional(string()),
-  requestId: optional(string()),
-  resources: optional(array(string())),
+// Sanitizing structs for SIWS fields
+const SanitizedDomainStruct = coerce(string(), string(), (value: string) => {
+  const sanitized = sanitizeDomain(value);
+  if (sanitized === '') {
+    throw new Error('Invalid domain format');
+  }
+  return sanitized;
 });
 
+const SanitizedAddressStruct = coerce(string(), string(), (value: string) => {
+  const sanitized = sanitizeSolanaAddress(value);
+  if (sanitized === '') {
+    throw new Error('Invalid Solana address format');
+  }
+  return sanitized;
+});
+
+const SanitizedStatementStruct = coerce(string(), string(), (value: string) => {
+  const sanitized = sanitizeForSignInMessage(value, 1000);
+  if (sanitized === '') {
+    throw new Error(
+      'Statement cannot be empty. Control characters and excessive whitespace are removed for security. Please use plain text only.',
+    );
+  }
+  return sanitized;
+});
+
+const SanitizedUriStruct = coerce(string(), string(), (value: string) => {
+  return sanitizeUri(value);
+});
+
+const SanitizedVersionStruct = coerce(string(), string(), (value: string) => {
+  return sanitizeForSignInMessage(value, 10);
+});
+
+const SanitizedChainIdStruct = coerce(string(), string(), (value: string) => {
+  return sanitizeForSignInMessage(value, 50);
+});
+
+const SanitizedNonceStruct = coerce(string(), string(), (value: string) => {
+  return sanitizeForSignInMessage(value, 100);
+});
+
+const SanitizedTimestampStruct = coerce(string(), string(), (value: string) => {
+  return sanitizeTimestamp(value);
+});
+
+const SanitizedRequestIdStruct = coerce(string(), string(), (value: string) => {
+  return sanitizeForSignInMessage(value, 100);
+});
+
+const SanitizedResourcesStruct = coerce(
+  array(string()),
+  array(string()),
+  (value: string[]) => {
+    const sanitized = sanitizeResources(value);
+
+    return sanitized;
+  },
+);
+
+const SolanaSignInInputStruct = type({
+  domain: optional(SanitizedDomainStruct),
+  address: optional(SanitizedAddressStruct),
+  statement: optional(SanitizedStatementStruct),
+  uri: optional(SanitizedUriStruct),
+  version: optional(SanitizedVersionStruct),
+  chainId: optional(SanitizedChainIdStruct),
+  nonce: optional(SanitizedNonceStruct),
+  issuedAt: optional(SanitizedTimestampStruct),
+  expirationTime: optional(SanitizedTimestampStruct),
+  notBefore: optional(SanitizedTimestampStruct),
+  requestId: optional(SanitizedRequestIdStruct),
+  resources: optional(SanitizedResourcesStruct),
+});
 const SolanaSignMessageInputStruct = type({
   account: WalletAccountStruct,
   message: Base64Struct,

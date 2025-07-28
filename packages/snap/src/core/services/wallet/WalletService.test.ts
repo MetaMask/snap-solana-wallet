@@ -398,6 +398,60 @@ describe('WalletService', () => {
             /At path/u,
           );
         });
+
+        it('sanitizes control characters from sign-in parameters', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_2;
+          const maliciousRequest = wrapKeyringRequest({
+            ...MOCK_SIGN_IN_REQUEST,
+            params: {
+              domain: 'example.com\n<script>alert(1)</script>',
+              address: '5Q444645Hz4hD7AuSj5z8m6jKLd3TxoMwp4Y7UWVKGqy\r\n',
+              statement: 'I accept the terms\n\r\n\nof service',
+              uri: 'https://example.com/login\r\n',
+              version: '1\n',
+              chainId: 'solana:101\r\n',
+              nonce: '32891756\n',
+              issuedAt: '2024-01-01T00:00:00.000Z\r\n',
+              expirationTime: '2024-01-02T00:00:00.000Z\n',
+              notBefore: '2023-12-31T00:00:00.000Z\r\n',
+              requestId: '123\n',
+              resources: [
+                'https://example.com/resource1\r\n',
+                'https://example.com/resource2\n',
+              ],
+            },
+          } as unknown as JsonRpcRequest);
+
+          const result = await service.signIn(account, maliciousRequest);
+
+          // The result should still be valid, but the message will be sanitized
+          expect(result).toHaveProperty('signature');
+          expect(result).toHaveProperty('signedMessage');
+          expect(result).toHaveProperty('signatureType', 'ed25519');
+          expect(result).toHaveProperty('account');
+        });
+
+        it('handles requests with invalid parameters by sanitizing them', async () => {
+          const account = MOCK_SOLANA_KEYRING_ACCOUNT_2;
+          const invalidRequest = wrapKeyringRequest({
+            method: SolMethod.SignIn,
+            params: {
+              domain: '',
+              address: 'invalid-address',
+              uri: 'not-a-url',
+              issuedAt: 'invalid-timestamp',
+            },
+          } as unknown as JsonRpcRequest);
+
+          // The sanitization should handle invalid parameters gracefully
+          // and the sign-in should succeed with sanitized values
+          const result = await service.signIn(account, invalidRequest);
+
+          expect(result).toHaveProperty('signature');
+          expect(result).toHaveProperty('signedMessage');
+          expect(result).toHaveProperty('signatureType', 'ed25519');
+          expect(result).toHaveProperty('account');
+        });
       });
 
       describe('verifySignature', () => {

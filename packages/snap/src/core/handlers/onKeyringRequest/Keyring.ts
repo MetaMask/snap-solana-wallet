@@ -633,13 +633,11 @@ export class SolanaKeyring implements Keyring {
 
       const derivationPath = this.#getDefaultDerivationPath(groupIndex);
 
-      const keypair = await deriveSolanaKeypair({
+      const { publicKeyBytes } = await deriveSolanaKeypair({
         entropySource,
         derivationPath,
       });
-      const address = getAddressDecoder().decode(
-        keypair.publicKeyBytes.slice(1),
-      );
+      const address = getAddressDecoder().decode(publicKeyBytes.slice(1));
 
       const activityChecksPromises = [];
 
