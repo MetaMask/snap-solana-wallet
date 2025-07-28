@@ -1,5 +1,4 @@
 import { KnownCaip19Id, Network } from '../../../core/constants/solana';
-import type { AccountId } from '../../../core/services/state/State';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -8,71 +7,68 @@ import type { AssetEntity } from '../../../entities';
 import { getBalancesInScope } from './getBalancesInScope';
 
 describe('getBalancesInScope', () => {
-  const mockAssetEntities = {
-    [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: [
-      // Account 0
-      // Native SOL, Zero balance - ✅
-      {
-        assetType: KnownCaip19Id.SolMainnet,
-        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        network: Network.Mainnet,
-        symbol: 'SOL',
-        decimals: 9,
-        rawAmount: '0',
-        uiAmount: '0',
-      },
-      // Native SOL, Different scope - ❌
-      {
-        assetType: KnownCaip19Id.SolDevnet,
-        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        network: Network.Devnet,
-        symbol: 'SOL',
-        decimals: 9,
-        rawAmount: '1000000',
-        uiAmount: '1',
-      },
-      // SPL token, Non-zero balance - ✅
-      {
-        assetType: KnownCaip19Id.UsdcMainnet,
-        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        network: Network.Mainnet,
-        symbol: 'USDC',
-        decimals: 6,
-        rawAmount: '1000000',
-        uiAmount: '1',
-      },
-    ],
-    [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: [
-      // Account 1
-      // SPL token, Non-zero balance, Different scope - ❌
-      {
-        assetType: KnownCaip19Id.UsdcDevnet,
-        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
-        network: Network.Devnet,
-        decimals: 6,
-        rawAmount: '1000000',
-        symbol: 'USDC',
-      },
-      // SPL token, Zero balance - ❌
-      {
-        assetType: KnownCaip19Id.EurcMainnet,
-        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
-        network: Network.Mainnet,
-        decimals: 6,
-        rawAmount: '0',
-        symbol: 'EURC',
-      },
-      // SPL token, Zero balance, Different scope - ❌
-      {
-        assetType: KnownCaip19Id.EurcDevnet,
-        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
-        network: Network.Devnet,
-        decimals: 6,
-        rawAmount: '1000000',
-        symbol: 'EURC',
-      },
-    ],
-  } as Record<AccountId, AssetEntity[]>;
+  const mockAssetEntities = [
+    // Account 0
+    // Native SOL, Zero balance - ✅
+    {
+      assetType: KnownCaip19Id.SolMainnet,
+      keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      network: Network.Mainnet,
+      symbol: 'SOL',
+      decimals: 9,
+      rawAmount: '0',
+      uiAmount: '0',
+    },
+    // Native SOL, Different scope - ❌
+    {
+      assetType: KnownCaip19Id.SolDevnet,
+      keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      network: Network.Devnet,
+      symbol: 'SOL',
+      decimals: 9,
+      rawAmount: '1000000',
+      uiAmount: '1',
+    },
+    // SPL token, Non-zero balance - ✅
+    {
+      assetType: KnownCaip19Id.UsdcMainnet,
+      keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      network: Network.Mainnet,
+      symbol: 'USDC',
+      decimals: 6,
+      rawAmount: '1000000',
+      uiAmount: '1',
+    },
+
+    // Account 1
+    // SPL token, Non-zero balance, Different scope - ❌
+    {
+      assetType: KnownCaip19Id.UsdcDevnet,
+      keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
+      network: Network.Devnet,
+      decimals: 6,
+      rawAmount: '1000000',
+      symbol: 'USDC',
+    },
+    // SPL token, Zero balance - ❌
+    {
+      assetType: KnownCaip19Id.EurcMainnet,
+      keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
+      network: Network.Mainnet,
+      decimals: 6,
+      rawAmount: '0',
+      symbol: 'EURC',
+    },
+    // SPL token, Zero balance, Different scope - ❌
+    {
+      assetType: KnownCaip19Id.EurcDevnet,
+      keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
+      network: Network.Devnet,
+      decimals: 6,
+      rawAmount: '1000000',
+      symbol: 'EURC',
+    },
+  ] as AssetEntity[];
 
   it('returns balances for the given scope without 0 balances', () => {
     const result = getBalancesInScope(Network.Mainnet, mockAssetEntities);
@@ -92,15 +88,13 @@ describe('getBalancesInScope', () => {
   });
 
   it('should handle accounts with no tokens', () => {
-    const result = getBalancesInScope(Network.Mainnet, {
-      [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: [],
-    });
+    const result = getBalancesInScope(Network.Mainnet, []);
 
     expect(result).toStrictEqual({});
   });
 
   it('should handle empty balances', () => {
-    const result = getBalancesInScope(Network.Mainnet, {});
+    const result = getBalancesInScope(Network.Mainnet, []);
 
     expect(result).toStrictEqual({});
   });

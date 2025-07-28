@@ -17,12 +17,9 @@ import type { AssetEntity } from '../../../entities';
  */
 export function getBalancesInScope(
   scope: Network,
-  assetEntities: Record<AccountId, AssetEntity[]>,
+  assetEntities: AssetEntity[],
 ): Record<AccountId, Record<CaipAssetType, Balance>> {
-  //   const asList = Object.values(assetEntities).flat();
-
-  return Object.values(assetEntities)
-    .flat()
+  return assetEntities
     .filter((item) => {
       /**
        * The tokens we can send are:
@@ -43,44 +40,8 @@ export function getBalancesInScope(
         [item.assetType]: {
           unit: item.symbol,
           amount: item.uiAmount,
-          //   amount: item.rawAmount,
-          //   decimals: 'decimals' in item ? item.decimals : 0,
-          //   symbol: item.symbol,
         },
       };
       return acc;
     }, {});
-  //   return Object.fromEntries(
-  //     Object.entries(assetEntities).map(([accountId, perAccountBalances]) => [
-  //       accountId,
-  //       Object.fromEntries(
-  //         Object.entries(perAccountBalances).filter(
-  //           ([assetCaipId, perAccountTokenBalance]) => {
-  //             /**
-  //              * The tokens we can send are:
-  //              * - The native token, which can be 0 for display purposes.
-  //              * - All tokens for the given scope with a non-zero balance.
-  //              */
-  //             const isNativeToken =
-  //               assetCaipId === Networks[scope].nativeToken.caip19Id;
-
-  //             const isInScope = assetCaipId.startsWith(scope);
-  //             const hasNonZeroBalance = perAccountTokenBalance.amount !== '0';
-
-  //             return isNativeToken || (isInScope && hasNonZeroBalance);
-  //           },
-  //         ),
-  //       ),
-  //     ]),
-  //   );
-  //   return Object.fromEntries(
-  //     Object.entries(assetEntities).map(([accountId, perAccountBalances]) => [
-  //       accountId,
-  //       Object.fromEntries(
-  //         perAccountBalances
-  //           .filter((item) => item.network === scope)
-  //           .map((item) => [item.assetType, item.uiAmount]),
-  //       ),
-  //     ]),
-  //   );
 }

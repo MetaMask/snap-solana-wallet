@@ -13,6 +13,7 @@ import {
   updateInterface,
 } from '../../core/utils/interface';
 import {
+  accountsService,
   assetsService,
   connection,
   priceApiClient,
@@ -89,22 +90,16 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     loading: true,
   };
 
-  const [assetEntities, keyringAccounts, tokenPrices, preferences] = await Promise.all(
-    [
-      state.getKey<UnencryptedStateValue['assetEntities']>('assetEntities'),
-      state.getKey<UnencryptedStateValue['keyringAccounts']>('keyringAccounts'),
+  const [assetEntities, keyringAccounts, tokenPrices, preferences] =
+    await Promise.all([
+      assetsService.getAll(),
+      accountsService.getAll(),
       state.getKey<UnencryptedStateValue['tokenPrices']>('tokenPrices'),
       getPreferences().catch(() => DEFAULT_SEND_CONTEXT.preferences),
-    ],
-  );
+    ]);
 
-context.balances = getBalancesInScope(scope, assetEntities);
-
-  const assetTypes = Object.values(assetEntities)
-    .flat()
-    .map((asset) => asset.assetType);
-  context.assets = assetTypes;
-
+  context.balances = getBalancesInScope(scope, assetEntities);
+  context.assets = assetEntities.map((asset) => asset.assetType);
   context.accounts = Object.values(keyringAccounts ?? {});
   context.preferences = preferences;
   context.tokenPrices = tokenPrices ?? {};
