@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Assets are now fetched and saved immediately when creating an account since they're needed by the client right away ([#481](https://github.com/MetaMask/snap-solana-wallet/pull/481))
-- Transaction fetching has been moved to a background event (OnSyncAccountTransactions) since transactions aren't immediately needed by the client ([#481](https://github.com/MetaMask/snap-solana-wallet/pull/481))
+- Transaction fetching has been moved to a background event since transactions aren't immediately needed by the client ([#481](https://github.com/MetaMask/snap-solana-wallet/pull/481))
 - Added a 20-transaction limit to background transaction fetching to improve performance ([#481](https://github.com/MetaMask/snap-solana-wallet/pull/481))
 
 ### Fixes
