@@ -485,14 +485,14 @@ export class AssetsService {
   async saveMany(assets: AssetEntity[]): Promise<void> {
     this.#logger.info('Saving assets', assets);
 
-    // Save assets using repository
-    await this.#assetsRepository.saveMany(assets);
-
     const hasZeroRawAmount = (asset: AssetEntity) => asset.rawAmount === '0';
     const hasNonZeroRawAmount = (asset: AssetEntity) =>
       !hasZeroRawAmount(asset);
 
     const savedAssets = await this.getAll();
+
+    // Save assets using repository
+    await this.#assetsRepository.saveMany(assets);
 
     // Notify the extension about the new assets in a single event
     const isNew = (asset: AssetEntity) =>

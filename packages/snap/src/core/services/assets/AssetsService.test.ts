@@ -302,6 +302,133 @@ describe('AssetsService', () => {
 
       expect(emitSnapKeyringEvent).not.toHaveBeenCalled();
     });
+
+    it('fetches saved assets before saving new assets to ensure correct change detection', async () => {
+      const callOrder: string[] = [];
+
+      const getAllSpy = jest
+        .spyOn(mockAssetsRepository, 'getAll')
+        .mockImplementation(async () => {
+          callOrder.push('getAll');
+          return [];
+        });
+
+      const saveManySpy = jest
+        .spyOn(mockAssetsRepository, 'saveMany')
+        .mockImplementation(async () => {
+          callOrder.push('saveMany');
+        });
+
+      await assetsService.saveMany(MOCK_ASSET_ENTITIES);
+
+      // Verify that getAll was called before saveMany
+      expect(callOrder).toStrictEqual(['getAll', 'saveMany']);
+      expect(getAllSpy).toHaveBeenCalledTimes(1);
+      expect(saveManySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('correctly detects new assets when savedAssets is fetched before saving', async () => {
+      // Start with empty state
+      jest.spyOn(mockAssetsRepository, 'getAll').mockResolvedValueOnce([]);
+
+      await assetsService.saveMany([MOCK_ASSET_ENTITY_0]);
+
+      // Should emit AccountAssetListUpdated with the new asset
+      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+        snap,
+        KeyringEvent.AccountAssetListUpdated,
+        {
+          assets: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              added: [MOCK_ASSET_ENTITY_0.assetType],
+              removed: [],
+            },
+          },
+        },
+      );
+    });
+
+    it('correctly detects assets going from zero to non-zero balance when savedAssets is fetched before saving', async () => {
+      const assetWithZeroBalance = { ...MOCK_ASSET_ENTITY_0, rawAmount: '0' };
+      const assetWithNonZeroBalance = {
+        ...MOCK_ASSET_ENTITY_0,
+        rawAmount: '1000000',
+      };
+
+      // First save with zero balance
+      jest.spyOn(mockAssetsRepository, 'getAll').mockResolvedValueOnce([]);
+      await assetsService.saveMany([assetWithZeroBalance]);
+
+      (emitSnapKeyringEvent as jest.Mock).mockClear();
+
+      // Then save with non-zero balance, but getAll should return the state before this save
+      jest
+        .spyOn(mockAssetsRepository, 'getAll')
+        .mockResolvedValueOnce([assetWithZeroBalance]);
+      await assetsService.saveMany([assetWithNonZeroBalance]);
+
+      // Should emit AccountAssetListUpdated because asset went from zero to non-zero
+      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+        snap,
+        KeyringEvent.AccountAssetListUpdated,
+        {
+          assets: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              added: [MOCK_ASSET_ENTITY_0.assetType],
+              removed: [],
+            },
+          },
+        },
+      );
+    });
+
+    it('does not incorrectly mark assets as new when they are already in the saved state', async () => {
+      // Mock that the asset already exists in saved state
+      jest
+        .spyOn(mockAssetsRepository, 'getAll')
+        .mockResolvedValueOnce([MOCK_ASSET_ENTITY_0]);
+
+      await assetsService.saveMany([MOCK_ASSET_ENTITY_0]);
+
+      // Should not emit AccountAssetListUpdated since no assets were actually added/removed
+      expect(emitSnapKeyringEvent).not.toHaveBeenCalledWith(
+        snap,
+        KeyringEvent.AccountAssetListUpdated,
+        expect.any(Object),
+      );
+    });
+
+    it('correctly identifies balance changes when savedAssets reflects pre-save state', async () => {
+      const originalAsset = { ...MOCK_ASSET_ENTITY_0, rawAmount: '1000000' };
+      const updatedAsset = {
+        ...MOCK_ASSET_ENTITY_0,
+        rawAmount: '2000000',
+        uiAmount: '2.0',
+      };
+
+      // Mock that original asset exists in saved state
+      jest
+        .spyOn(mockAssetsRepository, 'getAll')
+        .mockResolvedValueOnce([originalAsset]);
+
+      await assetsService.saveMany([updatedAsset]);
+
+      // Should emit AccountBalancesUpdated because balance changed
+      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+        snap,
+        KeyringEvent.AccountBalancesUpdated,
+        {
+          balances: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [MOCK_ASSET_ENTITY_0.assetType]: {
+                unit: updatedAsset.symbol,
+                amount: updatedAsset.uiAmount,
+              },
+            },
+          },
+        },
+      );
+    });
   });
 
   describe('hasChanged', () => {
