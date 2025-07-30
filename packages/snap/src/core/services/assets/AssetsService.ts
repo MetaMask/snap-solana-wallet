@@ -351,8 +351,6 @@ export class AssetsService {
    * @returns The balances and metadata of the account for the given assets.
    */
   async fetch(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
-    this.#logger.info('Fetching assets for account', account);
-
     const [nativeAssets, tokenAccounts] = await Promise.all([
       this.#fetchNativeAssets(account),
       this.#fetchTokenAccountsMultiple(
