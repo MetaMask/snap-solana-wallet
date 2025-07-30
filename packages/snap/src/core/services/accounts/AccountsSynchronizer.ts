@@ -52,6 +52,9 @@ export class AccountsSynchronizer {
     const transactions =
       await this.#transactionsService.fetchAssetsTransactions(
         assetsThatChanged,
+        {
+          limit: 20,
+        },
       );
 
     await this.#transactionsService.saveMany(transactions);

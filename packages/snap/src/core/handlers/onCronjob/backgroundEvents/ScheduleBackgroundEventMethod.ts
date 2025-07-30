@@ -5,6 +5,6 @@ export enum ScheduleBackgroundEventMethod {
   OnTransactionApproved = 'onTransactionApproved',
   /** Triggered when a transaction is rejected */
   OnTransactionRejected = 'onTransactionRejected',
-  /** Triggered when the snap needs to synchronize an account */
-  OnSynchronizeAccount = 'onSynchronizeAccount',
+  /** Use it to schedule a background event to asynchronously fetch the transactions of an account */
+  OnSyncAccountTransactions = 'onSyncAccountTransactions',
 }

@@ -19,7 +19,6 @@ import type {
   Address,
 } from '@solana/kit';
 import { address as asAddress } from '@solana/kit';
-import { cloneDeep } from 'lodash';
 
 import type {
   AssetEntity,
@@ -45,10 +44,9 @@ import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
-import type { IStateManager } from '../state/IStateManager';
-import type { UnencryptedStateValue } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
+import type { AssetsRepository } from './AssetsRepository';
 import type { AssetMetadata, NonFungibleAssetMetadata } from './types';
 
 /**
@@ -70,7 +68,7 @@ export class AssetsService {
 
   readonly #configProvider: ConfigProvider;
 
-  readonly #state: IStateManager<UnencryptedStateValue>;
+  readonly #assetsRepository: AssetsRepository;
 
   readonly #tokenMetadataService: TokenMetadataService;
 
@@ -90,7 +88,7 @@ export class AssetsService {
     connection,
     logger,
     configProvider,
-    state,
+    assetsRepository,
     tokenMetadataService,
     tokenPricesService,
     cache,
@@ -99,7 +97,7 @@ export class AssetsService {
     connection: SolanaConnection;
     logger: ILogger;
     configProvider: ConfigProvider;
-    state: IStateManager<UnencryptedStateValue>;
+    assetsRepository: AssetsRepository;
     tokenMetadataService: TokenMetadataService;
     tokenPricesService: TokenPricesService;
     cache: ICache<Serializable>;
@@ -108,7 +106,7 @@ export class AssetsService {
     this.#logger = createPrefixedLogger(logger, '[🪙 AssetsService]');
     this.#connection = connection;
     this.#configProvider = configProvider;
-    this.#state = state;
+    this.#assetsRepository = assetsRepository;
     this.#tokenMetadataService = tokenMetadataService;
     this.#tokenPricesService = tokenPricesService;
     this.#cache = cache;
@@ -139,12 +137,17 @@ export class AssetsService {
     > = {};
 
     for (const assetType of assetTypes) {
-      const { chainId } = parseCaipAssetType(assetType);
+      const {
+        chain: { namespace, reference },
+        assetNamespace,
+        assetReference,
+      } = parseCaipAssetType(assetType);
+
       nativeTokensMetadata[assetType] = {
         name: 'Solana',
         symbol: 'SOL',
         fungible: true,
-        iconUrl: `${this.#configProvider.get().staticApi.baseUrl}/api/v2/tokenIcons/assets/solana/${chainId}/slip44/501.png`,
+        iconUrl: `${this.#configProvider.get().staticApi.baseUrl}/api/v2/tokenIcons/assets/${namespace}/${reference}/${assetNamespace}/${assetReference}.png`,
         units: [
           {
             name: 'Solana',
@@ -394,25 +397,29 @@ export class AssetsService {
     ];
   }
 
+  getNativeAssetTypes(): NativeCaipAssetType[] {
+    return this.#activeNetworks.map(
+      (network) => `${network}/${SolanaCaip19Tokens.SOL}` as const,
+    );
+  }
+
   async #fetchNativeAssets(
     account: SolanaKeyringAccount,
   ): Promise<NativeAsset[]> {
-    const nativeAssetsIds = this.#activeNetworks.map(
-      (network) => `${network}/${SolanaCaip19Tokens.SOL}` as const,
-    );
+    const nativeAssetsTypes = this.getNativeAssetTypes();
 
     const accountAddress = asAddress(account.address);
 
-    const balancePromises = nativeAssetsIds.map(async (assetId) => {
+    const balancePromises = nativeAssetsTypes.map(async (assetType) => {
       const balance = await this.#connection
-        .getRpc(getNetworkFromToken(assetId))
+        .getRpc(getNetworkFromToken(assetType))
         .getBalance(accountAddress)
         .send();
 
       return {
-        assetType: assetId,
+        assetType,
         keyringAccountId: account.id,
-        network: getNetworkFromToken(assetId),
+        network: getNetworkFromToken(assetType),
         address: accountAddress,
         symbol: 'SOL',
         decimals: 9,
@@ -478,38 +485,14 @@ export class AssetsService {
   async saveMany(assets: AssetEntity[]): Promise<void> {
     this.#logger.info('Saving assets', assets);
 
-    const savedAssets = await this.getAll();
-
-    // Update the state atomically
-    await this.#state.update((stateValue) => {
-      const newState = cloneDeep(stateValue);
-      for (const asset of assets) {
-        const { keyringAccountId } = asset;
-        const accountAssets = cloneDeep(
-          newState.assetEntities[keyringAccountId] ?? [],
-        );
-
-        // Avoid duplicates. If same asset is already saved, override it.
-        const existingAssetIndex = accountAssets.findIndex(
-          (item) =>
-            item.assetType === asset.assetType &&
-            item.keyringAccountId === asset.keyringAccountId,
-        );
-
-        if (existingAssetIndex === -1) {
-          accountAssets.push(asset);
-        } else {
-          accountAssets[existingAssetIndex] = asset;
-        }
-
-        newState.assetEntities[keyringAccountId] = accountAssets;
-      }
-      return newState;
-    });
+    // Save assets using repository
+    await this.#assetsRepository.saveMany(assets);
 
     const hasZeroRawAmount = (asset: AssetEntity) => asset.rawAmount === '0';
     const hasNonZeroRawAmount = (asset: AssetEntity) =>
       !hasZeroRawAmount(asset);
+
+    const savedAssets = await this.getAll();
 
     // Notify the extension about the new assets in a single event
     const isNew = (asset: AssetEntity) =>
@@ -584,11 +567,12 @@ export class AssetsService {
         }),
         {},
       );
+
     const isEmptyAccountBalancesUpdatedPayload = Object.values(
       balancesUpdatedPayload,
     )
       .map((item) => Object.keys(item).length)
-      .every((item) => item === 0);
+      .every((item) => item === 0); // If all balances are zero, don't emit the event.
 
     if (!isEmptyAccountBalancesUpdatedPayload) {
       await emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
@@ -619,21 +603,42 @@ export class AssetsService {
   }
 
   async getAll(): Promise<AssetEntity[]> {
-    const assetsByAccount =
-      (await this.#state.getKey<UnencryptedStateValue['assetEntities']>(
-        'assetEntities',
-      )) ?? {};
-
-    return Object.values(assetsByAccount).flat();
+    return this.#assetsRepository.getAll();
   }
 
-  async findByKeyringAccountId(
-    keyringAccountId: string,
-  ): Promise<AssetEntity[]> {
-    const assets = await this.#state.getKey<AssetEntity[]>(
-      `assetEntities.${keyringAccountId}`,
-    );
+  async findByAccount(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
+    const { id: keyringAccountId, address } = account;
 
-    return assets ?? [];
+    const savedAssets =
+      await this.#assetsRepository.findByKeyringAccountId(keyringAccountId);
+
+    // Every account must have at least the native assets. Ensure that they are always present, even if not yet fetched/saved.
+    const nativeAssetTypes = this.getNativeAssetTypes();
+    const missingNativeAssets: NativeAsset[] = [];
+
+    for (const nativeAssetType of nativeAssetTypes) {
+      const hasNativeAsset = savedAssets.some(
+        (asset) => asset.assetType === nativeAssetType,
+      );
+
+      if (!hasNativeAsset) {
+        // Create a placeholder native asset with zero balance
+        // This will be updated when assets are actually fetched
+        const network = getNetworkFromToken(nativeAssetType);
+
+        missingNativeAssets.push({
+          assetType: nativeAssetType,
+          keyringAccountId: account.id,
+          network,
+          address,
+          symbol: 'SOL',
+          decimals: 9,
+          rawAmount: '0',
+          uiAmount: '0',
+        });
+      }
+    }
+
+    return [...savedAssets, ...missingNativeAssets];
   }
 }

@@ -12,6 +12,8 @@ import {
   AccountsRepository,
   AccountsService,
   AccountsSynchronizer,
+  AssetsRepository,
+  AssetsService,
   KeyringAccountMonitor,
   SignatureMonitor,
   SubscriptionRepository,
@@ -22,7 +24,6 @@ import {
   WebSocketConnectionService,
 } from './core/services';
 import { AnalyticsService } from './core/services/analytics/AnalyticsService';
-import { AssetsService } from './core/services/assets/AssetsService';
 import { ConfigProvider } from './core/services/config';
 import { ConfirmationHandler } from './core/services/confirmation/ConfirmationHandler';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
@@ -133,11 +134,12 @@ const tokenPricesService = new TokenPricesService({
 });
 const nameResolutionService = new NameResolutionService(connection, logger);
 
+const assetsRepository = new AssetsRepository(state);
 const assetsService = new AssetsService({
   connection,
   logger,
   configProvider,
-  state,
+  assetsRepository,
   tokenMetadataService,
   cache: inMemoryCache,
   tokenPricesService,

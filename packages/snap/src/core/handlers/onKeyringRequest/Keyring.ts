@@ -39,12 +39,12 @@ import {
   asStrictKeyringAccount,
   type SolanaKeyringAccount,
 } from '../../../entities';
-import { Network } from '../../constants/solana';
+import { Network, SolanaCaip19Tokens } from '../../constants/solana';
 import type {
+  AssetsService,
   KeyringAccountMonitor,
   TransactionsService,
 } from '../../services';
-import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import type { IStateManager } from '../../services/state/IStateManager';
@@ -296,6 +296,18 @@ export class SolanaKeyring implements Keyring {
         solanaKeyringAccount,
       );
 
+      // Fetch the assets for the account
+      const assetEntities =
+        await this.#assetsService.fetch(solanaKeyringAccount);
+
+      // Save the assets in state
+      await this.#assetsService.saveMany(assetEntities);
+
+      // Start monitoring the account for updates on its assets
+      await this.#keyringAccountMonitor.monitorKeyringAccount(
+        solanaKeyringAccount,
+      );
+
       const keyringAccount: KeyringAccount =
         asStrictKeyringAccount(solanaKeyringAccount);
 
@@ -324,17 +336,13 @@ export class SolanaKeyring implements Keyring {
           : {}),
       });
 
-      await this.#keyringAccountMonitor.monitorKeyringAccount(
-        solanaKeyringAccount,
-      );
-
-      // Schedule a synchronization of the account
+      // Schedule a fetch of the account's transactions
       await snap.request({
         method: 'snap_scheduleBackgroundEvent',
         params: {
           duration: 'PT1S',
           request: {
-            method: ScheduleBackgroundEventMethod.OnSynchronizeAccount,
+            method: ScheduleBackgroundEventMethod.OnSyncAccountTransactions,
             params: { accountId: id },
           },
         },
@@ -385,12 +393,18 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, ListAccountAssetsStruct);
 
-      await this.getAccountOrThrow(accountId);
+      const account = await this.getAccountOrThrow(accountId);
 
-      const assetEntities =
-        await this.#assetsService.findByKeyringAccountId(accountId);
+      const assetEntities = await this.#assetsService.findByAccount(account);
 
-      const result = assetEntities.map((asset) => asset.assetType);
+      const result = assetEntities
+        // Remove token assets with zero balance
+        .filter(
+          (asset) =>
+            asset.assetType.endsWith(SolanaCaip19Tokens.SOL) ||
+            Number(asset.rawAmount) > 0,
+        )
+        .map((asset) => asset.assetType);
 
       validateResponse(result, ListAccountAssetsResponseStruct);
       return result;
@@ -413,23 +427,27 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId, assets }, GetAccountBalancesStruct);
 
-      await this.getAccountOrThrow(accountId);
+      const account = await this.getAccountOrThrow(accountId);
 
-      const assetEntities =
-        await this.#assetsService.findByKeyringAccountId(accountId);
-      const assetEntitiesOnlyRequestedAssetTypes = assetEntities.filter(
-        (asset) => assets.includes(asset.assetType),
+      const assetsToUse = (await this.#assetsService.findByAccount(account))
+        .filter((asset) => assets.includes(asset.assetType))
+        // Remove token assets with zero balance
+        .filter(
+          (asset) =>
+            asset.assetType.endsWith(SolanaCaip19Tokens.SOL) ||
+            Number(asset.rawAmount) > 0,
+        );
+
+      const result = assetsToUse.reduce<Record<CaipAssetType, Balance>>(
+        (acc, asset) => {
+          acc[asset.assetType] = {
+            unit: asset.symbol,
+            amount: asset.uiAmount,
+          };
+          return acc;
+        },
+        {},
       );
-
-      const result = assetEntitiesOnlyRequestedAssetTypes.reduce<
-        Record<CaipAssetType, Balance>
-      >((acc, asset) => {
-        acc[asset.assetType] = {
-          unit: asset.symbol,
-          amount: asset.uiAmount,
-        };
-        return acc;
-      }, {});
 
       validateResponse(result, GetAccounBalancesResponseStruct);
       return result;

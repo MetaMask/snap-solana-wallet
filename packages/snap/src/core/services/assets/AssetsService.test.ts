@@ -23,12 +23,9 @@ import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
 import { createMockConnection } from '../mocks/mockConnection';
 import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/mockSolanaRpcResponses';
-import { InMemoryState } from '../state/InMemoryState';
-import type { IStateManager } from '../state/IStateManager';
-import type { UnencryptedStateValue } from '../state/State';
-import { DEFAULT_UNENCRYPTED_STATE } from '../state/State';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
+import type { AssetsRepository } from './AssetsRepository';
 import { AssetsService } from './AssetsService';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
@@ -45,11 +42,10 @@ describe('AssetsService', () => {
   let assetsService: AssetsService;
   let mockConnection: SolanaConnection;
   let mockConfigProvider: ConfigProvider;
+  let mockAssetsRepository: AssetsRepository;
   let mockTokenMetadataService: TokenMetadataService;
   let mockTokenPricesService: TokenPricesService;
   let mockNftApiClient: NftApiClient;
-  let mockState: IStateManager<UnencryptedStateValue>;
-  let stateSetKeySpy: jest.SpyInstance;
   let mockCache: ICache<Serializable>;
 
   beforeEach(() => {
@@ -76,9 +72,6 @@ describe('AssetsService', () => {
         .mockResolvedValue({ intervals: {}, updateTime: 0, expirationTime: 0 }),
     } as unknown as TokenPricesService;
 
-    mockState = new InMemoryState(DEFAULT_UNENCRYPTED_STATE);
-    stateSetKeySpy = jest.spyOn(mockState, 'setKey');
-
     mockCache = new InMemoryCache(mockLogger);
 
     mockNftApiClient = {
@@ -92,11 +85,17 @@ describe('AssetsService', () => {
     };
     (globalThis as any).snap = snap;
 
+    mockAssetsRepository = {
+      findByKeyringAccountId: jest.fn(),
+      getAll: jest.fn(),
+      saveMany: jest.fn(),
+    } as unknown as AssetsRepository;
+
     assetsService = new AssetsService({
       connection: mockConnection,
       logger: mockLogger,
       configProvider: mockConfigProvider,
-      state: mockState,
+      assetsRepository: mockAssetsRepository,
       tokenMetadataService: mockTokenMetadataService,
       tokenPricesService: mockTokenPricesService,
       cache: mockCache,
@@ -190,33 +189,21 @@ describe('AssetsService', () => {
   });
 
   describe('saveMany', () => {
-    it('saves multiple assets', async () => {
+    it('delegates to repository for saving assets', async () => {
+      const saveManySpy = jest
+        .spyOn(mockAssetsRepository, 'saveMany')
+        .mockResolvedValue(undefined);
+
+      jest.spyOn(mockAssetsRepository, 'getAll').mockResolvedValueOnce([]);
+
       await assetsService.saveMany(MOCK_ASSET_ENTITIES);
 
-      const savedAssets = await mockState.getKey('assetEntities');
-      expect(savedAssets).toStrictEqual({
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_ASSET_ENTITIES,
-      });
-    });
-
-    it('overrides existing assets with the same assetType', async () => {
-      await assetsService.saveMany([MOCK_ASSET_ENTITY_1]);
-
-      const updatedAsset = {
-        ...MOCK_ASSET_ENTITY_1,
-        rawAmount: '123',
-        uiAmount: '123',
-      };
-
-      await assetsService.saveMany([updatedAsset]);
-
-      const savedAssets = await mockState.getKey('assetEntities');
-      expect(savedAssets).toStrictEqual({
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: [updatedAsset],
-      });
+      expect(saveManySpy).toHaveBeenCalledWith(MOCK_ASSET_ENTITIES);
     });
 
     it('emits event "AccountAssetListUpdated" when new assets are added and removed', async () => {
+      jest.spyOn(mockAssetsRepository, 'getAll').mockResolvedValueOnce([]);
+
       const addedAssets = [MOCK_ASSET_ENTITY_0, MOCK_ASSET_ENTITY_1];
       const removedAssets = [
         {
@@ -245,7 +232,12 @@ describe('AssetsService', () => {
       );
     });
 
-    it('emits event "AccountAssetListUpdated" when an asset was saved with a zero balance some more is added', async () => {
+    it('emits event "AccountAssetListUpdated" when an asset was saved with a zero balance and some more is added', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'getAll')
+        .mockResolvedValueOnce([{ ...MOCK_ASSET_ENTITY_0, rawAmount: '0' }])
+        .mockResolvedValueOnce([{ ...MOCK_ASSET_ENTITY_0, rawAmount: '0' }]);
+
       await assetsService.saveMany([
         { ...MOCK_ASSET_ENTITY_0, rawAmount: '0' },
       ]);
@@ -269,6 +261,8 @@ describe('AssetsService', () => {
     });
 
     it('emits event "AccountBalancesUpdated" when balances change', async () => {
+      jest.spyOn(mockAssetsRepository, 'getAll').mockResolvedValueOnce([]);
+
       await assetsService.saveMany(MOCK_ASSET_ENTITIES);
 
       expect(emitSnapKeyringEvent).toHaveBeenNthCalledWith(
@@ -297,6 +291,10 @@ describe('AssetsService', () => {
     });
 
     it('does not emit events when no assets changed', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'getAll')
+        .mockResolvedValue(MOCK_ASSET_ENTITIES);
+
       await assetsService.saveMany(MOCK_ASSET_ENTITIES);
       (emitSnapKeyringEvent as jest.Mock).mockClear();
 
@@ -331,10 +329,10 @@ describe('AssetsService', () => {
   });
 
   describe('getAll', () => {
-    it('returns all assets', async () => {
-      jest.spyOn(mockState, 'getKey').mockResolvedValueOnce({
-        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: MOCK_ASSET_ENTITIES,
-      });
+    it('delegates to repository and returns all assets', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'getAll')
+        .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
 
       const assets = await assetsService.getAll();
 
@@ -342,14 +340,79 @@ describe('AssetsService', () => {
     });
   });
 
-  describe('getByAccount', () => {
-    it('returns all assets for the account', async () => {
+  describe('findByAccount', () => {
+    it('returns saved assets for the account when they exist', async () => {
       jest
-        .spyOn(mockState, 'getKey')
+        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
         .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
 
-      const assets = await assetsService.findByKeyringAccountId(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      const assets = await assetsService.findByAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+      );
+
+      expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);
+    });
+
+    it('includes placeholder native assets when no assets exist', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+        .mockResolvedValueOnce([]);
+
+      const assets = await assetsService.findByAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+      );
+
+      expect(assets).toStrictEqual([
+        {
+          assetType: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          network: Network.Mainnet,
+          address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+          symbol: 'SOL',
+          decimals: 9,
+          rawAmount: '0',
+          uiAmount: '0',
+        },
+      ]);
+    });
+
+    it('includes placeholder native assets with zero balance when no native assets exist', async () => {
+      const nonNativeAssets = [MOCK_ASSET_ENTITY_1, MOCK_ASSET_ENTITY_2]; // Token assets only
+
+      jest
+        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+        .mockResolvedValueOnce(nonNativeAssets);
+
+      const assets = await assetsService.findByAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+      );
+
+      // Should include the saved assets plus a placeholder native asset
+      expect(assets).toHaveLength(nonNativeAssets.length + 1);
+      expect(assets).toStrictEqual(
+        expect.arrayContaining([
+          ...nonNativeAssets,
+          {
+            assetType: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+            network: Network.Mainnet,
+            address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+            symbol: 'SOL',
+            decimals: 9,
+            rawAmount: '0',
+            uiAmount: '0',
+          },
+        ]),
+      );
+    });
+
+    it('does not add placeholder native assets when they already exist', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+        .mockResolvedValueOnce(MOCK_ASSET_ENTITIES); // Includes native asset (MOCK_ASSET_ENTITY_0)
+
+      const assets = await assetsService.findByAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
       );
 
       expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);

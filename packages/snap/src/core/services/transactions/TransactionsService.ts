@@ -68,9 +68,16 @@ export class TransactionsService {
    * Only fetches the transactions that are not already in the state.
    *
    * @param assets - The assets to fetch the transactions for.
+   * @param options - The options for the fetch.
+   * @param options.limit - The maximum number of transactions to fetch.
    * @returns The transactions for the given assets.
    */
-  async fetchAssetsTransactions(assets: AssetEntity[]): Promise<Transaction[]> {
+  async fetchAssetsTransactions(
+    assets: AssetEntity[],
+    options?: {
+      limit?: number;
+    },
+  ): Promise<Transaction[]> {
     const accounts = await this.#accountsService.getAll();
 
     const findAccountById = (id: string) =>
@@ -111,7 +118,10 @@ export class TransactionsService {
     };
 
     type SignatureWithAsset = {
-      signature: Signature;
+      signatureResponse: {
+        signature: Signature;
+        blockTime: number;
+      };
       asset: AssetEntity;
     };
 
@@ -136,7 +146,10 @@ export class TransactionsService {
         .send();
 
       return response.map((item) => ({
-        signature: item.signature,
+        signatureResponse: {
+          signature: item.signature,
+          blockTime: Number(item.blockTime ?? 0),
+        },
         asset,
       }));
     };
@@ -144,6 +157,17 @@ export class TransactionsService {
     const signatures = (
       await Promise.all(assets.map(fetchSignaturesForAsset))
     ).flat();
+
+    // If limit is provided, only fetch the most recent signatures with the limit
+    const signaturesToFetch = options?.limit
+      ? signatures
+          .sort(
+            (a, b) =>
+              (b.signatureResponse.blockTime ?? 0) -
+              (a.signatureResponse.blockTime ?? 0),
+          )
+          .slice(0, options.limit)
+      : signatures;
 
     type TransactionWithAsset = {
       transaction: SolanaTransaction | null;
@@ -154,10 +178,10 @@ export class TransactionsService {
       signatureWithAsset: SignatureWithAsset,
     ): Promise<TransactionWithAsset | null> => {
       try {
-        const { signature, asset } = signatureWithAsset;
+        const { signatureResponse, asset } = signatureWithAsset;
         const transaction = await this.#connection
           .getRpc(asset.network)
-          .getTransaction(asSignature(signature), {
+          .getTransaction(asSignature(signatureResponse.signature), {
             maxSupportedTransactionVersion: 0,
           })
           .send();
@@ -171,7 +195,7 @@ export class TransactionsService {
     };
 
     const transactions = (
-      await Promise.all(signatures.map(fetchTransaction))
+      await Promise.all(signaturesToFetch.map(fetchTransaction))
     ).filter((item) => item !== null);
 
     const mapTransaction = async (

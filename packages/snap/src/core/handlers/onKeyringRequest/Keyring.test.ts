@@ -9,10 +9,10 @@ import type { AssetEntity } from '../../../entities';
 import { asStrictKeyringAccount } from '../../../entities';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type {
+  AssetsService,
   KeyringAccountMonitor,
   TransactionsService,
 } from '../../services';
-import type { AssetsService } from '../../services/assets/AssetsService';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import { InMemoryState } from '../../services/state/InMemoryState';
@@ -45,6 +45,7 @@ import {
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
+import { ScheduleBackgroundEventMethod } from '../onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { SolanaKeyring } from './Keyring';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
@@ -97,7 +98,12 @@ describe('SolanaKeyring', () => {
     });
 
     mockAssetsService = {
-      findByKeyringAccountId: jest.fn(),
+      fetch: jest.fn().mockResolvedValue(MOCK_ASSET_ENTITIES),
+      saveMany: jest.fn(),
+      findByAccount: jest.fn(),
+      getNativeAssetTypes: jest
+        .fn()
+        .mockReturnValue([KnownCaip19Id.SolMainnet]),
     } as unknown as AssetsService;
 
     mockWalletService = {
@@ -170,7 +176,7 @@ describe('SolanaKeyring', () => {
   describe('listAccountAssets', () => {
     it('calls the assets service', async () => {
       jest
-        .spyOn(mockAssetsService, 'findByKeyringAccountId')
+        .spyOn(mockAssetsService, 'findByAccount')
         .mockResolvedValue(MOCK_ASSET_ENTITIES);
 
       const result = await keyring.listAccountAssets(
@@ -182,6 +188,32 @@ describe('SolanaKeyring', () => {
         MOCK_ASSET_ENTITY_1.assetType,
         MOCK_ASSET_ENTITY_2.assetType,
       ]);
+    });
+
+    it('removes token assets with zero balance', async () => {
+      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+        MOCK_ASSET_ENTITY_1, // Token asset with non-zero balance
+        { ...MOCK_ASSET_ENTITY_2, rawAmount: '0' }, // Token asset with zero balance
+      ]);
+
+      const result = await keyring.listAccountAssets(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      );
+
+      expect(result).toStrictEqual([MOCK_ASSET_ENTITY_1.assetType]);
+    });
+
+    it('keeps the native asset even if it has zero balance', async () => {
+      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+        { ...MOCK_ASSET_ENTITY_0, rawAmount: '0' }, // Native asset with zero balance
+        { ...MOCK_ASSET_ENTITY_1, rawAmount: '0' }, // Token asset with zero balance
+      ]);
+
+      const result = await keyring.listAccountAssets(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+      );
+
+      expect(result).toStrictEqual([MOCK_ASSET_ENTITY_0.assetType]);
     });
 
     it('throws and error if the account provided is not a uuid', async () => {
@@ -517,6 +549,34 @@ describe('SolanaKeyring', () => {
         expect(account).toEqual(asStrictKeyringAccount(existingAccount));
         expect(stateUpdateSpy).not.toHaveBeenCalled();
       });
+
+      it('fetches and saves the assets for the account', async () => {
+        await keyring.createAccount();
+
+        expect(mockAssetsService.fetch).toHaveBeenCalledWith({
+          ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          id: expect.any(String),
+          domain: null,
+        });
+        expect(mockAssetsService.saveMany).toHaveBeenCalledWith(
+          MOCK_ASSET_ENTITIES,
+        );
+      });
+
+      it('schedules a background event to fetch the account transactions', async () => {
+        await keyring.createAccount();
+
+        expect(snap.request).toHaveBeenCalledWith(
+          expect.objectContaining({
+            method: 'snap_scheduleBackgroundEvent',
+            params: expect.objectContaining({
+              request: expect.objectContaining({
+                method: ScheduleBackgroundEventMethod.OnSyncAccountTransactions,
+              }),
+            }),
+          }),
+        );
+      });
     });
 
     describe('when an account name suggestion is provided', () => {
@@ -632,7 +692,7 @@ describe('SolanaKeyring', () => {
       } as unknown as AssetEntity;
 
       jest
-        .spyOn(mockAssetsService, 'findByKeyringAccountId')
+        .spyOn(mockAssetsService, 'findByAccount')
         .mockResolvedValue([invalidAsset]);
 
       await expect(
@@ -640,6 +700,44 @@ describe('SolanaKeyring', () => {
           KnownCaip19Id.SolMainnet,
         ]),
       ).rejects.toThrow('Invalid Response');
+    });
+
+    it('removes token assets with zero balance', async () => {
+      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+        MOCK_ASSET_ENTITY_1, // Token asset with non-zero balance
+        { ...MOCK_ASSET_ENTITY_2, rawAmount: '0' }, // Token asset with zero balance
+      ]);
+
+      const result = await keyring.getAccountBalances(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        [MOCK_ASSET_ENTITY_1.assetType, MOCK_ASSET_ENTITY_2.assetType],
+      );
+
+      expect(result).toStrictEqual({
+        [MOCK_ASSET_ENTITY_1.assetType]: {
+          amount: MOCK_ASSET_ENTITY_1.uiAmount,
+          unit: MOCK_ASSET_ENTITY_1.symbol,
+        },
+      });
+    });
+
+    it('keeps the native asset even if it has zero balance', async () => {
+      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+        { ...MOCK_ASSET_ENTITY_0, rawAmount: '0' }, // Native asset with zero balance
+        { ...MOCK_ASSET_ENTITY_1, rawAmount: '0' }, // Token asset with zero balance
+      ]);
+
+      const result = await keyring.getAccountBalances(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        [MOCK_ASSET_ENTITY_0.assetType, MOCK_ASSET_ENTITY_1.assetType],
+      );
+
+      expect(result).toStrictEqual({
+        [MOCK_ASSET_ENTITY_0.assetType]: {
+          amount: MOCK_ASSET_ENTITY_0.uiAmount,
+          unit: MOCK_ASSET_ENTITY_0.symbol,
+        },
+      });
     });
   });
 
