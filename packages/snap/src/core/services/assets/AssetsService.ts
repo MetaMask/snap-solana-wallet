@@ -473,6 +473,8 @@ export class AssetsService {
   ): Promise<
     Record<CaipAssetType, Record<CaipAssetType, FungibleAssetMarketData>>
   > {
+    this.#logger.info('Fetching market data for assets', assets);
+
     const marketData =
       await this.#tokenPricesService.getMultipleTokensMarketData(assets);
     return marketData;
