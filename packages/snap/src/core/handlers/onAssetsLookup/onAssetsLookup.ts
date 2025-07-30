@@ -19,7 +19,7 @@ export const onAssetsLookup: OnAssetsLookupHandler = async (params) => {
    */
   const fungibleAssets = assets.filter((asset) => {
     const { assetNamespace } = parseCaipAssetType(asset);
-    return assetNamespace === 'token' || assetNamespace === 'solana';
+    return assetNamespace === 'token' || assetNamespace === 'slip44';
   }) as (TokenCaipAssetType | NativeCaipAssetType)[];
 
   const metadata = (await assetsService.getAssetsMetadata(
