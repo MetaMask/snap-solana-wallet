@@ -100,7 +100,7 @@ export class WebSocketConnectionService {
   }
 
   /**
-   * Open a WebSocket connection for the given network.
+   * Idempotently opens a WebSocket connection for the given network.
    * If a connection already exists for the network, this method does nothing.
    * @param network - The network for which to open a connection.
    * @returns A promise that resolves when the connection is established or already exists.
