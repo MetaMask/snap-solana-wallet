@@ -10,7 +10,6 @@ import {
   updateInterface,
 } from '../../../utils/interface';
 import baseLogger, { createPrefixedLogger } from '../../../utils/logger';
-import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
   const logger = createPrefixedLogger(
@@ -18,9 +17,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     '[refreshConfirmationEstimation]',
   );
 
-  logger.info(
-    `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event triggered`,
-  );
+  logger.info(`Background event triggered`);
 
   const mapInterfaceNameToId =
     (await state.getKey<UnencryptedStateValue['mapInterfaceNameToId']>(
@@ -32,9 +29,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
   // Don't do anything if the confirmation interface is not open
   if (!confirmationInterfaceId) {
-    logger.info(
-      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] No interface context found`,
-    );
+    logger.info(`No interface context found`);
     return;
   }
 
@@ -61,17 +56,13 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       !interfaceContext.scope ||
       !interfaceContext.method
     ) {
-      logger.info(
-        `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Context is missing required fields`,
-      );
+      logger.info(`Context is missing required fields`);
       return;
     }
 
     // Skip transaction simulation if the preference is disabled
     if (!interfaceContext.preferences?.simulateOnChainActions) {
-      logger.info(
-        `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Transaction simulation is disabled in preferences`,
-      );
+      logger.info(`Transaction simulation is disabled in preferences`);
       return;
     }
 
@@ -107,9 +98,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       scan,
     };
 
-    logger.info(
-      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] New scan fetched`,
-    );
+    logger.info(`New scan fetched`);
 
     await updateInterface(
       confirmationInterfaceId,
@@ -117,9 +106,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       updatedInterfaceContext,
     );
 
-    logger.info(
-      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event suceeded`,
-    );
+    logger.info(`Background event suceeded`);
   } catch (error) {
     const fetchedInterfaceContext =
       await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
@@ -139,7 +126,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
     logger.info(
       { error },
-      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Could not update the interface. But rolled back status to fetched.`,
+      `Could not update the interface. But rolled back status to fetched.`,
     );
   }
 };
