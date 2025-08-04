@@ -12,14 +12,11 @@ import {
   updateInterface,
 } from '../../../utils/interface';
 import baseLogger, { createPrefixedLogger } from '../../../utils/logger';
-import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const refreshSend: OnCronjobHandler = async () => {
   const logger = createPrefixedLogger(baseLogger, '[refreshSend]');
 
-  logger.info(
-    `[${ScheduleBackgroundEventMethod.RefreshSend}] Background event triggered`,
-  );
+  logger.info(`Background event triggered`);
 
   const [assets, mapInterfaceNameToId, preferences] = await Promise.all([
     assetsService.getAll(),
@@ -35,9 +32,7 @@ export const refreshSend: OnCronjobHandler = async () => {
 
   // Don't do anything if the send form interface is not open
   if (!sendFormInterfaceId) {
-    logger.info(
-      `[${ScheduleBackgroundEventMethod.RefreshSend}] ❌ No send form interface found`,
-    );
+    logger.info(`No send form interface found`);
     return;
   }
 
@@ -62,16 +57,12 @@ export const refreshSend: OnCronjobHandler = async () => {
 
   // We only want to refresh the token prices when the user is in the transaction confirmation stage
   if (interfaceContext.stage !== 'transaction-confirmation') {
-    logger.info(
-      `[${ScheduleBackgroundEventMethod.RefreshSend}] ❌ Not in transaction confirmation stage`,
-    );
+    logger.info(`❌ Not in transaction confirmation stage`);
     return;
   }
 
   if (!interfaceContext.assets) {
-    logger.info(
-      `[${ScheduleBackgroundEventMethod.RefreshSend}] ❌ No assets found`,
-    );
+    logger.info(`❌ No assets found`);
     return;
   }
 
@@ -90,7 +81,5 @@ export const refreshSend: OnCronjobHandler = async () => {
     updatedInterfaceContext,
   );
 
-  logger.info(
-    `[${ScheduleBackgroundEventMethod.RefreshSend}] ✅ Background event suceeded`,
-  );
+  logger.info(`✅ Background event suceeded`);
 };
