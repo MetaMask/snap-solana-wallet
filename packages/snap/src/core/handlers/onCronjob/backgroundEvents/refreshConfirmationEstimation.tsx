@@ -140,7 +140,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       );
     }
   } catch (error) {
-    logger.info(
+    logger.warn(
       { error },
       `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event failed`,
     );
