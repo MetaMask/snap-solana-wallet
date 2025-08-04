@@ -195,11 +195,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
   );
 
   const result = await withCatchAndThrowSnapError(async () => {
-    /**
-     * Don't run cronjobs if client is locked or inactive
-     * - We don't want to call cronjobs if the client is locked
-     * - We don't want to call cronjobs if the client is inactive
-     */
+    // Don't run cronjobs if client is locked or inactive
     const { locked, active } = await getClientStatus();
 
     _logger.log('Client status', { locked, active });
