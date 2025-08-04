@@ -10,12 +10,12 @@ import {
   updateInterface,
 } from '../../../utils/interface';
 import logger from '../../../utils/logger';
-import { CronjobMethod } from './CronjobMethod';
+import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
   try {
     logger.info(
-      `[${CronjobMethod.RefreshConfirmationEstimation}] Cronjob triggered`,
+      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event triggered`,
     );
 
     const mapInterfaceNameToId =
@@ -29,6 +29,15 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     // Update the interface context with the new rates.
     try {
       if (confirmationInterfaceId) {
+        // Schedule the next run
+        await snap.request({
+          method: 'snap_scheduleBackgroundEvent',
+          params: {
+            duration: 'PT20S',
+            request: { method: 'refreshConfirmationEstimation' },
+          },
+        });
+
         // Get the current context
         const interfaceContext =
           await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
@@ -42,7 +51,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
           !interfaceContext.method
         ) {
           logger.info(
-            `[${CronjobMethod.RefreshConfirmationEstimation}] Context is missing required fields`,
+            `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Context is missing required fields`,
           );
           return;
         }
@@ -50,7 +59,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
         // Skip transaction simulation if the preference is disabled
         if (!interfaceContext.preferences?.simulateOnChainActions) {
           logger.info(
-            `[${CronjobMethod.RefreshConfirmationEstimation}] Transaction simulation is disabled in preferences`,
+            `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Transaction simulation is disabled in preferences`,
           );
           return;
         }
@@ -88,7 +97,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
         };
 
         logger.info(
-          `[${CronjobMethod.RefreshConfirmationEstimation}] New scan fetched`,
+          `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] New scan fetched`,
         );
 
         await updateInterface(
@@ -99,12 +108,12 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       }
 
       logger.info(
-        `[${CronjobMethod.RefreshConfirmationEstimation}] Cronjob suceeded`,
+        `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event suceeded`,
       );
     } catch (error) {
       if (!confirmationInterfaceId) {
         logger.info(
-          `[${CronjobMethod.RefreshConfirmationEstimation}] No interface context found`,
+          `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] No interface context found`,
         );
         return;
       }
@@ -127,13 +136,13 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
       logger.info(
         { error },
-        `[${CronjobMethod.RefreshConfirmationEstimation}] Could not update the interface. But rolled back status to fetched.`,
+        `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Could not update the interface. But rolled back status to fetched.`,
       );
     }
   } catch (error) {
     logger.info(
       { error },
-      `[${CronjobMethod.RefreshConfirmationEstimation}] Cronjob failed`,
+      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event failed`,
     );
   }
 };

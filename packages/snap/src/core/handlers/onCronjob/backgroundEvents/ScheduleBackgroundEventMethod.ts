@@ -9,4 +9,6 @@ export enum ScheduleBackgroundEventMethod {
   OnSyncAccountTransactions = 'onSyncAccountTransactions',
   /** Use it to schedule a background event to refresh the send form */
   RefreshSend = 'refreshSend',
+  /** Use it to schedule a background event to refresh the confirmation estimation */
+  RefreshConfirmationEstimation = 'refreshConfirmationEstimation',
 }

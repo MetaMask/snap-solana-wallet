@@ -209,5 +209,14 @@ export async function render(
     id,
   );
 
+  // Schedule the next refresh
+  await snap.request({
+    method: 'snap_scheduleBackgroundEvent',
+    params: {
+      duration: 'PT20S',
+      request: { method: 'refreshConfirmationEstimation' },
+    },
+  });
+
   return dialogPromise;
 }

@@ -179,7 +179,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   await state.setKey(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`, id);
 
-  // Schedule a refresh
+  // Schedule the next refresh
   await snap.request({
     method: 'snap_scheduleBackgroundEvent',
     params: { duration: 'PT30S', request: { method: 'refreshSend' } },

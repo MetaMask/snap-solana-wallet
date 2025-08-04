@@ -30,33 +30,10 @@ export const refreshSend: OnCronjobHandler = async () => {
 
     const assetTypes = assets.flatMap((asset) => asset.assetType);
 
-    // let tokenPrices: SpotPrices = {};
-
-    // try {
-    //   // First, fetch the token prices
-    //   tokenPrices = await priceApiClient.getMultipleSpotPrices(
-    //     assetTypes,
-    //     preferences.currency,
-    //   );
-
-    //   // Then, update the state
-    //   await state.setKey('tokenPrices', tokenPrices);
-
-    //   logger.info(
-    //     `[${CronjobMethod.RefreshSend}] ✅ Token prices were properly refreshed and saved in the state.`,
-    //   );
-    // } catch (error) {
-    //   logger.info(
-    //     { error },
-    //     `[${CronjobMethod.RefreshSend}] ❌ Could not update the token prices in the state.`,
-    //   );
-    // }
-
-    // try {
     const sendFormInterfaceId =
       mapInterfaceNameToId?.[SEND_FORM_INTERFACE_NAME];
 
-    // If the send form interface is not open, we don't need to refresh the token prices
+    // Don't do anything if the send form interface is not open
     if (!sendFormInterfaceId) {
       logger.info(
         `[${ScheduleBackgroundEventMethod.RefreshSend}] ❌ No send form interface found`,
@@ -64,8 +41,12 @@ export const refreshSend: OnCronjobHandler = async () => {
       return;
     }
 
-    // If the interface is open, update the context
-    // if (sendFormInterfaceId) {
+    // Schedule the next run
+    await snap.request({
+      method: 'snap_scheduleBackgroundEvent',
+      params: { duration: 'PT30S', request: { method: 'refreshSend' } },
+    });
+
     // First, fetch the token prices
     const tokenPrices = await priceApiClient.getMultipleSpotPrices(
       assetTypes,
@@ -105,24 +86,10 @@ export const refreshSend: OnCronjobHandler = async () => {
       <Send context={updatedInterfaceContext} />,
       updatedInterfaceContext,
     );
-    // }
-    // } catch (error) {
-    //   logger.info(
-    //     { error },
-    //     `[${CronjobMethod.RefreshSend}] ❌ Could not update the interface`,
-    //   );
-    // }
+
     logger.info(
       `[${ScheduleBackgroundEventMethod.RefreshSend}] ✅ Background event suceeded`,
     );
-
-    // Schedule the next run (only if the send form interface is open)
-    if (sendFormInterfaceId) {
-      await snap.request({
-        method: 'snap_scheduleBackgroundEvent',
-        params: { duration: 'PT30S', request: { method: 'refreshSend' } },
-      });
-    }
   } catch (error) {
     logger.warn(
       { error },
