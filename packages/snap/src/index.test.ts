@@ -3,7 +3,7 @@ import { installSnap } from '@metamask/snaps-jest';
 
 import { onCronjob } from '.';
 import { handlers } from './core/handlers/onCronjob';
-import { CronjobMethod } from './core/handlers/onCronjob/cronjobs/CronjobMethod';
+import { ScheduleBackgroundEventMethod } from './core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 
 jest.mock('@noble/ed25519', () => ({
   getPublicKey: jest.fn(),
@@ -75,7 +75,7 @@ describe('onCronjob', () => {
 
   it('calls the correct handler when the method is valid and snap is not locked', async () => {
     const handler = jest.fn();
-    handlers[CronjobMethod.RefreshSend] = handler;
+    handlers[ScheduleBackgroundEventMethod.RefreshSend] = handler;
 
     const snap = {
       request: jest.fn().mockResolvedValue({ locked: false, active: true }),
@@ -87,7 +87,7 @@ describe('onCronjob', () => {
       request: {
         id: '1',
         jsonrpc: '2.0',
-        method: CronjobMethod.RefreshSend,
+        method: ScheduleBackgroundEventMethod.RefreshSend,
       },
     });
 
@@ -96,7 +96,7 @@ describe('onCronjob', () => {
 
   it('does not call the handler when the client is locked', async () => {
     const handler = jest.fn();
-    handlers[CronjobMethod.RefreshSend] = handler;
+    handlers[ScheduleBackgroundEventMethod.RefreshSend] = handler;
 
     const snap = {
       request: jest.fn().mockResolvedValue({ locked: true, active: true }),
@@ -108,7 +108,7 @@ describe('onCronjob', () => {
       request: {
         id: '1',
         jsonrpc: '2.0',
-        method: CronjobMethod.RefreshSend,
+        method: ScheduleBackgroundEventMethod.RefreshSend,
       },
     });
 
@@ -117,7 +117,7 @@ describe('onCronjob', () => {
 
   it('does not call the handler when the client is inactive', async () => {
     const handler = jest.fn();
-    handlers[CronjobMethod.RefreshSend] = handler;
+    handlers[ScheduleBackgroundEventMethod.RefreshSend] = handler;
 
     const snap = {
       request: jest.fn().mockResolvedValue({ active: false, locked: false }),
@@ -129,7 +129,7 @@ describe('onCronjob', () => {
       request: {
         id: '1',
         jsonrpc: '2.0',
-        method: CronjobMethod.RefreshSend,
+        method: ScheduleBackgroundEventMethod.RefreshSend,
       },
     });
 
@@ -138,7 +138,7 @@ describe('onCronjob', () => {
 
   it('does call the handler when the client is unlocked and active', async () => {
     const handler = jest.fn();
-    handlers[CronjobMethod.RefreshSend] = handler;
+    handlers[ScheduleBackgroundEventMethod.RefreshSend] = handler;
 
     const snap = {
       request: jest.fn().mockResolvedValue({ locked: false, active: true }),
@@ -150,7 +150,7 @@ describe('onCronjob', () => {
       request: {
         id: '1',
         jsonrpc: '2.0',
-        method: CronjobMethod.RefreshSend,
+        method: ScheduleBackgroundEventMethod.RefreshSend,
       },
     });
 
