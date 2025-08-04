@@ -18,136 +18,135 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     '[refreshConfirmationEstimation]',
   );
 
-  try {
+  //   try {
+  logger.info(
+    `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event triggered`,
+  );
+
+  const mapInterfaceNameToId =
+    (await state.getKey<UnencryptedStateValue['mapInterfaceNameToId']>(
+      'mapInterfaceNameToId',
+    )) ?? {};
+
+  const confirmationInterfaceId =
+    mapInterfaceNameToId[CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME];
+
+  // Don't do anything if the confirmation interface is not open
+  if (!confirmationInterfaceId) {
     logger.info(
-      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event triggered`,
+      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] No interface context found`,
+    );
+    return;
+  }
+
+  // Schedule the next run
+  await snap.request({
+    method: 'snap_scheduleBackgroundEvent',
+    params: {
+      duration: 'PT20S',
+      request: { method: 'refreshConfirmationEstimation' },
+    },
+  });
+
+  // Update the interface context with the new rates.
+  try {
+    // Get the current context
+    const interfaceContext =
+      await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+        confirmationInterfaceId,
+      );
+
+    if (
+      !interfaceContext.account?.address ||
+      !interfaceContext.transaction ||
+      !interfaceContext.scope ||
+      !interfaceContext.method
+    ) {
+      logger.info(
+        `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Context is missing required fields`,
+      );
+      return;
+    }
+
+    // Skip transaction simulation if the preference is disabled
+    if (!interfaceContext.preferences?.simulateOnChainActions) {
+      logger.info(
+        `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Transaction simulation is disabled in preferences`,
+      );
+      return;
+    }
+
+    const fetchingConfirmationContext = {
+      ...interfaceContext,
+      scanFetchStatus: 'fetching',
+    } as ConfirmTransactionRequestContext;
+
+    await updateInterface(
+      confirmationInterfaceId,
+      <ConfirmTransactionRequest context={fetchingConfirmationContext} />,
+      fetchingConfirmationContext,
     );
 
-    const mapInterfaceNameToId =
-      (await state.getKey<UnencryptedStateValue['mapInterfaceNameToId']>(
-        'mapInterfaceNameToId',
-      )) ?? {};
+    const scan = await transactionScanService.scanTransaction({
+      method: interfaceContext.method,
+      accountAddress: interfaceContext.account.address,
+      transaction: interfaceContext.transaction,
+      scope: interfaceContext.scope,
+      origin: interfaceContext.origin,
+      account: interfaceContext.account,
+    });
 
-    const confirmationInterfaceId =
-      mapInterfaceNameToId[CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME];
-
-    // Update the interface context with the new rates.
-    try {
-      if (confirmationInterfaceId) {
-        // Get the current context
-        const interfaceContext =
-          await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
-            confirmationInterfaceId,
-          );
-
-        if (
-          !interfaceContext.account?.address ||
-          !interfaceContext.transaction ||
-          !interfaceContext.scope ||
-          !interfaceContext.method
-        ) {
-          logger.info(
-            `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Context is missing required fields`,
-          );
-          return;
-        }
-
-        // Skip transaction simulation if the preference is disabled
-        if (!interfaceContext.preferences?.simulateOnChainActions) {
-          logger.info(
-            `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Transaction simulation is disabled in preferences`,
-          );
-          return;
-        }
-
-        const fetchingConfirmationContext = {
-          ...interfaceContext,
-          scanFetchStatus: 'fetching',
-        } as ConfirmTransactionRequestContext;
-
-        await updateInterface(
-          confirmationInterfaceId,
-          <ConfirmTransactionRequest context={fetchingConfirmationContext} />,
-          fetchingConfirmationContext,
-        );
-
-        const scan = await transactionScanService.scanTransaction({
-          method: interfaceContext.method,
-          accountAddress: interfaceContext.account.address,
-          transaction: interfaceContext.transaction,
-          scope: interfaceContext.scope,
-          origin: interfaceContext.origin,
-          account: interfaceContext.account,
-        });
-
-        const updatedInterfaceContextFinal =
-          await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
-            confirmationInterfaceId,
-          );
-
-        // Update the current context with the new rates
-        const updatedInterfaceContext = {
-          ...updatedInterfaceContextFinal,
-          scanFetchStatus: 'fetched' as const,
-          scan,
-        };
-
-        logger.info(
-          `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] New scan fetched`,
-        );
-
-        await updateInterface(
-          confirmationInterfaceId,
-          <ConfirmTransactionRequest context={updatedInterfaceContext} />,
-          updatedInterfaceContext,
-        );
-      }
-
-      logger.info(
-        `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event suceeded`,
-      );
-
-      // Schedule the next run
-      await snap.request({
-        method: 'snap_scheduleBackgroundEvent',
-        params: {
-          duration: 'PT20S',
-          request: { method: 'refreshConfirmationEstimation' },
-        },
-      });
-    } catch (error) {
-      if (!confirmationInterfaceId) {
-        logger.info(
-          `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] No interface context found`,
-        );
-        return;
-      }
-
-      const fetchedInterfaceContext =
-        await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
-          confirmationInterfaceId,
-        );
-
-      const fetchingConfirmationContext = {
-        ...fetchedInterfaceContext,
-        scanFetchStatus: 'fetched',
-      } as ConfirmTransactionRequestContext;
-
-      await updateInterface(
+    const updatedInterfaceContextFinal =
+      await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
         confirmationInterfaceId,
-        <ConfirmTransactionRequest context={fetchingConfirmationContext} />,
-        fetchingConfirmationContext,
       );
 
-      logger.info(
-        { error },
-        `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Could not update the interface. But rolled back status to fetched.`,
-      );
-    }
+    // Update the current context with the new rates
+    const updatedInterfaceContext = {
+      ...updatedInterfaceContextFinal,
+      scanFetchStatus: 'fetched' as const,
+      scan,
+    };
+
+    logger.info(
+      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] New scan fetched`,
+    );
+
+    await updateInterface(
+      confirmationInterfaceId,
+      <ConfirmTransactionRequest context={updatedInterfaceContext} />,
+      updatedInterfaceContext,
+    );
+
+    logger.info(
+      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event suceeded`,
+    );
   } catch (error) {
-    logger.warn(
+    const fetchedInterfaceContext =
+      await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+        confirmationInterfaceId,
+      );
+
+    const fetchingConfirmationContext = {
+      ...fetchedInterfaceContext,
+      scanFetchStatus: 'fetched',
+    } as ConfirmTransactionRequestContext;
+
+    await updateInterface(
+      confirmationInterfaceId,
+      <ConfirmTransactionRequest context={fetchingConfirmationContext} />,
+      fetchingConfirmationContext,
+    );
+
+    logger.info(
       { error },
-      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event failed`,
+      `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Could not update the interface. But rolled back status to fetched.`,
     );
   }
+  //   } catch (error) {
+  //     logger.warn(
+  //       { error },
+  //       `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event failed`,
+  //     );
+  //   }
 };
