@@ -18,7 +18,6 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     '[refreshConfirmationEstimation]',
   );
 
-  //   try {
   logger.info(
     `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event triggered`,
   );
@@ -143,10 +142,4 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Could not update the interface. But rolled back status to fetched.`,
     );
   }
-  //   } catch (error) {
-  //     logger.warn(
-  //       { error },
-  //       `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event failed`,
-  //     );
-  //   }
 };
