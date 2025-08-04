@@ -34,15 +34,6 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     // Update the interface context with the new rates.
     try {
       if (confirmationInterfaceId) {
-        // Schedule the next run
-        await snap.request({
-          method: 'snap_scheduleBackgroundEvent',
-          params: {
-            duration: 'PT20S',
-            request: { method: 'refreshConfirmationEstimation' },
-          },
-        });
-
         // Get the current context
         const interfaceContext =
           await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
@@ -115,6 +106,15 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       logger.info(
         `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event suceeded`,
       );
+
+      // Schedule the next run
+      await snap.request({
+        method: 'snap_scheduleBackgroundEvent',
+        params: {
+          duration: 'PT20S',
+          request: { method: 'refreshConfirmationEstimation' },
+        },
+      });
     } catch (error) {
       if (!confirmationInterfaceId) {
         logger.info(
