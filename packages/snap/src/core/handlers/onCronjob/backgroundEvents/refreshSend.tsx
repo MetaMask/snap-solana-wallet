@@ -17,7 +17,6 @@ import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 export const refreshSend: OnCronjobHandler = async () => {
   const logger = createPrefixedLogger(baseLogger, '[refreshSend]');
 
-  //   try {
   logger.info(
     `[${ScheduleBackgroundEventMethod.RefreshSend}] Background event triggered`,
   );
@@ -94,10 +93,4 @@ export const refreshSend: OnCronjobHandler = async () => {
   logger.info(
     `[${ScheduleBackgroundEventMethod.RefreshSend}] ✅ Background event suceeded`,
   );
-  //   } catch (error) {
-  //     logger.warn(
-  //       { error },
-  //       `[${ScheduleBackgroundEventMethod.RefreshSend}] ❌ Background event failed`,
-  //     );
-  //   }
 };
