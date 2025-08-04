@@ -429,6 +429,42 @@ describe('AssetsService', () => {
         },
       );
     });
+
+    it('does not include native assets in removed array even when they have zero balance', async () => {
+      const nativeAssetWithZeroBalance = {
+        ...MOCK_ASSET_ENTITY_0,
+        rawAmount: '0',
+      };
+      const tokenAssetWithZeroBalance = {
+        ...MOCK_ASSET_ENTITY_1,
+        rawAmount: '0',
+      };
+
+      // Mock that both assets existed with non-zero balance
+      jest.spyOn(mockAssetsRepository, 'getAll').mockResolvedValueOnce([
+        MOCK_ASSET_ENTITY_0, // Native asset with non-zero balance
+        MOCK_ASSET_ENTITY_1, // Token asset with non-zero balance
+      ]);
+
+      await assetsService.saveMany([
+        nativeAssetWithZeroBalance,
+        tokenAssetWithZeroBalance,
+      ]);
+
+      // Should emit AccountAssetListUpdated with only the token asset in the removed array
+      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+        snap,
+        KeyringEvent.AccountAssetListUpdated,
+        {
+          assets: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              added: [],
+              removed: [MOCK_ASSET_ENTITY_1.assetType], // Only token asset, not native
+            },
+          },
+        },
+      );
+    });
   });
 
   describe('hasChanged', () => {
