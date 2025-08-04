@@ -9,10 +9,15 @@ import {
   getInterfaceContextOrThrow,
   updateInterface,
 } from '../../../utils/interface';
-import logger from '../../../utils/logger';
+import baseLogger, { createPrefixedLogger } from '../../../utils/logger';
 import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
+  const logger = createPrefixedLogger(
+    baseLogger,
+    '[refreshConfirmationEstimation]',
+  );
+
   try {
     logger.info(
       `[${ScheduleBackgroundEventMethod.RefreshConfirmationEstimation}] Background event triggered`,

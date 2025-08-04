@@ -11,10 +11,12 @@ import {
   SEND_FORM_INTERFACE_NAME,
   updateInterface,
 } from '../../../utils/interface';
-import logger from '../../../utils/logger';
+import baseLogger, { createPrefixedLogger } from '../../../utils/logger';
 import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
 export const refreshSend: OnCronjobHandler = async () => {
+  const logger = createPrefixedLogger(baseLogger, '[refreshSend]');
+
   try {
     logger.info(
       `[${ScheduleBackgroundEventMethod.RefreshSend}] Background event triggered`,
@@ -52,6 +54,9 @@ export const refreshSend: OnCronjobHandler = async () => {
       assetTypes,
       preferences.currency,
     );
+
+    // Save them in the state
+    await state.setKey('tokenPrices', tokenPrices);
 
     // Get the current context
     const interfaceContext =
