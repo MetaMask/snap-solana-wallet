@@ -77,19 +77,19 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       fetchingConfirmationContext,
     );
 
-    const scan = await transactionScanService.scanTransaction({
-      method: interfaceContext.method,
-      accountAddress: interfaceContext.account.address,
-      transaction: interfaceContext.transaction,
-      scope: interfaceContext.scope,
-      origin: interfaceContext.origin,
-      account: interfaceContext.account,
-    });
-
-    const updatedInterfaceContextFinal =
-      await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+    const [scan, updatedInterfaceContextFinal] = await Promise.all([
+      transactionScanService.scanTransaction({
+        method: interfaceContext.method,
+        accountAddress: interfaceContext.account.address,
+        transaction: interfaceContext.transaction,
+        scope: interfaceContext.scope,
+        origin: interfaceContext.origin,
+        account: interfaceContext.account,
+      }),
+      getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
         confirmationInterfaceId,
-      );
+      ),
+    ]);
 
     // Update the current context with the new rates
     const updatedInterfaceContext = {
