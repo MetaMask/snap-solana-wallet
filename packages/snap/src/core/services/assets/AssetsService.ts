@@ -512,6 +512,9 @@ export class AssetsService {
       return savedAsset && hasZeroRawAmount(savedAsset);
     };
 
+    const isNativeAsset = (asset: AssetEntity) =>
+      asset.assetType.includes(SolanaCaip19Tokens.SOL);
+
     const assetListUpdatedPayload = assets.reduce<
       AccountAssetListUpdatedEvent['params']['assets']
     >(
@@ -527,7 +530,9 @@ export class AssetsService {
           ],
           removed: [
             ...(acc[asset.keyringAccountId]?.removed ?? []),
-            ...(hasZeroRawAmount(asset) ? [asset.assetType] : []),
+            ...(hasZeroRawAmount(asset) && !isNativeAsset(asset) // Never remove native assets from the account asset list
+              ? [asset.assetType]
+              : []),
           ],
         },
       }),
