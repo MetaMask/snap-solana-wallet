@@ -69,10 +69,11 @@ export class WebSocketConnectionService {
   }
 
   #bindHandlers(): void {
-    // When the extension starts, or that the snap is updated / installed, the Snap platform has lost all its previously opened websockets, so we need to re-initialize
-    this.#eventEmitter.on('onStart', this.#handleOnStart.bind(this));
-    this.#eventEmitter.on('onUpdate', this.#handleOnStart.bind(this));
-    this.#eventEmitter.on('onInstall', this.#handleOnStart.bind(this));
+    // When the extension becomes active, starts, or that the snap is updated / installed, the Snap platform might have lost its previously opened websockets, so we make sure the are open
+    this.#eventEmitter.on('onStart', this.#setupConnections.bind(this));
+    this.#eventEmitter.on('onUpdate', this.#setupConnections.bind(this));
+    this.#eventEmitter.on('onInstall', this.#setupConnections.bind(this));
+    this.#eventEmitter.on('onActive', this.#setupConnections.bind(this));
 
     this.#eventEmitter.on(
       'onWebSocketEvent',
@@ -83,8 +84,8 @@ export class WebSocketConnectionService {
     this.#eventEmitter.on('onListWebSockets', this.#listConnections.bind(this));
   }
 
-  async #handleOnStart(): Promise<void> {
-    this.#logger.log(`Handling onStart/onUpdate/onInstall`);
+  async #setupConnections(): Promise<void> {
+    this.#logger.log(`Setting up connections`);
 
     const { activeNetworks } = this.#configProvider.get();
 
@@ -99,9 +100,10 @@ export class WebSocketConnectionService {
   }
 
   /**
-   * Opens a connection for the specified network.
-   * @param network - The network to open a connection for.
-   * @returns A promise that resolves to the connection.
+   * Open a WebSocket connection for the given network.
+   * If a connection already exists for the network, this method does nothing.
+   * @param network - The network for which to open a connection.
+   * @returns A promise that resolves when the connection is established or already exists.
    */
   async openConnection(network: Network): Promise<void> {
     this.#logger.log(`Opening connection for network ${network}`);

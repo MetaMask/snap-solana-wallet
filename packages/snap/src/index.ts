@@ -2,12 +2,14 @@ import { KeyringRpcMethod } from '@metamask/keyring-api';
 import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
 import type {
   Json,
+  OnActiveHandler,
   OnAssetHistoricalPriceHandler,
   OnAssetsConversionHandler,
   OnAssetsLookupHandler,
   OnAssetsMarketDataHandler,
   OnClientRequestHandler,
   OnCronjobHandler,
+  OnInactiveHandler,
   OnInstallHandler,
   OnKeyringRequestHandler,
   OnNameLookupHandler,
@@ -49,7 +51,6 @@ import snapContext, {
   clientRequestHandler,
   eventEmitter,
   keyring,
-  state,
 } from './snapContext';
 
 installPolyfills();
@@ -260,6 +261,10 @@ export const onWebSocketEvent: OnWebSocketEventHandler = async ({ event }) =>
     await eventEmitter.emitSync('onWebSocketEvent', event);
   });
 
+/*
+ * Lifecycle handlers
+ */
+
 export const onStart: OnStartHandler = async () =>
   withCatchAndThrowSnapError(async () => {
     await eventEmitter.emitSync('onStart');
@@ -274,6 +279,18 @@ export const onInstall: OnInstallHandler = async () =>
   withCatchAndThrowSnapError(async () => {
     await eventEmitter.emitSync('onInstall');
   });
+
+export const onActive: OnActiveHandler = async () => {
+  return withCatchAndThrowSnapError(async () => {
+    await eventEmitter.emitSync('onActive');
+  });
+};
+
+export const onInactive: OnInactiveHandler = async () => {
+  return withCatchAndThrowSnapError(async () => {
+    await eventEmitter.emitSync('onInactive');
+  });
+};
 
 export const onNameLookup: OnNameLookupHandler = async (request) => {
   const result = await withCatchAndThrowSnapError(async () =>
