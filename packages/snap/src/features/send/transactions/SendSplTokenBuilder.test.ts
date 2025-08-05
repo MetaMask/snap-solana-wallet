@@ -116,7 +116,7 @@ describe('SendSplTokenBuilder', () => {
         },
         instructions: [
           {
-            data: new Uint8Array([2, 48, 117, 0, 0]),
+            data: new Uint8Array([2, 64, 156, 0, 0]),
             programAddress: 'ComputeBudget111111111111111111111111111111',
           },
           {

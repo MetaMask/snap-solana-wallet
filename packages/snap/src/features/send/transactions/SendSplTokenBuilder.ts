@@ -43,10 +43,11 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
   readonly #logger: ILogger;
 
   /**
-   * The transaction built here always consumes less than 30,000 compute units,
-   * even in the case where we need to create the recepient's associated token account.
+   * The transaction built here consumes up to ~30,000 compute units when just transferring
+   * to an existing associated token account, but requires ~35,000+ compute units when
+   * creating the recipient's associated token account.
    */
-  readonly #computeUnitLimit = 30_000;
+  readonly #computeUnitLimit = 40_000;
 
   readonly #computeUnitPriceMicroLamportsPerComputeUnit = 10000n;
 
