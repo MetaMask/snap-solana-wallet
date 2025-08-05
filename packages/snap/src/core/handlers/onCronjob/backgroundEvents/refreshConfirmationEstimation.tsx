@@ -6,6 +6,7 @@ import { state, transactionScanService } from '../../../../snapContext';
 import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
+  getInterfaceContext,
   getInterfaceContextOrThrow,
   updateInterface,
 } from '../../../utils/interface';
@@ -35,7 +36,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
   // Get the current context
   const interfaceContext =
-    await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+    await getInterfaceContext<ConfirmTransactionRequestContext>(
       confirmationInterfaceId,
     );
 
