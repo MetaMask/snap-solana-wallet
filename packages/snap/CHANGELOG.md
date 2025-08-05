@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.1.4]
 
-### Uncategorized
+### Changed
 
-- fix: refresh crons ([#490](https://github.com/MetaMask/snap-solana-wallet/pull/490))
-- Fixes and Performance Improvements ([#489](https://github.com/MetaMask/snap-solana-wallet/pull/489))
+- Enhance performance by triggering UI refresh jobs exclusively when the UI is open ([#490](https://github.com/MetaMask/snap-solana-wallet/pull/490))
+
+### Fixed
+
+- Ensure WebSocket connections are open whevever the client becomes active ([#489](https://github.com/MetaMask/snap-solana-wallet/pull/489))
 
 ## [2.1.3]
 
