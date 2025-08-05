@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.4]
+
+### Uncategorized
+
+- fix: bump send SPL compute unit limit ([#492](https://github.com/MetaMask/snap-solana-wallet/pull/492))
+- fix: refresh crons ([#490](https://github.com/MetaMask/snap-solana-wallet/pull/490))
+- Fixes and Performance Improvements ([#489](https://github.com/MetaMask/snap-solana-wallet/pull/489))
+
 ## [2.1.3]
 
 ### Fixed
@@ -809,7 +817,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.3...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.4...HEAD
+[2.1.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.3...v2.1.4
 [2.1.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.0...v2.1.1
