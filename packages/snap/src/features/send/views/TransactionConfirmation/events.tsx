@@ -167,6 +167,9 @@ async function onConfirmButtonClick({
 
   // Finally, show the transaction-complete or transaction-failed stage
   await updateInterface(id, <Send context={updatedContext} />, updatedContext);
+
+  // Clean up the interface name to id map
+  await state.deleteKey(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
 }
 
 export const eventHandlers = {
