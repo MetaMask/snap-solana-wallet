@@ -131,6 +131,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     );
 
     logger.warn(
+      { error },
       `Could not update the interface. But rolled back status to fetched.`,
     );
   }
