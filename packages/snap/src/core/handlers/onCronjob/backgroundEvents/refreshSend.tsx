@@ -6,7 +6,7 @@ import type { SendContext } from '../../../../features/send/types';
 import { assetsService, priceApiClient, state } from '../../../../snapContext';
 import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
-  getInterfaceContext,
+  getInterfaceContextOrThrow,
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   updateInterface,
@@ -38,13 +38,7 @@ export const refreshSend: OnCronjobHandler = async () => {
 
   // Get the current context
   const interfaceContext =
-    await getInterfaceContext<SendContext>(sendFormInterfaceId);
-
-  // Don't do anything if the interface context is not found
-  if (!interfaceContext) {
-    logger.info(`No interface context found`);
-    return;
-  }
+    await getInterfaceContextOrThrow<SendContext>(sendFormInterfaceId);
 
   // First, fetch the token prices
   const tokenPrices = await priceApiClient.getMultipleSpotPrices(
