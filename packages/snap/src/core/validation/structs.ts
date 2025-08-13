@@ -13,6 +13,7 @@ import {
   refine,
   string,
 } from '@metamask/superstruct';
+import { address } from '@solana/kit';
 
 import { Network } from '../constants/solana';
 
@@ -306,4 +307,20 @@ export const DerivationPathStruct = pattern(string(), DERIVATION_PATH_REGEX);
 export const Iso8601Struct = pattern(
   string(),
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/u,
+);
+
+export const SolanaAddressStruct: Struct<string, null> = define(
+  'SolanaAddress',
+  (value) => {
+    if (typeof value !== 'string') {
+      return `Expected a string, but received: ${typeof value}`;
+    }
+
+    try {
+      address(value);
+      return true;
+    } catch (error) {
+      return 'Invalid Solana address';
+    }
+  },
 );

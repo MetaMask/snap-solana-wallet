@@ -100,6 +100,415 @@
           }
         }
       ]
+    },
+    {
+      "name": "onConfirmSend",
+      "summary": "Confirm and execute a send transaction",
+      "description": "Confirms and executes a send transaction with the specified parameters. This method validates the request parameters and submits the transaction to the Solana network.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "fromAccountId",
+          "summary": "The UUID of the account to send from",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        },
+        {
+          "name": "toAddress",
+          "summary": "The Solana address to send to",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SolanaAddress"
+          }
+        },
+        {
+          "name": "amount",
+          "summary": "The amount to send as a positive number string",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PositiveNumberString"
+          }
+        },
+        {
+          "name": "assetId",
+          "summary": "The CAIP-19 asset identifier",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/CaipAssetType"
+          }
+        }
+      ],
+      "result": {
+        "name": "OnConfirmSendResult",
+        "summary": "The result of confirming and executing the send transaction",
+        "schema": {
+          "$ref": "#/components/schemas/SignAndSendTransactionResult"
+        }
+      },
+      "examples": [
+        {
+          "name": "onConfirmSendExample",
+          "description": "Example of confirming a SOL send transaction",
+          "params": [
+            {
+              "name": "fromAccountId",
+              "value": "c747acb9-1b2b-4352-b9da-3d658fcc3cc7"
+            },
+            {
+              "name": "toAddress",
+              "value": "BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP"
+            },
+            {
+              "name": "amount",
+              "value": "1.5"
+            },
+            {
+              "name": "assetId",
+              "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
+            }
+          ],
+          "result": {
+            "name": "onConfirmSendResult",
+            "value": {
+              "signature": "2jy9nsDuajiPgRRijs7Ku4JVvTFQ224Nhoc58fe72tRoy384JAF6zVWFV2SwTt9XXykxes6LkU6VLokn6wAXTocQ"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "onAddressInput",
+      "summary": "Validate a Solana address input",
+      "description": "Validates a Solana address input and returns validation results. This method checks if the provided address is a valid Solana address format.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "value",
+          "summary": "The address string to validate",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "ValidationResponse",
+        "summary": "The validation result for the address input",
+        "schema": {
+          "$ref": "#/components/schemas/ValidationResponse"
+        }
+      },
+      "examples": [
+        {
+          "name": "onAddressInputExample",
+          "description": "Example of validating a valid Solana address",
+          "params": [
+            {
+              "name": "value",
+              "value": "BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP"
+            }
+          ],
+          "result": {
+            "name": "validationResponse",
+            "value": {
+              "valid": true,
+              "errors": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "onAmountInput",
+      "summary": "Validate an amount input for a transaction",
+      "description": "Validates an amount input for a transaction and returns validation results. This method checks if the amount is valid based on account balance, fees, and other constraints.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "value",
+          "summary": "The amount string to validate",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PositiveNumberString"
+          }
+        },
+        {
+          "name": "accountId",
+          "summary": "The UUID of the account to validate against",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        },
+        {
+          "name": "assetId",
+          "summary": "The CAIP-19 asset identifier to validate against",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/CaipAssetType"
+          }
+        }
+      ],
+      "result": {
+        "name": "ValidationResponse",
+        "summary": "The validation result for the amount input",
+        "schema": {
+          "$ref": "#/components/schemas/ValidationResponse"
+        }
+      },
+      "examples": [
+        {
+          "name": "onAmountInputExample",
+          "description": "Example of validating a valid amount input",
+          "params": [
+            {
+              "name": "value",
+              "value": "1.5"
+            },
+            {
+              "name": "accountId",
+              "value": "c747acb9-1b2b-4352-b9da-3d658fcc3cc7"
+            },
+            {
+              "name": "assetId",
+              "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
+            }
+          ],
+          "result": {
+            "name": "validationResponse",
+            "value": {
+              "valid": true,
+              "errors": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "startSendTransactionFlow",
+      "summary": "Start the send transaction flow interface",
+      "description": "Initiates the send transaction flow by rendering the send form interface. This method creates a user interface for sending transactions.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "scope",
+          "summary": "The Solana network scope",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Network"
+          }
+        },
+        {
+          "name": "account",
+          "summary": "The UUID of the account to send from",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        },
+        {
+          "name": "assetId",
+          "summary": "Optional CAIP-19 asset identifier",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/CaipAssetType"
+          }
+        }
+      ],
+      "result": {
+        "name": "StartSendTransactionFlowResult",
+        "summary": "The result of starting the send transaction flow",
+        "schema": {
+          "type": "object",
+          "description": "Interface ID for the created send form"
+        }
+      },
+      "examples": [
+        {
+          "name": "startSendTransactionFlowExample",
+          "description": "Example of starting a send transaction flow for SOL",
+          "params": [
+            {
+              "name": "scope",
+              "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            },
+            {
+              "name": "account",
+              "value": "c747acb9-1b2b-4352-b9da-3d658fcc3cc7"
+            },
+            {
+              "name": "assetId",
+              "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
+            }
+          ],
+          "result": {
+            "name": "startSendTransactionFlowResult",
+            "value": {
+              "interfaceId": "sendTransactionForm"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "getFeeForTransaction",
+      "summary": "Get the fee for a transaction",
+      "description": "Calculates and returns the fee for a given transaction in lamports. This method helps users understand the cost of their transaction before execution.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "transaction",
+          "summary": "The base64-encoded transaction to calculate fees for",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "scope",
+          "summary": "The Solana network scope",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Network"
+          }
+        }
+      ],
+      "result": {
+        "name": "GetFeeForTransactionResult",
+        "summary": "The fee for the transaction in lamports",
+        "schema": {
+          "$ref": "#/components/schemas/GetFeeForTransactionResult"
+        }
+      },
+      "examples": [
+        {
+          "name": "getFeeForTransactionExample",
+          "description": "Example of getting the fee for a transaction",
+          "params": [
+            {
+              "name": "transaction",
+              "value": "gAEAAgSZsAKPnZ6vMobike0KV4I/ucjxTM1cFYhLnVhPWfjfdN2zrulHQhiUvVcoUaPML7MFkgDu9PV2PudQFNTACzusAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAHWszLmyDo8VIk2P/sVmDUn34YE2+73fS1kNLCNojDEqAwMABQIsAQAAAwAJA+gDAAAAAAAAAgIAAQwCAAAAQEIPAAAAAAAA"
+            },
+            {
+              "name": "scope",
+              "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            }
+          ],
+          "result": {
+            "name": "getFeeForTransactionResult",
+            "value": {
+              "value": "15000"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "getGenesisHash",
+      "summary": "Get the genesis hash for a Solana network",
+      "description": "Retrieves the genesis hash for the specified Solana network. This method provides network-specific information.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "GetGenesisHashResult",
+        "summary": "The genesis hash for the network",
+        "schema": {
+          "type": "string",
+          "description": "The genesis hash as a string"
+        }
+      },
+      "examples": [
+        {
+          "name": "getGenesisHashExample",
+          "description": "Example of getting the genesis hash for mainnet",
+          "params": [],
+          "result": {
+            "name": "genesisHash",
+            "value": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+          }
+        }
+      ]
+    },
+    {
+      "name": "getLatestBlockhash",
+      "summary": "Get the latest blockhash for a Solana network",
+      "description": "Retrieves the latest blockhash for the specified Solana network. This method provides current network state information.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "GetLatestBlockhashResult",
+        "summary": "The latest blockhash for the network",
+        "schema": {
+          "type": "string",
+          "description": "The latest blockhash as a string"
+        }
+      },
+      "examples": [
+        {
+          "name": "getLatestBlockhashExample",
+          "description": "Example of getting the latest blockhash",
+          "params": [],
+          "result": {
+            "name": "latestBlockhash",
+            "value": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+          }
+        }
+      ]
+    },
+    {
+      "name": "getMinimumBalanceForRentExemption",
+      "summary": "Get the minimum balance for rent exemption",
+      "description": "Retrieves the minimum balance required for rent exemption on the specified Solana network.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "dataLength",
+          "summary": "The length of data in bytes",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "commitment",
+          "summary": "Optional commitment level",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/TransactionCommitment"
+          }
+        }
+      ],
+      "result": {
+        "name": "GetMinimumBalanceForRentExemptionResult",
+        "summary": "The minimum balance for rent exemption in lamports",
+        "schema": {
+          "type": "string",
+          "description": "The minimum balance as a string"
+        }
+      },
+      "examples": [
+        {
+          "name": "getMinimumBalanceForRentExemptionExample",
+          "description": "Example of getting minimum balance for rent exemption",
+          "params": [
+            {
+              "name": "dataLength",
+              "value": 1000
+            },
+            {
+              "name": "commitment",
+              "value": "confirmed"
+            }
+          ],
+          "result": {
+            "name": "minimumBalance",
+            "value": "890880"
+          }
+        }
+      ]
     }
   ],
   "components": {
@@ -114,12 +523,32 @@
         "description": "A base58-encoded string",
         "pattern": "^[1-9A-HJ-NP-Za-km-z]+$"
       },
+      "Uuid": {
+        "type": "string",
+        "description": "A UUID string in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+      },
+      "PositiveNumberString": {
+        "type": "string",
+        "description": "A positive number as a string, excluding leading zeros",
+        "pattern": "^(?!0\\d)(\\d+(\\.\\d+)?)$"
+      },
+      "SolanaAddress": {
+        "type": "string",
+        "description": "A valid Solana address",
+        "pattern": "^[1-9A-HJ-NP-Za-km-z]{32,44}$"
+      },
+      "CaipAssetType": {
+        "type": "string",
+        "description": "A CAIP-19 asset type identifier",
+        "pattern": "^[a-z]+:[0-9a-f]+(/[a-z]+:[0-9a-f]+)*$"
+      },
       "WalletAccount": {
         "type": "object",
         "description": "A wallet account containing the address",
         "properties": {
           "address": {
-            "type": "string",
+            "$ref": "#/components/schemas/SolanaAddress",
             "description": "The base58-encoded public key address of the account"
           }
         },
@@ -180,6 +609,54 @@
           }
         },
         "required": ["signature"],
+        "additionalProperties": false
+      },
+      "ValidationResponse": {
+        "type": "object",
+        "description": "Response from validation methods",
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "description": "Whether the input is valid"
+          },
+          "errors": {
+            "type": "array",
+            "description": "Array of validation errors",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "$ref": "#/components/schemas/SendErrorCode"
+                }
+              },
+              "required": ["code"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["valid", "errors"],
+        "additionalProperties": false
+      },
+      "SendErrorCode": {
+        "type": "string",
+        "description": "Error codes for send validation",
+        "enum": [
+          "Required",
+          "Invalid",
+          "InsufficientBalanceToCoverFee",
+          "InsufficientBalance"
+        ]
+      },
+      "GetFeeForTransactionResult": {
+        "type": "object",
+        "description": "Result of getting transaction fee",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "The fee amount in lamports as a string"
+          }
+        },
+        "required": ["value"],
         "additionalProperties": false
       }
     }

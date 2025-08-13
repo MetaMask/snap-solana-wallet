@@ -18,6 +18,7 @@ import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import type { Preferences } from '../../../../core/types/snap';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { i18n } from '../../../../core/utils/i18n';
+import { parseOrigin } from '../../../../core/utils/parseOrigin';
 import type { SolanaKeyringAccount } from '../../../../entities';
 import { BasicNullableField } from '../../components/BasicNullableField/BasicNullableField';
 import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedChanges';
@@ -54,7 +55,7 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
   networkImage,
 }) => {
   const translate = i18n(preferences.locale);
-  const originHostname = origin ? new URL(origin).hostname : null;
+  const originHostname = origin ? parseOrigin(origin) : null;
 
   const {
     domain,

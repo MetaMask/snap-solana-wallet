@@ -2,7 +2,11 @@
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { SecurityAlertsApiClient } from '../../clients/security-alerts-api/SecurityAlertsApiClient';
 import type { SecurityAlertSimulationValidationResponse } from '../../clients/security-alerts-api/types';
-import type { Network } from '../../constants/solana';
+import {
+  METAMASK_ORIGIN,
+  METAMASK_ORIGIN_URL,
+  type Network,
+} from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
@@ -67,7 +71,7 @@ export class TransactionScanService {
         accountAddress,
         transactions: [transaction],
         scope,
-        origin,
+        origin: origin === METAMASK_ORIGIN ? METAMASK_ORIGIN_URL : origin,
         options,
       });
 

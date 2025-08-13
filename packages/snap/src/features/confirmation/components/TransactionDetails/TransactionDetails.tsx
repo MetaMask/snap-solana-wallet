@@ -17,6 +17,7 @@ import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCrypto } from '../../../../core/utils/formatCrypto';
 import { formatFiat } from '../../../../core/utils/formatFiat';
 import { i18n } from '../../../../core/utils/i18n';
+import { parseOrigin } from '../../../../core/utils/parseOrigin';
 import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 
 type TransactionDetailsProps = {
@@ -42,7 +43,7 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 }) => {
   const { currency, locale } = preferences;
   const translate = i18n(locale);
-  const originHostname = origin ? new URL(origin).hostname : null;
+  const originHostname = origin ? parseOrigin(origin) : null;
 
   const pricesFetching = fetchingPricesStatus === 'fetching';
   const pricesError = fetchingPricesStatus === 'error';

@@ -27,14 +27,6 @@ import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import {
-  sanitizeDomain,
-  sanitizeSolanaAddress,
-  sanitizeUri,
-  sanitizeTimestamp,
-  sanitizeForSignInMessage,
-  sanitizeResources,
-} from '../../utils/sanitize';
-import {
   Base58Struct,
   Base64Struct,
   NetworkStruct,

@@ -7,11 +7,18 @@ import {
 import { assert } from '@metamask/superstruct';
 
 import { METAMASK_ORIGIN } from '../../constants/solana';
+import type { SendService } from '../../services/send/SendService';
 import type { WalletService } from '../../services/wallet/WalletService';
-import type { ILogger } from '../../utils/logger';
+import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { SolanaKeyring } from '../onKeyringRequest/Keyring';
 import { ClientRequestMethod } from './types';
-import { SignAndSendTransactionWithoutConfirmationRequestStruct } from './validation';
+import {
+  OnAddressInputRequestStruct,
+  OnAmountInputRequestStruct,
+  OnConfirmSendRequestStruct,
+  SignAndSendTransactionWithoutConfirmationRequestStruct,
+  ValidationResponseStruct,
+} from './validation';
 
 export class ClientRequestHandler {
   readonly #keyring: SolanaKeyring;
@@ -20,14 +27,18 @@ export class ClientRequestHandler {
 
   readonly #logger: ILogger;
 
+  readonly #sendService: SendService;
+
   constructor(
     keyring: SolanaKeyring,
     walletService: WalletService,
     logger: ILogger,
+    sendService: SendService,
   ) {
     this.#keyring = keyring;
     this.#walletService = walletService;
-    this.#logger = logger;
+    this.#logger = createPrefixedLogger(logger, '[👋 ClientRequestHandler]');
+    this.#sendService = sendService;
   }
 
   /**
@@ -40,13 +51,19 @@ export class ClientRequestHandler {
    * @throws {InvalidParamsError} If the params are invalid.
    */
   async handle(request: JsonRpcRequest): Promise<Json> {
-    this.#logger.log('[onClientRequest] Handling client request...', request);
+    this.#logger.log('Handling client request', request);
 
     const { method } = request;
 
     switch (method) {
       case ClientRequestMethod.SignAndSendTransactionWithoutConfirmation:
         return this.#handleSignAndSendTransactionWithoutConfirmation(request);
+      case ClientRequestMethod.OnConfirmSend:
+        return this.#handleOnConfirmSend(request);
+      case ClientRequestMethod.OnAddressInput:
+        return this.#handleOnAddressInput(request);
+      case ClientRequestMethod.OnAmountInput:
+        return this.#handleOnAmountInput(request);
       default:
         throw new MethodNotFoundError() as Error;
     }
@@ -85,5 +102,50 @@ export class ClientRequestHandler {
       METAMASK_ORIGIN,
       options,
     );
+  }
+
+  async #handleOnConfirmSend(request: JsonRpcRequest): Promise<Json> {
+    try {
+      assert(request, OnConfirmSendRequestStruct);
+    } catch (error) {
+      const errorToThrow = new InvalidParamsError() as Error;
+      errorToThrow.cause = error;
+      throw errorToThrow;
+    }
+    const result = await this.#sendService.confirmSend(request);
+
+    return result;
+  }
+
+  async #handleOnAddressInput(request: JsonRpcRequest): Promise<Json> {
+    try {
+      assert(request, OnAddressInputRequestStruct);
+    } catch (error) {
+      const errorToThrow = new InvalidParamsError() as Error;
+      errorToThrow.cause = error;
+      throw errorToThrow;
+    }
+
+    const result = await this.#sendService.onAddressInput(request);
+
+    assert(result, ValidationResponseStruct);
+
+    return result;
+  }
+
+  async #handleOnAmountInput(request: JsonRpcRequest): Promise<Json> {
+    try {
+      assert(request, OnAmountInputRequestStruct);
+    } catch (error) {
+      const errorToThrow = new InvalidParamsError() as Error;
+      errorToThrow.cause = error;
+      throw errorToThrow;
+    }
+
+    const result = await this.#sendService.onAmountInput(request);
+
+    assert(result, ValidationResponseStruct);
+
+    return result;
   }
 }

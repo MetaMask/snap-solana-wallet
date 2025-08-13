@@ -30,6 +30,7 @@ import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { TransactionHelper } from './core/services/execution/TransactionHelper';
 import { NameResolutionService } from './core/services/name-resolution/NameResolutionService';
 import { NftService } from './core/services/nft/NftService';
+import { SendService } from './core/services/send/SendService';
 import type { IStateManager } from './core/services/state/IStateManager';
 import type { UnencryptedStateValue } from './core/services/state/State';
 import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
@@ -215,10 +216,21 @@ const keyring = new SolanaKeyring({
 
 const nftService = new NftService(connection, logger);
 
+const sendService = new SendService(
+  connection,
+  keyring,
+  logger,
+  inMemoryCache,
+  sendSolBuilder,
+  sendSplTokenBuilder,
+  assetsService,
+);
+
 const clientRequestHandler = new ClientRequestHandler(
   keyring,
   walletService,
   logger,
+  sendService,
 );
 
 const snapContext: SnapExecutionContext = {

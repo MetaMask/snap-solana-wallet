@@ -19,6 +19,7 @@ import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import type { Locale } from '../../../../core/utils/i18n';
 import { i18n } from '../../../../core/utils/i18n';
+import { parseOrigin } from '../../../../core/utils/parseOrigin';
 import type { SolanaKeyringAccount } from '../../../../entities';
 import { ConfirmSignMessageFormNames } from './events';
 
@@ -41,7 +42,7 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
 }) => {
   const translate = i18n(locale);
   const { address } = account;
-  const originHostname = origin ? new URL(origin).hostname : null;
+  const originHostname = origin ? parseOrigin(origin) : null;
   const addressCaip10 = addressToCaip10(scope, address);
 
   return (
