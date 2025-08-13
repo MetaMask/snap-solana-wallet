@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.2.0]
 
-### Uncategorized
+### Added
 
-- feat: unified send flow methods ([#494](https://github.com/MetaMask/snap-solana-wallet/pull/494))
+- Unified send flow methods (`onConfirmSend`, `onAddressInput`, `onAmountInput`) ([#494](https://github.com/MetaMask/snap-solana-wallet/pull/494))
 
 ## [2.1.4]
 
