@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0]
+
+### Uncategorized
+
+- feat: unified send flow methods ([#494](https://github.com/MetaMask/snap-solana-wallet/pull/494))
+
 ## [2.1.4]
 
 ### Changed
@@ -820,7 +826,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.4...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.4...v2.2.0
 [2.1.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.3...v2.1.4
 [2.1.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.1...v2.1.2
