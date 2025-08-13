@@ -264,20 +264,16 @@ export class SendService {
       };
     }
 
-    // If the native balance is lower than the minimum balance for rent exemption, it's invalid
-    const nativeBalanceLowerThanMinimum = nativeBalanceLamports.lt(
-      minimumBalanceForRentExemptionLamports,
-    );
-
-    if (nativeBalanceLowerThanMinimum) {
-      return {
-        valid: false,
-        errors: [{ code: SendErrorCodes.InsufficientBalanceToCoverFee }],
-      };
-    }
-
     if (isNativeToken) {
-      // If the (amount + fee + minimum balance for rent exemption) is greater than the native balance, it's invalid
+      // First check if the amount alone exceeds the native balance
+      if (valueLamports.gt(nativeBalanceLamports)) {
+        return {
+          valid: false,
+          errors: [{ code: SendErrorCodes.InsufficientBalance }],
+        };
+      }
+
+      // Then check if the (amount + fee + minimum balance for rent exemption) is greater than the native balance
       const isAmountPlusFeePlusRentExemptionGreaterThanBalance = valueLamports
         .plus(feeEstimatedInLamports)
         .plus(minimumBalanceForRentExemptionLamports)
@@ -290,7 +286,11 @@ export class SendService {
         };
       }
     } else {
-      // If the amount is greater than the asset balance, it's invalid
+      // For SPL tokens, we need to ensure the native SOL balance can cover:
+      // 1. Transaction fees
+      // 2. Minimum balance for rent exemption (for potential ATA creation)
+
+      // Check if the amount is greater than the asset balance
       const isAmountGreaterThanAssetBalance =
         valueLamports.gt(assetBalanceLamports);
 
@@ -298,6 +298,19 @@ export class SendService {
         return {
           valid: false,
           errors: [{ code: SendErrorCodes.InsufficientBalance }],
+        };
+      }
+
+      // Check if the native SOL balance can cover fees + minimum rent exemption
+      const isFeePlusRentExemptionGreaterThanNativeBalance =
+        feeEstimatedInLamports
+          .plus(minimumBalanceForRentExemptionLamports)
+          .gt(nativeBalanceLamports);
+
+      if (isFeePlusRentExemptionGreaterThanNativeBalance) {
+        return {
+          valid: false,
+          errors: [{ code: SendErrorCodes.InsufficientBalanceToCoverFee }],
         };
       }
     }

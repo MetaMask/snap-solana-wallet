@@ -347,15 +347,27 @@ describe('SendService', () => {
       });
     });
 
-    it('rejects when SOL balance is insufficient to cover fee and rent', async () => {
-      const insufficientBalanceRequest: OnAmountInputRequest = {
+    it('rejects when native SOL amount exceeds balance', async () => {
+      const highAmountRequest: OnAmountInputRequest = {
+        ...mockRequest,
+        params: { ...mockRequest.params, value: '15.0' }, // More than 10.0 balance
+      };
+
+      const result = await sendService.onAmountInput(highAmountRequest);
+
+      expect(result).toStrictEqual({
+        valid: false,
+        errors: [{ code: SendErrorCodes.InsufficientBalance }],
+      });
+    });
+
+    it('rejects when native SOL amount within balance but insufficient for fees and rent', async () => {
+      const highAmountRequest: OnAmountInputRequest = {
         ...mockRequest,
         params: { ...mockRequest.params, value: '9.999999999' },
       };
 
-      const result = await sendService.onAmountInput(
-        insufficientBalanceRequest,
-      );
+      const result = await sendService.onAmountInput(highAmountRequest);
 
       expect(result).toStrictEqual({
         valid: false,
