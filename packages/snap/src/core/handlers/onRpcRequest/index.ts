@@ -6,9 +6,10 @@ import { getFeeForTransaction } from './getFeeForTransaction';
 import { RpcRequestMethod, TestDappRpcRequestMethod } from './types';
 
 export const handlers: Record<RpcRequestMethod, OnRpcRequestHandler> = {
-  [RpcRequestMethod.StartSendTransactionFlow]: renderSend,
+  // TODO: Deprecate this method.
   [RpcRequestMethod.GetFeeForTransaction]: getFeeForTransaction,
 
+  [RpcRequestMethod.StartSendTransactionFlow]: renderSend,
   // Methods specific to the test dapp
   [TestDappRpcRequestMethod.ListWebSockets as any]: async () => {
     await eventEmitter.emitSync('onListWebSockets');

@@ -21,7 +21,7 @@
     {
       "name": "signAndSendTransactionWithoutConfirmation",
       "summary": "Sign and send a transaction without showing a confirmation dialog",
-      "description": "Allows the client (MetaMask) to request the snap to sign and send a Solana transaction without showing a confirmation dialog to the user. This method validates the request parameters, finds the account in the keyring, signs the transaction, and sends it to the Solana network.",
+      "description": "Allows the client (MetaMask) to request the snap to sign and send a Solana transaction without showing a confirmation dialog to the user. This method validates the request parameters, finds the account in the keyring, signs the transaction, and sends it to the Solana network. **Note: This method is deprecated and will be removed in the next major version.**",
       "paramStructure": "by-name",
       "params": [
         {
@@ -102,7 +102,96 @@
       ]
     },
     {
-      "name": "onConfirmSend",
+      "name": "signAndSendTransaction",
+      "summary": "Sign and send a transaction",
+      "description": "Allows the client (MetaMask) to request the snap to sign and send a Solana transaction. This method validates the request parameters, finds the account in the keyring, signs the transaction, and sends it to the Solana network.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "accountId",
+          "summary": "The UUID of the account to use for signing the transaction",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        },
+        {
+          "name": "transaction",
+          "summary": "The base64-encoded transaction to sign and send",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Base64String"
+          }
+        },
+        {
+          "name": "scope",
+          "summary": "The Solana network to send the transaction to",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Network"
+          }
+        },
+        {
+          "name": "options",
+          "summary": "Optional transaction options",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/TransactionOptions"
+          }
+        }
+      ],
+      "result": {
+        "name": "SignAndSendTransactionResult",
+        "summary": "The result of signing and sending a transaction",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "transactionId": {
+              "$ref": "#/components/schemas/Base58String",
+              "description": "The transaction signature returned after successful execution on Solana"
+            }
+          },
+          "required": ["transactionId"],
+          "additionalProperties": false
+        }
+      },
+      "examples": [
+        {
+          "name": "signAndSendTransactionExample",
+          "description": "Example of signing and sending a simple SOL transfer transaction",
+          "params": [
+            {
+              "name": "accountId",
+              "value": "c747acb9-1b2b-4352-b9da-3d658fcc3cc7"
+            },
+            {
+              "name": "transaction",
+              "value": "gAEAAgSZsAKPnZ6vMobike0KV4I/ucjxTM1cFYhLnVhPWfjfdN2zrulHQhiUvVcoUaPML7MFkgDu9PV2PudQFNTACzusAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAHWszLmyDo8VIk2P/sVmDUn34YE2+73fS1kNLCNojDEqAwMABQIsAQAAAwAJA+gDAAAAAAAAAgIAAQwCAAAAQEIPAAAAAAAA"
+            },
+            {
+              "name": "scope",
+              "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            },
+            {
+              "name": "options",
+              "value": {
+                "commitment": "confirmed",
+                "skipPreflight": false,
+                "maxRetries": 3
+              }
+            }
+          ],
+          "result": {
+            "name": "signAndSendTransactionResult",
+            "value": {
+              "transactionId": "2jy9nsDuajiPgRRijs7Ku4JVvTFQ224Nhoc58fe72tRoy384JAF6zVWFV2SwTt9XXykxes6LkU6VLokn6wAXTocQ"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "confirmSend",
       "summary": "Confirm and execute a send transaction",
       "description": "Confirms and executes a send transaction with the specified parameters. This method validates the request parameters and submits the transaction to the Solana network.",
       "paramStructure": "by-name",
@@ -141,7 +230,7 @@
         }
       ],
       "result": {
-        "name": "OnConfirmSendResult",
+        "name": "ConfirmSendResult",
         "summary": "The result of confirming and executing the send transaction",
         "schema": {
           "$ref": "#/components/schemas/SignAndSendTransactionResult"
@@ -149,7 +238,7 @@
       },
       "examples": [
         {
-          "name": "onConfirmSendExample",
+          "name": "confirmSendExample",
           "description": "Example of confirming a SOL send transaction",
           "params": [
             {
@@ -170,10 +259,99 @@
             }
           ],
           "result": {
-            "name": "onConfirmSendResult",
+            "name": "confirmSendResult",
             "value": {
               "signature": "2jy9nsDuajiPgRRijs7Ku4JVvTFQ224Nhoc58fe72tRoy384JAF6zVWFV2SwTt9XXykxes6LkU6VLokn6wAXTocQ"
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "computeFee",
+      "summary": "Compute the fee for a transaction",
+      "description": "Computes and returns the fee for a given transaction. This method helps users understand the cost of their transaction before execution.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "transaction",
+          "summary": "The base64-encoded transaction to calculate fees for",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "scope",
+          "summary": "The Solana network scope",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Network"
+          }
+        }
+      ],
+      "result": {
+        "name": "ComputeFeeResult",
+        "summary": "The computed fee information",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["base"]
+              },
+              "asset": {
+                "type": "object",
+                "properties": {
+                  "unit": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "string"
+                  },
+                  "fungible": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["unit", "type", "amount", "fungible"]
+              }
+            },
+            "required": ["type", "asset"]
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "computeFeeExample",
+          "description": "Example of computing the fee for a transaction",
+          "params": [
+            {
+              "name": "transaction",
+              "value": "gAEAAgSZsAKPnZ6vMobike0KV4I/ucjxTM1cFYhLnVhPWfjfdN2zrulHQhiUvVcoUaPML7MFkgDu9PV2PudQFNTACzusAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAHWszLmyDo8VIk2P/sVmDUn34YE2+73fS1kNLCNojDEqAwMABQIsAQAAAwAJA+gDAAAAAAAAAgIAAQwCAAAAQEIPAAAAAAAA"
+            },
+            {
+              "name": "scope",
+              "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            }
+          ],
+          "result": {
+            "name": "computeFeeResult",
+            "value": [
+              {
+                "type": "base",
+                "asset": {
+                  "unit": "SOL",
+                  "type": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
+                  "amount": "0.000015",
+                  "fungible": true
+                }
+              }
+            ]
           }
         }
       ]
@@ -355,7 +533,7 @@
     {
       "name": "getFeeForTransaction",
       "summary": "Get the fee for a transaction",
-      "description": "Calculates and returns the fee for a given transaction in lamports. This method helps users understand the cost of their transaction before execution.",
+      "description": "Calculates and returns the fee for a given transaction in lamports. This method helps users understand the cost of their transaction before execution. **Note: This method is deprecated and will be removed in the next major version.**",
       "paramStructure": "by-name",
       "params": [
         {

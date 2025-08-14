@@ -1,6 +1,8 @@
 export enum ClientRequestMethod {
   SignAndSendTransactionWithoutConfirmation = 'signAndSendTransactionWithoutConfirmation',
-  OnConfirmSend = 'onConfirmSend',
+  ConfirmSend = 'confirmSend',
+  SignAndSendTransaction = 'signAndSendTransaction',
+  ComputeFee = 'computeFee',
   OnAddressInput = 'onAddressInput',
   OnAmountInput = 'onAmountInput',
 }

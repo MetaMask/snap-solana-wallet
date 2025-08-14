@@ -231,6 +231,7 @@ const clientRequestHandler = new ClientRequestHandler(
   walletService,
   logger,
   sendService,
+  transactionHelper,
 );
 
 const snapContext: SnapExecutionContext = {

@@ -1,6 +1,7 @@
 import { InvalidParamsError, type JsonRpcRequest } from '@metamask/snaps-sdk';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
+import type { TransactionHelper } from '../../services/execution/TransactionHelper';
 import type { SendService } from '../../services/send/SendService';
 import type { ValidationResponse } from '../../services/send/types';
 import type { SolanaSignAndSendTransactionResponse } from '../../services/wallet/structs';
@@ -17,11 +18,13 @@ describe('ClientRequestHandler', () => {
   let mockWalletService: jest.Mocked<WalletService>;
   let mockLogger: jest.Mocked<ILogger>;
   let sendService: jest.Mocked<SendService>;
+  let transactionHelper: jest.Mocked<TransactionHelper>;
 
   beforeEach(() => {
     // Create mock keyring
     mockKeyring = {
       listAccounts: jest.fn(),
+      getAccountOrThrow: jest.fn(),
     } as unknown as jest.Mocked<SolanaKeyring>;
 
     // Create mock wallet service
@@ -40,12 +43,17 @@ describe('ClientRequestHandler', () => {
       confirmSend: jest.fn(),
     } as unknown as jest.Mocked<SendService>;
 
+    transactionHelper = {
+      getFeeFromBase64StringInLamports: jest.fn(),
+    } as unknown as jest.Mocked<TransactionHelper>;
+
     // Create handler instance
     handler = new ClientRequestHandler(
       mockKeyring,
       mockWalletService,
       mockLogger,
       sendService,
+      transactionHelper,
     );
 
     // Reset all mocks
@@ -178,11 +186,181 @@ describe('ClientRequestHandler', () => {
     });
   });
 
-  describe('onConfirmSend', () => {
+  describe('signAndSendTransaction', () => {
+    const mockTransaction =
+      'gAEAChfds67pR0IYlL1XKFGjzC+zBZIA7vT1dj7nUBTUwAs7rBn3hrWmXImk+UetGwvWumZpcEhF+xT5THD5os2Svp67H8GdfJ4jkOslaYOff/X0SeF33Cha5Ij9DKlo3QaosfIhtgnDmdJAVdjfmyv5dEGsSWgYEYPaqW8v8hSJozhYIzcQa4p5MinFjNMq4vDm+n249hE5Vmwe+Adkq87GTDegPbdaVhuqlrT5hZnIkdcW67eCFvm9ZzXM9jeWm2GwnLBGfnLp6qHLD5IgtqLXr5clzwoa2ns4KdysosGA2yFHt2dBBA/kB6qwUEagfnGzH2GY12XE3va/gn3W4Loqy/D+gP5PMjWwL4nGY8i3EGxqLHt/i3x/EskcO1ftQjYqQtqMVVDE+U/Vngb6x6+HbBOGrDQOx73j0k813TrK9dmptLgHDBoOIz6tGmWT+r9wa3YtqouLIv01/IKynGlc4TnE0M2MheikqA6gkuj1PhXVDgPc7eSLCseVMCy/WUgTmKbXmnZ/QcH3X8YTJ//GR4yvL7LCHdfHPhS8B+4hpoFusQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKD0N0oI1T+8K47DiJ9N82JyiZvsX3fj3y3zO++Tr3FVRPixdukLDvYMw2r2DTumX5VA1ifoAVfXgkOTnLswDEoyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAC0P/on9df2SnTAmx8pWHneSwmrNt/J3VFLMhqns4zl6LwHxW5grT0/F3OC6sZUj7of0yz9kMoCs+fPoYX9znOYyUOdJ8PoWqEFw7H8n7xwkhg1P1tPfo1/6arncTl4PJkEedVb8jHAbu50xW7OaBUH/bGy3qP0jlECsc2iVrwTjwan1RcYx3TJKFZjmGkdXraLXrijm0ttXHNVWyEAAAAA0LlMW0o1bBeKH7IjSDuI9G0a+7kgVaW9ubbU+rklS9sFDgIWFAkAi8sXoE0wggARAAUCuIEWABEACAMgoQcAAAAAEAYACAATDS0BARVDLQ8ABgUECCoTFRUSFSslKyIjBQooKiQrDy0tKSsMAwEVKyErHB0KBygsHisPLS0pKx8gFScPJhsHBBcZGi0JGAILFSzBIJszQdacgQMDAAAAJmQAASZkAQIaZAIDQEIPAAAAAAC78khRAQAAADIAAANOgLKSmCyUmuksqMclFoVdtmiFizz7/yF11zNd6TSAxgUkIB4dIwIhIrYRAfelfqMdEh4JHXx6VS3GXpyeWhNKQlBsx9m2I8c+BhMSEBEUWgDdfctSzc+t7n0tohMIoz7S6USQkKhKDRCUSx6C3SjhJQQJAg8EBgoMCwYQBw==';
+
+    const mockTransactionId =
+      '4x9nP9P4PnddXcfuahUBtGD3YgskhYMhCvswVZev7ZZW9U5no9H9QP33UoynXoiynH43RvHwoTBDLmv4hMFBv16w';
+
+    const validRequest: JsonRpcRequest = {
+      jsonrpc: '2.0',
+      id: 1,
+      method: ClientRequestMethod.SignAndSendTransaction,
+      params: {
+        accountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        scope: Network.Testnet,
+        transaction: mockTransaction,
+        options: {
+          commitment: 'confirmed',
+          skipPreflight: false,
+          maxRetries: 3,
+        },
+      },
+    };
+
+    describe('when request is valid', () => {
+      beforeEach(() => {
+        mockKeyring.getAccountOrThrow.mockResolvedValue(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        );
+      });
+
+      it('calls the wallet service and returns the response with transactionId', async () => {
+        const expectedResponse = {
+          transactionId: mockTransactionId,
+        };
+        mockWalletService.signAndSendTransaction.mockResolvedValue({
+          signature: expectedResponse.transactionId,
+        });
+
+        const response = await handler.handle(validRequest);
+
+        expect(mockKeyring.getAccountOrThrow).toHaveBeenCalledWith(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        );
+        expect(mockWalletService.signAndSendTransaction).toHaveBeenCalledWith(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0,
+          mockTransaction,
+          Network.Testnet,
+          'metamask',
+          {
+            commitment: 'confirmed',
+            skipPreflight: false,
+            maxRetries: 3,
+          },
+        );
+
+        expect(response).toStrictEqual(expectedResponse);
+      });
+
+      it('propagates wallet service errors', async () => {
+        const walletServiceError = new Error('Transaction failed');
+        mockWalletService.signAndSendTransaction.mockRejectedValue(
+          walletServiceError,
+        );
+
+        await expect(handler.handle(validRequest)).rejects.toThrow(
+          'Transaction failed',
+        );
+      });
+    });
+
+    describe('when the account is not found', () => {
+      it('throws an account not found error', async () => {
+        mockKeyring.getAccountOrThrow.mockRejectedValue(
+          new Error('Account not found'),
+        );
+
+        await expect(handler.handle(validRequest)).rejects.toThrow(
+          'Account not found',
+        );
+      });
+    });
+
+    describe('when the params are invalid', () => {
+      it('throws a invalid params error', async () => {
+        const invalidRequest: JsonRpcRequest = {
+          jsonrpc: '2.0',
+          id: 1,
+          method: ClientRequestMethod.SignAndSendTransaction,
+          params: {
+            name: 'Alice',
+          },
+        };
+
+        await expect(handler.handle(invalidRequest)).rejects.toThrow(
+          'Invalid method parameter(s).',
+        );
+      });
+    });
+  });
+
+  describe('computeFee', () => {
+    const mockTransaction =
+      'gAEAChfds67pR0IYlL1XKFGjzC+zBZIA7vT1dj7nUBTUwAs7rBn3hrWmXImk+UetGwvWumZpcEhF+xT5THD5os2Svp67H8GdfJ4jkOslaYOff/X0SeF33Cha5Ij9DKlo3QaosfIhtgnDmdJAVdjfmyv5dEGsSWgYEYPaqW8v8hSJozhYIzcQa4p5MinFjNMq4vDm+n249hE5Vmwe+Adkq87GTDegPbdaVhuqlrT5hZnIkdcW67eCFvm9ZzXM9jeWm2GwnLBGfnLp6qHLD5IgtqLXr5clzwoa2ns4KdysosGA2yFHt2dBBA/kB6qwUEagfnGzH2GY12XE3va/gn3W4Loqy/D+gP5PMjWwL4nGY8i3EGxqLHt/i3x/EskcO1ftQjYqQtqMVVDE+U/Vngb6x6+HbBOGrDQOx73j0k813TrK9dmptLgHDBoOIz6tGmWT+r9wa3YtqouLIv01/IKynGlc4TnE0M2MheikqA6gkuj1PhXVDgPc7eSLCseVMCy/WUgTmKbXmnZ/QcH3X8YTJ//GR4yvL7LCHdfHPhS8B+4hpoFusQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKD0N0oI1T+8K47DiJ9N82JyiZvsX3fj3y3zO++Tr3FVRPixdukLDvYMw2r2DTumX5VA1ifoAVfXgkOTnLswDEoyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAC0P/on9df2SnTAmx8pWHneSwmrNt/J3VFLMhqns4zl6LwHxW5grT0/F3OC6sZUj7of0yz9kMoCs+fPoYX9znOYyUOdJ8PoWqEFw7H8n7xwkhg1P1tPfo1/6arncTl4PJkEedVb8jHAbu50xW7OaBUH/bGy3qP0jlECsc2iVrwTjwan1RcYx3TJKFZjmGkdXraLXrijm0ttXHNVWyEAAAAA0LlMW0o1bBeKH7IjSDuI9G0a+7kgVaW9ubbU+rklS9sFDgIWFAkAi8sXoE0wggARAAUCuIEWABEACAMgoQcAAAAAEAYACAATDS0BARVDLQ8ABgUECCoTFRUSFSslKyIjBQooKiQrDy0tKSsMAwEVKyErHB0KBygsHisPLS0pKx8gFScPJhsHBBcZGi0JGAILFSzBIJszQdacgQMDAAAAJmQAASZkAQIaZAIDQEIPAAAAAAC78khRAQAAADIAAANOgLKSmCyUmuksqMclFoVdtmiFizz7/yF11zNd6TSAxgUkIB4dIwIhIrYRAfelfqMdEh4JHXx6VS3GXpyeWhNKQlBsx9m2I8c+BhMSEBEUWgDdfctSzc+t7n0tohMIoz7S6USQkKhKDRCUSx6C3SjhJQQJAg8EBgoMCwYQBw==';
+
+    const validRequest: JsonRpcRequest = {
+      jsonrpc: '2.0',
+      id: 1,
+      method: ClientRequestMethod.ComputeFee,
+      params: {
+        transaction: mockTransaction,
+        accountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        scope: Network.Testnet,
+      },
+    };
+
+    describe('when request is valid', () => {
+      it('calls the transaction helper and returns the computed fee', async () => {
+        const mockFeeInLamports = '15000';
+        transactionHelper.getFeeFromBase64StringInLamports.mockResolvedValue(
+          mockFeeInLamports,
+        );
+
+        const response = await handler.handle(validRequest);
+
+        expect(
+          transactionHelper.getFeeFromBase64StringInLamports,
+        ).toHaveBeenCalledWith(mockTransaction, Network.Testnet);
+
+        expect(response).toStrictEqual([
+          {
+            type: 'base',
+            asset: {
+              unit: 'SOL',
+              type: 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z/slip44:501',
+              amount: '0.000015',
+              fungible: true,
+            },
+          },
+        ]);
+      });
+
+      it('throws an error when fee calculation fails', async () => {
+        transactionHelper.getFeeFromBase64StringInLamports.mockResolvedValue(
+          null,
+        );
+
+        await expect(handler.handle(validRequest)).rejects.toThrow(
+          'Failed to get fee for transaction',
+        );
+      });
+    });
+
+    describe('when the params are invalid', () => {
+      it('throws a invalid params error', async () => {
+        const invalidRequest: JsonRpcRequest = {
+          jsonrpc: '2.0',
+          id: 1,
+          method: ClientRequestMethod.ComputeFee,
+          params: {
+            name: 'Alice',
+          },
+        };
+
+        await expect(handler.handle(invalidRequest)).rejects.toThrow(
+          'Invalid method parameter(s).',
+        );
+      });
+    });
+  });
+
+  describe('confirmSend', () => {
     const request: JsonRpcRequest = {
       jsonrpc: '2.0',
       id: 1,
-      method: ClientRequestMethod.OnConfirmSend,
+      method: ClientRequestMethod.ConfirmSend,
       params: {
         fromAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
         toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,

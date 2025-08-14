@@ -109,7 +109,7 @@ describe('SendService', () => {
     const mockRequest: OnConfirmSendRequest = {
       jsonrpc: '2.0',
       id: '1',
-      method: ClientRequestMethod.OnConfirmSend,
+      method: ClientRequestMethod.ConfirmSend,
       params: {
         fromAccountId: mockAccount.id,
         toAddress: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,

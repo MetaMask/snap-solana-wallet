@@ -34,7 +34,7 @@ import { Base58Struct, Base64Struct } from '../../validation/structs';
  * @see https://github.com/anza-xyz/wallet-standard/tree/master/packages/core/features/src
  */
 
-const ScopeStringStruct = enums(Object.values(Network));
+export const ScopeStringStruct = enums(Object.values(Network));
 
 // Sanitizing structs that transform values during validation
 const SanitizedSolanaAddressStruct = coerce(
@@ -158,7 +158,7 @@ const SolanaSignTransactionInputStruct = type({
   options: optional(SolanaSignTransactionOptionsStruct),
 });
 
-const SolanaSignAndSendTransactionOptionsStruct = type({
+export const SolanaSignAndSendTransactionOptionsStruct = type({
   ...SolanaSignTransactionOptionsStruct.schema,
   /** Desired commitment level. If provided, confirm the transaction after sending. */
   commitment: optional(SolanaTransactionCommitmentStruct),
