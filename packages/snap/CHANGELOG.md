@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.0]
 
+### Added
+
+- Added new swap/bridge `onClientRequest` methods ([#496](https://github.com/MetaMask/snap-solana-wallet/pull/496))
+
 ### Changed
 
-- Refactor and changed swap/bridge `onClientRequest` methods ([#496](https://github.com/MetaMask/snap-solana-wallet/pull/496))
+- Refactor `onConfirmSend` to `confirmSend` ([#496](https://github.com/MetaMask/snap-solana-wallet/pull/496))
 
 ## [2.2.0]
 
