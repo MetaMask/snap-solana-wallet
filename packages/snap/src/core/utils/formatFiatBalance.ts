@@ -8,7 +8,6 @@ import BigNumber from 'bignumber.js';
  */
 export function formatFiatBalance(amount: number | string | BigNumber) {
   const bigAmount = new BigNumber(amount);
-  const amountNumber = bigAmount.toNumber().toFixed(2);
-
+  const amountNumber = bigAmount.toFixed(2);
   return amountNumber;
 }

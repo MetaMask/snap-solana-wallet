@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import logger from './logger';
 
-const MIN_AMOUNT = 0.000001;
+const MIN_AMOUNT = new BigNumber('0.000001');
 const MAX_SIGNIFICANT_DECIMAL_PLACES = 3;
 const ZERO_DISPLAY = '0';
 const DEFAULT_PRECISION = new BigNumber(MIN_AMOUNT).decimalPlaces();
@@ -62,7 +62,7 @@ export function formatCryptoBalance(
       return new Intl.NumberFormat(localeCode, {
         maximumSignificantDigits: MAX_SIGNIFICANT_DECIMAL_PLACES,
       } as Intl.NumberFormatOptions).format(
-        Number(bignumberAmount.toFixed(DEFAULT_PRECISION ?? 0)),
+        bignumberAmount.toFixed(DEFAULT_PRECISION ?? 0) as any,
       );
     }
 
@@ -74,10 +74,10 @@ export function formatCryptoBalance(
       .abs()
       .integerValue()
       .toString().length;
-    const maximumFractionDigits = Math.max(
-      0,
-      MAX_SIGNIFICANT_DECIMAL_PLACES - digitsLeftOfDecimal + 1,
-    );
+      const maximumFractionDigits = BigNumber.max(
+        0,
+        MAX_SIGNIFICANT_DECIMAL_PLACES - digitsLeftOfDecimal + 1,
+      ).toNumber();
 
     const formattedAmount = new Intl.NumberFormat(locale, {
       maximumFractionDigits,

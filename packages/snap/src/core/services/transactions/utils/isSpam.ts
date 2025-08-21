@@ -52,7 +52,7 @@ const isSolAmountLowerThanThreshold: SpamDetector = (
     { hasReceivedSOL: false, receivedSOLAmount: new BigNumber(0) },
   );
 
-  return hasReceivedSOL && receivedSOLAmount.isLessThan(0.001);
+  return hasReceivedSOL && receivedSOLAmount.isLessThan(new BigNumber('0.001'));
 };
 
 /**

@@ -14,7 +14,12 @@ export function formatFiat(
   locale: string,
 ): string {
   const bigAmount = new BigNumber(amount);
-  const amountNumber = bigAmount.toNumber();
+  
+  const amountNumber = bigAmount.isLessThanOrEqualTo(Number.MAX_SAFE_INTEGER) && 
+                   bigAmount.isGreaterThanOrEqualTo(Number.MIN_SAFE_INTEGER)
+  ? bigAmount.toNumber()
+  : parseFloat(bigAmount.toFixed(2));
+
   const [localeCode] = locale.split('_');
 
   return amountNumber.toLocaleString(localeCode, {

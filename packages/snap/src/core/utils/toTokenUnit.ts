@@ -17,7 +17,7 @@ export function toTokenUnits(
     throw new Error('Token amount cannot be negative');
   }
 
-  const result = bn.times(10 ** decimals).integerValue(BigNumber.ROUND_DOWN);
+  const result = bn.times(new BigNumber(10).pow(decimals)).integerValue(BigNumber.ROUND_DOWN);
 
   return BigInt(result.toString());
 }

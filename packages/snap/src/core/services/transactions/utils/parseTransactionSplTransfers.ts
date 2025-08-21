@@ -280,5 +280,5 @@ export function decodeSplTransferAmount(data: Uint8Array): BigNumber {
     raw |= BigInt(data[i] ?? 0) << BigInt(8 * (i - 1));
   }
 
-  return BigNumber(raw.toString()).dividedBy(1e6);
+  return BigNumber(raw.toString()).dividedBy('1000000');
 }
