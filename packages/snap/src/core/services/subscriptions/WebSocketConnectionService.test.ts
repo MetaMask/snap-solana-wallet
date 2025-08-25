@@ -157,6 +157,52 @@ describe('WebSocketConnectionService', () => {
         'conn2',
       );
     });
+
+    it('continues closing other connections even if one fails', async () => {
+      const mockConnections = [
+        createMockWebSocketConnection(
+          'conn1',
+          mockWebSocketUrl,
+          Network.Mainnet,
+        ),
+        createMockWebSocketConnection(
+          'conn2',
+          'wss://other-url.com',
+          Network.Devnet,
+        ),
+        createMockWebSocketConnection(
+          'conn3',
+          'wss://third-url.com',
+          Network.Testnet,
+        ),
+      ];
+
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'getAll')
+        .mockResolvedValue(mockConnections);
+
+      // Mock one connection to fail deletion
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'delete')
+        .mockRejectedValueOnce(new Error('Failed to delete connection'))
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce(undefined);
+
+      // Simulate the extension becoming inactive
+      await mockEventEmitter.emitSync('onInactive');
+
+      // Should attempt to delete all connections despite one failing
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledTimes(3);
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledWith(
+        'conn1',
+      );
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledWith(
+        'conn2',
+      );
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledWith(
+        'conn3',
+      );
+    });
   });
 
   describe('openConnection', () => {
@@ -227,8 +273,13 @@ describe('WebSocketConnectionService', () => {
       });
 
       it('does not attempt to reconnect when connection is closed cleanly', async () => {
-        // Simulate the extension becoming inactive
-        await mockEventEmitter.emitSync('onInactive');
+        // Send a clean disconnect event
+        await mockEventEmitter.emitSync('onWebSocketEvent', {
+          id: mockConnectionId,
+          type: 'close',
+          wasClean: true,
+          origin: 'wss://some-mock-url.com',
+        });
 
         // Should not attempt to reconnect for clean closures
         expect(mockWebSocketConnectionRepository.save).not.toHaveBeenCalled();

@@ -138,7 +138,7 @@ export class WebSocketConnectionService {
     this.#logger.log(`Closing all connections`);
 
     const connections = await this.#connectionRepository.getAll();
-    await Promise.all(connections.map(this.#closeConnection.bind(this)));
+    await Promise.allSettled(connections.map(this.#closeConnection.bind(this)));
   }
 
   async #closeConnection(connection: WebSocketConnection): Promise<void> {
