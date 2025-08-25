@@ -18,11 +18,11 @@ import type { Network } from '../../constants/solana';
 import { SolanaCaip19Tokens } from '../../constants/solana';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
-import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
+import { TokenAssetFactory } from '../factories';
 import type { TransactionsService } from '../transactions';
 
 /**
@@ -356,40 +356,36 @@ export class KeyringAccountMonitor {
     const { owner } = notification.params.result.value.account.data.parsed.info;
     assert(owner, string());
 
-    const { mint } = notification.params.result.value.account.data.parsed.info;
-    assert(mint, string());
+    // const { mint } = notification.params.result.value.account.data.parsed.info;
+    // assert(mint, string());
 
-    const { amount, decimals, uiAmountString } =
-      notification.params.result.value.account.data.parsed.info.tokenAmount;
-    assert(amount, string());
-    assert(decimals, number());
-    assert(uiAmountString, string());
+    // const { amount, decimals, uiAmountString } =
+    //   notification.params.result.value.account.data.parsed.info.tokenAmount;
+    // assert(amount, string());
+    // assert(decimals, number());
+    // assert(uiAmountString, string());
 
-    const { pubkey } = notification.params.result.value;
-    assert(pubkey, string());
+    // const { pubkey } = notification.params.result.value;
+    // assert(pubkey, string());
 
-    const assetType = tokenAddressToCaip19(network, mint);
+    // const assetType = tokenAddressToCaip19(network, mint);
 
     const keyringAccount = await this.#accountService.findByAddress(owner);
     if (!keyringAccount) {
       throw new Error(`No keyring account found with address: ${owner}`);
     }
 
+    const tokenAsset = TokenAssetFactory.createFromProgramNotification(
+      notification,
+      keyringAccount.id,
+      network,
+    );
+
     await Promise.all([
       // Update the balance of the token asset
-      this.#assetsService.save({
-        assetType,
-        keyringAccountId: keyringAccount.id,
-        network,
-        mint,
-        pubkey,
-        symbol: '',
-        decimals,
-        rawAmount: amount,
-        uiAmount: uiAmountString,
-      }),
+      this.#assetsService.save(tokenAsset),
       // Fetch and save the transaction that caused the token asset change.
-      this.#saveCausingTransaction(keyringAccount, network, pubkey),
+      this.#saveCausingTransaction(keyringAccount, network, tokenAsset.pubkey),
     ]);
   }
 

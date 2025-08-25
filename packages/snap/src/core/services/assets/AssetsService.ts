@@ -44,6 +44,7 @@ import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
+import { TokenAssetFactory } from '../factories';
 import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import type { AssetsRepository } from './AssetsRepository';
@@ -360,23 +361,14 @@ export class AssetsService {
 
     const tokenAssets: TokenAsset[] = tokenAccounts
       .filter((tokenAccount) => tokenAccount.assetType.includes('/token:'))
-      .map((tokenAccount) => {
-        const { assetType } = tokenAccount;
-        const { decimals, amount, uiAmountString } =
-          tokenAccount.token.account.data.parsed.info.tokenAmount;
-
-        return {
-          assetType,
-          keyringAccountId: tokenAccount.keyringAccount.id,
-          network: tokenAccount.scope,
-          mint: tokenAccount.token.account.data.parsed.info.mint,
-          pubkey: tokenAccount.token.pubkey,
-          symbol: tokensMetadata[assetType]?.symbol ?? 'UNKNOWN',
-          decimals,
-          rawAmount: amount,
-          uiAmount: uiAmountString ?? fromTokenUnits(amount, decimals),
-        };
-      });
+      .map((tokenAccount) =>
+        TokenAssetFactory.createFromTokenAccount(
+          tokenAccount.token,
+          tokensMetadata[tokenAccount.assetType],
+          tokenAccount.keyringAccount.id,
+          tokenAccount.scope,
+        ),
+      );
 
     // const nftAssets = await this.#fetchNftAssets(account, tokenAccounts.filter(
     //   (token) => token.assetType.includes('/nft:'),
