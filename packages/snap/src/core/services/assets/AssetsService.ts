@@ -62,8 +62,6 @@ type TokenAccountWithMetadata = {
 export class AssetsService {
   readonly #logger: ILogger;
 
-  readonly #loggerPrefix = '[🪙 AssetsService]';
-
   readonly #connection: SolanaConnection;
 
   readonly #configProvider: ConfigProvider;
@@ -224,11 +222,7 @@ export class AssetsService {
   async getAssetsMetadata(
     assetTypes: CaipAssetType[],
   ): Promise<Record<CaipAssetType, AssetMetadata | null>> {
-    this.#logger.log(
-      this.#loggerPrefix,
-      'Fetching metadata for assets',
-      assetTypes,
-    );
+    this.#logger.log('Fetching metadata for assets', assetTypes);
 
     const { nativeAssetTypes, tokenAssetTypes, nftAssetTypes } =
       this.#splitAssetsByType(assetTypes);

@@ -6,7 +6,6 @@ import type { SolanaKeyringAccount } from '../../../entities';
 import type { Network, TransactionMetadata } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import logger, { createPrefixedLogger } from '../../utils/logger';
-import type { JsonRpcWebSocketMessage } from '../subscriptions/parseWebSocketMessage';
 import type {
   ScanStatus,
   SecurityAlertResponse,
@@ -35,23 +34,6 @@ export class AnalyticsService {
         },
       },
     });
-  }
-
-  async trackInactiveWebSocketMessage(
-    message: JsonRpcWebSocketMessage<unknown>,
-  ): Promise<void> {
-    try {
-      await this.#trackEvent('Inactive Solana WebSocket Message', {
-        message: 'Inactive Solana web socket message',
-        method: message.method,
-        subscription_id: message?.params?.subscription,
-        timestamp: Date.now(),
-      });
-    } catch (error) {
-      this.#logger.warn('Error tracking inactive web socket message', {
-        error,
-      });
-    }
   }
 
   async trackEventTransactionAdded(

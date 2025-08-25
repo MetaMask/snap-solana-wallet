@@ -1,4 +1,4 @@
-import type { ILogger } from '../../core/utils/logger';
+import { createPrefixedLogger, type ILogger } from '../../core/utils/logger';
 
 type Listener = (data?: any) => Promise<void>;
 
@@ -18,12 +18,10 @@ type Listener = (data?: any) => Promise<void>;
 export class EventEmitter {
   readonly #logger: ILogger;
 
-  readonly #loggerPrefix = '[⚡ EventEmitter]';
-
   readonly #listeners: Map<string, Set<Listener>> = new Map();
 
   constructor(logger: ILogger) {
-    this.#logger = logger;
+    this.#logger = createPrefixedLogger(logger, '[⚡ EventEmitter]');
   }
 
   /**
@@ -32,7 +30,7 @@ export class EventEmitter {
    * @param listener - The listener to call when the event is emitted.
    */
   on(event: string, listener: Listener) {
-    this.#logger.info(this.#loggerPrefix, `Adding listener for event ${event}`);
+    this.#logger.info(`Adding listener for event ${event}`);
 
     if (!this.#listeners.has(event)) {
       this.#listeners.set(event, new Set());
@@ -47,10 +45,7 @@ export class EventEmitter {
    * @param listener - The listener to remove.
    */
   off(event: string, listener: Listener) {
-    this.#logger.info(
-      this.#loggerPrefix,
-      `Removing listener for event ${event}`,
-    );
+    this.#logger.info(`Removing listener for event ${event}`);
 
     const listeners = this.#listeners.get(event);
     if (listeners) {
@@ -71,7 +66,7 @@ export class EventEmitter {
    * @param data - The data to pass to the listeners.
    */
   async emitSync(event: string, data?: any): Promise<void> {
-    this.#logger.info(this.#loggerPrefix, `Emitting event ${event}`);
+    this.#logger.info(`Emitting event ${event}`);
     const listeners = this.#listeners.get(event);
 
     if (listeners) {
@@ -88,16 +83,10 @@ export class EventEmitter {
    */
   removeAllListeners(event?: string) {
     if (event) {
-      this.#logger.info(
-        this.#loggerPrefix,
-        `Removing all listeners for event ${event}`,
-      );
+      this.#logger.info(`Removing all listeners for event ${event}`);
       this.#listeners.delete(event);
     } else {
-      this.#logger.info(
-        this.#loggerPrefix,
-        `Removing all listeners for all events`,
-      );
+      this.#logger.info('Removing all listeners for all events');
       this.#listeners.clear();
     }
   }

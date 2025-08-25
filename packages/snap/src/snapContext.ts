@@ -109,7 +109,6 @@ const subscriptionService = new SubscriptionService(
   configProvider,
   eventEmitter,
   logger,
-  analyticsService,
 );
 
 const transactionHelper = new TransactionHelper(connection, logger);
