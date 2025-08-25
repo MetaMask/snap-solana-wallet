@@ -69,11 +69,18 @@ export class WebSocketConnectionService {
   }
 
   #bindHandlers(): void {
+    // Aliases to make the code more readable
+    const openAll = this.#openConnectionsForActiveNetworks.bind(this);
+    const closeAll = this.#closeAllConnections.bind(this);
+
     // When the extension becomes active, starts, or that the snap is updated / installed, the Snap platform might have lost its previously opened websockets, so we make sure the are open
-    this.#eventEmitter.on('onStart', this.#setupConnections.bind(this));
-    this.#eventEmitter.on('onUpdate', this.#setupConnections.bind(this));
-    this.#eventEmitter.on('onInstall', this.#setupConnections.bind(this));
-    this.#eventEmitter.on('onActive', this.#setupConnections.bind(this));
+    this.#eventEmitter.on('onStart', openAll);
+    this.#eventEmitter.on('onUpdate', openAll);
+    this.#eventEmitter.on('onInstall', openAll);
+    this.#eventEmitter.on('onActive', openAll);
+
+    // When the extension becomes inactive, we close all connections
+    this.#eventEmitter.on('onInactive', closeAll);
 
     this.#eventEmitter.on(
       'onWebSocketEvent',
@@ -84,8 +91,8 @@ export class WebSocketConnectionService {
     this.#eventEmitter.on('onListWebSockets', this.#listConnections.bind(this));
   }
 
-  async #setupConnections(): Promise<void> {
-    this.#logger.log(`Setting up connections`);
+  async #openConnectionsForActiveNetworks(): Promise<void> {
+    this.#logger.log(`Opening connections for active networks`);
 
     const { activeNetworks } = this.#configProvider.get();
 
@@ -108,6 +115,7 @@ export class WebSocketConnectionService {
   async openConnection(network: Network): Promise<void> {
     this.#logger.log(`Opening connection for network ${network}`);
 
+    // Get the websocket url
     const networkConfig = this.#configProvider.getNetworkBy('caip2Id', network);
     const { webSocketUrl } = networkConfig;
 
@@ -119,12 +127,24 @@ export class WebSocketConnectionService {
       this.#logger.log(`✅ Connection for network ${network} already exists`);
       return;
     }
-
     await this.#connectionRepository.save({
       network,
       url: webSocketUrl,
       protocols: [],
     });
+  }
+
+  async #closeAllConnections(): Promise<void> {
+    this.#logger.log(`Closing all connections`);
+
+    const connections = await this.#connectionRepository.getAll();
+    await Promise.all(connections.map(this.#closeConnection.bind(this)));
+  }
+
+  async #closeConnection(connection: WebSocketConnection): Promise<void> {
+    this.#logger.log(`Closing connection for network ${connection.network}`);
+
+    await this.#connectionRepository.delete(connection.id);
   }
 
   /**
@@ -172,7 +192,10 @@ export class WebSocketConnectionService {
 
     const { id: connectionId, type } = event;
 
-    this.#logger.log(`Handling connection event "${type}" for ${connectionId}`);
+    this.#logger.log(
+      `Handling connection event "${type}" for ${connectionId}`,
+      event,
+    );
 
     switch (type) {
       case 'open':
@@ -223,6 +246,14 @@ export class WebSocketConnectionService {
   }
 
   async #handleDisconnected(event: WebSocketCloseEvent): Promise<void> {
+    const { wasClean } = event;
+
+    // If the connection was closed cleanly (= we close it intentionally), we don't need to attempt to reconnect
+    if (wasClean) {
+      this.#logger.log(`✅ Connection closed cleanly`, event);
+      return;
+    }
+
     // Here, we cannot rely on this.#connectionRepository.getById() because the connection doesn't exist anymore,
     // so we need to find the network from the event origin
     const { origin } = event;

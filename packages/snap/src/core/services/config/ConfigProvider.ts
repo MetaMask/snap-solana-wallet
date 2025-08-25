@@ -15,7 +15,7 @@ import { UrlStruct } from '../../validation/structs';
 
 const ENVIRONMENT_TO_ACTIVE_NETWORKS = {
   production: [Network.Mainnet],
-  local: [Network.Mainnet, Network.Devnet],
+  local: [Network.Mainnet],
   test: [Network.Localnet],
 };
 

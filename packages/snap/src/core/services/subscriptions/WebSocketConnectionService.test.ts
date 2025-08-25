@@ -60,6 +60,7 @@ describe('WebSocketConnectionService', () => {
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
         networks: mockNetworksConfig,
+        activeNetworks: [Network.Mainnet, Network.Devnet],
         subscriptions: {
           maxReconnectAttempts: 5,
           reconnectDelayMilliseconds: 1, // To speed up the tests
@@ -82,7 +83,7 @@ describe('WebSocketConnectionService', () => {
     );
   });
 
-  describe('#initialize', () => {
+  describe('#openConnectionsForActiveNetworks', () => {
     it('opens the connections for all active networks', async () => {
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
         activeNetworks: [Network.Mainnet, Network.Devnet],
@@ -96,17 +97,17 @@ describe('WebSocketConnectionService', () => {
       expect(service.openConnection).toHaveBeenCalledTimes(2);
     });
 
-    it('clears existing recovery handlers', async () => {
+    it('clears existing retry attempts', async () => {
       // We register a recovery handler for Mainnet. We expect it to be cleared when the method is executed.
       const recoveryHandler = jest.fn();
       service.onConnectionRecovery(Network.Mainnet, recoveryHandler);
 
       /**
-       * Setup Mainnet as active network, but it has no connection, so calling setupAllConnections will:
-       * - clear the recovery handler
+       * Setup Mainnet as active network, but it has no connection, so calling openConnectionsForActiveNetworks will:
+       * - clear the retry attempts
        * - open the connection
        * - upon opening, we will trigger all recovery handlers
-       * - but since they have been cleared, they should not be called
+       * - but since retry attempts have been cleared, they should not have been called
        */
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
         activeNetworks: [Network.Mainnet],
@@ -121,30 +122,62 @@ describe('WebSocketConnectionService', () => {
       // Simulate the snap start event
       await mockEventEmitter.emitSync('onStart');
 
-      // The connection has recovered, but the recovery handler should not have been called because it was cleared
+      // The connection has recovered, but the recovery handler should not have been called because retry attempts were cleared
       expect(recoveryHandler).not.toHaveBeenCalled();
     });
+  });
 
-    describe('openConnection', () => {
-      it('opens the connection for the network', async () => {
-        jest
-          .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
-          .mockResolvedValue(null);
+  describe('#closeAllConnections', () => {
+    it('closes all connections when extension becomes inactive', async () => {
+      const mockConnections = [
+        createMockWebSocketConnection(
+          'conn1',
+          mockWebSocketUrl,
+          Network.Mainnet,
+        ),
+        createMockWebSocketConnection(
+          'conn2',
+          'wss://other-url.com',
+          Network.Devnet,
+        ),
+      ];
 
-        await service.openConnection(Network.Mainnet);
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'getAll')
+        .mockResolvedValue(mockConnections);
 
-        expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(1);
-      });
+      // Simulate the extension becoming inactive
+      await mockEventEmitter.emitSync('onInactive');
 
-      it('does nothing if the connection already exists', async () => {
-        jest
-          .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
-          .mockResolvedValue(createMockWebSocketConnection());
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledTimes(2);
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledWith(
+        'conn1',
+      );
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledWith(
+        'conn2',
+      );
+    });
+  });
 
-        await service.openConnection(Network.Mainnet);
+  describe('openConnection', () => {
+    it('opens the connection for the network', async () => {
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
+        .mockResolvedValue(null);
 
-        expect(mockWebSocketConnectionRepository.save).not.toHaveBeenCalled();
-      });
+      await service.openConnection(Network.Mainnet);
+
+      expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing if the connection already exists', async () => {
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'findByNetwork')
+        .mockResolvedValue(createMockWebSocketConnection());
+
+      await service.openConnection(Network.Mainnet);
+
+      expect(mockWebSocketConnectionRepository.save).not.toHaveBeenCalled();
     });
   });
 
@@ -193,6 +226,14 @@ describe('WebSocketConnectionService', () => {
           .mockResolvedValueOnce(mockConnection);
       });
 
+      it('does not attempt to reconnect when connection is closed cleanly', async () => {
+        // Simulate the extension becoming inactive
+        await mockEventEmitter.emitSync('onInactive');
+
+        // Should not attempt to reconnect for clean closures
+        expect(mockWebSocketConnectionRepository.save).not.toHaveBeenCalled();
+      });
+
       it('attempts to reconnect until it succeeds, up to max attempts', async () => {
         // 1st and 2nd calls are the fail attempts, 3rd is the success attempt
         jest
@@ -205,6 +246,7 @@ describe('WebSocketConnectionService', () => {
         await mockEventEmitter.emitSync('onWebSocketEvent', {
           id: mockConnectionId,
           type: 'close',
+          wasClean: false,
           origin: 'wss://some-mock-url.com',
         });
 
@@ -212,11 +254,13 @@ describe('WebSocketConnectionService', () => {
         await mockEventEmitter.emitSync('onWebSocketEvent', {
           id: mockConnectionId,
           type: 'close',
+          wasClean: false,
           origin: 'wss://some-mock-url.com',
         });
         await mockEventEmitter.emitSync('onWebSocketEvent', {
           id: mockConnectionId,
           type: 'close',
+          wasClean: false,
           origin: 'wss://some-mock-url.com',
         });
         // The 3rd attempt at reconnecting will succeed. This will emit a connect event.
@@ -238,6 +282,7 @@ describe('WebSocketConnectionService', () => {
         await mockEventEmitter.emitSync('onWebSocketEvent', {
           id: mockConnectionId,
           type: 'close',
+          wasClean: false,
           origin: 'wss://some-mock-url.com',
         });
 
@@ -246,6 +291,7 @@ describe('WebSocketConnectionService', () => {
           await mockEventEmitter.emitSync('onWebSocketEvent', {
             id: mockConnectionId,
             type: 'close',
+            wasClean: false,
             origin: 'wss://some-mock-url.com',
           });
         }
