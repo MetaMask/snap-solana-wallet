@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.2]
 
-### Uncategorized
+### Fixed
 
-- Further optimize WS connection management ([#500](https://github.com/MetaMask/snap-solana-wallet/pull/500))
+- When the client starts/updates, only open WebScoket connections if the client is active ([#500](https://github.com/MetaMask/snap-solana-wallet/pull/500))
 
 ## [2.3.1]
 
