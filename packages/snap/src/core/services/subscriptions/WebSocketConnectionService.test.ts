@@ -49,6 +49,10 @@ describe('WebSocketConnectionService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    (globalThis as any).snap = {
+      request: jest.fn(),
+    };
+
     mockWebSocketConnectionRepository = {
       getAll: jest.fn(),
       getById: jest.fn(),
@@ -83,6 +87,54 @@ describe('WebSocketConnectionService', () => {
     );
   });
 
+  describe('#setupConnections', () => {
+    it('opens the connections for all active networks when the client is active', async () => {
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet, Network.Devnet],
+      } as unknown as Config);
+
+      jest.spyOn(snap, 'request').mockResolvedValueOnce({
+        active: true,
+      });
+
+      // Simulate a client start event
+      await mockEventEmitter.emitSync('onStart');
+
+      expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(2);
+    });
+
+    it('closes the connections for all active networks when the client is inactive', async () => {
+      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
+        activeNetworks: [Network.Mainnet, Network.Devnet],
+      } as unknown as Config);
+
+      jest.spyOn(snap, 'request').mockResolvedValueOnce({
+        active: false,
+      });
+
+      const mockConnection0 = createMockWebSocketConnection(
+        'conn1',
+        'wss://some-url.com',
+        Network.Mainnet,
+      );
+
+      const mockConnection1 = createMockWebSocketConnection(
+        'conn2',
+        'wss://other-url.com',
+        Network.Devnet,
+      );
+
+      jest
+        .spyOn(mockWebSocketConnectionRepository, 'getAll')
+        .mockResolvedValueOnce([mockConnection0, mockConnection1]);
+
+      // Simulate a client start event
+      await mockEventEmitter.emitSync('onStart');
+
+      expect(mockWebSocketConnectionRepository.delete).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('#openConnectionsForActiveNetworks', () => {
     it('opens the connections for all active networks', async () => {
       jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
@@ -91,8 +143,8 @@ describe('WebSocketConnectionService', () => {
 
       jest.spyOn(service, 'openConnection').mockResolvedValueOnce(undefined);
 
-      // Simulate the snap start event
-      await mockEventEmitter.emitSync('onStart');
+      // Simulate the snap becoming active
+      await mockEventEmitter.emitSync('onActive');
 
       expect(service.openConnection).toHaveBeenCalledTimes(2);
     });

@@ -101,6 +101,8 @@ export class WebSocketConnectionService {
    * - If the client is inactive, we close them all.
    */
   async #setupConnections(): Promise<void> {
+    this.#logger.log(`Setting up connections`);
+
     const { active } = await getClientStatus();
 
     if (active) {
@@ -146,6 +148,7 @@ export class WebSocketConnectionService {
       this.#logger.log(`✅ Connection for network ${network} already exists`);
       return;
     }
+
     await this.#connectionRepository.save({
       network,
       url: webSocketUrl,
