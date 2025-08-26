@@ -10,6 +10,7 @@ import type {
 } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
+import { getClientStatus } from '../../utils/interface';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
 import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
@@ -70,25 +71,43 @@ export class WebSocketConnectionService {
 
   #bindHandlers(): void {
     // Aliases to make the code more readable
-    const openAll = this.#openConnectionsForActiveNetworks.bind(this);
-    const closeAll = this.#closeAllConnections.bind(this);
+    const setup = this.#setupConnections.bind(this);
+    const open = this.#openConnectionsForActiveNetworks.bind(this);
+    const close = this.#closeAllConnections.bind(this);
+    const list = this.#listConnections.bind(this);
+    const handleEvent = this.#handleWebSocketEvent.bind(this);
 
-    // When the extension becomes active, starts, or that the snap is updated / installed, the Snap platform might have lost its previously opened websockets, so we make sure the are open
-    this.#eventEmitter.on('onStart', openAll);
-    this.#eventEmitter.on('onUpdate', openAll);
-    this.#eventEmitter.on('onInstall', openAll);
-    this.#eventEmitter.on('onActive', openAll);
+    // When the extension starts, or that the snap is updated / installed, the Snap platform looses previously opened web socket connections,
+    // so we need to setup them up again, if needed.
+    this.#eventEmitter.on('onStart', setup);
+    this.#eventEmitter.on('onUpdate', setup);
+    this.#eventEmitter.on('onInstall', setup);
+
+    // When the extension becomes active, we open all connections
+    this.#eventEmitter.on('onActive', open);
 
     // When the extension becomes inactive, we close all connections
-    this.#eventEmitter.on('onInactive', closeAll);
+    this.#eventEmitter.on('onInactive', close);
 
-    this.#eventEmitter.on(
-      'onWebSocketEvent',
-      this.#handleWebSocketEvent.bind(this),
-    );
+    this.#eventEmitter.on('onWebSocketEvent', handleEvent);
 
-    // Specific binds to enable manual testing from the test dapp
-    this.#eventEmitter.on('onListWebSockets', this.#listConnections.bind(this));
+    // Specific bind to enable manual testing from the test dapp
+    this.#eventEmitter.on('onListWebSockets', list);
+  }
+
+  /**
+   * Sets up the connections.
+   * - If the client is active, we open them for all active networks.
+   * - If the client is inactive, we close them all.
+   */
+  async #setupConnections(): Promise<void> {
+    const { active } = await getClientStatus();
+
+    if (active) {
+      await this.#openConnectionsForActiveNetworks();
+    } else {
+      await this.#closeAllConnections();
+    }
   }
 
   async #openConnectionsForActiveNetworks(): Promise<void> {
