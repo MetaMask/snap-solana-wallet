@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import type { Transaction } from '@metamask/keyring-api';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { signature } from '@solana/kit';
@@ -464,6 +463,7 @@ describe('KeyringAccountMonitor', () => {
           pubkey: '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
           symbol: '',
           decimals: 6,
+          multiplier: '1',
           rawAmount: '123456789',
           uiAmount: '123456789',
         });

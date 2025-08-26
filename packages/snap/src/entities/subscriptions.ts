@@ -109,7 +109,7 @@ export type ProgramNotification = {
           data: {
             parsed: {
               info: {
-                extensions: readonly unknown[] | undefined;
+                extensions?: readonly unknown[];
                 isNative: boolean;
                 mint: string;
                 owner: string;

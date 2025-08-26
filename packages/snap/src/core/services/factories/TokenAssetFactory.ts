@@ -4,16 +4,15 @@ import {
   amountToUiAmountForInterestBearingMintWithoutSimulation,
   amountToUiAmountForScaledUiAmountMintWithoutSimulation,
 } from '@solana-program/token-2022';
-import { type AccountInfoBase, type AccountInfoWithPubkey } from '@solana/kit';
 
 import type { ProgramNotification, TokenAsset } from '../../../entities';
 import type { Network } from '../../constants/solana';
-import type { TokenAccountInfoWithJsonData } from '../../sdk-extensions/rpc-api';
+import type { TokenAccount } from '../../sdk-extensions/rpc-api';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 
 export class TokenAssetFactory {
   /**
-   * Creates a TokenAsset from a token account (and metadata if available).
+   * A factory that encapsulates the various ways to create a TokenAsset entity.
    * @param tokenAccount - The token account to create the TokenAsset from.
    * @param metadata - The metadata to use for the TokenAsset.
    * @param keyringAccountId - The keyring account id to use for the TokenAsset.
@@ -21,9 +20,7 @@ export class TokenAssetFactory {
    * @returns The created TokenAsset.
    */
   static createFromTokenAccount(
-    tokenAccount: AccountInfoWithPubkey<
-      AccountInfoBase & TokenAccountInfoWithJsonData
-    >,
+    tokenAccount: TokenAccount,
     metadata: FungibleAssetMetadata | undefined,
     keyringAccountId: string,
     network: Network,

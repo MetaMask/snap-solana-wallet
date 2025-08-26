@@ -20,8 +20,6 @@ export type TokenAccountInfoWithJsonData = Readonly<{
   }>;
 }>;
 
-/**
- * Re-create this type that is not exported from @solana/kit
- */
-export type GetTokenAccountsByOwnerResponse<TToken> =
-  readonly AccountInfoWithPubkey<AccountInfoBase & TToken>[];
+export type TokenAccount = AccountInfoWithPubkey<
+  AccountInfoBase & TokenAccountInfoWithJsonData
+>;
