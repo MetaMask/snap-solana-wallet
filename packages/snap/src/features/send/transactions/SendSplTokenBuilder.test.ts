@@ -183,6 +183,10 @@ describe('SendSplTokenBuilder', () => {
                 role: 1,
               },
               {
+                address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                role: 0,
+              },
+              {
                 address: 'toTokenAccountAddress',
                 role: 1,
               },
@@ -214,7 +218,7 @@ describe('SendSplTokenBuilder', () => {
                 },
               },
             ],
-            data: Uint8Array.from([3, 0, 202, 154, 59, 0, 0, 0, 0]),
+            data: Uint8Array.from([12, 0, 202, 154, 59, 0, 0, 0, 0, 6]),
             programAddress: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
           },
         ],
