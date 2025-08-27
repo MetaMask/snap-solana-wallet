@@ -356,20 +356,6 @@ export class KeyringAccountMonitor {
     const { owner } = notification.params.result.value.account.data.parsed.info;
     assert(owner, string());
 
-    // const { mint } = notification.params.result.value.account.data.parsed.info;
-    // assert(mint, string());
-
-    // const { amount, decimals, uiAmountString } =
-    //   notification.params.result.value.account.data.parsed.info.tokenAmount;
-    // assert(amount, string());
-    // assert(decimals, number());
-    // assert(uiAmountString, string());
-
-    // const { pubkey } = notification.params.result.value;
-    // assert(pubkey, string());
-
-    // const assetType = tokenAddressToCaip19(network, mint);
-
     const keyringAccount = await this.#accountService.findByAddress(owner);
     if (!keyringAccount) {
       throw new Error(`No keyring account found with address: ${owner}`);
