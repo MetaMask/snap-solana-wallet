@@ -7,7 +7,6 @@ import {
   findAssociatedTokenPda,
   getCreateAssociatedTokenIdempotentInstruction,
   getTransferCheckedInstruction,
-  getTransferInstruction,
 } from '@solana-program/token';
 import type { CompilableTransactionMessage } from '@solana/kit';
 import {
@@ -122,11 +121,11 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
             getTransferCheckedInstruction(
               {
                 source: fromTokenAccountAddress,
-                mint: mint,
+                mint,
                 destination: toTokenAccountAddress,
                 authority: signer,
-               amount: amountInTokenUnits,
-               decimals: decimals
+                amount: amountInTokenUnits,
+                decimals,
               },
               {
                 programAddress: tokenProgram,
