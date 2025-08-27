@@ -116,10 +116,6 @@ export class TokenAssetFactory {
     decimals: number,
     extensions: readonly unknown[] | undefined,
   ): { uiAmount: string; multiplier: string } {
-    if (true.toString() === 'true') {
-      return { uiAmount: amount, multiplier: '1' };
-    }
-
     const amountBigInt = BigInt(amount);
 
     // Check for interest bearing mint extension
