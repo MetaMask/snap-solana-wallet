@@ -238,21 +238,22 @@ function toIInstruction(
   instruction: SolanaInstruction,
   transactionData: SolanaTransaction,
 ): IInstruction {
+  // Filter that to only keep the account indexes available in the accountKeys
+  const isIndexValid = (index: number) =>
+    index < transactionData.transaction.message.accountKeys.length;
+
   // Build the accounts array
-  const accounts = instruction.accounts.map((accountIndex) => {
-    const account =
-      transactionData.transaction.message.accountKeys[accountIndex];
-    if (!account) {
-      throw new Error('Account not found');
-    }
-    return {
-      address: account,
+  const accounts = instruction.accounts
+    .filter(isIndexValid)
+    .map((accountIndex) => ({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      address: transactionData.transaction.message.accountKeys[accountIndex]!, // The non-null assertion is safe because we filtered the indexes above
       role: 0,
-    };
-  });
+    }));
 
   const programAddress =
     transactionData.transaction.message.accountKeys[instruction.programIdIndex];
+
   if (!programAddress) {
     throw new Error('Program address not found');
   }
