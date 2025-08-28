@@ -230,16 +230,16 @@ export function parseTransactionSplTransfersToSelf({
 
 /**
  * Converts a SolanaInstruction to an IInstruction that we can parse with `parseInstruction`
- * @param item - The Solana instruction to convert.
+ * @param instruction - The Solana instruction to convert.
  * @param transactionData - The full transaction data.
  * @returns The IInstruction.
  */
 function toIInstruction(
-  item: SolanaInstruction,
+  instruction: SolanaInstruction,
   transactionData: SolanaTransaction,
 ): IInstruction {
   // Build the accounts array
-  const accounts = item.accounts.map((accountIndex) => {
+  const accounts = instruction.accounts.map((accountIndex) => {
     const account =
       transactionData.transaction.message.accountKeys[accountIndex];
     if (!account) {
@@ -252,7 +252,7 @@ function toIInstruction(
   });
 
   const programAddress =
-    transactionData.transaction.message.accountKeys[item.programIdIndex];
+    transactionData.transaction.message.accountKeys[instruction.programIdIndex];
   if (!programAddress) {
     throw new Error('Program address not found');
   }
@@ -260,7 +260,7 @@ function toIInstruction(
   // Build the IInstruction object
   const iInstruction = {
     accounts,
-    data: getBase58Codec().encode(item.data),
+    data: getBase58Codec().encode(instruction.data),
     programAddress,
   } as unknown as IInstruction;
 
