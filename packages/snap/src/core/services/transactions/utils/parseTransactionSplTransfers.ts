@@ -157,40 +157,9 @@ export function parseTransactionSplTransfersToSelf({
   const from: Transaction['from'] = [];
   const to: Transaction['to'] = [];
 
-  // Converts a SolanaInstruction to an IInstruction that we can parse with `parseInstruction`
-  const toIInstruction = (item: SolanaInstruction): IInstruction => {
-    // Build the accounts array
-    const accounts = item.accounts.map((accountIndex) => {
-      const account =
-        transactionData.transaction.message.accountKeys[accountIndex];
-      if (!account) {
-        throw new Error('Account not found');
-      }
-      return {
-        address: account,
-        role: 0,
-      };
-    });
-
-    const programAddress =
-      transactionData.transaction.message.accountKeys[item.programIdIndex];
-    if (!programAddress) {
-      throw new Error('Program address not found');
-    }
-
-    // Build the IInstruction object
-    const iInstruction = {
-      accounts,
-      data: getBase58Codec().encode(item.data),
-      programAddress,
-    } as unknown as IInstruction;
-
-    return iInstruction;
-  };
-
   // Convert and parse all instructions
   const parsedInstructions = instructions
-    .map(toIInstruction)
+    .map((instruction) => toIInstruction(instruction, transactionData))
     .map(parseInstruction);
 
   // Only keep instructions that are self transfers
@@ -257,6 +226,45 @@ export function parseTransactionSplTransfersToSelf({
     from,
     to,
   };
+}
+
+/**
+ * Converts a SolanaInstruction to an IInstruction that we can parse with `parseInstruction`
+ * @param item - The Solana instruction to convert.
+ * @param transactionData - The full transaction data.
+ * @returns The IInstruction.
+ */
+function toIInstruction(
+  item: SolanaInstruction,
+  transactionData: SolanaTransaction,
+): IInstruction {
+  // Build the accounts array
+  const accounts = item.accounts.map((accountIndex) => {
+    const account =
+      transactionData.transaction.message.accountKeys[accountIndex];
+    if (!account) {
+      throw new Error('Account not found');
+    }
+    return {
+      address: account,
+      role: 0,
+    };
+  });
+
+  const programAddress =
+    transactionData.transaction.message.accountKeys[item.programIdIndex];
+  if (!programAddress) {
+    throw new Error('Program address not found');
+  }
+
+  // Build the IInstruction object
+  const iInstruction = {
+    accounts,
+    data: getBase58Codec().encode(item.data),
+    programAddress,
+  } as unknown as IInstruction;
+
+  return iInstruction;
 }
 
 /**
