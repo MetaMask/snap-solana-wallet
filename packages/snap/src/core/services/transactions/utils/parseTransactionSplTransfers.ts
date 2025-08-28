@@ -172,14 +172,17 @@ export function parseTransactionSplTransfersToSelf({
       };
     });
 
+    const programAddress =
+      transactionData.transaction.message.accountKeys[item.programIdIndex];
+    if (!programAddress) {
+      throw new Error('Program address not found');
+    }
+
     // Build the IInstruction object
     const iInstruction = {
       accounts,
       data: getBase58Codec().encode(item.data),
-      programAddress: asAddress(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        transactionData.transaction.message.accountKeys[item.programIdIndex]!,
-      ),
+      programAddress,
     } as unknown as IInstruction;
 
     return iInstruction;
