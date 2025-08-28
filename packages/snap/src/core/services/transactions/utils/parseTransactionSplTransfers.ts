@@ -157,7 +157,7 @@ export function parseTransactionSplTransfersToSelf({
   const from: Transaction['from'] = [];
   const to: Transaction['to'] = [];
 
-  // Convert, parse, and filter to only keep self transfer instructions
+  // Convert, parse, and filter instructions to only keep self transfers
   const selfTransferInstructions = instructions
     .map((instruction) => toIInstruction(instruction, transactionData))
     .map(parseInstruction)
