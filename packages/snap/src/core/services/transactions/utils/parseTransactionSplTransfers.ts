@@ -157,13 +157,11 @@ export function parseTransactionSplTransfersToSelf({
   const from: Transaction['from'] = [];
   const to: Transaction['to'] = [];
 
-  // Convert and parse all instructions
-  const parsedInstructions = instructions
+  // Convert, parse, and filter to only keep self transfer instructions
+  const selfTransferInstructions = instructions
     .map((instruction) => toIInstruction(instruction, transactionData))
-    .map(parseInstruction);
-
-  // Only keep instructions that are self transfers
-  const selfTransferInstructions = parsedInstructions.filter(isSelfTransfer);
+    .map(parseInstruction)
+    .filter(isSelfTransfer);
 
   // For each self transfer, populate the `from` and `to` arrays
   selfTransferInstructions.forEach((instruction) => {
