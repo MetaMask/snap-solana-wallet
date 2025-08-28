@@ -163,9 +163,7 @@ export function parseTransactionSplTransfersToSelf({
     .map(parseInstruction);
 
   // Only keep instructions that are self transfers
-  const selfTransferInstructions = parsedInstructions.filter(
-    isInstructionSelfTransfer,
-  );
+  const selfTransferInstructions = parsedInstructions.filter(isSelfTransfer);
 
   // For each self transfer, populate the `from` and `to` arrays
   selfTransferInstructions.forEach((instruction) => {
@@ -238,13 +236,13 @@ function toIInstruction(
   instruction: SolanaInstruction,
   transactionData: SolanaTransaction,
 ): IInstruction {
-  // Filter that to only keep the account indexes available in the accountKeys
-  const isIndexValid = (index: number) =>
-    index < transactionData.transaction.message.accountKeys.length;
+  // Filter to only keep the account indexes available in the `accountKeys`
+  const isInAccountKeys = (accountIndex: number) =>
+    accountIndex < transactionData.transaction.message.accountKeys.length;
 
   // Build the accounts array
   const accounts = instruction.accounts
-    .filter(isIndexValid)
+    .filter(isInAccountKeys)
     .map((accountIndex) => ({
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       address: transactionData.transaction.message.accountKeys[accountIndex]!, // The non-null assertion is safe because we filtered the indexes above
@@ -273,7 +271,7 @@ function toIInstruction(
  * @param instruction - The instruction to check.
  * @returns True if the instruction is a self transfer, false otherwise.
  */
-function isInstructionSelfTransfer(
+function isSelfTransfer(
   instruction: InstructionParseResult,
 ): instruction is InstructionParseSuccess {
   if (
