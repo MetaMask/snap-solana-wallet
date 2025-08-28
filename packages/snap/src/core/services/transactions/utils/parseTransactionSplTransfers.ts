@@ -188,7 +188,7 @@ export function parseTransactionSplTransfersToSelf({
         (b) => b.accountIndex === sourceAccountIndex,
       ) ?? {};
 
-    if (!mint || !decimals) {
+    if (!mint || decimals === undefined) {
       return;
     }
 
