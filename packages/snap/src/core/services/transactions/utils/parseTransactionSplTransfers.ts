@@ -121,9 +121,7 @@ export function parseTransactionSplTransfers({
     }
   }
 
-  /**
-   * And now we check if there are any transfers to the same address.
-   */
+  // And now we check if there are any transfers to the same address.
   const transfersToSelf = parseTransactionSplTransfersToSelf({
     scope,
     transactionData,
