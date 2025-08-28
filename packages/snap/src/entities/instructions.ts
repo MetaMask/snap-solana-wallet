@@ -155,7 +155,7 @@ import {
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '@solana-program/token-2022';
 import type { Rpc, SolanaRpcApi } from '@solana/kit';
-import { getBase58Codec, type Address, type IInstruction } from '@solana/kit';
+import { getBase58Codec, type IInstruction } from '@solana/kit';
 
 import {
   fromBytesToCompilableTransactionMessage,
@@ -524,13 +524,13 @@ const programAddressToParsingConfig: Record<
  * }
  * ```
  * @param instruction - The instruction to parse.
- * @param programAddress - The program address of the instruction.
  * @returns The result of the instruction parsing.
  */
 export const parseInstruction = (
   instruction: IInstruction,
-  programAddress: Address,
 ): InstructionParseResult => {
+  const { programAddress } = instruction;
+
   // We need to rewrite the data field from ReadonlyUint8Array to Uint8Array
   // because the interface context is serialized as JSON, and JSON does not support ReadonlyUint8Array
   const encoded = {
@@ -602,8 +602,5 @@ export const extractInstructionsFromUnknownBase64String = async (
         );
 
   const { instructions } = transactionMessage;
-  return instructions.map((instruction) => {
-    const { programAddress } = instruction;
-    return parseInstruction(instruction, programAddress);
-  });
+  return instructions.map(parseInstruction);
 };

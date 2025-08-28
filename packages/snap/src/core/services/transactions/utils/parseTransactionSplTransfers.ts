@@ -1,10 +1,19 @@
 import type { Transaction } from '@metamask/keyring-api';
-import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
+import type { IInstruction } from '@solana/kit';
+import { address as asAddress, getBase58Codec } from '@solana/kit';
 import BigNumber from 'bignumber.js';
-import bs58 from 'bs58';
+import { get } from 'lodash';
 
+import type {
+  InstructionParseResult,
+  InstructionParseSuccess,
+} from '../../../../entities';
+import { parseInstruction } from '../../../../entities';
 import { type Network } from '../../../constants/solana';
-import type { SolanaTransaction } from '../../../types/solana';
+import type {
+  SolanaInstruction,
+  SolanaTransaction,
+} from '../../../types/solana';
 import { tokenAddressToCaip19 } from '../../../utils/tokenAddressToCaip19';
 
 /**
@@ -113,19 +122,19 @@ export function parseTransactionSplTransfers({
   }
 
   /**
-   * And now we check if there are any native transfers to the same address.
+   * And now we check if there are any transfers to the same address.
    */
-  const nativeTransfersToSelf = parseTransactionSplTransfersToSelf({
+  const transfersToSelf = parseTransactionSplTransfersToSelf({
     scope,
     transactionData,
   });
 
-  if (nativeTransfersToSelf.from.length > 0) {
-    from.push(...nativeTransfersToSelf.from);
+  if (transfersToSelf.from.length > 0) {
+    from.push(...transfersToSelf.from);
   }
 
-  if (nativeTransfersToSelf.to.length > 0) {
-    to.push(...nativeTransfersToSelf.to);
+  if (transfersToSelf.to.length > 0) {
+    to.push(...transfersToSelf.to);
   }
 
   return { from, to };
@@ -150,95 +159,82 @@ export function parseTransactionSplTransfersToSelf({
   const from: Transaction['from'] = [];
   const to: Transaction['to'] = [];
 
-  const tokenProgramAccountIndex =
-    transactionData.transaction.message.accountKeys.findIndex(
-      (account) => account === TOKEN_PROGRAM_ADDRESS,
-    );
+  // Converts a SolanaInstruction to an IInstruction that we can parse with `parseInstruction`
+  const toIInstruction = (item: SolanaInstruction): IInstruction => {
+    // Build the accounts array
+    const accounts = item.accounts.map((accountIndex) => {
+      const account =
+        transactionData.transaction.message.accountKeys[accountIndex];
+      if (!account) {
+        throw new Error('Account not found');
+      }
+      return {
+        address: account,
+        role: 0,
+      };
+    });
 
-  /**
-   * If there are no Token Program instructions, then we have no native transfers.
-   */
-  if (tokenProgramAccountIndex === -1) {
-    return {
-      from,
-      to,
-    };
-  }
+    // Build the IInstruction object
+    const iInstruction = {
+      accounts,
+      data: getBase58Codec().encode(item.data),
+      programAddress: asAddress(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        transactionData.transaction.message.accountKeys[item.programIdIndex]!,
+      ),
+    } as unknown as IInstruction;
 
-  instructions.forEach((instruction) => {
-    const { accounts, data, programIdIndex } = instruction;
+    return iInstruction;
+  };
 
-    if (programIdIndex !== tokenProgramAccountIndex) {
+  // Convert and parse all instructions
+  const parsedInstructions = instructions
+    .map(toIInstruction)
+    .map(parseInstruction);
+
+  // Only keep instructions that are self transfers
+  const selfTransferInstructions = parsedInstructions.filter(
+    isInstructionSelfTransfer,
+  );
+
+  // For each self transfer, populate the `from` and `to` arrays
+  selfTransferInstructions.forEach((instruction) => {
+    const authority = get(instruction, 'parsed.accounts.authority.address');
+    const source = get(instruction, 'parsed.accounts.source.address');
+
+    if (!authority || !source) {
       return;
     }
 
-    /**
-     * If we are here, we have a Token Program instruction.
-     * It can be a Transfer or a TransferChecked.
-     * We need to check the data to see which one it is.
-     */
-    let fromAccountIndex: number | undefined;
-    let toAccountIndex: number | undefined;
+    // Reverse lookup the account index of the source address
+    const sourceAccountIndex =
+      transactionData.transaction.message.accountKeys.indexOf(
+        asAddress(source),
+      );
 
-    if (accounts.length === 5) {
-      /**
-       * TransferChecked instruction.
-       * Accounts: [source, mint, destination, authority, signers]
-       */
-      fromAccountIndex = accounts[0];
-      toAccountIndex = accounts[2];
-    } else if (accounts.length === 3) {
-      /**
-       * Transfer instruction.
-       * Accounts: [source, destination, authority]
-       */
-      fromAccountIndex = accounts[0];
-      toAccountIndex = accounts[1];
-    }
+    // Grab the `mint` and `decimals` from preTokenBalances
+    const { mint, uiTokenAmount: { decimals } = {} } =
+      transactionData.meta?.preTokenBalances?.find(
+        (b) => b.accountIndex === sourceAccountIndex,
+      ) ?? {};
 
-    if (
-      fromAccountIndex === undefined ||
-      toAccountIndex === undefined ||
-      fromAccountIndex !== toAccountIndex
-    ) {
+    if (!mint || !decimals) {
       return;
     }
 
-    const fromTokenAccountAddress =
-      transactionData.transaction.message.accountKeys[fromAccountIndex];
-    const toTokenAccountAddress =
-      transactionData.transaction.message.accountKeys[toAccountIndex];
+    // Compute the amount of the transfer
+    const rawAmount = instruction.parsed?.data.amount;
+    const amount = BigNumber(rawAmount)
+      .dividedBy(new BigNumber(10).pow(decimals))
+      .toString();
 
-    if (
-      !fromTokenAccountAddress ||
-      !toTokenAccountAddress ||
-      fromTokenAccountAddress !== toTokenAccountAddress
-    ) {
-      return;
-    }
-
-    const amount = decodeSplTransferAmount(bs58.decode(data));
-
-    /**
-     * Using the account index, we can go to the `preTokenBalances` and get the `mint` address as well as the `owner` address.
-     */
-    const mint = transactionData.meta?.preTokenBalances?.find(
-      (b) => b.accountIndex === fromAccountIndex,
-    )?.mint;
-    const owner = transactionData.meta?.preTokenBalances?.find(
-      (b) => b.accountIndex === fromAccountIndex,
-    )?.owner;
-
-    if (!mint || !owner) {
-      return;
-    }
-
+    // Convert the mint address to a CAIP-19 ID
     const caip19Id = tokenAddressToCaip19(scope, mint);
 
     from.push({
-      address: owner,
+      address: authority,
       asset: {
-        amount: amount.toString(),
+        amount,
         fungible: true,
         type: caip19Id,
         unit: '',
@@ -246,9 +242,9 @@ export function parseTransactionSplTransfersToSelf({
     });
 
     to.push({
-      address: owner,
+      address: authority,
       asset: {
-        amount: amount.toString(),
+        amount,
         fungible: true,
         type: caip19Id,
         unit: '',
@@ -263,22 +259,29 @@ export function parseTransactionSplTransfersToSelf({
 }
 
 /**
- * Decodes the amount from the instruction data.
- * @param data - The instruction data.
- * @returns The amount.
+ * Checks if an instruction is a self transfer.
+ * @param instruction - The instruction to check.
+ * @returns True if the instruction is a self transfer, false otherwise.
  */
-export function decodeSplTransferAmount(data: Uint8Array): BigNumber {
-  /**
-   * Native Solana transfers have a fixed length of 12 bytes.
-   * 1 byte - Opcode
-   * 8 bytes - Transfer amount unsigned int 64
-   */
-  let raw = BigInt(0);
-
-  for (let i = 1; i < 9; i++) {
-    // eslint-disable-next-line no-bitwise
-    raw |= BigInt(data[i] ?? 0) << BigInt(8 * (i - 1));
+function isInstructionSelfTransfer(
+  instruction: InstructionParseResult,
+): instruction is InstructionParseSuccess {
+  if (
+    instruction.type !== 'Transfer' &&
+    instruction.type !== 'TransferChecked'
+  ) {
+    return false;
   }
 
-  return BigNumber(raw.toString()).dividedBy(1e6);
+  if (!instruction.parsed) {
+    return false;
+  }
+
+  const { source, destination, authority } = instruction.parsed.accounts ?? {};
+
+  if (!source || !destination || !authority) {
+    return false;
+  }
+
+  return source.address === destination.address;
 }
