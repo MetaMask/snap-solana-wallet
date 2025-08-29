@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.3]
 
-### Uncategorized
+### Changed
 
 - Close WebSockets onInactive after a grace period ([#505](https://github.com/MetaMask/snap-solana-wallet/pull/505))
-- Fix self transfer parsing ([#504](https://github.com/MetaMask/snap-solana-wallet/pull/504))
-- Merge external contrib ([#503](https://github.com/MetaMask/snap-solana-wallet/pull/503))
+- Use safer `TransferChecked` instruction instead `Transfer` to send SPL tokens ([#503](https://github.com/MetaMask/snap-solana-wallet/pull/503))
+
+### Fixed
+
+- Fix the parsing of self transfers ([#504](https://github.com/MetaMask/snap-solana-wallet/pull/504))
 
 ## [2.3.2]
 
