@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.3]
+
+### Uncategorized
+
+- Close WebSockets onInactive after a grace period ([#505](https://github.com/MetaMask/snap-solana-wallet/pull/505))
+- Fix self transfer parsing ([#504](https://github.com/MetaMask/snap-solana-wallet/pull/504))
+- Merge external contrib ([#503](https://github.com/MetaMask/snap-solana-wallet/pull/503))
+
 ## [2.3.2]
 
 ### Fixed
@@ -848,7 +856,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.2...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.3...HEAD
+[2.3.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.2...v2.3.3
 [2.3.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.1...v2.3.2
 [2.3.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.2.0...v2.3.0
