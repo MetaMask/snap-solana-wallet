@@ -1,5 +1,6 @@
 import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
+import { closeWebSocketConnections } from './closeWebSocketConnections';
 import { onSyncAccountTransactions } from './onSyncAccountTransactions';
 import { onTransactionAdded } from './onTransactionAdded';
 import { onTransactionApproved } from './onTransactionApproved';
@@ -20,4 +21,6 @@ export const handlers: Record<ScheduleBackgroundEventMethod, OnCronjobHandler> =
     [ScheduleBackgroundEventMethod.RefreshSend]: refreshSend,
     [ScheduleBackgroundEventMethod.RefreshConfirmationEstimation]:
       refreshConfirmationEstimation,
+    [ScheduleBackgroundEventMethod.CloseWebSocketConnections]:
+      closeWebSocketConnections,
   };
