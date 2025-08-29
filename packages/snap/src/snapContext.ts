@@ -97,6 +97,7 @@ const webSocketConnectionRepository = new WebSocketConnectionRepository(
 const webSocketConnectionService = new WebSocketConnectionService(
   webSocketConnectionRepository,
   configProvider,
+  state,
   eventEmitter,
   logger,
 );

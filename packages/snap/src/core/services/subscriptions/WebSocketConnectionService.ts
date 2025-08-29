@@ -9,12 +9,12 @@ import type {
   WebSocketConnection,
 } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
-import type { UnencryptedStateValue } from '../../../infrastructure/adapters/State';
 import type { Network } from '../../constants/solana';
-import type { IStateManager } from '../../ports';
 import { getClientStatus } from '../../utils/interface';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
+import type { IStateManager } from '../state/IStateManager';
+import type { UnencryptedStateValue } from '../state/State';
 import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
 
 /**
@@ -53,7 +53,7 @@ export class WebSocketConnectionService {
 
   readonly #closeConnectionsGracePeriodMilliseconds: number;
 
-  readonly #stateKey = 'WebSocketConnectionService';
+  readonly #stateKey = 'webSocketConnections';
 
   constructor(
     connectionRepository: WebSocketConnectionRepository,
@@ -176,6 +176,12 @@ export class WebSocketConnectionService {
 
     const connections = await this.#connectionRepository.getAll();
     await Promise.allSettled(connections.map(this.#closeConnection.bind(this)));
+
+    // Clear the state
+    await this.#state.setKey(
+      `${this.#stateKey}.closeWebSocketConnectionsBackgroundEventId`,
+      null,
+    );
   }
 
   async #closeConnection(connection: WebSocketConnection): Promise<void> {
@@ -413,17 +419,18 @@ export class WebSocketConnectionService {
         },
       });
 
-      await this.#state.setKey(
-        `${this.#stateKey}.closeWebSocketConnectionsBackgroundEventId`,
-        null,
-      );
-
       this.#logger.log(
-        `Canceled background event to close connections`,
+        `🫸 Cancelled background event to close connections`,
         eventId,
       );
     } catch (error) {
       this.#logger.warn(`Failed to cancel background event`, error);
+    } finally {
+      // Clear the state
+      await this.#state.setKey(
+        `${this.#stateKey}.closeWebSocketConnectionsBackgroundEventId`,
+        null,
+      );
     }
   }
 }
