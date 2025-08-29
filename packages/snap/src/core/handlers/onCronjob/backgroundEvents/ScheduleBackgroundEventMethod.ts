@@ -11,4 +11,6 @@ export enum ScheduleBackgroundEventMethod {
   RefreshSend = 'refreshSend',
   /** Use it to schedule a background event to refresh the confirmation estimation */
   RefreshConfirmationEstimation = 'refreshConfirmationEstimation',
+  /** Use it to schedule a background event to close WebSocket connections */
+  CloseWebSocketConnections = 'closeWebSocketConnections',
 }

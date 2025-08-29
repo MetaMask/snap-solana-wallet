@@ -29,6 +29,9 @@ export type UnencryptedStateValue = {
   assetEntities: Record<AccountId, AssetEntity[]>;
   tokenPrices: SpotPrices;
   subscriptions: Record<string, Subscription>;
+  webSocketConnections: {
+    closeWebSocketConnectionsBackgroundEventId: string | null;
+  };
 };
 
 export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
@@ -39,6 +42,9 @@ export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
   assetEntities: {},
   tokenPrices: {},
   subscriptions: {},
+  webSocketConnections: {
+    closeWebSocketConnectionsBackgroundEventId: null,
+  },
 };
 
 export type StateConfig<TValue extends Record<string, Serializable>> = {

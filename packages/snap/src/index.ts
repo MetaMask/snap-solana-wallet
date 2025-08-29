@@ -38,7 +38,6 @@ import { onProtocolRequest as onProtocolRequestHandler } from './core/handlers/o
 import { handlers as onRpcRequestHandlers } from './core/handlers/onRpcRequest';
 import { RpcRequestMethod } from './core/handlers/onRpcRequest/types';
 import { withCatchAndThrowSnapError } from './core/utils/errors';
-import { getClientStatus } from './core/utils/interface';
 import logger, { createPrefixedLogger } from './core/utils/logger';
 import { validateOrigin } from './core/validation/validators';
 import { eventHandlers as confirmSignInEvents } from './features/confirmation/views/ConfirmSignIn/events';
@@ -195,15 +194,6 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
   );
 
   const result = await withCatchAndThrowSnapError(async () => {
-    // Don't run cronjobs if client is locked or inactive
-    const { locked, active } = await getClientStatus();
-
-    _logger.log('Client status', { locked, active });
-
-    if (locked || !active) {
-      return Promise.resolve();
-    }
-
     _logger.log('Running cronjob', { method });
 
     const handler =

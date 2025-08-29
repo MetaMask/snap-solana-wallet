@@ -94,6 +94,7 @@ export type Config = {
   subscriptions: {
     maxReconnectAttempts: number;
     reconnectDelayMilliseconds: number;
+    closeConnectionsGracePeriodMilliseconds: number;
   };
 };
 
@@ -211,6 +212,11 @@ export class ConfigProvider {
       subscriptions: {
         maxReconnectAttempts: 5,
         reconnectDelayMilliseconds: Duration.Second,
+        /**
+         * The time we wait before closing the connections when the extension becomes inactive.
+         * This is to avoid closing and opening the connections too much when the user switches back and forth between the client and a dapp for instance.
+         */
+        closeConnectionsGracePeriodMilliseconds: Duration.Minute * 5,
       },
     };
   }
