@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.4]
+
+### Fixed
+
+- Fix the send transaction object passed to blockaid scan API ([#507](https://github.com/MetaMask/snap-solana-wallet/pull/507))
+
 ## [2.3.3]
 
 ### Changed
@@ -859,7 +865,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.3...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.4...HEAD
+[2.3.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.3...v2.3.4
 [2.3.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.2...v2.3.3
 [2.3.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.1...v2.3.2
 [2.3.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.0...v2.3.1
