@@ -183,7 +183,6 @@ describe('SubscriptionService', () => {
       mockConfigProvider,
       mockEventEmitter,
       mockLogger,
-      mockAnalyticsService,
     );
   });
 

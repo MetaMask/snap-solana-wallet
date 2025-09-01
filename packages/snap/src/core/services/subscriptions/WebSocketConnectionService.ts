@@ -10,8 +10,11 @@ import type {
 } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
+import { getClientStatus } from '../../utils/interface';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
+import type { IStateManager } from '../state/IStateManager';
+import type { UnencryptedStateValue } from '../state/State';
 import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
 
 /**
@@ -27,9 +30,11 @@ import type { WebSocketConnectionRepository } from './WebSocketConnectionReposit
  * - Converts HTTP RPC URLs to WebSocket URLs for subscription endpoints
  */
 export class WebSocketConnectionService {
+  readonly #connectionRepository: WebSocketConnectionRepository;
+
   readonly #configProvider: ConfigProvider;
 
-  readonly #connectionRepository: WebSocketConnectionRepository;
+  readonly #state: IStateManager<UnencryptedStateValue>;
 
   readonly #eventEmitter: EventEmitter;
 
@@ -46,17 +51,26 @@ export class WebSocketConnectionService {
 
   readonly #retryAttempts: Map<Network, number> = new Map();
 
+  readonly #closeConnectionsGracePeriodMilliseconds: number;
+
+  readonly #stateKey = 'webSocketConnections';
+
   constructor(
     connectionRepository: WebSocketConnectionRepository,
     configProvider: ConfigProvider,
+    state: IStateManager<UnencryptedStateValue>,
     eventEmitter: EventEmitter,
     logger: ILogger,
   ) {
-    const { maxReconnectAttempts, reconnectDelayMilliseconds } =
-      configProvider.get().subscriptions;
+    const {
+      maxReconnectAttempts,
+      reconnectDelayMilliseconds,
+      closeConnectionsGracePeriodMilliseconds,
+    } = configProvider.get().subscriptions;
 
     this.#connectionRepository = connectionRepository;
     this.#configProvider = configProvider;
+    this.#state = state;
     this.#eventEmitter = eventEmitter;
     this.#logger = createPrefixedLogger(
       logger,
@@ -64,28 +78,57 @@ export class WebSocketConnectionService {
     );
     this.#maxReconnectAttempts = maxReconnectAttempts;
     this.#reconnectDelayMilliseconds = reconnectDelayMilliseconds;
+    this.#closeConnectionsGracePeriodMilliseconds =
+      closeConnectionsGracePeriodMilliseconds;
 
     this.#bindHandlers();
   }
 
   #bindHandlers(): void {
-    // When the extension becomes active, starts, or that the snap is updated / installed, the Snap platform might have lost its previously opened websockets, so we make sure the are open
-    this.#eventEmitter.on('onStart', this.#setupConnections.bind(this));
-    this.#eventEmitter.on('onUpdate', this.#setupConnections.bind(this));
-    this.#eventEmitter.on('onInstall', this.#setupConnections.bind(this));
-    this.#eventEmitter.on('onActive', this.#setupConnections.bind(this));
+    // Aliases to make the code more readable
+    const setup = this.#setupConnections.bind(this);
+    const handleOnActive = this.#handleOnActive.bind(this);
+    const handleOnInactive = this.#handleOnInactive.bind(this);
+    const list = this.#listConnections.bind(this);
+    const handleEvent = this.#handleWebSocketEvent.bind(this);
 
-    this.#eventEmitter.on(
-      'onWebSocketEvent',
-      this.#handleWebSocketEvent.bind(this),
-    );
+    // When the extension starts, or that the snap is updated / installed, the Snap platform looses previously opened web socket connections,
+    // so we need to setup them up again, if needed.
+    this.#eventEmitter.on('onStart', setup);
+    this.#eventEmitter.on('onUpdate', setup);
+    this.#eventEmitter.on('onInstall', setup);
 
-    // Specific binds to enable manual testing from the test dapp
-    this.#eventEmitter.on('onListWebSockets', this.#listConnections.bind(this));
+    // When the extension becomes active, we open all connections
+    this.#eventEmitter.on('onActive', handleOnActive);
+
+    // When the extension becomes inactive, we schedule a job to close all connections
+    this.#eventEmitter.on('onInactive', handleOnInactive);
+
+    this.#eventEmitter.on('onWebSocketEvent', handleEvent);
+
+    // Specific bind to enable manual testing from the test dapp
+    this.#eventEmitter.on('onListWebSockets', list);
   }
 
+  /**
+   * Sets up the connections.
+   * - If the client is active, we open them for all active networks.
+   * - If the client is inactive, we close them all.
+   */
   async #setupConnections(): Promise<void> {
     this.#logger.log(`Setting up connections`);
+
+    const { active } = await getClientStatus();
+
+    if (active) {
+      await this.#openConnectionsForActiveNetworks();
+    } else {
+      await this.closeAllConnections();
+    }
+  }
+
+  async #openConnectionsForActiveNetworks(): Promise<void> {
+    this.#logger.log(`Opening connections for active networks`);
 
     const { activeNetworks } = this.#configProvider.get();
 
@@ -108,6 +151,7 @@ export class WebSocketConnectionService {
   async openConnection(network: Network): Promise<void> {
     this.#logger.log(`Opening connection for network ${network}`);
 
+    // Get the websocket url
     const networkConfig = this.#configProvider.getNetworkBy('caip2Id', network);
     const { webSocketUrl } = networkConfig;
 
@@ -125,6 +169,25 @@ export class WebSocketConnectionService {
       url: webSocketUrl,
       protocols: [],
     });
+  }
+
+  async closeAllConnections(): Promise<void> {
+    this.#logger.log(`Closing all connections`);
+
+    const connections = await this.#connectionRepository.getAll();
+    await Promise.allSettled(connections.map(this.#closeConnection.bind(this)));
+
+    // Clear the state
+    await this.#state.setKey(
+      `${this.#stateKey}.closeWebSocketConnectionsBackgroundEventId`,
+      null,
+    );
+  }
+
+  async #closeConnection(connection: WebSocketConnection): Promise<void> {
+    this.#logger.log(`Closing connection for network ${connection.network}`);
+
+    await this.#connectionRepository.delete(connection.id);
   }
 
   /**
@@ -172,7 +235,10 @@ export class WebSocketConnectionService {
 
     const { id: connectionId, type } = event;
 
-    this.#logger.log(`Handling connection event "${type}" for ${connectionId}`);
+    this.#logger.log(
+      `Handling connection event "${type}" for ${connectionId}`,
+      event,
+    );
 
     switch (type) {
       case 'open':
@@ -223,6 +289,14 @@ export class WebSocketConnectionService {
   }
 
   async #handleDisconnected(event: WebSocketCloseEvent): Promise<void> {
+    const { wasClean } = event;
+
+    // If the connection was closed cleanly (= we close it intentionally), we don't need to attempt to reconnect
+    if (wasClean) {
+      this.#logger.log(`✅ Connection closed cleanly`, event);
+      return;
+    }
+
     // Here, we cannot rely on this.#connectionRepository.getById() because the connection doesn't exist anymore,
     // so we need to find the network from the event origin
     const { origin } = event;
@@ -278,5 +352,85 @@ export class WebSocketConnectionService {
       connections,
       connectionRecoveryHandlers: this.#connectionRecoveryHandlers,
     });
+  }
+
+  async #handleOnActive(): Promise<void> {
+    this.#logger.log(`Client became active`);
+
+    // Cancel any existing close connections background event
+    await this.#cancelCloseConnectionsBackgroundEvent();
+
+    // Open the connections
+    await this.#openConnectionsForActiveNetworks();
+  }
+
+  async #handleOnInactive(): Promise<void> {
+    this.#logger.log(`Client became inactive`);
+
+    // Cancel any existing close connections background event
+    await this.#cancelCloseConnectionsBackgroundEvent();
+
+    const gracePeriodSeconds = Math.floor(
+      this.#closeConnectionsGracePeriodMilliseconds / 1000,
+    );
+
+    // Schedule a background event that will close the connections after the grace period
+    const id = await snap.request({
+      method: 'snap_scheduleBackgroundEvent',
+      params: {
+        duration: `PT${gracePeriodSeconds}S`,
+        request: { method: 'closeWebSocketConnections' },
+      },
+    });
+
+    /**
+     * Store the event ID in the state so that we can cancel it if the extension becomes active again.
+     * It needs to be stored in persistent state so that it survives snap restarts.
+     */
+    await this.#state.setKey(
+      `${this.#stateKey}.closeWebSocketConnectionsBackgroundEventId`,
+      id,
+    );
+
+    this.#logger.log(
+      `Scheduled background event to close connections after ${gracePeriodSeconds}s`,
+      id,
+    );
+  }
+
+  /**
+   * Cancels the background event that will close connections if it exists.
+   * Errors are caught so that cancellation failure doesn't block other operations.
+   */
+  async #cancelCloseConnectionsBackgroundEvent(): Promise<void> {
+    try {
+      const eventId = await this.#state.getKey<string | null>(
+        `${this.#stateKey}.closeWebSocketConnectionsBackgroundEventId`,
+      );
+
+      if (!eventId) {
+        return;
+      }
+
+      await snap.request({
+        method: 'snap_cancelBackgroundEvent',
+        params: {
+          id: eventId,
+        },
+      });
+
+      this.#logger.log(
+        `🫸 Cancelled background event to close connections`,
+        eventId,
+      );
+    } catch (error) {
+      this.#logger.warn(`Failed to cancel background event`, error);
+    } finally {
+      // Clear the state
+      await this.#state.setKey(
+        `${this.#stateKey}.closeWebSocketConnectionsBackgroundEventId`,
+        null,
+      );
+    }
   }
 }
