@@ -1,5 +1,6 @@
 import { Network } from '../../../constants/solana';
 import { EXPECTED_SEND_JUP_TRANSFER_CHECKED_DATA } from '../../../test/mocks/transactions-data/send-jup-transfer-checked-to-self';
+import { SEND_PLONK_TO_SELF } from '../../../test/mocks/transactions-data/send-plonk-to-self';
 import { EXPECTED_SEND_USDC_TRANSFER_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer';
 import { EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA } from '../../../test/mocks/transactions-data/send-usdc-transfer-to-self';
 import type { SolanaTransaction } from '../../../types/solana';
@@ -38,7 +39,7 @@ describe('parseTransactionSplTransfers', () => {
     });
   });
 
-  it(`parses SPL token transfers to self`, () => {
+  it(`parses correctly a token send to self with Transfer instruction on token program`, () => {
     const result = parseTransactionSplTransfers({
       scope: Network.Devnet,
       transactionData: EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA,
@@ -63,6 +64,38 @@ describe('parseTransactionSplTransfers', () => {
             amount: '1',
             fungible: true,
             type: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+            unit: '',
+          },
+        },
+      ],
+    });
+  });
+
+  it(`parses correctly a token send to self with TransferChecked instruction on token2022 program`, () => {
+    const result = parseTransactionSplTransfers({
+      scope: Network.Mainnet,
+      transactionData: SEND_PLONK_TO_SELF,
+    });
+
+    expect(result).toStrictEqual({
+      from: [
+        {
+          address: '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+          asset: {
+            amount: '36',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HeqCcMjmuV5s25J49YiJyT6bD5qWLkP88YPajBySniaV',
+            unit: '',
+          },
+        },
+      ],
+      to: [
+        {
+          address: '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+          asset: {
+            amount: '36',
+            fungible: true,
+            type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HeqCcMjmuV5s25J49YiJyT6bD5qWLkP88YPajBySniaV',
             unit: '',
           },
         },

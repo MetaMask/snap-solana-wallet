@@ -25,7 +25,7 @@ import { addressToCaip10 } from '../../utils/addressToCaip10';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
-import logger from '../../utils/logger';
+import logger, { createPrefixedLogger } from '../../utils/logger';
 import {
   Base58Struct,
   Base64Struct,
@@ -62,8 +62,6 @@ export class WalletService {
 
   readonly #logger: ILogger;
 
-  readonly #loggerPrefix = '[👛 WalletService]';
-
   constructor(
     connection: SolanaConnection,
     transactionHelper: TransactionHelper,
@@ -73,7 +71,7 @@ export class WalletService {
     this.#connection = connection;
     this.#transactionHelper = transactionHelper;
     this.#signatureMonitor = signatureMonitor;
-    this.#logger = _logger;
+    this.#logger = createPrefixedLogger(_logger, '[👛 WalletService]');
   }
 
   /**
@@ -95,7 +93,7 @@ export class WalletService {
     scope: Network,
     request: SolanaWalletRequest,
   ): Promise<Caip10Address> {
-    this.#logger.log(this.#loggerPrefix, 'Resolving account address', {
+    this.#logger.log('Resolving account address', {
       keyringAccounts,
       scope,
       request,
@@ -196,7 +194,7 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignTransactionResponse> {
-    this.#logger.log(this.#loggerPrefix, 'Signing transaction', {
+    this.#logger.log('Signing transaction', {
       account,
       request,
     });
@@ -267,11 +265,7 @@ export class WalletService {
     origin: string,
     options?: SolanaSignAndSendTransactionOptions,
   ): Promise<SolanaSignAndSendTransactionResponse> {
-    this.#logger.log(
-      this.#loggerPrefix,
-      'Signing and sending transaction',
-      account,
-    );
+    this.#logger.log('Signing and sending transaction', account);
 
     const signConfig: DecompileTransactionMessageFetchingLookupTablesConfig =
       options?.minContextSlot
@@ -357,7 +351,7 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignMessageResponse> {
-    this.#logger.log(this.#loggerPrefix, 'Signing message', account, request);
+    this.#logger.log('Signing message', account, request);
 
     assert(request.request, SolanaSignMessageRequestStruct);
 
@@ -423,7 +417,7 @@ export class WalletService {
     account: SolanaKeyringAccount,
     request: KeyringRequest,
   ): Promise<SolanaSignInResponse> {
-    this.#logger.log(this.#loggerPrefix, 'Signing in', account, request);
+    this.#logger.log('Signing in', account, request);
 
     assert(request.request, SolanaSignInRequestStruct);
 
@@ -482,7 +476,7 @@ export class WalletService {
     signatureBase58: Infer<typeof Base58Struct>,
     messageBase64: Infer<typeof Base64Struct>,
   ): Promise<boolean> {
-    this.#logger.log(this.#loggerPrefix, 'Verifying signature', {
+    this.#logger.log('Verifying signature', {
       account,
       signatureBase58,
       messageBase64,

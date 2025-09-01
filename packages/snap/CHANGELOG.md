@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.3]
+
+### Changed
+
+- Close WebSockets onInactive after a grace period ([#505](https://github.com/MetaMask/snap-solana-wallet/pull/505))
+- Use safer `TransferChecked` instruction instead `Transfer` to send SPL tokens ([#503](https://github.com/MetaMask/snap-solana-wallet/pull/503))
+
+### Fixed
+
+- Fix the parsing of self transfers ([#504](https://github.com/MetaMask/snap-solana-wallet/pull/504))
+
+## [2.3.2]
+
+### Fixed
+
+- When the client starts/updates, only open WebScoket connections if the client is active ([#500](https://github.com/MetaMask/snap-solana-wallet/pull/500))
+
+## [2.3.1]
+
+### Fixed
+
+- Close all WebSocket connections when the client becomes inactive ([#498](https://github.com/MetaMask/snap-solana-wallet/pull/498))
+
 ## [2.3.0]
 
 ### Added
@@ -836,7 +859,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.3...HEAD
+[2.3.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.2...v2.3.3
+[2.3.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.1...v2.3.2
+[2.3.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.4...v2.2.0
 [2.1.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.1.3...v2.1.4

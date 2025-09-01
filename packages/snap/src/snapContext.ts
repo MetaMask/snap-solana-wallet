@@ -97,6 +97,7 @@ const webSocketConnectionRepository = new WebSocketConnectionRepository(
 const webSocketConnectionService = new WebSocketConnectionService(
   webSocketConnectionRepository,
   configProvider,
+  state,
   eventEmitter,
   logger,
 );
@@ -109,7 +110,6 @@ const subscriptionService = new SubscriptionService(
   configProvider,
   eventEmitter,
   logger,
-  analyticsService,
 );
 
 const transactionHelper = new TransactionHelper(connection, logger);
