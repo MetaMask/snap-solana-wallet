@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.4]
 
-### Uncategorized
+### Fixed
 
-- fix: passing a transaction object to blockaid ([#507](https://github.com/MetaMask/snap-solana-wallet/pull/507))
+- Fix the transaction object passed to blockaid scan API ([#507](https://github.com/MetaMask/snap-solana-wallet/pull/507))
 
 ## [2.3.3]
 
