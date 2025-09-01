@@ -14,7 +14,7 @@ import {
 } from '../../constants/solana';
 import { ClientRequestMethod } from '../../handlers/onClientRequest/types';
 import type { SolanaKeyring } from '../../handlers/onKeyringRequest/Keyring';
-import { fromCompilableTransactionMessageToBase64String } from '../../sdk-extensions/codecs';
+import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import type { Serializable } from '../../serialization/types';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -41,6 +41,25 @@ Object.defineProperty(globalThis, 'crypto', {
     randomUUID: jest.fn(() => 'test-uuid'),
   },
 });
+
+jest.mock('@solana/kit', () => ({
+  ...jest.requireActual('@solana/kit'),
+  address: jest.requireActual('@solana/kit').address,
+  lamports: jest.requireActual('@solana/kit').lamports,
+  compileTransaction: jest.fn().mockReturnValue({
+    message: {
+      version: 0,
+      header: {
+        numRequiredSignatures: 1,
+        numReadonlySignedAccounts: 0,
+        numReadonlyUnsignedAccounts: 0,
+      },
+      staticAccounts: [],
+      compiledInstructions: [],
+      addressTableLookups: [],
+    },
+  }),
+}));
 
 describe('SendService', () => {
   let sendService: SendService;
@@ -90,9 +109,9 @@ describe('SendService', () => {
       findByAccount: jest.fn(),
     } as unknown as AssetsService;
 
-    (
-      fromCompilableTransactionMessageToBase64String as jest.Mock
-    ).mockResolvedValue('base64-encoded-tx');
+    (fromTransactionToBase64String as jest.Mock).mockReturnValue(
+      'base64-encoded-tx',
+    );
 
     sendService = new SendService(
       mockConnection,

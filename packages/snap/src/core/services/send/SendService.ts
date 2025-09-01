@@ -2,7 +2,7 @@ import type { KeyringRequest } from '@metamask/keyring-api';
 import { SolMethod } from '@metamask/keyring-api';
 import type { Json } from '@metamask/snaps-sdk';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
-import { address as asAddress } from '@solana/kit';
+import { address as asAddress, compileTransaction } from '@solana/kit';
 import { BigNumber } from 'bignumber.js';
 
 import { SendFeeCalculator } from '../../../features/send/transactions/SendFeeCalculator';
@@ -13,7 +13,7 @@ import { useCache } from '../../caching/useCache';
 import { METAMASK_ORIGIN, Networks } from '../../constants/solana';
 import type { Network } from '../../constants/solana';
 import type { SolanaKeyring } from '../../handlers/onKeyringRequest/Keyring';
-import { fromCompilableTransactionMessageToBase64String } from '../../sdk-extensions/codecs';
+import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import type { Serializable } from '../../serialization/types';
 import { solToLamports } from '../../utils/conversion';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
@@ -128,8 +128,9 @@ export class SendService {
 
     const transactionMessage = await builder.buildTransactionMessage(params);
 
-    const base64EncodedTransactionMessage =
-      await fromCompilableTransactionMessageToBase64String(transactionMessage);
+    const transaction = compileTransaction(transactionMessage);
+
+    const base64EncodedTransaction = fromTransactionToBase64String(transaction);
 
     const keyringRequest: KeyringRequest = {
       id: globalThis.crypto.randomUUID(),
@@ -142,7 +143,7 @@ export class SendService {
           account: {
             address: account.address,
           },
-          transaction: base64EncodedTransactionMessage,
+          transaction: base64EncodedTransaction,
           scope,
         },
       },
