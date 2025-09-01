@@ -39,14 +39,14 @@ export function parseTransactionSplTransfers({
   const preBalances = new Map(
     transactionData.meta?.preTokenBalances?.map((balance) => [
       balance.accountIndex,
-      new BigNumber(balance.uiTokenAmount.amount),
+      new BigNumber(balance.uiTokenAmount.uiAmountString), // Note here we use the uiAmountString to take into account the multiplier if any
     ]) ?? [],
   );
 
   const postBalances = new Map(
     transactionData.meta?.postTokenBalances?.map((balance) => [
       balance.accountIndex,
-      new BigNumber(balance.uiTokenAmount.amount),
+      new BigNumber(balance.uiTokenAmount.uiAmountString), // Note here we use the uiAmountString to take into account the multiplier if any
     ]) ?? [],
   );
 
@@ -79,22 +79,14 @@ export function parseTransactionSplTransfers({
       continue;
     }
 
-    const {
-      mint,
-      uiTokenAmount: { decimals },
-      owner,
-    } = tokenDetails;
-
-    const caip19Id = tokenAddressToCaip19(scope, mint);
-
+    const { mint, owner } = tokenDetails;
     if (!owner) {
       continue;
     }
 
-    const amount = balanceDiff
-      .absoluteValue()
-      .dividedBy(new BigNumber(10).pow(decimals))
-      .toString();
+    const caip19Id = tokenAddressToCaip19(scope, mint);
+
+    const sentUiAmount = balanceDiff.absoluteValue().toString();
 
     if (balanceDiff.isNegative()) {
       from.push({
@@ -103,7 +95,7 @@ export function parseTransactionSplTransfers({
           fungible: true,
           type: caip19Id,
           unit: '', // This will get overwritten by the token metadata when we fetch it
-          amount,
+          amount: sentUiAmount,
         },
       });
     }
@@ -115,7 +107,7 @@ export function parseTransactionSplTransfers({
           fungible: true,
           type: caip19Id,
           unit: '', // This will get overwritten by the token metadata when we fetch it
-          amount,
+          amount: sentUiAmount,
         },
       });
     }
