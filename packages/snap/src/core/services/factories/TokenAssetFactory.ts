@@ -26,7 +26,7 @@ export class TokenAssetFactory {
     network: Network,
   ): TokenAsset {
     const { info } = tokenAccount.account.data.parsed;
-    const { tokenAmount, extensions, mint } = info;
+    const { tokenAmount, extensions, mint } = info; // NO THESE ARE NOT THE EXTENSIONS WE WANT. WE WANT THE MINT ACOUNT EXTESIONS
     const assetType = tokenAddressToCaip19(network, mint);
     const { decimals, amount } = tokenAmount;
 
@@ -63,7 +63,7 @@ export class TokenAssetFactory {
     network: Network,
   ): TokenAsset {
     const { owner, extensions } =
-      programNotification.params.result.value.account.data.parsed.info;
+      programNotification.params.result.value.account.data.parsed.info; // NO THESE ARE NOT THE EXTENSIONS WE WANT. WE WANT THE MINT ACOUNT EXTESIONS
     assert(owner, string());
 
     const { mint } =

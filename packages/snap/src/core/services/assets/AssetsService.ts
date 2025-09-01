@@ -245,8 +245,27 @@ export class AssetsService {
     };
   }
 
+  async #fetchTokenAssets(
+    accounts: SolanaKeyringAccount[],
+  ): Promise<TokenAsset[]> {
+    const tokenAccounts = await this.#fetchManyTokenAccounts(
+      accounts,
+      [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+      this.#activeNetworks,
+    );
+
+    const accountInfos = await this.#connection
+      .getRpc(Network.Mainnet)
+      .getMultipleAccounts(
+        tokenAccounts.map((tokenAccount) => tokenAccount.token.pubkey),
+      )
+      .send();
+
+    return tokenAccounts;
+  }
+
   /**
-   * Matrix-fetches all token accounts owned by the given address on the specified networks and program ids,
+   * Matrix-fetches all token accounts owned by passed accounts on the specified networks and program ids,
    * and merges the results into a single array. Each individual token is augmented with the scope and the caip-19 asset type for convenience.
    *
    * It caches the results for each pair of scope and program id.
@@ -256,7 +275,7 @@ export class AssetsService {
    * @param scopes - The networks to fetch the token accounts for.
    * @returns The token accounts augmented with the scope and the caip-19 asset type for convenience.
    */
-  async #fetchTokenAccountsMultiple(
+  async #fetchManyTokenAccounts(
     accounts: SolanaKeyringAccount[],
     programIds: Address[] = [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
     scopes: Network[] = [Network.Mainnet],
@@ -339,6 +358,31 @@ export class AssetsService {
     );
   }
 
+  async fetchMany(accounts: SolanaKeyringAccount[]): Promise<AssetEntity[]> {
+    const [nativeAssets, tokenAssets] = await Promise.all([
+      Promise.all(accounts.map(this.#fetchNativeAssets.bind(this))),
+      this.#fetchTokenAssets(accounts),
+      //   Promise.all(accounts.map(this.#fetchNftAssets.bind(this))),
+    ]);
+
+    const nftAssets = await Promise.all(
+      accounts.map(async (account) =>
+        this.#fetchNftAssets(
+          account,
+          tokenAssets
+            .filter((tokenAsset) => tokenAsset.assetType.includes('/nft:'))
+            .map(
+              (tokenAsset) => tokenAsset.assetType,
+            ) as unknown as NftCaipAssetType[],
+        ),
+      ),
+    );
+
+    // accounts,
+    // tokenAssets.map((tokenAsset) => tokenAsset.assetType),
+    // );
+  }
+
   /**
    * Fetches all assets for the given account.
    *
@@ -348,10 +392,11 @@ export class AssetsService {
   async fetch(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
     const [nativeAssets, tokenAccounts] = await Promise.all([
       this.#fetchNativeAssets(account),
-      this.#fetchTokenAccountsMultiple(
-        [account],
-        [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-        this.#activeNetworks,
+      this.#fetchTokenAssets(
+        account,
+        // [account],
+        // [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
+        // this.#activeNetworks,
       ),
     ]);
 
@@ -369,6 +414,13 @@ export class AssetsService {
           tokenAccount.scope,
         ),
       );
+
+    const accountInfos = await this.#connection
+      .getRpc(Network.Mainnet)
+      .getMultipleAccounts(
+        tokenAccounts.map((tokenAccount) => tokenAccount.token.pubkey),
+      )
+      .send();
 
     // const nftAssets = await this.#fetchNftAssets(account, tokenAccounts.filter(
     //   (token) => token.assetType.includes('/nft:'),
@@ -590,7 +642,14 @@ export class AssetsService {
       return true;
     }
 
-    return savedAsset.rawAmount !== asset.rawAmount;
+    const multiplierChanged =
+      'multiplier' in savedAsset &&
+      'multiplier' in asset &&
+      savedAsset.multiplier !== asset.multiplier;
+
+    const rawAmountChanged = savedAsset.rawAmount !== asset.rawAmount;
+
+    return multiplierChanged || rawAmountChanged;
   }
 
   async getAll(): Promise<AssetEntity[]> {
