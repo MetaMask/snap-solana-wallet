@@ -598,7 +598,10 @@ export class AssetsService {
       return true;
     }
 
-    return savedAsset.rawAmount !== asset.rawAmount;
+    const rawAmountChanged = savedAsset.rawAmount !== asset.rawAmount;
+    const uiAmountChanged = savedAsset.uiAmount !== asset.uiAmount;
+
+    return rawAmountChanged || uiAmountChanged;
   }
 
   async getAll(): Promise<AssetEntity[]> {
