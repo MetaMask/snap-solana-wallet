@@ -1,19 +1,17 @@
 import type { FungibleAssetMetadata } from '@metamask/snaps-sdk';
 import { assert, number, string } from '@metamask/superstruct';
-import {
-  amountToUiAmountForInterestBearingMintWithoutSimulation,
-  amountToUiAmountForScaledUiAmountMintWithoutSimulation,
-} from '@solana-program/token-2022';
-import BigNumber from 'bignumber.js';
 
 import type { ProgramNotification, TokenAsset } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import type { TokenAccount } from '../../sdk-extensions/rpc-api';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 
+/**
+ * A factory that creates TokenAsset entities from different sources.
+ */
 export class TokenAssetFactory {
   /**
-   * A factory that encapsulates the various ways to create a TokenAsset entity.
+   * Creates a TokenAsset from a token account.
    * @param tokenAccount - The token account to create the TokenAsset from.
    * @param metadata - The metadata to use for the TokenAsset.
    * @param keyringAccountId - The keyring account id to use for the TokenAsset.
@@ -27,15 +25,9 @@ export class TokenAssetFactory {
     network: Network,
   ): TokenAsset {
     const { info } = tokenAccount.account.data.parsed;
-    const { tokenAmount, extensions, mint } = info; // NO THESE ARE NOT THE EXTENSIONS WE WANT. WE WANT THE MINT ACOUNT EXTESIONS
+    const { tokenAmount, mint } = info;
     const assetType = tokenAddressToCaip19(network, mint);
-    const { decimals, amount } = tokenAmount;
-
-    const { uiAmount, multiplier } = TokenAssetFactory.#amountToUiAmount(
-      amount,
-      decimals,
-      extensions,
-    );
+    const { decimals, amount, uiAmountString } = tokenAmount;
 
     return {
       assetType,
@@ -45,9 +37,8 @@ export class TokenAssetFactory {
       pubkey: tokenAccount.pubkey,
       symbol: metadata?.symbol ?? 'UNKNOWN',
       decimals,
-      multiplier,
       rawAmount: amount,
-      uiAmount,
+      uiAmount: uiAmountString,
     };
   }
 
@@ -63,8 +54,8 @@ export class TokenAssetFactory {
     keyringAccountId: string,
     network: Network,
   ): TokenAsset {
-    const { owner, extensions } =
-      programNotification.params.result.value.account.data.parsed.info; // NO THESE ARE NOT THE EXTENSIONS WE WANT. WE WANT THE MINT ACOUNT EXTESIONS
+    const { owner } =
+      programNotification.params.result.value.account.data.parsed.info;
     assert(owner, string());
 
     const { mint } =
@@ -83,12 +74,6 @@ export class TokenAssetFactory {
 
     const assetType = tokenAddressToCaip19(network, mint);
 
-    const { uiAmount, multiplier } = TokenAssetFactory.#amountToUiAmount(
-      amount,
-      decimals,
-      extensions,
-    );
-
     return {
       assetType,
       keyringAccountId,
@@ -97,92 +82,8 @@ export class TokenAssetFactory {
       pubkey,
       symbol: '',
       decimals,
-      multiplier,
       rawAmount: amount,
-      uiAmount,
+      uiAmount: uiAmountString,
     };
-  }
-
-  /**
-   * Converts an amount to a UI amount.
-   * Credits to @solana-labs for the original implementation, from which we adapted the code to our needs.
-   * @see https://github.com/solana-program/token-2022/blob/rust-legacy%40v0.17.0/clients/js/src/amountToUiAmount.ts#L261
-   * @param amount - The amount to convert.
-   * @param decimals - The number of decimals of the amount.
-   * @param extensions - The extensions of the account.
-   * @returns The UI amount and multiplier.
-   */
-  static #amountToUiAmount(
-    amount: string,
-    decimals: number,
-    extensions: readonly unknown[] | undefined,
-  ): { uiAmount: string; multiplier: string } {
-    const amountBigInt = BigInt(amount);
-
-    // Check for interest bearing mint extension
-    const interestBearingMintConfigState: any = extensions?.find(
-      (item: any) => item.__kind === 'InterestBearingConfig',
-    );
-
-    // Check for scaled UI amount extension
-    const scaledUiAmountConfig: any = extensions?.find(
-      (item: any) => item.__kind === 'ScaledUiAmountConfig',
-    );
-
-    // If no special extension, do standard conversion
-    if (!interestBearingMintConfigState && !scaledUiAmountConfig) {
-      const multiplier = '1';
-      const decimalsFactor = TokenAssetFactory.#getDecimalFactor(decimals);
-      const uiAmount = BigNumber(amount).div(decimalsFactor).toFixed();
-      return { uiAmount, multiplier };
-    }
-
-    // Get timestamp if needed for special mint types
-    const timestamp = Date.now() / 1000;
-
-    // Handle interest bearing mint
-    if (interestBearingMintConfigState) {
-      const uiAmount = amountToUiAmountForInterestBearingMintWithoutSimulation(
-        amountBigInt,
-        decimals,
-        Number(timestamp),
-        Number(interestBearingMintConfigState.lastUpdateTimestamp),
-        Number(interestBearingMintConfigState.initializationTimestamp),
-        interestBearingMintConfigState.preUpdateAverageRate,
-        interestBearingMintConfigState.currentRate,
-      );
-      const multiplier = '1'; // TODO: (uiAmount * 10 ** decimals) / amountBigInt;
-      return { uiAmount, multiplier };
-    }
-
-    // At this point, we know it must be a scaled UI amount mint
-    if (scaledUiAmountConfig) {
-      // Use new multiplier if it's effective
-      const shouldUseNewMultiplier =
-        timestamp >= scaledUiAmountConfig.newMultiplierEffectiveTimestamp;
-
-      const multiplier = shouldUseNewMultiplier
-        ? scaledUiAmountConfig.newMultiplier
-        : scaledUiAmountConfig.multiplier;
-
-      const uiAmount = amountToUiAmountForScaledUiAmountMintWithoutSimulation(
-        amountBigInt,
-        decimals,
-        multiplier,
-      );
-      return { uiAmount, multiplier };
-    }
-
-    // This should never happen due to the conditions above
-    throw new Error('Unknown mint extension type');
-  }
-
-  /**
-   * Calculates the decimal factor for a given number of decimals.
-   * @param decimals - Number of decimals.
-   * @returns The decimal factor (e.g., 100 for 2 decimals).
-   */
-  static #getDecimalFactor(decimals: number): number {
-    return Math.pow(10, decimals);
   }
 }
