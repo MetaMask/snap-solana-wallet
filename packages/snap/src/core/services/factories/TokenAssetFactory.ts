@@ -4,6 +4,7 @@ import {
   amountToUiAmountForInterestBearingMintWithoutSimulation,
   amountToUiAmountForScaledUiAmountMintWithoutSimulation,
 } from '@solana-program/token-2022';
+import BigNumber from 'bignumber.js';
 
 import type { ProgramNotification, TokenAsset } from '../../../entities';
 import type { Network } from '../../constants/solana';
@@ -131,9 +132,8 @@ export class TokenAssetFactory {
     // If no special extension, do standard conversion
     if (!interestBearingMintConfigState && !scaledUiAmountConfig) {
       const multiplier = '1';
-      const amountNumber = Number(amount);
       const decimalsFactor = TokenAssetFactory.#getDecimalFactor(decimals);
-      const uiAmount = (amountNumber / decimalsFactor).toString();
+      const uiAmount = BigNumber(amount).div(decimalsFactor).toFixed();
       return { uiAmount, multiplier };
     }
 
