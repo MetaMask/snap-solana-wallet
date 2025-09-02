@@ -1,4 +1,4 @@
-import { assert } from '@metamask/utils';
+import { assert, Duration } from '@metamask/utils';
 import {
   getSetComputeUnitLimitInstruction,
   getSetComputeUnitPriceInstruction,
@@ -10,20 +10,26 @@ import {
 } from '@solana-program/token';
 import type { Mint } from '@solana-program/token-2022';
 import {
-  amountToUiAmountForInterestBearingMintWithoutSimulation,
   fetchMint,
+  uiAmountToAmountForInterestBearingMintWithoutSimulation,
+  uiAmountToAmountForScaledUiAmountMintWithoutSimulation,
 } from '@solana-program/token-2022';
-import type { CompilableTransactionMessage } from '@solana/kit';
+import type {
+  CompilableTransactionMessage,
+  GetAccountInfoApi,
+  GetTokenAccountsByOwnerApi,
+  Rpc,
+} from '@solana/kit';
 import {
   appendTransactionMessageInstructions,
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
   fetchJsonParsedAccount,
-  isSome,
   pipe,
   prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
+  unwrapOption,
   type Account,
   type Address,
   type MaybeAccount,
@@ -31,11 +37,13 @@ import {
 } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 
+import type { ICache } from '../../../core/caching/ICache';
+import { useCache } from '../../../core/caching/useCache';
+import type { Serializable } from '../../../core/serialization/types';
 import type { SolanaConnection } from '../../../core/services/connection';
 import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
 import { deriveSolanaKeypair } from '../../../core/utils/deriveSolanaKeypair';
-import type { ILogger } from '../../../core/utils/logger';
-import { toTokenUnits } from '../../../core/utils/toTokenUnit';
+import { createPrefixedLogger, type ILogger } from '../../../core/utils/logger';
 import type {
   BuildSendTransactionParams,
   ISendTransactionBuilder,
@@ -48,6 +56,8 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
   readonly #logger: ILogger;
 
+  readonly #cache: ICache<Serializable>;
+
   /**
    * The transaction built here consumes up to ~30,000 compute units when just transferring
    * to an existing associated token account, but requires ~35,000+ compute units when
@@ -57,14 +67,25 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
   readonly #computeUnitPriceMicroLamportsPerComputeUnit = 10000n;
 
+  /**
+   * We cache the mint a token accounts for 1 minute to avoid making too many requests to the RPC.
+   * It's needed because in the Send flow, a message is rebuilt every time the user inputs an amount.
+   */
+  readonly #cacheTtlsMilliseconds = {
+    mintAccount: Duration.Minute,
+    tokenAccount: Duration.Minute,
+  };
+
   constructor(
     connection: SolanaConnection,
     transactionHelper: TransactionHelper,
     logger: ILogger,
+    cache: ICache<Serializable>,
   ) {
     this.#connection = connection;
     this.#transactionHelper = transactionHelper;
-    this.#logger = logger;
+    this.#logger = createPrefixedLogger(logger, '[📩 SendSplTokenBuilder]');
+    this.#cache = cache;
   }
 
   async buildTransactionMessage(
@@ -77,9 +98,25 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
     const rpc = this.#connection.getRpc(network);
 
+    const fetchMintCached = useCache<
+      [Rpc<GetAccountInfoApi>, Address],
+      Account<Mint, any> & Serializable
+    >(fetchMint as any, this.#cache, {
+      ttlMilliseconds: this.#cacheTtlsMilliseconds.mintAccount,
+      functionName: 'fetchMint',
+    });
+
+    const fetchJsonParsedAccountCached = useCache<
+      [Rpc<GetTokenAccountsByOwnerApi>, Address],
+      MaybeAccount<any> | (MaybeEncodedAccount & Serializable)
+    >(fetchJsonParsedAccount as any, this.#cache, {
+      ttlMilliseconds: this.#cacheTtlsMilliseconds.tokenAccount,
+      functionName: 'fetchJsonParsedAccount',
+    });
+
     const [mintAccount, splTokenTokenAccount] = await Promise.all([
-      fetchMint(rpc, mint),
-      fetchJsonParsedAccount<MaybeHasDecimals>(rpc, mint),
+      fetchMintCached(rpc, mint),
+      fetchJsonParsedAccountCached(rpc, mint),
     ]);
 
     SendSplTokenBuilder.assertAccountExists(splTokenTokenAccount);
@@ -91,11 +128,10 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
      * The user inputs the amount thinking in uiAmount terms,
      * so if the token uses a multiplier, we need to convert that uiAmount to the raw amount
      */
-    const multiplier = this.#extractMultiplier(mintAccount);
-    const rawAmount = BigNumber(amount.toString())
-      .dividedBy(multiplier)
-      .toNumber();
-    const amountInTokenUnits = toTokenUnits(rawAmount, decimals);
+    const rawAmountInLamports = this.#uiAmountToAmountForMintWithoutSimulation(
+      mintAccount,
+      amount.toString(),
+    );
 
     const latestBlockhash =
       await this.#transactionHelper.getLatestBlockhash(network);
@@ -141,7 +177,7 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
                 mint,
                 destination: toTokenAccountAddress,
                 authority: signer,
-                amount: amountInTokenUnits,
+                amount: rawAmountInLamports,
                 decimals,
               },
               {
@@ -284,39 +320,39 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
   }
 
   /**
-   * Extracts the multiplier from a mint account, accounting for special extensions such as
+   * Some tokens use extensions that introduce a multiplier to the amount. This method extracts the multiplier from a mint account, accounting for special extensions such as
    * interest bearing or scaled UI amount mints. If no extension is present, returns 1.
    *
    * This is used for cosmetic balance calculations (e.g., yield, dividends, splits) and does not
    * affect the token program's internal transfer logic.
    *
    * Adapted from @solana-labs token-2022 implementation.
-   * @see https://github.com/solana-program/token-2022/blob/rust-legacy%40v0.17.0/clients/js/src/amountToUiAmount.ts#L261
+   * @see https://github.com/solana-program/token-2022/blob/rust-legacy%40v0.17.0/clients/js/src/amountToUiAmount.ts#L329
    * @param mintAccount - The mint account to extract the multiplier from.
+   * @param uiAmount - The UI amount to convert to the raw amount.
    * @returns The multiplier as a number.
    */
-  #extractMultiplier(mintAccount: Account<Mint, any>): number {
-    const { extensions, decimals } = mintAccount.data;
-    // assert(decimals, 'Decimals not found for mint account');
+  #uiAmountToAmountForMintWithoutSimulation(
+    mintAccount: Account<Mint, any>,
+    uiAmount: string,
+  ): bigint {
+    const extensions = unwrapOption(mintAccount.data.extensions);
+    const { decimals } = mintAccount.data;
 
     // Check for interest bearing mint extension
-    const interestBearingMintConfigState: any =
-      isSome(extensions) &&
-      extensions.value.find(
-        (item: any) => item.__kind === 'InterestBearingConfig',
-      );
+    const interestBearingMintConfigState: any = extensions?.find(
+      (item: any) => item.__kind === 'InterestBearingConfig',
+    );
 
     // Check for scaled UI amount extension
-    const scaledUiAmountConfig: any =
-      isSome(extensions) &&
-      extensions.value.find(
-        (item: any) => item.__kind === 'ScaledUiAmountConfig',
-      );
+    const scaledUiAmountConfig: any = extensions?.find(
+      (item: any) => item.__kind === 'ScaledUiAmountConfig',
+    );
 
     // If no special extension, default to the neutral value
     if (!interestBearingMintConfigState && !scaledUiAmountConfig) {
-      const multiplier = 1;
-      return multiplier;
+      const uiAmountScaled = BigNumber(uiAmount).multipliedBy(10 ** decimals);
+      return BigInt(uiAmountScaled.toString());
     }
 
     // Get timestamp if needed for special mint types
@@ -324,10 +360,8 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
     // Handle interest bearing mint
     if (interestBearingMintConfigState) {
-      // This method from the Solana program token-2022 library calculates the UI amount based on the passed amount.
-      // Passing an amount of 1n will return an uiAmount equal to the multiplier.
-      const uiAmount = amountToUiAmountForInterestBearingMintWithoutSimulation(
-        1n,
+      return uiAmountToAmountForInterestBearingMintWithoutSimulation(
+        uiAmount,
         decimals,
         Number(timestamp),
         Number(interestBearingMintConfigState.lastUpdateTimestamp),
@@ -335,23 +369,20 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
         interestBearingMintConfigState.preUpdateAverageRate,
         interestBearingMintConfigState.currentRate,
       );
-      const multiplier = BigNumber(uiAmount)
-        .multipliedBy(10 ** decimals)
-        .toNumber();
-      return multiplier;
     }
 
     // At this point, we know it must be a scaled UI amount mint
     if (scaledUiAmountConfig) {
+      let { multiplier } = scaledUiAmountConfig;
       // Use new multiplier if it's effective
-      const shouldUseNewMultiplier =
-        timestamp >= scaledUiAmountConfig.newMultiplierEffectiveTimestamp;
-
-      const multiplier = shouldUseNewMultiplier
-        ? scaledUiAmountConfig.newMultiplier
-        : scaledUiAmountConfig.multiplier;
-
-      return multiplier;
+      if (timestamp >= scaledUiAmountConfig.newMultiplierEffectiveTimestamp) {
+        multiplier = scaledUiAmountConfig.newMultiplier;
+      }
+      return uiAmountToAmountForScaledUiAmountMintWithoutSimulation(
+        uiAmount,
+        decimals,
+        multiplier,
+      );
     }
 
     // This should never happen due to the conditions above

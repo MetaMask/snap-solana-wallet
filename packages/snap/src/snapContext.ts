@@ -118,6 +118,7 @@ const sendSplTokenBuilder = new SendSplTokenBuilder(
   connection,
   transactionHelper,
   logger,
+  inMemoryCache,
 );
 const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);
 const tokenApiClient = new TokenApiClient(configProvider);

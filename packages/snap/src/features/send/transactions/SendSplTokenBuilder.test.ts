@@ -12,17 +12,21 @@ import {
   type MaybeAccount,
 } from '@solana/kit';
 
+import type { ICache } from '../../../core/caching/ICache';
+import { InMemoryCache } from '../../../core/caching/InMemoryCache';
 import {
   KnownCaip19Id,
   Network,
   TokenMetadata,
 } from '../../../core/constants/solana';
+import type { Serializable } from '../../../core/serialization/types';
 import type { SolanaConnection } from '../../../core/services/connection/SolanaConnection';
 import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
 import { mockLogger } from '../../../core/services/mocks/logger';
 import { createMockConnection } from '../../../core/services/mocks/mockConnection';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../core/test/mocks/solana-keyring-accounts';
 import { deriveSolanaKeypairMock } from '../../../core/test/mocks/utils/deriveSolanaKeypair';
+import { parseInstruction } from '../../../entities';
 import type { Exists, MaybeHasDecimals } from './SendSplTokenBuilder';
 import { SendSplTokenBuilder } from './SendSplTokenBuilder';
 
@@ -48,6 +52,7 @@ describe('SendSplTokenBuilder', () => {
   let mockConnection: SolanaConnection;
   let sendSplTokenBuilder: SendSplTokenBuilder;
   let mockTransactionHelper: TransactionHelper;
+  let mockCache: ICache<Serializable>;
 
   const mockFrom = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
   const mockTo = address(MOCK_SOLANA_KEYRING_ACCOUNTS[1].address);
@@ -99,10 +104,13 @@ describe('SendSplTokenBuilder', () => {
       waitForTransactionCommitment: jest.fn(),
     } as unknown as TransactionHelper;
 
+    mockCache = new InMemoryCache(mockLogger);
+
     sendSplTokenBuilder = new SendSplTokenBuilder(
       mockConnection,
       mockTransactionHelper,
       mockLogger,
+      mockCache,
     );
   });
 
@@ -275,18 +283,60 @@ describe('SendSplTokenBuilder', () => {
       deriveAssociatedTokenAccountAddressSpy.mockRestore();
     });
 
+    it('caches the mint and token account', async () => {
+      const mockTokenAccount = createMockTokenAccount();
+      const mockMintAccount = createMockMintAccount();
+
+      const fetchJsonParsedAccountjest = jest
+        .spyOn(require('@solana/kit'), 'fetchJsonParsedAccount')
+        .mockResolvedValue(mockTokenAccount);
+
+      const fetchMintSpy = jest
+        .spyOn(require('@solana-program/token-2022'), 'fetchMint')
+        .mockResolvedValue(mockMintAccount);
+
+      const call = async () => {
+        await sendSplTokenBuilder.buildTransactionMessage({
+          from: mockFrom,
+          to: mockTo,
+          mint: mockMint,
+          amount: mockAmount,
+          network: mockNetwork,
+        });
+      };
+
+      // Build the transaction message twice in a row to ensure the cache is hit
+      await call();
+      await call();
+
+      expect(mockCache.get('fetchMint:mockMint')).toBeDefined();
+      expect(mockCache.get('fetchJsonParsedAccount:mockMint')).toBeDefined();
+      expect(fetchJsonParsedAccountjest).toHaveBeenCalledTimes(1);
+      expect(fetchMintSpy).toHaveBeenCalledTimes(1);
+    });
+
     describe('when the mint has a multiplier', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2022-01-01T00:00:00.000Z'));
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
       describe('when the extension is ScaledUiAmountConfig', () => {
         describe('when the new multiplier is not yet effective', () => {
+          const nowInSeconds = Math.floor(Date.now() / 1000);
           const extension = {
             __kind: 'ScaledUiAmountConfig' as const,
             multiplier: 1.5,
             newMultiplier: 2,
-            newMultiplierEffectiveTimestamp: 999999999999999999n,
+            newMultiplierEffectiveTimestamp: BigInt(nowInSeconds + 1000), // The new multiplier is not yet effective
             authority: mockMint,
           };
 
-          it('takes into account the current multiplier', async () => {
+          it('converts the uiAmount to the raw amount correctly', async () => {
             const mockTokenAccount = createMockTokenAccount();
             jest
               .spyOn(require('@solana/kit'), 'fetchJsonParsedAccount')
@@ -309,81 +359,186 @@ describe('SendSplTokenBuilder', () => {
               network: mockNetwork,
             });
 
+            // Check that the transfer instruction is correct
+            const expectedTransferInstruction = {
+              accounts: expect.any(Array),
+              data: Uint8Array.from([12, 170, 134, 188, 39, 0, 0, 0, 0, 6]),
+              programAddress: address(
+                'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+              ),
+            };
+
             expect(message).toMatchObject({
               instructions: expect.arrayContaining([
-                {
-                  accounts: expect.any(Array),
-                  data: Uint8Array.from([12, 0, 202, 154, 59, 0, 0, 0, 0, 6]),
-                  programAddress: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                },
+                expectedTransferInstruction,
               ]),
             });
 
-            //   const transactionMessage =
+            // Check that the transfer instruction contains the correct amount
+            const expectedRawAmountLamports = 666666666n;
+
+            const parsedTransferInstruction = parseInstruction(
+              expectedTransferInstruction,
+            );
+
+            expect(parsedTransferInstruction).toMatchObject({
+              type: 'TransferChecked',
+              parsed: expect.objectContaining({
+                data: expect.objectContaining({
+                  amount: expectedRawAmountLamports,
+                  decimals: 6,
+                  discriminator: 12,
+                }),
+              }),
+            });
+          });
+        });
+
+        describe('when the new multiplier is already effective', () => {
+          const extension = {
+            __kind: 'ScaledUiAmountConfig' as const,
+            multiplier: 1.5,
+            newMultiplier: 2,
+            newMultiplierEffectiveTimestamp: 0n,
+            authority: mockMint,
+          };
+
+          it('converts the uiAmount to the raw amount correctly', async () => {
+            const mockTokenAccount = createMockTokenAccount();
+            jest
+              .spyOn(require('@solana/kit'), 'fetchJsonParsedAccount')
+              .mockResolvedValue(mockTokenAccount);
+
+            const mockMintAccount = createMockMintAccount();
+            jest
+              .spyOn(require('@solana-program/token-2022'), 'fetchMint')
+              .mockResolvedValue(mockMintAccount);
+            mockMintAccount.data.extensions = {
+              __option: 'Some',
+              value: [extension],
+            };
+
+            const message = await sendSplTokenBuilder.buildTransactionMessage({
+              from: mockFrom,
+              to: mockTo,
+              mint: mockMint,
+              amount: mockAmount,
+              network: mockNetwork,
+            });
+
+            // Check that the transfer instruction is correct
+            const expectedTransferInstruction = {
+              accounts: expect.any(Array),
+              data: Uint8Array.from([12, 0, 101, 205, 29, 0, 0, 0, 0, 6]),
+              programAddress: address(
+                'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+              ),
+            };
+
+            expect(message).toMatchObject({
+              instructions: expect.arrayContaining([
+                expectedTransferInstruction,
+              ]),
+            });
+
+            // Check that the transfer instruction contains the correct amount
+            const expectedAmountLamports = 500000000n; // uiAmount * 10^decimals / multiplier
+
+            const parsedTransferInstruction = parseInstruction(
+              expectedTransferInstruction,
+            );
+
+            expect(parsedTransferInstruction).toMatchObject({
+              type: 'TransferChecked',
+              parsed: expect.objectContaining({
+                data: expect.objectContaining({
+                  amount: expectedAmountLamports,
+                  decimals: 6,
+                  discriminator: 12,
+                }),
+              }),
+            });
+          });
+        });
+      });
+
+      describe('when the extension is InterestBearingConfig', () => {
+        let extension: any;
+
+        beforeEach(() => {
+          const nowInSeconds = Math.floor(Date.now() / 1000);
+
+          extension = {
+            __kind: 'InterestBearingConfig' as const,
+            // Last update was 1 day ago (in seconds)
+            lastUpdateTimestamp: BigInt(nowInSeconds - 86400),
+            // The interest bearing extension was initialized 30 days ago (in seconds)
+            initializationTimestamp: BigInt(nowInSeconds - 86400 * 30),
+            // Interest rate in basis points (1 basis point = 0.01%) before last update
+            preUpdateAverageRate: 500, // 5%
+            // Current interest rate in basis points
+            currentRate: 700, // 7%
+            rateAuthority: mockMint,
+          };
+        });
+
+        it('converts the uiAmount to the raw amount correctly', async () => {
+          const mockTokenAccount = createMockTokenAccount();
+          jest
+            .spyOn(require('@solana/kit'), 'fetchJsonParsedAccount')
+            .mockResolvedValue(mockTokenAccount);
+
+          const mockMintAccount = createMockMintAccount();
+          jest
+            .spyOn(require('@solana-program/token-2022'), 'fetchMint')
+            .mockResolvedValue(mockMintAccount);
+          mockMintAccount.data.extensions = {
+            __option: 'Some',
+            value: [extension],
+          };
+
+          const message = await sendSplTokenBuilder.buildTransactionMessage({
+            from: mockFrom,
+            to: mockTo,
+            mint: mockMint,
+            amount: mockAmount,
+            network: mockNetwork,
+          });
+
+          // Check that the transfer instruction is correct
+          const expectedTransferInstruction = {
+            accounts: expect.any(Array),
+            data: Uint8Array.from([12, 88, 107, 91, 59, 0, 0, 0, 0, 6]),
+            programAddress: address(
+              'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+            ),
+          };
+
+          expect(message).toMatchObject({
+            instructions: expect.arrayContaining([expectedTransferInstruction]),
+          });
+
+          // Check that the transfer instruction contains the correct amount
+          const expectedAmountLamports = 995847000n;
+
+          const parsedTransferInstruction = parseInstruction(
+            expectedTransferInstruction,
+          );
+
+          expect(parsedTransferInstruction).toMatchObject({
+            type: 'TransferChecked',
+            parsed: expect.objectContaining({
+              data: expect.objectContaining({
+                amount: expectedAmountLamports,
+                decimals: 6,
+                discriminator: 12,
+              }),
+            }),
           });
         });
       });
     });
   });
-
-  //   describe('getTokenAccount', () => {
-  //     const mockMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU' as Address;
-  //     const mockNetwork = Network.Localnet;
-
-  //     it('returns token account when it exists', async () => {
-  //       const mockTokenAccount = {
-  //         exists: true,
-  //         address: mockMint,
-  //         data: { decimals: 6 },
-  //       } as unknown as MaybeAccount<any>;
-
-  //       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
-  //         // Mock the minimum required RPC methods
-  //         getAccountInfo: jest.fn(),
-  //       } as unknown as Rpc<SolanaRpcApi>);
-
-  //       // Mock the web3.js fetchJsonParsedAccount function
-  //       const fetchJsonParsedAccountSpy = jest.spyOn(
-  //         require('@solana/kit'),
-  //         'fetchJsonParsedAccount',
-  //       );
-  //       fetchJsonParsedAccountSpy.mockResolvedValue(mockTokenAccount);
-
-  //       const result = await sendSplTokenBuilder.getTokenAccount({
-  //         mint: mockMint,
-  //         network: mockNetwork,
-  //       });
-
-  //       expect(result).toStrictEqual(mockTokenAccount);
-  //       expect(mockConnection.getRpc).toHaveBeenCalledWith(mockNetwork);
-  //       expect(fetchJsonParsedAccountSpy).toHaveBeenCalled();
-  //     });
-
-  //     it('returns non-existing account when token account does not exist', async () => {
-  //       const mockNonExistingAccount = {
-  //         exists: false,
-  //       } as unknown as MaybeAccount<any>;
-
-  //       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
-  //         getAccountInfo: jest.fn(),
-  //       } as unknown as Rpc<SolanaRpcApi>);
-
-  //       const fetchJsonParsedAccountSpy = jest.spyOn(
-  //         require('@solana/kit'),
-  //         'fetchJsonParsedAccount',
-  //       );
-  //       fetchJsonParsedAccountSpy.mockResolvedValue(mockNonExistingAccount);
-
-  //       const result = await sendSplTokenBuilder.getTokenAccount({
-  //         mint: mockMint,
-  //         network: mockNetwork,
-  //       });
-
-  //       expect(result).toStrictEqual(mockNonExistingAccount);
-  //       expect(mockConnection.getRpc).toHaveBeenCalledWith(mockNetwork);
-  //       expect(fetchJsonParsedAccountSpy).toHaveBeenCalled();
-  //     });
-  //   });
 
   describe('getDecimals', () => {
     it('returns decimals from token account', () => {
