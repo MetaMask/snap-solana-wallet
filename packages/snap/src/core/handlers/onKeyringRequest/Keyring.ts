@@ -220,11 +220,11 @@ export class SolanaKeyring implements Keyring {
       [key: string]: Json | undefined;
     } & MetaMaskOptions,
   ): Promise<KeyringAccount> {
-    await startTrace(this.#traceName);
-
     const id = globalThis.crypto.randomUUID();
 
     try {
+      await startTrace(this.#traceName);
+
       const accounts = await this.listAccounts();
 
       const entropySource =
