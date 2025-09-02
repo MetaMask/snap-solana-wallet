@@ -40,6 +40,7 @@ export const getSelectedTokenMetadata = (context: SendContext) => {
 export const getSelectedTokenPrice = (
   context: SendContext,
 ): number | undefined => {
+  console.log('🌺🌺🌺getSelectedTokenPrice', context);
   const { tokenCaipId, tokenPrices } = context;
   return tokenPrices?.[tokenCaipId]?.price;
 };

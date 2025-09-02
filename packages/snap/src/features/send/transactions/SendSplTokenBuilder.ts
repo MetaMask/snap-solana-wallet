@@ -8,12 +8,18 @@ import {
   getCreateAssociatedTokenIdempotentInstruction,
   getTransferCheckedInstruction,
 } from '@solana-program/token';
+import type { Mint } from '@solana-program/token-2022';
+import {
+  amountToUiAmountForInterestBearingMintWithoutSimulation,
+  fetchMint,
+} from '@solana-program/token-2022';
 import type { CompilableTransactionMessage } from '@solana/kit';
 import {
   appendTransactionMessageInstructions,
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
   fetchJsonParsedAccount,
+  isSome,
   pipe,
   prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
@@ -23,8 +29,8 @@ import {
   type MaybeAccount,
   type MaybeEncodedAccount,
 } from '@solana/kit';
+import BigNumber from 'bignumber.js';
 
-import { type Network } from '../../../core/constants/solana';
 import type { SolanaConnection } from '../../../core/services/connection';
 import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
 import { deriveSolanaKeypair } from '../../../core/utils/deriveSolanaKeypair';
@@ -67,18 +73,29 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
     this.#logger.log('Build transfer SPL token transaction message');
 
     const { from, to, mint, amount, network } = params;
-
     assert(mint, 'Mint is required');
 
-    const splTokenTokenAccount = await this.getTokenAccount<MaybeHasDecimals>({
-      mint,
-      network,
-    });
+    const rpc = this.#connection.getRpc(network);
+
+    const [mintAccount, splTokenTokenAccount] = await Promise.all([
+      fetchMint(rpc, mint),
+      fetchJsonParsedAccount<MaybeHasDecimals>(rpc, mint),
+    ]);
+
     SendSplTokenBuilder.assertAccountExists(splTokenTokenAccount);
 
     const tokenProgram = splTokenTokenAccount.programAddress;
     const decimals = this.getDecimals(splTokenTokenAccount);
-    const amountInTokenUnits = toTokenUnits(amount, decimals);
+
+    /**
+     * The user inputs the amount thinking in uiAmount terms,
+     * so if the token uses a multiplier, we need to convert that uiAmount to the raw amount
+     */
+    const multiplier = this.#extractMultiplier(mintAccount);
+    const rawAmount = BigNumber(amount.toString())
+      .dividedBy(multiplier)
+      .toNumber();
+    const amountInTokenUnits = toTokenUnits(rawAmount, decimals);
 
     const latestBlockhash =
       await this.#transactionHelper.getLatestBlockhash(network);
@@ -177,28 +194,6 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
   }
 
   /**
-   * Get the token account for a given mint and network.
-   * @param params - The parameters object containing mint and network.
-   * @param params.mint - The mint address.
-   * @param params.network - The network.
-   * @returns The token account. Handle with care, it might:
-   * - not exist (exists: false).
-   * - be encoded (data instanceof Uint8Array).
-   */
-  async getTokenAccount<TData extends Uint8Array | object>({
-    mint,
-    network,
-  }: {
-    mint: Address;
-    network: Network;
-  }): Promise<MaybeAccount<TData> | MaybeEncodedAccount> {
-    const rpc = this.#connection.getRpc(network);
-    const tokenAccount = await fetchJsonParsedAccount<TData>(rpc, mint);
-
-    return tokenAccount;
-  }
-
-  /**
    * Get the decimals of a given token account.
    * @param tokenAccount - The token account.
    * @returns The decimals.
@@ -286,6 +281,81 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
   getComputeUnitPriceMicroLamportsPerComputeUnit(): bigint {
     return this.#computeUnitPriceMicroLamportsPerComputeUnit;
+  }
+
+  /**
+   * Extracts the multiplier from a mint account, accounting for special extensions such as
+   * interest bearing or scaled UI amount mints. If no extension is present, returns 1.
+   *
+   * This is used for cosmetic balance calculations (e.g., yield, dividends, splits) and does not
+   * affect the token program's internal transfer logic.
+   *
+   * Adapted from @solana-labs token-2022 implementation.
+   * @see https://github.com/solana-program/token-2022/blob/rust-legacy%40v0.17.0/clients/js/src/amountToUiAmount.ts#L261
+   * @param mintAccount - The mint account to extract the multiplier from.
+   * @returns The multiplier as a number.
+   */
+  #extractMultiplier(mintAccount: Account<Mint, any>): number {
+    const { extensions, decimals } = mintAccount.data;
+    // assert(decimals, 'Decimals not found for mint account');
+
+    // Check for interest bearing mint extension
+    const interestBearingMintConfigState: any =
+      isSome(extensions) &&
+      extensions.value.find(
+        (item: any) => item.__kind === 'InterestBearingConfig',
+      );
+
+    // Check for scaled UI amount extension
+    const scaledUiAmountConfig: any =
+      isSome(extensions) &&
+      extensions.value.find(
+        (item: any) => item.__kind === 'ScaledUiAmountConfig',
+      );
+
+    // If no special extension, default to the neutral value
+    if (!interestBearingMintConfigState && !scaledUiAmountConfig) {
+      const multiplier = 1;
+      return multiplier;
+    }
+
+    // Get timestamp if needed for special mint types
+    const timestamp = Date.now() / 1000;
+
+    // Handle interest bearing mint
+    if (interestBearingMintConfigState) {
+      // This method from the Solana program token-2022 library calculates the UI amount based on the passed amount.
+      // Passing an amount of 1n will return an uiAmount equal to the multiplier.
+      const uiAmount = amountToUiAmountForInterestBearingMintWithoutSimulation(
+        1n,
+        decimals,
+        Number(timestamp),
+        Number(interestBearingMintConfigState.lastUpdateTimestamp),
+        Number(interestBearingMintConfigState.initializationTimestamp),
+        interestBearingMintConfigState.preUpdateAverageRate,
+        interestBearingMintConfigState.currentRate,
+      );
+      const multiplier = BigNumber(uiAmount)
+        .multipliedBy(10 ** decimals)
+        .toNumber();
+      return multiplier;
+    }
+
+    // At this point, we know it must be a scaled UI amount mint
+    if (scaledUiAmountConfig) {
+      // Use new multiplier if it's effective
+      const shouldUseNewMultiplier =
+        timestamp >= scaledUiAmountConfig.newMultiplierEffectiveTimestamp;
+
+      const multiplier = shouldUseNewMultiplier
+        ? scaledUiAmountConfig.newMultiplier
+        : scaledUiAmountConfig.multiplier;
+
+      return multiplier;
+    }
+
+    // This should never happen due to the conditions above
+    throw new Error('Unknown mint extension type');
   }
 }
 

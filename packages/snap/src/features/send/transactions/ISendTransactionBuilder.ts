@@ -7,6 +7,7 @@ import type { SolanaKeyringAccount } from '../../../entities';
 export type BuildSendTransactionParams = {
   from: SolanaKeyringAccount;
   to: Address;
+  /** From the user's point of view, this is the uiAmount! Need to divide this by the multiplier if any to get the raw amount */
   amount: string | number | bigint | BigNumber;
   network: Network;
   mint?: Address;
