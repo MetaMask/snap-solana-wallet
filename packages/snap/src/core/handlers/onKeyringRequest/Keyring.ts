@@ -53,7 +53,11 @@ import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
-import { listEntropySources } from '../../utils/interface';
+import {
+  endTrace,
+  listEntropySources,
+  startTrace,
+} from '../../utils/interface';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import {
   DeleteAccountStruct,
@@ -87,6 +91,8 @@ export class SolanaKeyring implements Keyring {
   readonly #keyringAccountMonitor: KeyringAccountMonitor;
 
   readonly #nameResolutionService: NameResolutionService;
+
+  readonly #traceName: string = 'Create Solana Account';
 
   constructor({
     state,
@@ -214,6 +220,8 @@ export class SolanaKeyring implements Keyring {
       [key: string]: Json | undefined;
     } & MetaMaskOptions,
   ): Promise<KeyringAccount> {
+    await startTrace(this.#traceName);
+
     const id = globalThis.crypto.randomUUID();
 
     try {
@@ -347,6 +355,8 @@ export class SolanaKeyring implements Keyring {
           },
         },
       });
+
+      await endTrace(this.#traceName);
 
       return keyringAccount;
     } catch (error: any) {
