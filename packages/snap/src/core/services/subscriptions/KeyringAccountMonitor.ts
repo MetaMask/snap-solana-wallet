@@ -390,7 +390,7 @@ export class KeyringAccountMonitor {
      *
      * So this needs to be removed once Infura fixes their programSubscribe notification.
      */
-    const uiAmount = TokenHelper.amountToUiAmountForMintWithoutSimulation(
+    const uiAmount = TokenHelper.amountToUiAmountForMint(
       mintAccount,
       lamports(BigInt(amount)),
     ).toString();

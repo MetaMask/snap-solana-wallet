@@ -123,11 +123,10 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
      * The user inputs the amount thinking in uiAmount terms,
      * so if the token uses a multiplier, we need to convert that uiAmount to the raw amount
      */
-    const rawAmountInLamports =
-      TokenHelper.uiAmountToAmountForMintWithoutSimulation(
-        mintAccount,
-        amount.toString(),
-      );
+    const rawAmountInLamports = TokenHelper.uiAmountToAmountForMint(
+      mintAccount,
+      amount.toString(),
+    );
 
     const latestBlockhash =
       await this.#transactionHelper.getLatestBlockhash(network);

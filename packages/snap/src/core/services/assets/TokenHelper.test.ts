@@ -25,10 +25,7 @@ describe('TokenHelper', () => {
     const mintAccount = createMockMintAccount();
 
     it('returns the uiAmount in lamports', () => {
-      const result = TokenHelper.uiAmountToAmountForMintWithoutSimulation(
-        mintAccount,
-        '1000',
-      );
+      const result = TokenHelper.uiAmountToAmountForMint(mintAccount, '1000');
       expect(result).toBe(lamports(1000n * 10n ** 6n));
     });
   });
@@ -61,7 +58,7 @@ describe('TokenHelper', () => {
             value: [extension],
           };
 
-          const amount = TokenHelper.uiAmountToAmountForMintWithoutSimulation(
+          const amount = TokenHelper.uiAmountToAmountForMint(
             mockMintAccount,
             '1000',
           );
@@ -86,7 +83,7 @@ describe('TokenHelper', () => {
             value: [extension],
           };
 
-          const amount = TokenHelper.uiAmountToAmountForMintWithoutSimulation(
+          const amount = TokenHelper.uiAmountToAmountForMint(
             mockMintAccount,
             '1000',
           );
@@ -123,7 +120,7 @@ describe('TokenHelper', () => {
           value: [extension],
         };
 
-        const amount = TokenHelper.uiAmountToAmountForMintWithoutSimulation(
+        const amount = TokenHelper.uiAmountToAmountForMint(
           mockMintAccount,
           '1000',
         );

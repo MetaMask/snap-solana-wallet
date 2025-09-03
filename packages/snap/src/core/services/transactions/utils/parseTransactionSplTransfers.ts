@@ -94,7 +94,7 @@ export async function parseTransactionSplTransfers({
     // const rpc = connection.getRpc(scope);
     const mintAccount = await connection.fetchMint(mint, scope);
     console.log('🔮🔮🔮 mintAccount', mintAccount);
-    const uiAmount = TokenHelper.amountToUiAmountForMintWithoutSimulation(
+    const uiAmount = TokenHelper.amountToUiAmountForMint(
       mintAccount,
       lamports(BigInt(rawAmount)),
     ).toString();
