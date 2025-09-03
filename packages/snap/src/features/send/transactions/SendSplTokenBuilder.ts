@@ -9,11 +9,7 @@ import {
   getTransferCheckedInstruction,
 } from '@solana-program/token';
 import type { Mint } from '@solana-program/token-2022';
-import {
-  fetchMint,
-  uiAmountToAmountForInterestBearingMintWithoutSimulation,
-  uiAmountToAmountForScaledUiAmountMintWithoutSimulation,
-} from '@solana-program/token-2022';
+import { fetchMint } from '@solana-program/token-2022';
 import type {
   CompilableTransactionMessage,
   GetAccountInfoApi,
@@ -29,17 +25,16 @@ import {
   prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
-  unwrapOption,
   type Account,
   type Address,
   type MaybeAccount,
   type MaybeEncodedAccount,
 } from '@solana/kit';
-import BigNumber from 'bignumber.js';
 
 import type { ICache } from '../../../core/caching/ICache';
 import { useCache } from '../../../core/caching/useCache';
 import type { Serializable } from '../../../core/serialization/types';
+import { TokenHelper } from '../../../core/services/assets/TokenHelper';
 import type { SolanaConnection } from '../../../core/services/connection';
 import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
 import { deriveSolanaKeypair } from '../../../core/utils/deriveSolanaKeypair';
@@ -128,10 +123,11 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
      * The user inputs the amount thinking in uiAmount terms,
      * so if the token uses a multiplier, we need to convert that uiAmount to the raw amount
      */
-    const rawAmountInLamports = this.#uiAmountToAmountForMintWithoutSimulation(
-      mintAccount,
-      amount.toString(),
-    );
+    const rawAmountInLamports =
+      TokenHelper.uiAmountToAmountForMintWithoutSimulation(
+        mintAccount,
+        amount.toString(),
+      );
 
     const latestBlockhash =
       await this.#transactionHelper.getLatestBlockhash(network);
@@ -317,76 +313,6 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
   getComputeUnitPriceMicroLamportsPerComputeUnit(): bigint {
     return this.#computeUnitPriceMicroLamportsPerComputeUnit;
-  }
-
-  /**
-   * Some tokens use extensions that introduce a multiplier to the amount. This method extracts the multiplier from a mint account, accounting for special extensions such as
-   * interest bearing or scaled UI amount mints. If no extension is present, returns 1.
-   *
-   * This is used for cosmetic balance calculations (e.g., yield, dividends, splits) and does not
-   * affect the token program's internal transfer logic.
-   *
-   * Adapted from @solana-labs token-2022 implementation.
-   * @see https://github.com/solana-program/token-2022/blob/rust-legacy%40v0.17.0/clients/js/src/amountToUiAmount.ts#L329
-   * @param mintAccount - The mint account to extract the multiplier from.
-   * @param uiAmount - The UI amount to convert to the raw amount.
-   * @returns The multiplier as a number.
-   */
-  #uiAmountToAmountForMintWithoutSimulation(
-    mintAccount: Account<Mint, any>,
-    uiAmount: string,
-  ): bigint {
-    const extensions = unwrapOption(mintAccount.data.extensions);
-    const { decimals } = mintAccount.data;
-
-    // Check for interest bearing mint extension
-    const interestBearingMintConfigState: any = extensions?.find(
-      (item: any) => item.__kind === 'InterestBearingConfig',
-    );
-
-    // Check for scaled UI amount extension
-    const scaledUiAmountConfig: any = extensions?.find(
-      (item: any) => item.__kind === 'ScaledUiAmountConfig',
-    );
-
-    // If no special extension, default to the neutral value
-    if (!interestBearingMintConfigState && !scaledUiAmountConfig) {
-      const uiAmountScaled = BigNumber(uiAmount).multipliedBy(10 ** decimals);
-      return BigInt(uiAmountScaled.toString());
-    }
-
-    // Get timestamp if needed for special mint types
-    const timestamp = Date.now() / 1000;
-
-    // Handle interest bearing mint
-    if (interestBearingMintConfigState) {
-      return uiAmountToAmountForInterestBearingMintWithoutSimulation(
-        uiAmount,
-        decimals,
-        Number(timestamp),
-        Number(interestBearingMintConfigState.lastUpdateTimestamp),
-        Number(interestBearingMintConfigState.initializationTimestamp),
-        interestBearingMintConfigState.preUpdateAverageRate,
-        interestBearingMintConfigState.currentRate,
-      );
-    }
-
-    // At this point, we know it must be a scaled UI amount mint
-    if (scaledUiAmountConfig) {
-      let { multiplier } = scaledUiAmountConfig;
-      // Use new multiplier if it's effective
-      if (timestamp >= scaledUiAmountConfig.newMultiplierEffectiveTimestamp) {
-        multiplier = scaledUiAmountConfig.newMultiplier;
-      }
-      return uiAmountToAmountForScaledUiAmountMintWithoutSimulation(
-        uiAmount,
-        decimals,
-        multiplier,
-      );
-    }
-
-    // This should never happen due to the conditions above
-    throw new Error('Unknown mint extension type');
   }
 }
 
