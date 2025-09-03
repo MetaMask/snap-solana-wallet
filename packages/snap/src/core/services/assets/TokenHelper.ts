@@ -9,24 +9,31 @@ import BigNumber from 'bignumber.js';
 
 export class TokenHelper {
   /**
-   * Some tokens use extensions that introduce a multiplier to the amount. This method extracts the multiplier from a mint account, accounting for special extensions such as
-   * interest bearing or scaled UI amount mints. If no extension is present, returns 1.
+   * Converts a UI amount to the raw amount in lamports for a given mint, accounting for
+   * any special mint extensions such as interest bearing or scaled UI amount mints.
    *
-   * This is used for cosmetic balance calculations (e.g., yield, dividends, splits) and does not
-   * affect the token program's internal transfer logic.
+   * This is used for accurate cosmetic balance calculations (e.g., yield, dividends, splits)
+   * and does not affect the token program's internal transfer logic.
    *
-   * Adapted from @solana-labs token-2022 implementation.
+   * If no extension is present, the conversion is a simple decimal shift.
+   *
+   * Based on the implementation from @solana-labs token-2022.
    * @see https://github.com/solana-program/token-2022/blob/rust-legacy%40v0.17.0/clients/js/src/amountToUiAmount.ts#L329
-   * @param mintAccount - The mint account to extract the multiplier from.
-   * @param uiAmount - The UI amount to convert to the amount in lamports.
-   * @returns The amount in lamports.
+   * @param mintAccount - The mint account containing extension and decimal information.
+   * @param uiAmount - The UI amount to convert.
+   * @returns The amount in lamports as a Lamports type.
    */
   static uiAmountToAmountForMintWithoutSimulation(
     mintAccount: Account<Mint, Address>,
     uiAmount: string,
   ): Lamports {
-    const extensions = unwrapOption(mintAccount.data.extensions);
-    const { decimals } = mintAccount.data;
+    console.log(
+      '🔮🔮🔮 uiAmountToAmountForMintWithoutSimulation',
+      mintAccount,
+      uiAmount,
+    );
+    const extensions = unwrapOption(mintAccount.data?.extensions);
+    const { decimals } = mintAccount.data ?? {};
 
     // Check for interest bearing mint extension
     const interestBearingMintConfigState: any = extensions?.find(
@@ -85,5 +92,28 @@ export class TokenHelper {
 
     // This should never happen due to the conditions above
     throw new Error('Unknown mint extension type');
+  }
+
+  /**
+   * Reverse operation of {@link uiAmountToAmountForMintWithoutSimulation}.
+   * Instead of re-impleting the logic, we use a mathematical trick to find the multiplier.
+   * @param mintAccount - The mint account containing extension and decimal information.
+   * @param amount - The amount in lamports to convert.
+   * @returns The UI amount as a string.
+   */
+  static amountToUiAmountForMintWithoutSimulation(
+    mintAccount: Account<Mint, Address>,
+    amount: Lamports,
+  ): string {
+    const fakeUiAmount = 1000000000n;
+
+    const multiplier = BigNumber(
+      TokenHelper.uiAmountToAmountForMintWithoutSimulation(
+        mintAccount,
+        fakeUiAmount.toString(),
+      ).toString(),
+    ).dividedBy(fakeUiAmount.toString());
+
+    return BigNumber(amount.toString()).dividedBy(multiplier).toString();
   }
 }

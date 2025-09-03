@@ -292,7 +292,7 @@ export class TransactionsService {
       return null;
     }
 
-    const mappedTransaction = mapRpcTransaction({
+    const mappedTransaction = await mapRpcTransaction({
       transactionData,
       account,
       scope,

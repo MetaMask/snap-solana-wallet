@@ -3,7 +3,7 @@ import { assert, number, string } from '@metamask/superstruct';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
 import type { Base58EncodedBytes } from '@solana/kit';
-import { address as asAddress } from '@solana/kit';
+import { address as asAddress, lamports } from '@solana/kit';
 import { get } from 'lodash';
 
 import type { SubscriptionService } from '.';
@@ -22,7 +22,9 @@ import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService } from '../assets/AssetsService';
+import { TokenHelper } from '../assets/TokenHelper';
 import type { ConfigProvider } from '../config';
+import type { SolanaConnection } from '../connection';
 import type { TransactionsService } from '../transactions';
 
 /**
@@ -49,6 +51,8 @@ export class KeyringAccountMonitor {
   readonly #configProvider: ConfigProvider;
 
   readonly #eventEmitter: EventEmitter;
+
+  readonly #connection: SolanaConnection;
 
   readonly #logger: ILogger;
 
@@ -79,6 +83,7 @@ export class KeyringAccountMonitor {
     accountsSynchronizer: AccountsSynchronizer,
     configProvider: ConfigProvider,
     eventEmitter: EventEmitter,
+    connection: SolanaConnection,
     logger: ILogger,
   ) {
     this.#subscriptionService = subscriptionService;
@@ -88,6 +93,7 @@ export class KeyringAccountMonitor {
     this.#accountsSynchronizer = accountsSynchronizer;
     this.#configProvider = configProvider;
     this.#eventEmitter = eventEmitter;
+    this.#connection = connection;
     this.#logger = createPrefixedLogger(logger, '[🗝️ KeyringAccountMonitor]');
 
     this.#bindHandlers();
@@ -312,8 +318,8 @@ export class KeyringAccountMonitor {
     }
 
     // Handle the notification with clean data
-    const { lamports } = notification.params.result.value;
-    assert(lamports, number());
+    const { lamports: accountLamports } = notification.params.result.value;
+    assert(accountLamports, number());
 
     const decimals = 9;
 
@@ -325,8 +331,8 @@ export class KeyringAccountMonitor {
         address,
         symbol: 'SOL',
         decimals,
-        rawAmount: lamports.toString(),
-        uiAmount: fromTokenUnits(lamports, decimals),
+        rawAmount: accountLamports.toString(),
+        uiAmount: fromTokenUnits(accountLamports, decimals),
       }),
       this.#saveCausingTransaction(keyringAccount, network, address),
     ]);
@@ -375,6 +381,20 @@ export class KeyringAccountMonitor {
       throw new Error(`No keyring account found with address: ${owner}`);
     }
 
+    const mintAccount = await this.#connection.fetchMint(mint, network);
+
+    /**
+     * WARNING: This is to compensate for the fact that the notification returned by Infura's programSubscribe
+     * includes a uiAmount/uiAmountString that does not take into account the mint's multiplier (if any).
+     * In theory, it should; because the regular Solana RPC (wss://api.mainnet-beta.solana.com) does.
+     *
+     * So this needs to be removed once Infura fixes their programSubscribe notification.
+     */
+    const uiAmount = TokenHelper.amountToUiAmountForMintWithoutSimulation(
+      mintAccount,
+      lamports(BigInt(amount)),
+    ).toString();
+
     await Promise.all([
       // Update the balance of the token asset
       this.#assetsService.save({
@@ -386,7 +406,7 @@ export class KeyringAccountMonitor {
         symbol: '',
         decimals,
         rawAmount: amount,
-        uiAmount: uiAmountString,
+        uiAmount,
       }),
       // Fetch and save the transaction that caused the token asset change.
       this.#saveCausingTransaction(keyringAccount, network, pubkey),

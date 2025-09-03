@@ -1,6 +1,6 @@
 import type { Transaction } from '@metamask/keyring-api';
 import type { IInstruction } from '@solana/kit';
-import { address as asAddress, getBase58Codec } from '@solana/kit';
+import { address as asAddress, getBase58Codec, lamports } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 import { get } from 'lodash';
 
@@ -9,12 +9,14 @@ import type {
   InstructionParseSuccess,
 } from '../../../../entities';
 import { parseInstruction } from '../../../../entities';
+import { connection } from '../../../../snapContext';
 import { type Network } from '../../../constants/solana';
 import type {
   SolanaInstruction,
   SolanaTransaction,
 } from '../../../types/solana';
 import { tokenAddressToCaip19 } from '../../../utils/tokenAddressToCaip19';
+import { TokenHelper } from '../../assets/TokenHelper';
 
 /**
  * Parses SPL token transfers from a transaction data object.
@@ -23,30 +25,30 @@ import { tokenAddressToCaip19 } from '../../../utils/tokenAddressToCaip19';
  * @param options0.transactionData - The raw transaction data containing token balance changes.
  * @returns Transaction transfer details.
  */
-export function parseTransactionSplTransfers({
+export async function parseTransactionSplTransfers({
   scope,
   transactionData,
 }: {
   scope: Network;
   transactionData: SolanaTransaction;
-}): {
+}): Promise<{
   from: Transaction['from'];
   to: Transaction['to'];
-} {
+}> {
   const from: Transaction['from'] = [];
   const to: Transaction['to'] = [];
 
   const preBalances = new Map(
     transactionData.meta?.preTokenBalances?.map((balance) => [
       balance.accountIndex,
-      new BigNumber(balance.uiTokenAmount.uiAmountString), // Note here we use the uiAmountString to take into account the multiplier if any
+      new BigNumber(balance.uiTokenAmount.amount),
     ]) ?? [],
   );
 
   const postBalances = new Map(
     transactionData.meta?.postTokenBalances?.map((balance) => [
       balance.accountIndex,
-      new BigNumber(balance.uiTokenAmount.uiAmountString), // Note here we use the uiAmountString to take into account the multiplier if any
+      new BigNumber(balance.uiTokenAmount.amount),
     ]) ?? [],
   );
 
@@ -86,7 +88,17 @@ export function parseTransactionSplTransfers({
 
     const caip19Id = tokenAddressToCaip19(scope, mint);
 
-    const sentUiAmount = balanceDiff.absoluteValue().toString();
+    // Convert the raw amount to the ui amount, taking into account the multiplier if any
+    const rawAmount = balanceDiff.absoluteValue().toString();
+    console.log('🔮🔮🔮 rawAmount', rawAmount);
+    // const rpc = connection.getRpc(scope);
+    const mintAccount = await connection.fetchMint(mint, scope);
+    console.log('🔮🔮🔮 mintAccount', mintAccount);
+    const uiAmount = TokenHelper.amountToUiAmountForMintWithoutSimulation(
+      mintAccount,
+      lamports(BigInt(rawAmount)),
+    ).toString();
+    console.log('🔮🔮🔮 uiAmount', uiAmount);
 
     if (balanceDiff.isNegative()) {
       from.push({
@@ -95,7 +107,7 @@ export function parseTransactionSplTransfers({
           fungible: true,
           type: caip19Id,
           unit: '', // This will get overwritten by the token metadata when we fetch it
-          amount: sentUiAmount,
+          amount: uiAmount,
         },
       });
     }
@@ -107,7 +119,7 @@ export function parseTransactionSplTransfers({
           fungible: true,
           type: caip19Id,
           unit: '', // This will get overwritten by the token metadata when we fetch it
-          amount: sentUiAmount,
+          amount: uiAmount,
         },
       });
     }

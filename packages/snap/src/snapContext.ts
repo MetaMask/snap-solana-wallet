@@ -88,7 +88,7 @@ const inMemoryCache = new InMemoryCache(noOpLogger);
 
 const analyticsService = new AnalyticsService(logger);
 
-const connection = new SolanaConnection(configProvider);
+const connection = new SolanaConnection(configProvider, inMemoryCache);
 
 const webSocketConnectionRepository = new WebSocketConnectionRepository(
   configProvider,
@@ -194,6 +194,7 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
   accountsSynchronizer,
   configProvider,
   eventEmitter,
+  connection,
   logger,
 );
 

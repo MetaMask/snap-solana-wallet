@@ -21,7 +21,7 @@ import { parseTransactionSplTransfers } from './parseTransactionSplTransfers';
  * @param params.scope - The network scope (e.g., Mainnet, Devnet).
  * @returns The mapped transaction data.
  */
-export function mapRpcTransaction({
+export async function mapRpcTransaction({
   transactionData,
   account,
   scope,
@@ -29,7 +29,7 @@ export function mapRpcTransaction({
   transactionData: SolanaTransaction;
   account: SolanaKeyringAccount;
   scope: Network;
-}): Transaction | null {
+}): Promise<Transaction | null> {
   try {
     const { blockTime } = transactionData;
     const { id: accountId, address } = account;
@@ -66,7 +66,7 @@ export function mapRpcTransaction({
     nativeFrom = nativeTransfers.from;
     nativeTo = nativeTransfers.to;
 
-    const { from: splFrom, to: splTo } = parseTransactionSplTransfers({
+    const { from: splFrom, to: splTo } = await parseTransactionSplTransfers({
       scope,
       transactionData,
     });
