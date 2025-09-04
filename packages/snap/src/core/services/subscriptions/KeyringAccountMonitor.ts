@@ -24,6 +24,7 @@ import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService } from '../assets/AssetsService';
 import type { ConfigProvider } from '../config';
 import type { TransactionsService } from '../transactions';
+import { isSpam } from '../transactions/utils/isSpam';
 
 /**
  * Business logic for monitoring keyring accounts via WebSockets:
@@ -428,6 +429,12 @@ export class KeyringAccountMonitor {
 
     if (!transaction) {
       throw new Error('No transaction found');
+    }
+
+    // Ignore spam transactions
+    if (isSpam(transaction, account)) {
+      this.#logger.info(`Transaction ${signature} is spam. Skipping.`);
+      return;
     }
 
     // Note that the TransactionService will avoid saving duplicates in the state.
