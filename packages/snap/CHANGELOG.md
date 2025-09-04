@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
-- NWNT - update analytics properties ([#511](https://github.com/MetaMask/snap-solana-wallet/pull/511))
-- feat: instrument create account ([#510](https://github.com/MetaMask/snap-solana-wallet/pull/510))
+- Update analytics properties ([#511](https://github.com/MetaMask/snap-solana-wallet/pull/511))
+- Instrument create account ([#510](https://github.com/MetaMask/snap-solana-wallet/pull/510))
 
 ## [2.3.4]
 
