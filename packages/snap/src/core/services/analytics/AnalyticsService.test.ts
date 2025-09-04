@@ -59,7 +59,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap transaction added',
               origin: mockOrigin,
-              account_id: mockAccount.id,
               account_type: mockAccount.type,
               chain_id_caip: mockScope,
             },
@@ -89,7 +88,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap transaction approved',
               origin: mockOrigin,
-              account_id: mockAccount.id,
               account_type: mockAccount.type,
               chain_id_caip: mockScope,
             },
@@ -120,7 +118,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap transaction submitted',
               origin: mockOrigin,
-              account_id: mockAccount.id,
               account_type: mockAccount.type,
               chain_id_caip: mockScope,
             },
@@ -199,7 +196,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap transaction finalized',
               origin: mockOrigin,
-              account_id: mockAccount.id,
               account_type: mockAccount.type,
               chain_id_caip: mockTransaction.chain,
               transaction_status: mockTransaction.status,
@@ -231,7 +227,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap transaction rejected',
               origin: mockOrigin,
-              account_id: mockAccount.id,
               account_type: mockAccount.type,
               chain_id_caip: mockScope,
             },
@@ -270,7 +265,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap security alert detected',
               origin: mockOrigin,
-              account_id: mockAccount.id,
               account_type: mockAccount.type,
               chain_id_caip: mockScope,
               security_alert_response: securityAlertResponse,
@@ -309,7 +303,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap security scan completed',
               origin: mockOrigin,
-              account_id: mockAccount.id,
               account_type: mockAccount.type,
               chain_id_caip: mockScope,
               scan_status: scanStatus,
@@ -340,7 +333,6 @@ describe('AnalyticsService', () => {
             properties: {
               message: 'Snap security scan completed',
               origin: mockOrigin,
-              account_id: mockAccount.id,
               account_type: mockAccount.type,
               chain_id_caip: mockScope,
               scan_status: scanStatus,

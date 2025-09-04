@@ -46,7 +46,6 @@ export class AnalyticsService {
       await this.#trackEvent('Transaction Added', {
         message: 'Snap transaction added',
         origin: metadata.origin,
-        account_id: account.id,
         account_type: account.type,
         chain_id_caip: metadata.scope,
       });
@@ -68,7 +67,6 @@ export class AnalyticsService {
       await this.#trackEvent('Transaction Approved', {
         message: 'Snap transaction approved',
         origin: metadata.origin,
-        account_id: account.id,
         account_type: account.type,
         chain_id_caip: metadata.scope,
       });
@@ -91,7 +89,6 @@ export class AnalyticsService {
       await this.#trackEvent('Transaction Submitted', {
         message: 'Snap transaction submitted',
         origin: metadata.origin,
-        account_id: account.id,
         account_type: account.type,
         chain_id_caip: metadata.scope,
       });
@@ -115,7 +112,6 @@ export class AnalyticsService {
       await this.#trackEvent('Transaction Finalized', {
         message: 'Snap transaction finalized',
         origin: metadata.origin,
-        account_id: account.id,
         account_type: account.type,
         chain_id_caip: transaction.chain,
         transaction_status: transaction.status,
@@ -140,7 +136,6 @@ export class AnalyticsService {
       await this.#trackEvent('Transaction Rejected', {
         message: 'Snap transaction rejected',
         origin: metadata.origin,
-        account_id: account.id,
         account_type: account.type,
         chain_id_caip: metadata.scope,
       });
@@ -166,7 +161,6 @@ export class AnalyticsService {
       await this.#trackEvent('Security Alert Detected', {
         message: 'Snap security alert detected',
         origin,
-        account_id: account.id,
         account_type: account.type,
         chain_id_caip: scope,
         security_alert_response: securityAlertResponse,
@@ -198,7 +192,6 @@ export class AnalyticsService {
       await this.#trackEvent('Security Scan Completed', {
         message: 'Snap security scan completed',
         origin,
-        account_id: account.id,
         account_type: account.type,
         chain_id_caip: scope,
         scan_status: scanStatus,
