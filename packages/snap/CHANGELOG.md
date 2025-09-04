@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.6]
 
-### Uncategorized
+### Changed
 
-- chore: remove property account_id ([#513](https://github.com/MetaMask/snap-solana-wallet/pull/513))
+- Remove unnecessary analytics property ([#513](https://github.com/MetaMask/snap-solana-wallet/pull/513))
 
 ## [2.3.5]
 
