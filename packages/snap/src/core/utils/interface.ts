@@ -220,3 +220,42 @@ export async function listEntropySources(): Promise<EntropySource[]> {
     method: 'snap_listEntropySources',
   });
 }
+
+/**
+ * Start a performance trace.
+ *
+ * @param name - The name of the trace.
+ * @returns A promise that resolves to a string.
+ */
+export async function startTrace(name: string) {
+  try {
+    const result = await snap.request({
+      method: 'snap_startTrace',
+      params: {
+        name,
+      },
+    });
+    return result as number;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * End a performance trace.
+ *
+ * @param name - The name of the trace.
+ * @returns A promise that resolves to a string.
+ */
+export async function endTrace(name: string) {
+  try {
+    return await snap.request({
+      method: 'snap_endTrace',
+      params: {
+        name,
+      },
+    });
+  } catch (error) {
+    return null;
+  }
+}
