@@ -157,7 +157,11 @@ const accountsRepository = new AccountsRepository(state);
 const accountsService = new AccountsService(accountsRepository);
 
 const transactionsRepository = new TransactionsRepository(state);
-const transactionMapper = new TransactionMapper(tokenHelper, logger);
+const transactionMapper = new TransactionMapper(
+  tokenHelper,
+  assetsService,
+  logger,
+);
 const transactionsService = new TransactionsService(
   transactionsRepository,
   transactionMapper,
