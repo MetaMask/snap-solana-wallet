@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.5]
+
+### Uncategorized
+
+- NWNT - update analytics properties ([#511](https://github.com/MetaMask/snap-solana-wallet/pull/511))
+- feat: instrument create account ([#510](https://github.com/MetaMask/snap-solana-wallet/pull/510))
+
 ## [2.3.4]
 
 ### Fixed
@@ -865,7 +872,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.4...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.5...HEAD
+[2.3.5]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.4...v2.3.5
 [2.3.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.3...v2.3.4
 [2.3.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.2...v2.3.3
 [2.3.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.1...v2.3.2
