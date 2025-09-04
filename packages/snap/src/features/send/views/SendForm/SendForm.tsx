@@ -73,12 +73,6 @@ export const SendForm = ({
   const balanceUndefinedOrZero =
     tokenBalance === undefined || tokenBalance === '0';
   const selectedTokenPriceUnavailable = selectedTokenPrice === undefined;
-  console.log('🌺🌺🌺selectedTokenPrice', selectedTokenPrice);
-  console.log('🌺🌺🌺tokenPricesFetchStatus', tokenPricesFetchStatus);
-  console.log(
-    '🌺🌺🌺selectedTokenPriceUnavailable',
-    selectedTokenPriceUnavailable,
-  );
   const showTokenPriceMessage =
     tokenPricesFetchStatus === 'error' ||
     (tokenPricesFetchStatus === 'fetched' && selectedTokenPriceUnavailable);

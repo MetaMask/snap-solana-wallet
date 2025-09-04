@@ -71,11 +71,6 @@ export class TokenHelper {
     uiAmount: string,
   ): Lamports {
     try {
-      console.log(
-        '🔮🔮🔮 uiAmountToAmountForMintWithoutSimulation',
-        mintAccount,
-        uiAmount,
-      );
       const extensions = unwrapOption(mintAccount.data?.extensions);
       const { decimals } = mintAccount.data ?? {};
 
