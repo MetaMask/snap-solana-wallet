@@ -1,7 +1,8 @@
 import { assert } from '@metamask/superstruct';
 import { Duration } from '@metamask/utils';
-import { fetchMint, type Mint } from '@solana-program/token-2022';
-import type { Account, AccountInfoBase, Address } from '@solana/kit';
+import type { Mint } from '@solana-program/token-2022';
+import { fetchMint } from '@solana-program/token-2022';
+import type { Account, Address, FetchAccountConfig } from '@solana/kit';
 import {
   address as asAddress,
   createSolanaRpcFromTransport,
@@ -17,9 +18,6 @@ import { NetworkStruct } from '../../validation/structs';
 import type { ConfigProvider } from '../config/ConfigProvider';
 import { createMainTransport } from './transport';
 
-type GetAccountInfoConfig = Parameters<Rpc<SolanaRpcApi>['getAccountInfo']>[1];
-type GetAccountInfoApiResponse<TVariant> = (AccountInfoBase & TVariant) | null;
-
 /**
  * The SolanaConnection class is responsible for managing the connections to the Solana networks.
  */
@@ -29,7 +27,7 @@ export class SolanaConnection {
   readonly #cache: ICache<Serializable>;
 
   readonly #cacheTtlsMilliseconds = {
-    accountInfo: Duration.Minute,
+    fetchMint: Duration.Minute,
   };
 
   /**
@@ -78,20 +76,19 @@ export class SolanaConnection {
   public async fetchMint(
     address: string,
     caip2Id: Network,
-    config?: GetAccountInfoConfig,
+    config?: FetchAccountConfig,
   ): Promise<Account<Mint, Address>> {
     const rpc = this.getRpc(caip2Id);
 
     const fetchCached = useCache<
-      [Rpc<SolanaRpcApi>, Address, GetAccountInfoConfig],
-      Awaited<ReturnType<typeof fetchMint>> & Serializable
+      [Rpc<SolanaRpcApi>, Address, FetchAccountConfig | undefined],
+      Account<Mint, Address> & Serializable
     >(fetchMint as any, this.#cache, {
-      ttlMilliseconds: this.#cacheTtlsMilliseconds.accountInfo,
-      functionName: 'SolanaConnection::fetchJsonParsedAccount',
+      ttlMilliseconds: this.#cacheTtlsMilliseconds.fetchMint,
+      functionName: 'SolanaConnection::fetchMint',
     });
 
-    const mint = await fetchCached(rpc, asAddress(address), config);
-
-    return mint;
+    const mintAccount = await fetchCached(rpc, asAddress(address), config);
+    return mintAccount;
   }
 }

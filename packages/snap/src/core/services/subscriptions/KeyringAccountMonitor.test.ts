@@ -16,7 +16,7 @@ import { KnownCaip19Id, Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
 import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
-import type { AssetsService } from '../assets/AssetsService';
+import type { AssetsService, TokenHelper } from '../assets';
 import type { ConfigProvider } from '../config';
 import type { Config } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
@@ -31,6 +31,7 @@ describe('KeyringAccountMonitor', () => {
   let mockAssetsService: AssetsService;
   let mockTransactionsService: TransactionsService;
   let mockAccountsSynchronizer: AccountsSynchronizer;
+  let mockTokenHelper: TokenHelper;
   let mockConfigProvider: ConfigProvider;
   let mockEventEmitter: EventEmitter;
 
@@ -87,6 +88,11 @@ describe('KeyringAccountMonitor', () => {
       synchronize: jest.fn(),
     } as unknown as AccountsSynchronizer;
 
+    mockTokenHelper = {
+      uiAmountToAmountForMint: jest.fn(),
+      amountToUiAmountForMint: jest.fn(),
+    } as unknown as TokenHelper;
+
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
         activeNetworks: [Network.Mainnet],
@@ -101,6 +107,7 @@ describe('KeyringAccountMonitor', () => {
       mockAssetsService,
       mockTransactionsService,
       mockAccountsSynchronizer,
+      mockTokenHelper,
       mockConfigProvider,
       mockEventEmitter,
       mockLogger,
@@ -425,8 +432,8 @@ describe('KeyringAccountMonitor', () => {
                       tokenAmount: {
                         amount: '123456789',
                         decimals: 6,
-                        uiAmount: 123456789,
-                        uiAmountString: '123456789',
+                        uiAmount: 123.456789,
+                        uiAmountString: '123.456789',
                       },
                     },
                   },
@@ -450,6 +457,12 @@ describe('KeyringAccountMonitor', () => {
         params: [TOKEN_PROGRAM_ADDRESS, { commitment: 'confirmed' as const }],
       } as unknown as Subscription;
 
+      beforeEach(() => {
+        jest
+          .spyOn(mockTokenHelper, 'amountToUiAmountForMint')
+          .mockResolvedValue('123.456789');
+      });
+
       it('saves the new balance of the token asset and the transaction that caused it', async () => {
         await keyringAccountMonitor.monitorKeyringAccount(account);
 
@@ -465,7 +478,7 @@ describe('KeyringAccountMonitor', () => {
           symbol: '',
           decimals: 6,
           rawAmount: '123456789',
-          uiAmount: '123456789',
+          uiAmount: '123.456789',
         });
         expect(mockTransactionsService.save).toHaveBeenCalledWith(
           mockCausingTransaction,

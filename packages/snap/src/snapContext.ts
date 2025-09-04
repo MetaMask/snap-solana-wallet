@@ -18,6 +18,8 @@ import {
   SignatureMonitor,
   SubscriptionRepository,
   SubscriptionService,
+  TokenHelper,
+  TransactionMapper,
   TransactionsRepository,
   TransactionsService,
   WebSocketConnectionRepository,
@@ -72,6 +74,7 @@ export type SnapExecutionContext = {
   nameResolutionService: NameResolutionService;
   accountsService: AccountsService;
   accountsSynchronizer: AccountsSynchronizer;
+  tokenHelper: TokenHelper;
 };
 
 const configProvider = new ConfigProvider();
@@ -112,13 +115,15 @@ const subscriptionService = new SubscriptionService(
   logger,
 );
 
+const tokenHelper = new TokenHelper(connection);
+
 const transactionHelper = new TransactionHelper(connection, logger);
 const sendSolBuilder = new SendSolBuilder(connection, logger);
 const sendSplTokenBuilder = new SendSplTokenBuilder(
+  tokenHelper,
   connection,
   transactionHelper,
   logger,
-  inMemoryCache,
 );
 const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);
 const tokenApiClient = new TokenApiClient(configProvider);
@@ -152,8 +157,10 @@ const accountsRepository = new AccountsRepository(state);
 const accountsService = new AccountsService(accountsRepository);
 
 const transactionsRepository = new TransactionsRepository(state);
+const transactionMapper = new TransactionMapper(tokenHelper, logger);
 const transactionsService = new TransactionsService(
   transactionsRepository,
+  transactionMapper,
   accountsService,
   assetsService,
   connection,
@@ -192,9 +199,9 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
   assetsService,
   transactionsService,
   accountsSynchronizer,
+  tokenHelper,
   configProvider,
   eventEmitter,
-  connection,
   logger,
 );
 
@@ -262,6 +269,7 @@ const snapContext: SnapExecutionContext = {
   nameResolutionService,
   accountsService,
   accountsSynchronizer,
+  tokenHelper,
 };
 
 export {
@@ -284,6 +292,7 @@ export {
   subscriptionRepository,
   subscriptionService,
   tokenApiClient,
+  tokenHelper,
   tokenMetadataService,
   tokenPricesService,
   transactionHelper,

@@ -4,28 +4,44 @@
 /* eslint-disable no-restricted-globals */
 import type { Mint } from '@solana-program/token-2022';
 import type { Account, Address } from '@solana/kit';
-import { address, lamports } from '@solana/kit';
+import { lamports } from '@solana/kit';
+import { cloneDeep } from 'lodash';
 
+import { Network } from '../../constants/solana';
+import type { SolanaConnection } from '../connection/SolanaConnection';
+import { createMockConnection } from '../mocks/mockConnection';
+import { MOCK_MINT_ACCOUNT } from '../mocks/mockSolanaRpcResponses';
 import { TokenHelper } from './TokenHelper';
 
 describe('TokenHelper', () => {
-  const mockMint = address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+  let tokenHelper: TokenHelper;
+  let mockConnection: SolanaConnection;
 
-  const createMockMintAccount: () => Account<Mint, Address> = () =>
-    ({
-      data: {
-        decimals: 6,
-        extensions: {
-          __option: 'None',
-        },
-      },
-    }) as unknown as Account<Mint, Address>;
+  const createMockMintAccount = (): Account<Mint, Address> =>
+    cloneDeep(MOCK_MINT_ACCOUNT);
+
+  const mockMint = MOCK_MINT_ACCOUNT.address;
+
+  beforeEach(() => {
+    mockConnection = createMockConnection();
+    tokenHelper = new TokenHelper(mockConnection);
+  });
 
   describe('when the mint has no multiplier', () => {
-    const mintAccount = createMockMintAccount();
+    const mockMintAccountNoMultiplier = createMockMintAccount();
 
-    it('returns the uiAmount in lamports', () => {
-      const result = TokenHelper.uiAmountToAmountForMint(mintAccount, '1000');
+    beforeEach(() => {
+      jest
+        .spyOn(mockConnection, 'fetchMint')
+        .mockResolvedValue(mockMintAccountNoMultiplier);
+    });
+
+    it('returns the uiAmount in lamports', async () => {
+      const result = await tokenHelper.uiAmountToAmountForMint(
+        mockMint,
+        Network.Mainnet,
+        '1000',
+      );
       expect(result).toBe(lamports(1000n * 10n ** 6n));
     });
   });
@@ -58,8 +74,13 @@ describe('TokenHelper', () => {
             value: [extension],
           };
 
-          const amount = TokenHelper.uiAmountToAmountForMint(
-            mockMintAccount,
+          jest
+            .spyOn(mockConnection, 'fetchMint')
+            .mockResolvedValue(mockMintAccount);
+
+          const amount = await tokenHelper.uiAmountToAmountForMint(
+            mockMint,
+            Network.Mainnet,
             '1000',
           );
 
@@ -83,8 +104,13 @@ describe('TokenHelper', () => {
             value: [extension],
           };
 
-          const amount = TokenHelper.uiAmountToAmountForMint(
-            mockMintAccount,
+          jest
+            .spyOn(mockConnection, 'fetchMint')
+            .mockResolvedValue(mockMintAccount);
+
+          const amount = await tokenHelper.uiAmountToAmountForMint(
+            mockMint,
+            Network.Mainnet,
             '1000',
           );
 
@@ -120,8 +146,13 @@ describe('TokenHelper', () => {
           value: [extension],
         };
 
-        const amount = TokenHelper.uiAmountToAmountForMint(
-          mockMintAccount,
+        jest
+          .spyOn(mockConnection, 'fetchMint')
+          .mockResolvedValue(mockMintAccount);
+
+        const amount = await tokenHelper.uiAmountToAmountForMint(
+          mockMint,
+          Network.Mainnet,
           '1000',
         );
 

@@ -32,12 +32,6 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
   emitSnapKeyringEvent: jest.fn(),
 }));
 
-jest.mock('@solana-program/token', () => ({
-  ...jest.requireActual('@solana-program/token'),
-  fetchMint: jest.fn(),
-  fetchToken: jest.fn(),
-}));
-
 describe('AssetsService', () => {
   let assetsService: AssetsService;
   let mockConnection: SolanaConnection;

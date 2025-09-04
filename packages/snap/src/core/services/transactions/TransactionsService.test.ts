@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { type Transaction } from '@metamask/keyring-api';
 import { address as asAddress } from '@solana/kit';
 
 import { Network } from '../../constants/solana';
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import {
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1,
+} from '../../test/mocks/solana-keyring-accounts';
 import { MOCK_GET_SIGNATURES_FOR_ADDRESS } from '../../test/mocks/transactions';
 import { ADDRESS_1_TRANSACTION_1_DATA } from '../../test/mocks/transactions-data/address-1/transaction-1';
 import type { AccountsService } from '../accounts/AccountsService';
@@ -10,6 +14,7 @@ import type { AssetsService } from '../assets/AssetsService';
 import type { SolanaConnection } from '../connection/SolanaConnection';
 import { mockLogger } from '../mocks/logger';
 import { createMockConnection } from '../mocks/mockConnection';
+import type { TransactionMapper } from './TransactionMapper';
 import type { TransactionsRepository } from './TransactionsRepository';
 import { TransactionsService } from './TransactionsService';
 
@@ -19,6 +24,7 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 
 describe('TransactionsService', () => {
   let mockTransactionsRepository: TransactionsRepository;
+  let mockTransactionMapper: TransactionMapper;
   let mockAccountsService: AccountsService;
   let mockConnection: SolanaConnection;
   let mockAssetsService: AssetsService;
@@ -29,6 +35,10 @@ describe('TransactionsService', () => {
       findByAccountId: jest.fn(),
       saveMany: jest.fn(),
     } as unknown as TransactionsRepository;
+
+    mockTransactionMapper = {
+      mapRpcTransaction: jest.fn(),
+    } as unknown as TransactionMapper;
 
     mockAssetsService = {
       getAssetsMetadata: jest.fn(),
@@ -42,6 +52,7 @@ describe('TransactionsService', () => {
 
     service = new TransactionsService(
       mockTransactionsRepository,
+      mockTransactionMapper,
       mockAccountsService,
       mockAssetsService,
       mockConnection,
@@ -57,27 +68,20 @@ describe('TransactionsService', () => {
   describe('fetchBySignature', () => {
     const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
     const mockScope = Network.Mainnet;
-    const mockTransaction = ADDRESS_1_TRANSACTION_1_DATA;
-    const mockSignature =
-      '3pCGrAVxQ7h5oKV9pjzTZx4br3EpQChuJzWXi93CQMfapbSoqDt8hiJMRQRti1UzC6saoBdBjL2gBw1ekfJjqixG';
+    const mockTransactionData = ADDRESS_1_TRANSACTION_1_DATA;
+    const mockMappedTransaction = {} as unknown as Transaction;
+    const mockSignature = mockTransactionData.transaction.signatures[1]!;
 
     it('fetches and returns a transaction by signature', async () => {
       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
         getTransaction: jest.fn().mockReturnValue({
-          send: jest.fn().mockResolvedValue(mockTransaction),
+          send: jest.fn().mockResolvedValue(mockTransactionData),
         }),
       } as any);
 
-      jest.spyOn(mockAssetsService, 'getAssetsMetadata').mockResolvedValue({
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr':
-          {
-            fungible: true,
-            iconUrl: '',
-            units: [{ decimals: 6, symbol: 'EURC', name: 'EURC' }],
-            symbol: 'EURC',
-            name: 'EURC',
-          },
-      });
+      jest
+        .spyOn(mockTransactionMapper, 'mapRpcTransaction')
+        .mockResolvedValue(mockMappedTransaction);
 
       const result = await service.fetchBySignature(
         mockSignature,
@@ -85,43 +89,7 @@ describe('TransactionsService', () => {
         mockScope,
       );
 
-      expect(result).toStrictEqual({
-        id: 'signature-1',
-        account: '4b445722-6766-4f99-ade5-c2c9295f21d0',
-        timestamp: 1737042268,
-        chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        status: 'confirmed',
-        type: 'receive',
-        from: [
-          {
-            address: 'H3sjyipQtXAJkvWNkXhDgped7k323kAba8QMwCLcV79w',
-            asset: {
-              fungible: true,
-              type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
-              unit: 'EURC',
-              amount: '10',
-            },
-          },
-        ],
-        to: [
-          {
-            address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
-            asset: {
-              fungible: true,
-              type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr',
-              unit: 'EURC',
-              amount: '10',
-            },
-          },
-        ],
-        fees: [],
-        events: [
-          {
-            status: 'confirmed',
-            timestamp: 1737042268,
-          },
-        ],
-      });
+      expect(result).toStrictEqual(mockMappedTransaction);
     });
 
     it('returns null if the transaction is not found', async () => {
@@ -139,10 +107,6 @@ describe('TransactionsService', () => {
 
       expect(result).toBeNull();
     });
-  });
-
-  describe('fetchAccountTransactions', () => {
-    it.todo('fetches and returns transactions for the given account');
   });
 
   describe('fetchLatestSignatures', () => {
@@ -175,15 +139,54 @@ describe('TransactionsService', () => {
   });
 
   describe('findByAccounts', () => {
-    it.todo('fetches and returns transactions for the given accounts');
+    it('fetches and returns transactions for the given accounts', async () => {
+      const mockAccount0 = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+      const mockAccount1 = MOCK_SOLANA_KEYRING_ACCOUNT_1;
+
+      const mockTransaction00 = {} as unknown as Transaction;
+      const mockTransaction01 = {} as unknown as Transaction;
+      const mockTransaction10 = {} as unknown as Transaction;
+
+      jest
+        .spyOn(mockTransactionsRepository, 'findByAccountId')
+        .mockResolvedValueOnce([mockTransaction00, mockTransaction01])
+        .mockResolvedValueOnce([mockTransaction10]);
+
+      const result = await service.findByAccounts([mockAccount0, mockAccount1]);
+
+      expect(result).toStrictEqual([
+        mockTransaction00,
+        mockTransaction01,
+        mockTransaction10,
+      ]);
+    });
   });
 
   describe('save', () => {
-    it.todo('saves a transaction');
+    it('saves a transaction', async () => {
+      const mockTransaction = {} as unknown as Transaction;
+
+      await service.save(mockTransaction);
+
+      expect(mockTransactionsRepository.saveMany).toHaveBeenCalledWith([
+        mockTransaction,
+      ]);
+    });
   });
 
   describe('saveMany', () => {
-    it.todo('saves multiple transactions');
+    it('saves multiple transactions', async () => {
+      const transactions = [
+        {} as unknown as Transaction,
+        {} as unknown as Transaction,
+      ];
+
+      await service.saveMany(transactions);
+
+      expect(mockTransactionsRepository.saveMany).toHaveBeenCalledWith(
+        transactions,
+      );
+    });
   });
 
   //   describe('synchronize', () => {

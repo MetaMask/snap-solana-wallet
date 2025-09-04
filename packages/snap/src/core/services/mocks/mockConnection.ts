@@ -1,5 +1,6 @@
 import type { SolanaConnection } from '../connection/SolanaConnection';
 import {
+  MOCK_MINT_ACCOUNT,
   MOCK_SOLANA_RPC_GET_BALANCE_AS_SDK_RESPONSE,
   MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_AS_SDK_RESPONSE,
   MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_AS_SDK_RESPONSE,
@@ -139,4 +140,5 @@ const createMockGetRpc = () =>
 export const createMockConnection = (): SolanaConnection =>
   ({
     getRpc: createMockGetRpc(),
+    fetchMint: jest.fn().mockResolvedValue(MOCK_MINT_ACCOUNT),
   }) as unknown as SolanaConnection;

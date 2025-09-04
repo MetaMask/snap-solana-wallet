@@ -1,12 +1,26 @@
-import { Network } from '../../constants/solana';
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable no-restricted-globals */
+/* eslint-disable @typescript-eslint/naming-convention */
+import type { ICache } from '../../caching/ICache';
+import { InMemoryCache } from '../../caching/InMemoryCache';
+import { KnownCaip19Id, Network } from '../../constants/solana';
+import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../config';
+import { mockLogger } from '../mocks/logger';
+import { MOCK_MINT_ACCOUNT } from '../mocks/mockSolanaRpcResponses';
 import { SolanaConnection } from './SolanaConnection';
 
 jest.mock('@solana/kit', () => ({
+  ...jest.requireActual('@solana/kit'),
   createSolanaRpcFromTransport: jest.fn().mockImplementation((transport) => ({
     urls: transport.urls,
   })),
   address: jest.fn().mockImplementation((address) => address),
+}));
+
+jest.mock('@solana-program/token-2022', () => ({
+  fetchMint: jest.fn().mockResolvedValue(MOCK_MINT_ACCOUNT),
 }));
 
 jest.mock('./transport', () => ({
@@ -29,6 +43,7 @@ const MOCK_NETWORKS = [
 describe('SolanaConnection', () => {
   let connection: SolanaConnection;
   let mockConfigProvider: ConfigProvider;
+  let mockCache: ICache<Serializable>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -47,7 +62,9 @@ describe('SolanaConnection', () => {
       }),
     } as unknown as ConfigProvider;
 
-    connection = new SolanaConnection(mockConfigProvider);
+    mockCache = new InMemoryCache(mockLogger);
+
+    connection = new SolanaConnection(mockConfigProvider, mockCache);
   });
 
   describe('getRpc', () => {
@@ -81,6 +98,32 @@ describe('SolanaConnection', () => {
       expect(() => {
         connection.getRpc('invalid-network' as Network);
       }).toThrow(/Expected one of/u);
+    });
+  });
+
+  describe('fetchMint', () => {
+    it('returns the mint account', async () => {
+      const mint = await connection.fetchMint(
+        KnownCaip19Id.UsdcMainnet,
+        Network.Mainnet,
+      );
+
+      expect(mint).toStrictEqual(MOCK_MINT_ACCOUNT);
+    });
+
+    it('caches the mint account', async () => {
+      const spy = jest.spyOn(
+        require('@solana-program/token-2022'),
+        'fetchMint',
+      );
+
+      const call = async () =>
+        connection.fetchMint(KnownCaip19Id.UsdcMainnet, Network.Mainnet);
+
+      await call();
+      await call();
+
+      expect(spy).toHaveBeenCalledTimes(1);
     });
   });
 });

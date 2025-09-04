@@ -21,10 +21,8 @@ import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
-import type { AssetsService } from '../assets/AssetsService';
-import { TokenHelper } from '../assets/TokenHelper';
+import type { AssetsService, TokenHelper } from '../assets';
 import type { ConfigProvider } from '../config';
-import type { SolanaConnection } from '../connection';
 import type { TransactionsService } from '../transactions';
 
 /**
@@ -48,11 +46,11 @@ export class KeyringAccountMonitor {
 
   readonly #accountsSynchronizer: AccountsSynchronizer;
 
+  readonly #tokenHelper: TokenHelper;
+
   readonly #configProvider: ConfigProvider;
 
   readonly #eventEmitter: EventEmitter;
-
-  readonly #connection: SolanaConnection;
 
   readonly #logger: ILogger;
 
@@ -81,9 +79,9 @@ export class KeyringAccountMonitor {
     assetsService: AssetsService,
     transactionsService: TransactionsService,
     accountsSynchronizer: AccountsSynchronizer,
+    tokenHelper: TokenHelper,
     configProvider: ConfigProvider,
     eventEmitter: EventEmitter,
-    connection: SolanaConnection,
     logger: ILogger,
   ) {
     this.#subscriptionService = subscriptionService;
@@ -91,9 +89,9 @@ export class KeyringAccountMonitor {
     this.#assetsService = assetsService;
     this.#transactionsService = transactionsService;
     this.#accountsSynchronizer = accountsSynchronizer;
-    this.#configProvider = configProvider;
+    this.#tokenHelper = tokenHelper;
     this.#eventEmitter = eventEmitter;
-    this.#connection = connection;
+    this.#configProvider = configProvider;
     this.#logger = createPrefixedLogger(logger, '[🗝️ KeyringAccountMonitor]');
 
     this.#bindHandlers();
@@ -381,8 +379,6 @@ export class KeyringAccountMonitor {
       throw new Error(`No keyring account found with address: ${owner}`);
     }
 
-    const mintAccount = await this.#connection.fetchMint(mint, network);
-
     /**
      * WARNING: This is to compensate for the fact that the notification returned by Infura's programSubscribe
      * includes a uiAmount/uiAmountString that does not take into account the mint's multiplier (if any).
@@ -390,10 +386,12 @@ export class KeyringAccountMonitor {
      *
      * So this needs to be removed once Infura fixes their programSubscribe notification.
      */
-    const uiAmount = TokenHelper.amountToUiAmountForMint(
-      mintAccount,
-      lamports(BigInt(amount)),
-    ).toString();
+    const uiAmount = await this.#tokenHelper
+      .amountToUiAmountForMint(mint, network, lamports(BigInt(amount)))
+      .catch((error) => {
+        this.#logger.error('Error converting amount to uiAmount', error);
+        return uiAmountString;
+      });
 
     await Promise.all([
       // Update the balance of the token asset
