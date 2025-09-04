@@ -47,9 +47,8 @@ export class AnalyticsService {
         message: 'Snap transaction added',
         origin: metadata.origin,
         account_id: account.id,
-        account_address: account.address,
         account_type: account.type,
-        chain_id: metadata.scope,
+        chain_id_caip: metadata.scope,
       });
     } catch (error) {
       this.#logger.warn('Error tracking event transaction added', {
@@ -70,9 +69,8 @@ export class AnalyticsService {
         message: 'Snap transaction approved',
         origin: metadata.origin,
         account_id: account.id,
-        account_address: account.address,
         account_type: account.type,
-        chain_id: metadata.scope,
+        chain_id_caip: metadata.scope,
       });
     } catch (error) {
       this.#logger.warn('Error tracking event transaction approved', {
@@ -94,9 +92,8 @@ export class AnalyticsService {
         message: 'Snap transaction submitted',
         origin: metadata.origin,
         account_id: account.id,
-        account_address: account.address,
         account_type: account.type,
-        chain_id: metadata.scope,
+        chain_id_caip: metadata.scope,
       });
     } catch (error) {
       this.#logger.warn('Error tracking event transaction submitted', {
@@ -119,9 +116,8 @@ export class AnalyticsService {
         message: 'Snap transaction finalized',
         origin: metadata.origin,
         account_id: account.id,
-        account_address: account.address,
         account_type: account.type,
-        chain_id: transaction.chain,
+        chain_id_caip: transaction.chain,
         transaction_status: transaction.status,
         transaction_type: transaction.type,
       });
@@ -145,9 +141,8 @@ export class AnalyticsService {
         message: 'Snap transaction rejected',
         origin: metadata.origin,
         account_id: account.id,
-        account_address: account.address,
         account_type: account.type,
-        chain_id: metadata.scope,
+        chain_id_caip: metadata.scope,
       });
     } catch (error) {
       this.#logger.warn('Error tracking event transaction rejected', {
@@ -172,9 +167,8 @@ export class AnalyticsService {
         message: 'Snap security alert detected',
         origin,
         account_id: account.id,
-        account_address: account.address,
         account_type: account.type,
-        chain_id: scope,
+        chain_id_caip: scope,
         security_alert_response: securityAlertResponse,
         security_alert_reason: securityAlertReason,
         security_alert_description: securityAlertDescription,
@@ -205,9 +199,8 @@ export class AnalyticsService {
         message: 'Snap security scan completed',
         origin,
         account_id: account.id,
-        account_address: account.address,
         account_type: account.type,
-        chain_id: scope,
+        chain_id_caip: scope,
         scan_status: scanStatus,
         has_security_alerts: hasSecurityAlerts,
       });
