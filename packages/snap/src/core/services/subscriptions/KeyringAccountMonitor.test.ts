@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import type { Transaction } from '@metamask/keyring-api';
+import { TransactionType, type Transaction } from '@metamask/keyring-api';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { signature } from '@solana/kit';
 
@@ -377,6 +377,35 @@ describe('KeyringAccountMonitor', () => {
         expect(mockTransactionsService.save).toHaveBeenCalledWith(
           mockCausingTransaction,
         );
+      });
+
+      it('skips spam transactions', async () => {
+        const mockSpamTransaction = {
+          ...mockCausingTransaction,
+          type: TransactionType.Receive,
+          to: [
+            {
+              address: account.address,
+              asset: {
+                fungible: true,
+                type: KnownCaip19Id.SolMainnet,
+                amount: '0.00000001', // Very small amount so that it's caught by the spam detector
+              },
+            },
+          ],
+        } as unknown as Transaction;
+
+        jest
+          .spyOn(mockTransactionsService, 'fetchBySignature')
+          .mockResolvedValue(mockSpamTransaction);
+
+        await keyringAccountMonitor.monitorKeyringAccount(account);
+
+        // Send the notification by manually calling the handler
+        const handler = accountNotificationHandlers[0]!;
+        await handler(mockNotification, mockSubscription);
+
+        expect(mockTransactionsService.save).not.toHaveBeenCalled();
       });
 
       it('throws an error when lamports is missing', async () => {
