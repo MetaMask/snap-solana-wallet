@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.6]
+
+### Changed
+
+- Remove unnecessary analytics property ([#513](https://github.com/MetaMask/snap-solana-wallet/pull/513))
+
 ## [2.3.5]
 
 ### Added
@@ -875,7 +881,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.5...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.6...HEAD
+[2.3.6]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.5...v2.3.6
 [2.3.5]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.4...v2.3.5
 [2.3.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.3...v2.3.4
 [2.3.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.2...v2.3.3
