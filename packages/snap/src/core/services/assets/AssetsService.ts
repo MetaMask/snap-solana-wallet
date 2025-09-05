@@ -5,9 +5,10 @@ import type {
 } from '@metamask/keyring-api';
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import type {
-  FungibleAssetMarketData,
-  FungibleAssetMetadata,
+import {
+  getImageComponent,
+  type FungibleAssetMarketData,
+  type FungibleAssetMetadata,
 } from '@metamask/snaps-sdk';
 import type { CaipAssetType } from '@metamask/utils';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
@@ -47,6 +48,7 @@ import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import type { AssetsRepository } from './AssetsRepository';
+import QUESTION_MARK_SVG from './question-mark.svg';
 import type { AssetMetadata, NonFungibleAssetMetadata } from './types';
 
 /**
@@ -637,4 +639,18 @@ export class AssetsService {
 
     return [...savedAssets, ...missingNativeAssets];
   }
+
+  static generateImageComponent = async (
+    imageUrl?: string,
+    width = 48,
+    height = 48,
+  ) => {
+    if (!imageUrl) {
+      return QUESTION_MARK_SVG;
+    }
+
+    return getImageComponent(imageUrl, { width, height })
+      .then((image) => image.value)
+      .catch(() => QUESTION_MARK_SVG);
+  };
 }

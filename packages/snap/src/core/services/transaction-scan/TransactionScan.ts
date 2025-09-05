@@ -7,9 +7,9 @@ import {
   METAMASK_ORIGIN_URL,
   type Network,
 } from '../../constants/solana';
-import { generateImageComponent } from '../../utils/generateImageComponent';
 import type { ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
+import { AssetsService } from '../assets';
 import type { TransactionScanResult, TransactionScanValidation } from './types';
 import { ScanStatus, SecurityAlertResponse } from './types';
 
@@ -150,7 +150,11 @@ export class TransactionScanService {
           const { logo } = asset;
 
           if (logo) {
-            return generateImageComponent(logo, ICON_SIZE, ICON_SIZE)
+            return AssetsService.generateImageComponent(
+              logo,
+              ICON_SIZE,
+              ICON_SIZE,
+            )
               .then((image) => {
                 if (image && updatedScan?.estimatedChanges?.assets?.[index]) {
                   updatedScan.estimatedChanges.assets[index].imageSvg = image;

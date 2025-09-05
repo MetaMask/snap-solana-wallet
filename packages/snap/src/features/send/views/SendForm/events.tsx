@@ -4,12 +4,12 @@ import { merge } from 'lodash';
 
 import { METAMASK_ORIGIN, Networks } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
+import { AssetsService } from '../../../../core/services';
 import { buildUrl } from '../../../../core/utils/buildUrl';
 import {
   lamportsToSol,
   solToLamports,
 } from '../../../../core/utils/conversion';
-import { generateImageComponent } from '../../../../core/utils/generateImageComponent';
 import { i18n } from '../../../../core/utils/i18n';
 import {
   resolveInterface,
@@ -484,7 +484,7 @@ async function onSendButtonClick({
       .then((prices) => prices)
       .catch(() => null),
     context.selectedTokenMetadata
-      ? generateImageComponent(
+      ? AssetsService.generateImageComponent(
           buildUrl({
             baseUrl: configProvider.get().staticApi.baseUrl,
             path: '/api/v2/tokenIcons/assets/{assetId}.png',
