@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.7]
 
-### Uncategorized
+### Added
 
-- Improve token api client ([#517](https://github.com/MetaMask/snap-solana-wallet/pull/517))
 - Support tokens with multiplier ([#509](https://github.com/MetaMask/snap-solana-wallet/pull/509))
-- fix: skip spam txs from websockets ([#515](https://github.com/MetaMask/snap-solana-wallet/pull/515))
+
+### Fixed
+
+- Hide spam transactions from activity list ([#515](https://github.com/MetaMask/snap-solana-wallet/pull/515))
+- Default to symbol `UNKNOWN` in activity for tokens with no metadata ([#517](https://github.com/MetaMask/snap-solana-wallet/pull/517))
 
 ## [2.3.6]
 
