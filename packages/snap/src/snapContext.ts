@@ -36,7 +36,6 @@ import { SendService } from './core/services/send/SendService';
 import type { IStateManager } from './core/services/state/IStateManager';
 import type { UnencryptedStateValue } from './core/services/state/State';
 import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
-import { TokenMetadataService } from './core/services/token-metadata/TokenMetadata';
 import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
 import { WalletService } from './core/services/wallet/WalletService';
@@ -129,11 +128,6 @@ const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);
 const tokenApiClient = new TokenApiClient(configProvider);
 const nftApiClient = new NftApiClient(configProvider, inMemoryCache);
 
-const tokenMetadataService = new TokenMetadataService({
-  tokenApiClient,
-  logger,
-});
-
 const tokenPricesService = new TokenPricesService({
   configProvider,
   priceApiClient,
@@ -147,7 +141,7 @@ const assetsService = new AssetsService({
   logger,
   configProvider,
   assetsRepository,
-  tokenMetadataService,
+  tokenApiClient,
   cache: inMemoryCache,
   tokenPricesService,
   nftApiClient,
@@ -180,7 +174,6 @@ const accountsSynchronizer = new AccountsSynchronizer(
 
 const transactionScanService = new TransactionScanService(
   new SecurityAlertsApiClient(configProvider),
-  tokenMetadataService,
   analyticsService,
   logger,
 );
@@ -297,7 +290,6 @@ export {
   subscriptionService,
   tokenApiClient,
   tokenHelper,
-  tokenMetadataService,
   tokenPricesService,
   transactionHelper,
   transactionScanService,
