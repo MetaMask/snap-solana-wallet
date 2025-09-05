@@ -394,6 +394,10 @@ export class KeyringAccountMonitor {
         return uiAmountString;
       });
 
+    const metadata = (await this.#assetsService.getAssetsMetadata([assetType]))[
+      assetType
+    ];
+
     await Promise.all([
       // Update the balance of the token asset
       this.#assetsService.save({
@@ -402,7 +406,7 @@ export class KeyringAccountMonitor {
         network,
         mint,
         pubkey,
-        symbol: '',
+        symbol: metadata?.symbol ?? 'UNKNOWN',
         decimals,
         rawAmount: amount,
         uiAmount,

@@ -8,6 +8,7 @@ import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
 import { MOCK_NFTS_LIST_RESPONSE_MAPPED } from '../../clients/nft-api/mocks/mockNftsListResponseMapped';
 import type { NftApiClient } from '../../clients/nft-api/NftApiClient';
+import type { TokenApiClient } from '../../clients/token-api-client/TokenApiClient';
 import { Network } from '../../constants/solana';
 import type { Serializable } from '../../serialization/types';
 import {
@@ -23,7 +24,6 @@ import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
 import { createMockConnection } from '../mocks/mockConnection';
 import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/mockSolanaRpcResponses';
-import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import type { AssetsRepository } from './AssetsRepository';
 import { AssetsService } from './AssetsService';
@@ -37,7 +37,7 @@ describe('AssetsService', () => {
   let mockConnection: SolanaConnection;
   let mockConfigProvider: ConfigProvider;
   let mockAssetsRepository: AssetsRepository;
-  let mockTokenMetadataService: TokenMetadataService;
+  let mockTokenApiClient: TokenApiClient;
   let mockTokenPricesService: TokenPricesService;
   let mockNftApiClient: NftApiClient;
   let mockCache: ICache<Serializable>;
@@ -52,11 +52,11 @@ describe('AssetsService', () => {
       }),
     } as unknown as ConfigProvider;
 
-    mockTokenMetadataService = {
+    mockTokenApiClient = {
       getTokensMetadata: jest
         .fn()
         .mockResolvedValue(SOLANA_MOCK_TOKEN_METADATA),
-    } as unknown as TokenMetadataService;
+    } as unknown as TokenApiClient;
 
     mockTokenPricesService = {
       getMultipleTokenConversions: jest.fn().mockResolvedValue({}),
@@ -90,7 +90,7 @@ describe('AssetsService', () => {
       logger: mockLogger,
       configProvider: mockConfigProvider,
       assetsRepository: mockAssetsRepository,
-      tokenMetadataService: mockTokenMetadataService,
+      tokenApiClient: mockTokenApiClient,
       tokenPricesService: mockTokenPricesService,
       cache: mockCache,
       nftApiClient: mockNftApiClient,

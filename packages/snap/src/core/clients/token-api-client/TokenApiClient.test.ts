@@ -64,19 +64,24 @@ describe('TokenApiClient', () => {
     });
   });
 
-  describe('getTokenMetadataFromAddresses', () => {
+  describe('getTokensMetadata', () => {
     it('fetches and parses token metadata', async () => {
       const tokenAddresses = [
-        tokenAddressToCaip19(Network.Devnet, 'address1'),
-        tokenAddressToCaip19(Network.Devnet, 'address2'),
+        tokenAddressToCaip19(
+          Network.Mainnet,
+          '1GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr',
+        ),
+        tokenAddressToCaip19(
+          Network.Mainnet,
+          '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr',
+        ),
       ];
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValueOnce(MOCK_METADATA_RESPONSE),
       });
 
-      const metadata =
-        await client.getTokenMetadataFromAddresses(tokenAddresses);
+      const metadata = await client.getTokensMetadata(tokenAddresses);
 
       expect(metadata).toStrictEqual({
         [`solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:1GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr`]:
@@ -122,16 +127,14 @@ describe('TokenApiClient', () => {
         json: jest.fn().mockResolvedValue(MOCK_METADATA_RESPONSE),
       });
 
-      await client.getTokenMetadataFromAddresses(tokenAddresses);
+      await client.getTokensMetadata(tokenAddresses);
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 
     it('rejects caip19Ids that are invalid', async () => {
       await expect(
-        client.getTokenMetadataFromAddresses([
-          'invalid-caip19-id' as TokenCaipAssetType,
-        ]),
+        client.getTokensMetadata(['invalid-caip19-id' as TokenCaipAssetType]),
       ).rejects.toThrow(
         'At path: 0 -- Expected a value of type `CaipAssetType`, but received: `"invalid-caip19-id"`',
       );
@@ -139,7 +142,7 @@ describe('TokenApiClient', () => {
 
     it('rejects caip19Ids that include malicious inputs', async () => {
       await expect(
-        client.getTokenMetadataFromAddresses([
+        client.getTokensMetadata([
           KnownCaip19Id.EurcLocalnet,
           'INVALID<script>alert(1)</script>' as TokenCaipAssetType,
         ]),
@@ -157,9 +160,9 @@ describe('TokenApiClient', () => {
       const errorMessage = 'Error fetching token metadata';
       mockFetch.mockRejectedValueOnce(new Error(errorMessage));
 
-      await expect(
-        client.getTokenMetadataFromAddresses(tokenAddresses),
-      ).rejects.toThrow(errorMessage);
+      await expect(client.getTokensMetadata(tokenAddresses)).rejects.toThrow(
+        errorMessage,
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         new Error(errorMessage),
         errorMessage,
@@ -184,14 +187,12 @@ describe('TokenApiClient', () => {
         ]),
       });
 
-      await expect(
-        client.getTokenMetadataFromAddresses(tokenAddresses),
-      ).rejects.toThrow(
+      await expect(client.getTokensMetadata(tokenAddresses)).rejects.toThrow(
         'Expected a string matching `/^solana:[a-zA-Z0-9]+\\/token:[a-zA-Z0-9]+$/` but received "bad-asset-id"',
       );
     });
 
-    it('ignores asset types that are not supported by the Token API', async () => {
+    it('returns default metadata if the asset type is not supported by the Token API', async () => {
       const supportedAssetType = tokenAddressToCaip19(
         Network.Mainnet,
         '1GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr',
@@ -206,11 +207,16 @@ describe('TokenApiClient', () => {
         json: jest.fn().mockResolvedValueOnce([MOCK_METADATA_RESPONSE[0]]),
       });
 
-      const metadata =
-        await client.getTokenMetadataFromAddresses(tokenAddresses);
+      const metadata = await client.getTokensMetadata(tokenAddresses);
 
       expect(metadata[supportedAssetType]).toBeDefined();
-      expect(metadata[unsupportedAssetType]).toBeUndefined();
+      expect(metadata[unsupportedAssetType]).toStrictEqual({
+        name: 'UNKNOWN',
+        symbol: 'UNKNOWN',
+        fungible: true,
+        iconUrl: '',
+        units: [{ name: 'UNKNOWN', symbol: 'UNKNOWN', decimals: 9 }],
+      });
     });
   });
 });

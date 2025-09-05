@@ -9,6 +9,7 @@ import {
   lamportsToSol,
   solToLamports,
 } from '../../../../core/utils/conversion';
+import { generateImageComponent } from '../../../../core/utils/generateImageComponent';
 import { i18n } from '../../../../core/utils/i18n';
 import {
   resolveInterface,
@@ -23,7 +24,6 @@ import {
   sendSolBuilder,
   sendSplTokenBuilder,
   state,
-  tokenMetadataService,
 } from '../../../../snapContext';
 import { getBalance, getIsNativeToken } from '../../selectors';
 import { Send } from '../../Send';
@@ -484,7 +484,7 @@ async function onSendButtonClick({
       .then((prices) => prices)
       .catch(() => null),
     context.selectedTokenMetadata
-      ? tokenMetadataService.generateImageComponent(
+      ? generateImageComponent(
           buildUrl({
             baseUrl: configProvider.get().staticApi.baseUrl,
             path: '/api/v2/tokenIcons/assets/{assetId}.png',

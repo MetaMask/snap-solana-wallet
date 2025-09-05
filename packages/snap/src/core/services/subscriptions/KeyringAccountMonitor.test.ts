@@ -76,6 +76,12 @@ describe('KeyringAccountMonitor', () => {
     mockAssetsService = {
       getTokenAccountsByOwnerMultiple: jest.fn(),
       save: jest.fn(),
+      getAssetsMetadata: jest.fn().mockImplementation((assetType) => ({
+        [assetType]: {
+          symbol: 'USDC',
+          decimals: 6,
+        },
+      })),
     } as unknown as AssetsService;
 
     mockTransactionsService = {
@@ -504,7 +510,7 @@ describe('KeyringAccountMonitor', () => {
           network: Network.Mainnet,
           mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
           pubkey: '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
-          symbol: '',
+          symbol: 'USDC',
           decimals: 6,
           rawAmount: '123456789',
           uiAmount: '123.456789',
