@@ -1,65 +1,72 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable no-restricted-globals */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import type { Blockhash, Rpc, SolanaRpcApi } from '@solana/kit';
-import { address, type Address, type MaybeAccount } from '@solana/kit';
+import type { Mint } from '@solana-program/token-2022';
+import type { Account, Blockhash } from '@solana/kit';
+import { address, lamports, type Address } from '@solana/kit';
+import { cloneDeep } from 'lodash';
 
-import {
-  KnownCaip19Id,
-  Network,
-  TokenMetadata,
-} from '../../../core/constants/solana';
+import { Network } from '../../../core/constants/solana';
+import { TokenHelper } from '../../../core/services';
+import type { SolanaConnection } from '../../../core/services/connection/SolanaConnection';
 import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
 import { mockLogger } from '../../../core/services/mocks/logger';
 import { createMockConnection } from '../../../core/services/mocks/mockConnection';
+import { MOCK_MINT_ACCOUNT } from '../../../core/services/mocks/mockSolanaRpcResponses';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../core/test/mocks/solana-keyring-accounts';
 import { deriveSolanaKeypairMock } from '../../../core/test/mocks/utils/deriveSolanaKeypair';
-import type { Exists, MaybeHasDecimals } from './SendSplTokenBuilder';
 import { SendSplTokenBuilder } from './SendSplTokenBuilder';
-
-jest.mock('@solana/kit', () => ({
-  ...jest.requireActual('@solana/kit'),
-  fetchJsonParsedAccount: jest.fn(),
-  sendTransactionWithoutConfirmingFactory: jest
-    .fn()
-    .mockReturnValue(() => jest.fn()),
-}));
 
 jest.mock('../../../core/utils/deriveSolanaKeypair', () => ({
   deriveSolanaKeypair: deriveSolanaKeypairMock,
 }));
 
 describe('SendSplTokenBuilder', () => {
-  const mockConnection = createMockConnection();
-
-  const mockTransactionHelper = {
-    sendTransaction: jest.fn(),
-    getLatestBlockhash: jest.fn(),
-    getTokenMintInfo: jest.fn(),
-    getComputeUnitEstimate: jest.fn(),
-    waitForTransactionCommitment: jest.fn(),
-  } as unknown as TransactionHelper;
-
+  let mockTokenHelper: TokenHelper;
+  let mockConnection: SolanaConnection;
   let sendSplTokenBuilder: SendSplTokenBuilder;
+  let mockTransactionHelper: TransactionHelper;
+
+  const mockFrom = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
+  const mockTo = address(MOCK_SOLANA_KEYRING_ACCOUNTS[1].address);
+  const mockMint = MOCK_MINT_ACCOUNT.address;
+  const mockNetwork = Network.Localnet;
+  const mockAmount = '1000';
+  const mockAmountLamports = lamports(1000n * 10n ** 6n);
+
+  const createMockMintAccount = (): Account<Mint, Address> =>
+    cloneDeep(MOCK_MINT_ACCOUNT);
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockConnection = createMockConnection();
+
+    mockTokenHelper = new TokenHelper(mockConnection);
+
+    mockTransactionHelper = {
+      sendTransaction: jest.fn(),
+      getLatestBlockhash: jest.fn(),
+      getTokenMintInfo: jest.fn(),
+      getComputeUnitEstimate: jest.fn(),
+      waitForTransactionCommitment: jest.fn(),
+    } as unknown as TransactionHelper;
+
+    jest
+      .spyOn(mockTokenHelper, 'uiAmountToAmountForMint')
+      .mockResolvedValue(mockAmountLamports);
+
     sendSplTokenBuilder = new SendSplTokenBuilder(
+      mockTokenHelper,
       mockConnection,
       mockTransactionHelper,
       mockLogger,
     );
   });
 
-  // write unit tests for buildTransactionMessage, with actual content
   describe('buildTransactionMessage', () => {
-    const mockFrom = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
-    const mockTo = address(MOCK_SOLANA_KEYRING_ACCOUNTS[1].address);
-    const mockMint = address(TokenMetadata[KnownCaip19Id.UsdcLocalnet].address);
-    const mockNetwork = Network.Localnet;
-    const mockAmount = '1000';
-
     beforeEach(() => {
       jest
         .spyOn(mockTransactionHelper, 'getLatestBlockhash')
@@ -74,17 +81,10 @@ describe('SendSplTokenBuilder', () => {
     });
 
     it('successfully builds a transaction message for SPL token transfer', async () => {
-      // Mock token account to get decimals and program ID
-      const mockSplTokenAccount = {
-        exists: true,
-        address: mockMint,
-        data: { decimals: 6 },
-        programAddress: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-      } as unknown as MaybeAccount<MaybeHasDecimals> & Exists;
-
+      const mockMintAccount = createMockMintAccount();
       jest
-        .spyOn(sendSplTokenBuilder, 'getTokenAccount')
-        .mockResolvedValue(mockSplTokenAccount);
+        .spyOn(mockConnection, 'fetchMint')
+        .mockResolvedValue(mockMintAccount);
 
       // Mock deriveAssociatedTokenAccountAddress (static method)
       const deriveAssociatedTokenAccountAddressSpy = jest.spyOn(
@@ -226,133 +226,6 @@ describe('SendSplTokenBuilder', () => {
 
       // Restore the static method spy
       deriveAssociatedTokenAccountAddressSpy.mockRestore();
-    });
-  });
-
-  describe('getTokenAccount', () => {
-    const mockMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU' as Address;
-    const mockNetwork = Network.Localnet;
-
-    it('returns token account when it exists', async () => {
-      const mockTokenAccount = {
-        exists: true,
-        address: mockMint,
-        data: { decimals: 6 },
-      } as unknown as MaybeAccount<any>;
-
-      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
-        // Mock the minimum required RPC methods
-        getAccountInfo: jest.fn(),
-      } as unknown as Rpc<SolanaRpcApi>);
-
-      // Mock the web3.js fetchJsonParsedAccount function
-      const fetchJsonParsedAccountSpy = jest.spyOn(
-        require('@solana/kit'),
-        'fetchJsonParsedAccount',
-      );
-      fetchJsonParsedAccountSpy.mockResolvedValue(mockTokenAccount);
-
-      const result = await sendSplTokenBuilder.getTokenAccount({
-        mint: mockMint,
-        network: mockNetwork,
-      });
-
-      expect(result).toStrictEqual(mockTokenAccount);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(mockNetwork);
-      expect(fetchJsonParsedAccountSpy).toHaveBeenCalled();
-    });
-
-    it('returns non-existing account when token account does not exist', async () => {
-      const mockNonExistingAccount = {
-        exists: false,
-      } as unknown as MaybeAccount<any>;
-
-      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
-        getAccountInfo: jest.fn(),
-      } as unknown as Rpc<SolanaRpcApi>);
-
-      const fetchJsonParsedAccountSpy = jest.spyOn(
-        require('@solana/kit'),
-        'fetchJsonParsedAccount',
-      );
-      fetchJsonParsedAccountSpy.mockResolvedValue(mockNonExistingAccount);
-
-      const result = await sendSplTokenBuilder.getTokenAccount({
-        mint: mockMint,
-        network: mockNetwork,
-      });
-
-      expect(result).toStrictEqual(mockNonExistingAccount);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(mockNetwork);
-      expect(fetchJsonParsedAccountSpy).toHaveBeenCalled();
-    });
-  });
-
-  describe('getDecimals', () => {
-    it('returns decimals from token account', () => {
-      const mockTokenAccount = {
-        exists: true,
-        data: { decimals: 6 },
-      } as unknown as MaybeAccount<MaybeHasDecimals> & Exists;
-
-      const result = sendSplTokenBuilder.getDecimals(mockTokenAccount);
-      expect(result).toBe(6);
-    });
-
-    it('throws error if account does not exist', () => {
-      const mockTokenAccount = {
-        exists: false,
-      } as unknown as MaybeAccount<any>;
-
-      expect(() => sendSplTokenBuilder.getDecimals(mockTokenAccount)).toThrow(
-        'Token account does not exist',
-      );
-    });
-
-    it('throws error if decimals are not found', () => {
-      const mockTokenAccount = {
-        exists: true,
-        data: {},
-      } as unknown as MaybeAccount<any> & Exists;
-
-      expect(() => sendSplTokenBuilder.getDecimals(mockTokenAccount)).toThrow(
-        'Decimals not found',
-      );
-    });
-  });
-
-  describe('assertAccountDecoded', () => {
-    it('does not throw for decoded account', () => {
-      const mockDecodedAccount = {
-        exists: true,
-        data: { someField: 'value' },
-      } as unknown as MaybeAccount<any> & Exists;
-
-      expect(() => {
-        SendSplTokenBuilder.assertAccountDecoded(mockDecodedAccount);
-      }).not.toThrow();
-    });
-
-    it('throws for encoded account (Uint8Array)', () => {
-      const mockEncodedAccount = {
-        exists: true,
-        data: new Uint8Array([1, 2, 3]),
-      } as unknown as MaybeAccount<any> & Exists;
-
-      expect(() => {
-        SendSplTokenBuilder.assertAccountDecoded(mockEncodedAccount);
-      }).toThrow('Token account is encoded. Implement a decoder.');
-    });
-
-    it('throws for non-existent account', () => {
-      const mockNonExistentAccount = {
-        exists: false,
-        data: { someField: 'value' },
-      } as unknown as MaybeAccount<any>;
-
-      expect(() => {
-        SendSplTokenBuilder.assertAccountDecoded(mockNonExistentAccount);
-      }).toThrow('Token account does not exist');
     });
   });
 });

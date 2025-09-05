@@ -32,12 +32,6 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
   emitSnapKeyringEvent: jest.fn(),
 }));
 
-jest.mock('@solana-program/token', () => ({
-  ...jest.requireActual('@solana-program/token'),
-  fetchMint: jest.fn(),
-  fetchToken: jest.fn(),
-}));
-
 describe('AssetsService', () => {
   let assetsService: AssetsService;
   let mockConnection: SolanaConnection;
@@ -468,9 +462,17 @@ describe('AssetsService', () => {
   });
 
   describe('hasChanged', () => {
-    it('returns true if the asset has changed', () => {
+    it('returns true if the raw amount has changed', () => {
       const asset = cloneDeep(MOCK_ASSET_ENTITY_0);
       asset.rawAmount = '123';
+      const assetsLookup = [MOCK_ASSET_ENTITY_0];
+
+      expect(AssetsService.hasChanged(asset, assetsLookup)).toBe(true);
+    });
+
+    it('returns true if the ui amount has changed', () => {
+      const asset = cloneDeep(MOCK_ASSET_ENTITY_0);
+      asset.uiAmount = '123';
       const assetsLookup = [MOCK_ASSET_ENTITY_0];
 
       expect(AssetsService.hasChanged(asset, assetsLookup)).toBe(true);

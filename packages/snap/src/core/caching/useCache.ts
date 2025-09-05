@@ -34,7 +34,7 @@ const defaultGenerateCacheKey = (functionName: string, args: any[]) =>
   `${functionName}:${args.map((arg) => JSON.stringify(arg)).join(':')}`;
 
 /**
- * Wraps a function with caching behavior.
+ * Wraps an asynchronous function with caching behavior.
  *
  * @template TArgs - Tuple type representing the arguments of the function.
  * @template TResult - The return type of the function, must be Serializable.

@@ -1,6 +1,5 @@
 import { KeyringEvent, type Transaction } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import type { CaipAssetType } from '@metamask/utils';
 import type { Address, Commitment, Signature, Slot } from '@solana/kit';
 import { address as asAddress, signature as asSignature } from '@solana/kit';
 import { get, groupBy } from 'lodash';
@@ -13,14 +12,15 @@ import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsService } from '../accounts';
 import type { AssetsService } from '../assets/AssetsService';
-import type { AssetMetadata } from '../assets/types';
 import type { SolanaConnection } from '../connection';
+import type { TransactionMapper } from './TransactionMapper';
 import type { TransactionsRepository } from './TransactionsRepository';
 import { isSpam } from './utils/isSpam';
-import { mapRpcTransaction } from './utils/mapRpcTransaction';
 
 export class TransactionsService {
   readonly #transactionsRepository: TransactionsRepository;
+
+  readonly #transactionMapper: TransactionMapper;
 
   readonly #accountsService: AccountsService;
 
@@ -32,12 +32,14 @@ export class TransactionsService {
 
   constructor(
     transactionsRepository: TransactionsRepository,
+    transactionMapper: TransactionMapper,
     accountsService: AccountsService,
     assetsService: AssetsService,
     connection: SolanaConnection,
     logger: ILogger,
   ) {
     this.#transactionsRepository = transactionsRepository;
+    this.#transactionMapper = transactionMapper;
     this.#accountsService = accountsService;
     this.#assetsService = assetsService;
     this.#connection = connection;
@@ -56,7 +58,11 @@ export class TransactionsService {
       })
       .send();
 
-    return this.#mapRpcTransactionToKeyringTransaction(
+    if (!transactionData) {
+      return null;
+    }
+
+    return this.#transactionMapper.mapRpcTransaction(
       transactionData,
       account,
       scope,
@@ -79,9 +85,6 @@ export class TransactionsService {
     },
   ): Promise<Transaction[]> {
     const accounts = await this.#accountsService.getAll();
-
-    const findAccountById = (id: string) =>
-      accounts.find((account) => account.id === id);
 
     const assetTypes = assets.map((asset) => asset.assetType);
 
@@ -198,6 +201,9 @@ export class TransactionsService {
       await Promise.all(signaturesToFetch.map(fetchTransaction))
     ).filter((item) => item !== null);
 
+    const findAccountById = (id: string) =>
+      accounts.find((account) => account.id === id);
+
     const mapTransaction = async (
       transactionWithAsset: TransactionWithAsset,
     ) => {
@@ -209,7 +215,7 @@ export class TransactionsService {
       if (!account) {
         return null;
       }
-      return this.#mapRpcTransactionToKeyringTransaction(
+      return this.#transactionMapper.mapRpcTransaction(
         transaction,
         account,
         asset.network,
@@ -280,52 +286,5 @@ export class TransactionsService {
     await emitSnapKeyringEvent(snap, KeyringEvent.AccountTransactionsUpdated, {
       transactions: transactionsByAccountId,
     });
-  }
-
-  async #mapRpcTransactionToKeyringTransaction(
-    transactionData: SolanaTransaction | null,
-    account: SolanaKeyringAccount,
-    scope: Network,
-    assetsMetadata?: Record<string, AssetMetadata | null>,
-  ): Promise<Transaction | null> {
-    if (!transactionData) {
-      return null;
-    }
-
-    const mappedTransaction = mapRpcTransaction({
-      transactionData,
-      account,
-      scope,
-    });
-
-    if (!mappedTransaction) {
-      return null;
-    }
-
-    const caip19Ids = [
-      ...new Set(
-        [...mappedTransaction.from, ...mappedTransaction.to]
-          .filter((item) => item.asset?.fungible)
-          .map((item) => (item.asset as { type: CaipAssetType }).type),
-      ),
-    ];
-
-    const assetsMetadataToUse =
-      assetsMetadata ??
-      (await this.#assetsService.getAssetsMetadata(caip19Ids));
-
-    mappedTransaction.from.forEach((from) => {
-      if (from.asset?.fungible && assetsMetadataToUse[from.asset.type]) {
-        from.asset.unit = assetsMetadataToUse[from.asset.type]?.symbol ?? '';
-      }
-    });
-
-    mappedTransaction.to.forEach((to) => {
-      if (to.asset?.fungible && assetsMetadataToUse[to.asset.type]) {
-        to.asset.unit = assetsMetadataToUse[to.asset.type]?.symbol ?? '';
-      }
-    });
-
-    return mappedTransaction;
   }
 }

@@ -1,9 +1,4 @@
-import type {
-  AccountInfoBase,
-  AccountInfoWithPubkey,
-  Address,
-  JsonParsedTokenAccount,
-} from '@solana/kit';
+import type { Address, JsonParsedTokenAccount } from '@solana/kit';
 
 /**
  * Re-create this type that is not exported from @solana/kit
@@ -19,9 +14,3 @@ export type TokenAccountInfoWithJsonData = Readonly<{
     space: bigint;
   }>;
 }>;
-
-/**
- * Re-create this type that is not exported from @solana/kit
- */
-export type GetTokenAccountsByOwnerResponse<TToken> =
-  readonly AccountInfoWithPubkey<AccountInfoBase & TToken>[];

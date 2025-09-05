@@ -1,5 +1,8 @@
-import type { GetLatestBlockhashApi } from '@solana/kit';
-import { blockhash, lamports, type GetBalanceApi } from '@solana/kit';
+/* eslint-disable @typescript-eslint/naming-convention */
+import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
+import type { Mint } from '@solana-program/token-2022';
+import type { Account, Address, GetLatestBlockhashApi } from '@solana/kit';
+import { address, blockhash, lamports, type GetBalanceApi } from '@solana/kit';
 
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
 
@@ -494,5 +497,27 @@ export const MOCK_SOLANA_RPC_GET_MULTIPLE_ACCOUNTS_SWAP_RESPONSE = {
         space: 8216,
       },
     ],
+  },
+};
+
+export const MOCK_MINT_ACCOUNT: Account<Mint, Address> = {
+  executable: false,
+  lamports: lamports(390030797122n),
+  programAddress: TOKEN_PROGRAM_ADDRESS,
+  space: 82n,
+  address: address('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'), // Mainnet USDC
+  data: {
+    decimals: 6,
+    isInitialized: true,
+    supply: 1000000000000000000n,
+    extensions: {
+      __option: 'None',
+    },
+    freezeAuthority: {
+      __option: 'None',
+    },
+    mintAuthority: {
+      __option: 'None',
+    },
   },
 };

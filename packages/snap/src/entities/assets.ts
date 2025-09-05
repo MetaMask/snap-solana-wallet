@@ -24,8 +24,8 @@ export type TokenAsset = {
   pubkey: string;
   symbol: string;
   decimals: number;
-  rawAmount: string; // Without decimals
-  uiAmount: string; // With decimals
+  rawAmount: string; // Without decimals nor multiplier
+  uiAmount: string; // With decimals and multiplier
 };
 
 export type NftAsset = {

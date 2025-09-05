@@ -18,6 +18,8 @@ import {
   SignatureMonitor,
   SubscriptionRepository,
   SubscriptionService,
+  TokenHelper,
+  TransactionMapper,
   TransactionsRepository,
   TransactionsService,
   WebSocketConnectionRepository,
@@ -72,6 +74,7 @@ export type SnapExecutionContext = {
   nameResolutionService: NameResolutionService;
   accountsService: AccountsService;
   accountsSynchronizer: AccountsSynchronizer;
+  tokenHelper: TokenHelper;
 };
 
 const configProvider = new ConfigProvider();
@@ -88,7 +91,7 @@ const inMemoryCache = new InMemoryCache(noOpLogger);
 
 const analyticsService = new AnalyticsService(logger);
 
-const connection = new SolanaConnection(configProvider);
+const connection = new SolanaConnection(configProvider, inMemoryCache);
 
 const webSocketConnectionRepository = new WebSocketConnectionRepository(
   configProvider,
@@ -112,9 +115,12 @@ const subscriptionService = new SubscriptionService(
   logger,
 );
 
+const tokenHelper = new TokenHelper(connection);
+
 const transactionHelper = new TransactionHelper(connection, logger);
 const sendSolBuilder = new SendSolBuilder(connection, logger);
 const sendSplTokenBuilder = new SendSplTokenBuilder(
+  tokenHelper,
   connection,
   transactionHelper,
   logger,
@@ -151,8 +157,14 @@ const accountsRepository = new AccountsRepository(state);
 const accountsService = new AccountsService(accountsRepository);
 
 const transactionsRepository = new TransactionsRepository(state);
+const transactionMapper = new TransactionMapper(
+  tokenHelper,
+  assetsService,
+  logger,
+);
 const transactionsService = new TransactionsService(
   transactionsRepository,
+  transactionMapper,
   accountsService,
   assetsService,
   connection,
@@ -191,6 +203,7 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
   assetsService,
   transactionsService,
   accountsSynchronizer,
+  tokenHelper,
   configProvider,
   eventEmitter,
   logger,
@@ -260,6 +273,7 @@ const snapContext: SnapExecutionContext = {
   nameResolutionService,
   accountsService,
   accountsSynchronizer,
+  tokenHelper,
 };
 
 export {
@@ -282,6 +296,7 @@ export {
   subscriptionRepository,
   subscriptionService,
   tokenApiClient,
+  tokenHelper,
   tokenMetadataService,
   tokenPricesService,
   transactionHelper,

@@ -3,7 +3,7 @@ import { assert, number, string } from '@metamask/superstruct';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
 import type { Base58EncodedBytes } from '@solana/kit';
-import { address as asAddress } from '@solana/kit';
+import { address as asAddress, lamports } from '@solana/kit';
 import { get } from 'lodash';
 
 import type { SubscriptionService } from '.';
@@ -21,7 +21,7 @@ import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
-import type { AssetsService } from '../assets/AssetsService';
+import type { AssetsService, TokenHelper } from '../assets';
 import type { ConfigProvider } from '../config';
 import type { TransactionsService } from '../transactions';
 import { isSpam } from '../transactions/utils/isSpam';
@@ -46,6 +46,8 @@ export class KeyringAccountMonitor {
   readonly #transactionsService: TransactionsService;
 
   readonly #accountsSynchronizer: AccountsSynchronizer;
+
+  readonly #tokenHelper: TokenHelper;
 
   readonly #configProvider: ConfigProvider;
 
@@ -78,6 +80,7 @@ export class KeyringAccountMonitor {
     assetsService: AssetsService,
     transactionsService: TransactionsService,
     accountsSynchronizer: AccountsSynchronizer,
+    tokenHelper: TokenHelper,
     configProvider: ConfigProvider,
     eventEmitter: EventEmitter,
     logger: ILogger,
@@ -87,8 +90,9 @@ export class KeyringAccountMonitor {
     this.#assetsService = assetsService;
     this.#transactionsService = transactionsService;
     this.#accountsSynchronizer = accountsSynchronizer;
-    this.#configProvider = configProvider;
+    this.#tokenHelper = tokenHelper;
     this.#eventEmitter = eventEmitter;
+    this.#configProvider = configProvider;
     this.#logger = createPrefixedLogger(logger, '[🗝️ KeyringAccountMonitor]');
 
     this.#bindHandlers();
@@ -313,8 +317,8 @@ export class KeyringAccountMonitor {
     }
 
     // Handle the notification with clean data
-    const { lamports } = notification.params.result.value;
-    assert(lamports, number());
+    const { lamports: accountLamports } = notification.params.result.value;
+    assert(accountLamports, number());
 
     const decimals = 9;
 
@@ -326,8 +330,8 @@ export class KeyringAccountMonitor {
         address,
         symbol: 'SOL',
         decimals,
-        rawAmount: lamports.toString(),
-        uiAmount: fromTokenUnits(lamports, decimals),
+        rawAmount: accountLamports.toString(),
+        uiAmount: fromTokenUnits(accountLamports, decimals),
       }),
       this.#saveCausingTransaction(keyringAccount, network, address),
     ]);
@@ -376,6 +380,20 @@ export class KeyringAccountMonitor {
       throw new Error(`No keyring account found with address: ${owner}`);
     }
 
+    /**
+     * WARNING: This is to compensate for the fact that the notification returned by Infura's programSubscribe
+     * includes a uiAmount/uiAmountString that does not take into account the mint's multiplier (if any).
+     * In theory, it should; because the regular Solana RPC (wss://api.mainnet-beta.solana.com) does.
+     *
+     * So this needs to be removed once Infura fixes their programSubscribe notification.
+     */
+    const uiAmount = await this.#tokenHelper
+      .amountToUiAmountForMint(mint, network, lamports(BigInt(amount)))
+      .catch((error) => {
+        this.#logger.error('Error converting amount to uiAmount', error);
+        return uiAmountString;
+      });
+
     await Promise.all([
       // Update the balance of the token asset
       this.#assetsService.save({
@@ -387,7 +405,7 @@ export class KeyringAccountMonitor {
         symbol: '',
         decimals,
         rawAmount: amount,
-        uiAmount: uiAmountString,
+        uiAmount,
       }),
       // Fetch and save the transaction that caused the token asset change.
       this.#saveCausingTransaction(keyringAccount, network, pubkey),
