@@ -5,7 +5,6 @@ import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
 import type { ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
-import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import { TransactionScanService } from './TransactionScan';
 import { ScanStatus, SecurityAlertResponse } from './types';
 
@@ -13,14 +12,9 @@ describe('TransactionScan', () => {
   let transactionScanService: TransactionScanService;
   let mockSecurityAlertsApiClient: SecurityAlertsApiClient;
   let mockLogger: ILogger;
-  let mockTokenMetadataService: TokenMetadataService;
   let mockAnalyticsService: AnalyticsService;
 
   beforeEach(() => {
-    mockTokenMetadataService = {
-      generateImageComponent: jest.fn().mockResolvedValue(null),
-    } as unknown as TokenMetadataService;
-
     mockSecurityAlertsApiClient = {
       scanTransactions: jest.fn().mockResolvedValue({}),
     } as unknown as SecurityAlertsApiClient;
@@ -36,7 +30,6 @@ describe('TransactionScan', () => {
 
     transactionScanService = new TransactionScanService(
       mockSecurityAlertsApiClient,
-      mockTokenMetadataService,
       mockAnalyticsService,
       mockLogger,
     );

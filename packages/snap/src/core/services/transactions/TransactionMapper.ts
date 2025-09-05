@@ -149,13 +149,15 @@ export class TransactionMapper {
 
       from.forEach((item) => {
         if (item.asset?.fungible && assetsMetadataToUse[item.asset.type]) {
-          item.asset.unit = assetsMetadataToUse[item.asset.type]?.symbol ?? '';
+          item.asset.unit =
+            assetsMetadataToUse[item.asset.type]?.symbol ?? 'UNKNOWN';
         }
       });
 
       to.forEach((item) => {
         if (item.asset?.fungible && assetsMetadataToUse[item.asset.type]) {
-          item.asset.unit = assetsMetadataToUse[item.asset.type]?.symbol ?? '';
+          item.asset.unit =
+            assetsMetadataToUse[item.asset.type]?.symbol ?? 'UNKNOWN';
         }
       });
 

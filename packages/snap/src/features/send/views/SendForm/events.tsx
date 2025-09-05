@@ -4,6 +4,7 @@ import { merge } from 'lodash';
 
 import { METAMASK_ORIGIN, Networks } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
+import { AssetsService } from '../../../../core/services';
 import { buildUrl } from '../../../../core/utils/buildUrl';
 import {
   lamportsToSol,
@@ -23,7 +24,6 @@ import {
   sendSolBuilder,
   sendSplTokenBuilder,
   state,
-  tokenMetadataService,
 } from '../../../../snapContext';
 import { getBalance, getIsNativeToken } from '../../selectors';
 import { Send } from '../../Send';
@@ -484,7 +484,7 @@ async function onSendButtonClick({
       .then((prices) => prices)
       .catch(() => null),
     context.selectedTokenMetadata
-      ? tokenMetadataService.generateImageComponent(
+      ? AssetsService.generateImageComponent(
           buildUrl({
             baseUrl: configProvider.get().staticApi.baseUrl,
             path: '/api/v2/tokenIcons/assets/{assetId}.png',

@@ -5,9 +5,10 @@ import type {
 } from '@metamask/keyring-api';
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import type {
-  FungibleAssetMarketData,
-  FungibleAssetMetadata,
+import {
+  getImageComponent,
+  type FungibleAssetMarketData,
+  type FungibleAssetMetadata,
 } from '@metamask/snaps-sdk';
 import type { CaipAssetType } from '@metamask/utils';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
@@ -29,6 +30,7 @@ import type {
 import type { ICache } from '../../caching/ICache';
 import { useCache } from '../../caching/useCache';
 import type { NftApiClient } from '../../clients/nft-api/NftApiClient';
+import type { TokenApiClient } from '../../clients/token-api-client/TokenApiClient';
 import type {
   Caip10Address,
   NativeCaipAssetType,
@@ -36,6 +38,7 @@ import type {
   TokenCaipAssetType,
 } from '../../constants/solana';
 import { Network, SolanaCaip19Tokens } from '../../constants/solana';
+import QUESTION_MARK_SVG from '../../img/question-mark.svg';
 import type { TokenAccountInfoWithJsonData } from '../../sdk-extensions/rpc-api';
 import type { Serializable } from '../../serialization/types';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
@@ -44,7 +47,6 @@ import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
-import type { TokenMetadataService } from '../token-metadata/TokenMetadata';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import type { AssetsRepository } from './AssetsRepository';
 import type { AssetMetadata, NonFungibleAssetMetadata } from './types';
@@ -68,9 +70,9 @@ export class AssetsService {
 
   readonly #assetsRepository: AssetsRepository;
 
-  readonly #tokenMetadataService: TokenMetadataService;
-
   readonly #tokenPricesService: TokenPricesService;
+
+  readonly #tokenApiClient: TokenApiClient;
 
   readonly #cache: ICache<Serializable>;
 
@@ -87,7 +89,7 @@ export class AssetsService {
     logger,
     configProvider,
     assetsRepository,
-    tokenMetadataService,
+    tokenApiClient,
     tokenPricesService,
     cache,
     nftApiClient,
@@ -96,7 +98,7 @@ export class AssetsService {
     logger: ILogger;
     configProvider: ConfigProvider;
     assetsRepository: AssetsRepository;
-    tokenMetadataService: TokenMetadataService;
+    tokenApiClient: TokenApiClient;
     tokenPricesService: TokenPricesService;
     cache: ICache<Serializable>;
     nftApiClient: NftApiClient;
@@ -105,7 +107,7 @@ export class AssetsService {
     this.#connection = connection;
     this.#configProvider = configProvider;
     this.#assetsRepository = assetsRepository;
-    this.#tokenMetadataService = tokenMetadataService;
+    this.#tokenApiClient = tokenApiClient;
     this.#tokenPricesService = tokenPricesService;
     this.#cache = cache;
     this.#nftApiClient = nftApiClient;
@@ -157,15 +159,6 @@ export class AssetsService {
     }
 
     return nativeTokensMetadata;
-  }
-
-  async #getTokensMetadata(
-    assetTypes: TokenCaipAssetType[],
-  ): Promise<Record<TokenCaipAssetType, FungibleAssetMetadata | null>> {
-    const tokensMetadata =
-      await this.#tokenMetadataService.getTokensMetadata(assetTypes);
-
-    return tokensMetadata;
   }
 
   async #getNftsMetadata(
@@ -233,7 +226,7 @@ export class AssetsService {
       // nftMetadata,
     ] = await Promise.all([
       this.#getNativeTokensMetadata(nativeAssetTypes),
-      this.#getTokensMetadata(tokenAssetTypes),
+      this.#tokenApiClient.getTokensMetadata(tokenAssetTypes),
       // this.#getNftsMetadata(nftAssetTypes),
     ]);
 
@@ -354,9 +347,12 @@ export class AssetsService {
       ),
     ]);
 
-    const tokensMetadata = await this.#tokenMetadataService.getTokensMetadata(
-      tokenAccounts.map((tokenAccount) => tokenAccount.assetType),
+    const assetTypes = tokenAccounts.map(
+      (tokenAccount) => tokenAccount.assetType,
     );
+
+    const tokensMetadata =
+      await this.#tokenApiClient.getTokensMetadata(assetTypes);
 
     const tokenAssets: TokenAsset[] = tokenAccounts
       .filter((tokenAccount) => tokenAccount.assetType.includes('/token:'))
@@ -643,4 +639,18 @@ export class AssetsService {
 
     return [...savedAssets, ...missingNativeAssets];
   }
+
+  static generateImageComponent = async (
+    imageUrl?: string,
+    width = 48,
+    height = 48,
+  ) => {
+    if (!imageUrl) {
+      return QUESTION_MARK_SVG;
+    }
+
+    return getImageComponent(imageUrl, { width, height })
+      .then((image) => image.value)
+      .catch(() => QUESTION_MARK_SVG);
+  };
 }
