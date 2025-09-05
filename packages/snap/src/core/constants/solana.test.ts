@@ -20,7 +20,6 @@ describe('TokenCaipAssetTypeStruct', () => {
       ];
 
       validIds.forEach((id) => {
-        console.log(`Testing valid ID: ${id}`);
         expect(() => assert(id, TokenCaipAssetTypeStruct)).not.toThrow();
         expect(is(id, TokenCaipAssetTypeStruct)).toBe(true);
       });
@@ -33,7 +32,6 @@ describe('TokenCaipAssetTypeStruct', () => {
       ];
 
       testIds.forEach((id) => {
-        console.log(`Testing test ID: ${id}`);
         expect(() => assert(id, TokenCaipAssetTypeStruct)).not.toThrow();
         expect(is(id, TokenCaipAssetTypeStruct)).toBe(true);
       });
@@ -42,7 +40,6 @@ describe('TokenCaipAssetTypeStruct', () => {
     it('validates USDC address format', () => {
       const usdcId =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-      console.log(`Testing USDC ID: ${usdcId}`);
       expect(() => assert(usdcId, TokenCaipAssetTypeStruct)).not.toThrow();
       expect(is(usdcId, TokenCaipAssetTypeStruct)).toBe(true);
     });
@@ -60,7 +57,6 @@ describe('TokenCaipAssetTypeStruct', () => {
       ];
 
       invalidIds.forEach((id) => {
-        console.log(`Testing invalid ID: ${id}`);
         expect(() => assert(id, TokenCaipAssetTypeStruct)).toThrow(
           'Expected a string matching',
         );
@@ -76,7 +72,6 @@ describe('TokenCaipAssetTypeStruct', () => {
       ];
 
       invalidIds.forEach((id) => {
-        console.log(`Testing ID with special chars: ${id}`);
         expect(() => assert(id, TokenCaipAssetTypeStruct)).toThrow(
           'Expected a string matching',
         );
@@ -100,7 +95,6 @@ describe('TokenCaipAssetTypeFromStringStruct', () => {
       ];
 
       validIds.forEach((id) => {
-        console.log(`Testing valid ID: ${id}`);
         expect(() =>
           assert(id, TokenCaipAssetTypeFromStringStruct),
         ).not.toThrow();
@@ -115,7 +109,6 @@ describe('TokenCaipAssetTypeFromStringStruct', () => {
       ];
 
       testIds.forEach((id) => {
-        console.log(`Testing test ID: ${id}`);
         expect(() =>
           assert(id, TokenCaipAssetTypeFromStringStruct),
         ).not.toThrow();
@@ -126,7 +119,6 @@ describe('TokenCaipAssetTypeFromStringStruct', () => {
     it('validates USDC address format', () => {
       const usdcId =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-      console.log(`Testing USDC ID: ${usdcId}`);
       expect(() =>
         assert(usdcId, TokenCaipAssetTypeFromStringStruct),
       ).not.toThrow();
@@ -139,9 +131,6 @@ describe('TokenCaipAssetTypeFromStringStruct', () => {
       const invalidValues = [123, null, undefined, {}, [], true, false];
 
       invalidValues.forEach((value) => {
-        console.log(
-          `Testing non-string value: ${typeof value} - ${JSON.stringify(value)}`,
-        );
         expect(() => assert(value, TokenCaipAssetTypeFromStringStruct)).toThrow(
           'Expected a string',
         );
@@ -160,7 +149,6 @@ describe('TokenCaipAssetTypeFromStringStruct', () => {
       ];
 
       invalidIds.forEach((id) => {
-        console.log(`Testing invalid string ID: ${id}`);
         expect(() => assert(id, TokenCaipAssetTypeFromStringStruct)).toThrow(
           'Expected a string matching',
         );
@@ -176,7 +164,6 @@ describe('TokenCaipAssetTypeFromStringStruct', () => {
       ];
 
       invalidIds.forEach((id) => {
-        console.log(`Testing string ID with special chars: ${id}`);
         expect(() => assert(id, TokenCaipAssetTypeFromStringStruct)).toThrow(
           'Expected a string matching',
         );
@@ -206,7 +193,6 @@ describe('Integration tests with actual API data', () => {
     ];
 
     mockApiResponse.forEach((item) => {
-      console.log(`Testing API response assetId: ${item.assetId}`);
       expect(() =>
         assert(item.assetId, TokenCaipAssetTypeFromStringStruct),
       ).not.toThrow();
@@ -221,7 +207,6 @@ describe('Integration tests with actual API data', () => {
     ];
 
     realUsdcAddresses.forEach((address) => {
-      console.log(`Testing real USDC address: ${address}`);
       expect(() =>
         assert(address, TokenCaipAssetTypeFromStringStruct),
       ).not.toThrow();

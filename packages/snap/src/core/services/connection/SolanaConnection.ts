@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { assert } from '@metamask/superstruct';
 import { Duration } from '@metamask/utils';
-import type { Mint } from '@solana-program/token-2022';
-import { fetchMint } from '@solana-program/token-2022';
+import { fetchMint, type Mint } from '@solana-program/token-2022';
 import type { Account, Address, FetchAccountConfig } from '@solana/kit';
 import {
   address as asAddress,
@@ -78,17 +78,31 @@ export class SolanaConnection {
     caip2Id: Network,
     config?: FetchAccountConfig,
   ): Promise<Account<Mint, Address>> {
-    const rpc = this.getRpc(caip2Id);
+    /**
+     * Defines the base uncached function for fetching a mint account.
+     *
+     * This wrapper is used instead of directly caching the SDK's fetchMint function
+     * to ensure that only simple arguments are used, as these arguments form the cache key.
+     */
 
-    const fetchCached = useCache<
-      [Rpc<SolanaRpcApi>, Address, FetchAccountConfig | undefined],
+    const fetchMintInternal = async (
+      _address: Address,
+      _caip2Id: Network,
+      _config?: FetchAccountConfig,
+    ) => {
+      const rpc = this.getRpc(caip2Id);
+      return fetchMint(rpc, asAddress(address), config);
+    };
+
+    // Create a cached version of the function
+    const fetchMintCached = useCache<
+      [Address, Network, FetchAccountConfig | undefined],
       Account<Mint, Address> & Serializable
-    >(fetchMint as any, this.#cache, {
+    >(fetchMintInternal as any, this.#cache, {
       ttlMilliseconds: this.#cacheTtlsMilliseconds.fetchMint,
       functionName: 'SolanaConnection::fetchMint',
     });
 
-    const mintAccount = await fetchCached(rpc, asAddress(address), config);
-    return mintAccount;
+    return fetchMintCached(asAddress(address), caip2Id, config);
   }
 }
