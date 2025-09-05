@@ -38,6 +38,7 @@ import type {
   TokenCaipAssetType,
 } from '../../constants/solana';
 import { Network, SolanaCaip19Tokens } from '../../constants/solana';
+import QUESTION_MARK_SVG from '../../img/question-mark.svg';
 import type { TokenAccountInfoWithJsonData } from '../../sdk-extensions/rpc-api';
 import type { Serializable } from '../../serialization/types';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
@@ -48,7 +49,6 @@ import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import type { AssetsRepository } from './AssetsRepository';
-import QUESTION_MARK_SVG from './question-mark.svg';
 import type { AssetMetadata, NonFungibleAssetMetadata } from './types';
 
 /**
