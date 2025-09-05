@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.7]
+
+### Added
+
+- Support tokens with multiplier ([#509](https://github.com/MetaMask/snap-solana-wallet/pull/509))
+
+### Fixed
+
+- Hide spam transactions from activity list ([#515](https://github.com/MetaMask/snap-solana-wallet/pull/515))
+- Default to symbol `UNKNOWN` in activity for tokens with no metadata ([#517](https://github.com/MetaMask/snap-solana-wallet/pull/517))
+
 ## [2.3.6]
 
 ### Changed
@@ -881,7 +892,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.6...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.7...HEAD
+[2.3.7]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.6...v2.3.7
 [2.3.6]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.5...v2.3.6
 [2.3.5]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.4...v2.3.5
 [2.3.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.3...v2.3.4
