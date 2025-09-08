@@ -284,6 +284,29 @@ describe('AssetsService', () => {
       );
     });
 
+    it('emits event "AccountBalancesUpdated" when native balance goes from non-zero to zero', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'getAll')
+        .mockResolvedValue([{ ...MOCK_ASSET_ENTITY_0, uiAmount: '1234' }]);
+
+      await assetsService.saveMany([{ ...MOCK_ASSET_ENTITY_0, uiAmount: '0' }]);
+
+      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
+        snap,
+        KeyringEvent.AccountBalancesUpdated,
+        {
+          balances: {
+            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+              [MOCK_ASSET_ENTITY_0.assetType]: {
+                unit: MOCK_ASSET_ENTITY_0.symbol,
+                amount: '0',
+              },
+            },
+          },
+        },
+      );
+    });
+
     it('does not emit events when no assets changed', async () => {
       jest
         .spyOn(mockAssetsRepository, 'getAll')
