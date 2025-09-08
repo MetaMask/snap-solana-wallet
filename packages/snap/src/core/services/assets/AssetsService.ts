@@ -475,9 +475,9 @@ export class AssetsService {
   async saveMany(assets: AssetEntity[]): Promise<void> {
     this.#logger.info('Saving assets', assets);
 
-    const hasZeroRawAmount = (asset: AssetEntity) => asset.rawAmount === '0';
-    const hasNonZeroRawAmount = (asset: AssetEntity) =>
-      !hasZeroRawAmount(asset);
+    const hasZeroAmount = (asset: AssetEntity) =>
+      asset.rawAmount === '0' || asset.uiAmount === '0';
+    const hasNonZeroAmount = (asset: AssetEntity) => !hasZeroAmount(asset);
 
     const savedAssets = await this.getAll();
 
@@ -492,14 +492,14 @@ export class AssetsService {
           item.assetType === asset.assetType,
       );
 
-    const wasSavedWithZeroRawAmount = (asset: AssetEntity) => {
+    const wasSavedWithZeroAmount = (asset: AssetEntity) => {
       const savedAsset = savedAssets.find(
         (item) =>
           item.keyringAccountId === asset.keyringAccountId &&
           item.assetType === asset.assetType,
       );
 
-      return savedAsset && hasZeroRawAmount(savedAsset);
+      return savedAsset && hasZeroAmount(savedAsset);
     };
 
     const isNativeAsset = (asset: AssetEntity) =>
@@ -513,14 +513,14 @@ export class AssetsService {
         [asset.keyringAccountId]: {
           added: [
             ...(acc[asset.keyringAccountId]?.added ?? []),
-            ...((isNew(asset) || wasSavedWithZeroRawAmount(asset)) &&
-            hasNonZeroRawAmount(asset)
+            ...((isNew(asset) || wasSavedWithZeroAmount(asset)) &&
+            hasNonZeroAmount(asset)
               ? [asset.assetType]
               : []),
           ],
           removed: [
             ...(acc[asset.keyringAccountId]?.removed ?? []),
-            ...(hasZeroRawAmount(asset) && !isNativeAsset(asset) // Never remove native assets from the account asset list
+            ...(hasZeroAmount(asset) && !isNativeAsset(asset) // Never remove native assets from the account asset list
               ? [asset.assetType]
               : []),
           ],
@@ -529,6 +529,7 @@ export class AssetsService {
       {},
     );
 
+    // If no assets were added or removed, don't emit the event.
     const isEmptyAccountAssetListUpdatedPayload = Object.values(
       assetListUpdatedPayload,
     )
@@ -547,7 +548,6 @@ export class AssetsService {
       AssetsService.hasChanged(asset, savedAssets);
 
     const balancesUpdatedPayload = assets
-      .filter(hasNonZeroRawAmount)
       .filter(hasChanged)
       .reduce<AccountBalancesUpdatedEvent['params']['balances']>(
         (acc, asset) => ({
@@ -563,13 +563,10 @@ export class AssetsService {
         {},
       );
 
-    const isEmptyAccountBalancesUpdatedPayload = Object.values(
-      balancesUpdatedPayload,
-    )
-      .map((item) => Object.keys(item).length)
-      .every((item) => item === 0); // If all balances are zero, don't emit the event.
+    const isSomeBalanceChanged = Object.keys(balancesUpdatedPayload).length > 0;
 
-    if (!isEmptyAccountBalancesUpdatedPayload) {
+    // If no balances were changed, don't emit the event.
+    if (isSomeBalanceChanged) {
       await emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
         balances: balancesUpdatedPayload,
       });
