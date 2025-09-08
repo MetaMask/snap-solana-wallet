@@ -563,9 +563,11 @@ export class AssetsService {
         {},
       );
 
-    const isSomeBalanceChanged = Object.keys(balancesUpdatedPayload).length > 0;
+    const isSomeBalanceChanged = Object.values(balancesUpdatedPayload)
+      .map((item) => Object.keys(item).length)
+      .some((item) => item > 0);
 
-    // If no balances were changed, don't emit the event.
+    // Only emit the event if some balance was changed.
     if (isSomeBalanceChanged) {
       await emitSnapKeyringEvent(snap, KeyringEvent.AccountBalancesUpdated, {
         balances: balancesUpdatedPayload,
