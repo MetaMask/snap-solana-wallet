@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/check-indentation */
 import type {
   AccountAssetListUpdatedEvent,
   AccountBalancesUpdatedEvent,
@@ -547,6 +548,31 @@ export class AssetsService {
     const hasChanged = (asset: AssetEntity) =>
       AssetsService.hasChanged(asset, savedAssets);
 
+    /**
+     * Build the event payload for snap keyring event `AccountBalancesUpdated`.
+     *
+     * @example
+     * {
+     *   "balances": {
+     *     "keyringAccountId0": {
+     *       "assetType00": {
+     *         "unit": "XYZ",
+     *         "amount": "1234"
+     *       },
+     *       "assetType01": {
+     *         "unit": "ABC",
+     *         "amount": "5678"
+     *       }
+     *     },
+     *     "keyringAccountId1": {
+     *       "assetType10": {
+     *         "unit": "XYZ",
+     *         "amount": "42"
+     *       }
+     *     }
+     *   }
+     * }
+     */
     const balancesUpdatedPayload = assets
       .filter(hasChanged)
       .reduce<AccountBalancesUpdatedEvent['params']['balances']>(
@@ -563,9 +589,10 @@ export class AssetsService {
         {},
       );
 
+    // Traverse the balancesUpdatedPayload object to check if we have at least 1 account that has at least 1 balance updated.
     const isSomeBalanceChanged = Object.values(balancesUpdatedPayload)
-      .map((item) => Object.keys(item).length)
-      .some((item) => item > 0);
+      .map((accountAssets) => Object.keys(accountAssets).length) // To each accountAssets object, map the number of assetTypes
+      .some((count) => count > 0);
 
     // Only emit the event if some balance was changed.
     if (isSomeBalanceChanged) {
