@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.8]
 
-### Uncategorized
+### Fixed
 
-- fix: incorrect logic on emitting event ([#519](https://github.com/MetaMask/snap-solana-wallet/pull/519))
+- Notify client when native SOL balance reaches zero ([#519](https://github.com/MetaMask/snap-solana-wallet/pull/519))
 
 ## [2.3.7]
 
