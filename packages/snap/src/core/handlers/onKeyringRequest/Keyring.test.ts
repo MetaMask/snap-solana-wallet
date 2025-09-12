@@ -873,6 +873,32 @@ describe('SolanaKeyring', () => {
       );
     });
 
+    it('rejects when account address in request does not match signing account', async () => {
+      const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+      const request = {
+        account: account.id,
+        id: crypto.randomUUID(),
+        request: {
+          method: SolMethod.SignMessage,
+          params: {
+            account: {
+              address: MOCK_SOLANA_KEYRING_ACCOUNT_3.address,
+            },
+            message: 'SGVsbG8sIHdvcmxkIQ==', // "Hello, world!" in base64
+          },
+        },
+        scope: Network.Mainnet,
+        origin: 'https://metamask.io',
+      };
+      jest
+        .spyOn(mockConfirmationHandler, 'handleKeyringRequest')
+        .mockResolvedValue(true);
+
+      await expect(keyring.submitRequest(request)).rejects.toThrow(
+        'The requested account and/or method has not been authorized by the user.',
+      );
+    });
+
     it('calls the confirmation handler, and calls the wallet service if confirmed', async () => {
       jest
         .spyOn(mockState, 'getKey')
@@ -881,6 +907,8 @@ describe('SolanaKeyring', () => {
       jest
         .spyOn(mockConfirmationHandler, 'handleKeyringRequest')
         .mockResolvedValue(true);
+
+      const message = 'SGVsbG8sIHdvcmxkIQ=='; // "Hello, world!" in base64
 
       const request: KeyringRequest = {
         account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
@@ -891,7 +919,7 @@ describe('SolanaKeyring', () => {
             account: {
               address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
             },
-            message: 'SGVsbG8sIHdvcmxkIQ==', // "Hello, world!" in base64
+            message,
           },
         },
         scope: Network.Devnet,
@@ -907,7 +935,7 @@ describe('SolanaKeyring', () => {
 
       expect(mockWalletService.signMessage).toHaveBeenCalledWith(
         MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        request,
+        message,
       );
     });
 

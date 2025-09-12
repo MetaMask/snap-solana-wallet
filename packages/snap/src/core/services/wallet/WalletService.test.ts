@@ -1,5 +1,4 @@
 import { SolMethod } from '@metamask/keyring-api';
-import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 
 import { Network } from '../../constants/solana';
 import {
@@ -24,7 +23,6 @@ import {
   MOCK_SIGN_MESSAGE_REQUEST,
   MOCK_SIGN_MESSAGE_RESPONSE,
   MOCK_SIGN_TRANSACTION_REQUEST,
-  wrapKeyringRequest,
 } from './mocks';
 import type { SolanaWalletRequest } from './structs';
 import { WalletService } from './WalletService';
@@ -44,6 +42,7 @@ describe('WalletService', () => {
   let service: WalletService;
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
   let onCommitmentReachedCallback: (params: any) => Promise<void>;
+  const origin = 'https://metamask.io';
 
   beforeEach(() => {
     mockConnection = createMockConnection();
@@ -239,48 +238,25 @@ describe('WalletService', () => {
 
       describe(`signTransaction`, () => {
         it(`Scenario ${name}: returns the signed transaction`, async () => {
-          const request = wrapKeyringRequest({
-            method: SolMethod.SignTransaction,
-            params: {
-              account: {
-                address: fromAccount.address,
-              },
-              transaction: transactionMessageBase64Encoded,
-              scope,
-            },
-          });
-
-          const result = await service.signTransaction(fromAccount, request);
+          const result = await service.signTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            origin,
+          );
 
           expect(result).toStrictEqual({
             signedTransaction: signedTransactionBase64Encoded,
           });
         });
 
-        it(`Scenario ${name}: rejects invalid requests`, async () => {
-          const request = wrapKeyringRequest({
-            method: SolMethod.SignTransaction,
-            params: {},
-          });
-
-          await expect(
-            service.signTransaction(fromAccount, request),
-          ).rejects.toThrow(/At path/u);
-        });
-
         it('starts monitoring the transaction for commitment "confirmed"', async () => {
-          const request = wrapKeyringRequest({
-            method: SolMethod.SignTransaction,
-            params: {
-              account: {
-                address: fromAccount.address,
-              },
-              transaction: transactionMessageBase64Encoded,
-              scope,
-            },
-          });
-
-          await service.signTransaction(fromAccount, request);
+          await service.signTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            origin,
+          );
 
           expect(mockSignatureMonitor.monitor).toHaveBeenCalledWith(
             signature,
@@ -328,11 +304,9 @@ describe('WalletService', () => {
       describe('signMessage', () => {
         it('returns the signed message and is properly verified', async () => {
           const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
-          const request = wrapKeyringRequest(
-            MOCK_SIGN_MESSAGE_REQUEST as unknown as JsonRpcRequest,
-          );
+          const { message } = MOCK_SIGN_MESSAGE_REQUEST.params;
 
-          const result = await service.signMessage(account, request);
+          const result = await service.signMessage(account, message);
 
           expect(result).toStrictEqual(MOCK_SIGN_MESSAGE_RESPONSE);
 
@@ -344,85 +318,39 @@ describe('WalletService', () => {
 
           expect(verified).toBe(true);
         });
-
-        it('rejects invalid requests', async () => {
-          const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-          const request = wrapKeyringRequest({
-            ...MOCK_SIGN_MESSAGE_REQUEST,
-            params: {},
-          } as unknown as JsonRpcRequest);
-
-          await expect(service.signMessage(account, request)).rejects.toThrow(
-            /At path/u,
-          );
-        });
-
-        it('rejects when account address in request does not match signing account', async () => {
-          const account = MOCK_SOLANA_KEYRING_ACCOUNT_3;
-          const request = wrapKeyringRequest({
-            ...MOCK_SIGN_MESSAGE_REQUEST,
-            params: {
-              ...MOCK_SIGN_MESSAGE_REQUEST.params,
-              account: {
-                address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
-              },
-            },
-          } as unknown as JsonRpcRequest);
-
-          await expect(service.signMessage(account, request)).rejects.toThrow(
-            'The requested account and/or method has not been authorized by the user.',
-          );
-        });
       });
 
       describe('signIn', () => {
         it('returns the signed message', async () => {
           const account = MOCK_SOLANA_KEYRING_ACCOUNT_2;
-          const request = wrapKeyringRequest(
-            MOCK_SIGN_IN_REQUEST as unknown as JsonRpcRequest,
-          );
+          const { params } = MOCK_SIGN_IN_REQUEST;
 
-          const result = await service.signIn(account, request);
+          const result = await service.signIn(account, params);
 
           expect(result).toStrictEqual(MOCK_SIGN_IN_RESPONSE);
         });
 
-        it('rejects invalid requests', async () => {
-          const account = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-          const request = wrapKeyringRequest({
-            ...MOCK_SIGN_IN_REQUEST,
-            params: undefined,
-          } as unknown as JsonRpcRequest);
-
-          await expect(service.signIn(account, request)).rejects.toThrow(
-            /At path/u,
-          );
-        });
-
         it('sanitizes control characters from sign-in parameters', async () => {
           const account = MOCK_SOLANA_KEYRING_ACCOUNT_2;
-          const maliciousRequest = wrapKeyringRequest({
-            ...MOCK_SIGN_IN_REQUEST,
-            params: {
-              domain: 'example.com\n<script>alert(1)</script>',
-              address: '5Q444645Hz4hD7AuSj5z8m6jKLd3TxoMwp4Y7UWVKGqy\r\n',
-              statement: 'I accept the terms\n\r\n\nof service',
-              uri: 'https://example.com/login\r\n',
-              version: '1\n',
-              chainId: 'solana:101\r\n',
-              nonce: '32891756\n',
-              issuedAt: '2024-01-01T00:00:00.000Z\r\n',
-              expirationTime: '2024-01-02T00:00:00.000Z\n',
-              notBefore: '2023-12-31T00:00:00.000Z\r\n',
-              requestId: '123\n',
-              resources: [
-                'https://example.com/resource1\r\n',
-                'https://example.com/resource2\n',
-              ],
-            },
-          } as unknown as JsonRpcRequest);
+          const maliciousParams = {
+            domain: 'example.com\n<script>alert(1)</script>',
+            address: '5Q444645Hz4hD7AuSj5z8m6jKLd3TxoMwp4Y7UWVKGqy\r\n',
+            statement: 'I accept the terms\n\r\n\nof service',
+            uri: 'https://example.com/login\r\n',
+            version: '1\n',
+            chainId: 'solana:101\r\n',
+            nonce: '32891756\n',
+            issuedAt: '2024-01-01T00:00:00.000Z\r\n',
+            expirationTime: '2024-01-02T00:00:00.000Z\n',
+            notBefore: '2023-12-31T00:00:00.000Z\r\n',
+            requestId: '123\n',
+            resources: [
+              'https://example.com/resource1\r\n',
+              'https://example.com/resource2\n',
+            ],
+          };
 
-          const result = await service.signIn(account, maliciousRequest);
+          const result = await service.signIn(account, maliciousParams);
 
           // The result should still be valid, but the message will be sanitized
           expect(result).toHaveProperty('signature');
@@ -433,19 +361,16 @@ describe('WalletService', () => {
 
         it('handles requests with invalid parameters by sanitizing them', async () => {
           const account = MOCK_SOLANA_KEYRING_ACCOUNT_2;
-          const invalidRequest = wrapKeyringRequest({
-            method: SolMethod.SignIn,
-            params: {
-              domain: '',
-              address: 'invalid-address',
-              uri: 'not-a-url',
-              issuedAt: 'invalid-timestamp',
-            },
-          } as unknown as JsonRpcRequest);
+          const invalidParams = {
+            domain: '',
+            address: 'invalid-address',
+            uri: 'not-a-url',
+            issuedAt: 'invalid-timestamp',
+          };
 
           // The sanitization should handle invalid parameters gracefully
           // and the sign-in should succeed with sanitized values
-          const result = await service.signIn(account, invalidRequest);
+          const result = await service.signIn(account, invalidParams);
 
           expect(result).toHaveProperty('signature');
           expect(result).toHaveProperty('signedMessage');

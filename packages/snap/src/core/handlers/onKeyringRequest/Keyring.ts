@@ -32,7 +32,7 @@ import {
 import { assert, integer } from '@metamask/superstruct';
 import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
-import { getAddressDecoder } from '@solana/kit';
+import { address as asAddress, getAddressDecoder } from '@solana/kit';
 import { sortBy } from 'lodash';
 
 import {
@@ -515,6 +515,8 @@ export class SolanaKeyring implements Keyring {
       );
     }
 
+    assert(scope, NetworkStruct);
+
     const isConfirmed = await this.#confirmationHandler.handleKeyringRequest(
       request,
       account,
@@ -535,16 +537,61 @@ export class SolanaKeyring implements Keyring {
           options,
         );
       }
-      case SolMethod.SignTransaction:
-        return this.#walletService.signTransaction(account, request);
-      case SolMethod.SignMessage:
-        return this.#walletService.signMessage(account, request);
+      case SolMethod.SignTransaction: {
+        this.#validateAccountAddress(account, request);
+        const { transaction, options } = params;
+        return this.#walletService.signTransaction(
+          account,
+          transaction,
+          scope,
+          origin,
+          options,
+        );
+      }
+      case SolMethod.SignMessage: {
+        this.#validateAccountAddress(account, request);
+        const { message } = params;
+        return this.#walletService.signMessage(account, message);
+      }
       case SolMethod.SignIn:
-        return this.#walletService.signIn(account, request);
+        return this.#walletService.signIn(account, params);
       default:
         throw new MethodNotFoundError(
           `Unsupported method: ${method}`,
         ) as unknown as Error;
+    }
+  }
+
+  /**
+   * Validates that the account address in the request parameters matches the signing account.
+   * This prevents unauthorized account usage and authorization bypass.
+   *
+   * @param account - The account used for signing.
+   * @param request - The request containing the account address to validate.
+   * @throws If the account address is invalid or doesn't match the signing account.
+   */
+  #validateAccountAddress(
+    account: SolanaKeyringAccount,
+    request: KeyringRequest,
+  ): void {
+    const { address } = account;
+
+    const { account: requestAccount } = request.request.params as {
+      account: { address: string };
+    };
+
+    try {
+      asAddress(requestAccount.address);
+    } catch {
+      throw new Error('Invalid Solana address format');
+    }
+
+    // Check that the account address in the request parameters matches the account used for signing
+    // If it doesn't match, throw the same error MM throws when the account is not authorized
+    if (requestAccount.address !== address) {
+      throw new Error(
+        'The requested account and/or method has not been authorized by the user.',
+      );
     }
   }
 
