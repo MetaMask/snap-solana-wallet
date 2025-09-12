@@ -14,6 +14,8 @@ export class NameResolutionService {
 
   #logger: ILogger;
 
+  tld = '.sol';
+
   constructor(connection: SolanaConnection, logger: ILogger) {
     this.#connection = connection;
     this.#logger = logger;
