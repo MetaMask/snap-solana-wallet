@@ -4,7 +4,6 @@ import type { Transaction } from '@metamask/keyring-api';
 
 import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
-import logger from '../../utils/logger';
 import { ScanStatus, SecurityAlertResponse } from '../transaction-scan/types';
 import { AnalyticsService } from './AnalyticsService';
 
@@ -16,8 +15,6 @@ const snap = {
 
 describe('AnalyticsService', () => {
   let analyticsService: AnalyticsService;
-  let loggerSpy: jest.SpyInstance;
-  const loggerPrefix = '[📣 AnalyticsService]';
 
   const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
   const mockScope = Network.Mainnet;
@@ -31,12 +28,7 @@ describe('AnalyticsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     analyticsService = new AnalyticsService();
-    loggerSpy = jest.spyOn(logger, 'log').mockImplementation();
     mockSnapRequest.mockResolvedValue(undefined);
-  });
-
-  afterEach(() => {
-    loggerSpy.mockRestore();
   });
 
   describe('trackEventTransactionAdded', () => {
@@ -44,11 +36,6 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionAdded(
         mockAccount,
         mockMetadata,
-      );
-
-      expect(loggerSpy).toHaveBeenCalledWith(
-        loggerPrefix,
-        'Tracking event transaction added',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -75,11 +62,6 @@ describe('AnalyticsService', () => {
         mockMetadata,
       );
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        loggerPrefix,
-        'Tracking event transaction approved',
-      );
-
       expect(mockSnapRequest).toHaveBeenCalledWith({
         method: 'snap_trackEvent',
         params: {
@@ -103,11 +85,6 @@ describe('AnalyticsService', () => {
         mockAccount,
         mockSignature,
         mockMetadata,
-      );
-
-      expect(loggerSpy).toHaveBeenCalledWith(
-        loggerPrefix,
-        'Tracking event transaction submitted',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -183,11 +160,6 @@ describe('AnalyticsService', () => {
         mockMetadata,
       );
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        loggerPrefix,
-        'Tracking event transaction finalized',
-      );
-
       expect(mockSnapRequest).toHaveBeenCalledWith({
         method: 'snap_trackEvent',
         params: {
@@ -212,11 +184,6 @@ describe('AnalyticsService', () => {
       await analyticsService.trackEventTransactionRejected(
         mockAccount,
         mockMetadata,
-      );
-
-      expect(loggerSpy).toHaveBeenCalledWith(
-        loggerPrefix,
-        'Tracking event transaction rejected',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -252,11 +219,6 @@ describe('AnalyticsService', () => {
         securityAlertDescription,
       );
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        loggerPrefix,
-        'Tracking event security alert detected',
-      );
-
       expect(mockSnapRequest).toHaveBeenCalledWith({
         method: 'snap_trackEvent',
         params: {
@@ -288,11 +250,6 @@ describe('AnalyticsService', () => {
         mockScope,
         scanStatus,
         hasSecurityAlerts,
-      );
-
-      expect(loggerSpy).toHaveBeenCalledWith(
-        loggerPrefix,
-        'Tracking event security scan completed',
       );
 
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -337,6 +294,34 @@ describe('AnalyticsService', () => {
               chain_id_caip: mockScope,
               scan_status: scanStatus,
               has_security_alerts: hasSecurityAlerts,
+            },
+          },
+        },
+      });
+    });
+  });
+
+  describe('trackEventWebSocketConnectionClosedNotCleanly', () => {
+    it('tracks web socket connection closed not cleanly event', async () => {
+      const mockCode = 1000;
+      const mockReason = 'mockedReason';
+
+      await analyticsService.trackEventWebSocketConnectionClosedNotCleanly(
+        mockOrigin,
+        mockCode,
+        mockReason,
+      );
+
+      expect(mockSnapRequest).toHaveBeenCalledWith({
+        method: 'snap_trackEvent',
+        params: {
+          event: {
+            event: 'WebSocket Connection Closed Not Cleanly',
+            properties: {
+              message: 'Snap WebSocket connection closed not cleanly',
+              origin: mockOrigin,
+              code: mockCode,
+              reason: mockReason,
             },
           },
         },

@@ -25,57 +25,49 @@ export class AnalyticsService {
     event: string,
     properties: Record<string, Json>,
   ): Promise<void> {
-    await snap.request({
-      method: 'snap_trackEvent',
-      params: {
-        event: {
-          event,
-          properties,
+    try {
+      this.#logger.log(`Tracking event ${event}`);
+
+      await snap.request({
+        method: 'snap_trackEvent',
+        params: {
+          event: {
+            event,
+            properties,
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      this.#logger.warn('Error tracking event', {
+        error,
+        event,
+        properties,
+      });
+    }
   }
 
   async trackEventTransactionAdded(
     account: SolanaKeyringAccount,
     metadata: TransactionMetadata,
   ): Promise<void> {
-    try {
-      this.#logger.log('Tracking event transaction added');
-
-      await this.#trackEvent('Transaction Added', {
-        message: 'Snap transaction added',
-        origin: metadata.origin,
-        account_type: account.type,
-        chain_id_caip: metadata.scope,
-      });
-    } catch (error) {
-      this.#logger.warn('Error tracking event transaction added', {
-        error,
-        metadata,
-      });
-    }
+    await this.#trackEvent('Transaction Added', {
+      message: 'Snap transaction added',
+      origin: metadata.origin,
+      account_type: account.type,
+      chain_id_caip: metadata.scope,
+    });
   }
 
   async trackEventTransactionApproved(
     account: SolanaKeyringAccount,
     metadata: TransactionMetadata,
   ): Promise<void> {
-    try {
-      this.#logger.log('Tracking event transaction approved');
-
-      await this.#trackEvent('Transaction Approved', {
-        message: 'Snap transaction approved',
-        origin: metadata.origin,
-        account_type: account.type,
-        chain_id_caip: metadata.scope,
-      });
-    } catch (error) {
-      this.#logger.warn('Error tracking event transaction approved', {
-        error,
-        metadata,
-      });
-    }
+    await this.#trackEvent('Transaction Approved', {
+      message: 'Snap transaction approved',
+      origin: metadata.origin,
+      account_type: account.type,
+      chain_id_caip: metadata.scope,
+    });
   }
 
   async trackEventTransactionSubmitted(
@@ -83,22 +75,12 @@ export class AnalyticsService {
     signature: string,
     metadata: TransactionMetadata,
   ): Promise<void> {
-    try {
-      this.#logger.log('Tracking event transaction submitted');
-
-      await this.#trackEvent('Transaction Submitted', {
-        message: 'Snap transaction submitted',
-        origin: metadata.origin,
-        account_type: account.type,
-        chain_id_caip: metadata.scope,
-      });
-    } catch (error) {
-      this.#logger.warn('Error tracking event transaction submitted', {
-        error,
-        signature,
-        metadata,
-      });
-    }
+    await this.#trackEvent('Transaction Submitted', {
+      message: 'Snap transaction submitted',
+      origin: metadata.origin,
+      account_type: account.type,
+      chain_id_caip: metadata.scope,
+    });
   }
 
   async trackEventTransactionFinalized(
@@ -106,45 +88,26 @@ export class AnalyticsService {
     transaction: Transaction,
     metadata: TransactionMetadata,
   ): Promise<void> {
-    try {
-      this.#logger.log('Tracking event transaction finalized');
-
-      await this.#trackEvent('Transaction Finalized', {
-        message: 'Snap transaction finalized',
-        origin: metadata.origin,
-        account_type: account.type,
-        chain_id_caip: transaction.chain,
-        transaction_status: transaction.status,
-        transaction_type: transaction.type,
-      });
-    } catch (error) {
-      this.#logger.warn('Error tracking event transaction finalized', {
-        error,
-        transaction,
-        metadata,
-      });
-    }
+    await this.#trackEvent('Transaction Finalized', {
+      message: 'Snap transaction finalized',
+      origin: metadata.origin,
+      account_type: account.type,
+      chain_id_caip: transaction.chain,
+      transaction_status: transaction.status,
+      transaction_type: transaction.type,
+    });
   }
 
   async trackEventTransactionRejected(
     account: SolanaKeyringAccount,
     metadata: TransactionMetadata,
   ): Promise<void> {
-    try {
-      this.#logger.log('Tracking event transaction rejected');
-
-      await this.#trackEvent('Transaction Rejected', {
-        message: 'Snap transaction rejected',
-        origin: metadata.origin,
-        account_type: account.type,
-        chain_id_caip: metadata.scope,
-      });
-    } catch (error) {
-      this.#logger.warn('Error tracking event transaction rejected', {
-        error,
-        metadata,
-      });
-    }
+    await this.#trackEvent('Transaction Rejected', {
+      message: 'Snap transaction rejected',
+      origin: metadata.origin,
+      account_type: account.type,
+      chain_id_caip: metadata.scope,
+    });
   }
 
   async trackEventSecurityAlertDetected(
@@ -155,28 +118,15 @@ export class AnalyticsService {
     securityAlertReason: string | null,
     securityAlertDescription: string,
   ): Promise<void> {
-    try {
-      this.#logger.log('Tracking event security alert detected');
-
-      await this.#trackEvent('Security Alert Detected', {
-        message: 'Snap security alert detected',
-        origin,
-        account_type: account.type,
-        chain_id_caip: scope,
-        security_alert_response: securityAlertResponse,
-        security_alert_reason: securityAlertReason,
-        security_alert_description: securityAlertDescription,
-      });
-    } catch (error) {
-      this.#logger.warn('Error tracking event security alert detected', {
-        error,
-        origin,
-        scope,
-        securityAlertResponse,
-        securityAlertReason,
-        securityAlertDescription,
-      });
-    }
+    await this.#trackEvent('Security Alert Detected', {
+      message: 'Snap security alert detected',
+      origin,
+      account_type: account.type,
+      chain_id_caip: scope,
+      security_alert_response: securityAlertResponse,
+      security_alert_reason: securityAlertReason,
+      security_alert_description: securityAlertDescription,
+    });
   }
 
   async trackEventSecurityScanCompleted(
@@ -186,25 +136,26 @@ export class AnalyticsService {
     scanStatus: ScanStatus,
     hasSecurityAlerts: boolean,
   ): Promise<void> {
-    try {
-      this.#logger.log('Tracking event security scan completed');
+    await this.#trackEvent('Security Scan Completed', {
+      message: 'Snap security scan completed',
+      origin,
+      account_type: account.type,
+      chain_id_caip: scope,
+      scan_status: scanStatus,
+      has_security_alerts: hasSecurityAlerts,
+    });
+  }
 
-      await this.#trackEvent('Security Scan Completed', {
-        message: 'Snap security scan completed',
-        origin,
-        account_type: account.type,
-        chain_id_caip: scope,
-        scan_status: scanStatus,
-        has_security_alerts: hasSecurityAlerts,
-      });
-    } catch (error) {
-      this.#logger.warn('Error tracking event security scan completed', {
-        error,
-        origin,
-        scope,
-        scanStatus,
-        hasSecurityAlerts,
-      });
-    }
+  async trackEventWebSocketConnectionClosedNotCleanly(
+    origin: string,
+    code: number,
+    reason: string | null,
+  ): Promise<void> {
+    await this.#trackEvent('WebSocket Connection Closed Not Cleanly', {
+      message: 'Snap WebSocket connection closed not cleanly',
+      origin,
+      code,
+      reason,
+    });
   }
 }

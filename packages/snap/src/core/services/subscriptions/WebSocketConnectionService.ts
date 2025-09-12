@@ -12,6 +12,7 @@ import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
 import { getClientStatus } from '../../utils/interface';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
@@ -31,6 +32,8 @@ import type { WebSocketConnectionRepository } from './WebSocketConnectionReposit
  */
 export class WebSocketConnectionService {
   readonly #connectionRepository: WebSocketConnectionRepository;
+
+  readonly #analyticsService: AnalyticsService;
 
   readonly #configProvider: ConfigProvider;
 
@@ -57,6 +60,7 @@ export class WebSocketConnectionService {
 
   constructor(
     connectionRepository: WebSocketConnectionRepository,
+    analyticsService: AnalyticsService,
     configProvider: ConfigProvider,
     state: IStateManager<UnencryptedStateValue>,
     eventEmitter: EventEmitter,
@@ -69,6 +73,7 @@ export class WebSocketConnectionService {
     } = configProvider.get().subscriptions;
 
     this.#connectionRepository = connectionRepository;
+    this.#analyticsService = analyticsService;
     this.#configProvider = configProvider;
     this.#state = state;
     this.#eventEmitter = eventEmitter;
@@ -289,9 +294,9 @@ export class WebSocketConnectionService {
   }
 
   async #handleDisconnected(event: WebSocketCloseEvent): Promise<void> {
-    const { wasClean } = event;
+    const { wasClean, origin, code, reason } = event;
 
-    // If the connection was closed cleanly (= we close it intentionally), we don't need to attempt to reconnect
+    // If the connection was closed cleanly (= we closed it intentionally), we don't need to attempt to reconnect
     if (wasClean) {
       this.#logger.log(`✅ Connection closed cleanly`, event);
       return;
@@ -299,8 +304,6 @@ export class WebSocketConnectionService {
 
     // Here, we cannot rely on this.#connectionRepository.getById() because the connection doesn't exist anymore,
     // so we need to find the network from the event origin
-    const { origin } = event;
-
     const { networks } = this.#configProvider.get();
     const network = networks.find((item) =>
       item.webSocketUrl.startsWith(origin),
@@ -310,6 +313,13 @@ export class WebSocketConnectionService {
       this.#logger.warn(`No network found for origin`, origin);
       return;
     }
+
+    // Track an event
+    await this.#analyticsService.trackEventWebSocketConnectionClosedNotCleanly(
+      origin,
+      code,
+      reason,
+    );
 
     await this.#attemptReconnect(network.caip2Id);
   }

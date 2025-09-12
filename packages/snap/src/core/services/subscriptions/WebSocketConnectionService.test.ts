@@ -1,6 +1,7 @@
 import type { WebSocketConnection } from '../../../entities';
 import { EventEmitter } from '../../../infrastructure';
 import { Network } from '../../constants/solana';
+import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
 import type { Config, NetworkConfig } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
@@ -30,6 +31,7 @@ const createMockWebSocketConnection = (
 describe('WebSocketConnectionService', () => {
   let service: WebSocketConnectionService;
   let mockWebSocketConnectionRepository: WebSocketConnectionRepository;
+  let mockAnalyticsService: AnalyticsService;
   let mockConfigProvider: ConfigProvider;
   let mockState: IStateManager<UnencryptedStateValue>;
   let mockEventEmitter: EventEmitter;
@@ -68,6 +70,10 @@ describe('WebSocketConnectionService', () => {
       delete: jest.fn(),
     } as unknown as WebSocketConnectionRepository;
 
+    mockAnalyticsService = {
+      trackEventWebSocketConnectionClosedNotCleanly: jest.fn(),
+    } as unknown as AnalyticsService;
+
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
         networks: mockNetworksConfig,
@@ -91,6 +97,7 @@ describe('WebSocketConnectionService', () => {
 
     service = new WebSocketConnectionService(
       mockWebSocketConnectionRepository,
+      mockAnalyticsService,
       mockConfigProvider,
       mockState,
       mockEventEmitter,
@@ -335,83 +342,118 @@ describe('WebSocketConnectionService', () => {
           .mockResolvedValueOnce(mockConnection);
       });
 
-      it('does not attempt to reconnect when connection is closed cleanly', async () => {
-        // Send a clean disconnect event
-        await mockEventEmitter.emitSync('onWebSocketEvent', {
-          id: mockConnectionId,
-          type: 'close',
-          wasClean: true,
-          origin: 'wss://some-mock-url.com',
+      describe('when the connection is closed cleanly', () => {
+        it('does not attempt to reconnect', async () => {
+          // Send a clean disconnect event
+          await mockEventEmitter.emitSync('onWebSocketEvent', {
+            id: mockConnectionId,
+            type: 'close',
+            wasClean: true,
+            origin: 'wss://some-mock-url.com',
+          });
+
+          // Should not attempt to reconnect for clean closures
+          expect(mockWebSocketConnectionRepository.save).not.toHaveBeenCalled();
         });
 
-        // Should not attempt to reconnect for clean closures
-        expect(mockWebSocketConnectionRepository.save).not.toHaveBeenCalled();
+        it('does not track an event', async () => {
+          // Send a clean disconnect event
+          await mockEventEmitter.emitSync('onWebSocketEvent', {
+            id: mockConnectionId,
+            type: 'close',
+            wasClean: true,
+            origin: 'wss://some-mock-url.com',
+          });
+
+          expect(
+            mockAnalyticsService.trackEventWebSocketConnectionClosedNotCleanly,
+          ).not.toHaveBeenCalled();
+        });
       });
 
-      it('attempts to reconnect until it succeeds, up to max attempts', async () => {
-        // 1st and 2nd calls are the fail attempts, 3rd is the success attempt
-        jest
-          .spyOn(mockWebSocketConnectionRepository, 'save')
-          .mockRejectedValueOnce(new Error('Connection failed'))
-          .mockRejectedValueOnce(new Error('Connection failed'))
-          .mockResolvedValueOnce(createMockWebSocketConnection());
+      describe('when the connection is closed not cleanly', () => {
+        it('attempts to reconnect until it succeeds, up to max attempts', async () => {
+          // 1st and 2nd calls are the fail attempts, 3rd is the success attempt
+          jest
+            .spyOn(mockWebSocketConnectionRepository, 'save')
+            .mockRejectedValueOnce(new Error('Connection failed'))
+            .mockRejectedValueOnce(new Error('Connection failed'))
+            .mockResolvedValueOnce(createMockWebSocketConnection());
 
-        // Send the initial disconnect event
-        await mockEventEmitter.emitSync('onWebSocketEvent', {
-          id: mockConnectionId,
-          type: 'close',
-          wasClean: false,
-          origin: 'wss://some-mock-url.com',
-        });
-
-        // The first 2 attemps at reconnecting will fail. Each failure will emit its own disconnect event.
-        await mockEventEmitter.emitSync('onWebSocketEvent', {
-          id: mockConnectionId,
-          type: 'close',
-          wasClean: false,
-          origin: 'wss://some-mock-url.com',
-        });
-        await mockEventEmitter.emitSync('onWebSocketEvent', {
-          id: mockConnectionId,
-          type: 'close',
-          wasClean: false,
-          origin: 'wss://some-mock-url.com',
-        });
-        // The 3rd attempt at reconnecting will succeed. This will emit a connect event.
-        await mockEventEmitter.emitSync('onWebSocketEvent', {
-          id: mockConnectionId,
-          type: 'open',
-          origin: 'wss://some-mock-url.com',
-        });
-
-        expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(3);
-      });
-
-      it('retries up to the max number of attempts', async () => {
-        jest
-          .spyOn(mockWebSocketConnectionRepository, 'save')
-          .mockRejectedValue(new Error('Connection failed'));
-
-        // Send the initial disconnect event
-        await mockEventEmitter.emitSync('onWebSocketEvent', {
-          id: mockConnectionId,
-          type: 'close',
-          wasClean: false,
-          origin: 'wss://some-mock-url.com',
-        });
-
-        // Send many disconnect events, more than the max number of attempts
-        for (let i = 0; i < 10; i++) {
+          // Send the initial disconnect event
           await mockEventEmitter.emitSync('onWebSocketEvent', {
             id: mockConnectionId,
             type: 'close',
             wasClean: false,
             origin: 'wss://some-mock-url.com',
           });
-        }
 
-        // Check that we do not retry more than the max
-        expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(5);
+          // The first 2 attemps at reconnecting will fail. Each failure will emit its own disconnect event.
+          await mockEventEmitter.emitSync('onWebSocketEvent', {
+            id: mockConnectionId,
+            type: 'close',
+            wasClean: false,
+            origin: 'wss://some-mock-url.com',
+          });
+          await mockEventEmitter.emitSync('onWebSocketEvent', {
+            id: mockConnectionId,
+            type: 'close',
+            wasClean: false,
+            origin: 'wss://some-mock-url.com',
+          });
+          // The 3rd attempt at reconnecting will succeed. This will emit a connect event.
+          await mockEventEmitter.emitSync('onWebSocketEvent', {
+            id: mockConnectionId,
+            type: 'open',
+            origin: 'wss://some-mock-url.com',
+          });
+
+          expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(
+            3,
+          );
+        });
+
+        it('retries up to the max number of attempts', async () => {
+          jest
+            .spyOn(mockWebSocketConnectionRepository, 'save')
+            .mockRejectedValue(new Error('Connection failed'));
+
+          // Send the initial disconnect event
+          await mockEventEmitter.emitSync('onWebSocketEvent', {
+            id: mockConnectionId,
+            type: 'close',
+            wasClean: false,
+            origin: 'wss://some-mock-url.com',
+          });
+
+          // Send many disconnect events, more than the max number of attempts
+          for (let i = 0; i < 10; i++) {
+            await mockEventEmitter.emitSync('onWebSocketEvent', {
+              id: mockConnectionId,
+              type: 'close',
+              wasClean: false,
+              origin: 'wss://some-mock-url.com',
+            });
+          }
+
+          // Check that we do not retry more than the max
+          expect(mockWebSocketConnectionRepository.save).toHaveBeenCalledTimes(
+            5,
+          );
+        });
+
+        it('tracks an event', async () => {
+          await mockEventEmitter.emitSync('onWebSocketEvent', {
+            id: mockConnectionId,
+            type: 'close',
+            wasClean: false,
+            origin: 'wss://some-mock-url.com',
+          });
+
+          expect(
+            mockAnalyticsService.trackEventWebSocketConnectionClosedNotCleanly,
+          ).toHaveBeenCalled();
+        });
       });
     });
   });
