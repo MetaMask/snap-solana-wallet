@@ -3,9 +3,9 @@ import { literal } from '@metamask/snaps-sdk';
 import type { Infer } from '@metamask/superstruct';
 import {
   array,
-  assert,
   boolean,
   enums,
+  is,
   object,
   optional,
   refine,
@@ -156,10 +156,14 @@ export const RewardsMessageStruct = refine(
     }
 
     // Validate Solana address
-    assert(addressPart, SolanaAddressStruct);
+    if (!is(addressPart, SolanaAddressStruct)) {
+      return 'Invalid Solana address';
+    }
 
     // Validate timestamp
-    assert(timestampPart, PositiveNumberStringStruct);
+    if (!is(timestampPart, PositiveNumberStringStruct)) {
+      return 'Invalid timestamp format';
+    }
     const timestamp = parseInt(timestampPart, 10);
 
     // Check if timestamp is within 1 minute of current time (60 seconds = 60000ms)

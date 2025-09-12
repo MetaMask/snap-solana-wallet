@@ -38,6 +38,7 @@ describe('validation', () => {
         expect(() => assert(base64Message, RewardsMessageStruct)).toThrow(
           'Expected a string matching',
         );
+        expect(is(base64Message, RewardsMessageStruct)).toBe(false);
       },
     );
 
@@ -53,6 +54,7 @@ describe('validation', () => {
         expect(() => assert(message, RewardsMessageStruct)).toThrow(
           'Message must start with "rewards,"',
         );
+        expect(is(message, RewardsMessageStruct)).toBe(false);
       },
     );
 
@@ -85,6 +87,7 @@ describe('validation', () => {
         expect(() => assert(message, RewardsMessageStruct)).toThrow(
           'Invalid Solana address',
         );
+        expect(is(message, RewardsMessageStruct)).toBe(false);
       },
     );
 
@@ -98,6 +101,7 @@ describe('validation', () => {
       const message = toBase64(utf8Message);
       // eslint-disable-next-line jest/require-to-throw-message
       expect(() => assert(message, RewardsMessageStruct)).toThrow();
+      expect(is(message, RewardsMessageStruct)).toBe(false);
     });
 
     it.each([
@@ -112,6 +116,7 @@ describe('validation', () => {
         expect(() => assert(message, RewardsMessageStruct)).toThrow(
           'Timestamp must be within 1 minute',
         );
+        expect(is(message, RewardsMessageStruct)).toBe(false);
       },
     );
 
@@ -140,6 +145,7 @@ describe('validation', () => {
       expect(() => assert(value, RewardsMessageStruct)).toThrow(
         'Expected a string',
       );
+      expect(is(value, RewardsMessageStruct)).toBe(false);
     });
   });
 });
