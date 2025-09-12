@@ -11,7 +11,13 @@ export const onNameLookupHandler: OnNameLookupHandler = async (request) => {
 
   const { chainId, domain, address } = request;
 
-  if (domain) {
+  // regex to match valid .sol domains (at least one character before .sol)
+  const validDomainRegex = new RegExp(
+    `^.+\\${nameResolutionService.tld}$`,
+    'u',
+  );
+
+  if (domain && validDomainRegex.test(domain)) {
     const resolvedAddress = await nameResolutionService.resolveDomain(
       chainId,
       domain,
