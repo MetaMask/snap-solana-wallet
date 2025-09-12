@@ -1,20 +1,24 @@
 import { InvalidParamsError, type JsonRpcRequest } from '@metamask/snaps-sdk';
+import { getBase64Codec, getUtf8Codec, pipe } from '@solana/kit';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
+import type { AccountsService } from '../../services';
 import type { TransactionHelper } from '../../services/execution/TransactionHelper';
 import type { SendService } from '../../services/send/SendService';
 import type { ValidationResponse } from '../../services/send/types';
 import type { SolanaSignAndSendTransactionResponse } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import {
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1,
+} from '../../test/mocks/solana-keyring-accounts';
 import type { ILogger } from '../../utils/logger';
-import type { SolanaKeyring } from '../onKeyringRequest/Keyring';
 import { ClientRequestHandler } from './ClientRequestHandler';
 import { ClientRequestMethod } from './types';
 
 describe('ClientRequestHandler', () => {
   let handler: ClientRequestHandler;
-  let mockKeyring: jest.Mocked<SolanaKeyring>;
+  let mockAccountsService: jest.Mocked<AccountsService>;
   let mockWalletService: jest.Mocked<WalletService>;
   let mockLogger: jest.Mocked<ILogger>;
   let sendService: jest.Mocked<SendService>;
@@ -22,14 +26,15 @@ describe('ClientRequestHandler', () => {
 
   beforeEach(() => {
     // Create mock keyring
-    mockKeyring = {
-      listAccounts: jest.fn(),
-      getAccountOrThrow: jest.fn(),
-    } as unknown as jest.Mocked<SolanaKeyring>;
+    mockAccountsService = {
+      findById: jest.fn(),
+      findByAddress: jest.fn(),
+    } as unknown as jest.Mocked<AccountsService>;
 
     // Create mock wallet service
     mockWalletService = {
       signAndSendTransaction: jest.fn(),
+      signMessage: jest.fn(),
     } as unknown as jest.Mocked<WalletService>;
 
     // Create mock logger
@@ -49,7 +54,7 @@ describe('ClientRequestHandler', () => {
 
     // Create handler instance
     handler = new ClientRequestHandler(
-      mockKeyring,
+      mockAccountsService,
       mockWalletService,
       mockLogger,
       sendService,
@@ -101,9 +106,9 @@ describe('ClientRequestHandler', () => {
 
     describe('when request is valid', () => {
       beforeEach(() => {
-        mockKeyring.listAccounts.mockResolvedValue([
+        mockAccountsService.findByAddress.mockResolvedValue(
           MOCK_SOLANA_KEYRING_ACCOUNT_0,
-        ]);
+        );
       });
 
       it('calls the wallet service and returns the response', async () => {
@@ -145,7 +150,7 @@ describe('ClientRequestHandler', () => {
 
     describe('when the account is not found', () => {
       it('throws an account not found error', async () => {
-        mockKeyring.listAccounts.mockResolvedValue([]);
+        mockAccountsService.findByAddress.mockResolvedValue(null);
 
         await expect(handler.handle(validRequest)).rejects.toThrow(
           `Account not found: ${MOCK_SOLANA_KEYRING_ACCOUNT_0.address}`,
@@ -211,7 +216,7 @@ describe('ClientRequestHandler', () => {
 
     describe('when request is valid', () => {
       beforeEach(() => {
-        mockKeyring.getAccountOrThrow.mockResolvedValue(
+        mockAccountsService.findById.mockResolvedValue(
           MOCK_SOLANA_KEYRING_ACCOUNT_0,
         );
       });
@@ -226,7 +231,7 @@ describe('ClientRequestHandler', () => {
 
         const response = await handler.handle(validRequest);
 
-        expect(mockKeyring.getAccountOrThrow).toHaveBeenCalledWith(
+        expect(mockAccountsService.findById).toHaveBeenCalledWith(
           MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
         );
         expect(mockWalletService.signAndSendTransaction).toHaveBeenCalledWith(
@@ -258,7 +263,7 @@ describe('ClientRequestHandler', () => {
 
     describe('when the account is not found', () => {
       it('throws an account not found error', async () => {
-        mockKeyring.getAccountOrThrow.mockRejectedValue(
+        mockAccountsService.findById.mockRejectedValue(
           new Error('Account not found'),
         );
 
@@ -508,6 +513,95 @@ describe('ClientRequestHandler', () => {
       jest.spyOn(sendService, 'onAmountInput').mockResolvedValue(response);
 
       await expect(handler.handle(request)).rejects.toThrow(/At path: valid/iu);
+    });
+  });
+
+  describe('signRewardsMessage', () => {
+    // Helper function to convert a utf8 string to base64
+    const utf8ToBase64 = (utf8: string): string =>
+      pipe(utf8, getUtf8Codec().encode, getBase64Codec().decode);
+
+    const { address } = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+    const mockTimestamp = 1736660000;
+
+    // Helper function to create a request with a utf8 message. Defaults to a valid rewards message.
+    const createRequest = (utf8Message?: string): JsonRpcRequest => ({
+      jsonrpc: '2.0',
+      id: 1,
+      method: ClientRequestMethod.SignRewardsMessage,
+      params: {
+        account: {
+          address,
+        },
+        message: utf8ToBase64(
+          utf8Message ?? `rewards,${address},${mockTimestamp}`,
+        ),
+      },
+    });
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(mockTimestamp * 1000));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('calls the wallet service and returns the response', async () => {
+      const response = {
+        signature:
+          '61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu',
+        signedMessage:
+          'cmV3YXJkcyxCTHczUndlSm1mYlRhcEpSZ25QUnZkOTYyWURqRllBblZHZDFwNWhtWjV0UCwxNzM2NjYwMDAw',
+        signatureType: 'ed25519' as const,
+      };
+      jest
+        .spyOn(mockAccountsService, 'findByAddress')
+        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+      jest.spyOn(mockWalletService, 'signMessage').mockResolvedValue(response);
+
+      const request = createRequest();
+
+      const result = await handler.handle(request);
+
+      expect(mockWalletService.signMessage).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        'cmV3YXJkcyxCTHczUndlSm1mYlRhcEpSZ25QUnZkOTYyWURqRllBblZHZDFwNWhtWjV0UCwxNzM2NjYwMDAw',
+      );
+      expect(result).toStrictEqual(response);
+    });
+
+    it('throws an error if message is invalid', async () => {
+      const invalidMessageRequest = createRequest('invalid-message');
+
+      await expect(handler.handle(invalidMessageRequest)).rejects.toThrow(
+        'Message must start with',
+      );
+    });
+
+    it('throws an error if account is not found', async () => {
+      const invalidAccountRequest = createRequest();
+      mockAccountsService.findByAddress.mockResolvedValue(null);
+
+      await expect(handler.handle(invalidAccountRequest)).rejects.toThrow(
+        'Account not found',
+      );
+    });
+
+    it('throws an error if address in message does not match signing account', async () => {
+      const signingAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+      mockAccountsService.findByAddress.mockResolvedValue(signingAccount);
+
+      // Use a valid Solana address format but different from the signing account
+      const differentAddress = MOCK_SOLANA_KEYRING_ACCOUNT_1.address;
+      const requestWithDifferentAddress = createRequest(
+        `rewards,${differentAddress},${mockTimestamp}`,
+      );
+
+      await expect(handler.handle(requestWithDifferentAddress)).rejects.toThrow(
+        `Address in rewards message (${differentAddress}) does not match signing account address (${address})`,
+      );
     });
   });
 });

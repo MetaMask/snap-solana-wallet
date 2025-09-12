@@ -5,4 +5,5 @@ export enum ClientRequestMethod {
   ComputeFee = 'computeFee',
   OnAddressInput = 'onAddressInput',
   OnAmountInput = 'onAmountInput',
+  SignRewardsMessage = 'signRewardsMessage',
 }

@@ -12,17 +12,16 @@ import {
   string,
   type,
   union,
-  refine,
 } from '@metamask/superstruct';
 
 import { Network } from '../../constants/solana';
 import {
   sanitizeDomain,
-  sanitizeSolanaAddress,
-  sanitizeUri,
-  sanitizeTimestamp,
   sanitizeForSignInMessage,
   sanitizeResources,
+  sanitizeSolanaAddress,
+  sanitizeTimestamp,
+  sanitizeUri,
 } from '../../utils/sanitize';
 import { Base58Struct, Base64Struct } from '../../validation/structs';
 
@@ -133,6 +132,7 @@ const SolanaSignInInputStruct = type({
   requestId: optional(SanitizedRequestIdStruct),
   resources: optional(SanitizedResourcesStruct),
 });
+
 const SolanaSignMessageInputStruct = type({
   account: WalletAccountStruct,
   message: Base64Struct,
@@ -150,6 +150,10 @@ const SolanaSignTransactionOptionsStruct = type({
   /** The minimum slot that the request can be evaluated at. */
   minContextSlot: optional(number()),
 });
+
+export type SolanaSignTransactionOptions = Infer<
+  typeof SolanaSignTransactionOptionsStruct
+>;
 
 const SolanaSignTransactionInputStruct = type({
   account: WalletAccountStruct,

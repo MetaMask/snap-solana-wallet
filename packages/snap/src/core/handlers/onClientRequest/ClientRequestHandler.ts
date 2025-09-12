@@ -1,19 +1,19 @@
 import { FeeType } from '@metamask/keyring-api';
 import {
   InvalidParamsError,
-  MethodNotFoundError,
   type Json,
   type JsonRpcRequest,
+  MethodNotFoundError,
 } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
 import { METAMASK_ORIGIN, Networks } from '../../constants/solana';
+import type { AccountsService } from '../../services';
 import type { TransactionHelper } from '../../services/execution/TransactionHelper';
 import type { SendService } from '../../services/send/SendService';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { lamportsToSol } from '../../utils/conversion';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
-import type { SolanaKeyring } from '../onKeyringRequest/Keyring';
 import { ClientRequestMethod } from './types';
 import {
   ComputeFeeRequestStruct,
@@ -22,15 +22,17 @@ import {
   OnAddressInputRequestStruct,
   OnAmountInputRequestStruct,
   OnConfirmSendRequestStruct,
+  parseRewardsMessage,
   SignAndSendTransactionRequestStruct,
   type SignAndSendTransactionResponse,
   SignAndSendTransactionResponseStruct,
   SignAndSendTransactionWithoutConfirmationRequestStruct,
+  SignRewardsMessageRequestStruct,
   ValidationResponseStruct,
 } from './validation';
 
 export class ClientRequestHandler {
-  readonly #keyring: SolanaKeyring;
+  readonly #accountsService: AccountsService;
 
   readonly #walletService: WalletService;
 
@@ -41,13 +43,13 @@ export class ClientRequestHandler {
   readonly #transactionHelper: TransactionHelper;
 
   constructor(
-    keyring: SolanaKeyring,
+    accountsService: AccountsService,
     walletService: WalletService,
     logger: ILogger,
     sendService: SendService,
     transactionHelper: TransactionHelper,
   ) {
-    this.#keyring = keyring;
+    this.#accountsService = accountsService;
     this.#walletService = walletService;
     this.#logger = createPrefixedLogger(logger, '[👋 ClientRequestHandler]');
     this.#sendService = sendService;
@@ -83,6 +85,8 @@ export class ClientRequestHandler {
         return this.#handleOnAddressInput(request);
       case ClientRequestMethod.OnAmountInput:
         return this.#handleOnAmountInput(request);
+      case ClientRequestMethod.SignRewardsMessage:
+        return this.#handleSignRewardsMessage(request);
       default:
         throw new MethodNotFoundError() as Error;
     }
@@ -115,8 +119,7 @@ export class ClientRequestHandler {
       },
     } = request;
 
-    const allAccounts = await this.#keyring.listAccounts();
-    const account = allAccounts.find((item) => item.address === address);
+    const account = await this.#accountsService.findByAddress(address);
     if (!account) {
       throw new InvalidParamsError(`Account not found: ${address}`) as Error;
     }
@@ -148,7 +151,10 @@ export class ClientRequestHandler {
       },
     } = request;
 
-    const account = await this.#keyring.getAccountOrThrow(accountId);
+    const account = await this.#accountsService.findById(accountId);
+    if (!account) {
+      throw new InvalidParamsError(`Account not found: ${accountId}`) as Error;
+    }
 
     const { signature } = await this.#walletService.signAndSendTransaction(
       account,
@@ -272,6 +278,42 @@ export class ClientRequestHandler {
     const result = await this.#sendService.onAmountInput(request);
 
     assert(result, ValidationResponseStruct);
+
+    return result;
+  }
+
+  /**
+   * Handles the signing of a rewards message, of format `'rewards,{address},{timestamp}'` base64 encoded.
+   * @param request - The JSON-RPC request containing the method and parameters.
+   * @returns The response to the JSON-RPC request.
+   * @throws {InvalidParamsError} If the account is not found or if the address in the message doesn't match the signing account.
+   */
+  async #handleSignRewardsMessage(request: JsonRpcRequest): Promise<Json> {
+    assert(request, SignRewardsMessageRequestStruct);
+
+    const {
+      params: {
+        account: { address },
+        message,
+      },
+    } = request;
+
+    const account = await this.#accountsService.findByAddress(address);
+    if (!account) {
+      throw new InvalidParamsError(`Account not found: ${address}`) as Error;
+    }
+
+    // Parse the rewards message to extract the address
+    const { address: messageAddress } = parseRewardsMessage(message);
+
+    // Validate that the address in the message matches the signing account
+    if (messageAddress !== address) {
+      throw new InvalidParamsError(
+        `Address in rewards message (${messageAddress}) does not match signing account address (${address})`,
+      ) as Error;
+    }
+
+    const result = await this.#walletService.signMessage(account, message);
 
     return result;
   }

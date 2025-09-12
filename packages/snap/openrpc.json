@@ -687,6 +687,80 @@
           }
         }
       ]
+    },
+    {
+      "name": "signRewardsMessage",
+      "summary": "Sign a rewards message without confirmation",
+      "description": "Signs a rewards message directly without prompting user confirmation. This method validates that the message follows the specific rewards format, which must contain a valid Solana address and a Unix timestamp within 1 minute of the current time: `'rewards,{address},{timestamp}'`",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "account",
+          "summary": "The account to use for signing the transaction",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/WalletAccount"
+          }
+        },
+        {
+          "name": "message",
+          "summary": "The base64-encoded rewards message to sign",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Base64String"
+          }
+        }
+      ],
+      "result": {
+        "name": "SignRewardsMessageResult",
+        "summary": "The result of signing a rewards message",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "signature": {
+              "$ref": "#/components/schemas/Base58String",
+              "description": "The base58-encoded signature of the message"
+            },
+            "signedMessage": {
+              "$ref": "#/components/schemas/Base64String",
+              "description": "The original base64-encoded message that was signed"
+            },
+            "signatureType": {
+              "type": "string",
+              "enum": ["ed25519"],
+              "description": "The signature algorithm used"
+            }
+          },
+          "required": ["signature", "signedMessage", "signatureType"],
+          "additionalProperties": false
+        }
+      },
+      "examples": [
+        {
+          "name": "signRewardsMessageExample",
+          "description": "Example of signing a rewards message for a Solana address",
+          "params": [
+            {
+              "name": "account",
+              "value": {
+                "address": "BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP"
+              }
+            },
+            {
+              "name": "message",
+              "value": "cmV3YXJkcyxCTHczUndlSm1mYlRhcEpSZ25QUnZkOTYyWURqRllBblZHZDFwNWhtWjV0UCwxNzM2NjYwMDAw"
+            }
+          ],
+          "result": {
+            "name": "signRewardsMessageResult",
+            "value": {
+              "signature": "61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu",
+              "signedMessage": "cmV3YXJkcyxCTHczUndlSm1mYlRhcEpSZ25QUnZkOTYyWURqRllBblZHZDFwNWhtWjV0UCwxNzM2NjYwMDAw",
+              "signatureType": "ed25519"
+            }
+          }
+        }
+      ]
     }
   ],
   "components": {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { type KeyringRequest, SolMethod } from '@metamask/keyring-api';
+import { SolMethod } from '@metamask/keyring-api';
 import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
 import type { Commitment, SignatureBytes } from '@solana/kit';
@@ -26,11 +26,7 @@ import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
 import logger, { createPrefixedLogger } from '../../utils/logger';
-import {
-  Base58Struct,
-  Base64Struct,
-  NetworkStruct,
-} from '../../validation/structs';
+import { Base58Struct, Base64Struct } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
 import type { TransactionHelper } from '../execution/TransactionHelper';
 import type { SignatureMonitor } from '../subscriptions';
@@ -38,17 +34,15 @@ import type {
   SolanaSignAndSendTransactionOptions,
   SolanaSignAndSendTransactionResponse,
   SolanaSignInRequest,
+  SolanaSignTransactionOptions,
   SolanaWalletRequest,
 } from './structs';
 import {
   SolanaSignAndSendTransactionResponseStruct,
-  SolanaSignInRequestStruct,
   type SolanaSignInResponse,
   SolanaSignInResponseStruct,
-  SolanaSignMessageRequestStruct,
   type SolanaSignMessageResponse,
   SolanaSignMessageResponseStruct,
-  SolanaSignTransactionRequestStruct,
   type SolanaSignTransactionResponse,
   SolanaSignTransactionResponseStruct,
 } from './structs';
@@ -147,64 +141,31 @@ export class WalletService {
   }
 
   /**
-   * Validates that the account address in the request parameters matches the signing account.
-   * This prevents unauthorized account usage and authorization bypass.
-   *
-   * @param account - The account used for signing.
-   * @param request - The request containing the account address to validate.
-   * @throws If the account address is invalid or doesn't match the signing account.
-   */
-  #validateAccountAddress(
-    account: SolanaKeyringAccount,
-    request: KeyringRequest,
-  ): void {
-    const { address } = account;
-
-    const { account: requestAccount } = request.request.params as {
-      account: { address: string };
-    };
-
-    try {
-      asAddress(requestAccount.address);
-    } catch {
-      throw new Error('Invalid Solana address format');
-    }
-
-    // Check that the account address in the request parameters matches the account used for signing
-    // If it doesn't match, throw the same error MM throws when the account is not authorized
-    if (requestAccount.address !== address) {
-      throw new Error(
-        'The requested account and/or method has not been authorized by the user.',
-      );
-    }
-  }
-
-  /**
    * Signs a transaction.
    *
    * For a detailed visual representation of the transaction signing flow, see the
    * [transaction signing flow diagram](./img/transaction-signing-flow.png).
    *
    * @param account - The account to sign the transaction.
-   * @param request - The request to sign a transaction.
+   * @param transaction - The transaction to sign.
+   * @param scope - The scope of the transaction.
+   * @param origin - The origin of the transaction.
+   * @param options - The options for the transaction.
    * @returns A Promise that resolves to the signed transaction.
-   * @throws If the request is invalid.
    */
   async signTransaction(
     account: SolanaKeyringAccount,
-    request: KeyringRequest,
+    transaction: string,
+    scope: Network,
+    origin: string,
+    options?: SolanaSignTransactionOptions,
   ): Promise<SolanaSignTransactionResponse> {
     this.#logger.log('Signing transaction', {
       account,
-      request,
+      transaction,
+      scope,
+      options,
     });
-
-    assert(request.request, SolanaSignTransactionRequestStruct);
-    assert(request.scope, NetworkStruct);
-
-    this.#validateAccountAddress(account, request);
-
-    const { transaction, scope, options } = request.request.params;
 
     const config: DecompileTransactionMessageFetchingLookupTablesConfig =
       options?.minContextSlot
@@ -238,7 +199,7 @@ export class WalletService {
       account.id,
       'confirmed',
       scope,
-      request.origin,
+      origin,
     );
 
     return result;
@@ -343,28 +304,17 @@ export class WalletService {
    * You can then verify the signature with {@link WalletService.verifySignature}.
    *
    * @param account - The account to sign the message.
-   * @param request - The request to sign a message.
+   * @param message - The message to sign.
    * @returns A Promise that resolves to the signed message.
-   * @throws If the request is invalid.
    */
   async signMessage(
     account: SolanaKeyringAccount,
-    request: KeyringRequest,
+    message: string,
   ): Promise<SolanaSignMessageResponse> {
-    this.#logger.log('Signing message', account, request);
-
-    assert(request.request, SolanaSignMessageRequestStruct);
+    this.#logger.log('Signing message', account, message);
 
     const { address, entropySource, derivationPath } = account;
     const addressAsAddress = asAddress(address);
-
-    const { scope } = request;
-    assert(scope, NetworkStruct);
-
-    this.#validateAccountAddress(account, request);
-
-    // message is base64 encoded
-    const { message } = request.request.params;
     const messageBytes = getBase64Codec().encode(message);
     const messageUtf8 = getUtf8Codec().decode(messageBytes);
     const signableMessage = createSignableMessage(messageUtf8);
@@ -408,46 +358,22 @@ export class WalletService {
    * using `JSON.stringify()`, then signs the message.
    *
    * @param account - The account to sign the message.
-   * @param request - The JSON-RPC request object.
-   * @param request.request.params - A sign in intent object that contains data like domain, or uri.
+   * @param params - A sign in intent object that contains data like domain, or uri.
    * @returns A Promise that resolves to the signed message.
    * @throws If the request is invalid.
    */
   async signIn(
     account: SolanaKeyringAccount,
-    request: KeyringRequest,
+    params: SolanaSignInRequest['params'],
   ): Promise<SolanaSignInResponse> {
-    this.#logger.log('Signing in', account, request);
-
-    assert(request.request, SolanaSignInRequestStruct);
+    this.#logger.log('Signing in', account, params);
 
     const { address } = account;
-    const { params } = request.request;
-
     const messageUtf8 = this.#formatSignInMessage(params);
     const messageBytes = getUtf8Codec().encode(messageUtf8);
     const messageBase64 = getBase64Codec().decode(messageBytes);
 
-    const requestForSignMessage: KeyringRequest = {
-      id: globalThis.crypto.randomUUID(),
-      scope: request.scope,
-      account: account.id,
-      origin: request.origin,
-      request: {
-        method: SolMethod.SignMessage,
-        params: {
-          account: {
-            address,
-          },
-          message: messageBase64,
-        },
-      },
-    };
-
-    const signMessageResponse = await this.signMessage(
-      account,
-      requestForSignMessage,
-    );
+    const signMessageResponse = await this.signMessage(account, messageBase64);
 
     const result = {
       account: {

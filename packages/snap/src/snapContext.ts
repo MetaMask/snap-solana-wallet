@@ -233,7 +233,7 @@ const sendService = new SendService(
 );
 
 const clientRequestHandler = new ClientRequestHandler(
-  keyring,
+  accountsService,
   walletService,
   logger,
   sendService,
