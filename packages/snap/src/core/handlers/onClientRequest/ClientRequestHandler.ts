@@ -22,6 +22,7 @@ import {
   OnAddressInputRequestStruct,
   OnAmountInputRequestStruct,
   OnConfirmSendRequestStruct,
+  parseRewardsMessage,
   SignAndSendTransactionRequestStruct,
   type SignAndSendTransactionResponse,
   SignAndSendTransactionResponseStruct,
@@ -285,7 +286,7 @@ export class ClientRequestHandler {
    * Handles the signing of a rewards message, of format `'rewards,{address},{timestamp}'` base64 encoded.
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
-   * @throws {InvalidParamsError} If the account is not found.
+   * @throws {InvalidParamsError} If the account is not found or if the address in the message doesn't match the signing account.
    */
   async #handleSignRewardsMessage(request: JsonRpcRequest): Promise<Json> {
     assert(request, SignRewardsMessageRequestStruct);
@@ -300,6 +301,16 @@ export class ClientRequestHandler {
     const account = await this.#accountsService.findByAddress(address);
     if (!account) {
       throw new InvalidParamsError(`Account not found: ${address}`) as Error;
+    }
+
+    // Parse the rewards message to extract the address
+    const { address: messageAddress } = parseRewardsMessage(message);
+
+    // Validate that the address in the message matches the signing account
+    if (messageAddress !== address) {
+      throw new InvalidParamsError(
+        `Address in rewards message (${messageAddress}) does not match signing account address (${address})`,
+      ) as Error;
     }
 
     const result = await this.#walletService.signMessage(account, message);

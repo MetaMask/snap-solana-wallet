@@ -8,7 +8,10 @@ import type { SendService } from '../../services/send/SendService';
 import type { ValidationResponse } from '../../services/send/types';
 import type { SolanaSignAndSendTransactionResponse } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
-import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import {
+  MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_1,
+} from '../../test/mocks/solana-keyring-accounts';
 import type { ILogger } from '../../utils/logger';
 import { ClientRequestHandler } from './ClientRequestHandler';
 import { ClientRequestMethod } from './types';
@@ -583,6 +586,21 @@ describe('ClientRequestHandler', () => {
 
       await expect(handler.handle(invalidAccountRequest)).rejects.toThrow(
         'Account not found',
+      );
+    });
+
+    it('throws an error if address in message does not match signing account', async () => {
+      const signingAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+      mockAccountsService.findByAddress.mockResolvedValue(signingAccount);
+
+      // Use a valid Solana address format but different from the signing account
+      const differentAddress = MOCK_SOLANA_KEYRING_ACCOUNT_1.address;
+      const requestWithDifferentAddress = createRequest(
+        `rewards,${differentAddress},${mockTimestamp}`,
+      );
+
+      await expect(handler.handle(requestWithDifferentAddress)).rejects.toThrow(
+        `Address in rewards message (${differentAddress}) does not match signing account address (${address})`,
       );
     });
   });
