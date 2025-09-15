@@ -533,6 +533,11 @@ export class SubscriptionService {
       method: subscription.method,
       params: subscription.params,
       network: subscription.network,
+      ...(subscription.expiryMilliseconds
+        ? {
+            expiryMilliseconds: subscription.expiryMilliseconds,
+          }
+        : {}),
       ...(subscription.metadata ? { metadata: subscription.metadata } : {}),
     };
   }
