@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.9]
 
-### Uncategorized
+### Added
 
-- chore: track sentry even on ws close not cleanly ([#523](https://github.com/MetaMask/snap-solana-wallet/pull/523))
-- feat: add endpoint signRewardsMessage ([#522](https://github.com/MetaMask/snap-solana-wallet/pull/522))
-- fix: check domain tld on name lookup ([#521](https://github.com/MetaMask/snap-solana-wallet/pull/521))
+- Add new client-only entrypoint `signRewardsMessage` ([#522](https://github.com/MetaMask/snap-solana-wallet/pull/522))
+- Track Sentry events for unclean WebSocket connection closures ([#523](https://github.com/MetaMask/snap-solana-wallet/pull/523))
+
+### Fixed
+
+- Fix validation for .sol domain name resolution ([#521](https://github.com/MetaMask/snap-solana-wallet/pull/521))
 
 ## [2.3.8]
 
