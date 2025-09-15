@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.9]
+
+### Added
+
+- Add new client-only entrypoint `signRewardsMessage` ([#522](https://github.com/MetaMask/snap-solana-wallet/pull/522))
+- Track Sentry events for unclean WebSocket connection closures ([#523](https://github.com/MetaMask/snap-solana-wallet/pull/523))
+
+### Fixed
+
+- Fix validation for .sol domain name resolution ([#521](https://github.com/MetaMask/snap-solana-wallet/pull/521))
+
 ## [2.3.8]
 
 ### Fixed
@@ -898,7 +909,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.8...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.9...HEAD
+[2.3.9]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.8...v2.3.9
 [2.3.8]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.7...v2.3.8
 [2.3.7]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.6...v2.3.7
 [2.3.6]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.5...v2.3.6
