@@ -62,6 +62,8 @@ export class SubscriptionService {
   }
 
   #bindHandlers(): void {
+    this.#eventEmitter.on('onInactive', this.#handleOnInactive.bind(this));
+
     this.#eventEmitter.on(
       'onWebSocketEvent',
       this.#handleWebSocketEvent.bind(this),
@@ -139,7 +141,7 @@ export class SubscriptionService {
   async subscribe(request: SubscriptionRequest): Promise<string> {
     this.#logger.info(`New subscription request`, request);
 
-    const { method, params, network } = request;
+    const { method, params, network, expiryMilliseconds } = request;
 
     const id = await this.#generateId(request);
 
@@ -162,6 +164,11 @@ export class SubscriptionService {
       status: 'pending',
       requestId: id, // Use the same ID for the request and the subscription for easier lookup.
       createdAt: new Date().toISOString(),
+      ...(expiryMilliseconds
+        ? {
+            expiresAt: new Date(Date.now() + expiryMilliseconds).toISOString(),
+          }
+        : {}),
     };
 
     // Before sending the request, save the subscription in the repository.
@@ -549,6 +556,30 @@ export class SubscriptionService {
     await Promise.allSettled(
       subscriptionsThisNetwork.map(async (subscription) => {
         await this.subscribe(this.#asRequest(subscription));
+      }),
+    );
+  }
+
+  async #handleOnInactive(): Promise<void> {
+    this.#logger.info(`Client became inactive`);
+
+    await this.#removeExpiredSubscriptions();
+  }
+
+  async #removeExpiredSubscriptions(): Promise<void> {
+    this.#logger.info(`Removing expired subscriptions`);
+    const now = new Date();
+
+    const subscriptions = await this.#subscriptionRepository.getAll();
+
+    const expiredSubscriptions = subscriptions.filter(
+      (subscription) =>
+        subscription.expiresAt && new Date(subscription.expiresAt) < now,
+    );
+
+    await Promise.allSettled(
+      expiredSubscriptions.map(async (subscription) => {
+        await this.unsubscribe(subscription.id);
       }),
     );
   }
