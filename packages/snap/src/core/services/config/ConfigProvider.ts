@@ -14,9 +14,9 @@ import { Network, Networks } from '../../constants/solana';
 import { UrlStruct } from '../../validation/structs';
 
 const ENVIRONMENT_TO_ACTIVE_NETWORKS = {
-  production: [Network.Mainnet],
-  local: [Network.Mainnet],
-  test: [Network.Localnet],
+  production: [Network.Mainnet, Network.Devnet],
+  local: [Network.Mainnet, Network.Devnet],
+  test: [Network.Localnet, Network.Devnet],
 };
 
 const CommaSeparatedListOfUrlsStruct = coerce(
@@ -142,6 +142,7 @@ export class ConfigProvider {
   }
 
   #buildConfig(environment: Env): Config {
+    console.log('Snap environment is:', environment);
     return {
       environment: environment.ENVIRONMENT,
       networks: [
