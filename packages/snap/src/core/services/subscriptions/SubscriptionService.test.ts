@@ -1061,5 +1061,45 @@ describe('SubscriptionService', () => {
       expect(await mockEventEmitter.emitSync('onInactive')).toBeUndefined();
       expect(unsubscribeSpy).not.toHaveBeenCalled();
     });
+
+    it('does not re-subscribe expired subscriptions after connection reestablishment', async () => {
+      const request = createMockSubscriptionRequest();
+      request.expiryMilliseconds = Duration.Second * 5;
+
+      const confirmedSubscription: ConfirmedSubscription = {
+        ...request,
+        id: 'some-subscription-id',
+        status: 'confirmed',
+        requestId: 'some-subscription-id',
+        rpcSubscriptionId: 98765,
+        createdAt: Date.now().toString(),
+        confirmedAt: Date.now().toString(),
+        expiresAt: new Date(Date.now() + Duration.Second * 5).toISOString(),
+      };
+
+      jest
+        .spyOn(mockSubscriptionRepository, 'getAll')
+        .mockResolvedValue([confirmedSubscription]);
+
+      // Now, simulate a disconnection (this has no direct effect, it's just for clarity of the test)
+      await simulateDisconnection(mockEventEmitter, mockConnectionId);
+
+      // Time passes...
+      jest.advanceTimersByTime(Duration.Minute * 10);
+
+      const subscribeSpy = jest.spyOn(service, 'subscribe');
+
+      // Simulate a reconnection
+      await simulateReconnection(mockEventEmitter, mockConnectionId);
+
+      // Manually trigger the connection recovery handlers
+      await triggerConnectionRecoveryHandlers(
+        connectionRecoveryHandlers,
+        mockNetwork,
+      );
+
+      // Verify that the subscription request was not sent again
+      expect(subscribeSpy).not.toHaveBeenCalled();
+    });
   });
 });

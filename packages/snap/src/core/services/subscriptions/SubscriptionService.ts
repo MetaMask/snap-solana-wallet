@@ -553,7 +553,9 @@ export class SubscriptionService {
 
     const subscriptionsThisNetwork = (
       await this.#subscriptionRepository.getAll()
-    ).filter((subscription) => subscription.network === network);
+    )
+      .filter((subscription) => subscription.network === network)
+      .filter(SubscriptionService.#isNotExpired);
 
     const ids = subscriptionsThisNetwork.map((subscription) => subscription.id);
     await this.#subscriptionRepository.deleteMany(ids);
@@ -573,13 +575,11 @@ export class SubscriptionService {
 
   async #removeExpiredSubscriptions(): Promise<void> {
     this.#logger.info(`Removing expired subscriptions`);
-    const now = new Date();
 
     const subscriptions = await this.#subscriptionRepository.getAll();
 
     const expiredSubscriptions = subscriptions.filter(
-      (subscription) =>
-        subscription.expiresAt && new Date(subscription.expiresAt) < now,
+      SubscriptionService.#isExpired,
     );
 
     await Promise.allSettled(
@@ -587,5 +587,16 @@ export class SubscriptionService {
         await this.unsubscribe(subscription.id);
       }),
     );
+  }
+
+  static #isExpired(subscription: Subscription): boolean {
+    const now = new Date();
+    return Boolean(
+      subscription.expiresAt && new Date(subscription.expiresAt) < now,
+    );
+  }
+
+  static #isNotExpired(subscription: Subscription): boolean {
+    return !SubscriptionService.#isExpired(subscription);
   }
 }
