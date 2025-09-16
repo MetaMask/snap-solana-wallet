@@ -142,7 +142,6 @@ export class ConfigProvider {
   }
 
   #buildConfig(environment: Env): Config {
-    console.log('Snap environment is:', environment);
     return {
       environment: environment.ENVIRONMENT,
       networks: [
