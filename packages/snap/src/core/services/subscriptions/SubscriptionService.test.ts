@@ -1,9 +1,11 @@
 import type { WebSocketMessage } from '@metamask/snaps-sdk';
+import { Duration } from '@metamask/utils';
 
 import type {
   ConfirmedSubscription,
   ConnectionRecoveryHandler,
   PendingSubscription,
+  Subscription,
   SubscriptionRequest,
   WebSocketConnection,
 } from '../../../entities';
@@ -863,6 +865,241 @@ describe('SubscriptionService', () => {
           },
         });
       });
+    });
+  });
+
+  describe('expiry', () => {
+    const mockNowTimestamp = 1736660000; // 2025-01-12T05:33:20.000Z
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(mockNowTimestamp * 1000));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('saves the subscription with an expiry date', async () => {
+      const request = createMockSubscriptionRequest();
+      request.expiryMilliseconds = Duration.Second * 5;
+
+      await service.subscribe(request);
+
+      expect(mockSubscriptionRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          expiresAt: '2025-01-12T05:33:25.000Z',
+        }),
+      );
+    });
+
+    it('unsubscribes expired subscriptions when the client becomes inactive', async () => {
+      // Set up a subscription that will expire soon
+      const subscription = {
+        id: 'expires-soon',
+        expiresAt: new Date(Date.now() + Duration.Second * 5).toISOString(),
+      } as unknown as Subscription;
+
+      jest
+        .spyOn(mockSubscriptionRepository, 'getAll')
+        .mockResolvedValue([subscription]);
+
+      const unsubscribeSpy = jest
+        .spyOn(service, 'unsubscribe')
+        .mockResolvedValue();
+
+      // Time passes...
+      jest.advanceTimersByTime(Duration.Minute * 10);
+
+      // Simulate an onInactive event
+      await mockEventEmitter.emitSync('onInactive');
+
+      expect(unsubscribeSpy).toHaveBeenCalledWith('expires-soon');
+    });
+
+    it('does not unsubscribe subscriptions that are not expired', async () => {
+      // Set up a subscription that will expire in a long time
+      const subscription = {
+        id: 'active-1',
+        expiresAt: new Date(Date.now() + Duration.Hour).toISOString(),
+      } as unknown as Subscription;
+
+      jest
+        .spyOn(mockSubscriptionRepository, 'getAll')
+        .mockResolvedValue([subscription]);
+
+      const unsubscribeSpy = jest
+        .spyOn(service, 'unsubscribe')
+        .mockResolvedValue();
+
+      // Not enough time passes...
+      jest.advanceTimersByTime(Duration.Minute * 10);
+
+      // Simulate an onInactive event
+      await mockEventEmitter.emitSync('onInactive');
+
+      expect(unsubscribeSpy).not.toHaveBeenCalledWith('active-1');
+    });
+
+    it('does not unsubscribe subscriptions with no expiry date', async () => {
+      const subscription = {
+        id: 'permanent-1',
+        expiresAt: undefined,
+      } as unknown as Subscription;
+      jest
+        .spyOn(mockSubscriptionRepository, 'getAll')
+        .mockResolvedValue([subscription]);
+
+      const unsubscribeSpy = jest
+        .spyOn(service, 'unsubscribe')
+        .mockResolvedValue();
+
+      // Time passes...
+      jest.advanceTimersByTime(Duration.Hour);
+
+      // Simulate an onInactive event
+      await mockEventEmitter.emitSync('onInactive');
+
+      expect(unsubscribeSpy).not.toHaveBeenCalledWith('permanent-1');
+    });
+
+    it('handles mixed expired and non-expired subscriptions correctly', async () => {
+      const expiredSub1 = {
+        id: 'expired-1',
+        expiresAt: new Date(Date.now() + Duration.Second * 5).toISOString(),
+      } as unknown as Subscription;
+
+      const expiredSub2 = {
+        id: 'expired-2',
+        expiresAt: new Date(Date.now() + Duration.Second * 10).toISOString(),
+      } as unknown as Subscription;
+
+      const activeSub = {
+        id: 'active-1',
+        expiresAt: new Date(Date.now() + Duration.Hour).toISOString(),
+      } as unknown as Subscription;
+
+      const permanentSub = {
+        id: 'permanent-1',
+        expiresAt: undefined,
+      } as unknown as Subscription;
+
+      jest
+        .spyOn(mockSubscriptionRepository, 'getAll')
+        .mockResolvedValue([expiredSub1, expiredSub2, activeSub, permanentSub]);
+
+      const unsubscribeSpy = jest
+        .spyOn(service, 'unsubscribe')
+        .mockResolvedValue();
+
+      jest.advanceTimersByTime(Duration.Minute * 10);
+      await mockEventEmitter.emitSync('onInactive');
+
+      expect(unsubscribeSpy).toHaveBeenCalledTimes(2);
+      expect(unsubscribeSpy).toHaveBeenCalledWith('expired-1');
+      expect(unsubscribeSpy).toHaveBeenCalledWith('expired-2');
+    });
+
+    it('continues removing other expired subscriptions when one unsubscribe fails', async () => {
+      const expiredSub1 = {
+        id: 'expired-1',
+        expiresAt: new Date(Date.now() + Duration.Second * 5).toISOString(),
+      } as unknown as Subscription;
+
+      const expiredSub2 = {
+        id: 'expired-2',
+        expiresAt: new Date(Date.now() + Duration.Second * 10).toISOString(),
+      } as unknown as Subscription;
+
+      jest
+        .spyOn(mockSubscriptionRepository, 'getAll')
+        .mockResolvedValue([expiredSub1, expiredSub2]);
+
+      const unsubscribeSpy = jest
+        .spyOn(service, 'unsubscribe')
+        .mockResolvedValueOnce() // First call succeeds
+        .mockRejectedValueOnce(new Error('Unsubscribe failed')); // Second call fails
+
+      jest.advanceTimersByTime(Duration.Minute * 10);
+      await mockEventEmitter.emitSync('onInactive');
+
+      // Should attempt both despite the failure
+      expect(unsubscribeSpy).toHaveBeenCalledTimes(2);
+      expect(unsubscribeSpy).toHaveBeenCalledWith('expired-1');
+      expect(unsubscribeSpy).toHaveBeenCalledWith('expired-2');
+    });
+
+    it('handles empty subscription list gracefully', async () => {
+      jest.spyOn(mockSubscriptionRepository, 'getAll').mockResolvedValue([]);
+
+      const unsubscribeSpy = jest
+        .spyOn(service, 'unsubscribe')
+        .mockResolvedValue();
+
+      await mockEventEmitter.emitSync('onInactive');
+
+      expect(unsubscribeSpy).not.toHaveBeenCalled();
+    });
+
+    it('handles invalid expiry dates gracefully', async () => {
+      const subscription = {
+        id: 'invalid-expiry',
+        expiresAt: 'invalid-date-string',
+      } as unknown as Subscription;
+
+      jest
+        .spyOn(mockSubscriptionRepository, 'getAll')
+        .mockResolvedValue([subscription]);
+
+      const unsubscribeSpy = jest
+        .spyOn(service, 'unsubscribe')
+        .mockResolvedValue();
+
+      jest.advanceTimersByTime(Duration.Hour);
+
+      // Should not crash and should not unsubscribe due to invalid date
+      expect(await mockEventEmitter.emitSync('onInactive')).toBeUndefined();
+      expect(unsubscribeSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not re-subscribe expired subscriptions after connection reestablishment', async () => {
+      const request = createMockSubscriptionRequest();
+      request.expiryMilliseconds = Duration.Second * 5;
+
+      const confirmedSubscription: ConfirmedSubscription = {
+        ...request,
+        id: 'some-subscription-id',
+        status: 'confirmed',
+        requestId: 'some-subscription-id',
+        rpcSubscriptionId: 98765,
+        createdAt: Date.now().toString(),
+        confirmedAt: Date.now().toString(),
+        expiresAt: new Date(Date.now() + Duration.Second * 5).toISOString(),
+      };
+
+      jest
+        .spyOn(mockSubscriptionRepository, 'getAll')
+        .mockResolvedValue([confirmedSubscription]);
+
+      // Now, simulate a disconnection (this has no direct effect, it's just for clarity of the test)
+      await simulateDisconnection(mockEventEmitter, mockConnectionId);
+
+      // Time passes...
+      jest.advanceTimersByTime(Duration.Minute * 10);
+
+      const subscribeSpy = jest.spyOn(service, 'subscribe');
+
+      // Simulate a reconnection
+      await simulateReconnection(mockEventEmitter, mockConnectionId);
+
+      // Manually trigger the connection recovery handlers
+      await triggerConnectionRecoveryHandlers(
+        connectionRecoveryHandlers,
+        mockNetwork,
+      );
+
+      // Verify that the subscription request was not sent again
+      expect(subscribeSpy).not.toHaveBeenCalled();
     });
   });
 });

@@ -126,6 +126,7 @@ describe('SignatureMonitor', () => {
             enableReceivedNotification: false,
           },
         ],
+        expiryMilliseconds: 600000,
         metadata: {
           accountId,
           origin,
