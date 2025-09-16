@@ -62,6 +62,8 @@ export class SubscriptionService {
   }
 
   #bindHandlers(): void {
+    this.#eventEmitter.on('onInactive', this.#handleOnInactive.bind(this));
+
     this.#eventEmitter.on(
       'onWebSocketEvent',
       this.#handleWebSocketEvent.bind(this),
@@ -139,7 +141,7 @@ export class SubscriptionService {
   async subscribe(request: SubscriptionRequest): Promise<string> {
     this.#logger.info(`New subscription request`, request);
 
-    const { method, params, network } = request;
+    const { method, params, network, expiryMilliseconds } = request;
 
     const id = await this.#generateId(request);
 
@@ -162,6 +164,11 @@ export class SubscriptionService {
       status: 'pending',
       requestId: id, // Use the same ID for the request and the subscription for easier lookup.
       createdAt: new Date().toISOString(),
+      ...(expiryMilliseconds
+        ? {
+            expiresAt: new Date(Date.now() + expiryMilliseconds).toISOString(),
+          }
+        : {}),
     };
 
     // Before sending the request, save the subscription in the repository.
@@ -526,6 +533,11 @@ export class SubscriptionService {
       method: subscription.method,
       params: subscription.params,
       network: subscription.network,
+      ...(subscription.expiryMilliseconds
+        ? {
+            expiryMilliseconds: subscription.expiryMilliseconds,
+          }
+        : {}),
       ...(subscription.metadata ? { metadata: subscription.metadata } : {}),
     };
   }
@@ -541,7 +553,9 @@ export class SubscriptionService {
 
     const subscriptionsThisNetwork = (
       await this.#subscriptionRepository.getAll()
-    ).filter((subscription) => subscription.network === network);
+    )
+      .filter((subscription) => subscription.network === network)
+      .filter(SubscriptionService.#isNotExpired);
 
     const ids = subscriptionsThisNetwork.map((subscription) => subscription.id);
     await this.#subscriptionRepository.deleteMany(ids);
@@ -551,5 +565,38 @@ export class SubscriptionService {
         await this.subscribe(this.#asRequest(subscription));
       }),
     );
+  }
+
+  async #handleOnInactive(): Promise<void> {
+    this.#logger.info(`Client became inactive`);
+
+    await this.#removeExpiredSubscriptions();
+  }
+
+  async #removeExpiredSubscriptions(): Promise<void> {
+    this.#logger.info(`Removing expired subscriptions`);
+
+    const subscriptions = await this.#subscriptionRepository.getAll();
+
+    const expiredSubscriptions = subscriptions.filter(
+      SubscriptionService.#isExpired,
+    );
+
+    await Promise.allSettled(
+      expiredSubscriptions.map(async (subscription) => {
+        await this.unsubscribe(subscription.id);
+      }),
+    );
+  }
+
+  static #isExpired(subscription: Subscription): boolean {
+    const now = new Date();
+    return Boolean(
+      subscription.expiresAt && new Date(subscription.expiresAt) < now,
+    );
+  }
+
+  static #isNotExpired(subscription: Subscription): boolean {
+    return !SubscriptionService.#isExpired(subscription);
   }
 }

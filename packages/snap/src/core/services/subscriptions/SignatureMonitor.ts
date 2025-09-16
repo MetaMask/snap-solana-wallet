@@ -1,4 +1,5 @@
 import { assert, string } from '@metamask/superstruct';
+import { Duration } from '@metamask/utils';
 import { signature as asSignature } from '@solana/kit';
 import { get } from 'lodash';
 
@@ -34,6 +35,14 @@ export class SignatureMonitor {
   readonly #logger: ILogger;
 
   readonly #pendingSubscriptions: Map<string, SubscriptionRequest> = new Map(); // subscriptionId -> subscriptionRequest
+
+  /**
+   * Some dapps, like jup.ag, request a signature, but broadcast the transaction themselves.
+   * If that broadcast does not happen, we end up with a stale subscription in state, waiting for a notification that will never come.
+   * To avoid this, we set a default expiry time of 10 minutes, which is more than enough
+   * for Solana transactions to either be confirmed or failed.
+   */
+  readonly #expiryMilliseconds = Duration.Minute * 10;
 
   constructor(
     subscriptionService: SubscriptionService,
@@ -111,6 +120,7 @@ export class SignatureMonitor {
     const subscriptionRequest: SubscriptionRequest = {
       method: 'signatureSubscribe',
       network,
+      expiryMilliseconds: this.#expiryMilliseconds,
       params: [
         signature,
         {

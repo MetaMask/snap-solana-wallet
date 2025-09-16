@@ -30,6 +30,7 @@ export type SubscriptionRequest = {
   method: SubscribeMethod;
   params: JsonRpcParams;
   network: Network;
+  expiryMilliseconds?: number; // Number of milliseconds after which the subscription will expire
   metadata?: {
     [key: string]: Serializable;
   };
@@ -44,6 +45,7 @@ export type PendingSubscription = SubscriptionRequest & {
   readonly status: 'pending';
   readonly requestId: string; // Same a the field `id`
   readonly createdAt: string; // ISO string
+  readonly expiresAt?: string; // ISO string
 };
 
 /**
