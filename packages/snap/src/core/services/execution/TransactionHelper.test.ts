@@ -100,47 +100,6 @@ describe('TransactionHelper', () => {
     });
   });
 
-  describe('getFeeFromBase64StringInLamports', () => {
-    it('returns the fee for a base64 encoded transaction message', async () => {
-      const mockMessage =
-        MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded;
-      mockRpcResponse.send.mockResolvedValueOnce({ value: 100000 });
-
-      const result = await transactionHelper.getFeeFromBase64StringInLamports(
-        mockMessage,
-        mockScope,
-      );
-
-      expect(result).toBe(100000);
-    });
-
-    it('returns the fee for a base64 encoded transaction', async () => {
-      const mockMessage =
-        MOCK_EXECUTION_SCENARIO_SEND_SOL.signedTransactionBase64Encoded;
-      mockRpcResponse.send.mockResolvedValueOnce({ value: 100000 });
-
-      const result = await transactionHelper.getFeeFromBase64StringInLamports(
-        mockMessage,
-        mockScope,
-      );
-
-      expect(result).toBe(100000);
-    });
-
-    it('returns null when the fee cannot be fetched', async () => {
-      const mockMessage =
-        MOCK_EXECUTION_SCENARIO_SEND_SOL.transactionMessageBase64Encoded;
-      mockRpcResponse.send.mockRejectedValueOnce(new Error('Network error'));
-
-      const result = await transactionHelper.getFeeFromBase64StringInLamports(
-        mockMessage,
-        mockScope,
-      );
-
-      expect(result).toBeNull();
-    });
-  });
-
   describe('waitForTransactionCommitment', () => {
     it('successfully waits for transaction commitment', async () => {
       const mockSignature = MOCK_EXECUTION_SCENARIO_SEND_SOL.signature;

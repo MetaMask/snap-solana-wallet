@@ -52,13 +52,57 @@ describe('FeeCalculator', () => {
       });
     });
 
-    describe('when the input is a base64 string', () => {
+    describe('when the input is a base64 encoded transaction', () => {
       it('calculates fee for a send SOL', () => {
         const { signedTransactionBase64Encoded } =
           MOCK_EXECUTION_SCENARIO_SEND_SOL;
 
         const feeBreakdown = FeeCalculator.calculateFee(
           signedTransactionBase64Encoded,
+        );
+
+        expect(feeBreakdown).toStrictEqual({
+          ed25519SignaturesCount: 1,
+          secp256k1SignaturesCount: 0,
+          secp256r1SignaturesCount: 0,
+          totalSignaturesCount: 1,
+          baseFee: 5000n,
+          computeUnitLimit: 300,
+          computeUnitPriceMicroLamportsPerComputeUnit: 1000n,
+          priorityFee: 0n,
+          totalFee: 5000n,
+        });
+      });
+
+      it('calculates fee for some other transaction', () => {
+        const base64EncodedTransaction =
+          'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAOGL90BPMeQxbCdwSbyC2lv/FG3wE/28MLN5GTUYRikvRD9kaGxPJKAoVLt6tV3mRDIMC64Ke2ttBthAfrnxYfDdJtjNxrVLYBP6VBwAW4QcrJODCTq4A0YurnmfI8K4w2eCOqjtLeJ1tGDigOcQ8vJrW8+5B/z3Osuht6LeNXKcYNN2e6UMKyu+PAm4cbix+Ajv4ojwZExmKpP/WVAUXmKrlPhsyBl8xubS/1QIgSYyG36OJXLzlDdk+evw3cLVQ78K0R5qT8KUSk+oJRvvgVQm4b+yjGtmRmd2B8atn1ZqZG9LLuzSr6EAfhR656lu+lF3wZL99DU/P4pl1hT7Ny4wCelyAZtp+XbpgUSfBu/NxYkBd5hXf1v05A7SOMOsV0uXEKjinavFTZPsjPLDavr0sb7T6a8SBqKIPML6T3oq5jKD0N0oI1T+8K47DiJ9N82JyiZvsX3fj3y3zO++Tr3FUGp9UXGMd0yShWY5hpHV62i164o5tLbVxzVVshAAAAAF8Be7pvj7sWgKQq4pHYnNv3ary6SldAXJ09pCa+2ikkAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAACMlyWPTiSJ8bs9ECkUjg2DC1oTmdr/EIQEjnvY2+n4WfZGzkJtUYvjI9Pg4Deh+Wb4xlObZV4AA9qrzYUv8qaPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqQR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPtD/6J/XX9kp0wJsfKVh53ksJqzbfyd1RSzIap7OM5egBVuD2k2Zaz0TbFWi/F1uqUYnLl/XS/ztlXSu2/W0YsDqGXmnuD1SAyrz2Y1fk3C8Y1Y1Fwep0ifs3I9l5PHKmBqfVFxksXFEhjMlMPUrxf1ja7gibof1E49vZigAAAACs8TbrAfwcTog9I8i1hEq1mjf2at1XxemsO1PgWdNcZFyu+IFzMmg0dnWJuhEhMR2EMUEW+6TUQ3iKu5tJiClIBwoCCwwJABhYqNqaifwADQAFAlWtBAANAAkDkNADAAAAAAAOBgABAA8QEQEBDgYAAgAdEBEBARItEQADARIPEhMSHhgeGRoDAh0fGx4AEREgHgQFHBIUFQYPBwgBABARFhcUAgkdJ+UXy5d6460qAgAAACZkAAExZAECQEIPAAAAAAAj6YIgLwAAADIAABEDAgAAAQkBGgWCEnkMjW1w1PFgdAevgQo46hGC/KyyBA4xfviukUQF7PTn8uoEB3btfg==';
+
+        const feeBreakdown = FeeCalculator.calculateFee(
+          base64EncodedTransaction,
+        );
+
+        expect(feeBreakdown).toStrictEqual({
+          ed25519SignaturesCount: 1,
+          secp256k1SignaturesCount: 0,
+          secp256r1SignaturesCount: 0,
+          totalSignaturesCount: 1,
+          baseFee: 5000n,
+          computeUnitLimit: 306517,
+          computeUnitPriceMicroLamportsPerComputeUnit: 250000n,
+          priorityFee: 76629n,
+          totalFee: 81629n,
+        });
+      });
+    });
+
+    describe('when the input is a base64 encoded transaction message', () => {
+      it('calculates fee for a send SOL', () => {
+        const { transactionMessageBase64Encoded } =
+          MOCK_EXECUTION_SCENARIO_SEND_SOL;
+
+        const feeBreakdown = FeeCalculator.calculateFee(
+          transactionMessageBase64Encoded,
         );
 
         expect(feeBreakdown).toStrictEqual({
@@ -274,15 +318,15 @@ describe('FeeCalculator', () => {
          */
       });
     });
-  });
 
-  describe('when the input is an invalid type', () => {
-    it('throws error for unsupported input type', () => {
-      const invalidInput = { invalid: 'data' } as any;
+    describe('when the input is an invalid type', () => {
+      it('throws error for unsupported input type', () => {
+        const invalidInput = { invalid: 'data' } as any;
 
-      expect(() => FeeCalculator.calculateFee(invalidInput)).toThrow(
-        FeeCalculatorUnsupportedInputTypeError,
-      );
+        expect(() => FeeCalculator.calculateFee(invalidInput)).toThrow(
+          FeeCalculatorUnsupportedInputTypeError,
+        );
+      });
     });
   });
 });

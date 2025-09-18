@@ -1,102 +1,44 @@
-import { installSnap } from '@metamask/snaps-jest';
+import { InternalError } from '@metamask/snaps-sdk';
 
 import { Network } from '../../constants/solana';
-import { MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE } from '../../services/mocks/mockSolanaRpcResponses';
-import type { MockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
-import { startMockSolanaRpc } from '../../test/mocks/startMockSolanaRpc';
 import { MOCK_VALID_SWAP_TRANSACTION } from '../../test/mocks/transactions-data/swap';
 import { TEST_ORIGIN } from '../../test/utils';
+import { getFeeForTransaction } from './getFeeForTransaction';
 import { RpcRequestMethod } from './types';
 
 describe('getFeeForTransaction', () => {
-  let mockSolanaRpc: MockSolanaRpc;
-
-  beforeAll(() => {
-    mockSolanaRpc = startMockSolanaRpc();
-  });
-
-  afterAll(() => {
-    mockSolanaRpc.shutdown();
+  const createArgs = (transaction: string) => ({
+    origin: TEST_ORIGIN,
+    request: {
+      id: 'test-id',
+      method: RpcRequestMethod.GetFeeForTransaction,
+      jsonrpc: '2.0' as const,
+      params: {
+        transaction,
+        scope: Network.Localnet,
+      },
+    },
   });
 
   it('returns the fee for a transaction', async () => {
-    const { mockResolvedResult } = mockSolanaRpc;
+    const args = createArgs(MOCK_VALID_SWAP_TRANSACTION);
 
-    mockResolvedResult({
-      method: 'getFeeForMessage',
-      result: MOCK_SOLANA_RPC_GET_FEE_FOR_MESSAGE_RESPONSE.result,
-    });
-
-    const { request } = await installSnap();
-
-    const response = request({
-      origin: TEST_ORIGIN,
-      method: RpcRequestMethod.GetFeeForTransaction,
-      params: {
-        transaction: MOCK_VALID_SWAP_TRANSACTION,
-        scope: Network.Localnet,
-      },
-    });
-
-    const result = await response;
+    const result = await getFeeForTransaction(args);
 
     expect(result).toMatchObject({
-      id: expect.any(String),
-      notifications: [],
-      response: {
-        result: {
-          value: '15000',
-        },
-      },
+      value: '52788',
     });
   });
 
-  it('returns an error if transaction is not passed', async () => {
-    const { request } = await installSnap();
+  it('throws an error if transaction is not passed', async () => {
+    const args = createArgs('');
 
-    const response = request({
-      origin: TEST_ORIGIN,
-      method: RpcRequestMethod.GetFeeForTransaction,
-      params: {
-        scope: Network.Localnet,
-      },
-    });
-
-    const result = await response;
-
-    expect(result).toMatchObject({
-      id: expect.any(String),
-      notifications: [],
-      response: {
-        error: {
-          message: expect.stringMatching(/At path: transaction/u),
-        },
-      },
-    });
+    await expect(getFeeForTransaction(args)).rejects.toThrow(InternalError);
   });
 
-  it('returns an error if transaction cannot be decoded', async () => {
-    const { request } = await installSnap();
+  it('throws an error if transaction cannot be decoded', async () => {
+    const args = createArgs('not-a-transaction');
 
-    const response = request({
-      origin: TEST_ORIGIN,
-      method: RpcRequestMethod.GetFeeForTransaction,
-      params: {
-        transaction: 'not-a-transaction',
-        scope: Network.Localnet,
-      },
-    });
-
-    const result = await response;
-
-    expect(result).toMatchObject({
-      id: expect.any(String),
-      notifications: [],
-      response: {
-        error: {
-          message: 'Internal JSON-RPC error.',
-        },
-      },
-    });
+    await expect(getFeeForTransaction(args)).rejects.toThrow(InternalError);
   });
 });

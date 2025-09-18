@@ -3,6 +3,7 @@ import {
   parseSetComputeUnitPriceInstruction,
 } from '@solana-program/compute-budget';
 import type {
+  CompiledTransactionMessage,
   IInstructionWithData,
   Transaction as KitTransaction,
   Lamports,
@@ -23,13 +24,12 @@ import {
 } from '../sdk-extensions/transaction-messages';
 import type { SolanaTransaction } from '../types/solana';
 import { FeeCalculatorUnsupportedInputTypeError } from './errors';
-import { normalizeBase64String } from './normalizers/normalizeBase64String';
+import { normalizeBase64EncodedTransaction } from './normalizers/normalizeBase64EncodedTransaction';
+import { normalizeBase64EncodedTransactionMessage } from './normalizers/normalizeBase64EncodedTransactionMessage';
+import { normalizeCompiledTransactionMessage } from './normalizers/normalizeCompiledTransactionMessage';
 import { normalizeKitTransaction } from './normalizers/normalizeKitTransaction';
-import type {
-  NormalizableInput,
-  NormalizedInput,
-} from './normalizers/Normalizer';
 import { normalizeSolanaTransaction } from './normalizers/normalizeSolanaTransaction';
+import type { NormalizableInput, NormalizedInput } from './normalizers/types';
 
 /**
  * Base fee per signature in lamports
@@ -285,20 +285,66 @@ export class FeeCalculator {
    * @returns Normalized input.
    */
   static #normalizeInput(input: NormalizableInput): NormalizedInput {
-    if (this.#isSolanaTransaction(input)) {
-      return normalizeSolanaTransaction(input);
+    if (this.#isBase64EncodedTransaction(input)) {
+      return normalizeBase64EncodedTransaction(input);
     }
 
-    if (this.#isBase64String(input)) {
-      return normalizeBase64String(input);
+    if (this.#isBase64EncodedTransactionMessage(input)) {
+      return normalizeBase64EncodedTransactionMessage(input as string);
+    }
+
+    if (this.#isCompiledTransactionMessage(input)) {
+      return normalizeCompiledTransactionMessage(input);
     }
 
     if (this.#isKitTransaction(input)) {
       return normalizeKitTransaction(input);
     }
 
+    if (this.#isSolanaTransaction(input)) {
+      return normalizeSolanaTransaction(input);
+    }
+
     throw new FeeCalculatorUnsupportedInputTypeError(
       'The fee calculator could not recognize the input type. It supports SolanaTransactions, kit Transactions, and base64 strings.',
+    );
+  }
+
+  static #isBase64EncodedTransaction(
+    input: NormalizableInput,
+  ): input is string {
+    try {
+      if (typeof input !== 'string') {
+        return false;
+      }
+      normalizeBase64EncodedTransaction(input);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  static #isBase64EncodedTransactionMessage(
+    input: NormalizableInput,
+  ): input is string {
+    try {
+      if (typeof input !== 'string') {
+        return false;
+      }
+      normalizeBase64EncodedTransactionMessage(input);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  static #isCompiledTransactionMessage(
+    input: NormalizableInput,
+  ): input is CompiledTransactionMessage {
+    return (
+      typeof input === 'object' &&
+      'instructions' in input &&
+      'staticAccounts' in input
     );
   }
 
@@ -318,10 +364,6 @@ export class FeeCalculator {
       'signatures' in input.transaction &&
       typeof input.transaction.signatures === 'object'
     );
-  }
-
-  static #isBase64String(input: NormalizableInput): input is string {
-    return typeof input === 'string';
   }
 
   static #isKitTransaction(input: NormalizableInput): input is KitTransaction {

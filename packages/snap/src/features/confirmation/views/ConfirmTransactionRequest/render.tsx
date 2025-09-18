@@ -1,6 +1,7 @@
 import { SolMethod } from '@metamask/keyring-api';
 
 import { Network, Networks } from '../../../../core/constants/solana';
+import { FeeCalculator } from '../../../../core/fees';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import { lamportsToSol } from '../../../../core/utils/conversion';
 import {
@@ -16,7 +17,6 @@ import {
   connection,
   priceApiClient,
   state,
-  transactionHelper,
   transactionScanService,
 } from '../../../../snapContext';
 import { ConfirmTransactionRequest } from './ConfirmTransactionRequest';
@@ -116,10 +116,8 @@ export async function render(
 
   const assets = [Networks[context.scope].nativeToken.caip19Id];
 
-  let tokenPricesPromise;
-
   if (useExternalPricingData) {
-    tokenPricesPromise = priceApiClient
+    await priceApiClient
       .getMultipleSpotPrices(assets, currency)
       .then((prices) => {
         updatedContext1.tokenPrices = prices;
@@ -133,21 +131,8 @@ export async function render(
     updatedContext1.tokenPrices = {};
   }
 
-  const transactionFeePromise = transactionHelper
-    .getFeeFromBase64StringInLamports(
-      context.transaction,
-      updatedContext1.scope,
-    )
-    .then((feeInLamports) => {
-      updatedContext1.feeEstimatedInSol = feeInLamports
-        ? lamportsToSol(feeInLamports).toString()
-        : null;
-    })
-    .catch(() => {
-      updatedContext1.feeEstimatedInSol = null;
-    });
-
-  await Promise.all([tokenPricesPromise, transactionFeePromise]);
+  const { totalFee } = FeeCalculator.calculateFee(context.transaction);
+  updatedContext1.feeEstimatedInSol = lamportsToSol(totalFee).toString();
 
   await updateInterface(
     id,

@@ -1,27 +1,24 @@
 import {
   getCompiledTransactionMessageDecoder,
+  pipe,
   type Transaction as KitTransaction,
 } from '@solana/kit';
 
-import type { NormalizedInput } from './Normalizer';
+import { normalizeCompiledTransactionMessage } from './normalizeCompiledTransactionMessage';
+import type { NormalizedInput } from './types';
 
 export const normalizeKitTransaction = (
   input: KitTransaction,
 ): NormalizedInput => {
-  const transactionMessage = getCompiledTransactionMessageDecoder().decode(
+  const normalizedTransactionMessage = pipe(
     input.messageBytes,
+    getCompiledTransactionMessageDecoder().decode,
+    normalizeCompiledTransactionMessage,
   );
 
   return {
-    ed25519Signatures: Object.values(input.signatures).filter(
-      (signature) => signature !== null,
-    ),
-    instructions: transactionMessage.instructions.map((item) => ({
-      accounts: [], // We don't need them
-      data: item.data ?? new Uint8Array(),
-      programAddress:
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        transactionMessage.staticAccounts[item.programAddressIndex]!,
-    })),
+    ...normalizedTransactionMessage,
+    // Unlike the compiled transaction message, the transaction actually has ed25519 signatures
+    ed25519Signatures: Object.values(input.signatures),
   };
 };

@@ -1,12 +1,14 @@
 import { MOCK_EXECUTION_SCENARIO_LIFI_SWAP } from '../../services/execution/mocks/scenarios/lifiSwap';
-import { normalizeBase64String } from './normalizeBase64String';
+import { normalizeBase64EncodedTransaction } from './normalizeBase64EncodedTransaction';
 
-describe('normalizeBase64String', () => {
+describe('normalizeBase64EncodedTransaction', () => {
   it('normalizes a Lifi Swap transaction correctly', () => {
     const { signedTransactionBase64Encoded } =
       MOCK_EXECUTION_SCENARIO_LIFI_SWAP;
 
-    const result = normalizeBase64String(signedTransactionBase64Encoded);
+    const result = normalizeBase64EncodedTransaction(
+      signedTransactionBase64Encoded,
+    );
 
     expect(result).toStrictEqual({
       ed25519Signatures: [

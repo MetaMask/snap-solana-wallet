@@ -4,7 +4,6 @@ import type {
   BaseTransactionMessage,
   GetTransactionApi,
   Transaction,
-  TransactionMessageBytesBase64,
   TransactionWithLifetime,
 } from '@solana/kit';
 import {
@@ -12,7 +11,6 @@ import {
   signature as asSignature,
   createKeyPairFromPrivateKeyBytes,
   createKeyPairSignerFromPrivateKeyBytes,
-  getBase64Codec,
   getComputeUnitEstimateForTransactionMessageFactory,
   isTransactionMessageWithBlockhashLifetime,
   partiallySignTransaction,
@@ -39,7 +37,8 @@ import {
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
 import type { ILogger } from '../../utils/logger';
 import { retry } from '../../utils/retry';
-import { Base58Struct, Base64Struct } from '../../validation/structs';
+import type { Base64Struct } from '../../validation/structs';
+import { Base58Struct } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
 
 /**
@@ -114,58 +113,6 @@ export class TransactionHelper {
       });
 
     return await getComputeUnitEstimate(transactionMessage);
-  }
-
-  /**
-   * Gets the fee for a transaction message in lamports.
-   *
-   * @param base64String - The base64 encoded transaction message to get the fee for.
-   * @param network - The network on which the transaction is being sent.
-   * @see https://solana.com/developers/cookbook/transactions/calculate-cost
-   * @returns The fee for the transaction in lamports.
-   */
-  async getFeeFromBase64StringInLamports(
-    base64String: Infer<typeof Base64Struct>,
-    network: Network,
-  ): Promise<string | null> {
-    try {
-      assert(base64String, Base64Struct);
-
-      const transactionOrTransactionMessage =
-        await fromUnknowBase64StringToTransactionOrTransactionMessage(
-          base64String,
-          this.#connection.getRpc(network),
-        );
-
-      /**
-       * If it's a transaction message, we can return the base64 string directly.
-       * Otherwise, it's a transaction, so we need to recover the message bytes from the transaction and then convert bytes to a base64 string.
-       */
-      const base64EncodedTransactionMessage =
-        'instructions' in transactionOrTransactionMessage
-          ? base64String
-          : getBase64Codec().decode(
-              transactionOrTransactionMessage.messageBytes,
-            );
-
-      const rpc = this.#connection.getRpc(network);
-
-      const transactionCost = await rpc
-        .getFeeForMessage(
-          base64EncodedTransactionMessage as TransactionMessageBytesBase64,
-          { commitment: 'confirmed' },
-        )
-        .send();
-
-      this.#logger.log(
-        `Transaction is estimated to cost ${transactionCost.value} lamports`,
-      );
-
-      return transactionCost.value as any;
-    } catch (error: any) {
-      this.#logger.error(error);
-      return null;
-    }
   }
 
   /**
