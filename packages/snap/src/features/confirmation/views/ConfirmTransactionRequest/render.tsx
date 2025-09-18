@@ -131,8 +131,14 @@ export async function render(
     updatedContext1.tokenPrices = {};
   }
 
-  const { totalFee } = FeeCalculator.calculateFee(context.transaction);
-  updatedContext1.feeEstimatedInSol = lamportsToSol(totalFee).toString();
+  let feeEstimatedInSol: string | null = null;
+  try {
+    const { totalFee } = FeeCalculator.calculateFee(context.transaction);
+    feeEstimatedInSol = lamportsToSol(totalFee).toString();
+  } catch {
+    feeEstimatedInSol = null;
+  }
+  updatedContext1.feeEstimatedInSol = feeEstimatedInSol;
 
   await updateInterface(
     id,

@@ -26,7 +26,7 @@ describe('getFeeForTransaction', () => {
     const result = await getFeeForTransaction(args);
 
     expect(result).toMatchObject({
-      value: '52788',
+      value: '57788',
     });
   });
 

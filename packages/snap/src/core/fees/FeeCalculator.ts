@@ -109,7 +109,6 @@ export class FeeCalculator {
    *
    * @param input - The transaction to analyze. Can be a `SolanaTransaction`, a `@solana/kit` `Transaction`, or base64 string.
    * @returns A detailed fee breakdown object containing signature counts, base fee, priority fee, and total fee.
-   * @throws {Error} When the input type is not supported or cannot be parsed.
    * @example
    * ```typescript
    * const transaction = { ... };
@@ -153,15 +152,15 @@ export class FeeCalculator {
     const totalFee = lamports(baseFee + priorityFee);
 
     return {
-      baseFee,
-      priorityFee,
-      totalFee,
-      computeUnitLimit,
-      computeUnitPriceMicroLamportsPerComputeUnit,
       ed25519SignaturesCount,
       secp256k1SignaturesCount,
       secp256r1SignaturesCount,
       totalSignaturesCount,
+      baseFee,
+      computeUnitLimit,
+      computeUnitPriceMicroLamportsPerComputeUnit,
+      priorityFee,
+      totalFee,
     };
   }
 
