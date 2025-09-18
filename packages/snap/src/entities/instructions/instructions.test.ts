@@ -1,6 +1,6 @@
 import { address, type Rpc, type SolanaRpcApi } from '@solana/kit';
 
-import { MOCK_EXECUTION_SCENARIO_SEND_SPL_TOKEN } from '../core/services/execution/mocks/scenarios/sendSplToken';
+import { MOCK_EXECUTION_SCENARIO_SEND_SPL_TOKEN } from '../../core/services/execution/mocks/scenarios/sendSplToken';
 import type { InstructionParseResult } from './instructions';
 import { extractInstructionsFromUnknownBase64String } from './instructions';
 
