@@ -571,7 +571,7 @@ describe('SolanaKeyring', () => {
             method: 'snap_scheduleBackgroundEvent',
             params: expect.objectContaining({
               request: expect.objectContaining({
-                method: ScheduleBackgroundEventMethod.OnSyncAccountTransactions,
+                method: ScheduleBackgroundEventMethod.OnSyncAccount,
               }),
             }),
           }),

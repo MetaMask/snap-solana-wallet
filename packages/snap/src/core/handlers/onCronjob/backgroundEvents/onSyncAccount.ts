@@ -9,19 +9,17 @@ import {
 import { UuidStruct } from '../../../validation/structs';
 import { ScheduleBackgroundEventMethod } from './ScheduleBackgroundEventMethod';
 
-const OnSyncAccountTransactionsRequestStruct = object({
+const OnSyncAccountRequestStruct = object({
   id: string(),
   jsonrpc: literal('2.0'),
-  method: literal(ScheduleBackgroundEventMethod.OnSyncAccountTransactions),
+  method: literal(ScheduleBackgroundEventMethod.OnSyncAccount),
   params: object({
     accountId: UuidStruct,
   }),
 });
 
-export const onSyncAccountTransactions: OnCronjobHandler = async ({
-  request,
-}) => {
-  assert(request, OnSyncAccountTransactionsRequestStruct);
+export const onSyncAccount: OnCronjobHandler = async ({ request }) => {
+  assert(request, OnSyncAccountRequestStruct);
 
   const { accountId } = request.params;
 
@@ -30,14 +28,16 @@ export const onSyncAccountTransactions: OnCronjobHandler = async ({
     throw new Error('Account not found');
   }
 
+  // Sync account's assets
   const assetEntities = await assetsService.fetch(account);
+  await assetsService.saveMany(assetEntities);
 
+  // Sync account's transactions
   const transactions = await transactionsService.fetchAssetsTransactions(
     assetEntities,
     {
       limit: 20,
     },
   );
-
   await transactionsService.saveMany(transactions);
 };
