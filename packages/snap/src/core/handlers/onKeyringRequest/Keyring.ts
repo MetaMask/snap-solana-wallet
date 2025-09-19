@@ -304,13 +304,6 @@ export class SolanaKeyring implements Keyring {
         solanaKeyringAccount,
       );
 
-      // Fetch the assets for the account
-      const assetEntities =
-        await this.#assetsService.fetch(solanaKeyringAccount);
-
-      // Save the assets in state
-      await this.#assetsService.saveMany(assetEntities);
-
       // Start monitoring the account for updates on its assets
       await this.#keyringAccountMonitor.monitorKeyringAccount(
         solanaKeyringAccount,
@@ -344,13 +337,13 @@ export class SolanaKeyring implements Keyring {
           : {}),
       });
 
-      // Schedule a fetch of the account's transactions
+      // Schedule a background event to fetch the account's assets and transactions
       await snap.request({
         method: 'snap_scheduleBackgroundEvent',
         params: {
           duration: 'PT1S',
           request: {
-            method: ScheduleBackgroundEventMethod.OnSyncAccountTransactions,
+            method: ScheduleBackgroundEventMethod.OnSyncAccount,
             params: { accountId: id },
           },
         },
