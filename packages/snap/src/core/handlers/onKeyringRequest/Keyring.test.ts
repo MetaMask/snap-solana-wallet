@@ -550,20 +550,7 @@ describe('SolanaKeyring', () => {
         expect(stateUpdateSpy).not.toHaveBeenCalled();
       });
 
-      it('fetches and saves the assets for the account', async () => {
-        await keyring.createAccount();
-
-        expect(mockAssetsService.fetch).toHaveBeenCalledWith({
-          ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-          id: expect.any(String),
-          domain: null,
-        });
-        expect(mockAssetsService.saveMany).toHaveBeenCalledWith(
-          MOCK_ASSET_ENTITIES,
-        );
-      });
-
-      it('schedules a background event to fetch the account transactions', async () => {
+      it('schedules a background event to sync the account', async () => {
         await keyring.createAccount();
 
         expect(snap.request).toHaveBeenCalledWith(
