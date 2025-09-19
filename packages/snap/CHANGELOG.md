@@ -9,11 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.10]
 
-### Uncategorized
+### Added
 
-- Fix/enforce all assets in assets list updated event ([#529](https://github.com/MetaMask/snap-solana-wallet/pull/529))
-- feat: offload sync account from account creation ([#528](https://github.com/MetaMask/snap-solana-wallet/pull/528))
-- Nwnt 409 add a mechanism to time out websocket subscriptions ([#525](https://github.com/MetaMask/snap-solana-wallet/pull/525))
+- Mechanism to time out websocket subscriptions ([#525](https://github.com/MetaMask/snap-solana-wallet/pull/525))
+
+### Changed
+
+- Offloaded the assets and transactions sync from account creation ([#528](https://github.com/MetaMask/snap-solana-wallet/pull/528))
+
+### Fixed
+
+- Enforce proper assets state sync between snap and client ([#529](https://github.com/MetaMask/snap-solana-wallet/pull/529))
 
 ## [2.3.9]
 
