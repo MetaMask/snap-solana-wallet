@@ -195,7 +195,7 @@ describe('AssetsService', () => {
       expect(saveManySpy).toHaveBeenCalledWith(MOCK_ASSET_ENTITIES);
     });
 
-    it('emits event "AccountAssetListUpdated" when new assets are added and removed', async () => {
+    it('emits event "AccountAssetListUpdated" with ALL assets in added list, and removed assets in removed list', async () => {
       jest.spyOn(mockAssetsRepository, 'getAll').mockResolvedValueOnce([]);
 
       const addedAssets = [MOCK_ASSET_ENTITY_0, MOCK_ASSET_ENTITY_1];
@@ -307,7 +307,8 @@ describe('AssetsService', () => {
       );
     });
 
-    it('does not emit events when no assets changed', async () => {
+    // With isIncremental = false, we do emit events, even when no assets changed
+    it.skip('does not emit events when no assets changed', async () => {
       jest
         .spyOn(mockAssetsRepository, 'getAll')
         .mockResolvedValue(MOCK_ASSET_ENTITIES);
@@ -399,7 +400,8 @@ describe('AssetsService', () => {
       );
     });
 
-    it('does not incorrectly mark assets as new when they are already in the saved state', async () => {
+    // With isIncremental = false, we do emit events, even when no assets changed
+    it.skip('does not incorrectly mark assets as new when they are already in the saved state', async () => {
       // Mock that the asset already exists in saved state
       jest
         .spyOn(mockAssetsRepository, 'getAll')
@@ -475,7 +477,7 @@ describe('AssetsService', () => {
         {
           assets: {
             [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-              added: [],
+              added: [MOCK_ASSET_ENTITY_0.assetType],
               removed: [MOCK_ASSET_ENTITY_1.assetType], // Only token asset, not native
             },
           },
