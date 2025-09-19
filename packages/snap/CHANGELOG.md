@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.10]
+
+### Uncategorized
+
+- Fix/enforce all assets in assets list updated event ([#529](https://github.com/MetaMask/snap-solana-wallet/pull/529))
+- feat: offload sync account from account creation ([#528](https://github.com/MetaMask/snap-solana-wallet/pull/528))
+- Nwnt 409 add a mechanism to time out websocket subscriptions ([#525](https://github.com/MetaMask/snap-solana-wallet/pull/525))
+
 ## [2.3.9]
 
 ### Added
@@ -909,7 +917,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.9...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.10...HEAD
+[2.3.10]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.9...v2.3.10
 [2.3.9]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.8...v2.3.9
 [2.3.8]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.7...v2.3.8
 [2.3.7]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.6...v2.3.7
