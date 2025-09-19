@@ -1,6 +1,6 @@
-import type { AssetEntity, SolanaKeyringAccount } from '../../../entities';
+import type { SolanaKeyringAccount } from '../../../entities';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
-import { AssetsService } from '../assets/AssetsService';
+import type { AssetsService } from '../assets/AssetsService';
 import type { TransactionsService } from '../transactions';
 import type { AccountsService } from './AccountsService';
 
@@ -40,22 +40,12 @@ export class AccountsSynchronizer {
       .map((item) => (item.status === 'fulfilled' ? item.value : []))
       .flat();
 
-    const savedAssets = await this.#assetsService.getAll();
-
-    const hasChanged = (asset: AssetEntity) =>
-      AssetsService.hasChanged(asset, savedAssets);
-
-    const assetsThatChanged = assets.filter(hasChanged);
-
-    await this.#assetsService.saveMany(assetsThatChanged);
+    await this.#assetsService.saveMany(assets);
 
     const transactions =
-      await this.#transactionsService.fetchAssetsTransactions(
-        assetsThatChanged,
-        {
-          limit: 20,
-        },
-      );
+      await this.#transactionsService.fetchAssetsTransactions(assets, {
+        limit: 20,
+      });
 
     await this.#transactionsService.saveMany(transactions);
   }
