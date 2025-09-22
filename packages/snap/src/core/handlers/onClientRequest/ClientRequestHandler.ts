@@ -8,8 +8,8 @@ import {
 import { assert } from '@metamask/superstruct';
 
 import { METAMASK_ORIGIN, Networks } from '../../constants/solana';
+import { FeeCalculator } from '../../fees';
 import type { AccountsService } from '../../services';
-import type { TransactionHelper } from '../../services/execution/TransactionHelper';
 import type { SendService } from '../../services/send/SendService';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { lamportsToSol } from '../../utils/conversion';
@@ -40,20 +40,16 @@ export class ClientRequestHandler {
 
   readonly #sendService: SendService;
 
-  readonly #transactionHelper: TransactionHelper;
-
   constructor(
     accountsService: AccountsService,
     walletService: WalletService,
     logger: ILogger,
     sendService: SendService,
-    transactionHelper: TransactionHelper,
   ) {
     this.#accountsService = accountsService;
     this.#walletService = walletService;
     this.#logger = createPrefixedLogger(logger, '[👋 ClientRequestHandler]');
     this.#sendService = sendService;
-    this.#transactionHelper = transactionHelper;
   }
 
   /**
@@ -211,23 +207,27 @@ export class ClientRequestHandler {
       params: { transaction, scope },
     } = request;
 
-    const value =
-      await this.#transactionHelper.getFeeFromBase64StringInLamports(
-        transaction,
-        scope,
-      );
+    const { baseFee, priorityFee } = FeeCalculator.calculateFee(transaction);
 
-    if (value === null) {
-      throw new Error('Failed to get fee for transaction');
-    }
+    const units = Networks[scope].nativeToken.symbol;
+    const type = Networks[scope].nativeToken.caip19Id;
 
     const result: ComputeFeeResponse = [
       {
         type: FeeType.Base,
         asset: {
-          unit: Networks[scope].nativeToken.symbol,
-          type: Networks[scope].nativeToken.caip19Id,
-          amount: lamportsToSol(value).toString(),
+          unit: units,
+          type,
+          amount: lamportsToSol(baseFee).toString(),
+          fungible: true,
+        },
+      },
+      {
+        type: FeeType.Priority,
+        asset: {
+          unit: units,
+          type,
+          amount: lamportsToSol(priorityFee).toString(),
           fungible: true,
         },
       },

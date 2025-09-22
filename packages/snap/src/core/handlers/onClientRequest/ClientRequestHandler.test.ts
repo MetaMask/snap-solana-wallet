@@ -3,7 +3,6 @@ import { getBase64Codec, getUtf8Codec, pipe } from '@solana/kit';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { AccountsService } from '../../services';
-import type { TransactionHelper } from '../../services/execution/TransactionHelper';
 import type { SendService } from '../../services/send/SendService';
 import type { ValidationResponse } from '../../services/send/types';
 import type { SolanaSignAndSendTransactionResponse } from '../../services/wallet/structs';
@@ -22,7 +21,6 @@ describe('ClientRequestHandler', () => {
   let mockWalletService: jest.Mocked<WalletService>;
   let mockLogger: jest.Mocked<ILogger>;
   let sendService: jest.Mocked<SendService>;
-  let transactionHelper: jest.Mocked<TransactionHelper>;
 
   beforeEach(() => {
     // Create mock keyring
@@ -48,17 +46,12 @@ describe('ClientRequestHandler', () => {
       confirmSend: jest.fn(),
     } as unknown as jest.Mocked<SendService>;
 
-    transactionHelper = {
-      getFeeFromBase64StringInLamports: jest.fn(),
-    } as unknown as jest.Mocked<TransactionHelper>;
-
     // Create handler instance
     handler = new ClientRequestHandler(
       mockAccountsService,
       mockWalletService,
       mockLogger,
       sendService,
-      transactionHelper,
     );
 
     // Reset all mocks
@@ -293,7 +286,7 @@ describe('ClientRequestHandler', () => {
 
   describe('computeFee', () => {
     const mockTransaction =
-      'gAEAChfds67pR0IYlL1XKFGjzC+zBZIA7vT1dj7nUBTUwAs7rBn3hrWmXImk+UetGwvWumZpcEhF+xT5THD5os2Svp67H8GdfJ4jkOslaYOff/X0SeF33Cha5Ij9DKlo3QaosfIhtgnDmdJAVdjfmyv5dEGsSWgYEYPaqW8v8hSJozhYIzcQa4p5MinFjNMq4vDm+n249hE5Vmwe+Adkq87GTDegPbdaVhuqlrT5hZnIkdcW67eCFvm9ZzXM9jeWm2GwnLBGfnLp6qHLD5IgtqLXr5clzwoa2ns4KdysosGA2yFHt2dBBA/kB6qwUEagfnGzH2GY12XE3va/gn3W4Loqy/D+gP5PMjWwL4nGY8i3EGxqLHt/i3x/EskcO1ftQjYqQtqMVVDE+U/Vngb6x6+HbBOGrDQOx73j0k813TrK9dmptLgHDBoOIz6tGmWT+r9wa3YtqouLIv01/IKynGlc4TnE0M2MheikqA6gkuj1PhXVDgPc7eSLCseVMCy/WUgTmKbXmnZ/QcH3X8YTJ//GR4yvL7LCHdfHPhS8B+4hpoFusQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKD0N0oI1T+8K47DiJ9N82JyiZvsX3fj3y3zO++Tr3FVRPixdukLDvYMw2r2DTumX5VA1ifoAVfXgkOTnLswDEoyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAC0P/on9df2SnTAmx8pWHneSwmrNt/J3VFLMhqns4zl6LwHxW5grT0/F3OC6sZUj7of0yz9kMoCs+fPoYX9znOYyUOdJ8PoWqEFw7H8n7xwkhg1P1tPfo1/6arncTl4PJkEedVb8jHAbu50xW7OaBUH/bGy3qP0jlECsc2iVrwTjwan1RcYx3TJKFZjmGkdXraLXrijm0ttXHNVWyEAAAAA0LlMW0o1bBeKH7IjSDuI9G0a+7kgVaW9ubbU+rklS9sFDgIWFAkAi8sXoE0wggARAAUCuIEWABEACAMgoQcAAAAAEAYACAATDS0BARVDLQ8ABgUECCoTFRUSFSslKyIjBQooKiQrDy0tKSsMAwEVKyErHB0KBygsHisPLS0pKx8gFScPJhsHBBcZGi0JGAILFSzBIJszQdacgQMDAAAAJmQAASZkAQIaZAIDQEIPAAAAAAC78khRAQAAADIAAANOgLKSmCyUmuksqMclFoVdtmiFizz7/yF11zNd6TSAxgUkIB4dIwIhIrYRAfelfqMdEh4JHXx6VS3GXpyeWhNKQlBsx9m2I8c+BhMSEBEUWgDdfctSzc+t7n0tohMIoz7S6USQkKhKDRCUSx6C3SjhJQQJAg8EBgoMCwYQBw==';
+      'AXxLCXtYo9AY2f1GE1V0Pp7QoiFvY67WGMkRasmnGa4QI66lz0fk+z1O9hWggkEdSb4eCK+sSQOBgKffpW8nFwGAAQACBZmwAo+dnq8yhuKR7QpXgj+5yPFMzVwViEudWE9Z+N90qg5jUUNU1A79nvrnBM2x0tvjvM0bJFPOKZHbnqR9TzLfJCXvFr85xcLXaaIzbXdnbOFs+klSdfVRIluJ9yfUxwMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAABt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKk9holmkkG74a11Z3XVXb69hHvVi8hHst59kfJlZt2iKAMDAAUCuhIAAAMACQPoAwAAAAAAAAQDAgEACQPoAwAAAAAAAAA=';
 
     const validRequest: JsonRpcRequest = {
       jsonrpc: '2.0',
@@ -307,17 +300,8 @@ describe('ClientRequestHandler', () => {
     };
 
     describe('when request is valid', () => {
-      it('calls the transaction helper and returns the computed fee', async () => {
-        const mockFeeInLamports = '15000';
-        transactionHelper.getFeeFromBase64StringInLamports.mockResolvedValue(
-          mockFeeInLamports,
-        );
-
+      it('calls the transaction helper and returns the base and priority fee', async () => {
         const response = await handler.handle(validRequest);
-
-        expect(
-          transactionHelper.getFeeFromBase64StringInLamports,
-        ).toHaveBeenCalledWith(mockTransaction, Network.Testnet);
 
         expect(response).toStrictEqual([
           {
@@ -325,21 +309,20 @@ describe('ClientRequestHandler', () => {
             asset: {
               unit: 'SOL',
               type: 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z/slip44:501',
-              amount: '0.000015',
+              amount: '0.000005',
+              fungible: true,
+            },
+          },
+          {
+            type: 'priority',
+            asset: {
+              unit: 'SOL',
+              type: 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z/slip44:501',
+              amount: '0.000000004',
               fungible: true,
             },
           },
         ]);
-      });
-
-      it('throws an error when fee calculation fails', async () => {
-        transactionHelper.getFeeFromBase64StringInLamports.mockResolvedValue(
-          null,
-        );
-
-        await expect(handler.handle(validRequest)).rejects.toThrow(
-          'Failed to get fee for transaction',
-        );
       });
     });
 

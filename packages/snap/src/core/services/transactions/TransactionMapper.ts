@@ -2,13 +2,7 @@ import type { Transaction } from '@metamask/keyring-api';
 import { TransactionStatus, TransactionType } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
 import { SYSTEM_PROGRAM_ADDRESS } from '@solana-program/system';
-import type { IInstruction } from '@solana/kit';
-import {
-  address as asAddress,
-  getBase58Codec,
-  lamports,
-  type Address,
-} from '@solana/kit';
+import { address as asAddress, lamports, type Address } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 import bs58 from 'bs58';
 import { get } from 'lodash';
@@ -16,6 +10,7 @@ import { get } from 'lodash';
 import type { AssetsService, TokenHelper } from '..';
 import {
   parseInstruction,
+  toIInstruction,
   type InstructionParseResult,
   type InstructionParseSuccess,
   type SolanaKeyringAccount,
@@ -25,7 +20,7 @@ import {
   Networks,
   type Network,
 } from '../../constants/solana';
-import type { SolanaInstruction, SolanaTransaction } from '../../types/solana';
+import type { SolanaTransaction } from '../../types/solana';
 import { lamportsToSol } from '../../utils/conversion';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
@@ -761,7 +756,7 @@ export class TransactionMapper {
 
     // Convert, parse, and filter instructions to only keep self transfers
     const selfTransferInstructions = instructions
-      .map((instruction) => this.#toIInstruction(instruction, transactionData))
+      .map((instruction) => toIInstruction(instruction, transactionData))
       .map(parseInstruction)
       .filter(this.#isSelfTransfer.bind(this));
 
@@ -1007,48 +1002,6 @@ export class TransactionMapper {
     }
 
     return BigNumber(raw.toString()).dividedBy(LAMPORTS_PER_SOL);
-  }
-
-  /**
-   * Converts a SolanaInstruction to an IInstruction that we can parse with `parseInstruction`
-   * @param instruction - The Solana instruction to convert.
-   * @param transactionData - The full transaction data.
-   * @returns The IInstruction.
-   */
-  #toIInstruction(
-    instruction: SolanaInstruction,
-    transactionData: SolanaTransaction,
-  ): IInstruction {
-    // Filter to only keep the account indexes available in the `accountKeys`
-    const isInAccountKeys = (accountIndex: number) =>
-      accountIndex < transactionData.transaction.message.accountKeys.length;
-
-    // Build the accounts array
-    const accounts = instruction.accounts
-      .filter(isInAccountKeys)
-      .map((accountIndex) => ({
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        address: transactionData.transaction.message.accountKeys[accountIndex]!, // The non-null assertion is safe because we filtered the indexes above
-        role: 0,
-      }));
-
-    const programAddress =
-      transactionData.transaction.message.accountKeys[
-        instruction.programIdIndex
-      ];
-
-    if (!programAddress) {
-      throw new Error('Program address not found');
-    }
-
-    // Build the IInstruction object
-    const iInstruction = {
-      accounts,
-      data: getBase58Codec().encode(instruction.data),
-      programAddress,
-    } as unknown as IInstruction;
-
-    return iInstruction;
   }
 
   /**

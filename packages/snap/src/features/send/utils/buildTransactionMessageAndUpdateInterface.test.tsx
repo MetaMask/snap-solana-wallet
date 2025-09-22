@@ -14,7 +14,6 @@ import {
   keyring,
   sendSolBuilder,
   sendSplTokenBuilder,
-  transactionHelper,
 } from '../../../snapContext';
 import { DEFAULT_SEND_CONTEXT } from '../render';
 import { SendCurrencyType, type SendContext } from '../types';
@@ -69,10 +68,6 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
     jest
       .mocked(sendSolBuilder)
       .getComputeUnitPriceMicroLamportsPerComputeUnit.mockReturnValue(10000n);
-
-    (
-      transactionHelper.getFeeFromBase64StringInLamports as jest.Mock
-    ).mockResolvedValue(5000);
 
     (getInterfaceContextOrThrow as jest.Mock).mockResolvedValue(mockContext);
   });

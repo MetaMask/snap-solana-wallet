@@ -1,31 +1,33 @@
 import { InternalError, type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
-import { transactionHelper } from '../../../snapContext';
+import { FeeCalculator } from '../../fees/FeeCalculator';
 import logger from '../../utils/logger';
 import {
   GetFeeForTransactionParamsStruct,
   GetFeeForTransactionResponseStruct,
 } from '../../validation/structs';
 
+/**
+ * Handles the computation of a fee for a transaction.
+ * @param args - The arguments for the request.
+ * @param args.request - The request object.
+ * @returns The response to the JSON-RPC request.
+ * @deprecated Use `ClientRequestMethod.ComputeFee` instead.
+ */
 export const getFeeForTransaction: OnRpcRequestHandler = async ({
   request,
 }) => {
   assert(request.params, GetFeeForTransactionParamsStruct);
 
-  const { transaction, scope } = request.params;
+  const { transaction } = request.params;
 
   try {
-    const value = await transactionHelper.getFeeFromBase64StringInLamports(
-      transaction,
-      scope,
-    );
+    const { totalFee } = FeeCalculator.calculateFee(transaction);
 
-    if (value === null) {
-      throw new Error('Failed to get fee for transaction');
-    }
-
-    const result = { value: value.toString() };
+    const result = {
+      value: totalFee.toString(),
+    };
 
     assert(result, GetFeeForTransactionResponseStruct);
 
