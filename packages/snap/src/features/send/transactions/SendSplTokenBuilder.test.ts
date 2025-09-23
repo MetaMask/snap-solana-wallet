@@ -16,11 +16,11 @@ import { mockLogger } from '../../../core/services/mocks/logger';
 import { createMockConnection } from '../../../core/services/mocks/mockConnection';
 import { MOCK_MINT_ACCOUNT } from '../../../core/services/mocks/mockSolanaRpcResponses';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../core/test/mocks/solana-keyring-accounts';
-import { deriveSolanaKeypairMock } from '../../../core/test/mocks/utils/deriveSolanaKeypair';
 import { SendSplTokenBuilder } from './SendSplTokenBuilder';
 
+// Mock the deriveSolanaKeypair function
 jest.mock('../../../core/utils/deriveSolanaKeypair', () => ({
-  deriveSolanaKeypair: deriveSolanaKeypairMock,
+  deriveSolanaKeypair: jest.fn(),
 }));
 
 describe('SendSplTokenBuilder', () => {
@@ -41,6 +41,15 @@ describe('SendSplTokenBuilder', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Set up the mock implementation
+    const {
+      deriveSolanaKeypair,
+    } = require('../../../core/utils/deriveSolanaKeypair');
+    const {
+      deriveSolanaKeypairMock,
+    } = require('../../../core/test/mocks/utils/deriveSolanaKeypair');
+    deriveSolanaKeypair.mockImplementation(deriveSolanaKeypairMock);
 
     mockConnection = createMockConnection();
 
