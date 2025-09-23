@@ -123,7 +123,6 @@ const sendSolBuilder = new SendSolBuilder(connection, logger);
 const sendSplTokenBuilder = new SendSplTokenBuilder(
   tokenHelper,
   connection,
-  signer,
   logger,
 );
 const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);

@@ -215,17 +215,6 @@ describe('WalletService', () => {
           .spyOn(mockSigner, 'partiallySignBase64String')
           .mockResolvedValue(signedTransaction);
 
-        jest
-          .spyOn(mockSigner, 'waitForTransactionCommitment')
-          .mockResolvedValue({
-            transaction: {
-              signatures: [signature],
-              message: {
-                accountKeys: [fromAccount.address],
-              },
-            },
-          } as any);
-
         jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
           ...mockConnection.getRpc(scope),
           getMultipleAccounts: jest.fn().mockReturnValue({
