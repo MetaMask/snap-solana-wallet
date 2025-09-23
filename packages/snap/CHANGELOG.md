@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.11]
 
-### Uncategorized
+### Changed
 
-- chore: use prod shasum ([#536](https://github.com/MetaMask/snap-solana-wallet/pull/536))
-- fix: only monitor fully signed transactions ([#535](https://github.com/MetaMask/snap-solana-wallet/pull/535))
-- Clean up ([#534](https://github.com/MetaMask/snap-solana-wallet/pull/534))
-- refactor: rename TransactionHelper into Signer ([#531](https://github.com/MetaMask/snap-solana-wallet/pull/531))
 - Offline fee calculation with support to secp256k1 and secp256r1 signatures ([#527](https://github.com/MetaMask/snap-solana-wallet/pull/527))
+
+### Fixed
+
+- Added support for signing transactions where the fee payer differs from the user's account ([#535](https://github.com/MetaMask/snap-solana-wallet/pull/535))
 
 ## [2.3.10]
 
