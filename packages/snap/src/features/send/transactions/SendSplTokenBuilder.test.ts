@@ -4,12 +4,11 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 import type { Mint } from '@solana-program/token-2022';
-import type { Account, Blockhash } from '@solana/kit';
+import type { Account } from '@solana/kit';
 import { address, lamports, type Address } from '@solana/kit';
 import { cloneDeep } from 'lodash';
 
 import { Network } from '../../../core/constants/solana';
-import type { Signer } from '../../../core/services';
 import { TokenHelper } from '../../../core/services';
 import type { SolanaConnection } from '../../../core/services/connection/SolanaConnection';
 import { mockLogger } from '../../../core/services/mocks/logger';
@@ -26,7 +25,6 @@ jest.mock('../../../core/utils/deriveSolanaKeypair', () => ({
 describe('SendSplTokenBuilder', () => {
   let mockTokenHelper: TokenHelper;
   let mockConnection: SolanaConnection;
-  let mockSigner: Signer;
   let sendSplTokenBuilder: SendSplTokenBuilder;
 
   const mockFrom = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
@@ -55,14 +53,6 @@ describe('SendSplTokenBuilder', () => {
 
     mockTokenHelper = new TokenHelper(mockConnection);
 
-    mockSigner = {
-      sendTransaction: jest.fn(),
-      getLatestBlockhash: jest.fn(),
-      getTokenMintInfo: jest.fn(),
-      getComputeUnitEstimate: jest.fn(),
-      waitForTransactionCommitment: jest.fn(),
-    } as unknown as Signer;
-
     jest
       .spyOn(mockTokenHelper, 'uiAmountToAmountForMint')
       .mockResolvedValue(mockAmountLamports);
@@ -70,23 +60,11 @@ describe('SendSplTokenBuilder', () => {
     sendSplTokenBuilder = new SendSplTokenBuilder(
       mockTokenHelper,
       mockConnection,
-      mockSigner,
       mockLogger,
     );
   });
 
   describe('buildTransactionMessage', () => {
-    beforeEach(() => {
-      jest.spyOn(mockSigner, 'getLatestBlockhash').mockResolvedValue({
-        blockhash: 'mockBlockhash' as Blockhash,
-        lastValidBlockHeight: BigInt(1000),
-      });
-
-      jest
-        .spyOn(mockSigner, 'getComputeUnitEstimate')
-        .mockResolvedValue(200000);
-    });
-
     it('successfully builds a transaction message for SPL token transfer', async () => {
       const mockMintAccount = createMockMintAccount();
       jest
@@ -118,8 +96,8 @@ describe('SendSplTokenBuilder', () => {
           address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
         },
         lifetimeConstraint: {
-          blockhash: 'mockBlockhash',
-          lastValidBlockHeight: 1000n,
+          blockhash: '8HSvyvQvdRoFkCPnrtqF3dAS4SpPEbMKUVTdrK9auMR',
+          lastValidBlockHeight: 334650256n,
         },
         instructions: [
           {

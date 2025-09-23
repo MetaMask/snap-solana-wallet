@@ -25,11 +25,8 @@ export const onProtocolRequest: OnProtocolRequestHandler = async ({
 
     case SolanaProtocolRequestMethod.GetLatestBlockhash:
       assert(request, SolanaGetLatestBlockhashRequestStruct);
-      const latestBlockhash = await connection
-        .getRpc(scope)
-        .getLatestBlockhash()
-        .send();
-      return latestBlockhash.value.blockhash;
+      const latestBlockhash = await connection.getLatestBlockhash(scope);
+      return latestBlockhash.blockhash;
 
     case SolanaProtocolRequestMethod.GetMinimumBalanceForRentExemption:
       assert(request, SolanaGetMinimumBalanceForRentExemptionRequestStruct);

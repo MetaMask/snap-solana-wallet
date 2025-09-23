@@ -139,11 +139,9 @@ export class Signer {
     const hasLifetimeConstraint =
       isTransactionMessageWithBlockhashLifetime(transactionMessage);
 
-    const rpc = this.#connection.getRpc(scope);
-
     const blockhash = hasLifetimeConstraint
       ? transactionMessage.lifetimeConstraint // Use any value, it won't be used
-      : (await rpc.getLatestBlockhash().send()).value;
+      : await this.#connection.getLatestBlockhash(scope);
 
     const hasComputeUnitPrice =
       isTransactionMessageWithComputeUnitPriceInstruction(transactionMessage);

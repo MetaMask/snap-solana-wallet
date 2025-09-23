@@ -48,10 +48,7 @@ describe('WalletService', () => {
     mockConnection = createMockConnection();
 
     mockSigner = {
-      getLatestBlockhash: jest.fn(),
-      getComputeUnitEstimate: jest.fn(),
       partiallySignBase64String: jest.fn(),
-      waitForTransactionCommitment: jest.fn(),
     } as unknown as Signer;
 
     mockSignatureMonitor = {
