@@ -141,4 +141,9 @@ export const createMockConnection = (): SolanaConnection =>
   ({
     getRpc: createMockGetRpc(),
     fetchMint: jest.fn().mockResolvedValue(MOCK_MINT_ACCOUNT),
+    getLatestBlockhash: jest
+      .fn()
+      .mockResolvedValue(
+        MOCK_SOLANA_RPC_GET_LATEST_BLOCKHASH_AS_SDK_RESPONSE.value,
+      ),
   }) as unknown as SolanaConnection;

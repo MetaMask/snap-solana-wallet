@@ -16,9 +16,8 @@ import {
 } from '../../sdk-extensions/transaction-messages';
 import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';
-import type { SolanaConnection } from '../connection';
+import { createMockConnection } from '../mocks/mockConnection';
 import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
-import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from './mocks/scenarios/sendSol';
 import { Signer } from './Signer';
 
 jest.mock('@solana/kit', () => ({
@@ -42,85 +41,13 @@ describe('Signer', () => {
     send: jest.fn(),
   };
 
-  const mockConnection = {
-    getRpc: jest.fn().mockReturnValue({
-      getLatestBlockhash: () => mockRpcResponse,
-      getFeeForMessage: () => mockRpcResponse,
-      getMultipleAccounts: jest.fn().mockReturnValue({
-        send: jest.fn(),
-      }),
-    }),
-  } as unknown as SolanaConnection;
+  const mockConnection = createMockConnection();
 
   let signer: Signer;
 
   beforeEach(async () => {
     jest.clearAllMocks();
     signer = new Signer(mockConnection, logger);
-  });
-
-  describe('getComputeUnitEstimate', () => {
-    it('returns compute unit estimate successfully', async () => {
-      const mockTransactionMessage = {} as any;
-      const expectedEstimate = 200000;
-
-      const result = await signer.getComputeUnitEstimate(
-        mockTransactionMessage,
-        mockScope,
-      );
-
-      expect(result).toBe(expectedEstimate);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(mockScope);
-    });
-  });
-
-  describe('waitForTransactionCommitment', () => {
-    it('successfully waits for transaction commitment', async () => {
-      const mockSignature = MOCK_EXECUTION_SCENARIO_SEND_SOL.signature;
-      const mockTransaction = { blockTime: 123 };
-      const mockGetTransactionResponse = {
-        send: jest.fn().mockResolvedValue(mockTransaction),
-      };
-
-      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
-        getTransaction: () => mockGetTransactionResponse,
-      } as any);
-
-      const result = await signer.waitForTransactionCommitment(
-        mockSignature,
-        'confirmed',
-        mockScope,
-      );
-
-      expect(result).toBe(mockTransaction);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(mockScope);
-      expect(mockGetTransactionResponse.send).toHaveBeenCalled();
-    });
-
-    it('retries on failure before succeeding', async () => {
-      const mockSignature = MOCK_EXECUTION_SCENARIO_SEND_SOL.signature;
-      const mockTransaction = { blockTime: 123 };
-      const mockGetTransactionResponse = {
-        send: jest
-          .fn()
-          .mockResolvedValueOnce(null)
-          .mockResolvedValueOnce(null)
-          .mockResolvedValueOnce(mockTransaction),
-      };
-
-      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
-        getTransaction: () => mockGetTransactionResponse,
-      } as any);
-
-      const result = await signer.waitForTransactionCommitment(
-        mockSignature,
-        'confirmed',
-        mockScope,
-      );
-
-      expect(result).toBe(mockTransaction);
-      expect(mockGetTransactionResponse.send).toHaveBeenCalledTimes(3);
-    });
   });
 
   // Note the ".each" here

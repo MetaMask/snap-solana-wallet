@@ -48,10 +48,7 @@ describe('WalletService', () => {
     mockConnection = createMockConnection();
 
     mockSigner = {
-      getLatestBlockhash: jest.fn(),
-      getComputeUnitEstimate: jest.fn(),
       partiallySignBase64String: jest.fn(),
-      waitForTransactionCommitment: jest.fn(),
     } as unknown as Signer;
 
     mockSignatureMonitor = {
@@ -214,17 +211,6 @@ describe('WalletService', () => {
         jest
           .spyOn(mockSigner, 'partiallySignBase64String')
           .mockResolvedValue(signedTransaction);
-
-        jest
-          .spyOn(mockSigner, 'waitForTransactionCommitment')
-          .mockResolvedValue({
-            transaction: {
-              signatures: [signature],
-              message: {
-                accountKeys: [fromAccount.address],
-              },
-            },
-          } as any);
 
         jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
           ...mockConnection.getRpc(scope),

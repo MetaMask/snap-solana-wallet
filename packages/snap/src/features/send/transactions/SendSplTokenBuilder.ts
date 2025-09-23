@@ -20,7 +20,7 @@ import {
   type Address,
 } from '@solana/kit';
 
-import type { Signer, TokenHelper } from '../../../core/services';
+import type { TokenHelper } from '../../../core/services';
 import type { SolanaConnection } from '../../../core/services/connection';
 import { deriveSolanaKeypair } from '../../../core/utils/deriveSolanaKeypair';
 import { createPrefixedLogger, type ILogger } from '../../../core/utils/logger';
@@ -33,8 +33,6 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
   readonly #tokenHelper: TokenHelper;
 
   readonly #connection: SolanaConnection;
-
-  readonly #signer: Signer;
 
   readonly #logger: ILogger;
 
@@ -50,12 +48,10 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
   constructor(
     tokenHelper: TokenHelper,
     connection: SolanaConnection,
-    signer: Signer,
     logger: ILogger,
   ) {
     this.#tokenHelper = tokenHelper;
     this.#connection = connection;
-    this.#signer = signer;
     this.#logger = createPrefixedLogger(logger, '[📩 SendSplTokenBuilder]');
   }
 
@@ -84,7 +80,7 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
       amount.toString(),
     );
 
-    const latestBlockhash = await this.#signer.getLatestBlockhash(network);
+    const latestBlockhash = await this.#connection.getLatestBlockhash(network);
 
     const { privateKeyBytes } = await deriveSolanaKeypair({
       entropySource: from.entropySource,
