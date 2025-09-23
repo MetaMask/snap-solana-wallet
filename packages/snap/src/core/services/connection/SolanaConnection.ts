@@ -2,7 +2,12 @@
 import { assert } from '@metamask/superstruct';
 import { Duration } from '@metamask/utils';
 import { fetchMint, type Mint } from '@solana-program/token-2022';
-import type { Account, Address, FetchAccountConfig } from '@solana/kit';
+import type {
+  Account,
+  Address,
+  Blockhash,
+  FetchAccountConfig,
+} from '@solana/kit';
 import {
   address as asAddress,
   createSolanaRpcFromTransport,
@@ -104,5 +109,20 @@ export class SolanaConnection {
     });
 
     return fetchMintCached(asAddress(address), caip2Id, config);
+  }
+
+  /**
+   * Returns the latest blockhash for the given network.
+   *
+   * @param caip2Id - The CAIP-2 ID of the network.
+   * @returns The latest blockhash.
+   */
+  public async getLatestBlockhash(caip2Id: Network): Promise<
+    Readonly<{
+      blockhash: Blockhash;
+      lastValidBlockHeight: bigint;
+    }>
+  > {
+    return (await this.getRpc(caip2Id).getLatestBlockhash().send()).value;
   }
 }

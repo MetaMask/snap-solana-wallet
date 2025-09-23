@@ -74,10 +74,9 @@ describe('SendSolBuilder', () => {
 
     it('throws error when building message fails', async () => {
       const mockError = new Error('Failed to fetch blockhash');
-      (
-        mockConnection.getRpc(mockNetwork).getLatestBlockhash()
-          .send as jest.Mock
-      ).mockRejectedValue(mockError);
+      jest
+        .spyOn(mockConnection, 'getLatestBlockhash')
+        .mockRejectedValue(mockError);
 
       await expect(
         sendSolBuilder.buildTransactionMessage({

@@ -16,7 +16,6 @@ import {
   partiallySignTransaction,
   partiallySignTransactionMessageWithSigners,
   pipe,
-  type Blockhash,
 } from '@solana/kit';
 
 import { type SolanaKeyringAccount } from '../../../entities';
@@ -54,38 +53,6 @@ export class Signer {
   constructor(connection: SolanaConnection, logger: ILogger) {
     this.#connection = connection;
     this.#logger = logger;
-  }
-
-  /**
-   * Every transaction needs to specify a valid lifetime for it to be accepted for execution on the
-   * network. This utility method fetches the latest block's hash as proof that the
-   * transaction was prepared close in time to when we tried to execute it. The network will accept
-   * transactions which include this hash until it progresses past the block specified as
-   * `latestBlockhash.lastValidBlockHeight`.
-   *
-   * TIP: It is desirable for the program to fetch this block hash as late as possible before signing
-   * and sending the transaction so as to ensure that it's as 'fresh' as possible.
-   *
-   * @param network - The network on which to get the latest blockhash.
-   * @returns The latest blockhash and the last valid block height.
-   */
-  async getLatestBlockhash(network: Network): Promise<
-    Readonly<{
-      blockhash: Blockhash;
-      lastValidBlockHeight: bigint;
-    }>
-  > {
-    try {
-      const latestBlockhashResponse = await this.#connection
-        .getRpc(network)
-        .getLatestBlockhash()
-        .send();
-
-      return latestBlockhashResponse.value;
-    } catch (error: any) {
-      this.#logger.error(error);
-      throw error;
-    }
   }
 
   /**
@@ -247,11 +214,9 @@ export class Signer {
     const hasLifetimeConstraint =
       isTransactionMessageWithBlockhashLifetime(transactionMessage);
 
-    const rpc = this.#connection.getRpc(scope);
-
     const blockhash = hasLifetimeConstraint
       ? transactionMessage.lifetimeConstraint // Use any value, it won't be used
-      : (await rpc.getLatestBlockhash().send()).value;
+      : await this.#connection.getLatestBlockhash(scope);
 
     const hasComputeUnitPrice =
       isTransactionMessageWithComputeUnitPriceInstruction(transactionMessage);

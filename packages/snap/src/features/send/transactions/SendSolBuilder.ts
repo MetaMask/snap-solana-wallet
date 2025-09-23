@@ -56,9 +56,8 @@ export class SendSolBuilder implements ISendTransactionBuilder {
 
       const amountInLamports = BigInt(solToLamports(amount).toString());
 
-      const latestBlockhash = (
-        await this.#connection.getRpc(network).getLatestBlockhash().send()
-      ).value;
+      const latestBlockhash =
+        await this.#connection.getLatestBlockhash(network);
 
       const transactionMessage = pipe(
         createTransactionMessage({ version: 0 }),

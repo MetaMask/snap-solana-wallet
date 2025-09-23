@@ -16,7 +16,7 @@ import {
 } from '../../sdk-extensions/transaction-messages';
 import { deriveSolanaKeypairMock } from '../../test/mocks/utils/deriveSolanaKeypair';
 import logger from '../../utils/logger';
-import type { SolanaConnection } from '../connection';
+import { createMockConnection } from '../mocks/mockConnection';
 import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
 import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from './mocks/scenarios/sendSol';
 import { Signer } from './Signer';
@@ -42,15 +42,7 @@ describe('Signer', () => {
     send: jest.fn(),
   };
 
-  const mockConnection = {
-    getRpc: jest.fn().mockReturnValue({
-      getLatestBlockhash: () => mockRpcResponse,
-      getFeeForMessage: () => mockRpcResponse,
-      getMultipleAccounts: jest.fn().mockReturnValue({
-        send: jest.fn(),
-      }),
-    }),
-  } as unknown as SolanaConnection;
+  const mockConnection = createMockConnection();
 
   let signer: Signer;
 
