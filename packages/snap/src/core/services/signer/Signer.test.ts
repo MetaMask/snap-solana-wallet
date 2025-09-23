@@ -19,7 +19,7 @@ import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import { MOCK_EXECUTION_SCENARIOS } from './mocks/scenarios';
 import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from './mocks/scenarios/sendSol';
-import { TransactionHelper } from './TransactionHelper';
+import { Signer } from './Signer';
 
 jest.mock('@solana/kit', () => ({
   ...jest.requireActual('@solana/kit'),
@@ -35,7 +35,7 @@ jest.mock('../../utils/deriveSolanaKeypair', () => ({
   deriveSolanaKeypair: deriveSolanaKeypairMock,
 }));
 
-describe('TransactionHelper', () => {
+describe('Signer', () => {
   const mockScope = Network.Mainnet;
 
   const mockRpcResponse = {
@@ -52,37 +52,11 @@ describe('TransactionHelper', () => {
     }),
   } as unknown as SolanaConnection;
 
-  let transactionHelper: TransactionHelper;
+  let signer: Signer;
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    transactionHelper = new TransactionHelper(mockConnection, logger);
-  });
-
-  describe('getLatestBlockhash', () => {
-    it('fetches and returns the latest blockhash', async () => {
-      const expectedResponse = {
-        blockhash: 'mockBlockhash',
-        lastValidBlockHeight: BigInt(100),
-      };
-
-      mockRpcResponse.send.mockResolvedValueOnce({ value: expectedResponse });
-
-      const result = await transactionHelper.getLatestBlockhash(mockScope);
-
-      expect(result).toStrictEqual(expectedResponse);
-      expect(mockConnection.getRpc).toHaveBeenCalledWith(mockScope);
-      expect(mockRpcResponse.send).toHaveBeenCalled();
-    });
-
-    it('throws and logs error when fetching blockhash fails', async () => {
-      const error = new Error('Network error');
-      mockRpcResponse.send.mockRejectedValueOnce(error);
-
-      await expect(
-        transactionHelper.getLatestBlockhash(mockScope),
-      ).rejects.toThrow('Network error');
-    });
+    signer = new Signer(mockConnection, logger);
   });
 
   describe('getComputeUnitEstimate', () => {
@@ -90,7 +64,7 @@ describe('TransactionHelper', () => {
       const mockTransactionMessage = {} as any;
       const expectedEstimate = 200000;
 
-      const result = await transactionHelper.getComputeUnitEstimate(
+      const result = await signer.getComputeUnitEstimate(
         mockTransactionMessage,
         mockScope,
       );
@@ -112,7 +86,7 @@ describe('TransactionHelper', () => {
         getTransaction: () => mockGetTransactionResponse,
       } as any);
 
-      const result = await transactionHelper.waitForTransactionCommitment(
+      const result = await signer.waitForTransactionCommitment(
         mockSignature,
         'confirmed',
         mockScope,
@@ -138,7 +112,7 @@ describe('TransactionHelper', () => {
         getTransaction: () => mockGetTransactionResponse,
       } as any);
 
-      const result = await transactionHelper.waitForTransactionCommitment(
+      const result = await signer.waitForTransactionCommitment(
         mockSignature,
         'confirmed',
         mockScope,
@@ -163,7 +137,7 @@ describe('TransactionHelper', () => {
 
     beforeEach(async () => {
       jest.clearAllMocks();
-      transactionHelper = new TransactionHelper(mockConnection, logger);
+      signer = new Signer(mockConnection, logger);
       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
         ...mockConnection.getRpc(mockScope),
         getLatestBlockhash: () => mockRpcResponse,
@@ -179,7 +153,7 @@ describe('TransactionHelper', () => {
     describe('partiallySignBase64String', () => {
       describe('when the base64 string represents a transaction message', () => {
         it(`Scenario ${name}: signs a transaction message successfully`, async () => {
-          const result = await transactionHelper.partiallySignBase64String(
+          const result = await signer.partiallySignBase64String(
             transactionMessageBase64Encoded,
             fromAccount,
             scope,
@@ -191,12 +165,11 @@ describe('TransactionHelper', () => {
         });
 
         it(`Scenario ${name}: adds if missing a fee payer, a lifetimeConstraint, a compute unit limit and a compute unit price`, async () => {
-          const { messageBytes } =
-            await transactionHelper.partiallySignBase64String(
-              transactionMessageBase64Encoded,
-              fromAccount,
-              scope,
-            );
+          const { messageBytes } = await signer.partiallySignBase64String(
+            transactionMessageBase64Encoded,
+            fromAccount,
+            scope,
+          );
           const transactionMessageAfterSigning =
             await fromBytesToCompilableTransactionMessage(
               messageBytes,

@@ -6,4 +6,4 @@ A scenario file represents a sample transacting situation. Each scenario describ
 - The signed transaction
 - The signature
 
-All of the above are expected to match together, and the unit tests in `TransactionHelper.test.ts` verify this fact.
+All of the above are expected to match together, and the unit tests in `Signer.test.ts` verify this fact.

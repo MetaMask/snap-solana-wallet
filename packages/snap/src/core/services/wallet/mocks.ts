@@ -13,7 +13,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_3,
   MOCK_SOLANA_KEYRING_ACCOUNT_4,
 } from '../../test/mocks/solana-keyring-accounts';
-import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../execution/mocks/scenarios/sendSol';
+import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../signer/mocks/scenarios/sendSol';
 import type {
   SolanaSignAndSendTransactionRequest,
   SolanaSignAndSendTransactionResponse,

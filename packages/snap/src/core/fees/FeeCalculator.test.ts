@@ -1,8 +1,8 @@
 /* eslint-disable jsdoc/check-indentation */
 import type { Base58EncodedBytes, Transaction } from '@solana/kit';
 
-import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../services/execution/mocks/scenarios/sendSol';
-import { MOCK_EXECUTION_SCENARIO_SEND_SPL_TOKEN } from '../services/execution/mocks/scenarios/sendSplToken';
+import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../services/signer/mocks/scenarios/sendSol';
+import { MOCK_EXECUTION_SCENARIO_SEND_SPL_TOKEN } from '../services/signer/mocks/scenarios/sendSplToken';
 import { EXPECTED_SWAP_SOL_TO_OBRIC_DATA } from '../test/mocks/transactions-data/swap-sol-to-obric';
 import { EXPECTED_SWAP_SOL_TO_USDC_DATA } from '../test/mocks/transactions-data/swap-sol-to-usdc';
 import { EXPECTED_SWAP_USDC_TO_JUP_DATA } from '../test/mocks/transactions-data/swap-usdc-to-jup';
