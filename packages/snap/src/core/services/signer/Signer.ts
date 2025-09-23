@@ -42,13 +42,9 @@ import { Base58Struct } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
 
 /**
- * Helper class for transaction related operations.
- *
- * Only define here methods that are not specific to any particular transaction type.
- * If you need to define a method that is specific to a particular transaction type,
- * create a new helper class for that transaction type, and inject this transaction helper into it.
+ * Signer class for signing transactions and transaction messages.
  */
-export class TransactionHelper {
+export class Signer {
   readonly #connection: SolanaConnection;
 
   readonly #logger: ILogger;
@@ -251,15 +247,17 @@ export class TransactionHelper {
     const hasLifetimeConstraint =
       isTransactionMessageWithBlockhashLifetime(transactionMessage);
 
+    const rpc = this.#connection.getRpc(scope);
+
     const blockhash = hasLifetimeConstraint
       ? transactionMessage.lifetimeConstraint // Use any value, it won't be used
-      : await this.getLatestBlockhash(scope);
+      : (await rpc.getLatestBlockhash().send()).value;
 
     const hasComputeUnitPrice =
       isTransactionMessageWithComputeUnitPriceInstruction(transactionMessage);
 
     const microLamports =
-      TransactionHelper.defaultComputeUnitPriceInMicroLamportsPerComputeUnit;
+      Signer.defaultComputeUnitPriceInMicroLamportsPerComputeUnit;
 
     const hasComputeUnitLimit =
       isTransactionMessageWithComputeUnitLimitInstruction(transactionMessage);

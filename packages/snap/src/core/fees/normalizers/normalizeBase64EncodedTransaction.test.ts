@@ -1,4 +1,4 @@
-import { MOCK_EXECUTION_SCENARIO_LIFI_SWAP } from '../../services/execution/mocks/scenarios/lifiSwap';
+import { MOCK_EXECUTION_SCENARIO_LIFI_SWAP } from '../../services/signer/mocks/scenarios/lifiSwap';
 import { normalizeBase64EncodedTransaction } from './normalizeBase64EncodedTransaction';
 
 describe('normalizeBase64EncodedTransaction', () => {

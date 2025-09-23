@@ -28,7 +28,7 @@ import type { ILogger } from '../../utils/logger';
 import logger, { createPrefixedLogger } from '../../utils/logger';
 import { Base58Struct, Base64Struct } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
-import type { TransactionHelper } from '../execution/TransactionHelper';
+import type { Signer } from '../signer/Signer';
 import type { SignatureMonitor } from '../subscriptions';
 import type {
   SolanaSignAndSendTransactionOptions,
@@ -50,7 +50,7 @@ import {
 export class WalletService {
   readonly #connection: SolanaConnection;
 
-  readonly #transactionHelper: TransactionHelper;
+  readonly #signer: Signer;
 
   readonly #signatureMonitor: SignatureMonitor;
 
@@ -58,12 +58,12 @@ export class WalletService {
 
   constructor(
     connection: SolanaConnection,
-    transactionHelper: TransactionHelper,
+    signer: Signer,
     signatureMonitor: SignatureMonitor,
     _logger = logger,
   ) {
     this.#connection = connection;
-    this.#transactionHelper = transactionHelper;
+    this.#signer = signer;
     this.#signatureMonitor = signatureMonitor;
     this.#logger = createPrefixedLogger(_logger, '[👛 WalletService]');
   }
@@ -175,7 +175,7 @@ export class WalletService {
         : undefined;
 
     const partiallySignedTransaction =
-      await this.#transactionHelper.partiallySignBase64String(
+      await this.#signer.partiallySignBase64String(
         transaction,
         account,
         scope,
@@ -236,7 +236,7 @@ export class WalletService {
         : undefined;
 
     const partiallySignedTransaction =
-      await this.#transactionHelper.partiallySignBase64String(
+      await this.#signer.partiallySignBase64String(
         transactionMessageBase64Encoded,
         account,
         scope,
