@@ -30,7 +30,7 @@ import {
   setTransactionMessageLifetimeUsingBlockhashIfMissing,
 } from '../../sdk-extensions/transaction-messages';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
-import type { ILogger } from '../../utils/logger';
+import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { Base64Struct } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
 
@@ -46,7 +46,7 @@ export class Signer {
 
   constructor(connection: SolanaConnection, logger: ILogger) {
     this.#connection = connection;
-    this.#logger = logger;
+    this.#logger = createPrefixedLogger(logger, '[🖋️ Signer]');
   }
 
   /**
@@ -69,6 +69,13 @@ export class Signer {
     network: Network,
     config?: DecompileTransactionMessageFetchingLookupTablesConfig,
   ): Promise<Transaction> {
+    this.#logger.log('Partially sign base64 string', {
+      base64String,
+      account,
+      network,
+      config,
+    });
+
     const rpc = this.#connection.getRpc(network);
 
     // The received base64 string can either represent a transaction or a transaction message.

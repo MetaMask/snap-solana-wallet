@@ -192,15 +192,25 @@ export class WalletService {
 
     assert(result, SolanaSignTransactionResponseStruct);
 
-    const signature = getSignatureFromTransaction(partiallySignedTransaction);
-
-    await this.#signatureMonitor.monitor(
-      signature,
-      account.id,
-      'confirmed',
-      scope,
-      origin,
-    );
+    // If the transaction is fully signed, we can monitor it.
+    try {
+      assertTransactionIsFullySigned(partiallySignedTransaction);
+      const signature = getSignatureFromTransaction(partiallySignedTransaction);
+      await this.#signatureMonitor.monitor(
+        signature,
+        account.id,
+        'confirmed',
+        scope,
+        origin,
+      );
+    } catch (error) {
+      this.#logger.warn(
+        'Transaction is not fully signed, skipping monitoring',
+        {
+          error,
+        },
+      );
+    }
 
     return result;
   }
