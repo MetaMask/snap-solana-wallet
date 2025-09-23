@@ -16,6 +16,7 @@ import {
   AssetsService,
   KeyringAccountMonitor,
   SignatureMonitor,
+  Signer,
   SubscriptionRepository,
   SubscriptionService,
   TokenHelper,
@@ -29,7 +30,6 @@ import { AnalyticsService } from './core/services/analytics/AnalyticsService';
 import { ConfigProvider } from './core/services/config';
 import { ConfirmationHandler } from './core/services/confirmation/ConfirmationHandler';
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
-import { TransactionHelper } from './core/services/execution/TransactionHelper';
 import { NameResolutionService } from './core/services/name-resolution/NameResolutionService';
 import { NftService } from './core/services/nft/NftService';
 import { SendService } from './core/services/send/SendService';
@@ -56,7 +56,7 @@ export type SnapExecutionContext = {
   state: IStateManager<UnencryptedStateValue>;
   assetsService: AssetsService;
   tokenPricesService: TokenPricesService;
-  transactionHelper: TransactionHelper;
+  signer: Signer;
   transactionsService: TransactionsService;
   sendSolBuilder: SendSolBuilder;
   sendSplTokenBuilder: SendSplTokenBuilder;
@@ -117,12 +117,12 @@ const subscriptionService = new SubscriptionService(
 
 const tokenHelper = new TokenHelper(connection);
 
-const transactionHelper = new TransactionHelper(connection, logger);
+const signer = new Signer(connection, logger);
+
 const sendSolBuilder = new SendSolBuilder(connection, logger);
 const sendSplTokenBuilder = new SendSplTokenBuilder(
   tokenHelper,
   connection,
-  transactionHelper,
   logger,
 );
 const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);
@@ -205,7 +205,7 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
 
 const walletService = new WalletService(
   connection,
-  transactionHelper,
+  signer,
   signatureMonitor,
   logger,
 );
@@ -238,7 +238,6 @@ const clientRequestHandler = new ClientRequestHandler(
   walletService,
   logger,
   sendService,
-  transactionHelper,
 );
 
 const snapContext: SnapExecutionContext = {
@@ -251,7 +250,7 @@ const snapContext: SnapExecutionContext = {
   /* Services */
   assetsService,
   tokenPricesService,
-  transactionHelper,
+  signer,
   transactionsService,
   sendSolBuilder,
   sendSplTokenBuilder,
@@ -286,13 +285,13 @@ export {
   priceApiClient,
   sendSolBuilder,
   sendSplTokenBuilder,
+  signer,
   state,
   subscriptionRepository,
   subscriptionService,
   tokenApiClient,
   tokenHelper,
   tokenPricesService,
-  transactionHelper,
   transactionScanService,
   transactionsService,
   walletService,

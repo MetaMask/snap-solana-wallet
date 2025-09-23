@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 
 import { KnownCaip19Id, Network } from '../../../core/constants/solana';
-import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../../../core/services/execution/mocks/scenarios/sendSol';
+import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../../../core/services/signer/mocks/scenarios/sendSol';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -14,7 +14,6 @@ import {
   keyring,
   sendSolBuilder,
   sendSplTokenBuilder,
-  transactionHelper,
 } from '../../../snapContext';
 import { DEFAULT_SEND_CONTEXT } from '../render';
 import { SendCurrencyType, type SendContext } from '../types';
@@ -69,10 +68,6 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
     jest
       .mocked(sendSolBuilder)
       .getComputeUnitPriceMicroLamportsPerComputeUnit.mockReturnValue(10000n);
-
-    (
-      transactionHelper.getFeeFromBase64StringInLamports as jest.Mock
-    ).mockResolvedValue(5000);
 
     (getInterfaceContextOrThrow as jest.Mock).mockResolvedValue(mockContext);
   });

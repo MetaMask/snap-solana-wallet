@@ -160,8 +160,19 @@ import { getBase58Codec, type IInstruction } from '@solana/kit';
 import {
   fromBytesToCompilableTransactionMessage,
   fromUnknowBase64StringToTransactionOrTransactionMessage,
-} from '../core/sdk-extensions/codecs';
-import type { Base64Struct } from '../core/validation/structs';
+} from '../../core/sdk-extensions/codecs';
+import type {
+  SolanaInstruction,
+  SolanaTransaction,
+} from '../../core/types/solana';
+import type { Base64Struct } from '../../core/validation/structs';
+import {
+  identifySecp256Instruction,
+  parseVerifySecp256Instruction,
+  Secp256Instruction,
+  SECP256K1_PROGRAM_ADDRESS,
+  SECP256R1_PROGRAM_ADDRESS,
+} from './programs/secp256k1-secp256r1';
 
 /**
  * Truncates the instruction data to 12 characters.
@@ -490,6 +501,20 @@ const programAddressToParsingConfig: Record<
         parseRecoverNestedAssociatedTokenInstruction,
     },
   },
+  [SECP256K1_PROGRAM_ADDRESS]: {
+    identifier: identifySecp256Instruction,
+    instructionEnum: Secp256Instruction,
+    typeToParserMap: {
+      [Secp256Instruction.Verify]: parseVerifySecp256Instruction,
+    },
+  },
+  [SECP256R1_PROGRAM_ADDRESS]: {
+    identifier: identifySecp256Instruction,
+    instructionEnum: Secp256Instruction,
+    typeToParserMap: {
+      [Secp256Instruction.Verify]: parseVerifySecp256Instruction,
+    },
+  },
 };
 
 /**
@@ -603,4 +628,44 @@ export const extractInstructionsFromUnknownBase64String = async (
 
   const { instructions } = transactionMessage;
   return instructions.map(parseInstruction);
+};
+
+/**
+ * Converts a SolanaInstruction to an IInstruction that we can parse with `parseInstruction`
+ * @param instruction - The Solana instruction to convert.
+ * @param transactionData - The full transaction data.
+ * @returns The IInstruction.
+ */
+export const toIInstruction = (
+  instruction: SolanaInstruction,
+  transactionData: SolanaTransaction,
+): IInstruction => {
+  // Filter to only keep the account indexes available in the `accountKeys`
+  const isInAccountKeys = (accountIndex: number) =>
+    accountIndex < transactionData.transaction.message.accountKeys.length;
+
+  // Build the accounts array
+  const accounts = instruction.accounts
+    .filter(isInAccountKeys)
+    .map((accountIndex) => ({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      address: transactionData.transaction.message.accountKeys[accountIndex]!, // The non-null assertion is safe because we filtered the indexes above
+      role: 0,
+    }));
+
+  const programAddress =
+    transactionData.transaction.message.accountKeys[instruction.programIdIndex];
+
+  if (!programAddress) {
+    throw new Error('Program address not found');
+  }
+
+  // Build the IInstruction object
+  const iInstruction = {
+    accounts,
+    data: getBase58Codec().encode(instruction.data),
+    programAddress,
+  } as unknown as IInstruction;
+
+  return iInstruction;
 };

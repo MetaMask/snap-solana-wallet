@@ -1,10 +1,11 @@
+/* eslint-disable jsdoc/require-returns */
 /* eslint-disable jsdoc/check-indentation */
-import type {
-  AccountAssetListUpdatedEvent,
-  AccountBalancesUpdatedEvent,
-  Balance,
+import {
+  KeyringEvent,
+  type AccountAssetListUpdatedEvent,
+  type AccountBalancesUpdatedEvent,
+  type Balance,
 } from '@metamask/keyring-api';
-import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import {
   getImageComponent,
@@ -476,8 +477,16 @@ export class AssetsService {
   async saveMany(assets: AssetEntity[]): Promise<void> {
     this.#logger.info('Saving assets', assets);
 
+    /**
+     * Should we save the assets incrementally?
+     * - If true, only saves and emits events for the assets that have changed (new or balance changed). Better performance because it only informs the client of what has changed.
+     * - If false, saves all assets. More reliable because it enforces that the client has the same state of assets as the snap.
+     */
+    const isIncremental = false;
+
     const hasZeroAmount = (asset: AssetEntity) =>
       asset.rawAmount === '0' || asset.uiAmount === '0';
+
     const hasNonZeroAmount = (asset: AssetEntity) => !hasZeroAmount(asset);
 
     const savedAssets = await this.getAll();
@@ -506,6 +515,15 @@ export class AssetsService {
     const isNativeAsset = (asset: AssetEntity) =>
       asset.assetType.includes(SolanaCaip19Tokens.SOL);
 
+    const shouldBeInRemovedList = (asset: AssetEntity) =>
+      hasZeroAmount(asset) && !isNativeAsset(asset); // Never remove native assets from the account asset list
+
+    const shouldBeInAddedList = (asset: AssetEntity) =>
+      !shouldBeInRemovedList(asset) &&
+      (!isIncremental ||
+        ((isNew(asset) || wasSavedWithZeroAmount(asset)) &&
+          hasNonZeroAmount(asset)));
+
     const assetListUpdatedPayload = assets.reduce<
       AccountAssetListUpdatedEvent['params']['assets']
     >(
@@ -514,16 +532,11 @@ export class AssetsService {
         [asset.keyringAccountId]: {
           added: [
             ...(acc[asset.keyringAccountId]?.added ?? []),
-            ...((isNew(asset) || wasSavedWithZeroAmount(asset)) &&
-            hasNonZeroAmount(asset)
-              ? [asset.assetType]
-              : []),
+            ...(shouldBeInAddedList(asset) ? [asset.assetType] : []),
           ],
           removed: [
             ...(acc[asset.keyringAccountId]?.removed ?? []),
-            ...(hasZeroAmount(asset) && !isNativeAsset(asset) // Never remove native assets from the account asset list
-              ? [asset.assetType]
-              : []),
+            ...(shouldBeInRemovedList(asset) ? [asset.assetType] : []),
           ],
         },
       }),
@@ -574,7 +587,7 @@ export class AssetsService {
      * }
      */
     const balancesUpdatedPayload = assets
-      .filter(hasChanged)
+      .filter(isIncremental ? hasChanged : () => true)
       .reduce<AccountBalancesUpdatedEvent['params']['balances']>(
         (acc, asset) => ({
           ...acc,

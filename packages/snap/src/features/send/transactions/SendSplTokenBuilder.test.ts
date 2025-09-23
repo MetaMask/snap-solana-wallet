@@ -4,30 +4,28 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 import type { Mint } from '@solana-program/token-2022';
-import type { Account, Blockhash } from '@solana/kit';
+import type { Account } from '@solana/kit';
 import { address, lamports, type Address } from '@solana/kit';
 import { cloneDeep } from 'lodash';
 
 import { Network } from '../../../core/constants/solana';
 import { TokenHelper } from '../../../core/services';
 import type { SolanaConnection } from '../../../core/services/connection/SolanaConnection';
-import type { TransactionHelper } from '../../../core/services/execution/TransactionHelper';
 import { mockLogger } from '../../../core/services/mocks/logger';
 import { createMockConnection } from '../../../core/services/mocks/mockConnection';
 import { MOCK_MINT_ACCOUNT } from '../../../core/services/mocks/mockSolanaRpcResponses';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../core/test/mocks/solana-keyring-accounts';
-import { deriveSolanaKeypairMock } from '../../../core/test/mocks/utils/deriveSolanaKeypair';
 import { SendSplTokenBuilder } from './SendSplTokenBuilder';
 
+// Mock the deriveSolanaKeypair function
 jest.mock('../../../core/utils/deriveSolanaKeypair', () => ({
-  deriveSolanaKeypair: deriveSolanaKeypairMock,
+  deriveSolanaKeypair: jest.fn(),
 }));
 
 describe('SendSplTokenBuilder', () => {
   let mockTokenHelper: TokenHelper;
   let mockConnection: SolanaConnection;
   let sendSplTokenBuilder: SendSplTokenBuilder;
-  let mockTransactionHelper: TransactionHelper;
 
   const mockFrom = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
   const mockTo = address(MOCK_SOLANA_KEYRING_ACCOUNTS[1].address);
@@ -42,17 +40,18 @@ describe('SendSplTokenBuilder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Set up the mock implementation
+    const {
+      deriveSolanaKeypair,
+    } = require('../../../core/utils/deriveSolanaKeypair');
+    const {
+      deriveSolanaKeypairMock,
+    } = require('../../../core/test/mocks/utils/deriveSolanaKeypair');
+    deriveSolanaKeypair.mockImplementation(deriveSolanaKeypairMock);
+
     mockConnection = createMockConnection();
 
     mockTokenHelper = new TokenHelper(mockConnection);
-
-    mockTransactionHelper = {
-      sendTransaction: jest.fn(),
-      getLatestBlockhash: jest.fn(),
-      getTokenMintInfo: jest.fn(),
-      getComputeUnitEstimate: jest.fn(),
-      waitForTransactionCommitment: jest.fn(),
-    } as unknown as TransactionHelper;
 
     jest
       .spyOn(mockTokenHelper, 'uiAmountToAmountForMint')
@@ -61,25 +60,11 @@ describe('SendSplTokenBuilder', () => {
     sendSplTokenBuilder = new SendSplTokenBuilder(
       mockTokenHelper,
       mockConnection,
-      mockTransactionHelper,
       mockLogger,
     );
   });
 
   describe('buildTransactionMessage', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(mockTransactionHelper, 'getLatestBlockhash')
-        .mockResolvedValue({
-          blockhash: 'mockBlockhash' as Blockhash,
-          lastValidBlockHeight: BigInt(1000),
-        });
-
-      jest
-        .spyOn(mockTransactionHelper, 'getComputeUnitEstimate')
-        .mockResolvedValue(200000);
-    });
-
     it('successfully builds a transaction message for SPL token transfer', async () => {
       const mockMintAccount = createMockMintAccount();
       jest
@@ -111,8 +96,8 @@ describe('SendSplTokenBuilder', () => {
           address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
         },
         lifetimeConstraint: {
-          blockhash: 'mockBlockhash',
-          lastValidBlockHeight: 1000n,
+          blockhash: '8HSvyvQvdRoFkCPnrtqF3dAS4SpPEbMKUVTdrK9auMR',
+          lastValidBlockHeight: 334650256n,
         },
         instructions: [
           {

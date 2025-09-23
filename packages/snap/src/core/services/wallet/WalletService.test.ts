@@ -12,9 +12,9 @@ import {
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
-import { MOCK_EXECUTION_SCENARIOS } from '../execution/mocks/scenarios';
-import type { TransactionHelper } from '../execution/TransactionHelper';
 import { createMockConnection } from '../mocks/mockConnection';
+import { MOCK_EXECUTION_SCENARIOS } from '../signer/mocks/scenarios';
+import type { Signer } from '../signer/Signer';
 import type { SignatureMonitor } from '../subscriptions';
 import {
   MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
@@ -37,7 +37,7 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 
 describe('WalletService', () => {
   let mockConnection: SolanaConnection;
-  let mockTransactionHelper: TransactionHelper;
+  let mockSigner: Signer;
   let mockSignatureMonitor: SignatureMonitor;
   let service: WalletService;
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
@@ -47,12 +47,9 @@ describe('WalletService', () => {
   beforeEach(() => {
     mockConnection = createMockConnection();
 
-    mockTransactionHelper = {
-      getLatestBlockhash: jest.fn(),
-      getComputeUnitEstimate: jest.fn(),
+    mockSigner = {
       partiallySignBase64String: jest.fn(),
-      waitForTransactionCommitment: jest.fn(),
-    } as unknown as TransactionHelper;
+    } as unknown as Signer;
 
     mockSignatureMonitor = {
       monitor: jest.fn(),
@@ -68,7 +65,7 @@ describe('WalletService', () => {
 
     service = new WalletService(
       mockConnection,
-      mockTransactionHelper,
+      mockSigner,
       mockSignatureMonitor,
       logger,
     );
@@ -212,19 +209,8 @@ describe('WalletService', () => {
 
       beforeEach(() => {
         jest
-          .spyOn(mockTransactionHelper, 'partiallySignBase64String')
+          .spyOn(mockSigner, 'partiallySignBase64String')
           .mockResolvedValue(signedTransaction);
-
-        jest
-          .spyOn(mockTransactionHelper, 'waitForTransactionCommitment')
-          .mockResolvedValue({
-            transaction: {
-              signatures: [signature],
-              message: {
-                accountKeys: [fromAccount.address],
-              },
-            },
-          } as any);
 
         jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
           ...mockConnection.getRpc(scope),
