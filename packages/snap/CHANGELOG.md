@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0]
+
+### Changed
+
+- Enable Devnet support across our environments ([#526](https://github.com/MetaMask/snap-solana-wallet/pull/526))
+
 ## [2.3.11]
 
 ### Changed
@@ -933,7 +939,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.11...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.11...v2.4.0
 [2.3.11]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.10...v2.3.11
 [2.3.10]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.9...v2.3.10
 [2.3.9]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.8...v2.3.9
