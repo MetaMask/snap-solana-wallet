@@ -166,13 +166,15 @@ export function parseRewardsMessage(base64Message: string): {
   if (!is(timestampPart, PositiveNumberStringStruct)) {
     throw new Error('Invalid timestamp format');
   }
-  const timestamp = parseInt(timestampPart, 10);
 
-  // Check if timestamp is within 1 minute of current time (60 seconds = 60000ms)
-  const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-  const timeDifference = Math.abs(currentTime - timestamp);
-  if (timeDifference > 60) {
-    throw new Error('Timestamp must be within 1 minute of current time');
+  // Ensure timestamp is an integer (no decimals)
+  if (timestampPart.includes('.')) {
+    throw new Error('Invalid timestamp');
+  }
+
+  const timestamp = parseInt(timestampPart, 10);
+  if (timestamp <= 0) {
+    throw new Error('Invalid timestamp');
   }
 
   return {
@@ -187,7 +189,7 @@ export function parseRewardsMessage(base64Message: string): {
  * - Must be valid base64
  * - When decoded, must start with 'rewards,'
  * - Must contain a valid Solana address
- * - Must contain a timestamp within 1 minute of current time
+ * - Must contain a valid timestamp
  */
 export const RewardsMessageStruct = refine(
   Base64Struct,

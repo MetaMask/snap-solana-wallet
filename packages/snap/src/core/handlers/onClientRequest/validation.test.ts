@@ -100,39 +100,11 @@ describe('validation', () => {
     ])('rejects messages with invalid timestamps: "%s"', (utf8Message) => {
       const message = toBase64(utf8Message);
       // eslint-disable-next-line jest/require-to-throw-message
-      expect(() => assert(message, RewardsMessageStruct)).toThrow();
+      expect(() => assert(message, RewardsMessageStruct)).toThrow(
+        'Invalid timestamp',
+      );
       expect(is(message, RewardsMessageStruct)).toBe(false);
     });
-
-    it.each([
-      `rewards,${validSolanaAddress},${currentTimestamp - 120}`, // 2 minutes ago
-      `rewards,${validSolanaAddress},${currentTimestamp + 120}`, // 2 minutes in future
-      `rewards,${validSolanaAddress},${currentTimestamp - 61}`, // Just over 1 minute ago
-      `rewards,${validSolanaAddress},${currentTimestamp + 61}`, // Just over 1 minute in future
-    ])(
-      'rejects messages with timestamps outside 1-minute window: "%s"',
-      (utf8Message) => {
-        const message = toBase64(utf8Message);
-        expect(() => assert(message, RewardsMessageStruct)).toThrow(
-          'Timestamp must be within 1 minute',
-        );
-        expect(is(message, RewardsMessageStruct)).toBe(false);
-      },
-    );
-
-    it.each([
-      `rewards,${validSolanaAddress},${currentTimestamp - 60}`, // Exactly 1 minute ago
-      `rewards,${validSolanaAddress},${currentTimestamp + 60}`, // Exactly 1 minute in future
-      `rewards,${validSolanaAddress},${currentTimestamp - 59}`, // Just under 1 minute ago
-      `rewards,${validSolanaAddress},${currentTimestamp + 59}`, // Just under 1 minute in future
-    ])(
-      'accepts messages with timestamps at boundary of 1-minute window: "%s"',
-      (utf8Message) => {
-        const message = toBase64(utf8Message);
-        expect(() => assert(message, RewardsMessageStruct)).not.toThrow();
-        expect(is(message, RewardsMessageStruct)).toBe(true);
-      },
-    );
 
     it.each([
       123, // Number
