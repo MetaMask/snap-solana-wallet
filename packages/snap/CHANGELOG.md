@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.1]
 
-### Uncategorized
+### Fixed
 
-- fix: remove timestamp 1min validation ([#539](https://github.com/MetaMask/snap-solana-wallet/pull/539))
+- Removed the 1 minute validation on rewards message timestamp ([#539](https://github.com/MetaMask/snap-solana-wallet/pull/539))
 
 ## [2.4.0]
 
