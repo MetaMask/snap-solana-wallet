@@ -48,6 +48,7 @@ import { eventHandlers as transactionConfirmationEvents } from './features/send/
 import { installPolyfills } from './polyfills';
 import snapContext, {
   clientRequestHandler,
+  configProvider,
   eventEmitter,
   keyring,
 } from './snapContext';
@@ -269,16 +270,19 @@ export const onWebSocketEvent: OnWebSocketEventHandler = async ({ event }) =>
 
 export const onStart: OnStartHandler = async () =>
   withCatchAndThrowSnapError(async () => {
+    await configProvider.setActiveNetworks();
     await eventEmitter.emitSync('onStart');
   });
 
 export const onUpdate: OnUpdateHandler = async () =>
   withCatchAndThrowSnapError(async () => {
+    await configProvider.setActiveNetworks();
     await eventEmitter.emitSync('onUpdate');
   });
 
 export const onInstall: OnInstallHandler = async () =>
   withCatchAndThrowSnapError(async () => {
+    await configProvider.setActiveNetworks();
     await eventEmitter.emitSync('onInstall');
   });
 

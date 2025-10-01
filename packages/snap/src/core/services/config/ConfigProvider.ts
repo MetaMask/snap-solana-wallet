@@ -13,10 +13,10 @@ import { Duration } from '@metamask/utils';
 import { Network, Networks } from '../../constants/solana';
 import { UrlStruct } from '../../validation/structs';
 
-const ENVIRONMENT_TO_ACTIVE_NETWORKS = {
-  production: [Network.Mainnet, Network.Devnet],
-  local: [Network.Mainnet, Network.Devnet],
-  test: [Network.Localnet, Network.Devnet],
+const ENVIRONMENT_TO_ACTIVE_NETWORKS: Record<string, Network[]> = {
+  production: [Network.Mainnet],
+  local: [Network.Mainnet],
+  test: [Network.Localnet],
 };
 
 const CommaSeparatedListOfUrlsStruct = coerce(
@@ -111,9 +111,12 @@ export type Config = {
 export class ConfigProvider {
   #config: Config;
 
+  #activeNetworks: Network[];
+
   constructor() {
     const environment = this.#parseEnvironment();
     this.#config = this.#buildConfig(environment);
+    this.#activeNetworks = [];
   }
 
   #parseEnvironment() {
@@ -167,7 +170,7 @@ export class ConfigProvider {
         },
       ],
       explorerBaseUrl: environment.EXPLORER_BASE_URL,
-      activeNetworks: ENVIRONMENT_TO_ACTIVE_NETWORKS[environment.ENVIRONMENT],
+      activeNetworks: [],
       priceApi: {
         baseUrl:
           environment.ENVIRONMENT === 'test'
@@ -231,5 +234,29 @@ export class ConfigProvider {
       throw new Error(`Network ${key} not found`);
     }
     return network;
+  }
+
+  async setActiveNetworks(): Promise<Network[]> {
+    // If the active networks are already set, return them
+    if (this.#activeNetworks.length > 0) {
+      return this.#activeNetworks;
+    }
+
+    // Otherwise, fetch them from the client
+    const clientVersion = await ethereum.request({
+      method: 'web3_clientVersion',
+    });
+    const isFlask = (clientVersion as string)?.includes('flask');
+    const activeNetworks = ENVIRONMENT_TO_ACTIVE_NETWORKS[
+      this.#config.environment
+    ] as Network[];
+
+    if (activeNetworks && isFlask) {
+      activeNetworks.push(Network.Devnet);
+    }
+
+    // Set the active networks
+    this.#activeNetworks = activeNetworks ?? [];
+    return this.#activeNetworks;
   }
 }
