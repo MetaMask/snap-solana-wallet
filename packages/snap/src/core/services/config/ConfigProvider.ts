@@ -243,19 +243,24 @@ export class ConfigProvider {
       return this.#activeNetworks;
     }
 
-    // Otherwise, fetch them from the client
-    const clientVersion = await ethereum.request({
-      method: 'web3_clientVersion',
-    });
-    const isFlask = (clientVersion as string)?.includes('flask');
     const baseNetworks =
       ENVIRONMENT_TO_ACTIVE_NETWORKS[this.#config.environment] ?? [];
-    const flaskNetworks = isFlask ? [Network.Devnet] : [];
 
-    const activeNetworks = uniq([...baseNetworks, ...flaskNetworks]);
+    try {
+      // Otherwise, fetch them from the client
+      const clientVersion = await ethereum.request({
+        method: 'web3_clientVersion',
+      });
+      const isFlask = (clientVersion as string)?.includes('flask');
+      const flaskNetworks = isFlask ? [Network.Devnet] : [];
 
-    // Set the active networks
-    this.#activeNetworks = activeNetworks ?? [];
-    return this.#activeNetworks;
+      const activeNetworks = uniq([...baseNetworks, ...flaskNetworks]);
+
+      // Set the active networks
+      this.#activeNetworks = activeNetworks;
+      return this.#activeNetworks;
+    } catch (error) {
+      return baseNetworks;
+    }
   }
 }
