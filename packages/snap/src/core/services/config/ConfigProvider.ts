@@ -9,6 +9,7 @@ import {
   string,
 } from '@metamask/superstruct';
 import { Duration } from '@metamask/utils';
+import { uniq } from 'lodash';
 
 import { Network, Networks } from '../../constants/solana';
 import { UrlStruct } from '../../validation/structs';
@@ -247,13 +248,11 @@ export class ConfigProvider {
       method: 'web3_clientVersion',
     });
     const isFlask = (clientVersion as string)?.includes('flask');
-    const activeNetworks = ENVIRONMENT_TO_ACTIVE_NETWORKS[
-      this.#config.environment
-    ] as Network[];
+    const baseNetworks =
+      ENVIRONMENT_TO_ACTIVE_NETWORKS[this.#config.environment] ?? [];
+    const flaskNetworks = isFlask ? [Network.Devnet] : [];
 
-    if (activeNetworks && isFlask) {
-      activeNetworks.push(Network.Devnet);
-    }
+    const activeNetworks = uniq([...baseNetworks, ...flaskNetworks]);
 
     // Set the active networks
     this.#activeNetworks = activeNetworks ?? [];

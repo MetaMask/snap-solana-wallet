@@ -48,7 +48,6 @@ import { eventHandlers as transactionConfirmationEvents } from './features/send/
 import { installPolyfills } from './polyfills';
 import snapContext, {
   clientRequestHandler,
-  configProvider,
   eventEmitter,
   keyring,
 } from './snapContext';
