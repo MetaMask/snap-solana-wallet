@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.2]
 
-### Uncategorized
+### Changed
 
-- fix: enable devnet only for flask ([#541](https://github.com/MetaMask/snap-solana-wallet/pull/541))
+- Enable `devnet` only for flask ([#541](https://github.com/MetaMask/snap-solana-wallet/pull/541))
 
 ## [2.0.0]
 
