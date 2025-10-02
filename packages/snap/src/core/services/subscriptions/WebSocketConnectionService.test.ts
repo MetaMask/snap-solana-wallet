@@ -157,9 +157,9 @@ describe('WebSocketConnectionService', () => {
 
   describe('#openConnectionsForActiveNetworks', () => {
     it('opens the connections for all active networks', async () => {
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet, Network.Devnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
 
       jest.spyOn(service, 'openConnection').mockResolvedValueOnce(undefined);
 
@@ -181,9 +181,9 @@ describe('WebSocketConnectionService', () => {
        * - upon opening, we will trigger all recovery handlers
        * - but since retry attempts have been cleared, they should not have been called
        */
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet]);
       jest
         .spyOn(mockWebSocketConnectionRepository, 'getAll')
         .mockResolvedValueOnce([]);

@@ -168,9 +168,9 @@ describe('SubscriptionService', () => {
     } as unknown as SubscriptionRepository;
 
     mockConfigProvider = {
-      get: jest.fn().mockReturnValue({
-        activeNetworks: [Network.Mainnet, Network.Devnet],
-      }),
+      getActiveNetworks: jest
+        .fn()
+        .mockReturnValue([Network.Mainnet, Network.Devnet]),
     } as unknown as ConfigProvider;
 
     mockEventEmitter = new EventEmitter(mockLogger);

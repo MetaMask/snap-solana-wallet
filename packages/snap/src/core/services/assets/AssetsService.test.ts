@@ -47,9 +47,7 @@ describe('AssetsService', () => {
     mockConnection = createMockConnection();
 
     mockConfigProvider = {
-      get: jest.fn().mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      }),
+      getActiveNetworks: jest.fn().mockResolvedValue([Network.Mainnet]),
     } as unknown as ConfigProvider;
 
     mockTokenApiClient = {

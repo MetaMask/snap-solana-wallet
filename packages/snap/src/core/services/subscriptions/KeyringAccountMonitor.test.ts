@@ -100,9 +100,9 @@ describe('KeyringAccountMonitor', () => {
     } as unknown as TokenHelper;
 
     mockConfigProvider = {
-      get: jest.fn().mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      }),
+      getActiveNetworks: jest
+        .fn()
+        .mockResolvedValue([Network.Mainnet, Network.Devnet]),
     } as unknown as ConfigProvider;
 
     mockEventEmitter = new EventEmitter(mockLogger);
@@ -214,9 +214,9 @@ describe('KeyringAccountMonitor', () => {
   describe('monitorKeyringAccount', () => {
     it('monitors the account native and token assets', async () => {
       // Setup 2 active networks
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet, Network.Devnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
 
       await keyringAccountMonitor.monitorKeyringAccount(account);
 
@@ -235,9 +235,9 @@ describe('KeyringAccountMonitor', () => {
         scopes: [Network.Mainnet], // Only mainnet, not devnet
       };
 
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet, Network.Devnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
 
       await keyringAccountMonitor.monitorKeyringAccount(
         accountWithLimitedScopes,
@@ -249,9 +249,9 @@ describe('KeyringAccountMonitor', () => {
 
     it("does not monitor an account on an active network that is not in the account's scopes", async () => {
       // Setup 1 active network
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet]);
 
       const accountWithDifferentScopes = {
         ...account,
@@ -267,9 +267,9 @@ describe('KeyringAccountMonitor', () => {
 
     it('does not monitor an account that is already monitored', async () => {
       // Setup 1 active network
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet]);
 
       // Try to monitor the same account twice
       await keyringAccountMonitor.monitorKeyringAccount(account);
@@ -282,9 +282,9 @@ describe('KeyringAccountMonitor', () => {
   describe('stopMonitorKeyringAccount', () => {
     it('stops monitoring the account native and token assets on all active networks', async () => {
       // Setup 2 active networks
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet, Network.Devnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
 
       await keyringAccountMonitor.monitorKeyringAccount(account);
 
@@ -306,9 +306,9 @@ describe('KeyringAccountMonitor', () => {
 
     beforeEach(() => {
       // Setup 1 active network for simplicity
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet]);
 
       jest
         .spyOn(mockTransactionsService, 'fetchLatestSignatures')
