@@ -23,6 +23,7 @@ import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService, TokenHelper } from '../assets';
 import type { ConfigProvider } from '../config';
+import { SUPPORTED_NETWORKS } from '../config/ConfigProvider';
 import type { TransactionsService } from '../transactions';
 import { isSpam } from '../transactions/utils/isSpam';
 
@@ -106,10 +107,8 @@ export class KeyringAccountMonitor {
     this.#eventEmitter.on('onUpdate', this.#handleOnStart.bind(this));
     this.#eventEmitter.on('onInstall', this.#handleOnStart.bind(this));
 
-    const { activeNetworks } = this.#configProvider.get();
-
     // Register callbacks that will handle account and program notifications.
-    activeNetworks.forEach((network) => {
+    SUPPORTED_NETWORKS.forEach((network) => {
       this.#subscriptionService.registerNotificationHandler(
         'accountSubscribe',
         network,
@@ -123,7 +122,7 @@ export class KeyringAccountMonitor {
     });
 
     // Register the connection recovery callback that will handle missed messages.
-    activeNetworks.forEach((network) => {
+    SUPPORTED_NETWORKS.forEach((network) => {
       this.#subscriptionService.registerConnectionRecoveryHandler(
         network,
         this.#handleConnectionRecovery.bind(this),
@@ -166,7 +165,7 @@ export class KeyringAccountMonitor {
       this.#logger.log('Monitoring keyring account', account);
 
       const { id } = account;
-      const { activeNetworks } = this.#configProvider.get();
+      const activeNetworks = await this.#configProvider.getActiveNetworks();
 
       if (this.#monitoredKeyringAccounts.has(id)) {
         this.#logger.log('Account is already being monitored', account);

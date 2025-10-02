@@ -270,19 +270,16 @@ export const onWebSocketEvent: OnWebSocketEventHandler = async ({ event }) =>
 
 export const onStart: OnStartHandler = async () =>
   withCatchAndThrowSnapError(async () => {
-    await configProvider.setActiveNetworks();
     await eventEmitter.emitSync('onStart');
   });
 
 export const onUpdate: OnUpdateHandler = async () =>
   withCatchAndThrowSnapError(async () => {
-    await configProvider.setActiveNetworks();
     await eventEmitter.emitSync('onUpdate');
   });
 
 export const onInstall: OnInstallHandler = async () =>
   withCatchAndThrowSnapError(async () => {
-    await configProvider.setActiveNetworks();
     await eventEmitter.emitSync('onInstall');
   });
 

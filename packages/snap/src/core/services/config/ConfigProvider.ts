@@ -13,6 +13,8 @@ import { Duration } from '@metamask/utils';
 import { Network, Networks } from '../../constants/solana';
 import { UrlStruct } from '../../validation/structs';
 
+export const SUPPORTED_NETWORKS = [Network.Mainnet, Network.Devnet];
+
 const ENVIRONMENT_TO_ACTIVE_NETWORKS: Record<string, Network[]> = {
   production: [Network.Mainnet],
   local: [Network.Mainnet],
@@ -60,7 +62,6 @@ export type NetworkConfig = (typeof Networks)[Network] & {
 export type Config = {
   environment: string;
   networks: NetworkConfig[];
-  activeNetworks: Network[];
   explorerBaseUrl: string;
   priceApi: {
     baseUrl: string;
@@ -170,7 +171,6 @@ export class ConfigProvider {
         },
       ],
       explorerBaseUrl: environment.EXPLORER_BASE_URL,
-      activeNetworks: [],
       priceApi: {
         baseUrl:
           environment.ENVIRONMENT === 'test'
@@ -236,7 +236,7 @@ export class ConfigProvider {
     return network;
   }
 
-  async setActiveNetworks(): Promise<Network[]> {
+  async getActiveNetworks(): Promise<Network[]> {
     // If the active networks are already set, return them
     if (this.#activeNetworks.length > 0) {
       return this.#activeNetworks;
