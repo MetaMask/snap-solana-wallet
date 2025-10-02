@@ -243,8 +243,10 @@ export class ConfigProvider {
       return this.#activeNetworks;
     }
 
-    const baseNetworks =
-      ENVIRONMENT_TO_ACTIVE_NETWORKS[this.#config.environment] ?? [];
+    const baseNetworks = uniq([
+      Network.Mainnet,
+      ...(ENVIRONMENT_TO_ACTIVE_NETWORKS[this.#config.environment] ?? []),
+    ]);
 
     try {
       // Otherwise, fetch them from the client
