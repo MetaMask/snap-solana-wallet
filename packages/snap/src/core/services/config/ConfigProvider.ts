@@ -9,14 +9,17 @@ import {
   string,
 } from '@metamask/superstruct';
 import { Duration } from '@metamask/utils';
+import { uniq } from 'lodash';
 
 import { Network, Networks } from '../../constants/solana';
 import { UrlStruct } from '../../validation/structs';
 
-const ENVIRONMENT_TO_ACTIVE_NETWORKS = {
-  production: [Network.Mainnet, Network.Devnet],
-  local: [Network.Mainnet, Network.Devnet],
-  test: [Network.Localnet, Network.Devnet],
+export const SUPPORTED_NETWORKS = [Network.Mainnet, Network.Devnet];
+
+const ENVIRONMENT_TO_ACTIVE_NETWORKS: Record<string, Network[]> = {
+  production: [Network.Mainnet],
+  local: [Network.Mainnet],
+  test: [Network.Localnet],
 };
 
 const CommaSeparatedListOfUrlsStruct = coerce(
@@ -60,7 +63,6 @@ export type NetworkConfig = (typeof Networks)[Network] & {
 export type Config = {
   environment: string;
   networks: NetworkConfig[];
-  activeNetworks: Network[];
   explorerBaseUrl: string;
   priceApi: {
     baseUrl: string;
@@ -111,9 +113,12 @@ export type Config = {
 export class ConfigProvider {
   #config: Config;
 
+  #activeNetworks: Network[];
+
   constructor() {
     const environment = this.#parseEnvironment();
     this.#config = this.#buildConfig(environment);
+    this.#activeNetworks = [];
   }
 
   #parseEnvironment() {
@@ -167,7 +172,6 @@ export class ConfigProvider {
         },
       ],
       explorerBaseUrl: environment.EXPLORER_BASE_URL,
-      activeNetworks: ENVIRONMENT_TO_ACTIVE_NETWORKS[environment.ENVIRONMENT],
       priceApi: {
         baseUrl:
           environment.ENVIRONMENT === 'test'
@@ -231,5 +235,34 @@ export class ConfigProvider {
       throw new Error(`Network ${key} not found`);
     }
     return network;
+  }
+
+  async getActiveNetworks(): Promise<Network[]> {
+    // If the active networks are already set, return them
+    if (this.#activeNetworks.length > 0) {
+      return this.#activeNetworks;
+    }
+
+    const baseNetworks = uniq([
+      Network.Mainnet,
+      ...(ENVIRONMENT_TO_ACTIVE_NETWORKS[this.#config.environment] ?? []),
+    ]);
+
+    try {
+      // Otherwise, fetch them from the client
+      const clientVersion = await ethereum.request({
+        method: 'web3_clientVersion',
+      });
+      const isFlask = (clientVersion as string)?.includes('flask');
+      const flaskNetworks = isFlask ? [Network.Devnet] : [];
+
+      const activeNetworks = uniq([...baseNetworks, ...flaskNetworks]);
+
+      // Set the active networks
+      this.#activeNetworks = activeNetworks;
+      return this.#activeNetworks;
+    } catch (error) {
+      return baseNetworks;
+    }
   }
 }

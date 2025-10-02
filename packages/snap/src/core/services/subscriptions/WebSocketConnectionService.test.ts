@@ -77,13 +77,15 @@ describe('WebSocketConnectionService', () => {
     mockConfigProvider = {
       get: jest.fn().mockReturnValue({
         networks: mockNetworksConfig,
-        activeNetworks: [Network.Mainnet, Network.Devnet],
         subscriptions: {
           maxReconnectAttempts: 5,
           reconnectDelayMilliseconds: 1, // To speed up the tests
           closeConnectionsGracePeriodMilliseconds: 5000, // 5 seconds for testing
         },
       }),
+      getActiveNetworks: jest
+        .fn()
+        .mockResolvedValue([Network.Mainnet, Network.Devnet]),
       getNetworkBy: jest.fn().mockImplementation((key, value) => {
         return mockNetworksConfig.find(
           (item) => item[key as keyof NetworkConfig] === value,
@@ -107,9 +109,9 @@ describe('WebSocketConnectionService', () => {
 
   describe('#setupConnections', () => {
     it('opens the connections for all active networks when the client is active', async () => {
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet, Network.Devnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
 
       jest.spyOn(snap, 'request').mockResolvedValueOnce({
         active: true,
@@ -122,9 +124,9 @@ describe('WebSocketConnectionService', () => {
     });
 
     it('closes the connections for all active networks when the client is inactive', async () => {
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet, Network.Devnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
 
       jest.spyOn(snap, 'request').mockResolvedValueOnce({
         active: false,
@@ -155,9 +157,9 @@ describe('WebSocketConnectionService', () => {
 
   describe('#openConnectionsForActiveNetworks', () => {
     it('opens the connections for all active networks', async () => {
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet, Network.Devnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
 
       jest.spyOn(service, 'openConnection').mockResolvedValueOnce(undefined);
 
@@ -179,9 +181,9 @@ describe('WebSocketConnectionService', () => {
        * - upon opening, we will trigger all recovery handlers
        * - but since retry attempts have been cleared, they should not have been called
        */
-      jest.spyOn(mockConfigProvider, 'get').mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config);
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet]);
       jest
         .spyOn(mockWebSocketConnectionRepository, 'getAll')
         .mockResolvedValueOnce([]);

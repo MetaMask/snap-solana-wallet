@@ -15,6 +15,7 @@ import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
+import { SUPPORTED_NETWORKS } from '../config/ConfigProvider';
 import type { SolanaConnection } from '../connection';
 import type { TransactionsService } from '../transactions';
 import type { SubscriptionService } from './SubscriptionService';
@@ -65,9 +66,7 @@ export class SignatureMonitor {
   }
 
   #bindHandlers(): void {
-    const { activeNetworks } = this.#configProvider.get();
-
-    activeNetworks.forEach((network) => {
+    SUPPORTED_NETWORKS.forEach((network) => {
       this.#subscriptionService.registerNotificationHandler(
         'signatureSubscribe',
         network,

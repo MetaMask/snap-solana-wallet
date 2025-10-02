@@ -90,9 +90,7 @@ describe('SignatureMonitor', () => {
     } as unknown as SolanaConnection;
 
     mockConfigProvider = {
-      get: jest.fn().mockReturnValue({
-        activeNetworks: [Network.Mainnet],
-      } as unknown as Config),
+      getActiveNetworks: jest.fn().mockReturnValue([Network.Mainnet]),
     } as unknown as ConfigProvider;
 
     signatureMonitor = new SignatureMonitor(

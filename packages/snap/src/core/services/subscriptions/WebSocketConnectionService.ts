@@ -135,7 +135,7 @@ export class WebSocketConnectionService {
   async #openConnectionsForActiveNetworks(): Promise<void> {
     this.#logger.log(`Opening connections for active networks`);
 
-    const { activeNetworks } = this.#configProvider.get();
+    const activeNetworks = await this.#configProvider.getActiveNetworks();
 
     this.#retryAttempts.clear();
 

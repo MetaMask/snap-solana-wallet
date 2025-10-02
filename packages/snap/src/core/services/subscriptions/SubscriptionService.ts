@@ -17,6 +17,7 @@ import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
+import { SUPPORTED_NETWORKS } from '../config/ConfigProvider';
 import { parseWebSocketMessage } from './parseWebSocketMessage';
 import type { SubscriptionRepository } from './SubscriptionRepository';
 import type { WebSocketConnectionService } from './WebSocketConnectionService';
@@ -80,8 +81,8 @@ export class SubscriptionService {
      * - The connection was lost then re-established -> we need to re-subscribe.
      * - The connection was not yet established, and we need to subscribe when it is established.
      */
-    const { activeNetworks } = this.#configProvider.get();
-    activeNetworks.forEach((network) => {
+
+    SUPPORTED_NETWORKS.forEach((network) => {
       this.#connectionService.onConnectionRecovery(
         network,
         this.#reSubscribe.bind(this),

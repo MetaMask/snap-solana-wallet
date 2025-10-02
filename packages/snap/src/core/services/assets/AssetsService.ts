@@ -80,8 +80,6 @@ export class AssetsService {
 
   readonly #nftApiClient: NftApiClient;
 
-  readonly #activeNetworks: Network[];
-
   public static readonly cacheTtlsMilliseconds = {
     tokenAccountsByOwner: 5 * Duration.Second,
   };
@@ -113,7 +111,6 @@ export class AssetsService {
     this.#tokenPricesService = tokenPricesService;
     this.#cache = cache;
     this.#nftApiClient = nftApiClient;
-    this.#activeNetworks = configProvider.get().activeNetworks;
   }
 
   #splitAssetsByType(assetTypes: CaipAssetType[]) {
@@ -345,7 +342,7 @@ export class AssetsService {
       this.#fetchTokenAccountsMultiple(
         [account],
         [TOKEN_PROGRAM_ADDRESS, TOKEN_2022_PROGRAM_ADDRESS],
-        this.#activeNetworks,
+        await this.#configProvider.getActiveNetworks(),
       ),
     ]);
 
@@ -387,8 +384,9 @@ export class AssetsService {
     ];
   }
 
-  getNativeAssetTypes(): NativeCaipAssetType[] {
-    return this.#activeNetworks.map(
+  async getNativeAssetTypes(): Promise<NativeCaipAssetType[]> {
+    const activeNetworks = await this.#configProvider.getActiveNetworks();
+    return activeNetworks.map(
       (network) => `${network}/${SolanaCaip19Tokens.SOL}` as const,
     );
   }
@@ -396,7 +394,7 @@ export class AssetsService {
   async #fetchNativeAssets(
     account: SolanaKeyringAccount,
   ): Promise<NativeAsset[]> {
-    const nativeAssetsTypes = this.getNativeAssetTypes();
+    const nativeAssetsTypes = await this.getNativeAssetTypes();
 
     const accountAddress = asAddress(account.address);
 
@@ -650,7 +648,7 @@ export class AssetsService {
       await this.#assetsRepository.findByKeyringAccountId(keyringAccountId);
 
     // Every account must have at least the native assets. Ensure that they are always present, even if not yet fetched/saved.
-    const nativeAssetTypes = this.getNativeAssetTypes();
+    const nativeAssetTypes = await this.getNativeAssetTypes();
     const missingNativeAssets: NativeAsset[] = [];
 
     for (const nativeAssetType of nativeAssetTypes) {
