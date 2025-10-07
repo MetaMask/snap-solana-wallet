@@ -83,8 +83,8 @@ describe('SolanaKeyring', () => {
   let mockAssetsService: AssetsService;
   let mockConfirmationHandler: ConfirmationHandler;
   let mockTransactionsService: jest.Mocked<TransactionsService>;
-  let mockNameResolutionService: NameResolutionService;
   let mockKeyringAccountMonitor: KeyringAccountMonitor;
+  let mockNameResolutionService: NameResolutionService;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -126,13 +126,13 @@ describe('SolanaKeyring', () => {
       fetchLatestSignatures: jest.fn(),
     } as unknown as jest.Mocked<TransactionsService>;
 
-    mockNameResolutionService = {
-      resolveAddress: jest.fn(),
-    } as unknown as NameResolutionService;
-
     mockKeyringAccountMonitor = {
       setMonitoredAccounts: jest.fn(),
     } as unknown as KeyringAccountMonitor;
+
+    mockNameResolutionService = {
+      resolveAddress: jest.fn(),
+    } as unknown as NameResolutionService;
 
     keyring = new SolanaKeyring({
       state: mockState,
@@ -141,8 +141,8 @@ describe('SolanaKeyring', () => {
       assetsService: mockAssetsService,
       walletService: mockWalletService,
       confirmationHandler: mockConfirmationHandler,
-      nameResolutionService: mockNameResolutionService,
       keyringAccountMonitor: mockKeyringAccountMonitor,
+      nameResolutionService: mockNameResolutionService,
     });
   });
 

@@ -89,9 +89,9 @@ export class SolanaKeyring implements Keyring {
 
   readonly #confirmationHandler: ConfirmationHandler;
 
-  readonly #nameResolutionService: NameResolutionService;
-
   readonly #keyringAccountMonitor: KeyringAccountMonitor;
+
+  readonly #nameResolutionService: NameResolutionService;
 
   readonly #traceName: string = 'Create Solana Account';
 
@@ -102,8 +102,8 @@ export class SolanaKeyring implements Keyring {
     assetsService,
     walletService,
     confirmationHandler,
-    nameResolutionService,
     keyringAccountMonitor,
+    nameResolutionService,
   }: {
     state: IStateManager<UnencryptedStateValue>;
     logger: ILogger;
@@ -111,8 +111,8 @@ export class SolanaKeyring implements Keyring {
     assetsService: AssetsService;
     walletService: WalletService;
     confirmationHandler: ConfirmationHandler;
-    nameResolutionService: NameResolutionService;
     keyringAccountMonitor: KeyringAccountMonitor;
+    nameResolutionService: NameResolutionService;
   }) {
     this.#state = state;
     this.#logger = createPrefixedLogger(logger, '[🔑 Keyring]');
@@ -120,8 +120,8 @@ export class SolanaKeyring implements Keyring {
     this.#assetsService = assetsService;
     this.#walletService = walletService;
     this.#confirmationHandler = confirmationHandler;
-    this.#nameResolutionService = nameResolutionService;
     this.#keyringAccountMonitor = keyringAccountMonitor;
+    this.#nameResolutionService = nameResolutionService;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
