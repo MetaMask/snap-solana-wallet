@@ -454,7 +454,7 @@ export class KeyringAccountMonitor {
   }
 
   /**
-   * Get the accounts that are currently being monitored.
+   * Lookup the stored subscriptions to find the accounts that are currently being monitored.
    * @returns The accounts that are currently being monitored.
    */
   async #getMonitoredAccounts(): Promise<SolanaKeyringAccount[]> {
