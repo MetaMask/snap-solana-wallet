@@ -595,7 +595,6 @@ export class SubscriptionService {
     const expiredSubscriptions = subscriptions.filter(
       SubscriptionService.#isExpired,
     );
-    console.log('🎃🎃🎃🎃🎃expiredSubscriptions', expiredSubscriptions);
 
     await Promise.allSettled(
       expiredSubscriptions.map(async (subscription) => {
