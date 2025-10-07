@@ -5,7 +5,7 @@ import { NftApiClient } from './core/clients/nft-api/NftApiClient';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenApiClient } from './core/clients/token-api-client/TokenApiClient';
-import { ClientRequestHandler } from './core/handlers/onClientRequest';
+import { AccountSelectedHandler, ClientRequestHandler } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
@@ -67,6 +67,7 @@ export type SnapExecutionContext = {
   cache: ICache<Serializable>;
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
+  accountSelectedHandler: AccountSelectedHandler;
   webSocketConnectionService: WebSocketConnectionService;
   subscriptionService: SubscriptionService;
   eventEmitter: EventEmitter;
@@ -110,7 +111,6 @@ const subscriptionRepository = new SubscriptionRepository(state);
 const subscriptionService = new SubscriptionService(
   webSocketConnectionService,
   subscriptionRepository,
-  configProvider,
   eventEmitter,
   logger,
 );
@@ -199,7 +199,6 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
   accountsSynchronizer,
   tokenHelper,
   configProvider,
-  eventEmitter,
   logger,
 );
 
@@ -217,7 +216,6 @@ const keyring = new SolanaKeyring({
   assetsService,
   walletService,
   confirmationHandler,
-  keyringAccountMonitor,
   nameResolutionService,
 });
 
@@ -240,6 +238,12 @@ const clientRequestHandler = new ClientRequestHandler(
   sendService,
 );
 
+const accountSelectedHandler = new AccountSelectedHandler(
+  accountsService,
+  keyringAccountMonitor,
+  logger,
+);
+
 const snapContext: SnapExecutionContext = {
   configProvider,
   connection,
@@ -260,6 +264,7 @@ const snapContext: SnapExecutionContext = {
   confirmationHandler,
   nftService,
   clientRequestHandler,
+  accountSelectedHandler,
   webSocketConnectionService,
   subscriptionService,
   eventEmitter,
@@ -270,6 +275,7 @@ const snapContext: SnapExecutionContext = {
 };
 
 export {
+  accountSelectedHandler,
   accountsService,
   accountsSynchronizer,
   analyticsService,

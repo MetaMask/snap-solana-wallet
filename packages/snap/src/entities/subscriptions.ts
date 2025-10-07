@@ -63,10 +63,34 @@ export type ConfirmedSubscription = Omit<PendingSubscription, 'status'> & {
   readonly status: 'confirmed';
   readonly rpcSubscriptionId: number; // Server's confirmation ID
   readonly confirmedAt: string; // ISO string
+  readonly rpcUnsubscriptionId: null;
+  readonly unsubscribedAt: null;
+};
+
+export type UnsubscribingSubscription = Omit<
+  ConfirmedSubscription,
+  'status' | 'rpcUnsubscriptionId' | 'unsubscribedAt'
+> & {
+  readonly status: 'unsubscribing';
+  readonly rpcUnsubscriptionId: string; // Server's confirmation ID
+  readonly unsubscribedAt: string; // ISO string
 };
 
 // Union type for all states
-export type Subscription = PendingSubscription | ConfirmedSubscription;
+export type Subscription =
+  | PendingSubscription
+  | ConfirmedSubscription
+  | UnsubscribingSubscription;
+
+/**
+ * A message that we receive from the RPC WebSocket server after a subscription request,
+ * that confirms that the subscription was successfully established.
+ */
+export type UnsubscriptionConfirmation = {
+  jsonrpc: string;
+  id: string | number;
+  result: true;
+};
 
 /**
  * A message that we receive from the RPC WebSocket server after subscribing to

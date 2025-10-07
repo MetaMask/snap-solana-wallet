@@ -2,23 +2,24 @@
 
 import { TransactionType, type Transaction } from '@metamask/keyring-api';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
+import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
+import type { Address } from '@solana/kit';
 import { signature } from '@solana/kit';
 
 import type {
   AccountNotification,
   AccountNotificationHandler,
+  ConfirmedSubscription,
   ProgramNotification,
   ProgramNotificationHandler,
   Subscription,
 } from '../../../entities';
-import { EventEmitter } from '../../../infrastructure';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
 import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService, TokenHelper } from '../assets';
 import type { ConfigProvider } from '../config';
-import type { Config } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
 import type { TransactionsService } from '../transactions';
 import { KeyringAccountMonitor } from './KeyringAccountMonitor';
@@ -33,12 +34,59 @@ describe('KeyringAccountMonitor', () => {
   let mockAccountsSynchronizer: AccountsSynchronizer;
   let mockTokenHelper: TokenHelper;
   let mockConfigProvider: ConfigProvider;
-  let mockEventEmitter: EventEmitter;
 
   const account = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
 
   let accountNotificationHandlers: AccountNotificationHandler[] = [];
   let programNotificationHandlers: ProgramNotificationHandler[] = [];
+
+  const createAccountSubscribeSubscription = (
+    network: Network = Network.Mainnet,
+  ): ConfirmedSubscription => ({
+    id: 'some-subscription-id',
+    status: 'confirmed',
+    method: 'accountSubscribe',
+    network,
+    params: [account.address, { commitment: 'confirmed' as const }],
+    rpcSubscriptionId: 1,
+    requestId: 'some-request-id',
+    createdAt: '2024-01-01T00:00:00.000Z',
+    confirmedAt: '2024-01-02T00:00:00.000Z',
+    rpcUnsubscriptionId: null,
+    unsubscribedAt: null,
+  });
+
+  const createProgramSubscribeSubscription = (
+    programAddress: Address,
+    network: Network = Network.Mainnet,
+  ): ConfirmedSubscription => ({
+    id: 'some-subscription-id',
+    status: 'confirmed',
+    method: 'programSubscribe',
+    network,
+    params: [
+      programAddress,
+      {
+        commitment: 'confirmed' as const,
+        encoding: 'jsonParsed',
+        filters: [
+          {
+            memcmp: {
+              offset: 32,
+              bytes: account.address,
+              encoding: 'base58',
+            },
+          },
+        ],
+      },
+    ],
+    rpcSubscriptionId: 1,
+    requestId: 'some-request-id',
+    createdAt: '2024-01-01T00:00:00.000Z',
+    confirmedAt: '2024-01-02T00:00:00.000Z',
+    rpcUnsubscriptionId: null,
+    unsubscribedAt: null,
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -105,8 +153,6 @@ describe('KeyringAccountMonitor', () => {
         .mockResolvedValue([Network.Mainnet, Network.Devnet]),
     } as unknown as ConfigProvider;
 
-    mockEventEmitter = new EventEmitter(mockLogger);
-
     keyringAccountMonitor = new KeyringAccountMonitor(
       mockSubscriptionService,
       mockAccountService,
@@ -115,7 +161,6 @@ describe('KeyringAccountMonitor', () => {
       mockAccountsSynchronizer,
       mockTokenHelper,
       mockConfigProvider,
-      mockEventEmitter,
       mockLogger,
     );
   });
@@ -138,80 +183,11 @@ describe('KeyringAccountMonitor', () => {
     });
   });
 
-  describe('#handleOnStart', () => {
-    it('starts monitoring all keyring accounts', async () => {
-      // Setup 2 keyring accounts
-      jest
-        .spyOn(mockAccountService, 'getAll')
-        .mockResolvedValue([
-          MOCK_SOLANA_KEYRING_ACCOUNTS[0],
-          MOCK_SOLANA_KEYRING_ACCOUNTS[1],
-        ]);
-
-      jest
-        .spyOn(keyringAccountMonitor, 'stopMonitorKeyringAccount')
-        .mockResolvedValue(undefined);
-
-      jest
-        .spyOn(keyringAccountMonitor, 'monitorKeyringAccount')
-        .mockResolvedValue(undefined);
-
-      // Simulate a onStart event to start monitoring
-      await mockEventEmitter.emitSync('onStart');
-
-      // No account previously monitored
-      expect(
-        keyringAccountMonitor.stopMonitorKeyringAccount,
-      ).not.toHaveBeenCalled();
-
-      // 2 accounts to monitor
-      expect(keyringAccountMonitor.monitorKeyringAccount).toHaveBeenCalledTimes(
-        2,
-      );
-    });
-
-    it('stops monitoring all previously monitored keyring accounts', async () => {
-      // Setup 2 keyring accounts, already being monitored
-      const accounts = [
-        MOCK_SOLANA_KEYRING_ACCOUNTS[0]!,
-        MOCK_SOLANA_KEYRING_ACCOUNTS[1]!,
-      ] as const;
-
-      await keyringAccountMonitor.monitorKeyringAccount(accounts[0]);
-      await keyringAccountMonitor.monitorKeyringAccount(accounts[1]);
-      (mockSubscriptionService.subscribe as jest.Mock).mockClear();
-
-      jest
-        .spyOn(mockAccountService, 'getAll')
-        .mockResolvedValue([
-          MOCK_SOLANA_KEYRING_ACCOUNTS[0],
-          MOCK_SOLANA_KEYRING_ACCOUNTS[1],
-        ]);
-
-      jest
-        .spyOn(keyringAccountMonitor, 'stopMonitorKeyringAccount')
-        .mockResolvedValue(undefined);
-
-      jest
-        .spyOn(keyringAccountMonitor, 'monitorKeyringAccount')
-        .mockResolvedValue(undefined);
-
-      // Simulate an onStart event to re-initialize the monitor
-      await mockEventEmitter.emitSync('onStart');
-
-      // 2 accounts to stop monitoring
-      expect(
-        keyringAccountMonitor.stopMonitorKeyringAccount,
-      ).toHaveBeenCalledTimes(2);
-
-      // 2 accounts to monitor again
-      expect(keyringAccountMonitor.monitorKeyringAccount).toHaveBeenCalledTimes(
-        2,
-      );
-    });
-  });
-
   describe('monitorKeyringAccount', () => {
+    beforeEach(() => {
+      jest.spyOn(mockAccountService, 'getAll').mockResolvedValue([account]);
+    });
+
     it('monitors the account native and token assets', async () => {
       // Setup 2 active networks
       jest
@@ -271,8 +247,20 @@ describe('KeyringAccountMonitor', () => {
         .spyOn(mockConfigProvider, 'getActiveNetworks')
         .mockResolvedValue([Network.Mainnet]);
 
-      // Try to monitor the same account twice
+      // Try to monitor the account a first time
       await keyringAccountMonitor.monitorKeyringAccount(account);
+      expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(3);
+
+      // As a consequence, we now have 3 subscriptions for the account
+      jest
+        .spyOn(mockSubscriptionService, 'getAll')
+        .mockResolvedValue([
+          createAccountSubscribeSubscription(),
+          createProgramSubscribeSubscription(TOKEN_PROGRAM_ADDRESS),
+          createProgramSubscribeSubscription(TOKEN_2022_PROGRAM_ADDRESS),
+        ]);
+
+      // Try to monitor the same account a second time
       await keyringAccountMonitor.monitorKeyringAccount(account);
 
       expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(3);
@@ -287,6 +275,24 @@ describe('KeyringAccountMonitor', () => {
         .mockResolvedValue([Network.Mainnet, Network.Devnet]);
 
       await keyringAccountMonitor.monitorKeyringAccount(account);
+
+      // As a consequence, we now have 6 subscriptions for the account (3 for each network)
+      jest
+        .spyOn(mockSubscriptionService, 'getAll')
+        .mockResolvedValue([
+          createAccountSubscribeSubscription(),
+          createProgramSubscribeSubscription(TOKEN_PROGRAM_ADDRESS),
+          createProgramSubscribeSubscription(TOKEN_2022_PROGRAM_ADDRESS),
+          createAccountSubscribeSubscription(Network.Devnet),
+          createProgramSubscribeSubscription(
+            TOKEN_PROGRAM_ADDRESS,
+            Network.Devnet,
+          ),
+          createProgramSubscribeSubscription(
+            TOKEN_2022_PROGRAM_ADDRESS,
+            Network.Devnet,
+          ),
+        ]);
 
       await keyringAccountMonitor.stopMonitorKeyringAccount(account);
 

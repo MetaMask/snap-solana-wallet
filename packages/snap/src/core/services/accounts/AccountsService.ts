@@ -12,6 +12,12 @@ export class AccountsService {
     return this.#accountsRepository.getAll();
   }
 
+  async getSelected(): Promise<SolanaKeyringAccount | null> {
+    // TODO: Implement this
+    const allAccounts = await this.#accountsRepository.getAll();
+    return allAccounts[0] ?? null;
+  }
+
   async findById(id: string): Promise<SolanaKeyringAccount | null> {
     return this.#accountsRepository.findById(id);
   }

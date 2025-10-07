@@ -40,11 +40,7 @@ import {
   type SolanaKeyringAccount,
 } from '../../../entities';
 import { Network, SolanaCaip19Tokens } from '../../constants/solana';
-import type {
-  AssetsService,
-  KeyringAccountMonitor,
-  TransactionsService,
-} from '../../services';
+import type { AssetsService, TransactionsService } from '../../services';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import type { IStateManager } from '../../services/state/IStateManager';
@@ -88,8 +84,6 @@ export class SolanaKeyring implements Keyring {
 
   readonly #confirmationHandler: ConfirmationHandler;
 
-  readonly #keyringAccountMonitor: KeyringAccountMonitor;
-
   readonly #nameResolutionService: NameResolutionService;
 
   readonly #traceName: string = 'Create Solana Account';
@@ -101,7 +95,6 @@ export class SolanaKeyring implements Keyring {
     assetsService,
     walletService,
     confirmationHandler,
-    keyringAccountMonitor,
     nameResolutionService,
   }: {
     state: IStateManager<UnencryptedStateValue>;
@@ -110,7 +103,6 @@ export class SolanaKeyring implements Keyring {
     assetsService: AssetsService;
     walletService: WalletService;
     confirmationHandler: ConfirmationHandler;
-    keyringAccountMonitor: KeyringAccountMonitor;
     nameResolutionService: NameResolutionService;
   }) {
     this.#state = state;
@@ -119,7 +111,6 @@ export class SolanaKeyring implements Keyring {
     this.#assetsService = assetsService;
     this.#walletService = walletService;
     this.#confirmationHandler = confirmationHandler;
-    this.#keyringAccountMonitor = keyringAccountMonitor;
     this.#nameResolutionService = nameResolutionService;
   }
 
@@ -304,11 +295,6 @@ export class SolanaKeyring implements Keyring {
         solanaKeyringAccount,
       );
 
-      // Start monitoring the account for updates on its assets
-      await this.#keyringAccountMonitor.monitorKeyringAccount(
-        solanaKeyringAccount,
-      );
-
       const keyringAccount: KeyringAccount =
         asStrictKeyringAccount(solanaKeyringAccount);
 
@@ -372,15 +358,10 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, DeleteAccountStruct);
 
-      const account = await this.getAccountOrThrow(accountId);
-
       await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
 
       // If we successfully deleted the account on the extension, we can proceed with cleaning up
-      await Promise.allSettled([
-        this.#deleteAccountFromState(accountId),
-        this.#keyringAccountMonitor.stopMonitorKeyringAccount(account),
-      ]);
+      await this.#deleteAccountFromState(accountId);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
       throw error;

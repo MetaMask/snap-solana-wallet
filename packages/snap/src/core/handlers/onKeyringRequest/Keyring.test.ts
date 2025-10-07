@@ -8,11 +8,7 @@ import { signature } from '@solana/kit';
 import type { AssetEntity } from '../../../entities';
 import { asStrictKeyringAccount } from '../../../entities';
 import { KnownCaip19Id, Network } from '../../constants/solana';
-import type {
-  AssetsService,
-  KeyringAccountMonitor,
-  TransactionsService,
-} from '../../services';
+import type { AssetsService, TransactionsService } from '../../services';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import { InMemoryState } from '../../services/state/InMemoryState';
@@ -79,7 +75,6 @@ describe('SolanaKeyring', () => {
   let mockAssetsService: AssetsService;
   let mockConfirmationHandler: ConfirmationHandler;
   let mockTransactionsService: jest.Mocked<TransactionsService>;
-  let mockKeyringAccountMonitor: KeyringAccountMonitor;
   let mockNameResolutionService: NameResolutionService;
 
   beforeEach(() => {
@@ -122,11 +117,6 @@ describe('SolanaKeyring', () => {
       fetchLatestSignatures: jest.fn(),
     } as unknown as jest.Mocked<TransactionsService>;
 
-    mockKeyringAccountMonitor = {
-      monitorKeyringAccount: jest.fn(),
-      stopMonitorKeyringAccount: jest.fn(),
-    } as unknown as KeyringAccountMonitor;
-
     mockNameResolutionService = {
       resolveAddress: jest.fn(),
     } as unknown as NameResolutionService;
@@ -138,7 +128,6 @@ describe('SolanaKeyring', () => {
       assetsService: mockAssetsService,
       walletService: mockWalletService,
       confirmationHandler: mockConfirmationHandler,
-      keyringAccountMonitor: mockKeyringAccountMonitor,
       nameResolutionService: mockNameResolutionService,
     });
   });
@@ -581,18 +570,6 @@ describe('SolanaKeyring', () => {
       });
     });
 
-    it('monitors the account assets', async () => {
-      await keyring.createAccount();
-
-      expect(
-        mockKeyringAccountMonitor.monitorKeyringAccount,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: expect.any(String),
-        }),
-      );
-    });
-
     it('throws when deriving address fails', async () => {
       jest.mocked(getBip32Entropy).mockImplementationOnce(async () => {
         return Promise.reject(new Error('Error deriving address'));
@@ -627,14 +604,6 @@ describe('SolanaKeyring', () => {
         MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
       );
       expect(accountAfterDeletion).toBeUndefined();
-    });
-
-    it('stops monitoring the account assets', async () => {
-      await keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id);
-
-      expect(
-        mockKeyringAccountMonitor.stopMonitorKeyringAccount,
-      ).toHaveBeenCalledWith(MOCK_SOLANA_KEYRING_ACCOUNT_1);
     });
 
     it('throws an error if account provided is not a uuid', async () => {

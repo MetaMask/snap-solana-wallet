@@ -4,7 +4,7 @@ import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
 import type { Base58EncodedBytes } from '@solana/kit';
 import { address as asAddress, lamports } from '@solana/kit';
-import { get } from 'lodash';
+import { get, uniq } from 'lodash';
 
 import type { SubscriptionService } from '.';
 import type {
@@ -13,7 +13,6 @@ import type {
   SolanaKeyringAccount,
   Subscription,
 } from '../../../entities';
-import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
 import { SolanaCaip19Tokens } from '../../constants/solana';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
@@ -52,23 +51,7 @@ export class KeyringAccountMonitor {
 
   readonly #configProvider: ConfigProvider;
 
-  readonly #eventEmitter: EventEmitter;
-
   readonly #logger: ILogger;
-
-  /**
-   * A structure that maps the IDs of monitored keyring accounts to their subscriptions IDs.
-   * {
-   *   '4b445722-6766-4f99-ade5-c2c9295f21d0': new Set([
-   *     '5b04b49c171b0c11febbf25ba4100650f680070d2ab325550ee6c3944a5018c6',
-   *     '6a1f11b092c2ba9f070e95d64926bc75d9f3f11db42fd103c25d686763962ecf',
-   *   ]),
-   *   '123e4567-e89b-12d3-a456-426614174001': new Set([
-   *     '1f43b99139e773d5f97be912017f12bb8bb1930657d56db88f94aa97d0a441ad',
-   *   ]),
-   * }
-   */
-  readonly #monitoredKeyringAccounts: Map<string, Set<string>> = new Map();
 
   readonly #tokenProgramsAddresses = [
     TOKEN_PROGRAM_ADDRESS,
@@ -83,7 +66,6 @@ export class KeyringAccountMonitor {
     accountsSynchronizer: AccountsSynchronizer,
     tokenHelper: TokenHelper,
     configProvider: ConfigProvider,
-    eventEmitter: EventEmitter,
     logger: ILogger,
   ) {
     this.#subscriptionService = subscriptionService;
@@ -92,7 +74,6 @@ export class KeyringAccountMonitor {
     this.#transactionsService = transactionsService;
     this.#accountsSynchronizer = accountsSynchronizer;
     this.#tokenHelper = tokenHelper;
-    this.#eventEmitter = eventEmitter;
     this.#configProvider = configProvider;
     this.#logger = createPrefixedLogger(logger, '[🗝️ KeyringAccountMonitor]');
 
@@ -101,11 +82,6 @@ export class KeyringAccountMonitor {
 
   #bindHandlers(): void {
     this.#logger.info('Binding handlers');
-
-    // When the extension starts, or that the snap is updated / installed, the Snap platform has lost all its previously opened websockets, so we need to re-initialize
-    this.#eventEmitter.on('onStart', this.#handleOnStart.bind(this));
-    this.#eventEmitter.on('onUpdate', this.#handleOnStart.bind(this));
-    this.#eventEmitter.on('onInstall', this.#handleOnStart.bind(this));
 
     // Register callbacks that will handle account and program notifications.
     SUPPORTED_NETWORKS.forEach((network) => {
@@ -130,32 +106,6 @@ export class KeyringAccountMonitor {
     });
   }
 
-  async #handleOnStart(): Promise<void> {
-    this.#logger.info('Handling onStart/onUpdate/onInstall');
-
-    const accounts = await this.#accountService.getAll();
-
-    // Ensure a clean start by stopping monitoring all accounts
-    const monitoredAccountIds = Array.from(
-      this.#monitoredKeyringAccounts.keys(),
-    );
-    await Promise.allSettled(
-      monitoredAccountIds.map(async (accountId) => {
-        const account = accounts.find((item) => item.id === accountId);
-        if (account) {
-          await this.stopMonitorKeyringAccount(account);
-        }
-      }),
-    );
-
-    // Monitor all accounts
-    await Promise.allSettled(
-      accounts.map(async (account) => {
-        await this.monitorKeyringAccount(account);
-      }),
-    );
-  }
-
   /**
    * Monitors the native and token assets for a single account across all active networks.
    * @param account - The account to monitor the assets for.
@@ -164,13 +114,22 @@ export class KeyringAccountMonitor {
     try {
       this.#logger.log('Monitoring keyring account', account);
 
-      const { id } = account;
       const activeNetworks = await this.#configProvider.getActiveNetworks();
 
-      if (this.#monitoredKeyringAccounts.has(id)) {
-        this.#logger.log('Account is already being monitored', account);
+      // Skip if the account is already monitored
+      const monitoredAccounts = await this.#getMonitoredAccounts();
+      const isMonitored = monitoredAccounts.some(
+        (monitoredAccount) => monitoredAccount.address === account.address,
+      );
+      if (isMonitored) {
+        this.#logger.info('Account is already monitored', account);
         return;
       }
+
+      // Perform a full sync of the account
+      const synchronizePromise = this.#accountsSynchronizer.synchronize([
+        account,
+      ]);
 
       const shouldMonitorOnNetwork = (network: Network) =>
         account.scopes.includes(network);
@@ -197,7 +156,11 @@ export class KeyringAccountMonitor {
           );
         });
 
-      await Promise.all([...tokenProgramPromises, ...nativeAssetsPromises]);
+      await Promise.allSettled([
+        ...tokenProgramPromises,
+        ...nativeAssetsPromises,
+        synchronizePromise,
+      ]);
     } catch (error) {
       this.#logger.error('Error monitoring keyring account', error);
       await this.stopMonitorKeyringAccount(account);
@@ -214,20 +177,34 @@ export class KeyringAccountMonitor {
   ): Promise<void> {
     this.#logger.log('Stopping to monitor all assets of account', account);
 
-    const { id } = account;
+    const { address } = account;
 
-    // Unsubscribe from all subscriptions for the account
-    const subscriptionIds = this.#monitoredKeyringAccounts.get(id);
-    if (subscriptionIds) {
-      await Promise.allSettled(
-        Array.from(subscriptionIds).map(async (subscriptionId) =>
-          this.#subscriptionService.unsubscribe(subscriptionId),
-        ),
-      );
-    }
+    const allSubscriptions = await this.#subscriptionService.getAll();
 
-    // Clean up the monitored accounts map
-    this.#monitoredKeyringAccounts.delete(id);
+    // Find all 'accountSubscribe' and 'programSubscribe' subscriptions for this account
+    const accountSubscribeSubscriptions = allSubscriptions.filter(
+      (subscription) =>
+        subscription.method === 'accountSubscribe' &&
+        get(subscription, 'params[0]') === address,
+    );
+
+    const programSubscribeSubscriptions = allSubscriptions.filter(
+      (subscription) =>
+        subscription.method === 'programSubscribe' &&
+        get(subscription, 'params[1].filters[0].memcmp.bytes') === address,
+    );
+
+    const subscriptionsToUnsubscribe = [
+      ...accountSubscribeSubscriptions,
+      ...programSubscribeSubscriptions,
+    ];
+
+    // Unsubscribe from them all
+    await Promise.allSettled(
+      subscriptionsToUnsubscribe.map(async (subscription) =>
+        this.#subscriptionService.unsubscribe(subscription.id),
+      ),
+    );
   }
 
   /**
@@ -244,16 +221,13 @@ export class KeyringAccountMonitor {
       network,
     });
 
-    const { address, id: accountId } = account;
+    const { address } = account;
 
-    const subscriptionId = await this.#subscriptionService.subscribe({
+    await this.#subscriptionService.subscribe({
       method: 'accountSubscribe',
       network,
       params: [address, { commitment: 'confirmed', encoding: 'jsonParsed' }],
     });
-
-    // Record locally the subscription ID for the account
-    this.#recordSubscriptionForAccount(accountId, subscriptionId);
   }
 
   async #monitorProgramByOwner(
@@ -267,9 +241,9 @@ export class KeyringAccountMonitor {
       network,
     });
 
-    const { address, id: accountId } = account;
+    const { address } = account;
 
-    const subscriptionId = await this.#subscriptionService.subscribe({
+    await this.#subscriptionService.subscribe({
       method: 'programSubscribe',
       network,
       params: [
@@ -289,16 +263,12 @@ export class KeyringAccountMonitor {
         } as any,
       ],
     });
-
-    // Record locally the subscription ID for the account
-    this.#recordSubscriptionForAccount(accountId, subscriptionId);
   }
 
   async #handleAccountNotification(
     notification: AccountNotification,
     subscription: Subscription,
   ): Promise<void> {
-    // try {
     this.#logger.info('Account notification received', {
       notification,
       subscription,
@@ -463,48 +433,65 @@ export class KeyringAccountMonitor {
   }
 
   /**
-   * Record in the local state that the account is being monitored on the given network.
-   * @param accountId - The id of the account to record.
-   * @param subscriptionId - The ID of the subscription that is monitoring the account.
-   */
-  #recordSubscriptionForAccount(accountId: string, subscriptionId: string) {
-    if (!this.#monitoredKeyringAccounts.has(accountId)) {
-      this.#monitoredKeyringAccounts.set(accountId, new Set());
-    }
-
-    this.#monitoredKeyringAccounts.get(accountId)?.add(subscriptionId);
-  }
-
-  /**
    * Recover from potential missed messages (while connection was down)
-   * by syncing all accounts that were previously monitored on this network.
+   * by syncing all monitored accounts.
    *
    * @param network - The network to handle the connection recovery for.
    */
   async #handleConnectionRecovery(network: Network): Promise<void> {
     this.#logger.info('Handling connection recovery', { network });
 
-    const accounts = await this.#accountService.getAll();
+    const monitoredAccounts = await this.#getMonitoredAccounts();
 
-    const subscriptions = await this.#subscriptionService.getAll();
-    const accountSubscriptions = subscriptions.filter(
-      (subscription) =>
-        subscription.network === network &&
-        subscription.method === 'accountSubscribe',
-    );
-
-    const accountPreviouslyMonitoredOnThisNetwork = accounts.filter((account) =>
-      accountSubscriptions.some(
-        (subscription) => get(subscription, 'params[0]') === account.address,
-      ),
-    );
-
-    if (!accountPreviouslyMonitoredOnThisNetwork.length) {
+    if (!monitoredAccounts.length) {
+      this.#logger.info(
+        'No monitored accounts found. Skipping connection recovery.',
+      );
       return;
     }
 
-    await this.#accountsSynchronizer.synchronize(
-      accountPreviouslyMonitoredOnThisNetwork,
+    await this.#accountsSynchronizer.synchronize(monitoredAccounts);
+  }
+
+  /**
+   * Get the accounts that are currently being monitored.
+   * @returns The accounts that are currently being monitored.
+   */
+  async #getMonitoredAccounts(): Promise<SolanaKeyringAccount[]> {
+    const subscriptions = await this.#subscriptionService.getAll();
+
+    // Get the 'accountSubscribe' subscriptions
+    const accountSubscribeSubscriptions = subscriptions.filter(
+      (subscription) => subscription.method === 'accountSubscribe',
+    );
+    // Map the account addresses
+    const accountSubscribeAddresses = accountSubscribeSubscriptions.map(
+      (subscription) => get(subscription, 'params[0]'),
+    );
+
+    // Get the 'programSubscribe' subscriptions
+    const programSubscribeSubscriptions = subscriptions.filter(
+      (subscription) => subscription.method === 'programSubscribe',
+    );
+    // Map the program addresses
+    const programSubscribeAddresses = programSubscribeSubscriptions.map(
+      (subscription) => get(subscription, 'params[1].filters[0].memcmp.bytes'),
+    );
+
+    // Merge addresses and dedupe
+    const monitoredAccountAddresses = uniq([
+      ...accountSubscribeAddresses,
+      ...programSubscribeAddresses,
+    ]);
+
+    if (!monitoredAccountAddresses.length) {
+      return [];
+    }
+
+    // Map the complete accounts
+    const monitoredAccounts = await this.#accountService.getAll();
+    return monitoredAccounts.filter((account) =>
+      monitoredAccountAddresses.includes(account.address),
     );
   }
 }
