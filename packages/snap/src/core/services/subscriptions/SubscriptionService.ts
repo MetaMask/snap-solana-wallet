@@ -207,30 +207,23 @@ export class SubscriptionService {
       return;
     }
 
-    const { network, method } = subscription;
+    const { id, network, method } = subscription;
     const unsubscribeMethod = subscribeMethodToUnsubscribeMethod[method];
 
     // If the subscription was active, we need to unsubscribe from the RPC
     if (subscription.status === 'confirmed') {
       const connection = await this.#connectionService.findByNetwork(network);
-      const rpcUnsubscriptionId = globalThis.crypto.randomUUID();
 
       if (connection) {
         await this.#sendMessage(connection.id, {
           jsonrpc: '2.0',
-          id: rpcUnsubscriptionId,
+          id: globalThis.crypto.randomUUID(),
           method: unsubscribeMethod,
           params: [subscription.rpcSubscriptionId],
         });
 
-        const unsubscribedAt = new Date().toISOString();
-
-        await this.#subscriptionRepository.update({
-          ...subscription,
-          status: 'unsubscribing',
-          rpcUnsubscriptionId,
-          unsubscribedAt,
-        });
+        // Delete the subscription from the repository.
+        await this.#subscriptionRepository.delete(id);
       }
     }
   }
@@ -389,8 +382,6 @@ export class SubscriptionService {
       status: 'confirmed',
       rpcSubscriptionId,
       confirmedAt: new Date().toISOString(),
-      rpcUnsubscriptionId: null,
-      unsubscribedAt: null,
     });
 
     this.#logger.info(
@@ -402,21 +393,6 @@ export class SubscriptionService {
     message: UnsubscriptionConfirmation,
   ): Promise<void> {
     this.#logger.info(`Received unsubscription confirmation`, message);
-
-    const subscription = await this.#subscriptionRepository.findBy(
-      'rpcUnsubscriptionId',
-      String(message.id),
-    );
-
-    if (!subscription) {
-      this.#logger.warn(
-        `No subscription found for unsubscription confirmation. Skipping...`,
-        message,
-      );
-      return;
-    }
-
-    await this.#subscriptionRepository.delete(subscription.id);
   }
 
   /**
@@ -619,6 +595,7 @@ export class SubscriptionService {
     const expiredSubscriptions = subscriptions.filter(
       SubscriptionService.#isExpired,
     );
+    console.log('🎃🎃🎃🎃🎃expiredSubscriptions', expiredSubscriptions);
 
     await Promise.allSettled(
       expiredSubscriptions.map(async (subscription) => {

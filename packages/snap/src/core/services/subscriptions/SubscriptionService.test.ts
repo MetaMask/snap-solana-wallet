@@ -7,13 +7,10 @@ import type {
   PendingSubscription,
   Subscription,
   SubscriptionRequest,
-  UnsubscribingSubscription,
   WebSocketConnection,
 } from '../../../entities';
 import { EventEmitter } from '../../../infrastructure';
 import { Network } from '../../constants/solana';
-import type { AnalyticsService } from '../analytics/AnalyticsService';
-import type { ConfigProvider } from '../config';
 import { mockLogger } from '../mocks/logger';
 import type { SubscriptionRepository } from './SubscriptionRepository';
 import { SubscriptionService } from './SubscriptionService';
@@ -131,9 +128,7 @@ describe('SubscriptionService', () => {
   let service: SubscriptionService;
   let mockWebSocketConnectionService: WebSocketConnectionService;
   let mockSubscriptionRepository: SubscriptionRepository;
-  let mockConfigProvider: ConfigProvider;
   let mockEventEmitter: EventEmitter;
-  let mockAnalyticsService: AnalyticsService;
   const connectionRecoveryHandlers: Map<Network, ConnectionRecoveryHandler[]> =
     new Map();
 
@@ -180,10 +175,6 @@ describe('SubscriptionService', () => {
     } as unknown as SubscriptionRepository;
 
     mockEventEmitter = new EventEmitter(mockLogger);
-
-    mockAnalyticsService = {
-      trackInactiveWebSocketMessage: jest.fn(),
-    } as unknown as AnalyticsService;
 
     service = new SubscriptionService(
       mockWebSocketConnectionService,
@@ -376,8 +367,6 @@ describe('SubscriptionService', () => {
         rpcSubscriptionId: 98765,
         createdAt: '2024-01-01T00:00:00.000Z',
         confirmedAt: '2024-01-02T00:00:00.000Z',
-        rpcUnsubscriptionId: null,
-        unsubscribedAt: null,
       };
       jest
         .spyOn(mockSubscriptionRepository, 'getById')
@@ -394,6 +383,30 @@ describe('SubscriptionService', () => {
           message: expect.stringContaining('"method":"accountUnsubscribe"'),
         },
       });
+    });
+
+    it('deletes immediately the subscription from the repository', async () => {
+      const mockSubscriptionId = 'some-subscription-id';
+      const mockConfirmedSubscription: ConfirmedSubscription = {
+        ...createMockSubscriptionRequest(),
+        id: mockSubscriptionId,
+        status: 'confirmed',
+        requestId: mockSubscriptionId,
+        rpcSubscriptionId: 98765,
+        createdAt: '2024-01-01T00:00:00.000Z',
+        confirmedAt: '2024-01-02T00:00:00.000Z',
+      };
+      jest
+        .spyOn(mockSubscriptionRepository, 'getById')
+        .mockResolvedValue(mockConfirmedSubscription);
+
+      // Unsubscribe
+      await service.unsubscribe(mockSubscriptionId);
+
+      // Verify the subscription was deleted
+      expect(mockSubscriptionRepository.delete).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
     });
   });
 
@@ -448,8 +461,6 @@ describe('SubscriptionService', () => {
             requestId: subscriptionId,
             createdAt: '2024-01-01T00:00:00.000Z',
             confirmedAt: '2024-01-02T00:00:00.000Z',
-            rpcUnsubscriptionId: null,
-            unsubscribedAt: null,
           };
 
           jest
@@ -564,8 +575,6 @@ describe('SubscriptionService', () => {
             status: 'confirmed',
             rpcSubscriptionId: 98765,
             confirmedAt: expect.any(String),
-            rpcUnsubscriptionId: null,
-            unsubscribedAt: null,
           };
 
           expect(mockSubscriptionRepository.update).toHaveBeenCalledWith(
@@ -618,26 +627,22 @@ describe('SubscriptionService', () => {
     });
 
     describe('when the message is an unsubscription confirmation', () => {
-      it('unsubscribes the subscription', async () => {
-        const mockRpcUnsubscriptionId = 'some-rpc-unsubscription-id';
+      it('does nothing since subscription was already deleted', async () => {
         const message = createMockUnsubscriptionConfirmationMessage(
-          mockRpcUnsubscriptionId,
+          'some-rpc-unsubscription-id',
         );
-        const mockUnsubscribingSubscription: UnsubscribingSubscription = {
+        const mockSubscription: ConfirmedSubscription = {
           id: 'some-subscription-id',
-          status: 'unsubscribing',
-          rpcUnsubscriptionId: mockRpcUnsubscriptionId,
-          unsubscribedAt: expect.any(String),
-        } as UnsubscribingSubscription;
+          status: 'confirmed',
+        } as ConfirmedSubscription;
         jest
           .spyOn(mockSubscriptionRepository, 'findBy')
-          .mockResolvedValue(mockUnsubscribingSubscription);
+          .mockResolvedValue(mockSubscription);
 
         await mockEventEmitter.emitSync('onWebSocketEvent', message);
 
-        expect(mockSubscriptionRepository.delete).toHaveBeenCalledWith(
-          mockUnsubscribingSubscription.id,
-        );
+        // Should not try to delete again
+        expect(mockSubscriptionRepository.delete).not.toHaveBeenCalled();
       });
     });
 
@@ -878,8 +883,6 @@ describe('SubscriptionService', () => {
           status: 'confirmed',
           rpcSubscriptionId: 98765,
           confirmedAt: expect.any(String),
-          rpcUnsubscriptionId: null,
-          unsubscribedAt: null,
         });
 
         // Now, simulate a disconnection (this has no direct effect, it's just for clarity of the test)
@@ -1112,8 +1115,6 @@ describe('SubscriptionService', () => {
         createdAt: Date.now().toString(),
         confirmedAt: Date.now().toString(),
         expiresAt: new Date(Date.now() + Duration.Second * 5).toISOString(),
-        rpcUnsubscriptionId: null,
-        unsubscribedAt: null,
       };
 
       jest

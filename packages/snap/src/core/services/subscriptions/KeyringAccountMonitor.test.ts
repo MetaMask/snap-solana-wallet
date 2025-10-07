@@ -52,8 +52,6 @@ describe('KeyringAccountMonitor', () => {
     requestId: 'some-request-id',
     createdAt: '2024-01-01T00:00:00.000Z',
     confirmedAt: '2024-01-02T00:00:00.000Z',
-    rpcUnsubscriptionId: null,
-    unsubscribedAt: null,
   });
 
   const createProgramSubscribeSubscription = (
@@ -84,8 +82,6 @@ describe('KeyringAccountMonitor', () => {
     requestId: 'some-request-id',
     createdAt: '2024-01-01T00:00:00.000Z',
     confirmedAt: '2024-01-02T00:00:00.000Z',
-    rpcUnsubscriptionId: null,
-    unsubscribedAt: null,
   });
 
   beforeEach(() => {
