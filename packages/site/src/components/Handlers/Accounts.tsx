@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Button, Card, Flex } from '@chakra-ui/react';
-import type { KeyringAccount } from '@metamask/keyring-api';
-import { KeyringRpcMethod } from '@metamask/keyring-api';
+import { Button, Card, Flex, Heading } from '@chakra-ui/react';
+import { KeyringRpcMethod, type KeyringAccount } from '@metamask/keyring-api';
+import { useEffect, useState } from 'react';
 
 import { TestDappRpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
 import { useInvokeKeyring, useInvokeSnap } from '../../hooks';
@@ -10,6 +10,20 @@ import { toaster } from '../Toaster/Toaster';
 export const Accounts = () => {
   const invokeSnap = useInvokeSnap();
   const invokeKeyring = useInvokeKeyring();
+  const [accounts, setAccounts] = useState<KeyringAccount[]>([]);
+  const [selectedAccounts, setSelectedAccounts] = useState<KeyringAccount[]>(
+    [],
+  );
+
+  useEffect(() => {
+    const fetchAndSetAccounts = async () => {
+      const accountsToSet = (await invokeKeyring({
+        method: KeyringRpcMethod.ListAccounts,
+      })) as KeyringAccount[];
+      setAccounts(accountsToSet);
+    };
+    fetchAndSetAccounts();
+  }, []);
 
   const synchronize = async () => {
     const promise = invokeSnap({
@@ -29,37 +43,13 @@ export const Accounts = () => {
     });
   };
 
-  const onAccountSelected = async () => {
-    const accountList = ((await invokeKeyring({
-      method: KeyringRpcMethod.ListAccounts,
-    })) || []) as KeyringAccount[];
-
-    const account = accountList[0];
-    if (!account) {
-      throw new Error('No account found');
-    }
-
+  const informSnapAboutSelectedAccounts = async (
+    selectedAccountsToInform: KeyringAccount[],
+  ) => {
     await invokeSnap({
-      method: TestDappRpcRequestMethod.OnAccountSelected,
+      method: TestDappRpcRequestMethod.SetAccountSelected,
       params: {
-        account: account?.id,
-      },
-    });
-  };
-
-  const onAccountUnselected = async () => {
-    const accountList = ((await invokeKeyring({
-      method: KeyringRpcMethod.ListAccounts,
-    })) || []) as KeyringAccount[];
-
-    const account = accountList[0];
-    if (!account) {
-      throw new Error('No account found');
-    }
-    await invokeSnap({
-      method: TestDappRpcRequestMethod.OnAccountUnselected,
-      params: {
-        account: account?.id,
+        accountIds: selectedAccountsToInform.map((account) => account.id),
       },
     });
   };
@@ -74,12 +64,38 @@ export const Accounts = () => {
           <Button variant="outline" onClick={synchronize}>
             Synchronize
           </Button>
-          <Button variant="outline" onClick={onAccountSelected}>
-            OnAccountSelected
-          </Button>
-          <Button variant="outline" onClick={onAccountUnselected}>
-            OnAccountUnselected
-          </Button>
+          <Flex direction="column" gap="2">
+            <Heading as="h2" size="md">
+              Selected accounts
+            </Heading>
+            {accounts.map((account) => (
+              <Flex align="center" gap="2" key={account.id}>
+                <input
+                  type="checkbox"
+                  checked={selectedAccounts.includes(account)}
+                  onChange={(evnt) => {
+                    const isChecked = evnt.target.checked;
+                    let newSelectedAccounts = selectedAccounts;
+                    if (isChecked) {
+                      newSelectedAccounts = [...selectedAccounts, account];
+                    } else {
+                      newSelectedAccounts = selectedAccounts.filter(
+                        (selectedAccount) => selectedAccount !== account,
+                      );
+                    }
+                    setSelectedAccounts(
+                      Array.from(new Set(newSelectedAccounts)),
+                    );
+                    informSnapAboutSelectedAccounts(newSelectedAccounts);
+                  }}
+                  id={`account-checkbox-${account.id}`}
+                />
+                <label htmlFor={`account-checkbox-${account.id}`}>
+                  {account.id}
+                </label>
+              </Flex>
+            ))}
+          </Flex>
         </Flex>
       </Card.Body>
     </Card.Root>

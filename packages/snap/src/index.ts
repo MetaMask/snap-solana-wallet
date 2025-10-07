@@ -47,7 +47,6 @@ import { eventHandlers as sendFormEvents } from './features/send/views/SendForm/
 import { eventHandlers as transactionConfirmationEvents } from './features/send/views/TransactionConfirmation/events';
 import { installPolyfills } from './polyfills';
 import snapContext, {
-  accountSelectedHandler,
   clientRequestHandler,
   eventEmitter,
   keyring,
@@ -305,20 +304,6 @@ export const onNameLookup: OnNameLookupHandler = async (request) => {
 export const onAssetsMarketData: OnAssetsMarketDataHandler = async (params) => {
   const result = await withCatchAndThrowSnapError(async () =>
     onAssetsMarketDataHandler(params),
-  );
-  return result ?? null;
-};
-
-export const onAccountSelected: any = async (params: any) => {
-  const result = await withCatchAndThrowSnapError(async () =>
-    accountSelectedHandler.handleOnAccountSelected(params.request),
-  );
-  return result ?? null;
-};
-
-export const onAccountUnselected: any = async (params: any) => {
-  const result = await withCatchAndThrowSnapError(async () =>
-    accountSelectedHandler.handleOnAccountUnselected(params.request),
   );
   return result ?? null;
 };

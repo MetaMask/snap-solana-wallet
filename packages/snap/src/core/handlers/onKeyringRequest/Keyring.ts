@@ -29,7 +29,7 @@ import {
   SnapError,
   UserRejectedRequestError,
 } from '@metamask/snaps-sdk';
-import { assert, integer } from '@metamask/superstruct';
+import { array, assert, integer } from '@metamask/superstruct';
 import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
@@ -40,7 +40,11 @@ import {
   type SolanaKeyringAccount,
 } from '../../../entities';
 import { Network, SolanaCaip19Tokens } from '../../constants/solana';
-import type { AssetsService, TransactionsService } from '../../services';
+import type {
+  AssetsService,
+  KeyringAccountMonitor,
+  TransactionsService,
+} from '../../services';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import type { IStateManager } from '../../services/state/IStateManager';
@@ -63,6 +67,7 @@ import {
   ListAccountAssetsStruct,
   ListAccountTransactionsStruct,
   NetworkStruct,
+  UuidStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
 import { ScheduleBackgroundEventMethod } from '../onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
@@ -86,6 +91,8 @@ export class SolanaKeyring implements Keyring {
 
   readonly #nameResolutionService: NameResolutionService;
 
+  readonly #keyringAccountMonitor: KeyringAccountMonitor;
+
   readonly #traceName: string = 'Create Solana Account';
 
   constructor({
@@ -96,6 +103,7 @@ export class SolanaKeyring implements Keyring {
     walletService,
     confirmationHandler,
     nameResolutionService,
+    keyringAccountMonitor,
   }: {
     state: IStateManager<UnencryptedStateValue>;
     logger: ILogger;
@@ -104,6 +112,7 @@ export class SolanaKeyring implements Keyring {
     walletService: WalletService;
     confirmationHandler: ConfirmationHandler;
     nameResolutionService: NameResolutionService;
+    keyringAccountMonitor: KeyringAccountMonitor;
   }) {
     this.#state = state;
     this.#logger = createPrefixedLogger(logger, '[🔑 Keyring]');
@@ -112,6 +121,7 @@ export class SolanaKeyring implements Keyring {
     this.#walletService = walletService;
     this.#confirmationHandler = confirmationHandler;
     this.#nameResolutionService = nameResolutionService;
+    this.#keyringAccountMonitor = keyringAccountMonitor;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -725,5 +735,15 @@ export class SolanaKeyring implements Keyring {
       this.#logger.error({ error }, 'Error discovering accounts');
       throw error;
     }
+  }
+
+  /**
+   * Endpoint that the client can use to inform the snap that certain accounts are selected.
+   * @param accountIds - The ids of the accounts to set as selected.
+   */
+  async setSelectedAccounts(accountIds: string[]): Promise<void> {
+    validateRequest(accountIds, array(UuidStruct));
+
+    await this.#keyringAccountMonitor.setMonitoredAccounts(accountIds);
   }
 }

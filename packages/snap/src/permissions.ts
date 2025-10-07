@@ -28,6 +28,7 @@ const dappPermissions = isDev
       KeyringRpcMethod.SubmitRequest,
       KeyringRpcMethod.ListAccountTransactions,
       KeyringRpcMethod.ListAccountAssets,
+      'keyring_setSelectedAccounts', // TODO: Replace with enum once supported
       // RPC methods
       RpcRequestMethod.StartSendTransactionFlow,
       RpcRequestMethod.GetFeeForTransaction,
@@ -43,8 +44,7 @@ const dappPermissions = isDev
       TestDappRpcRequestMethod.TestOnInstall,
       TestDappRpcRequestMethod.TestOnUpdate,
       TestDappRpcRequestMethod.SynchronizeAccounts,
-      TestDappRpcRequestMethod.OnAccountSelected,
-      TestDappRpcRequestMethod.OnAccountUnselected,
+      TestDappRpcRequestMethod.SetAccountSelected,
     ])
   : new Set([]);
 

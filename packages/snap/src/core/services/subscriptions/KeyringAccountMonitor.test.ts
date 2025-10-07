@@ -2,7 +2,6 @@
 
 import { TransactionType, type Transaction } from '@metamask/keyring-api';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
-import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
 import type { Address } from '@solana/kit';
 import { signature } from '@solana/kit';
 
@@ -41,13 +40,14 @@ describe('KeyringAccountMonitor', () => {
   let programNotificationHandlers: ProgramNotificationHandler[] = [];
 
   const createAccountSubscribeSubscription = (
-    network: Network = Network.Mainnet,
+    address: string,
+    network: Network,
   ): ConfirmedSubscription => ({
     id: 'some-subscription-id',
     status: 'confirmed',
     method: 'accountSubscribe',
     network,
-    params: [account.address, { commitment: 'confirmed' as const }],
+    params: [address, { commitment: 'confirmed' as const }],
     rpcSubscriptionId: 1,
     requestId: 'some-request-id',
     createdAt: '2024-01-01T00:00:00.000Z',
@@ -55,8 +55,9 @@ describe('KeyringAccountMonitor', () => {
   });
 
   const createProgramSubscribeSubscription = (
+    address: string,
     programAddress: Address,
-    network: Network = Network.Mainnet,
+    network: Network,
   ): ConfirmedSubscription => ({
     id: 'some-subscription-id',
     status: 'confirmed',
@@ -71,7 +72,7 @@ describe('KeyringAccountMonitor', () => {
           {
             memcmp: {
               offset: 32,
-              bytes: account.address,
+              bytes: address,
               encoding: 'base58',
             },
           },
@@ -179,121 +180,121 @@ describe('KeyringAccountMonitor', () => {
     });
   });
 
-  describe('monitorKeyringAccount', () => {
-    beforeEach(() => {
-      jest.spyOn(mockAccountService, 'getAll').mockResolvedValue([account]);
-    });
+  describe('setMonitoredAccounts', () => {
+    const account0 = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
+    const account1 = MOCK_SOLANA_KEYRING_ACCOUNTS[1];
+    const account2 = MOCK_SOLANA_KEYRING_ACCOUNTS[2];
+    const accounts = [account0, account1, account2];
 
-    it('monitors the account native and token assets', async () => {
-      // Setup 2 active networks
+    beforeEach(() => {
+      // Setup 1 active network for simplicity
       jest
         .spyOn(mockConfigProvider, 'getActiveNetworks')
-        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
+        .mockResolvedValue([Network.Mainnet]);
 
-      await keyringAccountMonitor.monitorKeyringAccount(account);
+      jest.spyOn(mockAccountService, 'getAll').mockResolvedValue(accounts);
+    });
 
-      /**
-       * To monitor the account, we expect 3 calls per network:
-       * - 1 call to monitor the native asset
-       * - 2 calls to monitor each of the token programs
-       * We have 2 networks, 2 * 3 = 6 calls in total
-       */
+    it('starts monitoring the passed accounts that are not currently monitored', async () => {
+      // No account currently monitored
+      jest.spyOn(mockSubscriptionService, 'getAll').mockResolvedValue([]);
+
+      await keyringAccountMonitor.setMonitoredAccounts([
+        account0.id,
+        account1.id,
+      ]);
+
+      // It should start monitoring account2 and account3 because they are in the requested list and were not currently monitored
       expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(6);
     });
 
-    it('respects account scopes when monitoring multiple networks', async () => {
-      const accountWithLimitedScopes = {
-        ...account,
-        scopes: [Network.Mainnet], // Only mainnet, not devnet
-      };
-
-      jest
-        .spyOn(mockConfigProvider, 'getActiveNetworks')
-        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
-
-      await keyringAccountMonitor.monitorKeyringAccount(
-        accountWithLimitedScopes,
+    it('does not start monitoring the passed accounts that are currently monitored', async () => {
+      // account0 is currently monitored = we have a subscription for it
+      const mockSubscriptionAccount0 = createAccountSubscribeSubscription(
+        account0.address,
+        Network.Mainnet,
       );
-
-      // Should only monitor mainnet (1 native asset), not devnet
-      expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(3);
-    });
-
-    it("does not monitor an account on an active network that is not in the account's scopes", async () => {
-      // Setup 1 active network
       jest
-        .spyOn(mockConfigProvider, 'getActiveNetworks')
-        .mockResolvedValue([Network.Mainnet]);
+        .spyOn(mockSubscriptionService, 'getAll')
+        .mockResolvedValue([mockSubscriptionAccount0]);
 
-      const accountWithDifferentScopes = {
-        ...account,
-        scopes: [Network.Devnet],
-      };
+      await keyringAccountMonitor.setMonitoredAccounts([account0.id]);
 
-      await keyringAccountMonitor.monitorKeyringAccount(
-        accountWithDifferentScopes,
-      );
-
+      // It should not start monitoring account0 because it is already monitored
       expect(mockSubscriptionService.subscribe).not.toHaveBeenCalled();
     });
 
-    it('does not monitor an account that is already monitored', async () => {
-      // Setup 1 active network
-      jest
-        .spyOn(mockConfigProvider, 'getActiveNetworks')
-        .mockResolvedValue([Network.Mainnet]);
-
-      // Try to monitor the account a first time
-      await keyringAccountMonitor.monitorKeyringAccount(account);
-      expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(3);
-
-      // As a consequence, we now have 3 subscriptions for the account
+    it('stops monitoring the accounts that are currently monitored, that are not in the passed list', async () => {
+      // account0 is currently monitored = we have a subscription for it
+      const mockSubscriptionAccount0 = createAccountSubscribeSubscription(
+        account0.address,
+        Network.Mainnet,
+      );
       jest
         .spyOn(mockSubscriptionService, 'getAll')
-        .mockResolvedValue([
-          createAccountSubscribeSubscription(),
-          createProgramSubscribeSubscription(TOKEN_PROGRAM_ADDRESS),
-          createProgramSubscribeSubscription(TOKEN_2022_PROGRAM_ADDRESS),
-        ]);
+        .mockResolvedValue([mockSubscriptionAccount0]);
 
-      // Try to monitor the same account a second time
-      await keyringAccountMonitor.monitorKeyringAccount(account);
+      await keyringAccountMonitor.setMonitoredAccounts([]);
 
-      expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(3);
+      // It should stop monitoring account0 because it was previously monitored, but is not the requested list
+      expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe('stopMonitorKeyringAccount', () => {
-    it('stops monitoring the account native and token assets on all active networks', async () => {
-      // Setup 2 active networks
+    it('does not stop monitoring accounts that are not currently monitored', async () => {
+      // No account currently monitored
+      jest.spyOn(mockSubscriptionService, 'getAll').mockResolvedValue([]);
+
+      await keyringAccountMonitor.setMonitoredAccounts([account1.id]);
+
+      // It should not stop monitoring any account
+      expect(mockSubscriptionService.unsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('does not stop monitoring accounts that are currently monitored and in the requested list', async () => {
+      // account0 is currently monitored
+      const mockSubscriptionAccount0 = createAccountSubscribeSubscription(
+        account0.address,
+        Network.Mainnet,
+      );
       jest
-        .spyOn(mockConfigProvider, 'getActiveNetworks')
-        .mockResolvedValue([Network.Mainnet, Network.Devnet]);
+        .spyOn(mockSubscriptionService, 'getAll')
+        .mockResolvedValue([mockSubscriptionAccount0]);
 
-      await keyringAccountMonitor.monitorKeyringAccount(account);
+      await keyringAccountMonitor.setMonitoredAccounts([account0.id]);
 
-      // As a consequence, we now have 6 subscriptions for the account (3 for each network)
+      // It should not stop monitoring account0 because it's in both current and requested lists
+      expect(mockSubscriptionService.unsubscribe).not.toHaveBeenCalled();
+      expect(mockSubscriptionService.subscribe).not.toHaveBeenCalled();
+    });
+
+    it('mixed case', async () => {
+      // account0 and account1 are currently monitored = we have subscriptions for them
+      const mockSubscriptionAccount0 = createAccountSubscribeSubscription(
+        account0.address,
+        Network.Mainnet,
+      );
+      const mockSubscriptionAccount1 = createProgramSubscribeSubscription(
+        account1.address,
+        TOKEN_PROGRAM_ADDRESS,
+        Network.Mainnet,
+      );
       jest
         .spyOn(mockSubscriptionService, 'getAll')
         .mockResolvedValue([
-          createAccountSubscribeSubscription(),
-          createProgramSubscribeSubscription(TOKEN_PROGRAM_ADDRESS),
-          createProgramSubscribeSubscription(TOKEN_2022_PROGRAM_ADDRESS),
-          createAccountSubscribeSubscription(Network.Devnet),
-          createProgramSubscribeSubscription(
-            TOKEN_PROGRAM_ADDRESS,
-            Network.Devnet,
-          ),
-          createProgramSubscribeSubscription(
-            TOKEN_2022_PROGRAM_ADDRESS,
-            Network.Devnet,
-          ),
+          mockSubscriptionAccount0,
+          mockSubscriptionAccount1,
         ]);
 
-      await keyringAccountMonitor.stopMonitorKeyringAccount(account);
+      await keyringAccountMonitor.setMonitoredAccounts([
+        account1.id,
+        account2.id,
+      ]);
 
-      // Account has 2 networks, 2 * 3 = 6 calls in total
-      expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledTimes(6);
+      // It should stop monitoring account0 because it was previously monitored, but is not the requested list
+      expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledTimes(1);
+
+      // It should start monitoring account2 because it is in the requested list and is not currently monitored
+      expect(mockSubscriptionService.subscribe).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -311,6 +312,8 @@ describe('KeyringAccountMonitor', () => {
       jest
         .spyOn(mockConfigProvider, 'getActiveNetworks')
         .mockResolvedValue([Network.Mainnet]);
+
+      jest.spyOn(mockAccountService, 'getAll').mockResolvedValue([account]);
 
       jest
         .spyOn(mockTransactionsService, 'fetchLatestSignatures')
@@ -353,7 +356,7 @@ describe('KeyringAccountMonitor', () => {
       } as unknown as Subscription;
 
       it('saves the new balance of the native asset', async () => {
-        await keyringAccountMonitor.monitorKeyringAccount(account);
+        await keyringAccountMonitor.setMonitoredAccounts([account.id]);
 
         // Send the notification by manually calling the handler
         const handler = accountNotificationHandlers[0]!;
@@ -376,7 +379,7 @@ describe('KeyringAccountMonitor', () => {
       });
 
       it('fetches and saves the transaction that caused the native asset balance to change', async () => {
-        await keyringAccountMonitor.monitorKeyringAccount(account);
+        await keyringAccountMonitor.setMonitoredAccounts([account.id]);
 
         // Send the notification by manually calling the handler
         const handler = accountNotificationHandlers[0]!;
@@ -407,7 +410,7 @@ describe('KeyringAccountMonitor', () => {
           .spyOn(mockTransactionsService, 'fetchBySignature')
           .mockResolvedValue(mockSpamTransaction);
 
-        await keyringAccountMonitor.monitorKeyringAccount(account);
+        await keyringAccountMonitor.setMonitoredAccounts([account.id]);
 
         // Send the notification by manually calling the handler
         const handler = accountNotificationHandlers[0]!;
@@ -437,7 +440,7 @@ describe('KeyringAccountMonitor', () => {
           },
         };
 
-        await keyringAccountMonitor.monitorKeyringAccount(account);
+        await keyringAccountMonitor.setMonitoredAccounts([account.id]);
 
         const handler = accountNotificationHandlers[0]!;
         await expect(
@@ -501,7 +504,7 @@ describe('KeyringAccountMonitor', () => {
       });
 
       it('saves the new balance of the token asset and the transaction that caused it', async () => {
-        await keyringAccountMonitor.monitorKeyringAccount(account);
+        await keyringAccountMonitor.setMonitoredAccounts([account.id]);
 
         const handler = programNotificationHandlers[0]!;
         await handler(mockNotification, mockSubscription);
@@ -523,7 +526,7 @@ describe('KeyringAccountMonitor', () => {
       });
 
       it('fetches and saves the transaction that caused the token asset to change', async () => {
-        await keyringAccountMonitor.monitorKeyringAccount(account);
+        await keyringAccountMonitor.setMonitoredAccounts([account.id]);
 
         const handler = programNotificationHandlers[0]!;
         await handler(mockNotification, mockSubscription);
@@ -575,7 +578,7 @@ describe('KeyringAccountMonitor', () => {
           },
         };
 
-        await keyringAccountMonitor.monitorKeyringAccount(account);
+        await keyringAccountMonitor.setMonitoredAccounts([account.id]);
         const handler = programNotificationHandlers[0]!;
 
         await expect(
@@ -626,7 +629,7 @@ describe('KeyringAccountMonitor', () => {
           },
         };
 
-        await keyringAccountMonitor.monitorKeyringAccount(account);
+        await keyringAccountMonitor.setMonitoredAccounts([account.id]);
         const handler = programNotificationHandlers[0]!;
 
         await expect(
@@ -642,7 +645,7 @@ describe('KeyringAccountMonitor', () => {
             .spyOn(mockTransactionsService, 'fetchLatestSignatures')
             .mockResolvedValue([]);
 
-          await keyringAccountMonitor.monitorKeyringAccount(account);
+          await keyringAccountMonitor.setMonitoredAccounts([account.id]);
           const handler = programNotificationHandlers[0]!;
 
           await expect(
@@ -657,7 +660,7 @@ describe('KeyringAccountMonitor', () => {
             .spyOn(mockTransactionsService, 'fetchBySignature')
             .mockResolvedValue(null);
 
-          await keyringAccountMonitor.monitorKeyringAccount(account);
+          await keyringAccountMonitor.setMonitoredAccounts([account.id]);
           const handler = programNotificationHandlers[0]!;
 
           await expect(
@@ -666,6 +669,42 @@ describe('KeyringAccountMonitor', () => {
           expect(mockTransactionsService.save).not.toHaveBeenCalled();
         });
       });
+    });
+  });
+
+  describe('connection recovery', () => {
+    const account0 = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
+    const account1 = MOCK_SOLANA_KEYRING_ACCOUNTS[1];
+    const accounts = [account0, account1];
+
+    beforeEach(() => {
+      jest
+        .spyOn(mockConfigProvider, 'getActiveNetworks')
+        .mockResolvedValue([Network.Mainnet]);
+
+      // Setup 2 accounts
+      jest.spyOn(mockAccountService, 'getAll').mockResolvedValue(accounts);
+
+      // These accounts are currently monitored
+      jest
+        .spyOn(mockSubscriptionService, 'getAll')
+        .mockResolvedValue([
+          createAccountSubscribeSubscription(account0.address, Network.Mainnet),
+          createAccountSubscribeSubscription(account1.address, Network.Mainnet),
+        ]);
+    });
+
+    it('syncs all monitored accounts', async () => {
+      const syncSpy = jest.spyOn(mockAccountsSynchronizer, 'synchronize');
+
+      // Simulate connection recovery
+      const recoveryHandler = (
+        mockSubscriptionService.registerConnectionRecoveryHandler as jest.Mock
+      ).mock.calls[0][1];
+      await recoveryHandler(Network.Mainnet);
+
+      expect(syncSpy).toHaveBeenCalledTimes(1);
+      expect(syncSpy).toHaveBeenCalledWith(accounts);
     });
   });
 });

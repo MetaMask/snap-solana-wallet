@@ -5,7 +5,7 @@ import { NftApiClient } from './core/clients/nft-api/NftApiClient';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenApiClient } from './core/clients/token-api-client/TokenApiClient';
-import { AccountSelectedHandler, ClientRequestHandler } from './core/handlers';
+import { ClientRequestHandler } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
@@ -67,7 +67,6 @@ export type SnapExecutionContext = {
   cache: ICache<Serializable>;
   nftService: NftService;
   clientRequestHandler: ClientRequestHandler;
-  accountSelectedHandler: AccountSelectedHandler;
   webSocketConnectionService: WebSocketConnectionService;
   subscriptionService: SubscriptionService;
   eventEmitter: EventEmitter;
@@ -217,6 +216,7 @@ const keyring = new SolanaKeyring({
   walletService,
   confirmationHandler,
   nameResolutionService,
+  keyringAccountMonitor,
 });
 
 const nftService = new NftService(connection, logger);
@@ -236,12 +236,6 @@ const clientRequestHandler = new ClientRequestHandler(
   walletService,
   logger,
   sendService,
-);
-
-const accountSelectedHandler = new AccountSelectedHandler(
-  accountsService,
-  keyringAccountMonitor,
-  logger,
 );
 
 const snapContext: SnapExecutionContext = {
@@ -264,7 +258,6 @@ const snapContext: SnapExecutionContext = {
   confirmationHandler,
   nftService,
   clientRequestHandler,
-  accountSelectedHandler,
   webSocketConnectionService,
   subscriptionService,
   eventEmitter,
@@ -275,7 +268,6 @@ const snapContext: SnapExecutionContext = {
 };
 
 export {
-  accountSelectedHandler,
   accountsService,
   accountsSynchronizer,
   analyticsService,

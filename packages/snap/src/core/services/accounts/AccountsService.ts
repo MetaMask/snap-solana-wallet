@@ -12,10 +12,26 @@ export class AccountsService {
     return this.#accountsRepository.getAll();
   }
 
-  async getSelected(): Promise<SolanaKeyringAccount | null> {
-    // TODO: Implement this
+  async getAllSelected(): Promise<SolanaKeyringAccount[]> {
+    // TODO: Stub implementation. Replace with code commented out below once snap_manageAccounts is supported.
     const allAccounts = await this.#accountsRepository.getAll();
-    return allAccounts[0] ?? null;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return [allAccounts[0]!];
+
+    // TODO: Uncomment this once snap_manageAccounts is supported.
+    // const [allAccounts, selectedAccountIds] = await Promise.all([
+    //   this.#accountsRepository.getAll(),
+    //   snap.request({
+    //     method: 'snap_manageAccounts',
+    //     params: {
+    //       operation: 'getSelectedAccounts',
+    //     },
+    //   }),
+    // ]);
+
+    // return allAccounts.filter((account) =>
+    //   (selectedAccountIds as string[]).includes(account.id),
+    // );
   }
 
   async findById(id: string): Promise<SolanaKeyringAccount | null> {

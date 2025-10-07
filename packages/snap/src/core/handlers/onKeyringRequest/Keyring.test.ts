@@ -2,13 +2,21 @@
 /* eslint-disable jest/prefer-strict-equal */
 import type { KeyringRequest } from '@metamask/keyring-api';
 import { SolMethod } from '@metamask/keyring-api';
-import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
+import {
+  InvalidParamsError,
+  type CaipAssetType,
+  type JsonRpcRequest,
+} from '@metamask/snaps-sdk';
 import { signature } from '@solana/kit';
 
 import type { AssetEntity } from '../../../entities';
 import { asStrictKeyringAccount } from '../../../entities';
 import { KnownCaip19Id, Network } from '../../constants/solana';
-import type { AssetsService, TransactionsService } from '../../services';
+import type {
+  AssetsService,
+  KeyringAccountMonitor,
+  TransactionsService,
+} from '../../services';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import { InMemoryState } from '../../services/state/InMemoryState';
@@ -76,6 +84,7 @@ describe('SolanaKeyring', () => {
   let mockConfirmationHandler: ConfirmationHandler;
   let mockTransactionsService: jest.Mocked<TransactionsService>;
   let mockNameResolutionService: NameResolutionService;
+  let mockKeyringAccountMonitor: KeyringAccountMonitor;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -121,6 +130,10 @@ describe('SolanaKeyring', () => {
       resolveAddress: jest.fn(),
     } as unknown as NameResolutionService;
 
+    mockKeyringAccountMonitor = {
+      setMonitoredAccounts: jest.fn(),
+    } as unknown as KeyringAccountMonitor;
+
     keyring = new SolanaKeyring({
       state: mockState,
       logger,
@@ -129,6 +142,7 @@ describe('SolanaKeyring', () => {
       walletService: mockWalletService,
       confirmationHandler: mockConfirmationHandler,
       nameResolutionService: mockNameResolutionService,
+      keyringAccountMonitor: mockKeyringAccountMonitor,
     });
   });
 
@@ -978,6 +992,28 @@ describe('SolanaKeyring', () => {
       expect(
         mockTransactionsService.fetchLatestSignatures,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setSelectedAccounts', () => {
+    it('sets the monitored accounts', async () => {
+      const accountIds = MOCK_SOLANA_KEYRING_ACCOUNTS.map(
+        (account) => account.id,
+      );
+      await keyring.setSelectedAccounts(accountIds);
+
+      expect(
+        mockKeyringAccountMonitor.setMonitoredAccounts,
+      ).toHaveBeenCalledWith(accountIds);
+    });
+
+    it('rejects if an account id is not valid', async () => {
+      await expect(
+        keyring.setSelectedAccounts([
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          'not-a-uuid',
+        ]),
+      ).rejects.toThrow(InvalidParamsError);
     });
   });
 });

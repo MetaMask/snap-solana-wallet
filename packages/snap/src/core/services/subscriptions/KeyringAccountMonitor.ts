@@ -107,97 +107,129 @@ export class KeyringAccountMonitor {
   }
 
   /**
-   * Monitors the native and token assets for a single account across all active networks.
-   * @param account - The account to monitor the assets for.
+   * Sets the monitored accounts. It will:
+   * - stop monitoring accounts currently monitored that are not in the list.
+   * - and start monitoring accounts that are in the list that are not currently monitored.
+   * @param accountIds - The ids of the accounts to set as monitored.
    */
-  async monitorKeyringAccount(account: SolanaKeyringAccount): Promise<void> {
+  async setMonitoredAccounts(accountIds: string[]): Promise<void> {
+    this.#logger.info('Setting monitored accounts', accountIds);
+
+    const [allAccounts, allSubscriptions, activeNetworks] = await Promise.all([
+      this.#accountService.getAll(),
+      this.#subscriptionService.getAll(),
+      this.#configProvider.getActiveNetworks(),
+    ]);
+
+    const currentlyMonitoredAccounts = allAccounts.filter((account) =>
+      allSubscriptions.some(
+        (subscription) =>
+          account.address === get(subscription, 'params[0]') ||
+          account.address ===
+            get(subscription, 'params[1].filters[0].memcmp.bytes'),
+      ),
+    );
+
+    // Stop monitoring the currently monitored accounts...
+    const accountsToStopMonitoring = currentlyMonitoredAccounts
+      // ...that are not in the passed list
+      .filter((account) => !accountIds.includes(account.id));
+
+    // Start monitoring accounts...
+    const accountsToStartMonitoring = allAccounts
+      // ...from the passed list
+      .filter((account) => accountIds.includes(account.id))
+      // ...that are not currently monitored
+      .filter((account) => !currentlyMonitoredAccounts.includes(account));
+
+    await Promise.allSettled([
+      this.#stopMonitorKeyringAccounts(
+        accountsToStopMonitoring,
+        allSubscriptions,
+      ),
+      this.#startMonitorKeyringAccounts(
+        accountsToStartMonitoring,
+        activeNetworks,
+      ),
+    ]);
+  }
+
+  /**
+   * Batch monitors the native and token assets for a single account across all active networks.
+   * @param accounts - The accounts to monitor the assets for.
+   * @param networks - The networks to monitor the assets for.
+   */
+  async #startMonitorKeyringAccounts(
+    accounts: SolanaKeyringAccount[],
+    networks: Network[],
+  ): Promise<void> {
     try {
-      this.#logger.log('Monitoring keyring account', account);
+      this.#logger.log('Monitoring keyring accounts', accounts);
 
-      const activeNetworks = await this.#configProvider.getActiveNetworks();
+      // Perform a full sync of the accounts
+      const synchronizePromise =
+        this.#accountsSynchronizer.synchronize(accounts);
 
-      // Skip if the account is already monitored
-      const monitoredAccounts = await this.#getMonitoredAccounts();
-      const isMonitored = monitoredAccounts.some(
-        (monitoredAccount) => monitoredAccount.address === account.address,
-      );
-      if (isMonitored) {
-        this.#logger.info('Account is already monitored', account);
-        return;
-      }
+      const promises = accounts.flatMap((account) => {
+        const shouldMonitorOnNetwork = (network: Network) =>
+          account.scopes.includes(network);
 
-      // Perform a full sync of the account
-      const synchronizePromise = this.#accountsSynchronizer.synchronize([
-        account,
-      ]);
-
-      const shouldMonitorOnNetwork = (network: Network) =>
-        account.scopes.includes(network);
-
-      // Monitor native assets
-      const nativeAssetsPromises = activeNetworks
-        .filter(shouldMonitorOnNetwork)
-        .map(async (network) =>
-          this.#monitorAccountNativeAsset(account, network),
-        );
-
-      // Monitor token assets
-      const tokenProgramPromises = activeNetworks
-        .filter(shouldMonitorOnNetwork)
-        .map(async (network) => {
-          await Promise.all(
-            this.#tokenProgramsAddresses.map(async (tokenProgramAddress) =>
-              this.#monitorProgramByOwner(
-                account,
-                tokenProgramAddress,
-                network,
-              ),
-            ),
+        // Monitor native assets
+        const nativeAssetsPromises = networks
+          .filter(shouldMonitorOnNetwork)
+          .map(async (network) =>
+            this.#monitorAccountNativeAsset(account, network),
           );
-        });
 
-      await Promise.allSettled([
-        ...tokenProgramPromises,
-        ...nativeAssetsPromises,
-        synchronizePromise,
-      ]);
+        // Monitor token assets
+        const tokenProgramPromises = networks
+          .filter(shouldMonitorOnNetwork)
+          .map(async (network) => {
+            await Promise.all(
+              this.#tokenProgramsAddresses.map(async (tokenProgramAddress) =>
+                this.#monitorProgramByOwner(
+                  account,
+                  tokenProgramAddress,
+                  network,
+                ),
+              ),
+            );
+          });
+
+        return [...nativeAssetsPromises, ...tokenProgramPromises];
+      });
+
+      await Promise.allSettled([...promises, synchronizePromise]);
     } catch (error) {
       this.#logger.error('Error monitoring keyring account', error);
-      await this.stopMonitorKeyringAccount(account);
       throw error;
     }
   }
 
   /**
-   * Stops monitoring all assets for a single account across all active networks.
-   * @param account - The account to monitor the assets for.
+   * Batch stops monitoring the passed accounts.
+   * @param accounts - The accounts to stop monitoring.
+   * @param subscriptions - The subscriptions to stop monitoring.
    */
-  async stopMonitorKeyringAccount(
-    account: SolanaKeyringAccount,
+  async #stopMonitorKeyringAccounts(
+    accounts: SolanaKeyringAccount[],
+    subscriptions: Subscription[],
   ): Promise<void> {
-    this.#logger.log('Stopping to monitor all assets of account', account);
+    this.#logger.log('Stopping to monitor accounts', accounts);
 
-    const { address } = account;
+    const addresses = accounts.map((account) => account.address);
 
-    const allSubscriptions = await this.#subscriptionService.getAll();
-
-    // Find all 'accountSubscribe' and 'programSubscribe' subscriptions for this account
-    const accountSubscribeSubscriptions = allSubscriptions.filter(
-      (subscription) =>
-        subscription.method === 'accountSubscribe' &&
-        get(subscription, 'params[0]') === address,
-    );
-
-    const programSubscribeSubscriptions = allSubscriptions.filter(
-      (subscription) =>
-        subscription.method === 'programSubscribe' &&
-        get(subscription, 'params[1].filters[0].memcmp.bytes') === address,
-    );
-
-    const subscriptionsToUnsubscribe = [
-      ...accountSubscribeSubscriptions,
-      ...programSubscribeSubscriptions,
-    ];
+    const subscriptionsToUnsubscribe = subscriptions
+      // Only keep the "accountSubscribe" and "programSubscribe" subscriptions
+      .filter(
+        (subscription) =>
+          KeyringAccountMonitor.#isAccountSubscribeSubscription(subscription) ||
+          KeyringAccountMonitor.#isProgramSubscribeSubscription(subscription),
+      )
+      // Only keep the subscriptions for the passed accounts
+      .filter((subscription) =>
+        addresses.includes(KeyringAccountMonitor.#extractAddress(subscription)),
+      );
 
     // Unsubscribe from them all
     await Promise.allSettled(
@@ -441,7 +473,29 @@ export class KeyringAccountMonitor {
   async #handleConnectionRecovery(network: Network): Promise<void> {
     this.#logger.info('Handling connection recovery', { network });
 
-    const monitoredAccounts = await this.#getMonitoredAccounts();
+    const [allAccounts, allSubscriptions] = await Promise.all([
+      this.#accountService.getAll(),
+      this.#subscriptionService.getAll(),
+    ]);
+
+    // Find all 'accountSubscribe' and 'programSubscribe' subscriptions
+    const relevantSubscriptions = allSubscriptions.filter(
+      (subscription) =>
+        KeyringAccountMonitor.#isAccountSubscribeSubscription(subscription) ||
+        KeyringAccountMonitor.#isProgramSubscribeSubscription(subscription),
+    );
+
+    // Map the addresses
+    const monitoredAccountsAddresses = uniq(
+      relevantSubscriptions.map((subscription) =>
+        KeyringAccountMonitor.#extractAddress(subscription),
+      ),
+    );
+
+    // Find the matching accounts
+    const monitoredAccounts = allAccounts.filter((account) =>
+      monitoredAccountsAddresses.includes(account.address),
+    );
 
     if (!monitoredAccounts.length) {
       this.#logger.info(
@@ -453,45 +507,21 @@ export class KeyringAccountMonitor {
     await this.#accountsSynchronizer.synchronize(monitoredAccounts);
   }
 
-  /**
-   * Lookup the stored subscriptions to find the accounts that are currently being monitored.
-   * @returns The accounts that are currently being monitored.
-   */
-  async #getMonitoredAccounts(): Promise<SolanaKeyringAccount[]> {
-    const subscriptions = await this.#subscriptionService.getAll();
+  static #isAccountSubscribeSubscription(subscription: Subscription): boolean {
+    return subscription.method === 'accountSubscribe';
+  }
 
-    // Get the 'accountSubscribe' subscriptions
-    const accountSubscribeSubscriptions = subscriptions.filter(
-      (subscription) => subscription.method === 'accountSubscribe',
-    );
-    // Map the account addresses
-    const accountSubscribeAddresses = accountSubscribeSubscriptions.map(
-      (subscription) => get(subscription, 'params[0]'),
-    );
+  static #isProgramSubscribeSubscription(subscription: Subscription): boolean {
+    return subscription.method === 'programSubscribe';
+  }
 
-    // Get the 'programSubscribe' subscriptions
-    const programSubscribeSubscriptions = subscriptions.filter(
-      (subscription) => subscription.method === 'programSubscribe',
-    );
-    // Map the program addresses
-    const programSubscribeAddresses = programSubscribeSubscriptions.map(
-      (subscription) => get(subscription, 'params[1].filters[0].memcmp.bytes'),
-    );
-
-    // Merge addresses and dedupe
-    const monitoredAccountAddresses = uniq([
-      ...accountSubscribeAddresses,
-      ...programSubscribeAddresses,
-    ]);
-
-    if (!monitoredAccountAddresses.length) {
-      return [];
+  static #extractAddress(subscription: Subscription): string {
+    if (this.#isAccountSubscribeSubscription(subscription)) {
+      return get(subscription, 'params[0]') as string;
     }
-
-    // Map the complete accounts
-    const monitoredAccounts = await this.#accountService.getAll();
-    return monitoredAccounts.filter((account) =>
-      monitoredAccountAddresses.includes(account.address),
-    );
+    if (this.#isProgramSubscribeSubscription(subscription)) {
+      return get(subscription, 'params[1].filters[0].memcmp.bytes') as string;
+    }
+    throw new Error('Invalid subscription');
   }
 }
