@@ -210,6 +210,9 @@ export class SubscriptionService {
     const { id, network, method } = subscription;
     const unsubscribeMethod = subscribeMethodToUnsubscribeMethod[method];
 
+    // Delete the subscription from the repository.
+    await this.#subscriptionRepository.delete(id);
+
     // If the subscription was active, we need to unsubscribe from the RPC
     if (subscription.status === 'confirmed') {
       const connection = await this.#connectionService.findByNetwork(network);
@@ -221,9 +224,6 @@ export class SubscriptionService {
           method: unsubscribeMethod,
           params: [subscription.rpcSubscriptionId],
         });
-
-        // Delete the subscription from the repository.
-        await this.#subscriptionRepository.delete(id);
       }
     }
   }
