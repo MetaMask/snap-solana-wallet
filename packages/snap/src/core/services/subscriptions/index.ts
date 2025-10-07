@@ -1,4 +1,5 @@
 export * from './KeyringAccountMonitor';
+export * from './MonitoredAccountsInitializer';
 export * from './SignatureMonitor';
 export * from './SubscriptionRepository';
 export * from './SubscriptionService';

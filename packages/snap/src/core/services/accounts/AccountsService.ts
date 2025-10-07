@@ -14,9 +14,7 @@ export class AccountsService {
 
   async getAllSelected(): Promise<SolanaKeyringAccount[]> {
     // TODO: Stub implementation. Replace with code commented out below once snap_manageAccounts is supported.
-    const allAccounts = await this.#accountsRepository.getAll();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return [allAccounts[0]!];
+    return [];
 
     // TODO: Uncomment this once snap_manageAccounts is supported.
     // const [allAccounts, selectedAccountIds] = await Promise.all([

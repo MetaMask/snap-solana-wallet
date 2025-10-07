@@ -19,6 +19,9 @@ export const Accounts = () => {
     const fetchAndSetAccounts = async () => {
       const accountsToSet = (await invokeKeyring({
         method: KeyringRpcMethod.ListAccounts,
+      }).catch((error) => {
+        console.error('Error fetching accounts', error);
+        return [];
       })) as KeyringAccount[];
       setAccounts(accountsToSet);
     };

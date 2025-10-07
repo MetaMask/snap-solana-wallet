@@ -15,6 +15,7 @@ import {
   AssetsRepository,
   AssetsService,
   KeyringAccountMonitor,
+  MonitoredAccountsInitializer,
   SignatureMonitor,
   Signer,
   SubscriptionRepository,
@@ -198,6 +199,13 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
   accountsSynchronizer,
   tokenHelper,
   configProvider,
+  logger,
+);
+
+const monitoredAccountsInitializer = new MonitoredAccountsInitializer(
+  accountsService,
+  keyringAccountMonitor,
+  eventEmitter,
   logger,
 );
 
