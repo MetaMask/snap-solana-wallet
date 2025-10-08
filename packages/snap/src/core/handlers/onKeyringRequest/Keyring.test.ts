@@ -18,7 +18,6 @@ import type {
   TransactionsService,
 } from '../../services';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
-import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import { InMemoryState } from '../../services/state/InMemoryState';
 import type { IStateManager } from '../../services/state/IStateManager';
 import {
@@ -83,7 +82,6 @@ describe('SolanaKeyring', () => {
   let mockConfirmationHandler: ConfirmationHandler;
   let mockTransactionsService: jest.Mocked<TransactionsService>;
   let mockKeyringAccountMonitor: KeyringAccountMonitor;
-  let mockNameResolutionService: NameResolutionService;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -129,10 +127,6 @@ describe('SolanaKeyring', () => {
       setMonitoredAccounts: jest.fn(),
     } as unknown as KeyringAccountMonitor;
 
-    mockNameResolutionService = {
-      resolveAddress: jest.fn(),
-    } as unknown as NameResolutionService;
-
     keyring = new SolanaKeyring({
       state: mockState,
       logger,
@@ -141,7 +135,6 @@ describe('SolanaKeyring', () => {
       walletService: mockWalletService,
       confirmationHandler: mockConfirmationHandler,
       keyringAccountMonitor: mockKeyringAccountMonitor,
-      nameResolutionService: mockNameResolutionService,
     });
   });
 
@@ -297,17 +290,14 @@ describe('SolanaKeyring', () => {
 
         expect(accountIndex0).toStrictEqual({
           ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
-          domain: null,
           id: firstAccount.id,
         });
         expect(accountIndex1).toStrictEqual({
           ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
-          domain: null,
           id: secondAccount.id,
         });
         expect(accountIndex2).toStrictEqual({
           ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
-          domain: null,
           id: thirdAccount.id,
         });
       });
@@ -386,22 +376,18 @@ describe('SolanaKeyring', () => {
         expect(accountIndex0).toStrictEqual({
           ...MOCK_SOLANA_KEYRING_ACCOUNT_0,
           id: firstAccount.id,
-          domain: null,
         });
         expect(accountIndex2).toStrictEqual({
           ...MOCK_SOLANA_KEYRING_ACCOUNT_2,
           id: thirdAccount.id,
-          domain: null,
         });
         expect(accountIndex4).toStrictEqual({
           ...MOCK_SOLANA_KEYRING_ACCOUNT_4,
           id: fifthAccount.id,
-          domain: null,
         });
         expect(accountIndex6).toStrictEqual({
           ...MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1,
           id: seventhAccount.id,
-          domain: null,
         });
 
         /**
@@ -410,17 +396,14 @@ describe('SolanaKeyring', () => {
         expect(accountIndex1).toStrictEqual({
           ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
           id: regeneratedSecondAccount.id,
-          domain: null,
         });
         expect(accountIndex3).toStrictEqual({
           ...MOCK_SOLANA_KEYRING_ACCOUNT_3,
           id: regeneratedFourthAccount.id,
-          domain: null,
         });
         expect(accountIndex5).toStrictEqual({
           ...MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_0,
           id: regeneratedSixthAccount.id,
-          domain: null,
         });
       });
     });
@@ -473,7 +456,6 @@ describe('SolanaKeyring', () => {
         const expectedStateAccount = {
           ...MOCK_SOLANA_KEYRING_ACCOUNT_1,
           id: expect.any(String),
-          domain: null,
         };
 
         expect(account).toBeDefined();

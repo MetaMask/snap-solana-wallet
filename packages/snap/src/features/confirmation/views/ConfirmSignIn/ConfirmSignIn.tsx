@@ -41,6 +41,7 @@ export type ConfirmSignInProps = {
   }>;
   origin: string;
   account: SolanaKeyringAccount;
+  accountDomain: string | null;
   scope: Network;
   preferences: Preferences;
   networkImage: string | null;
@@ -50,6 +51,7 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
   params,
   origin,
   account,
+  accountDomain,
   scope,
   preferences,
   networkImage,
@@ -132,9 +134,9 @@ export const ConfirmSignIn: SnapComponent<ConfirmSignInProps> = ({
             }
             variant={isBadAccount ? 'warning' : 'default'}
           >
-            {account.domain ? (
+            {accountDomain ? (
               <Domain
-                domain={account.domain}
+                domain={accountDomain}
                 scope={scope}
                 address={account.address}
               />

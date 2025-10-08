@@ -26,6 +26,7 @@ import { ConfirmSignMessageFormNames } from './events';
 export type ConfirmSignMessageProps = {
   message: string;
   account: SolanaKeyringAccount;
+  accountDomain: string | null;
   scope: Network;
   locale: Locale;
   networkImage: string | null;
@@ -35,6 +36,7 @@ export type ConfirmSignMessageProps = {
 export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
   message,
   account,
+  accountDomain,
   scope,
   locale,
   networkImage,
@@ -84,8 +86,8 @@ export const ConfirmSignMessage: SnapComponent<ConfirmSignMessageProps> = ({
             <Text fontWeight="medium" color="alternative">
               {translate('confirmation.account')}
             </Text>
-            {account.domain ? (
-              <Domain domain={account.domain} scope={scope} address={address} />
+            {accountDomain ? (
+              <Domain domain={accountDomain} scope={scope} address={address} />
             ) : (
               <Address address={addressCaip10} truncate displayName avatar />
             )}

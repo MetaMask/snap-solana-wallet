@@ -39,14 +39,14 @@ import {
   asStrictKeyringAccount,
   type SolanaKeyringAccount,
 } from '../../../entities';
-import { Network, SolanaCaip19Tokens } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
+import { SolanaCaip19Tokens } from '../../constants/solana';
 import type {
   AssetsService,
   KeyringAccountMonitor,
   TransactionsService,
 } from '../../services';
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
-import type { NameResolutionService } from '../../services/name-resolution/NameResolutionService';
 import type { IStateManager } from '../../services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../services/state/State';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
@@ -90,8 +90,6 @@ export class SolanaKeyring implements Keyring {
 
   readonly #keyringAccountMonitor: KeyringAccountMonitor;
 
-  readonly #nameResolutionService: NameResolutionService;
-
   readonly #traceName: string = 'Create Solana Account';
 
   constructor({
@@ -102,7 +100,6 @@ export class SolanaKeyring implements Keyring {
     walletService,
     confirmationHandler,
     keyringAccountMonitor,
-    nameResolutionService,
   }: {
     state: IStateManager<UnencryptedStateValue>;
     logger: ILogger;
@@ -111,7 +108,6 @@ export class SolanaKeyring implements Keyring {
     walletService: WalletService;
     confirmationHandler: ConfirmationHandler;
     keyringAccountMonitor: KeyringAccountMonitor;
-    nameResolutionService: NameResolutionService;
   }) {
     this.#state = state;
     this.#logger = createPrefixedLogger(logger, '[🔑 Keyring]');
@@ -120,7 +116,6 @@ export class SolanaKeyring implements Keyring {
     this.#walletService = walletService;
     this.#confirmationHandler = confirmationHandler;
     this.#keyringAccountMonitor = keyringAccountMonitor;
-    this.#nameResolutionService = nameResolutionService;
   }
 
   async listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -146,13 +141,6 @@ export class SolanaKeyring implements Keyring {
       const account = await this.#state.getKey<SolanaKeyringAccount>(
         `keyringAccounts.${accountId}`,
       );
-
-      if (account) {
-        account.domain = await this.#nameResolutionService.resolveAddress(
-          Network.Mainnet,
-          account.address,
-        );
-      }
 
       return account;
     } catch (error: any) {
@@ -279,7 +267,6 @@ export class SolanaKeyring implements Keyring {
         index,
         type: SolAccountType.DataAccount,
         address: accountAddress,
-        domain: null,
         scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
         options: {
           ...remainingOptions,
