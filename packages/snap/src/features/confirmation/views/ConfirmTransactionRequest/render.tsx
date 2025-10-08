@@ -15,6 +15,7 @@ import logger from '../../../../core/utils/logger';
 import { extractInstructionsFromUnknownBase64String } from '../../../../entities';
 import {
   connection,
+  nameResolutionService,
   priceApiClient,
   state,
   transactionScanService,
@@ -27,6 +28,7 @@ export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmTransactionRequestContext = {
   scope: Network.Mainnet,
   networkImage: SOL_IMAGE_SVG,
   account: null,
+  accountDomain: null,
   transaction: '',
   scan: null,
   scanFetchStatus: 'fetching',
@@ -90,7 +92,22 @@ export async function render(
       context.advanced.instructions = [];
     });
 
-  await Promise.all([preferencesPromise, instructionsPromise]);
+  const accountDomainPromise = context.account?.address
+    ? nameResolutionService
+        .resolveAddress(context.scope, context.account.address)
+        .then((domain) => {
+          context.accountDomain = domain;
+        })
+    : Promise.resolve().then(() => {
+        context.accountDomain = null;
+      });
+
+  await Promise.all([
+    preferencesPromise,
+    instructionsPromise,
+    accountDomainPromise,
+  ]);
+
   const {
     currency,
     useExternalPricingData,

@@ -74,6 +74,7 @@ describe('render', () => {
       <ConfirmSignIn
         params={request.request.params as ConfirmSignInProps['params']}
         account={MOCK_SOLANA_KEYRING_ACCOUNT_0}
+        accountDomain={null}
         scope={Network.Testnet}
         preferences={mockPreferences}
         networkImage={SOL_IMAGE_SVG}

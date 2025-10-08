@@ -9,6 +9,7 @@ import {
   showDialog,
 } from '../../../../core/utils/interface';
 import type { SolanaKeyringAccount } from '../../../../entities';
+import { nameResolutionService } from '../../../../snapContext';
 import type { ConfirmSignInProps } from './ConfirmSignIn';
 import { ConfirmSignIn } from './ConfirmSignIn';
 
@@ -31,12 +32,16 @@ export async function render(
     origin,
   } = request;
 
-  const preferences = await getPreferences();
+  const [preferences, accountDomain] = await Promise.all([
+    getPreferences(),
+    nameResolutionService.resolveAddress(scope, account.address),
+  ]);
 
   const id = await createInterface(
     <ConfirmSignIn
       params={params as ConfirmSignInProps['params']}
       account={account}
+      accountDomain={accountDomain}
       scope={scope}
       preferences={preferences}
       networkImage={SOL_IMAGE_SVG}

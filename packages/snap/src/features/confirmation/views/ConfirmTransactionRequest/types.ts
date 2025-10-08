@@ -14,6 +14,7 @@ export type ConfirmTransactionRequestContext = {
   scope: Network;
   networkImage: string | null;
   account: SolanaKeyringAccount | null;
+  accountDomain: string | null;
   preferences: Preferences;
   transaction: string;
   feeEstimatedInSol: string | null;

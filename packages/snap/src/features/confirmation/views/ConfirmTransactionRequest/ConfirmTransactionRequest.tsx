@@ -57,6 +57,7 @@ export const ConfirmTransactionRequest = ({
         ) : null}
         <TransactionDetails
           accountAddress={context.account?.address ?? null}
+          accountDomain={context.accountDomain ?? null}
           scope={context.scope}
           feeInSol={feeInSol}
           nativePrice={nativePrice}
