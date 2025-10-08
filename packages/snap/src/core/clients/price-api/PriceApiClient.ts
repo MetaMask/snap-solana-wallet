@@ -66,6 +66,19 @@ export class PriceApiClient {
   }
 
   async getFiatExchangeRates(): Promise<Record<FiatTicker, ExchangeRate>> {
+    return useCache(
+      this.#getFiatExchangeRates_INTERNAL.bind(this),
+      this.#cache,
+      {
+        functionName: 'PriceApiClient:getFiatExchangeRates',
+        ttlMilliseconds: this.cacheTtlsMilliseconds.fiatExchangeRates,
+      },
+    )();
+  }
+
+  async #getFiatExchangeRates_INTERNAL(): Promise<
+    Record<FiatTicker, ExchangeRate>
+  > {
     try {
       const response = await this.#fetch(
         `${this.#baseUrl}/v1/exchange-rates/fiat`,

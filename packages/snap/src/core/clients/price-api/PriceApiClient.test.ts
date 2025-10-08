@@ -60,6 +60,22 @@ describe('PriceApiClient', () => {
       );
       expect(result).toStrictEqual(MOCK_EXCHANGE_RATES);
     });
+
+    it('caches the fiat exchange rates', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce(MOCK_EXCHANGE_RATES),
+      });
+
+      // Call a first time. It populates the cache
+      await client.getFiatExchangeRates();
+
+      // Call a second time. It should use the cache
+      await client.getFiatExchangeRates();
+
+      // Fetch should only be called once
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('getMultipleSpotPrices', () => {
