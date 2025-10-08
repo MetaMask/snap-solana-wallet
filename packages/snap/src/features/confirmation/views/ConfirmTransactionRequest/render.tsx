@@ -94,7 +94,7 @@ export async function render(
 
   const accountDomainPromise = context.account?.address
     ? nameResolutionService
-        .resolveAddress(context.scope, context.account?.address ?? '')
+        .resolveAddress(context.scope, context.account.address)
         .then((domain) => {
           context.accountDomain = domain;
         })
