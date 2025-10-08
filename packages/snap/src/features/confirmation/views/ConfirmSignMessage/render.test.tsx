@@ -71,6 +71,7 @@ describe('render', () => {
       <ConfirmSignMessage
         message={'Hello, world!'}
         account={MOCK_SOLANA_KEYRING_ACCOUNT_0}
+        accountDomain={null}
         scope={Network.Testnet}
         locale={'en'}
         networkImage={SOL_IMAGE_SVG}
