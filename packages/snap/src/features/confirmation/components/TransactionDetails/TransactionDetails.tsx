@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from '@metamask/snaps-sdk/jsx';
 
+import { Domain } from '../../../../core/components/Domain/Domain';
 import type { Network } from '../../../../core/constants/solana';
 import { Networks } from '../../../../core/constants/solana';
 import type { FetchStatus, Preferences } from '../../../../core/types/snap';
@@ -22,6 +23,7 @@ import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 
 type TransactionDetailsProps = {
   accountAddress: string | null;
+  accountDomain: string | null;
   scope: Network;
   feeInSol: string | null;
   nativePrice: number | null;
@@ -34,6 +36,7 @@ type TransactionDetailsProps = {
 export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   origin,
   accountAddress,
+  accountDomain,
   scope,
   feeInSol,
   nativePrice,
@@ -75,6 +78,20 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
         <Text fontWeight="medium" color="alternative">
           {translate('confirmation.account')}
         </Text>
+        {accountDomain && accountAddress ? (
+          <Domain
+            domain={accountDomain}
+            scope={scope}
+            address={accountAddress}
+          />
+        ) : (
+          <Address
+            address={addressToCaip10(scope, accountAddress as string)}
+            truncate
+            displayName
+            avatar
+          />
+        )}
         <Address
           address={addressToCaip10(scope, accountAddress as string)}
           truncate
