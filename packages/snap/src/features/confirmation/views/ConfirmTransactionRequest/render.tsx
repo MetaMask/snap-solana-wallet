@@ -98,7 +98,9 @@ export async function render(
         .then((domain) => {
           context.accountDomain = domain;
         })
-    : Promise.resolve(null);
+    : Promise.resolve().then(() => {
+        context.accountDomain = null;
+      });
 
   await Promise.all([
     preferencesPromise,
