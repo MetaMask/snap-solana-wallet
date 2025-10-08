@@ -127,10 +127,6 @@ describe('SolanaKeyring', () => {
       stopMonitorKeyringAccount: jest.fn(),
     } as unknown as KeyringAccountMonitor;
 
-    mockNameResolutionService = {
-      resolveAddress: jest.fn(),
-    } as unknown as NameResolutionService;
-
     keyring = new SolanaKeyring({
       state: mockState,
       logger,
@@ -139,7 +135,6 @@ describe('SolanaKeyring', () => {
       walletService: mockWalletService,
       confirmationHandler: mockConfirmationHandler,
       keyringAccountMonitor: mockKeyringAccountMonitor,
-      nameResolutionService: mockNameResolutionService,
     });
   });
 
