@@ -70,7 +70,6 @@ import {
   UuidStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
-import { ScheduleBackgroundEventMethod } from '../onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import {
   DiscoverAccountsRequestStruct,
   SolanaKeyringRequestStruct,
@@ -331,18 +330,6 @@ export class SolanaKeyring implements Keyring {
               metamask: metamaskOptions,
             }
           : {}),
-      });
-
-      // Schedule a background event to fetch the account's assets and transactions
-      await snap.request({
-        method: 'snap_scheduleBackgroundEvent',
-        params: {
-          duration: 'PT1S',
-          request: {
-            method: ScheduleBackgroundEventMethod.OnSyncAccount,
-            params: { accountId: id },
-          },
-        },
       });
 
       await endTrace(this.#traceName);

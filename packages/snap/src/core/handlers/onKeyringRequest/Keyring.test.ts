@@ -49,7 +49,6 @@ import {
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
-import { ScheduleBackgroundEventMethod } from '../onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { SolanaKeyring } from './Keyring';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
@@ -551,21 +550,6 @@ describe('SolanaKeyring', () => {
 
         expect(account).toEqual(asStrictKeyringAccount(existingAccount));
         expect(stateUpdateSpy).not.toHaveBeenCalled();
-      });
-
-      it('schedules a background event to sync the account', async () => {
-        await keyring.createAccount();
-
-        expect(snap.request).toHaveBeenCalledWith(
-          expect.objectContaining({
-            method: 'snap_scheduleBackgroundEvent',
-            params: expect.objectContaining({
-              request: expect.objectContaining({
-                method: ScheduleBackgroundEventMethod.OnSyncAccount,
-              }),
-            }),
-          }),
-        );
       });
     });
 
