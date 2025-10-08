@@ -92,11 +92,13 @@ export async function render(
       context.advanced.instructions = [];
     });
 
-  const accountDomainPromise = nameResolutionService
-    .resolveAddress(context.scope, context.account?.address ?? '')
-    .then((domain) => {
-      context.accountDomain = domain;
-    });
+  const accountDomainPromise = context.account?.address
+    ? nameResolutionService
+        .resolveAddress(context.scope, context.account?.address ?? '')
+        .then((domain) => {
+          context.accountDomain = domain;
+        })
+    : Promise.resolve(null);
 
   await Promise.all([
     preferencesPromise,
