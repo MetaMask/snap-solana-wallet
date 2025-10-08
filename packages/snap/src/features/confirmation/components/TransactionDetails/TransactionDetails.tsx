@@ -92,12 +92,6 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
             avatar
           />
         )}
-        <Address
-          address={addressToCaip10(scope, accountAddress as string)}
-          truncate
-          displayName
-          avatar
-        />
       </Box>
       <Box>{null}</Box>
       <Box alignment="space-between" direction="horizontal">
