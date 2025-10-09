@@ -11,9 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
-- Only subscribe to selected accounts ([#543](https://github.com/MetaMask/snap-solana-wallet/pull/543))
-- Cache fiat calls ([#545](https://github.com/MetaMask/snap-solana-wallet/pull/545))
-- On demand sns domain lookup ([#544](https://github.com/MetaMask/snap-solana-wallet/pull/544))
+### Changed
+
+- Optimize account subscriptions to only monitor selected accounts ([#543](https://github.com/MetaMask/snap-solana-wallet/pull/543))
+- Skip full account sync after account creation for improved performance ([#543](https://github.com/MetaMask/snap-solana-wallet/pull/543))
+- Add caching for PriceAPI exchange rate requests ([#545](https://github.com/MetaMask/snap-solana-wallet/pull/545))
+- Implement on-demand SNS domain resolution in confirmation screens ([#544](https://github.com/MetaMask/snap-solana-wallet/pull/544))
 
 ## [2.4.2]
 
