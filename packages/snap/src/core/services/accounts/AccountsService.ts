@@ -21,7 +21,7 @@ export class AccountsService {
     ]);
 
     return allAccounts.filter((account) =>
-      (selectedAccountIds as string[]).includes(account.id),
+      selectedAccountIds.includes(account.id),
     );
   }
 
