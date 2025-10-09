@@ -1,3 +1,5 @@
+import { getSelectedAccounts } from '@metamask/keyring-snap-sdk';
+
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { AccountsRepository } from './AccountsRepository';
 
@@ -13,24 +15,14 @@ export class AccountsService {
   }
 
   async getAllSelected(): Promise<SolanaKeyringAccount[]> {
-    // TODO: Stub implementation. Replace with code commented out below once snap_manageAccounts is supported.
-    const allAccounts = await this.#accountsRepository.getAll();
-    return allAccounts.slice(0, 1);
+    const [allAccounts, selectedAccountIds] = await Promise.all([
+      this.#accountsRepository.getAll(),
+      getSelectedAccounts(snap),
+    ]);
 
-    // TODO: Uncomment this once snap_manageAccounts is supported.
-    // const [allAccounts, selectedAccountIds] = await Promise.all([
-    //   this.#accountsRepository.getAll(),
-    //   snap.request({
-    //     method: 'snap_manageAccounts',
-    //     params: {
-    //       operation: 'getSelectedAccounts',
-    //     },
-    //   }),
-    // ]);
-
-    // return allAccounts.filter((account) =>
-    //   (selectedAccountIds as string[]).includes(account.id),
-    // );
+    return allAccounts.filter((account) =>
+      (selectedAccountIds as string[]).includes(account.id),
+    );
   }
 
   async findById(id: string): Promise<SolanaKeyringAccount | null> {

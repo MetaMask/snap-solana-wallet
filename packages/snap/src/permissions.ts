@@ -28,7 +28,7 @@ const dappPermissions = isDev
       KeyringRpcMethod.SubmitRequest,
       KeyringRpcMethod.ListAccountTransactions,
       KeyringRpcMethod.ListAccountAssets,
-      'keyring_setSelectedAccounts', // TODO: Replace with enum once supported
+      KeyringRpcMethod.SetSelectedAccounts,
       // RPC methods
       RpcRequestMethod.StartSendTransactionFlow,
       RpcRequestMethod.GetFeeForTransaction,
@@ -60,6 +60,7 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.ListAccountTransactions,
   KeyringRpcMethod.ListAccountAssets,
   KeyringRpcMethod.ResolveAccountAddress,
+  KeyringRpcMethod.SetSelectedAccounts,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
   RpcRequestMethod.GetFeeForTransaction,
