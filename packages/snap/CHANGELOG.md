@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.3]
+
+### Uncategorized
+
+### Changed
+
+- Optimize account subscriptions to only monitor selected accounts ([#543](https://github.com/MetaMask/snap-solana-wallet/pull/543))
+- Skip full account sync after account creation for improved performance ([#543](https://github.com/MetaMask/snap-solana-wallet/pull/543))
+- Add caching for PriceAPI exchange rate requests ([#545](https://github.com/MetaMask/snap-solana-wallet/pull/545))
+- Implement on-demand SNS domain resolution in confirmation screens ([#544](https://github.com/MetaMask/snap-solana-wallet/pull/544))
+
 ## [2.4.2]
 
 ### Changed
@@ -951,7 +962,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.2...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.3...HEAD
+[2.4.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.2...v2.4.3
 [2.4.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.1...v2.4.2
 [2.4.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.3.11...v2.4.0
