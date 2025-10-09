@@ -11,12 +11,12 @@ import type {
   Subscription,
   SubscriptionConfirmation,
   SubscriptionRequest,
+  UnsubscriptionConfirmation,
 } from '../../../entities';
 import { subscribeMethodToUnsubscribeMethod } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
-import type { ConfigProvider } from '../config';
 import { SUPPORTED_NETWORKS } from '../config/ConfigProvider';
 import { parseWebSocketMessage } from './parseWebSocketMessage';
 import type { SubscriptionRepository } from './SubscriptionRepository';
@@ -37,8 +37,6 @@ export class SubscriptionService {
 
   readonly #subscriptionRepository: SubscriptionRepository;
 
-  readonly #configProvider: ConfigProvider;
-
   readonly #eventEmitter: EventEmitter;
 
   readonly #logger: ILogger;
@@ -49,13 +47,11 @@ export class SubscriptionService {
   constructor(
     connectionService: WebSocketConnectionService,
     subscriptionRepository: SubscriptionRepository,
-    configProvider: ConfigProvider,
     eventEmitter: EventEmitter,
     logger: ILogger,
   ) {
     this.#connectionService = connectionService;
     this.#subscriptionRepository = subscriptionRepository;
-    this.#configProvider = configProvider;
     this.#eventEmitter = eventEmitter;
     this.#logger = createPrefixedLogger(logger, '[🔔 SubscriptionService]');
 
@@ -212,8 +208,10 @@ export class SubscriptionService {
     }
 
     const { id, network, method } = subscription;
-
     const unsubscribeMethod = subscribeMethodToUnsubscribeMethod[method];
+
+    // Delete the subscription from the repository.
+    await this.#subscriptionRepository.delete(id);
 
     // If the subscription was active, we need to unsubscribe from the RPC
     if (subscription.status === 'confirmed') {
@@ -228,9 +226,6 @@ export class SubscriptionService {
         });
       }
     }
-
-    // Delete the subscription from the repository.
-    await this.#subscriptionRepository.delete(id);
   }
 
   async getAll(): Promise<Subscription[]> {
@@ -264,6 +259,8 @@ export class SubscriptionService {
         // Handle subscription confirmations/errors
         if (this.#isSubscriptionConfirmation(parsedMessage)) {
           await this.#handleSubscriptionConfirmation(parsedMessage);
+        } else if (this.#isUnsubscriptionConfirmation(parsedMessage)) {
+          await this.#handleUnsubscriptionConfirmation(parsedMessage);
         } else if (isJsonRpcFailure(parsedMessage)) {
           await this.#handleFailure(parsedMessage);
         } else {
@@ -343,7 +340,24 @@ export class SubscriptionService {
       'jsonrpc' in message &&
       message.jsonrpc === '2.0' &&
       'id' in message &&
-      'result' in message
+      'result' in message &&
+      typeof message.result === 'number'
+    );
+  }
+
+  /**
+   * Checks if the message is a unsubscription confirmation.
+   * @param message - The message to check.
+   * @returns True if the message is a unsubscription confirmation, false otherwise.
+   */
+  #isUnsubscriptionConfirmation(
+    message: any,
+  ): message is UnsubscriptionConfirmation {
+    return (
+      'jsonrpc' in message &&
+      'id' in message &&
+      'result' in message &&
+      message.result === true
     );
   }
 
@@ -363,13 +377,6 @@ export class SubscriptionService {
       return;
     }
 
-    if (subscription.status === 'confirmed') {
-      this.#logger.warn(
-        `Received subscription confirmation, but the subscription is already confirmed for request ID: ${requestId}.`,
-      );
-      return;
-    }
-
     await this.#subscriptionRepository.update({
       ...subscription,
       status: 'confirmed',
@@ -380,6 +387,12 @@ export class SubscriptionService {
     this.#logger.info(
       `Subscription confirmed: request ID: ${requestId} -> RPC ID: ${rpcSubscriptionId}`,
     );
+  }
+
+  async #handleUnsubscriptionConfirmation(
+    message: UnsubscriptionConfirmation,
+  ): Promise<void> {
+    this.#logger.info(`Received unsubscription confirmation`, message);
   }
 
   /**

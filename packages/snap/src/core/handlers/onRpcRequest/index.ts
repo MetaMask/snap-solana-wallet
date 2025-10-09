@@ -1,7 +1,12 @@
+import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 
 import { renderSend } from '../../../features/send/render';
-import { accountsSynchronizer, eventEmitter } from '../../../snapContext';
+import {
+  accountsSynchronizer,
+  eventEmitter,
+  keyring,
+} from '../../../snapContext';
 import { getFeeForTransaction } from './getFeeForTransaction';
 import { RpcRequestMethod, TestDappRpcRequestMethod } from './types';
 
@@ -33,6 +38,14 @@ export const handlers: Record<RpcRequestMethod, OnRpcRequestHandler> = {
   },
   [TestDappRpcRequestMethod.SynchronizeAccounts as any]: async () => {
     await accountsSynchronizer.synchronize();
+    return null;
+  },
+  [TestDappRpcRequestMethod.SetAccountSelected as any]: async ({
+    request,
+  }: {
+    request: JsonRpcRequest;
+  }) => {
+    await keyring.setSelectedAccounts((request as any).params.accountIds);
     return null;
   },
 };

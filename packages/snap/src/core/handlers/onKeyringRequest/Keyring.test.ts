@@ -2,7 +2,11 @@
 /* eslint-disable jest/prefer-strict-equal */
 import type { KeyringRequest } from '@metamask/keyring-api';
 import { SolMethod } from '@metamask/keyring-api';
-import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
+import {
+  InvalidParamsError,
+  type CaipAssetType,
+  type JsonRpcRequest,
+} from '@metamask/snaps-sdk';
 import { signature } from '@solana/kit';
 
 import type { AssetEntity } from '../../../entities';
@@ -44,7 +48,6 @@ import {
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
-import { ScheduleBackgroundEventMethod } from '../onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import { SolanaKeyring } from './Keyring';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
@@ -121,8 +124,7 @@ describe('SolanaKeyring', () => {
     } as unknown as jest.Mocked<TransactionsService>;
 
     mockKeyringAccountMonitor = {
-      monitorKeyringAccount: jest.fn(),
-      stopMonitorKeyringAccount: jest.fn(),
+      setMonitoredAccounts: jest.fn(),
     } as unknown as KeyringAccountMonitor;
 
     keyring = new SolanaKeyring({
@@ -531,21 +533,6 @@ describe('SolanaKeyring', () => {
         expect(account).toEqual(asStrictKeyringAccount(existingAccount));
         expect(stateUpdateSpy).not.toHaveBeenCalled();
       });
-
-      it('schedules a background event to sync the account', async () => {
-        await keyring.createAccount();
-
-        expect(snap.request).toHaveBeenCalledWith(
-          expect.objectContaining({
-            method: 'snap_scheduleBackgroundEvent',
-            params: expect.objectContaining({
-              request: expect.objectContaining({
-                method: ScheduleBackgroundEventMethod.OnSyncAccount,
-              }),
-            }),
-          }),
-        );
-      });
     });
 
     describe('when an account name suggestion is provided', () => {
@@ -561,18 +548,6 @@ describe('SolanaKeyring', () => {
           account,
         });
       });
-    });
-
-    it('monitors the account assets', async () => {
-      await keyring.createAccount();
-
-      expect(
-        mockKeyringAccountMonitor.monitorKeyringAccount,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: expect.any(String),
-        }),
-      );
     });
 
     it('throws when deriving address fails', async () => {
@@ -609,14 +584,6 @@ describe('SolanaKeyring', () => {
         MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
       );
       expect(accountAfterDeletion).toBeUndefined();
-    });
-
-    it('stops monitoring the account assets', async () => {
-      await keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id);
-
-      expect(
-        mockKeyringAccountMonitor.stopMonitorKeyringAccount,
-      ).toHaveBeenCalledWith(MOCK_SOLANA_KEYRING_ACCOUNT_1);
     });
 
     it('throws an error if account provided is not a uuid', async () => {
@@ -991,6 +958,28 @@ describe('SolanaKeyring', () => {
       expect(
         mockTransactionsService.fetchLatestSignatures,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setSelectedAccounts', () => {
+    it('sets the monitored accounts', async () => {
+      const accountIds = MOCK_SOLANA_KEYRING_ACCOUNTS.map(
+        (account) => account.id,
+      );
+      await keyring.setSelectedAccounts(accountIds);
+
+      expect(
+        mockKeyringAccountMonitor.setMonitoredAccounts,
+      ).toHaveBeenCalledWith(accountIds);
+    });
+
+    it('rejects if an account id is not valid', async () => {
+      await expect(
+        keyring.setSelectedAccounts([
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          'not-a-uuid',
+        ]),
+      ).rejects.toThrow(InvalidParamsError);
     });
   });
 });

@@ -11,8 +11,6 @@ import type {
 } from '../../../entities';
 import { EventEmitter } from '../../../infrastructure';
 import { Network } from '../../constants/solana';
-import type { AnalyticsService } from '../analytics/AnalyticsService';
-import type { ConfigProvider } from '../config';
 import { mockLogger } from '../mocks/logger';
 import type { SubscriptionRepository } from './SubscriptionRepository';
 import { SubscriptionService } from './SubscriptionService';
@@ -42,6 +40,17 @@ const createMockConfirmationMessage = (
       id,
       result: rpcSubscriptionId,
     }),
+  },
+});
+
+const createMockUnsubscriptionConfirmationMessage = (
+  id: string = globalThis.crypto.randomUUID(),
+) => ({
+  type: 'message',
+  id,
+  data: {
+    type: 'text',
+    message: JSON.stringify({ jsonrpc: '2.0', id, result: true }),
   },
 });
 
@@ -119,9 +128,7 @@ describe('SubscriptionService', () => {
   let service: SubscriptionService;
   let mockWebSocketConnectionService: WebSocketConnectionService;
   let mockSubscriptionRepository: SubscriptionRepository;
-  let mockConfigProvider: ConfigProvider;
   let mockEventEmitter: EventEmitter;
-  let mockAnalyticsService: AnalyticsService;
   const connectionRecoveryHandlers: Map<Network, ConnectionRecoveryHandler[]> =
     new Map();
 
@@ -167,22 +174,11 @@ describe('SubscriptionService', () => {
       findBy: jest.fn(),
     } as unknown as SubscriptionRepository;
 
-    mockConfigProvider = {
-      getActiveNetworks: jest
-        .fn()
-        .mockReturnValue([Network.Mainnet, Network.Devnet]),
-    } as unknown as ConfigProvider;
-
     mockEventEmitter = new EventEmitter(mockLogger);
-
-    mockAnalyticsService = {
-      trackInactiveWebSocketMessage: jest.fn(),
-    } as unknown as AnalyticsService;
 
     service = new SubscriptionService(
       mockWebSocketConnectionService,
       mockSubscriptionRepository,
-      mockConfigProvider,
       mockEventEmitter,
       mockLogger,
     );
@@ -387,6 +383,30 @@ describe('SubscriptionService', () => {
           message: expect.stringContaining('"method":"accountUnsubscribe"'),
         },
       });
+    });
+
+    it('deletes immediately the subscription from the repository', async () => {
+      const mockSubscriptionId = 'some-subscription-id';
+      const mockConfirmedSubscription: ConfirmedSubscription = {
+        ...createMockSubscriptionRequest(),
+        id: mockSubscriptionId,
+        status: 'confirmed',
+        requestId: mockSubscriptionId,
+        rpcSubscriptionId: 98765,
+        createdAt: '2024-01-01T00:00:00.000Z',
+        confirmedAt: '2024-01-02T00:00:00.000Z',
+      };
+      jest
+        .spyOn(mockSubscriptionRepository, 'getById')
+        .mockResolvedValue(mockConfirmedSubscription);
+
+      // Unsubscribe
+      await service.unsubscribe(mockSubscriptionId);
+
+      // Verify the subscription was deleted
+      expect(mockSubscriptionRepository.delete).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
     });
   });
 
@@ -603,6 +623,26 @@ describe('SubscriptionService', () => {
             confirmedSubscription,
           );
         });
+      });
+    });
+
+    describe('when the message is an unsubscription confirmation', () => {
+      it('does nothing since subscription was already deleted', async () => {
+        const message = createMockUnsubscriptionConfirmationMessage(
+          'some-rpc-unsubscription-id',
+        );
+        const mockSubscription: ConfirmedSubscription = {
+          id: 'some-subscription-id',
+          status: 'confirmed',
+        } as ConfirmedSubscription;
+        jest
+          .spyOn(mockSubscriptionRepository, 'findBy')
+          .mockResolvedValue(mockSubscription);
+
+        await mockEventEmitter.emitSync('onWebSocketEvent', message);
+
+        // Should not try to delete again
+        expect(mockSubscriptionRepository.delete).not.toHaveBeenCalled();
       });
     });
 

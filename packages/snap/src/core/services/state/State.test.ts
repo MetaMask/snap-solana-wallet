@@ -358,10 +358,12 @@ describe('State', () => {
       await state.deleteKey('users');
 
       expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_manageState',
+        method: 'snap_setState',
         params: {
-          operation: 'update',
-          newState: {},
+          key: 'users',
+          value: {
+            __type: 'undefined',
+          },
           encrypted: false,
         },
       });
@@ -371,19 +373,11 @@ describe('State', () => {
       await state.deleteKey('users[0].age');
 
       expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_manageState',
+        method: 'snap_setState',
         params: {
-          operation: 'update',
-          newState: {
-            users: [
-              {
-                name: 'John',
-              },
-              {
-                name: 'Jane',
-                age: 25,
-              },
-            ],
+          key: 'users[0].age',
+          value: {
+            __type: 'undefined',
           },
           encrypted: false,
         },

@@ -14,4 +14,5 @@ export enum TestDappRpcRequestMethod {
   TestOnInstall = 'testOnInstall',
   TestOnUpdate = 'testOnUpdate',
   SynchronizeAccounts = 'synchronizeAccounts',
+  SetAccountSelected = 'setAccountSelected',
 }

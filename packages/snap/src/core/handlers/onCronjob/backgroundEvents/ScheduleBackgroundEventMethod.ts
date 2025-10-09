@@ -5,8 +5,6 @@ export enum ScheduleBackgroundEventMethod {
   OnTransactionApproved = 'onTransactionApproved',
   /** Triggered when a transaction is rejected */
   OnTransactionRejected = 'onTransactionRejected',
-  /** Use it to schedule a background event to asynchronously fetch the assets and transactions of an account */
-  OnSyncAccount = 'onSyncAccount',
   /** Use it to schedule a background event to refresh the send form */
   RefreshSend = 'refreshSend',
   /** Use it to schedule a background event to refresh the confirmation estimation */

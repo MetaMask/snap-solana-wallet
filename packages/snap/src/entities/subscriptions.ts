@@ -69,6 +69,16 @@ export type ConfirmedSubscription = Omit<PendingSubscription, 'status'> & {
 export type Subscription = PendingSubscription | ConfirmedSubscription;
 
 /**
+ * A message that we receive from the RPC WebSocket server after a subscription request,
+ * that confirms that the subscription was successfully established.
+ */
+export type UnsubscriptionConfirmation = {
+  jsonrpc: string;
+  id: string | number;
+  result: true;
+};
+
+/**
  * A message that we receive from the RPC WebSocket server after subscribing to
  * `accountSubscribe`, notifying us that the account has changed.
  */

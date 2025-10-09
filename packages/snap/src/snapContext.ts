@@ -5,7 +5,7 @@ import { NftApiClient } from './core/clients/nft-api/NftApiClient';
 import { PriceApiClient } from './core/clients/price-api/PriceApiClient';
 import { SecurityAlertsApiClient } from './core/clients/security-alerts-api/SecurityAlertsApiClient';
 import { TokenApiClient } from './core/clients/token-api-client/TokenApiClient';
-import { ClientRequestHandler } from './core/handlers/onClientRequest';
+import { ClientRequestHandler } from './core/handlers';
 import { SolanaKeyring } from './core/handlers/onKeyringRequest/Keyring';
 import type { Serializable } from './core/serialization/types';
 import {
@@ -15,6 +15,7 @@ import {
   AssetsRepository,
   AssetsService,
   KeyringAccountMonitor,
+  MonitoredAccountsInitializer,
   SignatureMonitor,
   Signer,
   SubscriptionRepository,
@@ -110,7 +111,6 @@ const subscriptionRepository = new SubscriptionRepository(state);
 const subscriptionService = new SubscriptionService(
   webSocketConnectionService,
   subscriptionRepository,
-  configProvider,
   eventEmitter,
   logger,
 );
@@ -199,6 +199,12 @@ const keyringAccountMonitor = new KeyringAccountMonitor(
   accountsSynchronizer,
   tokenHelper,
   configProvider,
+  logger,
+);
+
+const monitoredAccountsInitializer = new MonitoredAccountsInitializer(
+  accountsService,
+  keyringAccountMonitor,
   eventEmitter,
   logger,
 );

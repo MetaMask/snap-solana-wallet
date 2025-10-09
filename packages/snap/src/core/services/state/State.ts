@@ -155,11 +155,7 @@ export class State<TStateValue extends Record<string, Serializable>>
   }
 
   async deleteKey(key: string): Promise<void> {
-    await this.update((state) => {
-      // Using lodash's unset to leverage the json path capabilities
-      unset(state, key);
-      return state;
-    });
+    return this.setKey(key, undefined);
   }
 
   async deleteKeys(keys: string[]): Promise<void> {

@@ -29,7 +29,7 @@ import {
   SnapError,
   UserRejectedRequestError,
 } from '@metamask/snaps-sdk';
-import { assert, integer } from '@metamask/superstruct';
+import { array, assert, integer } from '@metamask/superstruct';
 import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
@@ -67,9 +67,9 @@ import {
   ListAccountAssetsStruct,
   ListAccountTransactionsStruct,
   NetworkStruct,
+  UuidStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
-import { ScheduleBackgroundEventMethod } from '../onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 import {
   DiscoverAccountsRequestStruct,
   SolanaKeyringRequestStruct,
@@ -291,11 +291,6 @@ export class SolanaKeyring implements Keyring {
         solanaKeyringAccount,
       );
 
-      // Start monitoring the account for updates on its assets
-      await this.#keyringAccountMonitor.monitorKeyringAccount(
-        solanaKeyringAccount,
-      );
-
       const keyringAccount: KeyringAccount =
         asStrictKeyringAccount(solanaKeyringAccount);
 
@@ -324,18 +319,6 @@ export class SolanaKeyring implements Keyring {
           : {}),
       });
 
-      // Schedule a background event to fetch the account's assets and transactions
-      await snap.request({
-        method: 'snap_scheduleBackgroundEvent',
-        params: {
-          duration: 'PT1S',
-          request: {
-            method: ScheduleBackgroundEventMethod.OnSyncAccount,
-            params: { accountId: id },
-          },
-        },
-      });
-
       await endTrace(this.#traceName);
 
       return keyringAccount;
@@ -359,15 +342,10 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, DeleteAccountStruct);
 
-      const account = await this.getAccountOrThrow(accountId);
-
       await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
 
       // If we successfully deleted the account on the extension, we can proceed with cleaning up
-      await Promise.allSettled([
-        this.#deleteAccountFromState(accountId),
-        this.#keyringAccountMonitor.stopMonitorKeyringAccount(account),
-      ]);
+      await this.#deleteAccountFromState(accountId);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
       throw error;
@@ -731,5 +709,15 @@ export class SolanaKeyring implements Keyring {
       this.#logger.error({ error }, 'Error discovering accounts');
       throw error;
     }
+  }
+
+  /**
+   * Endpoint that the client can use to inform the snap that certain accounts are selected.
+   * @param accountIds - The ids of the accounts to set as selected.
+   */
+  async setSelectedAccounts(accountIds: string[]): Promise<void> {
+    validateRequest(accountIds, array(UuidStruct));
+
+    await this.#keyringAccountMonitor.setMonitoredAccounts(accountIds);
   }
 }

@@ -28,6 +28,7 @@ const dappPermissions = isDev
       KeyringRpcMethod.SubmitRequest,
       KeyringRpcMethod.ListAccountTransactions,
       KeyringRpcMethod.ListAccountAssets,
+      KeyringRpcMethod.SetSelectedAccounts,
       // RPC methods
       RpcRequestMethod.StartSendTransactionFlow,
       RpcRequestMethod.GetFeeForTransaction,
@@ -43,6 +44,7 @@ const dappPermissions = isDev
       TestDappRpcRequestMethod.TestOnInstall,
       TestDappRpcRequestMethod.TestOnUpdate,
       TestDappRpcRequestMethod.SynchronizeAccounts,
+      TestDappRpcRequestMethod.SetAccountSelected,
     ])
   : new Set([]);
 
@@ -58,6 +60,7 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.ListAccountTransactions,
   KeyringRpcMethod.ListAccountAssets,
   KeyringRpcMethod.ResolveAccountAddress,
+  KeyringRpcMethod.SetSelectedAccounts,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
   RpcRequestMethod.GetFeeForTransaction,
