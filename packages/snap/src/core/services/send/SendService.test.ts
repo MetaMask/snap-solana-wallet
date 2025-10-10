@@ -2,15 +2,13 @@ import { SolMethod } from '@metamask/keyring-api';
 import { lamports } from '@solana/kit';
 
 import type { AssetEntity, SolanaKeyringAccount } from '../../../entities';
-import type { SendSolBuilder } from '../../../features/send/transactions/SendSolBuilder';
-import type { SendSplTokenBuilder } from '../../../features/send/transactions/SendSplTokenBuilder';
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
 import {
-  METAMASK_ORIGIN,
-  Networks,
-  Network,
   KnownCaip19Id,
+  METAMASK_ORIGIN,
+  Network,
+  Networks,
 } from '../../constants/solana';
 import { ClientRequestMethod } from '../../handlers/onClientRequest/types';
 import type { SolanaKeyring } from '../../handlers/onKeyringRequest/Keyring';
@@ -25,6 +23,8 @@ import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
 import { createMockConnection } from '../mocks/mockConnection';
 import { SendService } from './SendService';
+import type { SendSolBuilder } from './SendSolBuilder';
+import type { SendSplTokenBuilder } from './SendSplTokenBuilder';
 import {
   SendErrorCodes,
   type OnAddressInputRequest,

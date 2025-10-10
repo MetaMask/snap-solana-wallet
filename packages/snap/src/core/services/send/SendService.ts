@@ -5,13 +5,10 @@ import { Duration, parseCaipAssetType } from '@metamask/utils';
 import { address as asAddress, compileTransaction } from '@solana/kit';
 import { BigNumber } from 'bignumber.js';
 
-import { SendFeeCalculator } from '../../../features/send/transactions/SendFeeCalculator';
-import type { SendSolBuilder } from '../../../features/send/transactions/SendSolBuilder';
-import type { SendSplTokenBuilder } from '../../../features/send/transactions/SendSplTokenBuilder';
 import type { ICache } from '../../caching/ICache';
 import { useCache } from '../../caching/useCache';
-import { METAMASK_ORIGIN, Networks } from '../../constants/solana';
 import type { Network } from '../../constants/solana';
+import { METAMASK_ORIGIN, Networks } from '../../constants/solana';
 import type { SolanaKeyring } from '../../handlers/onKeyringRequest/Keyring';
 import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import type { Serializable } from '../../serialization/types';
@@ -19,6 +16,9 @@ import { solToLamports } from '../../utils/conversion';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { AssetsService } from '../assets';
 import type { SolanaConnection } from '../connection';
+import { SendFeeCalculator } from './SendFeeCalculator';
+import type { SendSolBuilder } from './SendSolBuilder';
+import type { SendSplTokenBuilder } from './SendSplTokenBuilder';
 import {
   SendErrorCodes,
   type OnAddressInputRequest,
@@ -97,6 +97,8 @@ export class SendService {
    * @throws {InvalidParamsError} If the params are invalid.
    */
   async confirmSend(request: OnConfirmSendRequest): Promise<Json> {
+    this.#logger.log('Confirming send transaction', request);
+
     const { fromAccountId, toAddress, amount, assetId } = request.params;
 
     const account = await this.#keyring.getAccountOrThrow(fromAccountId);
@@ -110,13 +112,6 @@ export class SendService {
     const builder = isNativeSend
       ? this.#sendSolBuilder
       : this.#sendSplTokenBuilder;
-
-    this.#logger.log('Confirming send transaction', {
-      fromAccountId,
-      toAddress,
-      amount,
-      assetId,
-    });
 
     const params = {
       from: account,

@@ -16,6 +16,10 @@ import {
   AssetsService,
   KeyringAccountMonitor,
   MonitoredAccountsInitializer,
+  RecipientClassifier,
+  SendService,
+  SendSolBuilder,
+  SendSplTokenBuilder,
   SignatureMonitor,
   Signer,
   SubscriptionRepository,
@@ -33,7 +37,6 @@ import { ConfirmationHandler } from './core/services/confirmation/ConfirmationHa
 import { SolanaConnection } from './core/services/connection/SolanaConnection';
 import { NameResolutionService } from './core/services/name-resolution/NameResolutionService';
 import { NftService } from './core/services/nft/NftService';
-import { SendService } from './core/services/send/SendService';
 import type { IStateManager } from './core/services/state/IStateManager';
 import type { UnencryptedStateValue } from './core/services/state/State';
 import { DEFAULT_UNENCRYPTED_STATE, State } from './core/services/state/State';
@@ -41,8 +44,6 @@ import { TokenPricesService } from './core/services/token-prices/TokenPrices';
 import { TransactionScanService } from './core/services/transaction-scan/TransactionScan';
 import { WalletService } from './core/services/wallet/WalletService';
 import logger, { noOpLogger } from './core/utils/logger';
-import { SendSolBuilder } from './features/send/transactions/SendSolBuilder';
-import { SendSplTokenBuilder } from './features/send/transactions/SendSplTokenBuilder';
 import { EventEmitter } from './infrastructure';
 
 /**
@@ -120,11 +121,16 @@ const tokenHelper = new TokenHelper(connection);
 const signer = new Signer(connection, logger);
 
 const sendSolBuilder = new SendSolBuilder(connection, logger);
+
+const recipientClassifier = new RecipientClassifier(connection, logger);
+
 const sendSplTokenBuilder = new SendSplTokenBuilder(
   tokenHelper,
+  recipientClassifier,
   connection,
   logger,
 );
+
 const priceApiClient = new PriceApiClient(configProvider, inMemoryCache);
 const tokenApiClient = new TokenApiClient(configProvider);
 const nftApiClient = new NftApiClient(configProvider, inMemoryCache);

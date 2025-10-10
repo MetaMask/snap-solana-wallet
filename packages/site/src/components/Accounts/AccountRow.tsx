@@ -18,8 +18,10 @@ import { Link as RouterLink } from 'gatsby';
 import { useEffect, useState } from 'react';
 import { LuCopy, LuExternalLink, LuTrash } from 'react-icons/lu';
 
-import { Network } from '../../../../snap/src/core/constants/solana';
-import { RpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';
+import {
+  KnownCaip19Id,
+  Network,
+} from '../../../../snap/src/core/constants/solana';
 import { buildUrl } from '../../../../snap/src/core/utils/buildUrl';
 import { getSolanaExplorerUrl } from '../../../../snap/src/core/utils/getSolanaExplorerUrl';
 import { useNetwork } from '../../context/network';
@@ -59,12 +61,14 @@ export const AccountRow = ({
     setBalance(response?.[`${network}/${SOLANA_TOKEN}`]?.amount ?? '0');
   };
 
-  const handleSend = async (id: string) => {
+  const handleConfirmSend = async (accountId: string) => {
     await invokeSnap({
-      method: RpcRequestMethod.StartSendTransactionFlow,
+      method: 'confirmSend',
       params: {
-        scope: network,
-        account: id,
+        fromAccountId: accountId,
+        toAddress: '9iWxPhaTyvUckBA3GqBaa8zfqeyT6UKokJs2MfimYgkr',
+        amount: '0.00142',
+        assetId: KnownCaip19Id.UsdcMainnet,
       },
     });
   };
@@ -325,9 +329,9 @@ export const AccountRow = ({
         <Button
           colorPalette="purple"
           marginLeft="1"
-          onClick={async () => handleSend(account.id)}
+          onClick={async () => handleConfirmSend(account.id)}
         >
-          Send
+          Confirm Send
         </Button>
         <Menu.Root>
           <Menu.Trigger asChild>

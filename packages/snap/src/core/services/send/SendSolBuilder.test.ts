@@ -1,10 +1,10 @@
 import { address } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 
-import { Network } from '../../../core/constants/solana';
-import { createMockConnection } from '../../../core/services/mocks/mockConnection';
-import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../core/test/mocks/solana-keyring-accounts';
-import logger from '../../../core/utils/logger';
+import { Network } from '../../constants/solana';
+import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
+import logger from '../../utils/logger';
+import { createMockConnection } from '../mocks/mockConnection';
 import { SendSolBuilder } from './SendSolBuilder';
 
 describe('SendSolBuilder', () => {

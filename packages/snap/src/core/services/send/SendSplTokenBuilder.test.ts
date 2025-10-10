@@ -8,13 +8,13 @@ import type { Account } from '@solana/kit';
 import { address, lamports, type Address } from '@solana/kit';
 import { cloneDeep } from 'lodash';
 
-import { Network } from '../../../core/constants/solana';
-import { TokenHelper } from '../../../core/services';
-import type { SolanaConnection } from '../../../core/services/connection/SolanaConnection';
-import { mockLogger } from '../../../core/services/mocks/logger';
-import { createMockConnection } from '../../../core/services/mocks/mockConnection';
-import { MOCK_MINT_ACCOUNT } from '../../../core/services/mocks/mockSolanaRpcResponses';
-import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../../core/test/mocks/solana-keyring-accounts';
+import { TokenHelper } from '..';
+import { Network } from '../../constants/solana';
+import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
+import type { SolanaConnection } from '../connection/SolanaConnection';
+import { mockLogger } from '../mocks/logger';
+import { createMockConnection } from '../mocks/mockConnection';
+import { MOCK_MINT_ACCOUNT } from '../mocks/mockSolanaRpcResponses';
 import { SendSplTokenBuilder } from './SendSplTokenBuilder';
 
 // Mock the deriveSolanaKeypair function
@@ -41,12 +41,10 @@ describe('SendSplTokenBuilder', () => {
     jest.clearAllMocks();
 
     // Set up the mock implementation
-    const {
-      deriveSolanaKeypair,
-    } = require('../../../core/utils/deriveSolanaKeypair');
+    const { deriveSolanaKeypair } = require('../../utils/deriveSolanaKeypair');
     const {
       deriveSolanaKeypairMock,
-    } = require('../../../core/test/mocks/utils/deriveSolanaKeypair');
+    } = require('../../test/mocks/utils/deriveSolanaKeypair');
     deriveSolanaKeypair.mockImplementation(deriveSolanaKeypairMock);
 
     mockConnection = createMockConnection();

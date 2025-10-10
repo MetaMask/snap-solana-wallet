@@ -5,6 +5,7 @@ import pipe from 'lodash/fp/pipe';
 
 import { Networks } from '../../../core/constants/solana';
 import { fromCompilableTransactionMessageToBase64String } from '../../../core/sdk-extensions/codecs';
+import { SendFeeCalculator } from '../../../core/services';
 import { withoutConcurrency } from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import {
@@ -19,7 +20,6 @@ import {
 } from '../../../snapContext';
 import { getTokenAmount } from '../selectors';
 import { Send } from '../Send';
-import { SendFeeCalculator } from '../transactions/SendFeeCalculator';
 import { type SendContext } from '../types';
 import { sendFieldsAreValid } from '../validation/form';
 
