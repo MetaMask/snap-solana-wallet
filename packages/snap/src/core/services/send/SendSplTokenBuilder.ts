@@ -93,16 +93,21 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
     }
 
     // These can be parallelized for performance
-    const [mintAccount, rawAmountInLamports, { privateKeyBytes }] =
-      await Promise.all([
-        this.#connection.fetchMint(mint, network),
-        this.#tokenHelper.uiAmountToAmountForMint(
-          mint,
-          network,
-          amount.toString(),
-        ),
-        deriveSolanaKeypair({ entropySource, derivationPath }),
-      ]);
+    const [
+      mintAccount,
+      rawAmountInLamports,
+      { privateKeyBytes },
+      latestBlockhash,
+    ] = await Promise.all([
+      this.#connection.fetchMint(mint, network),
+      this.#tokenHelper.uiAmountToAmountForMint(
+        mint,
+        network,
+        amount.toString(),
+      ),
+      deriveSolanaKeypair({ entropySource, derivationPath }),
+      this.#connection.getLatestBlockhash(network),
+    ]);
 
     const {
       programAddress: tokenProgram,
@@ -181,8 +186,6 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
       default:
         throw new RecipientUnsupportedError();
     }
-
-    const latestBlockhash = await this.#connection.getLatestBlockhash(network);
 
     const transactionMessage = pipe(
       createTransactionMessage({ version: 0 }),
