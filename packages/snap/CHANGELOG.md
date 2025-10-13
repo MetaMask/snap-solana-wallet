@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.4]
 
-### Uncategorized
+### Fixed
 
-- fix: properly build default icon url ([#548](https://github.com/MetaMask/snap-solana-wallet/pull/548))
-- Fix send ([#547](https://github.com/MetaMask/snap-solana-wallet/pull/547))
+- Properly build the default icon url ([#548](https://github.com/MetaMask/snap-solana-wallet/pull/548))
+- Fix the send flow to support token account recipients ([#547](https://github.com/MetaMask/snap-solana-wallet/pull/547))
 
 ## [2.4.3]
 

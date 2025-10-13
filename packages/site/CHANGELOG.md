@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.4]
 
-### Uncategorized
+### Changed
 
-- Fix send ([#547](https://github.com/MetaMask/snap-solana-wallet/pull/547))
+- Changed the send button to use the confirmSend ([#547](https://github.com/MetaMask/snap-solana-wallet/pull/547))
 
 ## [2.4.3]
 
