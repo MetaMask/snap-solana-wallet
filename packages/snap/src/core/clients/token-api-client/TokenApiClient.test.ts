@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import type { TokenCaipAssetType } from '../../constants/solana';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { ConfigProvider } from '../../services/config';
@@ -214,7 +212,8 @@ describe('TokenApiClient', () => {
         name: 'UNKNOWN',
         symbol: 'UNKNOWN',
         fungible: true,
-        iconUrl: '',
+        iconUrl:
+          'https://some-mock-static-url.com/api/v2/tokenIcons/assets/solana/123456789abcdef/token/address1.png',
         units: [{ name: 'UNKNOWN', symbol: 'UNKNOWN', decimals: 9 }],
       });
     });

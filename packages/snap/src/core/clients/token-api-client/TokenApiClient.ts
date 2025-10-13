@@ -9,6 +9,7 @@ import { buildUrl } from '../../utils/buildUrl';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { UrlStruct } from '../../validation/structs';
+import type { TokenMetadataStruct } from './structs';
 import { TokenMetadataResponseStruct } from './structs';
 
 const DEFAULT_DECIMALS = 9;
@@ -111,63 +112,72 @@ export class TokenApiClient {
         )
       ).flat();
 
-      // Flatten and process all metadata
-      const tokenMetadataMap = new Map<
-        TokenCaipAssetType,
-        FungibleAssetMetadata
-      >();
+      // Create a Map for O(1) lookups
+      const tokenMetadataLookup = new Map(
+        tokenMetadataResponses.map((item) => [item.assetId, item]),
+      );
 
       /**
        * Iterate over each asset type, and return a default value when metadata is not found,
        * to ensure the returned object has exactly the same keys as the input array.
        */
+      const result = new Map<TokenCaipAssetType, FungibleAssetMetadata>();
       assetTypes.forEach((assetType) => {
-        const tokenMetadata = tokenMetadataResponses.find(
-          (item) => item.assetId === assetType,
-        );
-
-        if (!tokenMetadata) {
-          this.#logger.warn(
-            `No metadata for ${assetType}. Returning default values.`,
-          );
-          tokenMetadataMap.set(assetType, DEFAULT_TOKEN_METADATA);
-          return;
-        }
-
-        const name = tokenMetadata.name ?? DEFAULT_TOKEN_METADATA.name;
-        const symbol = tokenMetadata.symbol ?? DEFAULT_TOKEN_METADATA.symbol;
-        const decimals = tokenMetadata.decimals ?? DEFAULT_DECIMALS;
-
-        const metadata: FungibleAssetMetadata = {
-          name,
-          symbol,
-          fungible: true,
-          iconUrl:
-            tokenMetadata.iconUrl ??
-            buildUrl({
-              baseUrl: this.#tokenIconBaseUrl,
-              path: '/api/v2/tokenIcons/assets/{assetType}.png',
-              pathParams: {
-                assetType: assetType.replace(/:/gu, '/'),
-              },
-              encodePathParams: false,
-            }),
-          units: [
-            {
-              name,
-              symbol,
-              decimals,
-            },
-          ],
-        };
-
-        tokenMetadataMap.set(assetType, metadata);
+        const tokenMetadata = tokenMetadataLookup.get(assetType);
+        const metadata = this.#createTokenMetadata(tokenMetadata, assetType);
+        result.set(assetType, metadata);
       });
 
-      return Object.fromEntries(tokenMetadataMap);
+      return Object.fromEntries(result);
     } catch (error) {
       this.#logger.error(error, 'Error fetching token metadata');
       throw error;
     }
+  }
+
+  #buildDefaultIconUrl(assetType: TokenCaipAssetType): string {
+    return buildUrl({
+      baseUrl: this.#tokenIconBaseUrl,
+      path: '/api/v2/tokenIcons/assets/{assetType}.png',
+      pathParams: {
+        assetType: assetType.replace(/:/gu, '/'),
+      },
+      encodePathParams: false,
+    });
+  }
+
+  #createTokenMetadata(
+    tokenMetadata: Infer<typeof TokenMetadataStruct> | undefined,
+    assetType: TokenCaipAssetType,
+  ): FungibleAssetMetadata {
+    const defaultIconUrl = this.#buildDefaultIconUrl(assetType);
+
+    if (!tokenMetadata) {
+      this.#logger.warn(
+        `No metadata for ${assetType}. Returning default values.`,
+      );
+      return {
+        ...DEFAULT_TOKEN_METADATA,
+        iconUrl: defaultIconUrl,
+      };
+    }
+
+    const name = tokenMetadata.name ?? DEFAULT_TOKEN_METADATA.name;
+    const symbol = tokenMetadata.symbol ?? DEFAULT_TOKEN_METADATA.symbol;
+    const decimals = tokenMetadata.decimals ?? DEFAULT_DECIMALS;
+
+    return {
+      name,
+      symbol,
+      fungible: true,
+      iconUrl: tokenMetadata.iconUrl ?? defaultIconUrl,
+      units: [
+        {
+          name,
+          symbol,
+          decimals,
+        },
+      ],
+    };
   }
 }
