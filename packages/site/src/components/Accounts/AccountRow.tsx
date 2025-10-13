@@ -66,7 +66,7 @@ export const AccountRow = ({
       method: 'confirmSend',
       params: {
         fromAccountId: accountId,
-        toAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        toAddress: '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC', // Sends to self. Change here to send to another address.
         amount: '0.00142',
         assetId: KnownCaip19Id.UsdcMainnet,
       },
