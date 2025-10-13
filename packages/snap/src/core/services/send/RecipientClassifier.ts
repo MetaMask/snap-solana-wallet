@@ -93,9 +93,3 @@ export class RecipientClassifier {
     return { type: 'UNSUPPORTED' };
   }
 }
-
-// 9iWxPhaTyvUckBA3GqBaa8zfqeyT6UKokJs2MfimYgkr // wallet
-// 8c5sjLNijEMpK1We7dRWzfE1feqnkZMkV6d8XiRkjonE // token account
-// EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v // mint
-// TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA // token program
-// 11111111111111111111111111111111 // system program
