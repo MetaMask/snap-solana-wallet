@@ -126,11 +126,23 @@ export class TokenApiClient {
           (item) => item.assetId === assetType,
         );
 
+        const defaultIconUrl = buildUrl({
+          baseUrl: this.#tokenIconBaseUrl,
+          path: '/api/v2/tokenIcons/assets/{assetType}.png',
+          pathParams: {
+            assetType: assetType.replace(/:/gu, '/'),
+          },
+          encodePathParams: false,
+        });
+
         if (!tokenMetadata) {
           this.#logger.warn(
             `No metadata for ${assetType}. Returning default values.`,
           );
-          tokenMetadataMap.set(assetType, DEFAULT_TOKEN_METADATA);
+          tokenMetadataMap.set(assetType, {
+            ...DEFAULT_TOKEN_METADATA,
+            iconUrl: defaultIconUrl,
+          });
           return;
         }
 
@@ -142,16 +154,7 @@ export class TokenApiClient {
           name,
           symbol,
           fungible: true,
-          iconUrl:
-            tokenMetadata.iconUrl ??
-            buildUrl({
-              baseUrl: this.#tokenIconBaseUrl,
-              path: '/api/v2/tokenIcons/assets/{assetType}.png',
-              pathParams: {
-                assetType: assetType.replace(/:/gu, '/'),
-              },
-              encodePathParams: false,
-            }),
+          iconUrl: tokenMetadata.iconUrl ?? defaultIconUrl,
           units: [
             {
               name,
