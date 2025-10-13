@@ -88,9 +88,9 @@ export class SolanaConnection {
     config?: FetchAccountConfig,
   ): Promise<MaybeAccount<TData, Address> | MaybeEncodedAccount<Address>> {
     /**
-     * Defines the base uncached function for fetching a mint account.
+     * Defines the base uncached function for fetching a JSON-parsed account.
      *
-     * This wrapper is used instead of directly caching the SDK's fetchMint function
+     * This wrapper is used instead of directly caching the SDK's fetchJsonParsedAccount function
      * to ensure that only simple arguments are used, as these arguments form the cache key.
      */
 
@@ -131,7 +131,7 @@ export class SolanaConnection {
     config?: FetchAccountConfig,
   ): Promise<Account<Mint, Address>> {
     /**
-     * Defines the base uncached function for fetching a JSON-parsed account.
+     * Defines the base uncached function for fetching a mint account.
      *
      * This wrapper is used instead of directly caching the SDK's fetchMint function
      * to ensure that only simple arguments are used, as these arguments form the cache key.
