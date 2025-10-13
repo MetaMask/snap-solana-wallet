@@ -408,6 +408,7 @@ describe('ClientRequestHandler', () => {
       method: ClientRequestMethod.OnAddressInput,
       params: {
         value: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        scope: Network.Testnet,
       },
     };
 
@@ -421,7 +422,36 @@ describe('ClientRequestHandler', () => {
 
       const result = await handler.handle(request);
 
-      expect(sendService.onAddressInput).toHaveBeenCalledWith(request);
+      expect(sendService.onAddressInput).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        Network.Testnet,
+      );
+      expect(result).toStrictEqual(response);
+    });
+
+    it('defaults the scope to Mainnet if not provided', async () => {
+      const response = {
+        valid: true,
+        errors: [],
+      };
+
+      jest.spyOn(sendService, 'onAddressInput').mockResolvedValue(response);
+
+      const requestWithNoScope: JsonRpcRequest = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: ClientRequestMethod.OnAddressInput,
+        params: {
+          value: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        },
+      };
+
+      const result = await handler.handle(requestWithNoScope);
+
+      expect(sendService.onAddressInput).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        Network.Mainnet,
+      );
       expect(result).toStrictEqual(response);
     });
 

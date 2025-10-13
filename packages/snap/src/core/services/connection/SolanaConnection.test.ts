@@ -2,13 +2,19 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable no-restricted-globals */
 /* eslint-disable @typescript-eslint/naming-convention */
+
+import { fetchJsonParsedAccount } from '@solana/kit';
+
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../config';
 import { mockLogger } from '../mocks/logger';
-import { MOCK_MINT_ACCOUNT } from '../mocks/mockSolanaRpcResponses';
+import {
+  MOCK_JSON_PARSED_ACCOUNT,
+  MOCK_MINT_ACCOUNT,
+} from '../mocks/mockSolanaRpcResponses';
 import { SolanaConnection } from './SolanaConnection';
 
 jest.mock('@solana/kit', () => ({
@@ -17,6 +23,7 @@ jest.mock('@solana/kit', () => ({
     urls: transport.urls,
   })),
   address: jest.fn().mockImplementation((address) => address),
+  fetchJsonParsedAccount: jest.fn(),
 }));
 
 jest.mock('@solana-program/token-2022', () => ({
@@ -98,6 +105,42 @@ describe('SolanaConnection', () => {
       expect(() => {
         connection.getRpc('invalid-network' as Network);
       }).toThrow(/Expected one of/u);
+    });
+  });
+
+  describe('fetchJsonParsedAccount', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+
+      (fetchJsonParsedAccount as jest.Mock).mockResolvedValue(
+        MOCK_JSON_PARSED_ACCOUNT,
+      );
+    });
+
+    it('returns the JSON-parsed account', async () => {
+      const jsonParsedAccount = await connection.fetchJsonParsedAccount(
+        KnownCaip19Id.UsdcMainnet,
+        Network.Mainnet,
+      );
+
+      expect(jsonParsedAccount).toStrictEqual(MOCK_JSON_PARSED_ACCOUNT);
+    });
+
+    it('caches the JSON-parsed account', async () => {
+      const spy = jest.spyOn(require('@solana/kit'), 'fetchJsonParsedAccount');
+
+      const call = async () =>
+        connection.fetchJsonParsedAccount(
+          KnownCaip19Id.UsdcMainnet,
+          Network.Mainnet,
+        );
+
+      // Do the call twice in a row to test the cache
+      await call();
+      await call();
+
+      // It should effectively call the RPC only once
+      expect(spy).toHaveBeenCalledTimes(1);
     });
   });
 

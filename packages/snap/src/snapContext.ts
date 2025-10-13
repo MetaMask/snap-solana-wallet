@@ -239,6 +239,7 @@ const sendService = new SendService(
   keyring,
   logger,
   inMemoryCache,
+  recipientClassifier,
   sendSolBuilder,
   sendSplTokenBuilder,
   assetsService,

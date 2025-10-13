@@ -73,9 +73,6 @@ describe('RecipientClassifier', () => {
       };
 
       fetchJsonParsedAccount.mockResolvedValue(mockAccountInfo);
-      assertAccountExists.mockImplementation(() => {
-        throw new Error('Account does not exist');
-      });
 
       const result = await classifier.classify(recipientAddress, network);
 

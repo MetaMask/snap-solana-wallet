@@ -16,12 +16,12 @@ import { solToLamports } from '../../utils/conversion';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { AssetsService } from '../assets';
 import type { SolanaConnection } from '../connection';
+import type { RecipientClassifier } from './RecipientClassifier';
 import { SendFeeCalculator } from './SendFeeCalculator';
 import type { SendSolBuilder } from './SendSolBuilder';
 import type { SendSplTokenBuilder } from './SendSplTokenBuilder';
 import {
   SendErrorCodes,
-  type OnAddressInputRequest,
   type OnAmountInputRequest,
   type OnConfirmSendRequest,
   type ValidationResponse,
@@ -35,6 +35,8 @@ export class SendService {
   readonly #logger: ILogger;
 
   readonly #cache: ICache<Serializable>;
+
+  readonly #recipientClassifier: RecipientClassifier;
 
   readonly #sendSolBuilder: SendSolBuilder;
 
@@ -51,6 +53,7 @@ export class SendService {
     keyring: SolanaKeyring,
     logger: ILogger,
     cache: ICache<Serializable>,
+    recipientClassifier: RecipientClassifier,
     sendSolBuilder: SendSolBuilder,
     sendSplTokenBuilder: SendSplTokenBuilder,
     assetsService: AssetsService,
@@ -59,6 +62,7 @@ export class SendService {
     this.#keyring = keyring;
     this.#cache = cache;
     this.#logger = createPrefixedLogger(logger, '[📬 SendService]');
+    this.#recipientClassifier = recipientClassifier;
     this.#sendSolBuilder = sendSolBuilder;
     this.#sendSplTokenBuilder = sendSplTokenBuilder;
     this.#assetsService = assetsService;
@@ -152,17 +156,15 @@ export class SendService {
   /**
    * Handles the input of an address.
    *
-   * @param request - The JSON-RPC request containing the parameters.
+   * @param value - The value passed in the address input.
+   * @param scope - The network to validate the address for.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the params are invalid.
    */
   async onAddressInput(
-    request: OnAddressInputRequest,
+    value: string,
+    scope: Network,
   ): Promise<ValidationResponse> {
-    const {
-      params: { value },
-    } = request;
-
     if (value === '') {
       return {
         valid: false,
@@ -172,6 +174,15 @@ export class SendService {
 
     try {
       asAddress(value);
+
+      // Check if the address is a supported recipient
+      const recipientClassification = await this.#recipientClassifier.classify(
+        value,
+        scope,
+      );
+      if (recipientClassification.type === 'UNSUPPORTED') {
+        throw new Error('Unsupported recipient');
+      }
 
       return {
         valid: true,

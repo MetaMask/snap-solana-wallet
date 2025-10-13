@@ -5,12 +5,13 @@ import {
   type JsonRpcRequest,
   MethodNotFoundError,
 } from '@metamask/snaps-sdk';
-import { assert } from '@metamask/superstruct';
+import { assert, create } from '@metamask/superstruct';
 
 import { METAMASK_ORIGIN, Networks } from '../../constants/solana';
 import { FeeCalculator } from '../../fees';
 import type { AccountsService } from '../../services';
 import type { SendService } from '../../services/send/SendService';
+import type { OnAddressInputRequest } from '../../services/send/types';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { lamportsToSol } from '../../utils/conversion';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
@@ -245,15 +246,19 @@ export class ClientRequestHandler {
    * @throws {InvalidParamsError} If the params are invalid.
    */
   async #handleOnAddressInput(request: JsonRpcRequest): Promise<Json> {
+    let parsed: OnAddressInputRequest;
     try {
-      assert(request, OnAddressInputRequestStruct);
+      parsed = create(request, OnAddressInputRequestStruct);
     } catch (error) {
       const errorToThrow = new InvalidParamsError() as Error;
       errorToThrow.cause = error;
       throw errorToThrow;
     }
 
-    const result = await this.#sendService.onAddressInput(request);
+    const {
+      params: { value, scope },
+    } = parsed;
+    const result = await this.#sendService.onAddressInput(value, scope);
 
     assert(result, ValidationResponseStruct);
 

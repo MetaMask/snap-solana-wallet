@@ -22,12 +22,12 @@ import type { AssetsService } from '../assets';
 import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
 import { createMockConnection } from '../mocks/mockConnection';
+import type { RecipientClassifier } from './RecipientClassifier';
 import { SendService } from './SendService';
 import type { SendSolBuilder } from './SendSolBuilder';
 import type { SendSplTokenBuilder } from './SendSplTokenBuilder';
 import {
   SendErrorCodes,
-  type OnAddressInputRequest,
   type OnAmountInputRequest,
   type OnConfirmSendRequest,
 } from './types';
@@ -69,6 +69,7 @@ describe('SendService', () => {
   let mockSendSolBuilder: SendSolBuilder;
   let mockSendSplTokenBuilder: SendSplTokenBuilder;
   let mockAssetsService: AssetsService;
+  let mockRecipientClassifier: RecipientClassifier;
 
   const mockAccount: SolanaKeyringAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
 
@@ -88,6 +89,10 @@ describe('SendService', () => {
       getAccountOrThrow: jest.fn().mockResolvedValue(mockAccount),
       submitRequest: jest.fn().mockResolvedValue({ success: true }),
     } as unknown as SolanaKeyring;
+
+    mockRecipientClassifier = {
+      classify: jest.fn().mockResolvedValue({ type: 'SYSTEM' }),
+    } as unknown as RecipientClassifier;
 
     mockSendSolBuilder = {
       buildTransactionMessage: jest.fn().mockResolvedValue({} as any),
@@ -118,6 +123,7 @@ describe('SendService', () => {
       mockKeyring,
       mockLogger,
       mockCache,
+      mockRecipientClassifier,
       mockSendSolBuilder,
       mockSendSplTokenBuilder,
       mockAssetsService,
@@ -220,51 +226,41 @@ describe('SendService', () => {
   });
 
   describe('onAddressInput', () => {
-    const mockRequest: OnAddressInputRequest = {
-      jsonrpc: '2.0',
-      id: '1',
-      method: ClientRequestMethod.OnAddressInput,
-      params: { value: MOCK_SOLANA_KEYRING_ACCOUNT_1.address },
-    };
-
     it('validates valid address successfully', async () => {
-      const result = await sendService.onAddressInput(mockRequest);
+      const value = MOCK_SOLANA_KEYRING_ACCOUNT_1.address;
+      const scope = Network.Mainnet;
+
+      const result = await sendService.onAddressInput(value, scope);
 
       expect(result.valid).toBe(true);
       expect(result.errors).toStrictEqual([]);
     });
 
     it('rejects empty address', async () => {
-      const emptyRequest: OnAddressInputRequest = {
-        ...mockRequest,
-        params: { value: '' },
-      };
+      const value = '';
+      const scope = Network.Mainnet;
 
-      const result = await sendService.onAddressInput(emptyRequest);
+      const result = await sendService.onAddressInput(value, scope);
 
       expect(result.valid).toBe(false);
       expect(result.errors).toStrictEqual([{ code: SendErrorCodes.Required }]);
     });
 
     it('rejects invalid address', async () => {
-      const invalidAddressRequest: OnAddressInputRequest = {
-        ...mockRequest,
-        params: { value: 'invalid-address' },
-      };
+      const value = 'invalid-address';
+      const scope = Network.Mainnet;
 
-      const result = await sendService.onAddressInput(invalidAddressRequest);
+      const result = await sendService.onAddressInput(value, scope);
 
       expect(result.valid).toBe(false);
       expect(result.errors).toStrictEqual([{ code: SendErrorCodes.Invalid }]);
     });
 
     it('handles null/undefined address', async () => {
-      const nullRequest: OnAddressInputRequest = {
-        ...mockRequest,
-        params: { value: null as any },
-      };
+      const value = null as any;
+      const scope = Network.Mainnet;
 
-      const result = await sendService.onAddressInput(nullRequest);
+      const result = await sendService.onAddressInput(value, scope);
 
       expect(result.valid).toBe(false);
       expect(result.errors).toStrictEqual([{ code: SendErrorCodes.Invalid }]);

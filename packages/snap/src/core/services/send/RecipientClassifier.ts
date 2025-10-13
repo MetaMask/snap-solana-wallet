@@ -2,11 +2,7 @@ import { SYSTEM_PROGRAM_ADDRESS } from '@solana-program/system';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
 import type { Address } from '@solana/kit';
-import {
-  address as asAddress,
-  assertAccountExists,
-  fetchJsonParsedAccount,
-} from '@solana/kit';
+import { assertAccountExists } from '@solana/kit';
 import { get } from 'lodash';
 
 import type { Network } from '../../constants/solana';
@@ -54,9 +50,9 @@ export class RecipientClassifier {
     this.#logger.info('Classifying recipient', { recipientAddress, network });
 
     // Fetch the recipient account info
-    const recipientInfo = await fetchJsonParsedAccount(
-      this.#connection.getRpc(network),
-      asAddress(recipientAddress),
+    const recipientInfo = await this.#connection.fetchJsonParsedAccount(
+      recipientAddress,
+      network,
     );
 
     try {
