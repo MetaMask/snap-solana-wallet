@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import { SYSTEM_PROGRAM_ADDRESS } from '@solana-program/system';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import type { Mint } from '@solana-program/token-2022';
 import type { Account, Address, GetLatestBlockhashApi } from '@solana/kit';
@@ -520,4 +521,13 @@ export const MOCK_MINT_ACCOUNT: Account<Mint, Address> = {
       __option: 'None',
     },
   },
+};
+
+export const MOCK_JSON_PARSED_ACCOUNT: Account<object, Address> = {
+  executable: false,
+  lamports: lamports(390030797122n),
+  programAddress: SYSTEM_PROGRAM_ADDRESS,
+  space: 82n,
+  address: address('BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP'),
+  data: {},
 };

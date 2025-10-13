@@ -4,6 +4,7 @@ import type { Infer } from '@metamask/superstruct';
 import {
   array,
   boolean,
+  defaulted,
   enums,
   is,
   object,
@@ -18,6 +19,7 @@ import {
 } from '@metamask/utils';
 import { getBase64Codec, getUtf8Codec, pipe } from '@solana/kit';
 
+import { Network } from '../../constants/solana';
 import { SendErrorCodes } from '../../services/send/types';
 import {
   ScopeStringStruct,
@@ -93,6 +95,7 @@ export const OnConfirmSendRequestStruct = object({
  */
 export const OnAddressInputRequestParamsStruct = object({
   value: string(),
+  scope: defaulted(ScopeStringStruct, Network.Mainnet),
 });
 
 export const OnAddressInputRequestStruct = object({

@@ -4,6 +4,7 @@ import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { renderSend } from '../../../features/send/render';
 import {
   accountsSynchronizer,
+  clientRequestHandler,
   eventEmitter,
   keyring,
 } from '../../../snapContext';
@@ -46,6 +47,14 @@ export const handlers: Record<RpcRequestMethod, OnRpcRequestHandler> = {
     request: JsonRpcRequest;
   }) => {
     await keyring.setSelectedAccounts((request as any).params.accountIds);
+    return null;
+  },
+  [TestDappRpcRequestMethod.ConfirmSend as any]: async ({
+    request,
+  }: {
+    request: JsonRpcRequest;
+  }) => {
+    await clientRequestHandler.handle(request);
     return null;
   },
 };

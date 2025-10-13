@@ -7,10 +7,13 @@ import type {
   Address,
   Blockhash,
   FetchAccountConfig,
+  MaybeAccount,
+  MaybeEncodedAccount,
 } from '@solana/kit';
 import {
   address as asAddress,
   createSolanaRpcFromTransport,
+  fetchJsonParsedAccount,
   type Rpc,
   type SolanaRpcApi,
 } from '@solana/kit';
@@ -33,6 +36,7 @@ export class SolanaConnection {
 
   readonly #cacheTtlsMilliseconds = {
     fetchMint: Duration.Minute,
+    fetchJsonParsedAccount: Duration.Minute,
   };
 
   /**
@@ -67,6 +71,49 @@ export class SolanaConnection {
   public getRpc(caip2Id: Network): Rpc<SolanaRpcApi> {
     assert(caip2Id, NetworkStruct);
     return this.#networkCaip2IdToRpc.get(caip2Id) ?? this.#createRpc(caip2Id);
+  }
+
+  /**
+   * Fetches the JSON-parsed account for the given address and network.
+   * It's a wrapper around the fetchJsonParsedAccount function that caches the result for 1 minute.
+   *
+   * @param address - The address of the account.
+   * @param caip2Id - The CAIP-2 ID of the network.
+   * @param config - The config for the fetchJsonParsedAccount function.
+   * @returns The JSON-parsed account.
+   */
+  public async fetchJsonParsedAccount<TData extends object>(
+    address: string,
+    caip2Id: Network,
+    config?: FetchAccountConfig,
+  ): Promise<MaybeAccount<TData, Address> | MaybeEncodedAccount<Address>> {
+    /**
+     * Defines the base uncached function for fetching a JSON-parsed account.
+     *
+     * This wrapper is used instead of directly caching the SDK's fetchJsonParsedAccount function
+     * to ensure that only simple arguments are used, as these arguments form the cache key.
+     */
+
+    const internal = async (
+      _address: string,
+      _caip2Id: Network,
+      _config?: FetchAccountConfig,
+    ) => {
+      const rpc = this.getRpc(_caip2Id);
+      return fetchJsonParsedAccount(rpc, asAddress(_address), _config);
+    };
+
+    // Create a cached version of the function
+    const cached = useCache<
+      [string, Network, FetchAccountConfig | undefined],
+      | (MaybeAccount<TData, Address> & Serializable)
+      | (MaybeEncodedAccount<Address> & Serializable)
+    >(internal as any, this.#cache, {
+      ttlMilliseconds: this.#cacheTtlsMilliseconds.fetchJsonParsedAccount,
+      functionName: 'SolanaConnection::fetchJsonParsedAccount',
+    });
+
+    return cached(address, caip2Id, config);
   }
 
   /**
@@ -108,6 +155,7 @@ export class SolanaConnection {
       functionName: 'SolanaConnection::fetchMint',
     });
 
+    // Use the cached version of the function
     return fetchMintCached(asAddress(address), caip2Id, config);
   }
 

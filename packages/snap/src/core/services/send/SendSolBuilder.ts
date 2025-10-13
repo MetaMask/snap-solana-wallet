@@ -15,9 +15,9 @@ import {
   setTransactionMessageLifetimeUsingBlockhash,
 } from '@solana/kit';
 
-import type { SolanaConnection } from '../../../core/services/connection';
-import { solToLamports } from '../../../core/utils/conversion';
-import type { ILogger } from '../../../core/utils/logger';
+import { solToLamports } from '../../utils/conversion';
+import type { ILogger } from '../../utils/logger';
+import type { SolanaConnection } from '../connection';
 import type {
   BuildSendTransactionParams,
   ISendTransactionBuilder,

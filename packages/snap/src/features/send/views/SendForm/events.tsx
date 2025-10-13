@@ -4,7 +4,7 @@ import { merge } from 'lodash';
 
 import { METAMASK_ORIGIN, Networks } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
-import { AssetsService } from '../../../../core/services';
+import { AssetsService, SendFeeCalculator } from '../../../../core/services';
 import { buildUrl } from '../../../../core/utils/buildUrl';
 import {
   lamportsToSol,
@@ -27,7 +27,6 @@ import {
 } from '../../../../snapContext';
 import { getBalance, getIsNativeToken } from '../../selectors';
 import { Send } from '../../Send';
-import { SendFeeCalculator } from '../../transactions/SendFeeCalculator';
 import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
 import { buildTransactionMessageAndUpdateInterface } from '../../utils/buildTransactionMessageAndUpdateInterface';
 import { isSolanaDomain } from '../../utils/isSolanaDomain';
