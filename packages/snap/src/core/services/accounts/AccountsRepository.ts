@@ -19,8 +19,7 @@ export class AccountsRepository {
   }
 
   async findById(id: string): Promise<SolanaKeyringAccount | null> {
-    const accounts = await this.getAll();
-    return accounts.find((account) => account.id === id) ?? null;
+    return (await this.#state.getKey(`keyringAccounts.${id}`)) ?? null;
   }
 
   async findByAddress(address: string): Promise<SolanaKeyringAccount | null> {
