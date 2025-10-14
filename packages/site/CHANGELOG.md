@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.4]
+
+### Changed
+
+- Changed the send button to use the confirmSend ([#547](https://github.com/MetaMask/snap-solana-wallet/pull/547))
+
 ## [2.4.3]
 
 ### Added
@@ -223,7 +229,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.3...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.4...HEAD
+[2.4.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.3...v2.4.4
 [2.4.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.2...v2.4.3
 [2.4.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.0.0...v2.4.2
 [2.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v1.36.0...v2.0.0
