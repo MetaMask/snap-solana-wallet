@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.5]
 
-### Uncategorized
+### Fixed
 
-- perf: Improve lookup speed for findById ([#550](https://github.com/MetaMask/snap-solana-wallet/pull/550))
-- fix: serialization ([#551](https://github.com/MetaMask/snap-solana-wallet/pull/551))
+- Improved speed when lookin up the state for accounts by id ([#550](https://github.com/MetaMask/snap-solana-wallet/pull/550))
+- Fixed a serialization issue causing the snap to try rendering bigints ([#551](https://github.com/MetaMask/snap-solana-wallet/pull/551))
 
 ## [2.4.4]
 
