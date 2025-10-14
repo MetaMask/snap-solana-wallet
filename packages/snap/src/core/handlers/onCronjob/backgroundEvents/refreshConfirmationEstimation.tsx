@@ -3,6 +3,7 @@ import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 import { ConfirmTransactionRequest } from '../../../../features/confirmation/views/ConfirmTransactionRequest/ConfirmTransactionRequest';
 import type { ConfirmTransactionRequestContext } from '../../../../features/confirmation/views/ConfirmTransactionRequest/types';
 import { state, transactionScanService } from '../../../../snapContext';
+import { serialize } from '../../../serialization/serialize';
 import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
@@ -64,7 +65,9 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
     await updateInterface(
       confirmationInterfaceId,
-      <ConfirmTransactionRequest context={fetchingConfirmationContext} />,
+      <ConfirmTransactionRequest
+        context={serialize(fetchingConfirmationContext) as any}
+      />,
       fetchingConfirmationContext,
     );
 
@@ -88,12 +91,13 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       scanFetchStatus: 'fetched' as const,
       scan,
     };
-
     logger.info(`New scan fetched`);
 
     await updateInterface(
       confirmationInterfaceId,
-      <ConfirmTransactionRequest context={updatedInterfaceContext} />,
+      <ConfirmTransactionRequest
+        context={serialize(updatedInterfaceContext) as any}
+      />,
       updatedInterfaceContext,
     );
 
@@ -120,7 +124,9 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
     await updateInterface(
       confirmationInterfaceId,
-      <ConfirmTransactionRequest context={fetchingConfirmationContext} />,
+      <ConfirmTransactionRequest
+        context={serialize(fetchingConfirmationContext) as any}
+      />,
       fetchingConfirmationContext,
     );
 
