@@ -1,5 +1,5 @@
 {
-  "version": "2.4.4",
+  "version": "2.4.5",
   "description": "Manage Solana using MetaMask",
   "proposedName": "Solana",
   "repository": {
@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "df2meE+EYoRkJEDwFbAIdfUeA3hy0M3sK3lYZagDFlk=",
+    "shasum": "TTK9syaPsZFKQk016Wz1yNlpXLFYJ/LFiukpGHiXyOE=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
