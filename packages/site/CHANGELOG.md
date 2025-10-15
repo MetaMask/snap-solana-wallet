@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.6]
 
-### Uncategorized
+### Added
 
-- Change sign rewards message payload ([#554](https://github.com/MetaMask/snap-solana-wallet/pull/554))
+- Added a button to manually test the request `signRewardsMessage` ([#554](https://github.com/MetaMask/snap-solana-wallet/pull/554))
 
 ## [2.4.4]
 
