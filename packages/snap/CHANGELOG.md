@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.6]
+
+### Changed
+
+- Adapted the payload of request `signRewardsMessage` for improved performance ([#554](https://github.com/MetaMask/snap-solana-wallet/pull/554))
+
 ## [2.4.5]
 
 ### Fixed
@@ -974,7 +980,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.5...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.6...HEAD
+[2.4.6]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.5...v2.4.6
 [2.4.5]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.4...v2.4.5
 [2.4.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.3...v2.4.4
 [2.4.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.2...v2.4.3
