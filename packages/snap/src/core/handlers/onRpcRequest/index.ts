@@ -8,6 +8,7 @@ import {
   eventEmitter,
   keyring,
 } from '../../../snapContext';
+import { ClientRequestMethod } from '../onClientRequest';
 import { getFeeForTransaction } from './getFeeForTransaction';
 import { RpcRequestMethod, TestDappRpcRequestMethod } from './types';
 
@@ -56,5 +57,15 @@ export const handlers: Record<RpcRequestMethod, OnRpcRequestHandler> = {
   }) => {
     await clientRequestHandler.handle(request);
     return null;
+  },
+  [TestDappRpcRequestMethod.SignRewardsMessage as any]: async ({
+    request,
+  }: {
+    request: JsonRpcRequest;
+  }) => {
+    return clientRequestHandler.handle({
+      ...request,
+      method: ClientRequestMethod.SignRewardsMessage,
+    });
   },
 };

@@ -46,6 +46,7 @@ const dappPermissions = isDev
       TestDappRpcRequestMethod.SynchronizeAccounts,
       TestDappRpcRequestMethod.SetAccountSelected,
       TestDappRpcRequestMethod.ConfirmSend,
+      TestDappRpcRequestMethod.SignRewardsMessage,
     ])
   : new Set([]);
 

@@ -16,4 +16,5 @@ export enum TestDappRpcRequestMethod {
   SynchronizeAccounts = 'synchronizeAccounts',
   SetAccountSelected = 'setAccountSelected',
   ConfirmSend = 'confirmSend',
+  SignRewardsMessage = 'signRewardsMessage',
 }
