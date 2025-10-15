@@ -39,7 +39,7 @@ export const ClientRequest = () => {
         message: btoa(`rewards,${address},${timestamp}`),
       },
     });
-    console.log(response);
+
     showSuccessToast(
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `Successfully signed the rewards message! Signature: ${(response as any).signature}`,
