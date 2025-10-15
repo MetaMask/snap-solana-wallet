@@ -297,24 +297,21 @@ export class ClientRequestHandler {
     assert(request, SignRewardsMessageRequestStruct);
 
     const {
-      params: {
-        account: { address },
-        message,
-      },
+      params: { accountId, message },
     } = request;
 
-    const account = await this.#accountsService.findByAddress(address);
+    const account = await this.#accountsService.findById(accountId);
     if (!account) {
-      throw new InvalidParamsError(`Account not found: ${address}`) as Error;
+      throw new InvalidParamsError(`Account not found: ${accountId}`) as Error;
     }
 
     // Parse the rewards message to extract the address
     const { address: messageAddress } = parseRewardsMessage(message);
 
     // Validate that the address in the message matches the signing account
-    if (messageAddress !== address) {
+    if (messageAddress !== account.address) {
       throw new InvalidParamsError(
-        `Address in rewards message (${messageAddress}) does not match signing account address (${address})`,
+        `Address in rewards message (${messageAddress}) does not match signing account address (${account.address})`,
       ) as Error;
     }
 

@@ -534,7 +534,7 @@ describe('ClientRequestHandler', () => {
     const utf8ToBase64 = (utf8: string): string =>
       pipe(utf8, getUtf8Codec().encode, getBase64Codec().decode);
 
-    const { address } = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+    const { id: accountId, address } = MOCK_SOLANA_KEYRING_ACCOUNT_0;
     const mockTimestamp = 1736660000;
 
     // Helper function to create a request with a utf8 message. Defaults to a valid rewards message.
@@ -543,9 +543,7 @@ describe('ClientRequestHandler', () => {
       id: 1,
       method: ClientRequestMethod.SignRewardsMessage,
       params: {
-        account: {
-          address,
-        },
+        accountId,
         message: utf8ToBase64(
           utf8Message ?? `rewards,${address},${mockTimestamp}`,
         ),
@@ -570,7 +568,7 @@ describe('ClientRequestHandler', () => {
         signatureType: 'ed25519' as const,
       };
       jest
-        .spyOn(mockAccountsService, 'findByAddress')
+        .spyOn(mockAccountsService, 'findById')
         .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
       jest.spyOn(mockWalletService, 'signMessage').mockResolvedValue(response);
 
@@ -595,7 +593,7 @@ describe('ClientRequestHandler', () => {
 
     it('throws an error if account is not found', async () => {
       const invalidAccountRequest = createRequest();
-      mockAccountsService.findByAddress.mockResolvedValue(null);
+      mockAccountsService.findById.mockResolvedValue(null);
 
       await expect(handler.handle(invalidAccountRequest)).rejects.toThrow(
         'Account not found',
@@ -604,7 +602,7 @@ describe('ClientRequestHandler', () => {
 
     it('throws an error if address in message does not match signing account', async () => {
       const signingAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-      mockAccountsService.findByAddress.mockResolvedValue(signingAccount);
+      mockAccountsService.findById.mockResolvedValue(signingAccount);
 
       // Use a valid Solana address format but different from the signing account
       const differentAddress = MOCK_SOLANA_KEYRING_ACCOUNT_1.address;
