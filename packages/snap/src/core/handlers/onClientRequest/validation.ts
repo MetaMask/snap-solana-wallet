@@ -208,9 +208,7 @@ export const RewardsMessageStruct = refine(
 );
 
 export const SignRewardsMessageRequestParamsStruct = object({
-  account: object({
-    address: SolanaAddressStruct,
-  }),
+  accountId: UuidStruct,
   message: RewardsMessageStruct,
 });
 

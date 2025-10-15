@@ -695,11 +695,11 @@
       "paramStructure": "by-name",
       "params": [
         {
-          "name": "account",
-          "summary": "The account to use for signing the transaction",
+          "name": "accountId",
+          "summary": "The UUID of the account to use for signing the message",
           "required": true,
           "schema": {
-            "$ref": "#/components/schemas/WalletAccount"
+            "$ref": "#/components/schemas/Uuid"
           }
         },
         {
@@ -741,10 +741,8 @@
           "description": "Example of signing a rewards message for a Solana address",
           "params": [
             {
-              "name": "account",
-              "value": {
-                "address": "BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP"
-              }
+              "name": "accountId",
+              "value": "c747acb9-1b2b-4352-b9da-3d658fcc3cc7"
             },
             {
               "name": "message",
