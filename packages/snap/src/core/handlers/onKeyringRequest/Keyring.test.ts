@@ -583,6 +583,23 @@ describe('SolanaKeyring', () => {
         'Error creating account: Error listing accounts',
       );
     });
+
+    describe('state consistency', () => {
+      it('rolls back the account creation operation if the client fails to be informed', async () => {
+        const emitEventSpy = jest.spyOn(keyring, 'emitEvent');
+        const mockErrorMessage =
+          'Could not digest event KeyringEvent.AccountCreated';
+        emitEventSpy.mockRejectedValueOnce(new Error(mockErrorMessage));
+        const stateDeleteKeySpy = jest.spyOn(mockState, 'deleteKey');
+
+        await expect(keyring.createAccount()).rejects.toThrow(
+          `Error creating account: ${mockErrorMessage}`,
+        );
+
+        // We should remove the account from the snap's state to ensure state consistency between the snap and the client
+        expect(stateDeleteKeySpy).toHaveBeenCalledTimes(3);
+      });
+    });
   });
 
   describe('deleteAccount', () => {
