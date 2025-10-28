@@ -303,16 +303,14 @@ export class SolanaKeyring implements Keyring {
         ],
       };
 
-      const keyringAccount: KeyringAccount =
-        asStrictKeyringAccount(solanaKeyringAccount);
-
-      // Save the account in the snap state
       await this.#state.setKey(
         `keyringAccounts.${solanaKeyringAccount.id}`,
         solanaKeyringAccount,
       );
 
-      // Inform the client about the new account
+      const keyringAccount: KeyringAccount =
+        asStrictKeyringAccount(solanaKeyringAccount);
+
       await this.emitEvent(KeyringEvent.AccountCreated, {
         /**
          * We can't pass the `keyringAccount` object because it contains the index
@@ -336,14 +334,6 @@ export class SolanaKeyring implements Keyring {
               metamask: metamaskOptions,
             }
           : {}),
-      }).catch(async (error: any) => {
-        // Rollback the saving of the account in the snap state to ensure data consistency between the snap and the client
-        this.#logger.warn(
-          'Could not inform the client about the account creation. Rolling back the account creation operation.',
-          { error },
-        );
-        await this.#deleteAccountFromState(id);
-        throw error;
       });
 
       await endTrace(this.#traceName);
@@ -351,6 +341,8 @@ export class SolanaKeyring implements Keyring {
       return keyringAccount;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating account');
+      await this.#deleteAccountFromState(id);
+
       throw new Error(`Error creating account: ${error.message}`);
     }
   }

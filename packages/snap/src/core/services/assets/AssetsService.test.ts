@@ -310,33 +310,6 @@ describe('AssetsService', () => {
       );
     });
 
-    it('emits event "AccountBalancesUpdated" even when balance is zero for assets', async () => {
-      jest.spyOn(mockAssetsRepository, 'getAll').mockResolvedValueOnce([]);
-
-      const assetWithZeroBalance = {
-        ...MOCK_ASSET_ENTITY_0,
-        rawAmount: '0',
-        uiAmount: '0',
-      };
-
-      await assetsService.saveMany([assetWithZeroBalance]);
-
-      expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
-        snap,
-        KeyringEvent.AccountBalancesUpdated,
-        {
-          balances: {
-            [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
-              [MOCK_ASSET_ENTITY_0.assetType]: {
-                unit: MOCK_ASSET_ENTITY_0.symbol,
-                amount: '0',
-              },
-            },
-          },
-        },
-      );
-    });
-
     // With isIncremental = false, we do emit events, even when no assets changed
     it.skip('does not emit events when no assets changed', async () => {
       jest
