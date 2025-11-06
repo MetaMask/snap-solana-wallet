@@ -142,12 +142,24 @@ describe('SolanaKeyring', () => {
     it('lists accounts from the state', async () => {
       const accounts = await keyring.listAccounts();
       expect(accounts).toHaveLength(MOCK_SOLANA_KEYRING_ACCOUNTS.length);
-      expect(accounts).toContainEqual(MOCK_SOLANA_KEYRING_ACCOUNT_0);
-      expect(accounts).toContainEqual(MOCK_SOLANA_KEYRING_ACCOUNT_1);
-      expect(accounts).toContainEqual(MOCK_SOLANA_KEYRING_ACCOUNT_2);
-      expect(accounts).toContainEqual(MOCK_SOLANA_KEYRING_ACCOUNT_3);
-      expect(accounts).toContainEqual(MOCK_SOLANA_KEYRING_ACCOUNT_4);
-      expect(accounts).toContainEqual(MOCK_SOLANA_KEYRING_ACCOUNT_5);
+      expect(accounts).toContainEqual(
+        asStrictKeyringAccount(MOCK_SOLANA_KEYRING_ACCOUNT_0),
+      );
+      expect(accounts).toContainEqual(
+        asStrictKeyringAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1),
+      );
+      expect(accounts).toContainEqual(
+        asStrictKeyringAccount(MOCK_SOLANA_KEYRING_ACCOUNT_2),
+      );
+      expect(accounts).toContainEqual(
+        asStrictKeyringAccount(MOCK_SOLANA_KEYRING_ACCOUNT_3),
+      );
+      expect(accounts).toContainEqual(
+        asStrictKeyringAccount(MOCK_SOLANA_KEYRING_ACCOUNT_4),
+      );
+      expect(accounts).toContainEqual(
+        asStrictKeyringAccount(MOCK_SOLANA_KEYRING_ACCOUNT_5),
+      );
     });
 
     it('returns empty array if no accounts are found', async () => {
@@ -229,7 +241,9 @@ describe('SolanaKeyring', () => {
       const account = await keyring.getAccount(
         MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
       );
-      expect(account).toStrictEqual(MOCK_SOLANA_KEYRING_ACCOUNT_1);
+      expect(account).toStrictEqual(
+        asStrictKeyringAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1),
+      );
     });
 
     it('throws and error if the account provided is not a uuid', async () => {
