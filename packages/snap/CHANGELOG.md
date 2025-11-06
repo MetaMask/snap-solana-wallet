@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.7]
 
-### Uncategorized
+### Fixed
 
-- fix: fix `getAccount` and `listAccounts` ([#558](https://github.com/MetaMask/snap-solana-wallet/pull/558))
+- Fix `getAccount` and `listAccounts` ([#558](https://github.com/MetaMask/snap-solana-wallet/pull/558))
 
 ## [2.4.6]
 
