@@ -118,7 +118,11 @@ export class SolanaKeyring implements Keyring {
     this.#keyringAccountMonitor = keyringAccountMonitor;
   }
 
-  async listAccounts(): Promise<SolanaKeyringAccount[]> {
+  async listAccounts(): Promise<KeyringAccount[]> {
+    return (await this.#listAccounts()).map(asStrictKeyringAccount);
+  }
+
+  async #listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
       const keyringAccounts =
         (await this.#state.getKey<UnencryptedStateValue['keyringAccounts']>(
@@ -134,10 +138,32 @@ export class SolanaKeyring implements Keyring {
 
   async getAccount(
     accountId: string,
-  ): Promise<SolanaKeyringAccount | undefined> {
+  ): Promise<KeyringAccount | undefined> {
     try {
       validateRequest({ accountId }, GetAccountStruct);
 
+      const account = await this.#getAccount(accountId);
+
+      return account ? asStrictKeyringAccount(account) : undefined;
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error getting account');
+      throw new SnapError(error);
+    }
+  }
+
+  async getAccountOrThrow(accountId: string): Promise<SolanaKeyringAccount> {
+    const account = await this.#getAccount(accountId);
+    if (!account) {
+      throw new Error(`Account "${accountId}" not found`);
+    }
+
+    return account;
+  }
+
+  async #getAccount(
+    accountId: string,
+  ): Promise<SolanaKeyringAccount | undefined> {
+    try {
       const account = await this.#state.getKey<SolanaKeyringAccount>(
         `keyringAccounts.${accountId}`,
       );
@@ -147,15 +173,6 @@ export class SolanaKeyring implements Keyring {
       this.#logger.error({ error }, 'Error getting account');
       throw new SnapError(error);
     }
-  }
-
-  async getAccountOrThrow(accountId: string): Promise<SolanaKeyringAccount> {
-    const account = await this.getAccount(accountId);
-    if (!account) {
-      throw new Error(`Account "${accountId}" not found`);
-    }
-
-    return account;
   }
 
   #getLowestUnusedKeyringAccountIndex(
@@ -213,7 +230,7 @@ export class SolanaKeyring implements Keyring {
     try {
       await startTrace(this.#traceName);
 
-      const accounts = await this.listAccounts();
+      const accounts = await this.#listAccounts();
 
       const entropySource =
         options?.entropySource ?? (await this.#getDefaultEntropySource());
@@ -572,7 +589,7 @@ export class SolanaKeyring implements Keyring {
       validateRequest({ accountId, pagination }, ListAccountTransactionsStruct);
       const { limit, next } = pagination;
 
-      const keyringAccount = await this.getAccount(accountId);
+      const keyringAccount = await this.#getAccount(accountId);
 
       if (!keyringAccount) {
         throw new Error('Account not found');
@@ -633,7 +650,7 @@ export class SolanaKeyring implements Keyring {
       const requestWithoutCommonHeader = { method, params };
       assert(requestWithoutCommonHeader, SolanaWalletRequestStruct);
 
-      const allAccounts = await this.listAccounts();
+      const allAccounts = await this.#listAccounts();
 
       const caip10Address = await this.#walletService.resolveAccountAddress(
         allAccounts,
