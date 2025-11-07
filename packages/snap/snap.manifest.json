@@ -37,7 +37,6 @@
     ],
     "endowment:lifecycle-hooks": {},
     "endowment:network-access": {},
-    "endowment:ethereum-provider": {},
     "endowment:cronjob": {
       "jobs": []
     },

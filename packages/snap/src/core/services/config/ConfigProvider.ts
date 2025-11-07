@@ -13,6 +13,7 @@ import { uniq } from 'lodash';
 
 import { Network, Networks } from '../../constants/solana';
 import { UrlStruct } from '../../validation/structs';
+import { getClientStatus } from '../../utils/interface';
 
 export const SUPPORTED_NETWORKS = [Network.Mainnet, Network.Devnet];
 
@@ -250,9 +251,7 @@ export class ConfigProvider {
 
     try {
       // Otherwise, fetch them from the client
-      const clientVersion = await ethereum.request({
-        method: 'web3_clientVersion',
-      });
+      const { clientVersion } = await getClientStatus();
       const isFlask = (clientVersion as string)?.includes('flask');
       const flaskNetworks = isFlask ? [Network.Devnet] : [];
 
