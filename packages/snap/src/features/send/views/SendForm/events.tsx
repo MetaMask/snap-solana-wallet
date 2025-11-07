@@ -160,7 +160,11 @@ async function onAssetSelectorValueChange({
   event: InputChangeEvent;
   context: SendContext;
 }) {
-  if (typeof event.value !== 'object' || !event.value || !('asset' in event.value)) {
+  if (
+    typeof event.value !== 'object' ||
+    !event.value ||
+    !('asset' in event.value)
+  ) {
     return;
   }
 

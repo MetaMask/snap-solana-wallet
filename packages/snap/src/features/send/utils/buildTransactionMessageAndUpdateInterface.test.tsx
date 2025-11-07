@@ -25,6 +25,7 @@ jest.mock('../../../core/utils/interface');
 jest.mock('../validation/form');
 jest.mock('../../../snapContext');
 jest.mock('lodash', () => ({
+  ...jest.requireActual('lodash'),
   debounce: (fn: any) => fn, // Make debounce synchronous for testing
 }));
 
