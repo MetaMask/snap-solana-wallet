@@ -252,7 +252,7 @@ export class ConfigProvider {
     try {
       // Otherwise, fetch them from the client
       const { clientVersion } = await getClientStatus();
-      const isFlask = (clientVersion as string)?.includes('flask');
+      const isFlask = clientVersion.includes('flask');
       const flaskNetworks = isFlask ? [Network.Devnet] : [];
 
       const activeNetworks = uniq([...baseNetworks, ...flaskNetworks]);
