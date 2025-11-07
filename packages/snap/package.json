@@ -11,7 +11,8 @@
   "files": [
     "dist/",
     "snap.manifest.json",
-    "locales/"
+    "locales/",
+    "images/icon.svg"
   ],
   "scripts": {
     "allow-scripts": "yarn workspace root allow-scripts",
