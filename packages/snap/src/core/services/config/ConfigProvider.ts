@@ -12,8 +12,8 @@ import { Duration } from '@metamask/utils';
 import { uniq } from 'lodash';
 
 import { Network, Networks } from '../../constants/solana';
-import { UrlStruct } from '../../validation/structs';
 import { getClientStatus } from '../../utils/interface';
+import { UrlStruct } from '../../validation/structs';
 
 export const SUPPORTED_NETWORKS = [Network.Mainnet, Network.Devnet];
 
