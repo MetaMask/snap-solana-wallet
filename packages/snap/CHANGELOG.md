@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.4.8]
 
-### Uncategorized
+### Fixed
 
-- fix: Use mutex for state blob modifications ([#562](https://github.com/MetaMask/snap-solana-wallet/pull/562))
-- fix: Use `snap_getClientStatus` for `clientVersion` ([#560](https://github.com/MetaMask/snap-solana-wallet/pull/560))
-- fix: Publish icon to NPM ([#561](https://github.com/MetaMask/snap-solana-wallet/pull/561))
+- Use mutex for state blob modifications ([#562](https://github.com/MetaMask/snap-solana-wallet/pull/562))
+- Use `snap_getClientStatus` for `clientVersion` ([#560](https://github.com/MetaMask/snap-solana-wallet/pull/560))
+- Publish icon to NPM ([#561](https://github.com/MetaMask/snap-solana-wallet/pull/561))
 
 ## [2.4.7]
 
