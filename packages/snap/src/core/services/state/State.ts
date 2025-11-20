@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/kit';
-import { omit, unset } from 'lodash';
 import { Mutex } from 'async-mutex';
+import { omit, unset } from 'lodash';
 
 import type {
   AssetEntity,
