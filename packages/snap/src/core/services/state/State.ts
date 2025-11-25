@@ -78,7 +78,8 @@ class StateLock {
     // Signal that regular state operations are ongoing by acquring the mutex.
     // Other regular state operations can skip this, as they are safe to do in parallel.
     if (!this.#regularStateUpdateMutex.isLocked()) {
-      this.#releaseRegularStateUpdateMutex = await this.#regularStateUpdateMutex.acquire();
+      this.#releaseRegularStateUpdateMutex =
+        await this.#regularStateUpdateMutex.acquire();
     }
 
     try {
@@ -87,7 +88,10 @@ class StateLock {
     } finally {
       this.#pendingRegularStateUpdates -= 1;
 
-      if (this.#pendingRegularStateUpdates === 0 && this.#releaseRegularStateUpdateMutex) {
+      if (
+        this.#pendingRegularStateUpdates === 0 &&
+        this.#releaseRegularStateUpdateMutex
+      ) {
         this.#releaseRegularStateUpdateMutex();
       }
     }
