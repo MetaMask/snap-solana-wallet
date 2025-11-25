@@ -65,6 +65,10 @@ class StateLock {
 
   #regularStateUpdateMutex = new Mutex();
 
+  #pendingRegularStateUpdates = 0;
+
+  #releaseRegularStateUpdateMutex: MutexInterface.Releaser | null = null;
+
   async wrapRegularStateOperation<T>(
     callback: MutexInterface.Worker<T>,
   ): Promise<T> {
@@ -76,13 +80,18 @@ class StateLock {
     // Signal that regular state operations are ongoing by acquring the mutex.
     // Other regular state operations can skip this, as they are safe to do in parallel.
     if (!this.#regularStateUpdateMutex.isLocked()) {
-      release = await this.#regularStateUpdateMutex.acquire();
+      this.#releaseRegularStateUpdateMutex = await this.#regularStateUpdateMutex.acquire();
     }
 
     try {
+      this.#pendingRegularStateUpdates += 1;
       return await callback();
     } finally {
-      release?.();
+      this.#pendingRegularStateUpdates -= 1;
+
+      if (this.#pendingRegularStateUpdates === 0 && this.#releaseRegularStateUpdateMutex) {
+        this.#releaseRegularStateUpdateMutex();
+      }
     }
   }
 
