@@ -71,7 +71,7 @@ export type StateConfig<TValue extends Record<string, Serializable>> = {
 export class State<TStateValue extends Record<string, Serializable>>
   implements IStateManager<TStateValue>
 {
-  #mutex = new Mutex();
+  #manageStateMutex = new Mutex();
 
   #config: StateConfig<TStateValue>;
 
@@ -89,7 +89,7 @@ export class State<TStateValue extends Record<string, Serializable>>
     });
   }
 
-  async get(): Promise<TStateValue> {
+  async #unsafeGet(): Promise<TStateValue> {
     const state = await snap.request({
       method: 'snap_getState',
       params: {
@@ -109,9 +109,19 @@ export class State<TStateValue extends Record<string, Serializable>>
     return stateWithDefaults;
   }
 
+  async get(): Promise<TStateValue> {
+    // If we are currently doing a snap_manageState operation, wait it out.
+    await this.#manageStateMutex.waitForUnlock();
+
+    return this.#unsafeGet();
+  }
+
   async getKey<TResponse extends Serializable>(
     key: string,
   ): Promise<TResponse | undefined> {
+    // If we are currently doing a snap_manageState operation, wait it out.
+    await this.#manageStateMutex.waitForUnlock();
+
     const value = await snap.request({
       method: 'snap_getState',
       params: {
@@ -128,6 +138,9 @@ export class State<TStateValue extends Record<string, Serializable>>
   }
 
   async setKey(key: string, value: Serializable): Promise<void> {
+    // If we are currently doing a snap_manageState operation, wait it out.
+    await this.#manageStateMutex.waitForUnlock();
+
     await snap.request({
       method: 'snap_setState',
       params: {
@@ -143,11 +156,13 @@ export class State<TStateValue extends Record<string, Serializable>>
   ): Promise<TStateValue> {
     // Because this function modifies the entire state blob,
     // we must protect against parallel requests.
-    return await this.#mutex.runExclusive(async () => {
-      const currentState = await this.get();
+    return await this.#manageStateMutex.runExclusive(async () => {
+      const currentState = await this.#unsafeGet();
 
       const newState = updaterFunction(currentState);
 
+      // Generally we should try to use snap_getState and snap_setState over this
+      // as snap_manageState is slower and error-prone due to requiring manual mutex management.
       await snap.request({
         method: 'snap_manageState',
         params: {
