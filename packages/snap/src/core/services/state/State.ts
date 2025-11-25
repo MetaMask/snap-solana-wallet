@@ -75,8 +75,6 @@ class StateLock {
     // If we are currently doing a full blob update, wait it out.
     await this.#blobModificationMutex.waitForUnlock();
 
-    let release = null;
-
     // Signal that regular state operations are ongoing by acquring the mutex.
     // Other regular state operations can skip this, as they are safe to do in parallel.
     if (!this.#regularStateUpdateMutex.isLocked()) {
