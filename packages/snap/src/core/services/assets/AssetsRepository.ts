@@ -1,5 +1,3 @@
-import { cloneDeep } from 'lodash';
-
 import type { AssetEntity } from '../../../entities';
 import type { IStateManager } from '../state/IStateManager';
 import type { UnencryptedStateValue } from '../state/State';
@@ -31,31 +29,52 @@ export class AssetsRepository {
   }
 
   async saveMany(assets: AssetEntity[]): Promise<void> {
-    // Update the state atomically
-    await this.#state.update((stateValue) => {
-      const newState = cloneDeep(stateValue);
-      for (const asset of assets) {
+    // Group assets by account to minimize state operations
+    const assetsByAccount = assets.reduce<Record<string, AssetEntity[]>>(
+      (acc, asset) => {
         const { keyringAccountId } = asset;
-        const accountAssets = cloneDeep(
-          newState.assetEntities[keyringAccountId] ?? [],
-        );
-
-        // Avoid duplicates. If same asset is already saved, override it.
-        const existingAssetIndex = accountAssets.findIndex(
-          (item) =>
-            item.assetType === asset.assetType &&
-            item.keyringAccountId === asset.keyringAccountId,
-        );
-
-        if (existingAssetIndex === -1) {
-          accountAssets.push(asset);
-        } else {
-          accountAssets[existingAssetIndex] = asset;
+        if (!acc[keyringAccountId]) {
+          acc[keyringAccountId] = [];
         }
+        acc[keyringAccountId].push(asset);
+        return acc;
+      },
+      {},
+    );
 
-        newState.assetEntities[keyringAccountId] = accountAssets;
-      }
-      return newState;
-    });
+    // Update each account's assets
+    await Promise.all(
+      Object.entries(assetsByAccount).map(
+        async ([keyringAccountId, newAssets]) => {
+          const existingAssets =
+            (await this.#state.getKey<AssetEntity[]>(
+              `assetEntities.${keyringAccountId}`,
+            )) ?? [];
+
+          const updatedAssets = [...existingAssets];
+
+          // Update or add each asset
+          newAssets.forEach((asset) => {
+            // Avoid duplicates. If same asset is already saved, override it.
+            const existingAssetIndex = updatedAssets.findIndex(
+              (item) =>
+                item.assetType === asset.assetType &&
+                item.keyringAccountId === asset.keyringAccountId,
+            );
+
+            if (existingAssetIndex === -1) {
+              updatedAssets.push(asset);
+            } else {
+              updatedAssets[existingAssetIndex] = asset;
+            }
+          });
+
+          await this.#state.setKey(
+            `assetEntities.${keyringAccountId}`,
+            updatedAssets,
+          );
+        },
+      ),
+    );
   }
 }

@@ -214,43 +214,33 @@ export class StateCache implements ICache<Serializable | undefined> {
       this.#validateTtlOrThrow(ttlMilliseconds);
     });
 
-    // Using `state.update` is preferred for bulk `set`s, because it's more efficient and atomic.
-    await this.#state.update((stateValue) => {
-      const cacheStore = stateValue[this.prefix] ?? {};
-      entries.forEach(({ key, value, ttlMilliseconds }) => {
+    // Set all cache entries in parallel
+    await Promise.all(
+      entries.map(async ({ key, value, ttlMilliseconds }) => {
         if (value === undefined) {
-          return;
+          return Promise.resolve();
         }
-        cacheStore[key] = {
-          value,
-          expiresAt: Math.min(
-            Date.now() + (ttlMilliseconds ?? Number.MAX_SAFE_INTEGER),
-            Number.MAX_SAFE_INTEGER,
-          ),
-        };
-      });
-      stateValue[this.prefix] = cacheStore;
-      return stateValue;
-    });
+        return this.set(key, value, ttlMilliseconds);
+      }),
+    );
   }
 
   async mdelete(keys: string[]): Promise<Record<string, boolean>> {
     const result: Record<string, boolean> = {};
 
-    // Using `state.update` is preferred for bulk `delete`s, because it's more efficient and atomic.
-    await this.#state.update((stateValue) => {
-      const cacheStore = stateValue[this.prefix] ?? {};
-      keys.forEach((key) => {
-        if (cacheStore[key] === undefined) {
-          result[key] = false;
-        } else {
-          delete cacheStore[key];
-          result[key] = true;
+    // Check which keys exist before deleting
+    const cacheStore = await this.#state.getKey<CacheStore>(this.prefix);
+
+    // Delete all keys in parallel
+    await Promise.all(
+      keys.map(async (key) => {
+        const exists = cacheStore?.[key] !== undefined;
+        result[key] = exists;
+        if (exists) {
+          await this.#state.deleteKey(`${this.prefix}.${key}`);
         }
-      });
-      stateValue[this.prefix] = cacheStore;
-      return stateValue;
-    });
+      }),
+    );
 
     return result;
   }

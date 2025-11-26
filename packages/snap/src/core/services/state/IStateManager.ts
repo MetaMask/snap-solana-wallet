@@ -49,26 +49,6 @@ export type IStateManager<TStateValue extends Record<string, Serializable>> = {
    */
   setKey(key: string, value: any): Promise<void>;
   /**
-   * Updates the whole state object.
-   *
-   * Typically used for bulk `set`s or `delete`s, because:
-   * - Atomicity: Using a single `state.update` ensures that all changes are applied atomically. If any part of the operation fails, none of the changes will be applied. This prevents partial updates that could leave the underlying data store in an inconsistent state.
-   * - Performance: Making multiple individual `state.set` or `state.delete` calls would require multiple round trips to the state storage system, causing potential overheads.
-   * - State Consistency: Maintains better state consistency by reading the state once, making all modifications in memory and writing the complete updated state back.
-   *
-   * ⚠️ WARNING: Use with caution because:
-   * - it will override the whole state.
-   * - it transfers the whole state back and forth the data store, which might consume a lot of bandwidth.
-   *
-   * For single updates, use instead `setKey` or `deleteKey`.
-   *
-   * @param updaterFunction - The function that updates the state.
-   * @returns The updated state.
-   */
-  update(
-    updaterFunction: (state: TStateValue) => TStateValue,
-  ): Promise<TStateValue>;
-  /**
    * Deletes the value of passed key in the state object.
    * The key is a json path to the value to delete.
    *

@@ -61,12 +61,10 @@ describe('TransactionsRepository', () => {
 
     it('returns the transactions for the given account', async () => {
       // Init a state with two transactions for account 0
-      await mockState.update((state) => ({
-        ...state,
-        transactions: {
-          [mockAccount0.id]: [mockTransaction00, mockTransaction01],
-        },
-      }));
+      await mockState.setKey(`transactions.${mockAccount0.id}`, [
+        mockTransaction00,
+        mockTransaction01,
+      ]);
 
       const transactions = await repository.findByAccountId(mockAccount0.id);
       expect(transactions).toStrictEqual([
@@ -78,11 +76,11 @@ describe('TransactionsRepository', () => {
 
   describe('save', () => {
     it('saves a transaction to the state', async () => {
-      const stateUpdateSpy = jest.spyOn(mockState, 'update');
+      const stateSetKeySpy = jest.spyOn(mockState, 'setKey');
 
       await repository.save(mockTransaction00);
 
-      expect(stateUpdateSpy).toHaveBeenCalledTimes(1);
+      expect(stateSetKeySpy).toHaveBeenCalled();
 
       const state = await mockState.get();
       expect(state).toStrictEqual({
@@ -98,7 +96,7 @@ describe('TransactionsRepository', () => {
     it('saves transactions to the state when there are no existing transactions', async () => {
       // Initially the state has no transactions
 
-      const stateUpdateSpy = jest.spyOn(mockState, 'update');
+      const stateSetKeySpy = jest.spyOn(mockState, 'setKey');
 
       await repository.saveMany([
         mockTransaction00,
@@ -106,7 +104,7 @@ describe('TransactionsRepository', () => {
         mockTransaction10,
       ]);
 
-      expect(stateUpdateSpy).toHaveBeenCalledTimes(1);
+      expect(stateSetKeySpy).toHaveBeenCalled();
 
       const state = await mockState.get();
       expect(state).toStrictEqual({
@@ -120,38 +118,29 @@ describe('TransactionsRepository', () => {
 
     it('adds new transactions to the state', async () => {
       // Init a state with one transaction
-      const mockStateValue = {
-        ...DEFAULT_UNENCRYPTED_STATE,
-        transactions: {
-          [mockAccount0.id]: [mockTransaction00],
-        },
-      };
-      await mockState.update(() => mockStateValue);
-      const stateUpdateSpy = jest.spyOn(mockState, 'update');
+      await mockState.setKey(`transactions.${mockAccount0.id}`, [
+        mockTransaction00,
+      ]);
+      const stateSetKeySpy = jest.spyOn(mockState, 'setKey');
 
       await repository.saveMany([mockTransaction01, mockTransaction10]);
 
-      expect(stateUpdateSpy).toHaveBeenCalledTimes(1);
+      expect(stateSetKeySpy).toHaveBeenCalled();
 
       const state = await mockState.get();
-      expect(state).toStrictEqual({
-        ...mockStateValue,
-        transactions: {
-          [mockAccount0.id]: [mockTransaction00, mockTransaction01],
-          [mockAccount1.id]: [mockTransaction10],
-        },
-      });
+      // Check the transactions are saved (order may vary for same timestamp)
+      expect(state.transactions[mockAccount0.id]).toHaveLength(2);
+      expect(state.transactions[mockAccount0.id]).toEqual(
+        expect.arrayContaining([mockTransaction00, mockTransaction01]),
+      );
+      expect(state.transactions[mockAccount1.id]).toEqual([mockTransaction10]);
     });
 
     it('overrides existing transactions', async () => {
-      const mockStateValue = {
-        ...DEFAULT_UNENCRYPTED_STATE,
-        transactions: {
-          [mockAccount0.id]: [mockTransaction00],
-        },
-      };
-      await mockState.update(() => mockStateValue);
-      const stateUpdateSpy = jest.spyOn(mockState, 'update');
+      await mockState.setKey(`transactions.${mockAccount0.id}`, [
+        mockTransaction00,
+      ]);
+      const stateSetKeySpy = jest.spyOn(mockState, 'setKey');
 
       const mockTransaction00Overridden = {
         ...mockTransaction00,
@@ -160,11 +149,11 @@ describe('TransactionsRepository', () => {
 
       await repository.saveMany([mockTransaction00Overridden]);
 
-      expect(stateUpdateSpy).toHaveBeenCalledTimes(1);
+      expect(stateSetKeySpy).toHaveBeenCalled();
 
       const state = await mockState.get();
       expect(state).toStrictEqual({
-        ...mockStateValue,
+        ...DEFAULT_UNENCRYPTED_STATE,
         transactions: {
           [mockAccount0.id]: [mockTransaction00Overridden],
         },

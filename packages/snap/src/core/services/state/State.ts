@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/kit';
-import { Mutex } from 'async-mutex';
-import { omit, unset } from 'lodash';
 
 import type {
   AssetEntity,
@@ -71,8 +69,6 @@ export type StateConfig<TValue extends Record<string, Serializable>> = {
 export class State<TStateValue extends Record<string, Serializable>>
   implements IStateManager<TStateValue>
 {
-  #mutex = new Mutex();
-
   #config: StateConfig<TStateValue>;
 
   constructor(eventEmitter: EventEmitter, config: StateConfig<TStateValue>) {
@@ -84,9 +80,7 @@ export class State<TStateValue extends Record<string, Serializable>>
   }
 
   async #migrateState() {
-    await this.update((state) => {
-      return omit(state as any, ['assets']);
-    });
+    await this.deleteKey('assets');
   }
 
   async get(): Promise<TStateValue> {
@@ -138,39 +132,11 @@ export class State<TStateValue extends Record<string, Serializable>>
     });
   }
 
-  async update(
-    updaterFunction: (state: TStateValue) => TStateValue,
-  ): Promise<TStateValue> {
-    // Because this function modifies the entire state blob,
-    // we must protect against parallel requests.
-    return await this.#mutex.runExclusive(async () => {
-      const currentState = await this.get();
-
-      const newState = updaterFunction(currentState);
-
-      await snap.request({
-        method: 'snap_manageState',
-        params: {
-          operation: 'update',
-          newState: serialize(newState),
-          encrypted: this.#config.encrypted,
-        },
-      });
-
-      return newState;
-    });
-  }
-
   async deleteKey(key: string): Promise<void> {
     return this.setKey(key, undefined);
   }
 
   async deleteKeys(keys: string[]): Promise<void> {
-    await this.update((state) => {
-      keys.forEach((key) => {
-        unset(state, key);
-      });
-      return state;
-    });
+    await Promise.all(keys.map(async (key) => this.deleteKey(key)));
   }
 }

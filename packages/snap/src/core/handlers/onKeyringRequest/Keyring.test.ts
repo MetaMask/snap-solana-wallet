@@ -278,10 +278,7 @@ describe('SolanaKeyring', () => {
 
   describe('createAccount', () => {
     beforeEach(async () => {
-      await mockState.update((state) => ({
-        ...state,
-        keyringAccounts: {},
-      }));
+      await mockState.setKey('keyringAccounts', {});
     });
 
     describe('when no parameters are provided', () => {
@@ -488,14 +485,14 @@ describe('SolanaKeyring', () => {
         jest.spyOn(mockState, 'getKey').mockResolvedValueOnce({
           [existingAccount.id]: existingAccount,
         });
-        const stateUpdateSpy = jest.spyOn(mockState, 'update');
+        const stateSetKeySpy = jest.spyOn(mockState, 'setKey');
 
         const account = await keyring.createAccount({
           derivationPath: existingAccount.derivationPath,
         });
 
         expect(account).toEqual(asStrictKeyringAccount(existingAccount));
-        expect(stateUpdateSpy).not.toHaveBeenCalled();
+        expect(stateSetKeySpy).not.toHaveBeenCalled();
       });
     });
 
@@ -538,14 +535,14 @@ describe('SolanaKeyring', () => {
         jest.spyOn(mockState, 'getKey').mockResolvedValueOnce({
           [existingAccount.id]: existingAccount,
         });
-        const stateUpdateSpy = jest.spyOn(mockState, 'update');
+        const stateSetKeySpy = jest.spyOn(mockState, 'setKey');
         const account = await keyring.createAccount({
           entropySource: existingAccount.entropySource,
           derivationPath: existingAccount.derivationPath,
         });
 
         expect(account).toEqual(asStrictKeyringAccount(existingAccount));
-        expect(stateUpdateSpy).not.toHaveBeenCalled();
+        expect(stateSetKeySpy).not.toHaveBeenCalled();
       });
     });
 

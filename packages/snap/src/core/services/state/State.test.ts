@@ -55,7 +55,7 @@ describe('State', () => {
 
   describe('constructor', () => {
     it('runs migrateState on onStart/onUpdate/onInstall events', async () => {
-      const spy = jest.spyOn(state, 'update');
+      const spy = jest.spyOn(state, 'deleteKey');
 
       await eventEmitter.emitSync('onStart');
 
@@ -203,156 +203,6 @@ describe('State', () => {
     });
   });
 
-  describe('update', () => {
-    it('updates the state', async () => {
-      await state.update((currentState) => ({
-        users: [
-          ...currentState.users,
-          {
-            name: 'Bob',
-            age: 50,
-          },
-        ],
-      }));
-
-      expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_getState',
-        params: { encrypted: false },
-      });
-
-      expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_manageState',
-        params: {
-          operation: 'update',
-          encrypted: false,
-          newState: {
-            users: [
-              ...DEFAULT_STATE.users,
-              {
-                name: 'Bob',
-                age: 50,
-              },
-            ],
-          },
-        },
-      });
-    });
-
-    describe('when updating serialized non-JSON values', () => {
-      it('serializes undefined values', async () => {
-        await state.update((currentState) => ({
-          users: [
-            ...currentState.users,
-            {
-              name: 'Bob',
-              age: undefined,
-            },
-          ],
-        }));
-
-        expect(snap.request).toHaveBeenNthCalledWith(2, {
-          method: 'snap_manageState',
-          params: {
-            operation: 'update',
-            encrypted: false,
-            newState: {
-              users: [
-                ...DEFAULT_STATE.users,
-                {
-                  name: 'Bob',
-                  age: {
-                    __type: 'undefined',
-                  },
-                },
-              ],
-            },
-          },
-        });
-      });
-
-      it('serializes BigNumber values', async () => {
-        await state.update((currentState) => ({
-          users: [
-            ...currentState.users,
-            {
-              name: 'Bob',
-              age: new BigNumber(50),
-            },
-          ],
-        }));
-
-        expect(snap.request).toHaveBeenNthCalledWith(2, {
-          method: 'snap_manageState',
-          params: {
-            operation: 'update',
-            encrypted: false,
-            newState: {
-              users: [
-                ...DEFAULT_STATE.users,
-                {
-                  name: 'Bob',
-                  age: {
-                    __type: 'BigNumber',
-                    value: '50',
-                  },
-                },
-              ],
-            },
-          },
-        });
-      });
-
-      it('serializes bigint values', async () => {
-        await state.update((currentState) => ({
-          users: [
-            ...currentState.users,
-            {
-              name: 'Bob',
-              age: BigInt(50),
-            },
-          ],
-        }));
-
-        expect(snap.request).toHaveBeenNthCalledWith(2, {
-          method: 'snap_manageState',
-          params: {
-            operation: 'update',
-            encrypted: false,
-            newState: {
-              users: [
-                ...DEFAULT_STATE.users,
-                {
-                  name: 'Bob',
-                  age: {
-                    __type: 'bigint',
-                    value: '50',
-                  },
-                },
-              ],
-            },
-          },
-        });
-      });
-
-      it('serializes null values', async () => {
-        await state.update((currentState) => ({
-          users: [...currentState.users, { name: 'Bob', age: null }],
-        }));
-
-        expect(snap.request).toHaveBeenNthCalledWith(2, {
-          method: 'snap_manageState',
-          params: {
-            operation: 'update',
-            encrypted: false,
-            newState: {
-              users: [...DEFAULT_STATE.users, { name: 'Bob', age: null }],
-            },
-          },
-        });
-      });
-    });
-  });
-
   describe('deleteKey', () => {
     it('deletes a key', async () => {
       await state.deleteKey('users');
@@ -390,10 +240,23 @@ describe('State', () => {
       await state.deleteKeys(['users.0.age', 'users.1.name']);
 
       expect(snap.request).toHaveBeenCalledWith({
-        method: 'snap_manageState',
+        method: 'snap_setState',
         params: {
-          operation: 'update',
-          newState: { users: [{ name: 'John' }, { age: 25 }] },
+          key: 'users.0.age',
+          value: {
+            __type: 'undefined',
+          },
+          encrypted: false,
+        },
+      });
+
+      expect(snap.request).toHaveBeenCalledWith({
+        method: 'snap_setState',
+        params: {
+          key: 'users.1.name',
+          value: {
+            __type: 'undefined',
+          },
           encrypted: false,
         },
       });

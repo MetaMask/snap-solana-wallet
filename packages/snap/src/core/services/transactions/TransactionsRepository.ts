@@ -34,37 +34,42 @@ export class TransactionsRepository {
   }
 
   async saveMany(transactions: Transaction[]): Promise<void> {
-    // Optimize the sate operations by reading and writing to the state only once
-    await this.#state.update((state) => {
-      const allTransactionsByAccount = state[this.#stateKey];
+    // Group transactions by account to minimize state operations
+    const transactionsByAccount = transactions.reduce<
+      Record<string, Transaction[]>
+    >((acc, transaction) => {
+      const accountId = transaction.account;
+      if (!acc[accountId]) {
+        acc[accountId] = [];
+      }
+      acc[accountId].push(transaction);
+      return acc;
+    }, {});
 
-      transactions.forEach((transaction) => {
-        const signature = transaction.id;
-        const accountId = transaction.account;
-        const existingTransactionsForAccount =
-          allTransactionsByAccount[accountId] ?? [];
+    // Update each account's transactions
+    await Promise.all(
+      Object.entries(transactionsByAccount).map(
+        async ([accountId, newTransactions]) => {
+          const existingTransactionsForAccount =
+            (await this.#state.getKey<Transaction[]>(
+              `${this.#stateKey}.${accountId}`,
+            )) ?? [];
 
-        // Avoid duplicates. If a transaction with the same signature already exists, override it.
-        const sameSignatureTransactionIndex =
-          existingTransactionsForAccount.findIndex((tx) => tx.id === signature);
+          // Put new transactions first so uniqBy keeps them (it keeps the first occurrence)
+          const updatedTransactions = chain([
+            ...newTransactions,
+            ...existingTransactionsForAccount,
+          ])
+            .uniqBy('id')
+            .sortBy((item) => -(item.timestamp ?? 0)) // Sort by timestamp in descending order
+            .value();
 
-        if (sameSignatureTransactionIndex !== -1) {
-          existingTransactionsForAccount[sameSignatureTransactionIndex] =
-            transaction;
-        }
-
-        const updatedTransactions = chain([
-          ...existingTransactionsForAccount,
-          transaction,
-        ])
-          .uniqBy('id')
-          .sortBy((item) => -(item.timestamp ?? 0)) // Sort by timestamp in descending order
-          .value();
-
-        state[this.#stateKey][accountId] = updatedTransactions;
-      });
-
-      return state;
-    });
+          await this.#state.setKey(
+            `${this.#stateKey}.${accountId}`,
+            updatedTransactions,
+          );
+        },
+      ),
+    );
   }
 }

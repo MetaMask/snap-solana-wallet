@@ -694,11 +694,11 @@ describe('StateCache', () => {
     it('no-ops if no entries are provided', async () => {
       const stateWithCache = new InMemoryState({});
       const cache = new StateCache(stateWithCache);
-      const updateSpy = jest.spyOn(stateWithCache, 'update');
+      const setKeySpy = jest.spyOn(stateWithCache, 'setKey');
 
       await cache.mset([]);
 
-      expect(updateSpy).not.toHaveBeenCalled();
+      expect(setKeySpy).not.toHaveBeenCalled();
     });
 
     it('defers to set if there is only one entry', async () => {
