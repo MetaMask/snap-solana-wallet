@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0]
+
+### Changed
+
+- Ensure only safe concurrent state operations ([#564](https://github.com/MetaMask/snap-solana-wallet/pull/564))
+
 ## [2.4.8]
 
 ### Fixed
@@ -994,7 +1000,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.8...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.8...v2.5.0
 [2.4.8]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.7...v2.4.8
 [2.4.7]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.6...v2.4.7
 [2.4.6]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.5...v2.4.6
