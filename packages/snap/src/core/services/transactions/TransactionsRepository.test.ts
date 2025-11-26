@@ -130,10 +130,12 @@ describe('TransactionsRepository', () => {
       const state = await mockState.get();
       // Check the transactions are saved (order may vary for same timestamp)
       expect(state.transactions[mockAccount0.id]).toHaveLength(2);
-      expect(state.transactions[mockAccount0.id]).toEqual(
+      expect(state.transactions[mockAccount0.id]).toStrictEqual(
         expect.arrayContaining([mockTransaction00, mockTransaction01]),
       );
-      expect(state.transactions[mockAccount1.id]).toEqual([mockTransaction10]);
+      expect(state.transactions[mockAccount1.id]).toStrictEqual([
+        mockTransaction10,
+      ]);
     });
 
     it('overrides existing transactions', async () => {

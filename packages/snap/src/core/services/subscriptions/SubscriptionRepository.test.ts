@@ -23,7 +23,6 @@ describe('SubscriptionRepository', () => {
       get: jest.fn(),
       getKey: jest.fn(),
       setKey: jest.fn(),
-      update: jest.fn(),
       deleteKey: jest.fn(),
       deleteKeys: jest.fn(),
     };
