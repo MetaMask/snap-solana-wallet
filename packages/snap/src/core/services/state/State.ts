@@ -61,26 +61,31 @@ export type StateConfig<TValue extends Record<string, Serializable>> = {
  * an ongoing manageState operation is not occurring.
  */
 class StateLock {
-  #blobModificationMutex = new Mutex();
+  readonly #blobModificationMutex = new Mutex();
 
-  #regularStateUpdateMutex = new Mutex();
+  readonly #regularStateUpdateMutex = new Mutex();
 
   #pendingRegularStateUpdates = 0;
 
   #releaseRegularStateUpdateMutex: MutexInterface.Releaser | null = null;
 
-  async wrapRegularStateOperation<T>(
-    callback: MutexInterface.Worker<T>,
-  ): Promise<T> {
-    // If we are currently doing a full blob update, wait it out.
-    await this.#blobModificationMutex.waitForUnlock();
-
-    // Signal that regular state operations are ongoing by acquring the mutex.
-    // Other regular state operations can skip this, as they are safe to do in parallel.
+  async #acquireRegularStateUpdateMutex() {
     if (!this.#regularStateUpdateMutex.isLocked()) {
       this.#releaseRegularStateUpdateMutex =
         await this.#regularStateUpdateMutex.acquire();
     }
+  }
+
+  async wrapRegularStateOperation<T>(
+    callback: MutexInterface.Worker<T>,
+  ): Promise<T> {
+    // If we are currently doing a full blob update, wait it out.
+    // Signal that regular state operations are ongoing by acquring the mutex.
+    // Other regular state operations can skip this, as they are safe to do in parallel.
+    await Promise.all([
+      this.#blobModificationMutex.waitForUnlock(),
+      this.#acquireRegularStateUpdateMutex(),
+    ]);
 
     try {
       this.#pendingRegularStateUpdates += 1;
