@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.5.1]
 
-### Uncategorized
+### Fixed
 
-- fix: prevent big images from exceeding snap context size ([#567](https://github.com/MetaMask/snap-solana-wallet/pull/567))
+- Prevent big images from exceeding snap context size ([#567](https://github.com/MetaMask/snap-solana-wallet/pull/567))
 
 ## [2.5.0]
 
