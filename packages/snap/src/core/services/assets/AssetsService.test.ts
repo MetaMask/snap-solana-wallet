@@ -2,6 +2,7 @@
 
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
+import { getImageComponent } from '@metamask/snaps-sdk';
 import { cloneDeep } from 'lodash';
 
 import type { ICache } from '../../caching/ICache';
@@ -30,6 +31,10 @@ import { AssetsService } from './AssetsService';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   emitSnapKeyringEvent: jest.fn(),
+}));
+
+jest.mock('@metamask/snaps-sdk', () => ({
+  getImageComponent: jest.fn(),
 }));
 
 describe('AssetsService', () => {
@@ -604,6 +609,131 @@ describe('AssetsService', () => {
       );
 
       expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);
+    });
+  });
+
+  describe('generateImageComponent', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns QUESTION_MARK_SVG when imageUrl is not provided', async () => {
+      const result = await AssetsService.generateImageComponent();
+
+      expect(result).toContain('<svg');
+      expect(result).toContain('viewBox="0 0 48 48"');
+      expect(getImageComponent).not.toHaveBeenCalled();
+    });
+
+    it('returns the SVG when image size is within limits', async () => {
+      const mockSvg = '<svg>small image</svg>';
+      (getImageComponent as jest.Mock).mockResolvedValue({
+        value: mockSvg,
+      });
+
+      const result = await AssetsService.generateImageComponent(
+        'https://example.com/image.png',
+        48,
+        48,
+      );
+
+      expect(result).toBe(mockSvg);
+      expect(getImageComponent).toHaveBeenCalledWith(
+        'https://example.com/image.png',
+        { width: 48, height: 48 },
+      );
+    });
+
+    it('returns QUESTION_MARK_SVG when image size exceeds maxSvgSizeBytes', async () => {
+      // Create a large SVG that exceeds 500KB
+      const largeSvg = `<svg>${'x'.repeat(600 * 1024)}</svg>`;
+      (getImageComponent as jest.Mock).mockResolvedValue({
+        value: largeSvg,
+      });
+
+      const result = await AssetsService.generateImageComponent(
+        'https://example.com/large-image.png',
+        16,
+        16,
+      );
+
+      expect(result).toContain('<svg');
+      expect(result).toContain('viewBox="0 0 48 48"');
+      expect(result).not.toBe(largeSvg);
+    });
+
+    it('logs warning when image size exceeds maxSvgSizeBytes', async () => {
+      const largeSvg = `<svg>${'x'.repeat(600 * 1024)}</svg>`;
+      (getImageComponent as jest.Mock).mockResolvedValue({
+        value: largeSvg,
+      });
+
+      const mockLoggerInstance = {
+        warn: jest.fn(),
+      };
+
+      await AssetsService.generateImageComponent(
+        'https://example.com/large-image.png',
+        16,
+        16,
+        mockLoggerInstance as any,
+      );
+
+      expect(mockLoggerInstance.warn).toHaveBeenCalledWith(
+        expect.stringContaining('SVG too large'),
+        expect.objectContaining({
+          imageUrl: 'https://example.com/large-image.png',
+          svgSizeKB: expect.any(String),
+        }),
+      );
+    });
+
+    it('does not log warning when logger is not provided', async () => {
+      const largeSvg = `<svg>${'x'.repeat(600 * 1024)}</svg>`;
+      (getImageComponent as jest.Mock).mockResolvedValue({
+        value: largeSvg,
+      });
+
+      // Should not throw even without logger
+      const result = await AssetsService.generateImageComponent(
+        'https://example.com/large-image.png',
+        16,
+        16,
+      );
+
+      expect(result).toContain('<svg');
+      expect(result).toContain('viewBox="0 0 48 48"');
+    });
+
+    it('returns QUESTION_MARK_SVG when getImageComponent fails', async () => {
+      (getImageComponent as jest.Mock).mockRejectedValue(
+        new Error('Failed to fetch image'),
+      );
+
+      const result = await AssetsService.generateImageComponent(
+        'https://example.com/broken-image.png',
+        48,
+        48,
+      );
+
+      expect(result).toContain('<svg');
+      expect(result).toContain('viewBox="0 0 48 48"');
+    });
+
+    it('uses default width and height when not provided', async () => {
+      const mockSvg = '<svg>image</svg>';
+      (getImageComponent as jest.Mock).mockResolvedValue({
+        value: mockSvg,
+      });
+
+      await AssetsService.generateImageComponent(
+        'https://example.com/image.png',
+      );
+
+      expect(getImageComponent).toHaveBeenCalledWith(
+        'https://example.com/image.png',
+        { width: 48, height: 48 },
+      );
     });
   });
 });

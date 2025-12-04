@@ -677,17 +677,41 @@ export class AssetsService {
     return [...savedAssets, ...missingNativeAssets];
   }
 
+  /**
+   * Maximum SVG size to prevent exceeding the 5MB snap context limit.
+   * Large images (like high-res photos) can generate multi-MB SVGs.
+   */
+  static readonly maxSvgSizeBytes = 500 * 1024; // 500KB
+
   static generateImageComponent = async (
     imageUrl?: string,
     width = 48,
     height = 48,
+    logger?: ILogger,
   ) => {
     if (!imageUrl) {
       return QUESTION_MARK_SVG;
     }
 
     return getImageComponent(imageUrl, { width, height })
-      .then((image) => image.value)
+      .then((image) => {
+        // Check if the generated SVG is too large
+        // Large images can generate multi-MB SVGs which exceed the 5MB snap context limit
+        const svgSize = new TextEncoder().encode(image.value).length;
+
+        if (svgSize > AssetsService.maxSvgSizeBytes) {
+          const svgSizeKB = (svgSize / 1024).toFixed(2);
+          const message = `SVG too large (${svgSizeKB}KB), using fallback icon`;
+
+          if (logger) {
+            logger.warn(message, { imageUrl, svgSizeKB });
+          }
+
+          return QUESTION_MARK_SVG;
+        }
+
+        return image.value;
+      })
       .catch(() => QUESTION_MARK_SVG);
   };
 }
