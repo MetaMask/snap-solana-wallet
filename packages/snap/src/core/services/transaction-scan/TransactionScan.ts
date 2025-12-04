@@ -154,6 +154,7 @@ export class TransactionScanService {
               logo,
               ICON_SIZE,
               ICON_SIZE,
+              this.#logger,
             )
               .then((image) => {
                 if (image && updatedScan?.estimatedChanges?.assets?.[index]) {
