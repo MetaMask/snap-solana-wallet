@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.1]
+
+### Fixed
+
+- Prevent big images from exceeding snap context size ([#567](https://github.com/MetaMask/snap-solana-wallet/pull/567))
+
 ## [2.5.0]
 
 ### Changed
@@ -1000,7 +1006,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.5.1...HEAD
+[2.5.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.5.0...v2.5.1
 [2.5.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.8...v2.5.0
 [2.4.8]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.7...v2.4.8
 [2.4.7]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.6...v2.4.7
