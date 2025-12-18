@@ -2,7 +2,7 @@ import { InvalidParamsError, type JsonRpcRequest } from '@metamask/snaps-sdk';
 import { getBase64Codec, getUtf8Codec, pipe } from '@solana/kit';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
-import type { AccountsService } from '../../services';
+import type { AccountsService, ApproveTokenService } from '../../services';
 import type { SendService } from '../../services/send/SendService';
 import type { ValidationResponse } from '../../services/send/types';
 import type { SolanaSignAndSendTransactionResponse } from '../../services/wallet/structs';
@@ -15,12 +15,33 @@ import type { ILogger } from '../../utils/logger';
 import { ClientRequestHandler } from './ClientRequestHandler';
 import { ClientRequestMethod } from './types';
 
+// Mock the compileTransaction function
+jest.mock('@solana/kit', () => {
+  const actual = jest.requireActual('@solana/kit');
+  return {
+    ...actual,
+    compileTransaction: jest.fn().mockReturnValue({
+      messageBytes: new Uint8Array([1, 2, 3]),
+      signatures: {},
+    }),
+  };
+});
+
+// Mock the fromTransactionToBase64String function
+jest.mock('../../sdk-extensions/codecs', () => ({
+  ...jest.requireActual('../../sdk-extensions/codecs'),
+  fromTransactionToBase64String: jest
+    .fn()
+    .mockReturnValue('mockBase64Transaction'),
+}));
+
 describe('ClientRequestHandler', () => {
   let handler: ClientRequestHandler;
   let mockAccountsService: jest.Mocked<AccountsService>;
   let mockWalletService: jest.Mocked<WalletService>;
   let mockLogger: jest.Mocked<ILogger>;
   let sendService: jest.Mocked<SendService>;
+  let mockApproveTokenService: jest.Mocked<ApproveTokenService>;
 
   beforeEach(() => {
     // Create mock keyring
@@ -46,12 +67,18 @@ describe('ClientRequestHandler', () => {
       confirmSend: jest.fn(),
     } as unknown as jest.Mocked<SendService>;
 
+    // Create mock approve token service
+    mockApproveTokenService = {
+      buildApprovalTransactionMessage: jest.fn(),
+    } as unknown as jest.Mocked<ApproveTokenService>;
+
     // Create handler instance
     handler = new ClientRequestHandler(
       mockAccountsService,
       mockWalletService,
       mockLogger,
       sendService,
+      mockApproveTokenService,
     );
 
     // Reset all mocks
@@ -612,6 +639,215 @@ describe('ClientRequestHandler', () => {
 
       await expect(handler.handle(requestWithDifferentAddress)).rejects.toThrow(
         `Address in rewards message (${differentAddress}) does not match signing account address (${address})`,
+      );
+    });
+  });
+
+  describe('signCardMessage', () => {
+    // Helper function to convert a utf8 string to base64
+    const utf8ToBase64 = (utf8: string): string =>
+      pipe(utf8, getUtf8Codec().encode, getBase64Codec().decode);
+
+    const { id: accountId, address } = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+
+    // Create a valid SIWS-style card message
+    const createCardMessage = (
+      signerAddress = address,
+      nonce = '058c0578b9b3b867',
+    ): string =>
+      `approve.card.metamask.io wants you to sign in with your Solana account: ${signerAddress} Prove address ownership URI: https://approve.card.metamask.io Version: 1 Chain ID: 1 Nonce: ${nonce} Issued At: 2025-12-02T14:25:49.589Z`;
+
+    const createRequest = (message: string): JsonRpcRequest => ({
+      jsonrpc: '2.0',
+      id: 1,
+      method: ClientRequestMethod.SignCardMessage,
+      params: {
+        accountId,
+        message: utf8ToBase64(message),
+      },
+    });
+
+    it('calls the wallet service and returns the response', async () => {
+      const validMessage = createCardMessage();
+      const base64Message = utf8ToBase64(validMessage);
+
+      const response = {
+        signature:
+          '61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu',
+        signedMessage: base64Message,
+        signatureType: 'ed25519' as const,
+      };
+      jest
+        .spyOn(mockAccountsService, 'findById')
+        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+      jest.spyOn(mockWalletService, 'signMessage').mockResolvedValue(response);
+
+      const request = createRequest(validMessage);
+
+      const result = await handler.handle(request);
+
+      expect(mockWalletService.signMessage).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        base64Message,
+      );
+      expect(result).toStrictEqual(response);
+    });
+
+    it('throws an error if account is not found', async () => {
+      mockAccountsService.findById.mockResolvedValue(null);
+
+      const request = createRequest(createCardMessage());
+
+      await expect(handler.handle(request)).rejects.toThrow(
+        'Account not found',
+      );
+    });
+
+    it('throws an error if message format is invalid', async () => {
+      const invalidMessageRequest = createRequest('invalid-message');
+
+      await expect(handler.handle(invalidMessageRequest)).rejects.toThrow(
+        'Invalid method parameter(s).',
+      );
+    });
+
+    it('throws an error if address in message does not match signing account', async () => {
+      const signingAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+      mockAccountsService.findById.mockResolvedValue(signingAccount);
+
+      // Use a valid Solana address format but different from the signing account
+      const differentAddress = MOCK_SOLANA_KEYRING_ACCOUNT_1.address;
+      const requestWithDifferentAddress = createRequest(
+        createCardMessage(differentAddress),
+      );
+
+      await expect(handler.handle(requestWithDifferentAddress)).rejects.toThrow(
+        `Address in card message (${differentAddress}) does not match signing account address (${address})`,
+      );
+    });
+
+    it('throws an error if params are invalid', async () => {
+      const invalidRequest: JsonRpcRequest = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: ClientRequestMethod.SignCardMessage,
+        params: {
+          accountId: 'invalid-uuid',
+          message: 'test',
+        },
+      };
+
+      await expect(handler.handle(invalidRequest)).rejects.toThrow(
+        'Invalid method parameter(s).',
+      );
+    });
+  });
+
+  describe('approveCardAmount', () => {
+    const { id: accountId } = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+    const mockMint = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'; // USDC mint
+    const mockDelegate = '4jepDb74FCMr1wgoSA34FeJ2mkvEsJBRZQQRumqp9EL3';
+
+    const createRequest = (
+      amount: string,
+      mint = mockMint,
+      delegate = mockDelegate,
+      scope = Network.Mainnet,
+    ): JsonRpcRequest => ({
+      jsonrpc: '2.0',
+      id: 1,
+      method: ClientRequestMethod.ApproveCardAmount,
+      params: {
+        accountId,
+        amount,
+        mint,
+        delegate,
+        scope,
+      },
+    });
+
+    it('builds and signs a token approval transaction', async () => {
+      const mockSignature =
+        '61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu';
+
+      // Mock the approve token service to return a transaction message
+      mockApproveTokenService.buildApprovalTransactionMessage.mockResolvedValue(
+        {} as any,
+      );
+
+      jest
+        .spyOn(mockAccountsService, 'findById')
+        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+      jest
+        .spyOn(mockWalletService, 'signAndSendTransaction')
+        .mockResolvedValue({
+          signature: mockSignature,
+        });
+
+      const request = createRequest('100.50');
+
+      const result = await handler.handle(request);
+
+      expect(mockAccountsService.findById).toHaveBeenCalledWith(accountId);
+      expect(
+        mockApproveTokenService.buildApprovalTransactionMessage,
+      ).toHaveBeenCalledWith({
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        mint: mockMint,
+        delegate: mockDelegate,
+        amount: '100.50',
+        network: Network.Mainnet,
+      });
+      expect(mockWalletService.signAndSendTransaction).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        expect.any(String),
+        Network.Mainnet,
+        'metamask',
+      );
+      expect(result).toStrictEqual({ signature: mockSignature });
+    });
+
+    it('throws an error if account is not found', async () => {
+      mockAccountsService.findById.mockResolvedValue(null);
+
+      const request = createRequest('100');
+
+      await expect(handler.handle(request)).rejects.toThrow(
+        'Account not found',
+      );
+    });
+
+    it('throws an error if amount is invalid', async () => {
+      const invalidRequest: JsonRpcRequest = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: ClientRequestMethod.ApproveCardAmount,
+        params: {
+          accountId,
+          amount: '-100',
+          mint: mockMint,
+          delegate: mockDelegate,
+          scope: Network.Mainnet,
+        },
+      };
+
+      await expect(handler.handle(invalidRequest)).rejects.toThrow(
+        'Invalid method parameter(s).',
+      );
+    });
+
+    it('throws an error if params are missing', async () => {
+      const invalidRequest: JsonRpcRequest = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: ClientRequestMethod.ApproveCardAmount,
+        params: {
+          accountId,
+        },
+      };
+
+      await expect(handler.handle(invalidRequest)).rejects.toThrow(
+        'Invalid method parameter(s).',
       );
     });
   });

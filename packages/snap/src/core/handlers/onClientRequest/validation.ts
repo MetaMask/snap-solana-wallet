@@ -219,6 +219,158 @@ export const SignRewardsMessageRequestStruct = object({
   params: SignRewardsMessageRequestParamsStruct,
 });
 
+/**
+ * Utility function to decode and parse a card message.
+ * The card message follows a SIWS (Sign-In with Solana) style format:
+ * `{domain} wants you to sign in with your Solana account: {address} {statement} URI: {uri} Version: {version} Chain ID: {chainId} Nonce: {nonce} Issued At: {issuedAt}`
+ *
+ * @param base64Message - The base64-encoded card message.
+ * @returns Object containing the parsed components.
+ * @throws Error if the message format is invalid
+ */
+export function parseCardMessage(base64Message: string): {
+  domain: string;
+  address: string;
+  statement: string;
+  uri: string;
+  version: string;
+  chainId: string;
+  nonce: string;
+  issuedAt: string;
+} {
+  // Decode the message from base64 to utf8
+  const decodedMessage = pipe(
+    base64Message,
+    getBase64Codec().encode, // From base64 to uint8Array
+    getUtf8Codec().decode, // From uint8Array to utf8
+  );
+
+  // Parse the message using regex
+  const regex =
+    /^(.+) wants you to sign in with your Solana account: ([1-9A-HJ-NP-Za-km-z]{32,44}) (.+) URI: (.+) Version: (\d+) Chain ID: (\d+) Nonce: ([a-fA-F0-9]+) Issued At: (.+)$/u;
+
+  const match = decodedMessage.match(regex);
+
+  if (!match) {
+    throw new Error(
+      'Invalid card message format. Expected format: "{domain} wants you to sign in with your Solana account: {address} {statement} URI: {uri} Version: {version} Chain ID: {chainId} Nonce: {nonce} Issued At: {issuedAt}"',
+    );
+  }
+
+  const [
+    ,
+    domain,
+    addressPart,
+    statement,
+    uri,
+    version,
+    chainId,
+    nonce,
+    issuedAt,
+  ] = match as [
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+  ];
+
+  // Validate domain
+  if (!domain || domain.trim() === '') {
+    throw new Error('Invalid domain in card message');
+  }
+
+  // Validate Solana address
+  if (!is(addressPart, SolanaAddressStruct)) {
+    throw new Error('Invalid Solana address in card message');
+  }
+
+  // Validate URI format
+  try {
+    const parsedUrl = new URL(uri);
+    if (!parsedUrl.protocol) {
+      throw new Error('Invalid URI');
+    }
+  } catch {
+    throw new Error('Invalid URI in card message');
+  }
+
+  // Validate issuedAt is a valid ISO 8601 date
+  const issuedAtDate = new Date(issuedAt);
+  if (isNaN(issuedAtDate.getTime())) {
+    throw new Error('Invalid Issued At date in card message');
+  }
+
+  return {
+    domain,
+    address: addressPart,
+    statement,
+    uri,
+    version,
+    chainId,
+    nonce,
+    issuedAt,
+  };
+}
+
+/**
+ * Validates that a base64-encoded message follows the card message format (SIWS style).
+ */
+export const CardMessageStruct = refine(
+  Base64Struct,
+  'CardMessage',
+  (value: string) => {
+    try {
+      parseCardMessage(value);
+      return true;
+    } catch (error) {
+      return error instanceof Error ? error.message : 'Invalid card message';
+    }
+  },
+);
+
+/**
+ * signCardMessage request/response validation.
+ */
+export const SignCardMessageRequestParamsStruct = object({
+  accountId: UuidStruct,
+  message: CardMessageStruct,
+});
+
+export const SignCardMessageRequestStruct = object({
+  jsonrpc: JsonRpcVersionStruct,
+  id: JsonRpcIdStruct,
+  method: literal(ClientRequestMethod.SignCardMessage),
+  params: SignCardMessageRequestParamsStruct,
+});
+
+/**
+ * approveCardAmount request/response validation.
+ * This method creates a token approval (delegate) transaction on chain.
+ */
+export const ApproveCardAmountRequestParamsStruct = object({
+  accountId: UuidStruct,
+  amount: PositiveNumberStringStruct,
+  mint: SolanaAddressStruct,
+  delegate: SolanaAddressStruct,
+  scope: ScopeStringStruct,
+});
+
+export const ApproveCardAmountRequestStruct = object({
+  jsonrpc: JsonRpcVersionStruct,
+  id: JsonRpcIdStruct,
+  method: literal(ClientRequestMethod.ApproveCardAmount),
+  params: ApproveCardAmountRequestParamsStruct,
+});
+
+export const ApproveCardAmountResponseStruct = object({
+  signature: Base58Struct,
+});
+
 export const ValidationResponseStruct = object({
   valid: boolean(),
   errors: array(
