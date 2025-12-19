@@ -6,10 +6,16 @@ import {
   MethodNotFoundError,
 } from '@metamask/snaps-sdk';
 import { assert, create } from '@metamask/superstruct';
+import { address as asAddress, compileTransaction } from '@solana/kit';
 
-import { METAMASK_ORIGIN, Networks } from '../../constants/solana';
+import {
+  METAMASK_ORIGIN,
+  Networks,
+  type Network,
+} from '../../constants/solana';
 import { FeeCalculator } from '../../fees';
-import type { AccountsService } from '../../services';
+import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
+import type { AccountsService, ApproveTokenService } from '../../services';
 import type { SendService } from '../../services/send/SendService';
 import type { OnAddressInputRequest } from '../../services/send/types';
 import type { WalletService } from '../../services/wallet/WalletService';
@@ -17,17 +23,21 @@ import { lamportsToSol } from '../../utils/conversion';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { ClientRequestMethod } from './types';
 import {
+  ApproveCardAmountRequestStruct,
+  ApproveCardAmountResponseStruct,
   ComputeFeeRequestStruct,
   type ComputeFeeResponse,
   ComputeFeeResponseStruct,
   OnAddressInputRequestStruct,
   OnAmountInputRequestStruct,
   OnConfirmSendRequestStruct,
+  parseCardMessage,
   parseRewardsMessage,
   SignAndSendTransactionRequestStruct,
   type SignAndSendTransactionResponse,
   SignAndSendTransactionResponseStruct,
   SignAndSendTransactionWithoutConfirmationRequestStruct,
+  SignCardMessageRequestStruct,
   SignRewardsMessageRequestStruct,
   ValidationResponseStruct,
 } from './validation';
@@ -41,16 +51,20 @@ export class ClientRequestHandler {
 
   readonly #sendService: SendService;
 
+  readonly #approveTokenService: ApproveTokenService;
+
   constructor(
     accountsService: AccountsService,
     walletService: WalletService,
     logger: ILogger,
     sendService: SendService,
+    approveTokenService: ApproveTokenService,
   ) {
     this.#accountsService = accountsService;
     this.#walletService = walletService;
     this.#logger = createPrefixedLogger(logger, '[👋 ClientRequestHandler]');
     this.#sendService = sendService;
+    this.#approveTokenService = approveTokenService;
   }
 
   /**
@@ -84,6 +98,10 @@ export class ClientRequestHandler {
         return this.#handleOnAmountInput(request);
       case ClientRequestMethod.SignRewardsMessage:
         return this.#handleSignRewardsMessage(request);
+      case ClientRequestMethod.SignCardMessage:
+        return this.#handleSignCardMessage(request);
+      case ClientRequestMethod.ApproveCardAmount:
+        return this.#handleApproveCardAmount(request);
       default:
         throw new MethodNotFoundError() as Error;
     }
@@ -316,6 +334,103 @@ export class ClientRequestHandler {
     }
 
     const result = await this.#walletService.signMessage(account, message);
+
+    return result;
+  }
+
+  /**
+   * Handles the signing of a card message in SIWS (Sign-In with Solana) format.
+   * @param request - The JSON-RPC request containing the method and parameters.
+   * @returns The response to the JSON-RPC request.
+   * @throws {InvalidParamsError} If the account is not found or if the address in the message doesn't match the signing account.
+   */
+  async #handleSignCardMessage(request: JsonRpcRequest): Promise<Json> {
+    try {
+      assert(request, SignCardMessageRequestStruct);
+    } catch (error) {
+      const errorToThrow = new InvalidParamsError() as Error;
+      errorToThrow.cause = error;
+      throw errorToThrow;
+    }
+
+    const {
+      params: { accountId, message },
+    } = request;
+
+    const account = await this.#accountsService.findById(accountId);
+    if (!account) {
+      throw new InvalidParamsError(`Account not found: ${accountId}`) as Error;
+    }
+
+    // Parse the card message to extract the address
+    const { address: messageAddress } = parseCardMessage(message);
+
+    // Validate that the address in the message matches the signing account
+    if (messageAddress !== account.address) {
+      throw new InvalidParamsError(
+        `Address in card message (${messageAddress}) does not match signing account address (${account.address})`,
+      ) as Error;
+    }
+
+    const result = await this.#walletService.signMessage(account, message);
+
+    return result;
+  }
+
+  /**
+   * Handles the approval of a card amount by creating and signing a token approval transaction.
+   * This creates an SPL token `approve` instruction that allows the delegate to spend tokens
+   * from the user's associated token account.
+   *
+   * @param request - The JSON-RPC request containing the method and parameters.
+   * @returns The response containing the transaction ID.
+   * @throws {InvalidParamsError} If the account is not found or params are invalid.
+   */
+  async #handleApproveCardAmount(request: JsonRpcRequest): Promise<Json> {
+    try {
+      assert(request, ApproveCardAmountRequestStruct);
+    } catch (error) {
+      const errorToThrow = new InvalidParamsError() as Error;
+      errorToThrow.cause = error;
+      throw errorToThrow;
+    }
+
+    const {
+      params: { accountId, amount, mint, delegate, scope },
+    } = request;
+
+    const account = await this.#accountsService.findById(accountId);
+    if (!account) {
+      throw new InvalidParamsError(`Account not found: ${accountId}`) as Error;
+    }
+
+    const network = scope as Network;
+
+    // Build the approval transaction message using the service
+    const transactionMessage =
+      await this.#approveTokenService.buildApprovalTransactionMessage({
+        account,
+        mint: asAddress(mint),
+        delegate: asAddress(delegate),
+        amount,
+        network,
+      });
+
+    // Compile and encode the transaction
+    const transaction = compileTransaction(transactionMessage);
+    const base64EncodedTransaction = fromTransactionToBase64String(transaction);
+
+    // Sign and send the transaction
+    const { signature } = await this.#walletService.signAndSendTransaction(
+      account,
+      base64EncodedTransaction,
+      network,
+      METAMASK_ORIGIN,
+    );
+
+    const result = { signature };
+
+    assert(result, ApproveCardAmountResponseStruct);
 
     return result;
   }

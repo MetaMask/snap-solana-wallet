@@ -6,4 +6,6 @@ export enum ClientRequestMethod {
   OnAddressInput = 'onAddressInput',
   OnAmountInput = 'onAmountInput',
   SignRewardsMessage = 'signRewardsMessage',
+  SignCardMessage = 'signCardMessage',
+  ApproveCardAmount = 'approveCardAmount',
 }

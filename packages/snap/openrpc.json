@@ -759,6 +759,175 @@
           }
         }
       ]
+    },
+    {
+      "name": "signCardMessage",
+      "summary": "Sign a card-related SIWS message without confirmation",
+      "description": "Signs a card-related message in SIWS (Sign-In with Solana) format directly without prompting user confirmation. This method validates that the message follows the specific format and that the address in the message matches the signing account. Message format: `'{domain} wants you to sign in with your Solana account: {address} {statement} URI: {uri} Version: {version} Chain ID: {chainId} Nonce: {nonce} Issued At: {issuedAt}'`",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "accountId",
+          "summary": "The UUID of the account to use for signing the message",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        },
+        {
+          "name": "message",
+          "summary": "The base64-encoded SIWS-style message to sign. Must contain a valid Solana address that matches the signing account.",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Base64String"
+          }
+        }
+      ],
+      "result": {
+        "name": "SignCardMessageResult",
+        "summary": "The result of signing a card message",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "signature": {
+              "$ref": "#/components/schemas/Base58String",
+              "description": "The base58-encoded signature of the message"
+            },
+            "signedMessage": {
+              "$ref": "#/components/schemas/Base64String",
+              "description": "The original base64-encoded message that was signed"
+            },
+            "signatureType": {
+              "type": "string",
+              "enum": ["ed25519"],
+              "description": "The signature algorithm used"
+            }
+          },
+          "required": ["signature", "signedMessage", "signatureType"],
+          "additionalProperties": false
+        }
+      },
+      "examples": [
+        {
+          "name": "signCardMessageExample",
+          "description": "Example of signing a SIWS-style card message for a Solana address",
+          "params": [
+            {
+              "name": "accountId",
+              "value": "c747acb9-1b2b-4352-b9da-3d658fcc3cc7"
+            },
+            {
+              "name": "message",
+              "value": "YXBwcm92ZS5jYXJkLm1ldGFtYXNrLmlvIHdhbnRzIHlvdSB0byBzaWduIGluIHdpdGggeW91ciBTb2xhbmEgYWNjb3VudDogQkx3M1J3ZUptZmJUYXBKUmduUFJ2ZDk2MllEakZZQW5WR2QxcDVobVo1dFAgUHJvdmUgYWRkcmVzcyBvd25lcnNoaXAgVVJJOiBodHRwczovL2FwcHJvdmUuY2FyZC5tZXRhbWFzay5pbyBWZXJzaW9uOiAxIENoYWluIElEOiAxIE5vbmNlOiAwNThjMDU3OGI5YjNiODY3IElzc3VlZCBBdDogMjAyNS0xMi0wMlQxNDoyNTo0OS41ODla"
+            }
+          ],
+          "result": {
+            "name": "signCardMessageResult",
+            "value": {
+              "signature": "61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu",
+              "signedMessage": "YXBwcm92ZS5jYXJkLm1ldGFtYXNrLmlvIHdhbnRzIHlvdSB0byBzaWduIGluIHdpdGggeW91ciBTb2xhbmEgYWNjb3VudDogQkx3M1J3ZUptZmJUYXBKUmduUFJ2ZDk2MllEakZZQW5WR2QxcDVobVo1dFAgUHJvdmUgYWRkcmVzcyBvd25lcnNoaXAgVVJJOiBodHRwczovL2FwcHJvdmUuY2FyZC5tZXRhbWFzay5pbyBWZXJzaW9uOiAxIENoYWluIElEOiAxIE5vbmNlOiAwNThjMDU3OGI5YjNiODY3IElzc3VlZCBBdDogMjAyNS0xMi0wMlQxNDoyNTo0OS41ODla",
+              "signatureType": "ed25519"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "approveCardAmount",
+      "summary": "Approve a delegate to spend tokens on behalf of the user",
+      "description": "Creates and signs an SPL token approval transaction that authorizes a delegate address to spend a specified amount of tokens from the user's associated token account. This is used by the Card team to enable card-related token spending.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "accountId",
+          "summary": "The UUID of the account to use for signing the approval transaction",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        },
+        {
+          "name": "amount",
+          "summary": "The amount to approve as a positive number string (in token units, e.g., '100.50' for 100.50 USDC)",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PositiveNumberString"
+          }
+        },
+        {
+          "name": "mint",
+          "summary": "The token mint address (e.g., USDC mint address)",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SolanaAddress"
+          }
+        },
+        {
+          "name": "delegate",
+          "summary": "The Solana address that is authorized to spend the approved amount",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SolanaAddress"
+          }
+        },
+        {
+          "name": "scope",
+          "summary": "The Solana network to send the transaction to",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Network"
+          }
+        }
+      ],
+      "result": {
+        "name": "ApproveCardAmountResult",
+        "summary": "The result of approving a card amount",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "signature": {
+              "$ref": "#/components/schemas/Base58String",
+              "description": "The transaction signature returned after successful execution on Solana"
+            }
+          },
+          "required": ["signature"],
+          "additionalProperties": false
+        }
+      },
+      "examples": [
+        {
+          "name": "approveCardAmountExample",
+          "description": "Example of approving a delegate to spend 100.50 USDC",
+          "params": [
+            {
+              "name": "accountId",
+              "value": "c747acb9-1b2b-4352-b9da-3d658fcc3cc7"
+            },
+            {
+              "name": "amount",
+              "value": "100.50"
+            },
+            {
+              "name": "mint",
+              "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+            },
+            {
+              "name": "delegate",
+              "value": "4jepDb74FCMr1wgoSA34FeJ2mkvEsJBRZQQRumqp9EL3"
+            },
+            {
+              "name": "scope",
+              "value": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            }
+          ],
+          "result": {
+            "name": "approveCardAmountResult",
+            "value": {
+              "signature": "61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu"
+            }
+          }
+        }
+      ]
     }
   ],
   "components": {

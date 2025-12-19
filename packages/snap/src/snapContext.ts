@@ -12,6 +12,7 @@ import {
   AccountsRepository,
   AccountsService,
   AccountsSynchronizer,
+  ApproveTokenService,
   AssetsRepository,
   AssetsService,
   KeyringAccountMonitor,
@@ -245,11 +246,18 @@ const sendService = new SendService(
   assetsService,
 );
 
+const approveTokenService = new ApproveTokenService(
+  connection,
+  tokenHelper,
+  logger,
+);
+
 const clientRequestHandler = new ClientRequestHandler(
   accountsService,
   walletService,
   logger,
   sendService,
+  approveTokenService,
 );
 
 const snapContext: SnapExecutionContext = {
