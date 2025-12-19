@@ -6,6 +6,10 @@ import {
   findAssociatedTokenPda,
   getApproveCheckedInstruction,
 } from '@solana-program/token';
+import {
+  getApproveCheckedInstruction as getApproveCheckedInstruction2022,
+  TOKEN_2022_PROGRAM_ADDRESS,
+} from '@solana-program/token-2022';
 import type { Address, CompilableTransactionMessage } from '@solana/kit';
 import {
   appendTransactionMessageInstruction,
@@ -120,8 +124,13 @@ export class ApproveTokenService {
       })
     )[0];
 
-    // Create the approve checked instruction
-    const approveInstruction = getApproveCheckedInstruction({
+    // Create the approve checked instruction using the appropriate token program
+    const getApproveInstruction =
+      tokenProgram === TOKEN_2022_PROGRAM_ADDRESS
+        ? getApproveCheckedInstruction2022
+        : getApproveCheckedInstruction;
+
+    const approveInstruction = getApproveInstruction({
       source: ownerATA,
       mint,
       delegate,
