@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.6.0]
 
-### Uncategorized
+### Added
 
-- feat: card spending methods ([#569](https://github.com/MetaMask/snap-solana-wallet/pull/569))
+- Card spending methods ([#569](https://github.com/MetaMask/snap-solana-wallet/pull/569))
 
 ## [2.5.1]
 
