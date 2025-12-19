@@ -1,7 +1,9 @@
 import {
+  CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
   resolveInterface,
   updateInterface,
 } from '../../../../core/utils/interface';
+import { state } from '../../../../snapContext';
 import { ConfirmTransactionRequest } from './ConfirmTransactionRequest';
 import { type ConfirmTransactionRequestContext } from './types';
 
@@ -42,6 +44,9 @@ async function onShowAdvancedButtonClick({
  */
 async function onCancelButtonClick({ id }: { id: string }) {
   await resolveInterface(id, false);
+  await state.deleteKey(
+    `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
+  );
 }
 
 /**
@@ -52,6 +57,9 @@ async function onCancelButtonClick({ id }: { id: string }) {
  */
 async function onConfirmButtonClick({ id }: { id: string }) {
   await resolveInterface(id, true);
+  await state.deleteKey(
+    `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
+  );
 }
 
 export enum ConfirmSignAndSendTransactionFormNames {
