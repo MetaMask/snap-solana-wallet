@@ -1,7 +1,6 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
 
 import { ClientRequestMethod } from './core/handlers/onClientRequest';
-import { SolanaProtocolRequestMethod } from './core/handlers/onProtocolRequest/structs';
 import {
   RpcRequestMethod,
   TestDappRpcRequestMethod,
@@ -32,11 +31,6 @@ const dappPermissions = isDev
       // RPC methods
       RpcRequestMethod.StartSendTransactionFlow,
       RpcRequestMethod.GetFeeForTransaction,
-      // Protocol methods
-      SolanaProtocolRequestMethod.GetGenesisHash,
-      SolanaProtocolRequestMethod.GetLatestBlockhash,
-      // Client methods
-      ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
       // Methods specific to the test dapp
       TestDappRpcRequestMethod.ListWebSockets,
       TestDappRpcRequestMethod.ListSubscriptions,
