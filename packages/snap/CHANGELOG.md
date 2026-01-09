@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.6.1]
 
-### Uncategorized
+### Fixed
 
-- fix: token 2022 send ([#573](https://github.com/MetaMask/snap-solana-wallet/pull/573))
-- fix: Unblock `onProtocolRequest` ([#572](https://github.com/MetaMask/snap-solana-wallet/pull/572))
-- fix: interface context error ([#571](https://github.com/MetaMask/snap-solana-wallet/pull/571))
+- Fix token 2022 send ([#573](https://github.com/MetaMask/snap-solana-wallet/pull/573))
+- Unblock `onProtocolRequest` ([#572](https://github.com/MetaMask/snap-solana-wallet/pull/572))
+- Clear stored interface ID after the interface is closed ([#571](https://github.com/MetaMask/snap-solana-wallet/pull/571))
 
 ## [2.6.0]
 
