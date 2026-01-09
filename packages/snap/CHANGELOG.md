@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.1]
+
+### Uncategorized
+
+- fix: token 2022 send ([#573](https://github.com/MetaMask/snap-solana-wallet/pull/573))
+- fix: Unblock `onProtocolRequest` ([#572](https://github.com/MetaMask/snap-solana-wallet/pull/572))
+- fix: interface context error ([#571](https://github.com/MetaMask/snap-solana-wallet/pull/571))
+
 ## [2.6.0]
 
 ### Added
@@ -1012,7 +1020,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.6.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.6.1...HEAD
+[2.6.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.6.0...v2.6.1
 [2.6.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.5.1...v2.6.0
 [2.5.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.5.0...v2.5.1
 [2.5.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.8...v2.5.0
