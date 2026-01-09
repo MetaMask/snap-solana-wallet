@@ -8,6 +8,11 @@ import {
   getCreateAssociatedTokenIdempotentInstruction,
   getTransferCheckedInstruction,
 } from '@solana-program/token';
+import {
+  getCreateAssociatedTokenIdempotentInstruction as getCreateAssociatedTokenIdempotentInstruction2022,
+  getTransferCheckedInstruction as getTransferCheckedInstruction2022,
+  TOKEN_2022_PROGRAM_ADDRESS,
+} from '@solana-program/token-2022';
 import type { CompilableTransactionMessage, IInstruction } from '@solana/kit';
 import {
   appendTransactionMessageInstructions,
@@ -127,6 +132,15 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
     const instructions: IInstruction[] = [];
 
+    // Use the Token-2022 instructions if the token is a Token-2022 token
+    const isToken2022 = tokenProgram === TOKEN_2022_PROGRAM_ADDRESS;
+    const createAtaInstruction = isToken2022
+      ? getCreateAssociatedTokenIdempotentInstruction2022
+      : getCreateAssociatedTokenIdempotentInstruction;
+    const transferInstruction = isToken2022
+      ? getTransferCheckedInstruction2022
+      : getTransferCheckedInstruction;
+
     switch (recipientClassification.type) {
       // If the recipient is a system account, we send the tokens to the related ATA
       case 'SYSTEM': {
@@ -140,7 +154,7 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
         // Add an instruction that creates the recipient's ATA if it doesn't exist
         instructions.push(
-          getCreateAssociatedTokenIdempotentInstruction({
+          createAtaInstruction({
             mint,
             payer: signer,
             tokenProgram,
@@ -151,7 +165,7 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
         // Add an instruction that transfers the tokens from the sender's ATA to the recipient's ATA
         instructions.push(
-          getTransferCheckedInstruction({
+          transferInstruction({
             source: fromATA,
             mint,
             destination: recipientATA,
@@ -171,7 +185,7 @@ export class SendSplTokenBuilder implements ISendTransactionBuilder {
 
         // Add an instruction that transfers the tokens from the sender's ATA to the recipient's token account
         instructions.push(
-          getTransferCheckedInstruction({
+          transferInstruction({
             source: fromATA,
             mint,
             destination: recipientAddress,
