@@ -1,41 +1,52 @@
 import type { Address } from '@solana/kit';
-import { getUtf8Codec } from '@solana/kit';
 import {
-  Connection,
-  PublicKey,
-  Transaction,
-  TransactionInstruction,
-} from '@solana/web3.js';
+  address,
+  appendTransactionMessageInstruction,
+  compileTransaction,
+  createSolanaRpc,
+  createTransactionMessage,
+  getUtf8Encoder,
+  pipe,
+  setTransactionMessageFeePayer,
+  setTransactionMessageLifetimeUsingBlockhash,
+} from '@solana/kit';
 
 import type { Network } from '../../../../../snap/src/core/constants/solana';
 import { networkToUrl } from '../networkToUrl';
+
+const MEMO_PROGRAM_ADDRESS = address(
+  'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
+);
 
 export const buildNoOpWithHelloWorldData = async (
   feePayerAddress: Address,
   network: Network,
 ) => {
   const url = networkToUrl(network);
-  const connection = new Connection(url);
+  const rpc = createSolanaRpc(url);
 
-  const feePayer = new PublicKey(feePayerAddress);
+  const latestBlockhash = await rpc.getLatestBlockhash().send();
 
-  const blockhash = await connection.getLatestBlockhash();
-
-  const transaction = new Transaction({
-    feePayer,
-    recentBlockhash: blockhash.blockhash,
-  }).add(
-    new TransactionInstruction({
-      data: getUtf8Codec().encode('Hello, world!') as any,
-      keys: [],
-      programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'),
-    }),
+  const transactionMessage = pipe(
+    createTransactionMessage({ version: 'legacy' }),
+    (tx) => setTransactionMessageFeePayer(feePayerAddress, tx),
+    (tx) =>
+      setTransactionMessageLifetimeUsingBlockhash(latestBlockhash.value, tx),
+    (tx) =>
+      appendTransactionMessageInstruction(
+        {
+          data: getUtf8Encoder().encode('Hello, world!'),
+          programAddress: MEMO_PROGRAM_ADDRESS,
+        },
+        tx,
+      ),
   );
 
-  const serializedTransactionMessage = transaction.serializeMessage();
-
-  const transactionMessageBase64 =
-    serializedTransactionMessage.toString('base64');
+  const compiledTransaction = compileTransaction(transactionMessage);
+  // eslint-disable-next-line no-restricted-globals
+  const transactionMessageBase64 = Buffer.from(
+    compiledTransaction.messageBytes,
+  ).toString('base64');
 
   return transactionMessageBase64;
 };
