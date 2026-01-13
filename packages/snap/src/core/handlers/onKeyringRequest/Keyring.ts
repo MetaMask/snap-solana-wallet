@@ -428,6 +428,7 @@ export class SolanaKeyring implements Keyring {
           acc[asset.assetType] = {
             unit: asset.symbol,
             amount: asset.uiAmount,
+            rawAmount: asset.rawAmount,
           };
           return acc;
         },

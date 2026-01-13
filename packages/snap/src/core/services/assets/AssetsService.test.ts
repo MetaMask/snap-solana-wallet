@@ -272,14 +272,17 @@ describe('AssetsService', () => {
               [MOCK_ASSET_ENTITY_0.assetType]: {
                 unit: MOCK_ASSET_ENTITY_0.symbol,
                 amount: MOCK_ASSET_ENTITY_0.uiAmount,
+                rawAmount: MOCK_ASSET_ENTITY_0.rawAmount,
               },
               [MOCK_ASSET_ENTITY_1.assetType]: {
                 unit: MOCK_ASSET_ENTITY_1.symbol,
                 amount: MOCK_ASSET_ENTITY_1.uiAmount,
+                rawAmount: MOCK_ASSET_ENTITY_1.rawAmount,
               },
               [MOCK_ASSET_ENTITY_2.assetType]: {
                 unit: MOCK_ASSET_ENTITY_2.symbol,
                 amount: MOCK_ASSET_ENTITY_2.uiAmount,
+                rawAmount: MOCK_ASSET_ENTITY_2.rawAmount,
               },
             },
           },
@@ -292,7 +295,9 @@ describe('AssetsService', () => {
         .spyOn(mockAssetsRepository, 'getAll')
         .mockResolvedValue([{ ...MOCK_ASSET_ENTITY_0, uiAmount: '1234' }]);
 
-      await assetsService.saveMany([{ ...MOCK_ASSET_ENTITY_0, uiAmount: '0' }]);
+      await assetsService.saveMany([
+        { ...MOCK_ASSET_ENTITY_0, uiAmount: '0', rawAmount: '0' },
+      ]);
 
       expect(emitSnapKeyringEvent).toHaveBeenCalledWith(
         snap,
@@ -303,6 +308,7 @@ describe('AssetsService', () => {
               [MOCK_ASSET_ENTITY_0.assetType]: {
                 unit: MOCK_ASSET_ENTITY_0.symbol,
                 amount: '0',
+                rawAmount: '0',
               },
             },
           },
@@ -445,6 +451,7 @@ describe('AssetsService', () => {
               [MOCK_ASSET_ENTITY_0.assetType]: {
                 unit: updatedAsset.symbol,
                 amount: updatedAsset.uiAmount,
+                rawAmount: updatedAsset.rawAmount,
               },
             },
           },
