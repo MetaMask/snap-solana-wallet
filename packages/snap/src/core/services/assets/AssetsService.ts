@@ -594,6 +594,7 @@ export class AssetsService {
             [asset.assetType]: {
               unit: asset.symbol,
               amount: asset.uiAmount,
+              rawAmount: asset.rawAmount,
             },
           },
         }),

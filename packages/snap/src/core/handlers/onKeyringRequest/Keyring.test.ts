@@ -667,6 +667,7 @@ describe('SolanaKeyring', () => {
         [MOCK_ASSET_ENTITY_1.assetType]: {
           amount: MOCK_ASSET_ENTITY_1.uiAmount,
           unit: MOCK_ASSET_ENTITY_1.symbol,
+          rawAmount: MOCK_ASSET_ENTITY_1.rawAmount,
         },
       });
     });
@@ -686,6 +687,7 @@ describe('SolanaKeyring', () => {
         [MOCK_ASSET_ENTITY_0.assetType]: {
           amount: MOCK_ASSET_ENTITY_0.uiAmount,
           unit: MOCK_ASSET_ENTITY_0.symbol,
+          rawAmount: '0',
         },
       });
     });
