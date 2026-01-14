@@ -653,9 +653,9 @@ describe('ClientRequestHandler', () => {
     // Create a valid SIWS-style card message
     const createCardMessage = (
       signerAddress = address,
-      nonce = '058c0578b9b3b867',
+      nonce = 'a90TLFMbDFGDWUTfs',
     ): string =>
-      `approve.card.metamask.io wants you to sign in with your Solana account: ${signerAddress} Prove address ownership URI: https://approve.card.metamask.io Version: 1 Chain ID: 1 Nonce: ${nonce} Issued At: 2025-12-02T14:25:49.589Z`;
+      `approve.card.metamask.io wants you to sign in with your Solana account: ${signerAddress} Prove address ownership URI: https://approve.card.metamask.io Version: 1 Chain ID: 1 Nonce: ${nonce} Issued At: 2025-12-02T14:25:49.589Z Expiration Time: 2025-12-02T14:35:49.589Z`;
 
     const createRequest = (message: string): JsonRpcRequest => ({
       jsonrpc: '2.0',

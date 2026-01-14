@@ -44,6 +44,18 @@ describe('TokenHelper', () => {
       );
       expect(result).toBe(lamports(1000n * 10n ** 6n));
     });
+
+    it('handles very large amounts without BigInt parsing errors', async () => {
+      // This is the "unlimited" sentinel value used by the Card team
+      const unlimitedAmount = '2199023255551';
+      const result = await tokenHelper.uiAmountToAmountForMint(
+        mockMint,
+        Network.Mainnet,
+        unlimitedAmount,
+      );
+      // 2199023255551 * 10^6 = 2199023255551000000n
+      expect(result).toBe(lamports(2199023255551000000n));
+    });
   });
 
   describe('when the mint has a multiplier', () => {

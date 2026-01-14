@@ -90,7 +90,7 @@ export class TokenHelper {
           BigInt(
             BigNumber(uiAmount)
               .multipliedBy(10 ** decimals)
-              .toString(),
+              .toFixed(0),
           ),
         );
       }
@@ -137,7 +137,7 @@ export class TokenHelper {
         BigInt(
           BigNumber(uiAmount)
             .multipliedBy(10 ** decimals)
-            .toString(),
+            .toFixed(0),
         ),
       );
     }
