@@ -7,12 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.6.2]
-
-### Uncategorized
-
-- chore: fully deprecate `@solana/web3.js` on the project ([#575](https://github.com/MetaMask/snap-solana-wallet/pull/575))
-
 ## [2.4.6]
 
 ### Added
