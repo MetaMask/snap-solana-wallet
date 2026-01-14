@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.6.2]
 
-### Uncategorized
+### Fixed
 
-- fix: card methods improvements ([#578](https://github.com/MetaMask/snap-solana-wallet/pull/578))
-- chore: fully deprecate `@solana/web3.js` on the project ([#575](https://github.com/MetaMask/snap-solana-wallet/pull/575))
+- Card methods improvements ([#578](https://github.com/MetaMask/snap-solana-wallet/pull/578))
+- Fully deprecate `@solana/web3.js` on the project ([#575](https://github.com/MetaMask/snap-solana-wallet/pull/575))
 
 ## [2.6.1]
 
