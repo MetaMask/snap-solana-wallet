@@ -763,7 +763,7 @@
     {
       "name": "signCardMessage",
       "summary": "Sign a card-related SIWS message without confirmation",
-      "description": "Signs a card-related message in SIWS (Sign-In with Solana) format directly without prompting user confirmation. This method validates that the message follows the specific format and that the address in the message matches the signing account. Message format: `'{domain} wants you to sign in with your Solana account: {address} {statement} URI: {uri} Version: {version} Chain ID: {chainId} Nonce: {nonce} Issued At: {issuedAt}'`",
+      "description": "Signs a card-related message in SIWS (Sign-In with Solana) format directly without prompting user confirmation. This method validates that the message follows the specific format and that the address in the message matches the signing account. Message format: `'{domain} wants you to sign in with your Solana account: {address} {statement} URI: {uri} Version: {version} Chain ID: {chainId} Nonce: {nonce} Issued At: {issuedAt} Expiration Time: {expirationTime}'`",
       "paramStructure": "by-name",
       "params": [
         {
@@ -818,14 +818,14 @@
             },
             {
               "name": "message",
-              "value": "YXBwcm92ZS5jYXJkLm1ldGFtYXNrLmlvIHdhbnRzIHlvdSB0byBzaWduIGluIHdpdGggeW91ciBTb2xhbmEgYWNjb3VudDogQkx3M1J3ZUptZmJUYXBKUmduUFJ2ZDk2MllEakZZQW5WR2QxcDVobVo1dFAgUHJvdmUgYWRkcmVzcyBvd25lcnNoaXAgVVJJOiBodHRwczovL2FwcHJvdmUuY2FyZC5tZXRhbWFzay5pbyBWZXJzaW9uOiAxIENoYWluIElEOiAxIE5vbmNlOiAwNThjMDU3OGI5YjNiODY3IElzc3VlZCBBdDogMjAyNS0xMi0wMlQxNDoyNTo0OS41ODla"
+              "value": "YXBwcm92ZS5jYXJkLm1ldGFtYXNrLmlvIHdhbnRzIHlvdSB0byBzaWduIGluIHdpdGggeW91ciBTb2xhbmEgYWNjb3VudDogQkx3M1J3ZUptZmJUYXBKUmduUFJ2ZDk2MllEakZZQW5WR2QxcDVobVo1dFAgUHJvdmUgYWRkcmVzcyBvd25lcnNoaXAgVVJJOiBodHRwczovL2FwcHJvdmUuY2FyZC5tZXRhbWFzay5pbyBWZXJzaW9uOiAxIENoYWluIElEOiAxIE5vbmNlOiBhOTBUTEZNYkRGR0RXVVRmcyBJc3N1ZWQgQXQ6IDIwMjUtMTItMDJUMTQ6MjU6NDkuNTg5WiBFeHBpcmF0aW9uIFRpbWU6IDIwMjUtMTItMDJUMTQ6MzU6NDkuNTg5Wg=="
             }
           ],
           "result": {
             "name": "signCardMessageResult",
             "value": {
               "signature": "61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu",
-              "signedMessage": "YXBwcm92ZS5jYXJkLm1ldGFtYXNrLmlvIHdhbnRzIHlvdSB0byBzaWduIGluIHdpdGggeW91ciBTb2xhbmEgYWNjb3VudDogQkx3M1J3ZUptZmJUYXBKUmduUFJ2ZDk2MllEakZZQW5WR2QxcDVobVo1dFAgUHJvdmUgYWRkcmVzcyBvd25lcnNoaXAgVVJJOiBodHRwczovL2FwcHJvdmUuY2FyZC5tZXRhbWFzay5pbyBWZXJzaW9uOiAxIENoYWluIElEOiAxIE5vbmNlOiAwNThjMDU3OGI5YjNiODY3IElzc3VlZCBBdDogMjAyNS0xMi0wMlQxNDoyNTo0OS41ODla",
+              "signedMessage": "YXBwcm92ZS5jYXJkLm1ldGFtYXNrLmlvIHdhbnRzIHlvdSB0byBzaWduIGluIHdpdGggeW91ciBTb2xhbmEgYWNjb3VudDogQkx3M1J3ZUptZmJUYXBKUmduUFJ2ZDk2MllEakZZQW5WR2QxcDVobVo1dFAgUHJvdmUgYWRkcmVzcyBvd25lcnNoaXAgVVJJOiBodHRwczovL2FwcHJvdmUuY2FyZC5tZXRhbWFzay5pbyBWZXJzaW9uOiAxIENoYWluIElEOiAxIE5vbmNlOiBhOTBUTEZNYkRGR0RXVVRmcyBJc3N1ZWQgQXQ6IDIwMjUtMTItMDJUMTQ6MjU6NDkuNTg5WiBFeHBpcmF0aW9uIFRpbWU6IDIwMjUtMTItMDJUMTQ6MzU6NDkuNTg5Wg==",
               "signatureType": "ed25519"
             }
           }
