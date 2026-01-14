@@ -13,7 +13,7 @@ export type ActionHeaderProps = {
  * @param props - The props for the ActionHeader component.
  * @param props.title - The title of the action header.
  * @param props.subtitle - The subtitle of the action header.
- * @param props.iconSrc - The URL of the icon to display. This should be an SVG string, and other formats such as PNG and JPEG are not supported directly. You can use the data: URL scheme to embed images inside the SVG.
+ * @param props.iconSrc - The icon source to display. The Snaps `Image` component supports both SVG strings and image URLs (e.g. PNG/JPEG).
  * @param props.isLoading - Renders a spinner IN PLACE OF THE ICON if true.
  * @returns The ActionHeader component.
  */
@@ -28,7 +28,7 @@ export const ActionHeader = ({
       <Box direction="horizontal" center>
         {isLoading ? <Spinner /> : null}
         {iconSrc && !isLoading ? (
-          <Image borderRadius="full" src={iconSrc} />
+          <Image borderRadius="full" src={iconSrc} width={16} height={16} />
         ) : null}
       </Box>
       <Heading size="lg">{title}</Heading>

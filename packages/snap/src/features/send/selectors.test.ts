@@ -73,7 +73,7 @@ describe('Send selectors', () => {
     currencyType: SendCurrencyType.TOKEN,
     selectedTokenMetadata: {
       symbol: 'USDC',
-      imageSvg: 'test-image.svg',
+      imageUrl: 'https://example.com/test-image.png',
       name: 'USD Coin',
       asset: mockTokenCaipId,
     },
@@ -114,7 +114,7 @@ describe('Send selectors', () => {
       expect(result).toStrictEqual({
         ...mockContext.selectedTokenMetadata,
         tokenSymbol: 'USDC',
-        tokenImage: 'test-image.svg',
+        tokenImage: 'https://example.com/test-image.png',
       });
     });
 

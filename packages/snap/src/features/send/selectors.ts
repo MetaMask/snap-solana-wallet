@@ -33,7 +33,7 @@ export const getSelectedTokenMetadata = (context: SendContext) => {
   return {
     ...(selectedTokenMetadata ?? {}),
     tokenSymbol: selectedTokenMetadata?.symbol ?? 'UNKNOWN',
-    tokenImage: selectedTokenMetadata?.imageSvg ?? QUESTION_MARK_SVG,
+    tokenImage: selectedTokenMetadata?.imageUrl ?? QUESTION_MARK_SVG,
   };
 };
 

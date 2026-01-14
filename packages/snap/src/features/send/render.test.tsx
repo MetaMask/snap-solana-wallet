@@ -28,6 +28,8 @@ import { startMockSolanaRpc } from '../../core/test/mocks/startMockSolanaRpc';
 import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../core/test/mocks/transactions-data/native-sol-transfer';
 import { TEST_ORIGIN } from '../../core/test/utils';
 import type { Preferences } from '../../core/types/snap';
+import { buildUrl } from '../../core/utils/buildUrl';
+import { configProvider } from '../../snapContext';
 import { DEFAULT_SEND_CONTEXT } from './render';
 import { Send } from './Send';
 import { type SendContext, SendCurrencyType, SendFormNames } from './types';
@@ -154,6 +156,15 @@ const mockContext: SendContext = {
   tokenPrices: mockSpotPrices,
   loading: false,
 };
+
+const tokenImageUrl = buildUrl({
+  baseUrl: configProvider.get().staticApi.baseUrl,
+  path: '/api/v2/tokenIcons/assets/{assetId}.png',
+  pathParams: {
+    assetId: KnownCaip19Id.SolLocalnet.replace(/:/gu, '/'),
+  },
+  encodePathParams: false,
+});
 
 describe('Send', () => {
   let mockSolanaRpc: MockSolanaRpc;
@@ -400,7 +411,7 @@ describe('Send', () => {
         symbol: 'SOL',
         name: 'Solana',
         asset: KnownCaip19Id.SolLocalnet,
-        imageSvg: null,
+        imageUrl: tokenImageUrl,
       },
     };
 
