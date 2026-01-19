@@ -94,7 +94,7 @@ describe('ApproveTokenService', () => {
       expect(transactionMessage.instructions).toHaveLength(3); // 2 compute budget + 1 approve
     });
 
-    it('fetches mint info to get decimals', async () => {
+    it('fetches mint info to get token program', async () => {
       await service.buildApprovalTransactionMessage({
         account: MOCK_SOLANA_KEYRING_ACCOUNT_0,
         mint: mockMint,

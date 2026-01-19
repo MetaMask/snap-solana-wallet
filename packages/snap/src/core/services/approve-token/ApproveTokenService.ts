@@ -4,10 +4,10 @@ import {
 } from '@solana-program/compute-budget';
 import {
   findAssociatedTokenPda,
-  getApproveCheckedInstruction,
+  getApproveInstruction,
 } from '@solana-program/token';
 import {
-  getApproveCheckedInstruction as getApproveCheckedInstruction2022,
+  getApproveInstruction as getApproveInstruction2022,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '@solana-program/token-2022';
 import type { Address, CompilableTransactionMessage } from '@solana/kit';
@@ -92,7 +92,7 @@ export class ApproveTokenService {
       network,
     } = params;
 
-    // Fetch mint info to get decimals and token program
+    // Fetch mint info to get the token program
     const [mintAccount, latestBlockhash, { privateKeyBytes }] =
       await Promise.all([
         this.#connection.fetchMint(mint, network),
@@ -100,10 +100,7 @@ export class ApproveTokenService {
         deriveSolanaKeypair({ entropySource, derivationPath }),
       ]);
 
-    const {
-      programAddress: tokenProgram,
-      data: { decimals },
-    } = mintAccount;
+    const { programAddress: tokenProgram } = mintAccount;
 
     const signer =
       await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
@@ -124,19 +121,17 @@ export class ApproveTokenService {
       })
     )[0];
 
-    // Create the approve checked instruction using the appropriate token program
-    const getApproveInstruction =
+    // Create the approve instruction using the appropriate token program
+    const getApproveInstructionFn =
       tokenProgram === TOKEN_2022_PROGRAM_ADDRESS
-        ? getApproveCheckedInstruction2022
-        : getApproveCheckedInstruction;
+        ? getApproveInstruction2022
+        : getApproveInstruction;
 
-    const approveInstruction = getApproveInstruction({
+    const approveInstruction = getApproveInstructionFn({
       source: ownerATA,
-      mint,
       delegate,
       owner: signer,
       amount: rawAmount,
-      decimals,
     });
 
     // Build the transaction message
