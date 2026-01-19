@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.7.0]
 
-### Uncategorized
+### Changed
 
-- refactor: change ApproveTokenService to use `Approve` instructions in… ([#580](https://github.com/MetaMask/snap-solana-wallet/pull/580))
+- Use `Approve` chain instructions instead of `ApproveChecked` on the `approveCardAmount` client request hook ([#580](https://github.com/MetaMask/snap-solana-wallet/pull/580))
 
 ## [2.6.2]
 
