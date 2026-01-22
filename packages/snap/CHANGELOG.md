@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.1]
+
+### Changed
+
+- Ensure snap state consistency if account creation fails on the client's side ([#557](https://github.com/MetaMask/snap-solana-wallet/pull/557))
+
 ## [2.7.0]
 
 ### Changed
@@ -1033,7 +1039,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.1...HEAD
+[2.7.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.0...v2.7.1
 [2.7.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.6.2...v2.7.0
 [2.6.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.6.1...v2.6.2
 [2.6.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.6.0...v2.6.1
