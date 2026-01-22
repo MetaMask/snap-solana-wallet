@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.7.1]
 
-### Uncategorized
+### Changed
 
-- fix: ensure consistency if account creation fails ([#557](https://github.com/MetaMask/snap-solana-wallet/pull/557))
+- Ensure snap state consistency if account creation fails on the client's side ([#557](https://github.com/MetaMask/snap-solana-wallet/pull/557))
 
 ## [2.7.0]
 
