@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.7.1]
 
-### Uncategorized
+### Fixed
 
-- fix: sync site changelog ([#582](https://github.com/MetaMask/snap-solana-wallet/pull/582))
+- Site changelog ([#582](https://github.com/MetaMask/snap-solana-wallet/pull/582))
 
 ## [2.7.0]
 
