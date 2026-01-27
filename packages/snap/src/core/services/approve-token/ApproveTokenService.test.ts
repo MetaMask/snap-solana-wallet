@@ -91,7 +91,7 @@ describe('ApproveTokenService', () => {
       // Verify the transaction message structure
       expect(transactionMessage).toHaveProperty('version', 0);
       expect(transactionMessage).toHaveProperty('instructions');
-      expect(transactionMessage.instructions).toHaveLength(3); // 2 compute budget + 1 approve
+      expect(transactionMessage.instructions).toHaveLength(4); // 2 compute budget + 1 create ATA idempotent + 1 approve
     });
 
     it('fetches mint info to get token program', async () => {

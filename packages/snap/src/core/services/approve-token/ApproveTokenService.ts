@@ -5,9 +5,11 @@ import {
 import {
   findAssociatedTokenPda,
   getApproveInstruction,
+  getCreateAssociatedTokenIdempotentInstruction,
 } from '@solana-program/token';
 import {
   getApproveInstruction as getApproveInstruction2022,
+  getCreateAssociatedTokenIdempotentInstruction as getCreateAssociatedTokenIdempotentInstruction2022,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '@solana-program/token-2022';
 import type { Address, CompilableTransactionMessage } from '@solana/kit';
@@ -48,9 +50,11 @@ export class ApproveTokenService {
   readonly #logger: ILogger;
 
   /**
-   * The approval transaction consumes up to ~10,000 compute units.
+   * The approval transaction consumes up to ~10,000 compute units when approving
+   * an existing associated token account, but requires ~15,000+ compute units when
+   * creating the user's associated token account.
    */
-  readonly #computeUnitLimit = 10_000;
+  readonly #computeUnitLimit = 20_000;
 
   readonly #computeUnitPriceMicroLamportsPerComputeUnit = 10000n;
 
@@ -121,11 +125,28 @@ export class ApproveTokenService {
       })
     )[0];
 
+    // Use the appropriate token program instructions
+    const isToken2022 = tokenProgram === TOKEN_2022_PROGRAM_ADDRESS;
+
+    const getOrCreateAssociatedTokenAccountInstructionFn = isToken2022
+      ? getCreateAssociatedTokenIdempotentInstruction2022
+      : getCreateAssociatedTokenIdempotentInstruction;
+
     // Create the approve instruction using the appropriate token program
-    const getApproveInstructionFn =
-      tokenProgram === TOKEN_2022_PROGRAM_ADDRESS
-        ? getApproveInstruction2022
-        : getApproveInstruction;
+    // TODO: When Baanx correctly indexes it, this should be switched back
+    // to `getApproveCheckedInstruction2022` and `getApproveCheckedInstruction`
+    const getApproveInstructionFn = isToken2022
+      ? getApproveInstruction2022
+      : getApproveInstruction;
+
+    const getOrCreateAssociatedTokenAccountInstruction =
+      getOrCreateAssociatedTokenAccountInstructionFn({
+        ata: ownerATA,
+        mint,
+        owner: signer.address,
+        payer: signer,
+        tokenProgram,
+      });
 
     const approveInstruction = getApproveInstructionFn({
       source: ownerATA,
@@ -139,6 +160,11 @@ export class ApproveTokenService {
       createTransactionMessage({ version: 0 }),
       (tx) => setTransactionMessageFeePayer(signer.address, tx),
       (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
+      (tx) =>
+        appendTransactionMessageInstruction(
+          getOrCreateAssociatedTokenAccountInstruction,
+          tx,
+        ),
       (tx) => appendTransactionMessageInstruction(approveInstruction, tx),
     );
 
