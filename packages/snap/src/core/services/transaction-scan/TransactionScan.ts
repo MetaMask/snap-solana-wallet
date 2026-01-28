@@ -9,11 +9,8 @@ import {
 } from '../../constants/solana';
 import type { ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
-import { AssetsService } from '../assets';
 import type { TransactionScanResult, TransactionScanValidation } from './types';
 import { ScanStatus, SecurityAlertResponse } from './types';
-
-const ICON_SIZE = 16;
 
 export class TransactionScanService {
   readonly #securityAlertsApiClient: SecurityAlertsApiClient;
@@ -143,36 +140,8 @@ export class TransactionScanService {
         return null;
       }
 
-      const updatedScan = { ...scan };
-
-      const transactionScanIconPromises = scan.estimatedChanges.assets.map(
-        async (asset, index) => {
-          const { logo } = asset;
-
-          if (logo) {
-            return AssetsService.generateImageComponent(
-              logo,
-              ICON_SIZE,
-              ICON_SIZE,
-              this.#logger,
-            )
-              .then((image) => {
-                if (image && updatedScan?.estimatedChanges?.assets?.[index]) {
-                  updatedScan.estimatedChanges.assets[index].imageSvg = image;
-                }
-              })
-              .catch(() => {
-                return null;
-              });
-          }
-
-          return undefined;
-        },
-      );
-
-      await Promise.all(transactionScanIconPromises ?? []);
-
-      return updatedScan;
+      // Logo URLs are passed directly to Image component - no conversion needed
+      return scan;
     } catch (error) {
       this.#logger.error(error);
 
@@ -249,7 +218,6 @@ export class TransactionScanService {
               logo: 'logo' in asset.asset ? asset.asset.logo : null,
               value: asset.in?.value ?? asset.out?.value ?? null,
               price: asset.in?.usd_price ?? asset.out?.usd_price ?? null,
-              imageSvg: null,
             }),
           ) ?? [],
       },

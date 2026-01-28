@@ -439,4 +439,4 @@ export const MOCK_SCAN_TRANSACTION_RESPONSE: TransactionScanResult = {
   },
   validation: { type: 'Benign', reason: 'exposure_farming' },
   error: null,
-};
+} as any;

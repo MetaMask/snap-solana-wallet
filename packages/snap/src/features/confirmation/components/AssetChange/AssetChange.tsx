@@ -19,9 +19,14 @@ export const AssetChange: SnapComponent<{
           {changeType === 'in' ? '+' : '-'}
           {formatCryptoBalance(asset.value ?? 0, preferences.locale)}
         </Text>
-        {asset.imageSvg ? (
+        {asset.logo ? (
           <Box alignment="center" center>
-            <Image borderRadius="full" src={asset.imageSvg} />
+            <Image
+              borderRadius="full"
+              src={asset.logo}
+              width={16}
+              height={16}
+            />
           </Box>
         ) : null}
         <Text>{asset.symbol ?? ''}</Text>

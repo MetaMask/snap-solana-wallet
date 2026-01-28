@@ -9,7 +9,6 @@ export type TransactionScanAssetChange = {
   symbol: string;
   name: string;
   logo: string | null;
-  imageSvg: string | null;
 };
 
 export type TransactionScanEstimatedChanges = {

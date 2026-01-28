@@ -121,7 +121,7 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
         symbol: tokenMetadata.symbol,
         name: tokenMetadata.name,
         asset: context.tokenCaipId,
-        imageSvg: null,
+        imageUrl: null,
       };
     })
     .catch(() => null);

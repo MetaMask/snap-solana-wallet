@@ -4,7 +4,7 @@ import { merge } from 'lodash';
 
 import { METAMASK_ORIGIN, Networks } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
-import { AssetsService, SendFeeCalculator } from '../../../../core/services';
+import { SendFeeCalculator } from '../../../../core/services';
 import { buildUrl } from '../../../../core/utils/buildUrl';
 import {
   lamportsToSol,
@@ -192,7 +192,7 @@ async function onAssetSelectorValueChange({
       symbol: event.value.symbol,
       name: event.value.name,
       asset: event.value.asset,
-      imageSvg: null,
+      imageUrl: null,
     },
     amount: '',
     error: null,
@@ -475,7 +475,7 @@ async function onSendButtonClick({
     (account) => account.id === context.fromAccountId,
   )?.address;
 
-  const [fromDomain, toDomain, tokenPrices, tokenImage] = await Promise.all([
+  const [fromDomain, toDomain, tokenPrices] = await Promise.all([
     fromAddress
       ? nameResolutionService.resolveAddress(context.scope, fromAddress)
       : null,
@@ -486,18 +486,6 @@ async function onSendButtonClick({
       .getMultipleSpotPrices(context.assets, context.preferences.currency)
       .then((prices) => prices)
       .catch(() => null),
-    context.selectedTokenMetadata
-      ? AssetsService.generateImageComponent(
-          buildUrl({
-            baseUrl: configProvider.get().staticApi.baseUrl,
-            path: '/api/v2/tokenIcons/assets/{assetId}.png',
-            pathParams: {
-              assetId: context.selectedTokenMetadata?.asset.replace(/:/gu, '/'),
-            },
-            encodePathParams: false,
-          }),
-        )
-      : null,
   ]);
 
   updatedContext.fromDomain = fromDomain;
@@ -507,10 +495,19 @@ async function onSendButtonClick({
     updatedContext.tokenPrices = tokenPrices;
   }
 
-  if (tokenImage && context.selectedTokenMetadata) {
+  // Build token image URL directly - Snaps SDK now supports URL images
+  if (context.selectedTokenMetadata) {
+    const tokenImageUrl = buildUrl({
+      baseUrl: configProvider.get().staticApi.baseUrl,
+      path: '/api/v2/tokenIcons/assets/{assetId}.png',
+      pathParams: {
+        assetId: context.selectedTokenMetadata.asset.replace(/:/gu, '/'),
+      },
+      encodePathParams: false,
+    });
     updatedContext.selectedTokenMetadata = {
       ...context.selectedTokenMetadata,
-      imageSvg: tokenImage,
+      imageUrl: tokenImageUrl,
     };
   }
 

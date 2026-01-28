@@ -43,7 +43,7 @@ export type SendTokenMetadata = {
   symbol: string;
   name: string;
   asset: CaipAssetType;
-  imageSvg: string | null;
+  imageUrl: string | null;
 };
 
 export type SendContext = {
