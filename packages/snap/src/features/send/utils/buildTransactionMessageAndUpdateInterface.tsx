@@ -9,7 +9,7 @@ import { SendFeeCalculator } from '../../../core/services';
 import { withoutConcurrency } from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import {
-  getInterfaceContextOrThrow,
+  getInterfaceContext,
   updateInterface,
 } from '../../../core/utils/interface';
 import logger from '../../../core/utils/logger';
@@ -108,8 +108,12 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
       buildingTransaction: false,
     };
 
-    const latestContext =
-      await getInterfaceContextOrThrow<SendContext>(interfaceId);
+    // Check if context exists in case the UI was closed while building the transaction
+    const latestContext = await getInterfaceContext<SendContext>(interfaceId);
+
+    if (!latestContext) {
+      return;
+    }
 
     await updateInterface(
       interfaceId,
@@ -129,8 +133,12 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
       buildingTransaction: false,
     };
 
-    const latestContext =
-      await getInterfaceContextOrThrow<SendContext>(interfaceId);
+    // Check if context exists in case the UI was closed
+    const latestContext = await getInterfaceContext<SendContext>(interfaceId);
+
+    if (!latestContext) {
+      return;
+    }
 
     await updateInterface(
       interfaceId,
