@@ -7,7 +7,7 @@ import { serialize } from '../../../serialization/serialize';
 import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
-  getInterfaceContextOrThrow,
+  getInterfaceContext,
   updateInterface,
 } from '../../../utils/interface';
 import baseLogger, { createPrefixedLogger } from '../../../utils/logger';
@@ -34,11 +34,16 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     return;
   }
 
-  // Get the current context
+  // Check if context exists in case the UI was closed before the background event ran
   const interfaceContext =
-    await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+    await getInterfaceContext<ConfirmTransactionRequestContext>(
       confirmationInterfaceId,
     );
+
+  if (!interfaceContext) {
+    logger.info(`Interface context no longer exists, skipping refresh`);
+    return;
+  }
 
   // Update the interface context with the new rates.
   try {
@@ -80,10 +85,18 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
         origin: interfaceContext.origin,
         account: interfaceContext.account,
       }),
-      getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+      getInterfaceContext<ConfirmTransactionRequestContext>(
         confirmationInterfaceId,
       ),
     ]);
+
+    // Check if context exists in case the UI was closed while scanning
+    if (!updatedInterfaceContextFinal) {
+      logger.info(
+        `Interface context no longer exists after scan, skipping update`,
+      );
+      return;
+    }
 
     // Update the current context with the new rates
     const updatedInterfaceContext = {
@@ -112,10 +125,16 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       },
     });
   } catch (error) {
+    // Check if context exists in case the UI was closed, nothing to rollback
     const fetchedInterfaceContext =
-      await getInterfaceContextOrThrow<ConfirmTransactionRequestContext>(
+      await getInterfaceContext<ConfirmTransactionRequestContext>(
         confirmationInterfaceId,
       );
+
+    if (!fetchedInterfaceContext) {
+      logger.info(`Interface context no longer exists, skipping rollback`);
+      return;
+    }
 
     const fetchingConfirmationContext = {
       ...fetchedInterfaceContext,

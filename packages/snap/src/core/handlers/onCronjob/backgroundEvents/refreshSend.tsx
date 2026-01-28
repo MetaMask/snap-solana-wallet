@@ -6,7 +6,7 @@ import type { SendContext } from '../../../../features/send/types';
 import { assetsService, priceApiClient, state } from '../../../../snapContext';
 import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
-  getInterfaceContextOrThrow,
+  getInterfaceContext,
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   updateInterface,
@@ -36,39 +36,59 @@ export const refreshSend: OnCronjobHandler = async () => {
     return;
   }
 
-  // Get the current context
+  // Check if context exists in case the UI was closed before the background event ran
   const interfaceContext =
-    await getInterfaceContextOrThrow<SendContext>(sendFormInterfaceId);
+    await getInterfaceContext<SendContext>(sendFormInterfaceId);
 
-  // First, fetch the token prices
-  const tokenPrices = await priceApiClient.getMultipleSpotPrices(
-    assetTypes,
-    preferences.currency,
-  );
+  if (!interfaceContext) {
+    logger.info(`Interface context no longer exists, skipping refresh`);
+    return;
+  }
 
-  // Save them in the state
-  await state.setKey('tokenPrices', tokenPrices);
+  try {
+    // First, fetch the token prices
+    const tokenPrices = await priceApiClient.getMultipleSpotPrices(
+      assetTypes,
+      preferences.currency,
+    );
 
-  // Update the current context with the new rates
-  const updatedInterfaceContext = {
-    ...interfaceContext,
-    tokenPrices: {
-      ...interfaceContext.tokenPrices,
-      ...tokenPrices,
-    },
-  };
+    // Save them in the state
+    await state.setKey('tokenPrices', tokenPrices);
 
-  await updateInterface(
-    sendFormInterfaceId,
-    <Send context={updatedInterfaceContext} />,
-    updatedInterfaceContext,
-  );
+    // Check if context exists in case the UI was closed while fetching prices
+    const latestInterfaceContext =
+      await getInterfaceContext<SendContext>(sendFormInterfaceId);
 
-  logger.info(`✅ Background event suceeded`);
+    if (!latestInterfaceContext) {
+      logger.info(
+        `Interface context no longer exists after fetching prices, skipping update`,
+      );
+      return;
+    }
 
-  // Schedule the next run
-  await snap.request({
-    method: 'snap_scheduleBackgroundEvent',
-    params: { duration: 'PT30S', request: { method: 'refreshSend' } },
-  });
+    // Update the current context with the new rates
+    const updatedInterfaceContext = {
+      ...latestInterfaceContext,
+      tokenPrices: {
+        ...latestInterfaceContext.tokenPrices,
+        ...tokenPrices,
+      },
+    };
+
+    await updateInterface(
+      sendFormInterfaceId,
+      <Send context={updatedInterfaceContext} />,
+      updatedInterfaceContext,
+    );
+
+    logger.info(`✅ Background event suceeded`);
+
+    // Schedule the next run
+    await snap.request({
+      method: 'snap_scheduleBackgroundEvent',
+      params: { duration: 'PT30S', request: { method: 'refreshSend' } },
+    });
+  } catch (error) {
+    logger.warn({ error }, `Could not refresh send interface`);
+  }
 };

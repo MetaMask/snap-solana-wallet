@@ -7,7 +7,7 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../../core/test/mocks/solana-keyring-accounts';
 import {
-  getInterfaceContextOrThrow,
+  getInterfaceContext,
   updateInterface,
 } from '../../../core/utils/interface';
 import {
@@ -70,7 +70,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
       .mocked(sendSolBuilder)
       .getComputeUnitPriceMicroLamportsPerComputeUnit.mockReturnValue(10000n);
 
-    (getInterfaceContextOrThrow as jest.Mock).mockResolvedValue(mockContext);
+    (getInterfaceContext as jest.Mock).mockResolvedValue(mockContext);
   });
 
   describe('buildTransactionMessageAndUpdateInterface_INTERNAL', () => {
@@ -155,6 +155,34 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
           buildingTransaction: false,
         }),
       );
+    });
+
+    it('gracefully exits when interface context no longer exists after build', async () => {
+      // getInterfaceContext is called after build - returns null (interface closed)
+      (getInterfaceContext as jest.Mock).mockResolvedValueOnce(null);
+
+      await buildTransactionMessageAndUpdateInterface_INTERNAL(
+        mockId,
+        mockContext,
+      );
+
+      // Should only call updateInterface once (initial update), not the second time
+      expect(updateInterface).toHaveBeenCalledTimes(1);
+    });
+
+    it('gracefully exits when interface context no longer exists after error', async () => {
+      (sendSolBuilder.buildTransactionMessage as jest.Mock).mockRejectedValue(
+        new Error('Build failed'),
+      );
+      (getInterfaceContext as jest.Mock).mockResolvedValue(null);
+
+      await buildTransactionMessageAndUpdateInterface_INTERNAL(
+        mockId,
+        mockContext,
+      );
+
+      // Should only call updateInterface once (initial update), not for error display
+      expect(updateInterface).toHaveBeenCalledTimes(1);
     });
   });
 });
