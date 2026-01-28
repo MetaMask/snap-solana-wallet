@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.7.2]
 
-### Uncategorized
+### Changed
 
-- chore: add `getOrCreateAssociatedTokenAccount` instruction before `approve` ([#584](https://github.com/MetaMask/snap-solana-wallet/pull/584))
+- Add `getOrCreateAssociatedTokenAccount` instruction before `approve` when handling approval of card amounts ([#584](https://github.com/MetaMask/snap-solana-wallet/pull/584))
 
 ## [2.7.1]
 
