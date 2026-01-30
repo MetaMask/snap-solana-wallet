@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.3]
+
+### Uncategorized
+
+- chore: increase compute unit limit for token approval transactions ([#587](https://github.com/MetaMask/snap-solana-wallet/pull/587))
+- fix: make sure interface exists when accessing its context ([#586](https://github.com/MetaMask/snap-solana-wallet/pull/586))
+- chore: remove convertion layer for images displayed in Snaps UI ([#577](https://github.com/MetaMask/snap-solana-wallet/pull/577))
+
 ## [2.7.2]
 
 ### Changed
@@ -1045,7 +1053,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.2...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.3...HEAD
+[2.7.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.2...v2.7.3
 [2.7.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.1...v2.7.2
 [2.7.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.0...v2.7.1
 [2.7.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.6.2...v2.7.0
