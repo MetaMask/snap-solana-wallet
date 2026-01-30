@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.7.3]
 
-### Uncategorized
+### Fixed
 
-- chore: increase compute unit limit for token approval transactions ([#587](https://github.com/MetaMask/snap-solana-wallet/pull/587))
-- fix: make sure interface exists when accessing its context ([#586](https://github.com/MetaMask/snap-solana-wallet/pull/586))
-- chore: remove convertion layer for images displayed in Snaps UI ([#577](https://github.com/MetaMask/snap-solana-wallet/pull/577))
+- Make sure an interface exists when accessing its context ([#586](https://github.com/MetaMask/snap-solana-wallet/pull/586))
+
+### Changed
+
+- Increase compute unit limit for transactions that handle approval of card amounts ([#587](https://github.com/MetaMask/snap-solana-wallet/pull/587))
+- Remove convertion layer for images displayed in Snaps UI ([#577](https://github.com/MetaMask/snap-solana-wallet/pull/577))
 
 ## [2.7.2]
 
