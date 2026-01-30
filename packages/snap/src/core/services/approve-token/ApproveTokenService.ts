@@ -50,11 +50,11 @@ export class ApproveTokenService {
   readonly #logger: ILogger;
 
   /**
-   * The approval transaction consumes up to ~10,000 compute units when approving
-   * an existing associated token account, but requires ~15,000+ compute units when
-   * creating the user's associated token account.
+   * The transaction built here consumes up to ~10,000 compute units when approving
+   * an existing associated token account, but requires ~30,000+ compute units when
+   * creating the user's associated token account. Same as `SendSplTokenBuilder`.
    */
-  readonly #computeUnitLimit = 20_000;
+  readonly #computeUnitLimit = 40_000;
 
   readonly #computeUnitPriceMicroLamportsPerComputeUnit = 10000n;
 
