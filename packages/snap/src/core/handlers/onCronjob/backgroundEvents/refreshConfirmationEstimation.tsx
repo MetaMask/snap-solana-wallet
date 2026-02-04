@@ -7,8 +7,8 @@ import { serialize } from '../../../serialization/serialize';
 import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
-  getInterfaceContext,
-  updateInterface,
+  getInterfaceContextIfExists,
+  updateInterfaceIfExists,
 } from '../../../utils/interface';
 import baseLogger, { createPrefixedLogger } from '../../../utils/logger';
 
@@ -36,12 +36,15 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
   // Check if context exists in case the UI was closed before the background event ran
   const interfaceContext =
-    await getInterfaceContext<ConfirmTransactionRequestContext>(
+    await getInterfaceContextIfExists<ConfirmTransactionRequestContext>(
       confirmationInterfaceId,
     );
 
   if (!interfaceContext) {
-    logger.info(`Interface context no longer exists, skipping refresh`);
+    logger.info(`Interface context no longer exists, cleaning up state`);
+    await state.deleteKey(
+      `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
+    );
     return;
   }
 
@@ -68,7 +71,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       scanFetchStatus: 'fetching',
     } as ConfirmTransactionRequestContext;
 
-    await updateInterface(
+    await updateInterfaceIfExists(
       confirmationInterfaceId,
       <ConfirmTransactionRequest
         context={serialize(fetchingConfirmationContext) as any}
@@ -85,7 +88,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
         origin: interfaceContext.origin,
         account: interfaceContext.account,
       }),
-      getInterfaceContext<ConfirmTransactionRequestContext>(
+      getInterfaceContextIfExists<ConfirmTransactionRequestContext>(
         confirmationInterfaceId,
       ),
     ]);
@@ -93,7 +96,10 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     // Check if context exists in case the UI was closed while scanning
     if (!updatedInterfaceContextFinal) {
       logger.info(
-        `Interface context no longer exists after scan, skipping update`,
+        `Interface context no longer exists after scan, cleaning up state`,
+      );
+      await state.deleteKey(
+        `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
       );
       return;
     }
@@ -106,7 +112,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     };
     logger.info(`New scan fetched`);
 
-    await updateInterface(
+    await updateInterfaceIfExists(
       confirmationInterfaceId,
       <ConfirmTransactionRequest
         context={serialize(updatedInterfaceContext) as any}
@@ -127,12 +133,15 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
   } catch (error) {
     // Check if context exists in case the UI was closed, nothing to rollback
     const fetchedInterfaceContext =
-      await getInterfaceContext<ConfirmTransactionRequestContext>(
+      await getInterfaceContextIfExists<ConfirmTransactionRequestContext>(
         confirmationInterfaceId,
       );
 
     if (!fetchedInterfaceContext) {
-      logger.info(`Interface context no longer exists, skipping rollback`);
+      logger.info(`Interface context no longer exists, cleaning up state`);
+      await state.deleteKey(
+        `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
+      );
       return;
     }
 
@@ -141,7 +150,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       scanFetchStatus: 'fetched',
     } as ConfirmTransactionRequestContext;
 
-    await updateInterface(
+    await updateInterfaceIfExists(
       confirmationInterfaceId,
       <ConfirmTransactionRequest
         context={serialize(fetchingConfirmationContext) as any}

@@ -9,8 +9,8 @@ import { SendFeeCalculator } from '../../../core/services';
 import { withoutConcurrency } from '../../../core/utils/concurrency';
 import { lamportsToSol } from '../../../core/utils/conversion';
 import {
-  getInterfaceContext,
-  updateInterface,
+  getInterfaceContextIfExists,
+  updateInterfaceIfExists,
 } from '../../../core/utils/interface';
 import logger from '../../../core/utils/logger';
 import {
@@ -91,7 +91,7 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
       feeEstimatedInSol: null,
     };
 
-    await updateInterface(
+    await updateInterfaceIfExists(
       interfaceId,
       <Send context={{ ...context, ...contextUpdatesInitial }} />,
       { ...context, ...contextUpdatesInitial },
@@ -109,13 +109,14 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
     };
 
     // Check if context exists in case the UI was closed while building the transaction
-    const latestContext = await getInterfaceContext<SendContext>(interfaceId);
+    const latestContext =
+      await getInterfaceContextIfExists<SendContext>(interfaceId);
 
     if (!latestContext) {
       return;
     }
 
-    await updateInterface(
+    await updateInterfaceIfExists(
       interfaceId,
       <Send context={{ ...latestContext, ...contextUpdatesAfterBuild }} />,
       { ...latestContext, ...contextUpdatesAfterBuild },
@@ -134,13 +135,14 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
     };
 
     // Check if context exists in case the UI was closed
-    const latestContext = await getInterfaceContext<SendContext>(interfaceId);
+    const latestContext =
+      await getInterfaceContextIfExists<SendContext>(interfaceId);
 
     if (!latestContext) {
       return;
     }
 
-    await updateInterface(
+    await updateInterfaceIfExists(
       interfaceId,
       <Send context={{ ...latestContext, ...contextUpdatesAfterError }} />,
       { ...latestContext, ...contextUpdatesAfterError },

@@ -7,8 +7,8 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../../core/test/mocks/solana-keyring-accounts';
 import {
-  getInterfaceContext,
-  updateInterface,
+  getInterfaceContextIfExists,
+  updateInterfaceIfExists,
 } from '../../../core/utils/interface';
 import {
   keyring,
@@ -70,7 +70,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
       .mocked(sendSolBuilder)
       .getComputeUnitPriceMicroLamportsPerComputeUnit.mockReturnValue(10000n);
 
-    (getInterfaceContext as jest.Mock).mockResolvedValue(mockContext);
+    (getInterfaceContextIfExists as jest.Mock).mockResolvedValue(mockContext);
   });
 
   describe('buildTransactionMessageAndUpdateInterface_INTERNAL', () => {
@@ -82,7 +82,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
         mockContext,
       );
 
-      expect(updateInterface).not.toHaveBeenCalled();
+      expect(updateInterfaceIfExists).not.toHaveBeenCalled();
       expect(keyring.getAccountOrThrow).not.toHaveBeenCalled();
     });
 
@@ -98,7 +98,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
         amount: '1.0',
         network: Network.Testnet,
       });
-      expect(updateInterface).toHaveBeenCalledTimes(2);
+      expect(updateInterfaceIfExists).toHaveBeenCalledTimes(2);
     });
 
     it('builds SPL token transaction when tokenCaipId is not native token', async () => {
@@ -113,7 +113,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
       );
 
       expect(sendSplTokenBuilder.buildTransactionMessage).toHaveBeenCalled();
-      expect(updateInterface).toHaveBeenCalledTimes(2);
+      expect(updateInterfaceIfExists).toHaveBeenCalledTimes(2);
     });
 
     it('handles transaction build errors', async () => {
@@ -126,7 +126,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
         mockContext,
       );
 
-      expect(updateInterface).toHaveBeenCalledWith(
+      expect(updateInterfaceIfExists).toHaveBeenCalledWith(
         mockId,
         expect.anything(),
         expect.objectContaining({
@@ -145,7 +145,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
         mockContext,
       );
 
-      expect(updateInterface).toHaveBeenLastCalledWith(
+      expect(updateInterfaceIfExists).toHaveBeenLastCalledWith(
         mockId,
         expect.anything(),
         expect.objectContaining({
@@ -158,31 +158,31 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
     });
 
     it('gracefully exits when interface context no longer exists after build', async () => {
-      // getInterfaceContext is called after build - returns null (interface closed)
-      (getInterfaceContext as jest.Mock).mockResolvedValueOnce(null);
+      // getInterfaceContextIfExists is called after build - returns null (interface closed)
+      (getInterfaceContextIfExists as jest.Mock).mockResolvedValueOnce(null);
 
       await buildTransactionMessageAndUpdateInterface_INTERNAL(
         mockId,
         mockContext,
       );
 
-      // Should only call updateInterface once (initial update), not the second time
-      expect(updateInterface).toHaveBeenCalledTimes(1);
+      // Should only call updateInterfaceIfExists once (initial update), not the second time
+      expect(updateInterfaceIfExists).toHaveBeenCalledTimes(1);
     });
 
     it('gracefully exits when interface context no longer exists after error', async () => {
       (sendSolBuilder.buildTransactionMessage as jest.Mock).mockRejectedValue(
         new Error('Build failed'),
       );
-      (getInterfaceContext as jest.Mock).mockResolvedValue(null);
+      (getInterfaceContextIfExists as jest.Mock).mockResolvedValue(null);
 
       await buildTransactionMessageAndUpdateInterface_INTERNAL(
         mockId,
         mockContext,
       );
 
-      // Should only call updateInterface once (initial update), not for error display
-      expect(updateInterface).toHaveBeenCalledTimes(1);
+      // Should only call updateInterfaceIfExists once (initial update), not for error display
+      expect(updateInterfaceIfExists).toHaveBeenCalledTimes(1);
     });
   });
 });

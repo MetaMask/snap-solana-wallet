@@ -22,6 +22,21 @@ export const CONFIRM_SIGN_MESSAGE_INTERFACE_NAME = 'confirm-sign-message';
 export const CONFIRM_SIGN_IN_INTERFACE_NAME = 'confirm-sign-in';
 
 /**
+ * Checks if an error is an "interface not found" error.
+ * This occurs when calling interface methods on a dismissed interface.
+ *
+ * @param error - The error to check.
+ * @returns True if the error indicates the interface was not found.
+ */
+export function isInterfaceNotFoundError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    return message.includes('interface') && message.includes('not found');
+  }
+  return false;
+}
+
+/**
  * Creates an interface using the provided UI component and context.
  *
  * @param ui - The UI component or element.
@@ -64,6 +79,38 @@ export async function updateInterface<TContext extends Serializable>(
       context: serializedContext,
     },
   });
+}
+
+/**
+ * Updates an interface using the provided UI component and context.
+ * Returns null if the interface has been dismissed by the user.
+ *
+ * @param id - The ID for the interface to update.
+ * @param ui - The UI component or element.
+ * @param context - The context for the interface.
+ * @returns The update result, or null if the interface was not found.
+ */
+export async function updateInterfaceIfExists<TContext extends Serializable>(
+  id: string,
+  ui: ComponentOrElement,
+  context: TContext,
+): Promise<UpdateInterfaceResult | null> {
+  try {
+    const serializedContext = serialize(context);
+    return await snap.request({
+      method: 'snap_updateInterface',
+      params: {
+        id,
+        ui,
+        context: serializedContext,
+      },
+    });
+  } catch (error) {
+    if (isInterfaceNotFoundError(error)) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 /**
@@ -131,42 +178,33 @@ export async function getPreferences(): Promise<Preferences> {
 
 /**
  * Retrieves the context of an interactive interface by its ID.
+ * Returns null if the interface has been dismissed by the user.
  *
  * @param interfaceId - The ID for the interface to retrieve the context.
- * @returns An object containing the context of the interface.
+ * @returns The context object, or null if the interface was not found.
  */
-export async function getInterfaceContext<TContext extends Serializable>(
-  interfaceId: string,
-): Promise<TContext | null> {
-  const rawContext = await snap.request({
-    method: 'snap_getInterfaceContext',
-    params: {
-      id: interfaceId,
-    },
-  });
+export async function getInterfaceContextIfExists<
+  TContext extends Serializable,
+>(interfaceId: string): Promise<TContext | null> {
+  try {
+    const rawContext = await snap.request({
+      method: 'snap_getInterfaceContext',
+      params: {
+        id: interfaceId,
+      },
+    });
 
-  if (!rawContext) {
-    return null;
+    if (!rawContext) {
+      return null;
+    }
+
+    return deserialize(rawContext) as TContext;
+  } catch (error) {
+    if (isInterfaceNotFoundError(error)) {
+      return null;
+    }
+    throw error;
   }
-
-  return deserialize(rawContext) as TContext;
-}
-
-/**
- * Retrieves the context of an interactive interface by its ID.
- *
- * @param interfaceId - The ID for the interface to retrieve the context.
- * @returns An object containing the context of the interface.
- * @throws If the interface context is not found.
- */
-export async function getInterfaceContextOrThrow<TContext extends Serializable>(
-  interfaceId: string,
-): Promise<TContext> {
-  const context = await getInterfaceContext<TContext>(interfaceId);
-  if (!context) {
-    throw new Error('Interface context not found');
-  }
-  return context;
 }
 
 /**

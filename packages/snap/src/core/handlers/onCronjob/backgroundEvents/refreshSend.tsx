@@ -6,10 +6,10 @@ import type { SendContext } from '../../../../features/send/types';
 import { assetsService, priceApiClient, state } from '../../../../snapContext';
 import type { UnencryptedStateValue } from '../../../services/state/State';
 import {
-  getInterfaceContext,
+  getInterfaceContextIfExists,
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
-  updateInterface,
+  updateInterfaceIfExists,
 } from '../../../utils/interface';
 import baseLogger, { createPrefixedLogger } from '../../../utils/logger';
 
@@ -38,10 +38,11 @@ export const refreshSend: OnCronjobHandler = async () => {
 
   // Check if context exists in case the UI was closed before the background event ran
   const interfaceContext =
-    await getInterfaceContext<SendContext>(sendFormInterfaceId);
+    await getInterfaceContextIfExists<SendContext>(sendFormInterfaceId);
 
   if (!interfaceContext) {
-    logger.info(`Interface context no longer exists, skipping refresh`);
+    logger.info(`Interface context no longer exists, cleaning up state`);
+    await state.deleteKey(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
     return;
   }
 
@@ -57,12 +58,13 @@ export const refreshSend: OnCronjobHandler = async () => {
 
     // Check if context exists in case the UI was closed while fetching prices
     const latestInterfaceContext =
-      await getInterfaceContext<SendContext>(sendFormInterfaceId);
+      await getInterfaceContextIfExists<SendContext>(sendFormInterfaceId);
 
     if (!latestInterfaceContext) {
       logger.info(
-        `Interface context no longer exists after fetching prices, skipping update`,
+        `Interface context no longer exists after fetching prices, cleaning up state`,
       );
+      await state.deleteKey(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
       return;
     }
 
@@ -75,7 +77,7 @@ export const refreshSend: OnCronjobHandler = async () => {
       },
     };
 
-    await updateInterface(
+    await updateInterfaceIfExists(
       sendFormInterfaceId,
       <Send context={updatedInterfaceContext} />,
       updatedInterfaceContext,
