@@ -88,16 +88,16 @@ export async function updateInterface<TContext extends Serializable>(
  * @param id - The ID for the interface to update.
  * @param ui - The UI component or element.
  * @param context - The context for the interface.
- * @returns The update result, or null if the interface was not found.
+ * @returns True if the interface was updated, or null if it was not found.
  */
 export async function updateInterfaceIfExists<TContext extends Serializable>(
   id: string,
   ui: ComponentOrElement,
   context: TContext,
-): Promise<UpdateInterfaceResult | null> {
+): Promise<true | null> {
   try {
     const serializedContext = serialize(context);
-    return await snap.request({
+    await snap.request({
       method: 'snap_updateInterface',
       params: {
         id,
@@ -105,6 +105,7 @@ export async function updateInterfaceIfExists<TContext extends Serializable>(
         context: serializedContext,
       },
     });
+    return true;
   } catch (error) {
     if (isInterfaceNotFoundError(error)) {
       return null;

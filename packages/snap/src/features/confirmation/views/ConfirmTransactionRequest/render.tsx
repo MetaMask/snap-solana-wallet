@@ -9,7 +9,7 @@ import {
   createInterface,
   getPreferences,
   showDialog,
-  updateInterface,
+  updateInterfaceIfExists,
 } from '../../../../core/utils/interface';
 import logger from '../../../../core/utils/logger';
 import { extractInstructionsFromUnknownBase64String } from '../../../../entities';
@@ -157,11 +157,15 @@ export async function render(
   }
   updatedContext1.feeEstimatedInSol = feeEstimatedInSol;
 
-  await updateInterface(
+  const updated1 = await updateInterfaceIfExists(
     id,
     <ConfirmTransactionRequest context={updatedContext1} />,
     updatedContext1,
   );
+
+  if (!updated1) {
+    return dialogPromise;
+  }
 
   /**
    * Third render:
@@ -206,11 +210,15 @@ export async function render(
     updatedContext2.scan = null;
   }
 
-  await updateInterface(
+  const updated2 = await updateInterfaceIfExists(
     id,
     <ConfirmTransactionRequest context={updatedContext2} />,
     updatedContext2,
   );
+
+  if (!updated2) {
+    return dialogPromise;
+  }
 
   await state.setKey(
     `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,

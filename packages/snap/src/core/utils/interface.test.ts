@@ -62,9 +62,10 @@ describe('interface utilities', () => {
       const mockContext = { foo: 'bar', count: 42 };
       mockSnapRequest.mockResolvedValue(mockContext);
 
-      const result = await getInterfaceContextIfExists<typeof mockContext>(
-        'test-interface-id',
-      );
+      const result =
+        await getInterfaceContextIfExists<typeof mockContext>(
+          'test-interface-id',
+        );
 
       expect(result).toStrictEqual(mockContext);
       expect(mockSnapRequest).toHaveBeenCalledWith({
@@ -102,9 +103,8 @@ describe('interface utilities', () => {
   });
 
   describe('updateInterfaceIfExists', () => {
-    it('returns result when interface exists', async () => {
-      const mockResult = { success: true };
-      mockSnapRequest.mockResolvedValue(mockResult);
+    it('returns true when interface exists', async () => {
+      mockSnapRequest.mockResolvedValue(null);
 
       const mockUi = { type: 'Box', children: [] };
       const mockContext = { foo: 'bar' };
@@ -115,7 +115,7 @@ describe('interface utilities', () => {
         mockContext,
       );
 
-      expect(result).toStrictEqual(mockResult);
+      expect(result).toBe(true);
       expect(mockSnapRequest).toHaveBeenCalledWith({
         method: 'snap_updateInterface',
         params: {
@@ -151,7 +151,11 @@ describe('interface utilities', () => {
       const mockContext = { foo: 'bar' };
 
       await expect(
-        updateInterfaceIfExists('test-interface-id', mockUi as any, mockContext),
+        updateInterfaceIfExists(
+          'test-interface-id',
+          mockUi as any,
+          mockContext,
+        ),
       ).rejects.toThrow('Network timeout');
     });
   });

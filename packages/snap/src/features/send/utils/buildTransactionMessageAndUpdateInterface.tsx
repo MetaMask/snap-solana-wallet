@@ -91,11 +91,15 @@ export const buildTransactionMessageAndUpdateInterface_INTERNAL = async (
       feeEstimatedInSol: null,
     };
 
-    await updateInterfaceIfExists(
+    const initialUpdated = await updateInterfaceIfExists(
       interfaceId,
       <Send context={{ ...context, ...contextUpdatesInitial }} />,
       { ...context, ...contextUpdatesInitial },
     );
+
+    if (!initialUpdated) {
+      return;
+    }
 
     const { feeInLamports, base64EncodedTransactionMessage } =
       await buildTransactionMessage(context);

@@ -13,6 +13,16 @@ import {
 } from '../../../utils/interface';
 import baseLogger, { createPrefixedLogger } from '../../../utils/logger';
 
+async function deleteInterfaceIdIfCurrent(interfaceId: string) {
+  const currentMap =
+    (await state.getKey<UnencryptedStateValue['mapInterfaceNameToId']>(
+      'mapInterfaceNameToId',
+    )) ?? {};
+  if (currentMap[SEND_FORM_INTERFACE_NAME] === interfaceId) {
+    await state.deleteKey(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
+  }
+}
+
 export const refreshSend: OnCronjobHandler = async () => {
   const logger = createPrefixedLogger(baseLogger, '[refreshSend]');
 
@@ -42,7 +52,7 @@ export const refreshSend: OnCronjobHandler = async () => {
 
   if (!interfaceContext) {
     logger.info(`Interface context no longer exists, cleaning up state`);
-    await state.deleteKey(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
+    await deleteInterfaceIdIfCurrent(sendFormInterfaceId);
     return;
   }
 
@@ -64,7 +74,7 @@ export const refreshSend: OnCronjobHandler = async () => {
       logger.info(
         `Interface context no longer exists after fetching prices, cleaning up state`,
       );
-      await state.deleteKey(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`);
+      await deleteInterfaceIdIfCurrent(sendFormInterfaceId);
       return;
     }
 
@@ -77,13 +87,19 @@ export const refreshSend: OnCronjobHandler = async () => {
       },
     };
 
-    await updateInterfaceIfExists(
+    const updated = await updateInterfaceIfExists(
       sendFormInterfaceId,
       <Send context={updatedInterfaceContext} />,
       updatedInterfaceContext,
     );
 
-    logger.info(`✅ Background event suceeded`);
+    if (!updated) {
+      logger.info(`Interface dismissed, cleaning up state`);
+      await deleteInterfaceIdIfCurrent(sendFormInterfaceId);
+      return;
+    }
+
+    logger.info(`Background event suceeded`);
 
     // Schedule the next run
     await snap.request({

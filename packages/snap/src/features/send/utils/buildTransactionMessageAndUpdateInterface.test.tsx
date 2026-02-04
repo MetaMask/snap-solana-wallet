@@ -71,6 +71,7 @@ describe('buildTransactionMessageAndUpdateInterface', () => {
       .getComputeUnitPriceMicroLamportsPerComputeUnit.mockReturnValue(10000n);
 
     (getInterfaceContextIfExists as jest.Mock).mockResolvedValue(mockContext);
+    (updateInterfaceIfExists as jest.Mock).mockResolvedValue(true);
   });
 
   describe('buildTransactionMessageAndUpdateInterface_INTERNAL', () => {

@@ -10,7 +10,7 @@ import {
   getPreferences,
   SEND_FORM_INTERFACE_NAME,
   showDialog,
-  updateInterface,
+  updateInterfaceIfExists,
 } from '../../core/utils/interface';
 import {
   accountsService,
@@ -159,7 +159,15 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
 
   context.loading = true;
 
-  await updateInterface(id, <Send context={context} />, context);
+  const localDataInterfaceUpdateSucceeded = await updateInterfaceIfExists(
+    id,
+    <Send context={context} />,
+    context,
+  );
+
+  if (!localDataInterfaceUpdateSucceeded) {
+    return dialogPromise;
+  }
 
   // eslint-disable-next-line require-atomic-updates
   context.loading = false;
@@ -175,7 +183,15 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
     minimumBalanceForRentExemptionPromise,
   ]);
 
-  await updateInterface(id, <Send context={context} />, context);
+  const apiDataInterfaceUpdateSucceeded = await updateInterfaceIfExists(
+    id,
+    <Send context={context} />,
+    context,
+  );
+
+  if (!apiDataInterfaceUpdateSucceeded) {
+    return dialogPromise;
+  }
 
   await state.setKey(`mapInterfaceNameToId.${SEND_FORM_INTERFACE_NAME}`, id);
 

@@ -12,6 +12,21 @@ import {
 } from '../../../utils/interface';
 import baseLogger, { createPrefixedLogger } from '../../../utils/logger';
 
+async function deleteInterfaceIdIfCurrent(interfaceId: string) {
+  const currentMap =
+    (await state.getKey<UnencryptedStateValue['mapInterfaceNameToId']>(
+      'mapInterfaceNameToId',
+    )) ?? {};
+  if (
+    currentMap[CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME] ===
+    interfaceId
+  ) {
+    await state.deleteKey(
+      `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
+    );
+  }
+}
+
 export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
   const logger = createPrefixedLogger(
     baseLogger,
@@ -42,9 +57,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
   if (!interfaceContext) {
     logger.info(`Interface context no longer exists, cleaning up state`);
-    await state.deleteKey(
-      `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
-    );
+    await deleteInterfaceIdIfCurrent(confirmationInterfaceId);
     return;
   }
 
@@ -71,13 +84,19 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       scanFetchStatus: 'fetching',
     } as ConfirmTransactionRequestContext;
 
-    await updateInterfaceIfExists(
+    const fetchingUpdated = await updateInterfaceIfExists(
       confirmationInterfaceId,
       <ConfirmTransactionRequest
         context={serialize(fetchingConfirmationContext) as any}
       />,
       fetchingConfirmationContext,
     );
+
+    if (!fetchingUpdated) {
+      logger.info(`Interface dismissed, cleaning up state`);
+      await deleteInterfaceIdIfCurrent(confirmationInterfaceId);
+      return;
+    }
 
     const [scan, updatedInterfaceContextFinal] = await Promise.all([
       transactionScanService.scanTransaction({
@@ -98,9 +117,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       logger.info(
         `Interface context no longer exists after scan, cleaning up state`,
       );
-      await state.deleteKey(
-        `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
-      );
+      await deleteInterfaceIdIfCurrent(confirmationInterfaceId);
       return;
     }
 
@@ -112,13 +129,19 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
     };
     logger.info(`New scan fetched`);
 
-    await updateInterfaceIfExists(
+    const scanUpdated = await updateInterfaceIfExists(
       confirmationInterfaceId,
       <ConfirmTransactionRequest
         context={serialize(updatedInterfaceContext) as any}
       />,
       updatedInterfaceContext,
     );
+
+    if (!scanUpdated) {
+      logger.info(`Interface dismissed after scan, cleaning up state`);
+      await deleteInterfaceIdIfCurrent(confirmationInterfaceId);
+      return;
+    }
 
     logger.info(`Background event suceeded`);
 
@@ -139,9 +162,7 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
 
     if (!fetchedInterfaceContext) {
       logger.info(`Interface context no longer exists, cleaning up state`);
-      await state.deleteKey(
-        `mapInterfaceNameToId.${CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME}`,
-      );
+      await deleteInterfaceIdIfCurrent(confirmationInterfaceId);
       return;
     }
 

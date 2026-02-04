@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Gracefully handle dismissed interface errors in background jobs ([#589](https://github.com/MetaMask/snap-solana-wallet/pull/589))
+
 ## [2.7.3]
 
 ### Fixed
