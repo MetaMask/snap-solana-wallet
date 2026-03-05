@@ -807,6 +807,39 @@ describe('ClientRequestHandler', () => {
       expect(result).toStrictEqual({ signature: mockSignature });
     });
 
+    it('accepts amount of 0', async () => {
+      const mockSignature =
+        '61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu';
+
+      mockApproveTokenService.buildApprovalTransactionMessage.mockResolvedValue(
+        {} as any,
+      );
+
+      jest
+        .spyOn(mockAccountsService, 'findById')
+        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+      jest
+        .spyOn(mockWalletService, 'signAndSendTransaction')
+        .mockResolvedValue({
+          signature: mockSignature,
+        });
+
+      const request = createRequest('0');
+
+      const result = await handler.handle(request);
+
+      expect(
+        mockApproveTokenService.buildApprovalTransactionMessage,
+      ).toHaveBeenCalledWith({
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        mint: mockMint,
+        delegate: mockDelegate,
+        amount: '0',
+        network: Network.Mainnet,
+      });
+      expect(result).toStrictEqual({ signature: mockSignature });
+    });
+
     it('throws an error if account is not found', async () => {
       mockAccountsService.findById.mockResolvedValue(null);
 

@@ -29,6 +29,7 @@ import {
 import {
   Base58Struct,
   Base64Struct,
+  NonNegativeNumberStringStruct,
   PositiveNumberStringStruct,
   SolanaAddressStruct,
   UuidStruct,
@@ -365,7 +366,7 @@ export const SignCardMessageRequestStruct = object({
  */
 export const ApproveCardAmountRequestParamsStruct = object({
   accountId: UuidStruct,
-  amount: PositiveNumberStringStruct,
+  amount: NonNegativeNumberStringStruct,
   mint: SolanaAddressStruct,
   delegate: SolanaAddressStruct,
   scope: ScopeStringStruct,

@@ -28,6 +28,11 @@ export const PositiveNumberStringStruct = pattern(
   /^(?!0\d)(\d+(\.\d+)?)$/u,
 );
 
+export const NonNegativeNumberStringStruct = pattern(
+  string(),
+  /^(?!0\d)(\d+(\.\d+)?)$/u,
+);
+
 /**
  * Validates that a string is a valid and safe URL.
  *
