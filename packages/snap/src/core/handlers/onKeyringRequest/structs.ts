@@ -2,10 +2,12 @@ import { KeyringRequestStruct } from '@metamask/keyring-api';
 import type { Infer } from '@metamask/superstruct';
 import {
   array,
+  literal,
   min,
   nonempty,
   number,
   object,
+  optional,
   string,
 } from '@metamask/superstruct';
 
