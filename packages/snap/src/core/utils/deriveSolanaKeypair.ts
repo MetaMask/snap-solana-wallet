@@ -1,3 +1,5 @@
+import type { JsonSLIP10Node, SLIP10PathNode } from '@metamask/key-tree';
+import { SLIP10Node } from '@metamask/key-tree';
 import type { EntropySourceId } from '@metamask/keyring-api';
 import { assert } from '@metamask/superstruct';
 import { hexToBytes } from '@metamask/utils';
@@ -62,4 +64,36 @@ export async function deriveSolanaKeypair({
     logger.error({ error }, 'Error deriving keypair');
     throw new Error(error);
   }
+}
+
+/**
+ * Derives a Solana keypair from a pre-computed coin-type node (m/44'/501'),
+ * avoiding a snap_getBip32Entropy call per account.
+ *
+ * @param params - The parameters for key derivation.
+ * @param params.coinTypeNode - The SLIP10 node at m/44'/501'.
+ * @param params.accountIndex - The BIP-44 account index to derive.
+ * @returns A Promise that resolves to the private and public key bytes.
+ */
+export async function deriveSolanaKeypairFromCoinTypeNode({
+  coinTypeNode,
+  accountIndex,
+}: {
+  coinTypeNode: JsonSLIP10Node;
+  accountIndex: number;
+}): Promise<{ privateKeyBytes: Uint8Array; publicKeyBytes: Uint8Array }> {
+  const node = await SLIP10Node.fromJSON(coinTypeNode);
+  const derived = await node.derive([
+    `slip10:${accountIndex}'` as SLIP10PathNode,
+    `slip10:0'` as SLIP10PathNode,
+  ]);
+
+  if (!derived.privateKeyBytes || !derived.publicKeyBytes) {
+    throw new Error('Unable to derive private key');
+  }
+
+  return {
+    privateKeyBytes: derived.privateKeyBytes,
+    publicKeyBytes: derived.publicKeyBytes,
+  };
 }

@@ -54,7 +54,11 @@ import type { IStateManager } from '../../services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../services/state/State';
 import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
-import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
+import {
+  deriveSolanaKeypair,
+  deriveSolanaKeypairFromCoinTypeNode,
+} from '../../utils/deriveSolanaKeypair';
+import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
 import {
   endTrace,
@@ -230,6 +234,7 @@ export class SolanaKeyring implements Keyring {
     index,
     accountNameSuggestion,
     remainingOptions = {},
+    precomputedPublicKeyBytes,
   }: {
     id: string;
     entropySource: EntropySourceId;
@@ -237,16 +242,16 @@ export class SolanaKeyring implements Keyring {
     index: number;
     accountNameSuggestion?: string;
     remainingOptions?: Record<string, Json>;
+    precomputedPublicKeyBytes?: Uint8Array;
   }): Promise<{
     solanaKeyringAccount: SolanaKeyringAccount;
     keyringAccount: KeyringAccount;
   }> {
     // Derive keypair
     const tick = Date.now();
-    const { publicKeyBytes } = await deriveSolanaKeypair({
-      entropySource,
-      derivationPath,
-    });
+    const { publicKeyBytes } = precomputedPublicKeyBytes
+      ? { publicKeyBytes: precomputedPublicKeyBytes }
+      : await deriveSolanaKeypair({ entropySource, derivationPath });
     const tock = Date.now();
     console.log(`metamask:perf:solana Keypair derivation ("${derivationPath}") took ${tock - tick}ms`);
     this.#totalDerivation += tock - tick;
@@ -436,6 +441,13 @@ export class SolanaKeyring implements Keyring {
         range = options.range;
       }
 
+      // Get coin-type node once (optimization: 1 snap API call for N accounts)
+      const coinTypeNode = await getBip32Entropy({
+        entropySource,
+        path: ['m', "44'", "501'"],
+        curve: 'ed25519',
+      });
+
       // Create new accounts and save to state
       let createdCount = 0;
       let total = 0;
@@ -444,6 +456,13 @@ export class SolanaKeyring implements Keyring {
           const id = globalThis.crypto.randomUUID();
           const derivationPath = this.#getDefaultDerivationPath(groupIndex);
 
+          // Derive keypair locally using key-tree (no additional snap API call)
+          const { publicKeyBytes } =
+            await deriveSolanaKeypairFromCoinTypeNode({
+              coinTypeNode,
+              accountIndex: groupIndex,
+            });
+
           const { solanaKeyringAccount } = await this.#buildKeyringAccount({
             id,
             entropySource,
@@ -451,6 +470,7 @@ export class SolanaKeyring implements Keyring {
             index: groupIndex,
             accountNameSuggestion: `Solana Account ${groupIndex + 1}`,
             remainingOptions: {},
+            precomputedPublicKeyBytes: publicKeyBytes,
           });
 
           // Save to state
