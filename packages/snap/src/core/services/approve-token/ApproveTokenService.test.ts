@@ -31,6 +31,7 @@ describe('ApproveTokenService', () => {
     mockConnection = {
       fetchMint: jest.fn(),
       getLatestBlockhash: jest.fn(),
+      fetchJsonParsedAccount: jest.fn(),
     } as unknown as jest.Mocked<SolanaConnection>;
 
     mockTokenHelper = {
@@ -62,6 +63,11 @@ describe('ApproveTokenService', () => {
       100500000n as any,
     );
 
+    // Default: ATA does not exist
+    mockConnection.fetchJsonParsedAccount.mockResolvedValue({
+      exists: false,
+    } as any);
+
     jest.clearAllMocks();
   });
 
@@ -91,7 +97,28 @@ describe('ApproveTokenService', () => {
       // Verify the transaction message structure
       expect(transactionMessage).toHaveProperty('version', 0);
       expect(transactionMessage).toHaveProperty('instructions');
-      expect(transactionMessage.instructions).toHaveLength(4); // 2 compute budget + 1 create ATA idempotent + 1 approve
+      expect(transactionMessage.instructions).toHaveLength(4); // 2 compute budget + 1 create ATA + 1 approve
+    });
+
+    it('omits the Create ATA instruction when the ATA already exists', async () => {
+      mockConnection.fetchJsonParsedAccount.mockResolvedValue({
+        exists: true,
+        address: asAddress('11111111111111111111111111111111'),
+        data: {},
+        programAddress: TOKEN_PROGRAM_ADDRESS,
+      } as any);
+
+      const transactionMessage = await service.buildApprovalTransactionMessage({
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        mint: mockMint,
+        delegate: mockDelegate,
+        amount: '100.50',
+        network: Network.Mainnet,
+      });
+
+      expect(transactionMessage).toHaveProperty('version', 0);
+      expect(transactionMessage).toHaveProperty('instructions');
+      expect(transactionMessage.instructions).toHaveLength(3); // 2 compute budget + 1 approve (no create ATA)
     });
 
     it('fetches mint info to get token program', async () => {

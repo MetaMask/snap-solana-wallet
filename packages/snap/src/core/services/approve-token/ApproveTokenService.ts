@@ -5,16 +5,21 @@ import {
 import {
   findAssociatedTokenPda,
   getApproveInstruction,
-  getCreateAssociatedTokenIdempotentInstruction,
+  getCreateAssociatedTokenInstruction,
 } from '@solana-program/token';
 import {
   getApproveInstruction as getApproveInstruction2022,
-  getCreateAssociatedTokenIdempotentInstruction as getCreateAssociatedTokenIdempotentInstruction2022,
+  getCreateAssociatedTokenInstruction as getCreateAssociatedTokenInstruction2022,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '@solana-program/token-2022';
-import type { Address, CompilableTransactionMessage } from '@solana/kit';
+import type {
+  Address,
+  CompilableTransactionMessage,
+  IInstruction,
+} from '@solana/kit';
 import {
-  appendTransactionMessageInstruction,
+  appendTransactionMessageInstructions,
+  assertAccountExists,
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
   pipe,
@@ -109,13 +114,6 @@ export class ApproveTokenService {
     const signer =
       await createKeyPairSignerFromPrivateKeyBytes(privateKeyBytes);
 
-    // Convert UI amount to raw token amount
-    const rawAmount = await this.#tokenHelper.uiAmountToAmountForMint(
-      mint,
-      network,
-      amount,
-    );
-
     // Derive the user's Associated Token Account (ATA) address
     const ownerATA = (
       await findAssociatedTokenPda({
@@ -125,47 +123,64 @@ export class ApproveTokenService {
       })
     )[0];
 
-    // Use the appropriate token program instructions
+    // Convert UI amount to raw token amount and check ATA existence in parallel
+    const [rawAmount, ownerAtaAccount] = await Promise.all([
+      this.#tokenHelper.uiAmountToAmountForMint(mint, network, amount),
+      this.#connection.fetchJsonParsedAccount(ownerATA, network),
+    ]);
+
+    let ataExists = false;
+    try {
+      assertAccountExists(ownerAtaAccount);
+      ataExists = true;
+    } catch {
+      // ATA doesn't exist yet, it will be created below
+    }
+
     const isToken2022 = tokenProgram === TOKEN_2022_PROGRAM_ADDRESS;
 
-    const getOrCreateAssociatedTokenAccountInstructionFn = isToken2022
-      ? getCreateAssociatedTokenIdempotentInstruction2022
-      : getCreateAssociatedTokenIdempotentInstruction;
+    const instructions: IInstruction[] = [];
 
-    // Create the approve instruction using the appropriate token program
+    // Only create the ATA if it doesn't already exist.
+    // Uses `Create` (not `CreateIdempotent`) because the card partner
+    // only detects the standard Create instruction.
+    if (!ataExists) {
+      const getCreateAtaInstructionFn = isToken2022
+        ? getCreateAssociatedTokenInstruction2022
+        : getCreateAssociatedTokenInstruction;
+
+      instructions.push(
+        getCreateAtaInstructionFn({
+          ata: ownerATA,
+          mint,
+          owner: signer.address,
+          payer: signer,
+          tokenProgram,
+        }),
+      );
+    }
+
     // TODO: When Baanx correctly indexes it, this should be switched back
     // to `getApproveCheckedInstruction2022` and `getApproveCheckedInstruction`
     const getApproveInstructionFn = isToken2022
       ? getApproveInstruction2022
       : getApproveInstruction;
 
-    const getOrCreateAssociatedTokenAccountInstruction =
-      getOrCreateAssociatedTokenAccountInstructionFn({
-        ata: ownerATA,
-        mint,
-        owner: signer.address,
-        payer: signer,
-        tokenProgram,
-      });
-
-    const approveInstruction = getApproveInstructionFn({
-      source: ownerATA,
-      delegate,
-      owner: signer,
-      amount: rawAmount,
-    });
+    instructions.push(
+      getApproveInstructionFn({
+        source: ownerATA,
+        delegate,
+        owner: signer,
+        amount: rawAmount,
+      }),
+    );
 
     // Build the transaction message
     const transactionMessage = pipe(
       createTransactionMessage({ version: 0 }),
       (tx) => setTransactionMessageFeePayer(signer.address, tx),
       (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
-      (tx) =>
-        appendTransactionMessageInstruction(
-          getOrCreateAssociatedTokenAccountInstruction,
-          tx,
-        ),
-      (tx) => appendTransactionMessageInstruction(approveInstruction, tx),
+      (tx) => appendTransactionMessageInstructions(instructions, tx),
     );
 
     // Add compute budget instructions
