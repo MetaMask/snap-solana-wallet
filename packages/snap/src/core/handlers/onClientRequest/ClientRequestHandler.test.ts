@@ -730,7 +730,11 @@ describe('ClientRequestHandler', () => {
     });
 
     it('accepts a valid message without Expiration Time', async () => {
-      const messageWithoutExpiration = createCardMessage(address, 'a90TLFMbDFGDWUTfs', false);
+      const messageWithoutExpiration = createCardMessage(
+        address,
+        'a90TLFMbDFGDWUTfs',
+        false,
+      );
       const base64Message = utf8ToBase64(messageWithoutExpiration);
 
       const response = {
