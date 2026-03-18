@@ -142,6 +142,23 @@ describe('SolanaConnection', () => {
       // It should effectively call the RPC only once
       expect(spy).toHaveBeenCalledTimes(1);
     });
+
+    it('bypasses the cache when skipCache is true', async () => {
+      const spy = jest.spyOn(require('@solana/kit'), 'fetchJsonParsedAccount');
+
+      const call = async () =>
+        connection.fetchJsonParsedAccount(
+          KnownCaip19Id.UsdcMainnet,
+          Network.Mainnet,
+          undefined,
+          { skipCache: true },
+        );
+
+      await call();
+      await call();
+
+      expect(spy).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('fetchMint', () => {

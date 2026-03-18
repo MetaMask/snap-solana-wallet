@@ -123,10 +123,15 @@ export class ApproveTokenService {
       })
     )[0];
 
-    // Convert UI amount to raw token amount and check ATA existence in parallel
+    // Convert UI amount to raw token amount and check ATA existence in parallel.
+    // skipCache is required because this result gates a non-idempotent Create
+    // instruction; stale `exists: false` from the 1-min cache would cause the
+    // transaction to fail on-chain if the ATA was created since the last fetch.
     const [rawAmount, ownerAtaAccount] = await Promise.all([
       this.#tokenHelper.uiAmountToAmountForMint(mint, network, amount),
-      this.#connection.fetchJsonParsedAccount(ownerATA, network),
+      this.#connection.fetchJsonParsedAccount(ownerATA, network, undefined, {
+        skipCache: true,
+      }),
     ]);
 
     let ataExists = false;

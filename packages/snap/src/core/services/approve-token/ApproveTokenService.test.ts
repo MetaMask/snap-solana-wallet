@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { address as asAddress } from '@solana/kit';
 
@@ -8,7 +10,11 @@ import type { TokenHelper } from '../assets/TokenHelper';
 import type { SolanaConnection } from '../connection';
 import { ApproveTokenService } from './ApproveTokenService';
 
-// Mock the deriveSolanaKeypair function
+jest.mock('@solana/kit', () => ({
+  ...jest.requireActual('@solana/kit'),
+  createKeyPairSignerFromPrivateKeyBytes: jest.fn(),
+}));
+
 jest.mock('../../utils/deriveSolanaKeypair', () => ({
   deriveSolanaKeypair: jest.fn().mockResolvedValue({
     publicKeyBytes: new Uint8Array(32).fill(1),
@@ -28,6 +34,18 @@ describe('ApproveTokenService', () => {
   );
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
+    const {
+      createKeyPairSignerFromPrivateKeyBytes,
+    } = require('@solana/kit');
+
+    (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
+      address: asAddress('7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV'),
+      signMessages: jest.fn(),
+      signTransactions: jest.fn(),
+    });
+
     mockConnection = {
       fetchMint: jest.fn(),
       getLatestBlockhash: jest.fn(),
@@ -48,7 +66,6 @@ describe('ApproveTokenService', () => {
       mockLogger,
     );
 
-    // Mock the connection methods
     mockConnection.fetchMint.mockResolvedValue({
       programAddress: TOKEN_PROGRAM_ADDRESS,
       data: { decimals: 6 },
@@ -58,7 +75,6 @@ describe('ApproveTokenService', () => {
       lastValidBlockHeight: 100n,
     });
 
-    // Mock the token helper
     mockTokenHelper.uiAmountToAmountForMint.mockResolvedValue(
       100500000n as any,
     );
@@ -67,8 +83,6 @@ describe('ApproveTokenService', () => {
     mockConnection.fetchJsonParsedAccount.mockResolvedValue({
       exists: false,
     } as any);
-
-    jest.clearAllMocks();
   });
 
   describe('buildApprovalTransactionMessage', () => {
