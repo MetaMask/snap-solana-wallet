@@ -654,8 +654,13 @@ describe('ClientRequestHandler', () => {
     const createCardMessage = (
       signerAddress = address,
       nonce = 'a90TLFMbDFGDWUTfs',
-    ): string =>
-      `approve.card.metamask.io wants you to sign in with your Solana account: ${signerAddress} Prove address ownership URI: https://approve.card.metamask.io Version: 1 Chain ID: 1 Nonce: ${nonce} Issued At: 2025-12-02T14:25:49.589Z Expiration Time: 2025-12-02T14:35:49.589Z`;
+      includeExpirationTime = true,
+    ): string => {
+      const base = `approve.card.metamask.io wants you to sign in with your Solana account: ${signerAddress} Prove address ownership URI: https://approve.card.metamask.io Version: 1 Chain ID: 1 Nonce: ${nonce} Issued At: 2025-12-02T14:25:49.589Z`;
+      return includeExpirationTime
+        ? `${base} Expiration Time: 2025-12-02T14:35:49.589Z`
+        : base;
+    };
 
     const createRequest = (message: string): JsonRpcRequest => ({
       jsonrpc: '2.0',
@@ -701,6 +706,48 @@ describe('ClientRequestHandler', () => {
       await expect(handler.handle(request)).rejects.toThrow(
         'Account not found',
       );
+    });
+
+    it('accepts a valid message in newline-separated format', async () => {
+      const newlineMessage = `approve.card.metamask.io wants you to sign in with your Solana account:\n${address}\n\nProve address ownership\n\nURI: https://approve.card.metamask.io\nVersion: 1\nChain ID: 1\nNonce: cc665387ddce2831\nIssued At: 2026-03-18T13:16:54.855Z`;
+      const base64Message = utf8ToBase64(newlineMessage);
+
+      const response = {
+        signature:
+          '61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu',
+        signedMessage: base64Message,
+        signatureType: 'ed25519' as const,
+      };
+      jest
+        .spyOn(mockAccountsService, 'findById')
+        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+      jest.spyOn(mockWalletService, 'signMessage').mockResolvedValue(response);
+
+      const request = createRequest(newlineMessage);
+      const result = await handler.handle(request);
+
+      expect(result).toStrictEqual(response);
+    });
+
+    it('accepts a valid message without Expiration Time', async () => {
+      const messageWithoutExpiration = createCardMessage(address, 'a90TLFMbDFGDWUTfs', false);
+      const base64Message = utf8ToBase64(messageWithoutExpiration);
+
+      const response = {
+        signature:
+          '61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu',
+        signedMessage: base64Message,
+        signatureType: 'ed25519' as const,
+      };
+      jest
+        .spyOn(mockAccountsService, 'findById')
+        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+      jest.spyOn(mockWalletService, 'signMessage').mockResolvedValue(response);
+
+      const request = createRequest(messageWithoutExpiration);
+      const result = await handler.handle(request);
+
+      expect(result).toStrictEqual(response);
     });
 
     it('throws an error if message format is invalid', async () => {

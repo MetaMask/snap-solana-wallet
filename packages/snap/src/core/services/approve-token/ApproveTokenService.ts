@@ -23,7 +23,6 @@ import {
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
   pipe,
-  prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
 } from '@solana/kit';
@@ -175,25 +174,21 @@ export class ApproveTokenService {
       }),
     );
 
-    // Build the transaction message
-    const transactionMessage = pipe(
+    // Build the transaction message with instructions in order:
+    // SetComputeUnitPrice, Create (if needed), Approve, SetComputeUnitLimit
+    const allInstructions: IInstruction[] = [
+      getSetComputeUnitPriceInstruction({
+        microLamports: this.#computeUnitPriceMicroLamportsPerComputeUnit,
+      }),
+      ...instructions,
+      getSetComputeUnitLimitInstruction({ units: this.#computeUnitLimit }),
+    ];
+
+    return pipe(
       createTransactionMessage({ version: 0 }),
       (tx) => setTransactionMessageFeePayer(signer.address, tx),
       (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
-      (tx) => appendTransactionMessageInstructions(instructions, tx),
+      (tx) => appendTransactionMessageInstructions(allInstructions, tx),
     );
-
-    // Add compute budget instructions
-    const budgetedTransactionMessage = prependTransactionMessageInstructions(
-      [
-        getSetComputeUnitLimitInstruction({ units: this.#computeUnitLimit }),
-        getSetComputeUnitPriceInstruction({
-          microLamports: this.#computeUnitPriceMicroLamportsPerComputeUnit,
-        }),
-      ],
-      transactionMessage,
-    );
-
-    return budgetedTransactionMessage;
   }
 }
