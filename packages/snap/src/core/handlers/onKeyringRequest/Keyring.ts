@@ -448,9 +448,9 @@ export class SolanaKeyring implements Keyring {
         curve: 'ed25519',
       });
 
-      // Create new accounts and save to state
+      // Create new accounts in memory, then flush all to state in one call
       let createdCount = 0;
-      let total = 0;
+      const newAccounts: Record<string, SolanaKeyringAccount> = {};
       for (let groupIndex = range.from; groupIndex <= range.to; groupIndex++) {
         if (!existingAccountsMap.has(groupIndex)) {
           const id = globalThis.crypto.randomUUID();
@@ -473,24 +473,20 @@ export class SolanaKeyring implements Keyring {
             precomputedPublicKeyBytes: publicKeyBytes,
           });
 
-          // Save to state
-          const tick = Date.now();
-          await this.#state.setKey(
-            `keyringAccounts.${id}`,
-            solanaKeyringAccount,
-          );
-          const tock = Date.now();
-          console.log(`metamask:perf:solana Saving account (${groupIndex}) to state took ${tock - tick}ms`);
-          total += tock - tick;
-
-
-          // Add to map for result assembly
+          newAccounts[id] = solanaKeyringAccount;
           existingAccountsMap.set(groupIndex, solanaKeyringAccount);
           createdCount += 1;
         }
       }
 
-      console.log(`metamask:perf:solana Save account (total) took ${total}ms`);
+      // Single state write for all new accounts
+      const tick = Date.now();
+      await this.#state.update((state) => ({
+        ...state,
+        keyringAccounts: { ...state.keyringAccounts, ...newAccounts },
+      }));
+      const tock = Date.now();
+      console.log(`metamask:perf:solana Saving ${createdCount} accounts to state took ${tock - tick}ms`);
       console.log(`metamask:perf:solana Derivation (total) took ${this.#totalDerivation}ms`);
 
       await endTrace('Create Solana Accounts Batch');
