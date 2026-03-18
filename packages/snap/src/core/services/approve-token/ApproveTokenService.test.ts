@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
@@ -36,9 +37,7 @@ describe('ApproveTokenService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const {
-      createKeyPairSignerFromPrivateKeyBytes,
-    } = require('@solana/kit');
+    const { createKeyPairSignerFromPrivateKeyBytes } = require('@solana/kit');
 
     (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
       address: asAddress('7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV'),
