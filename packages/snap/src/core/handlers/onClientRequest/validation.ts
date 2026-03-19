@@ -246,13 +246,14 @@ export function parseCardMessage(base64Message: string): {
     getUtf8Codec().decode, // From uint8Array to utf8
   );
 
-  // Parse the message using regex
+  // Normalize whitespace (newline-separated and space-separated formats both supported)
   // Note: Nonce accepts alphanumeric characters to support various partner formats
   // Note: Expiration Time is optional
+  const normalizedMessage = decodedMessage.replace(/\s+/gu, ' ').trim();
   const regex =
-    /^(\S+) wants you to sign in with your Solana account:\s+(\S{32,44})\s+([\s\S]+?)\s+URI:\s+(\S+)\s+Version:\s+(\d+)\s+Chain ID:\s+(\d+)\s+Nonce:\s+(\w+)\s+Issued At:\s+(\S+)(?:\s+Expiration Time:\s+(\S+))?$/u;
+    /^(\S+) wants you to sign in with your Solana account: (\S{32,44}) (.+?) URI: (\S+) Version: (\d+) Chain ID: (\d+) Nonce: (\w+) Issued At: (\S+)(?: Expiration Time: (\S+))?$/u;
 
-  const match = decodedMessage.match(regex);
+  const match = normalizedMessage.match(regex);
 
   if (!match) {
     throw new Error(
@@ -264,7 +265,7 @@ export function parseCardMessage(base64Message: string): {
     ,
     domain,
     addressPart,
-    statement,
+    ,
     uri,
     version,
     chainId,
@@ -283,6 +284,13 @@ export function parseCardMessage(base64Message: string): {
     string,
     string | undefined,
   ];
+
+  // Re-extract the statement from the original decoded message to preserve internal whitespace
+  const addressIdx = decodedMessage.indexOf(addressPart);
+  const uriMarkerIdx = decodedMessage.search(/\s+URI:\s+/u);
+  const statement = decodedMessage
+    .slice(addressIdx + addressPart.length, uriMarkerIdx)
+    .trim();
 
   // Validate domain
   if (!domain || domain.trim() === '') {
