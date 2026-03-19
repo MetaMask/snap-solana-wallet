@@ -253,7 +253,7 @@ export function parseCardMessage(base64Message: string): {
   const regex =
     /^(\S+) wants you to sign in with your Solana account: (\S{32,44}) (.+?) URI: (\S+) Version: (\d+) Chain ID: (\d+) Nonce: (\w+) Issued At: (\S+)(?: Expiration Time: (\S+))?$/u;
 
-  const match = normalizedMessage.match(regex);
+  const match = regex.exec(normalizedMessage);
 
   if (!match) {
     throw new Error(
@@ -272,7 +272,7 @@ export function parseCardMessage(base64Message: string): {
     nonce,
     issuedAt,
     expirationTime,
-  ] = match as [
+  ] = match as unknown as [
     string,
     string,
     string,
