@@ -90,8 +90,11 @@ export async function render(
     .then((instructions) => {
       context.advanced.instructions = instructions;
 
-      const destinationAddress = extractDestinationAddress(instructions);
-      context.destinationAddress = destinationAddress;
+      try {
+        context.destinationAddress = extractDestinationAddress(instructions);
+      } catch {
+        context.destinationAddress = null;
+      }
     })
     .catch((error) => {
       logger.error(error);
