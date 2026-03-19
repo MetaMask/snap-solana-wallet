@@ -1,3 +1,6 @@
+/* eslint-disable no-restricted-globals */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { address as asAddress } from '@solana/kit';
 
@@ -8,7 +11,11 @@ import type { TokenHelper } from '../assets/TokenHelper';
 import type { SolanaConnection } from '../connection';
 import { ApproveTokenService } from './ApproveTokenService';
 
-// Mock the deriveSolanaKeypair function
+jest.mock('@solana/kit', () => ({
+  ...jest.requireActual('@solana/kit'),
+  createKeyPairSignerFromPrivateKeyBytes: jest.fn(),
+}));
+
 jest.mock('../../utils/deriveSolanaKeypair', () => ({
   deriveSolanaKeypair: jest.fn().mockResolvedValue({
     publicKeyBytes: new Uint8Array(32).fill(1),
@@ -28,9 +35,20 @@ describe('ApproveTokenService', () => {
   );
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
+    const { createKeyPairSignerFromPrivateKeyBytes } = require('@solana/kit');
+
+    (createKeyPairSignerFromPrivateKeyBytes as jest.Mock).mockResolvedValue({
+      address: asAddress('7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV'),
+      signMessages: jest.fn(),
+      signTransactions: jest.fn(),
+    });
+
     mockConnection = {
       fetchMint: jest.fn(),
       getLatestBlockhash: jest.fn(),
+      fetchJsonParsedAccount: jest.fn(),
     } as unknown as jest.Mocked<SolanaConnection>;
 
     mockTokenHelper = {
@@ -47,7 +65,6 @@ describe('ApproveTokenService', () => {
       mockLogger,
     );
 
-    // Mock the connection methods
     mockConnection.fetchMint.mockResolvedValue({
       programAddress: TOKEN_PROGRAM_ADDRESS,
       data: { decimals: 6 },
@@ -57,12 +74,14 @@ describe('ApproveTokenService', () => {
       lastValidBlockHeight: 100n,
     });
 
-    // Mock the token helper
     mockTokenHelper.uiAmountToAmountForMint.mockResolvedValue(
       100500000n as any,
     );
 
-    jest.clearAllMocks();
+    // Default: ATA does not exist
+    mockConnection.fetchJsonParsedAccount.mockResolvedValue({
+      exists: false,
+    } as any);
   });
 
   describe('buildApprovalTransactionMessage', () => {
@@ -91,7 +110,28 @@ describe('ApproveTokenService', () => {
       // Verify the transaction message structure
       expect(transactionMessage).toHaveProperty('version', 0);
       expect(transactionMessage).toHaveProperty('instructions');
-      expect(transactionMessage.instructions).toHaveLength(4); // 2 compute budget + 1 create ATA idempotent + 1 approve
+      expect(transactionMessage.instructions).toHaveLength(4); // 2 compute budget + 1 create ATA + 1 approve
+    });
+
+    it('omits the Create ATA instruction when the ATA already exists', async () => {
+      mockConnection.fetchJsonParsedAccount.mockResolvedValue({
+        exists: true,
+        address: asAddress('11111111111111111111111111111111'),
+        data: {},
+        programAddress: TOKEN_PROGRAM_ADDRESS,
+      } as any);
+
+      const transactionMessage = await service.buildApprovalTransactionMessage({
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        mint: mockMint,
+        delegate: mockDelegate,
+        amount: '100.50',
+        network: Network.Mainnet,
+      });
+
+      expect(transactionMessage).toHaveProperty('version', 0);
+      expect(transactionMessage).toHaveProperty('instructions');
+      expect(transactionMessage.instructions).toHaveLength(3); // 2 compute budget + 1 approve (no create ATA)
     });
 
     it('fetches mint info to get token program', async () => {
