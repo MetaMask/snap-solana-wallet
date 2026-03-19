@@ -117,19 +117,6 @@ export async function render(
     accountDomainPromise,
   ]);
 
-  const destinationDomainPromise = context.destinationAddress
-    ? nameResolutionService
-        .resolveAddress(context.scope, context.destinationAddress)
-        .then((domain) => {
-          context.destinationDomain = domain;
-        })
-        .catch(() => {
-          context.destinationDomain = null;
-        })
-    : Promise.resolve();
-
-  await destinationDomainPromise;
-
   const {
     currency,
     useExternalPricingData,
@@ -146,6 +133,7 @@ export async function render(
 
   /**
    * Second render:
+   * - Resolve destination domain
    * - Get token prices
    * - Get transaction fee
    */
@@ -153,22 +141,35 @@ export async function render(
     ...context,
   };
 
+  const destinationDomainPromise = context.destinationAddress
+    ? nameResolutionService
+        .resolveAddress(context.scope, context.destinationAddress)
+        .then((domain) => {
+          updatedContext1.destinationDomain = domain;
+        })
+        .catch(() => {
+          updatedContext1.destinationDomain = null;
+        })
+    : Promise.resolve();
+
   const assets = [Networks[context.scope].nativeToken.caip19Id];
 
-  if (useExternalPricingData) {
-    await priceApiClient
-      .getMultipleSpotPrices(assets, currency)
-      .then((prices) => {
-        updatedContext1.tokenPrices = prices;
+  const tokenPricesPromise = useExternalPricingData
+    ? priceApiClient
+        .getMultipleSpotPrices(assets, currency)
+        .then((prices) => {
+          updatedContext1.tokenPrices = prices;
+          updatedContext1.tokenPricesFetchStatus = 'fetched';
+        })
+        .catch(() => {
+          updatedContext1.tokenPricesFetchStatus = 'error';
+        })
+    : Promise.resolve().then(() => {
         updatedContext1.tokenPricesFetchStatus = 'fetched';
-      })
-      .catch(() => {
-        updatedContext1.tokenPricesFetchStatus = 'error';
+        updatedContext1.tokenPrices = {};
       });
-  } else {
-    updatedContext1.tokenPricesFetchStatus = 'fetched';
-    updatedContext1.tokenPrices = {};
-  }
+
+  await Promise.all([destinationDomainPromise, tokenPricesPromise]);
 
   let feeEstimatedInSol: string | null = null;
   try {
