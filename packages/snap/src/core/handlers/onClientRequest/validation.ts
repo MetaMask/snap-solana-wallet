@@ -249,7 +249,7 @@ export function parseCardMessage(base64Message: string): {
   // Normalize whitespace (newline-separated and space-separated formats both supported)
   // Note: Nonce accepts alphanumeric characters to support various partner formats
   // Note: Expiration Time is optional
-  const normalizedMessage = decodedMessage.replace(/\s+/gu, ' ').trim();
+  const normalizedMessage = decodedMessage.replaceAll(/\s+/gu, ' ').trim();
   const regex =
     /^(\S+) wants you to sign in with your Solana account: (\S{32,44}) (.+?) URI: (\S+) Version: (\d+) Chain ID: (\d+) Nonce: (\w+) Issued At: (\S+)(?: Expiration Time: (\S+))?$/u;
 
