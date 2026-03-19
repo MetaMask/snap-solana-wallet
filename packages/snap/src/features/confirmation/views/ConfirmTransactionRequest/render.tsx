@@ -20,6 +20,7 @@ import {
   state,
   transactionScanService,
 } from '../../../../snapContext';
+import { extractDestinationAddress } from '../../utils/extractDestinationAddress';
 import { ConfirmTransactionRequest } from './ConfirmTransactionRequest';
 import type { ConfirmTransactionRequestContext } from './types';
 
@@ -29,6 +30,8 @@ export const DEFAULT_CONFIRMATION_CONTEXT: ConfirmTransactionRequestContext = {
   networkImage: SOL_IMAGE_SVG,
   account: null,
   accountDomain: null,
+  destinationAddress: null,
+  destinationDomain: null,
   transaction: '',
   scan: null,
   scanFetchStatus: 'fetching',
@@ -86,6 +89,9 @@ export async function render(
   )
     .then((instructions) => {
       context.advanced.instructions = instructions;
+
+      const destinationAddress = extractDestinationAddress(instructions);
+      context.destinationAddress = destinationAddress;
     })
     .catch((error) => {
       logger.error(error);
@@ -107,6 +113,19 @@ export async function render(
     instructionsPromise,
     accountDomainPromise,
   ]);
+
+  const destinationDomainPromise = context.destinationAddress
+    ? nameResolutionService
+        .resolveAddress(context.scope, context.destinationAddress)
+        .then((domain) => {
+          context.destinationDomain = domain;
+        })
+        .catch(() => {
+          context.destinationDomain = null;
+        })
+    : Promise.resolve();
+
+  await destinationDomainPromise;
 
   const {
     currency,
