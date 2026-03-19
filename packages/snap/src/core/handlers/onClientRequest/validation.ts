@@ -250,7 +250,7 @@ export function parseCardMessage(base64Message: string): {
   // Note: Nonce accepts alphanumeric characters to support various partner formats
   // Note: Expiration Time is optional
   const regex =
-    /^(.+) wants you to sign in with your Solana account:\s+(\S{32,44})\s+([\s\S]+?)\s+URI:\s+(.+)\s+Version:\s+(\d+)\s+Chain ID:\s+(\d+)\s+Nonce:\s+(\w+)\s+Issued At:\s+(.+?)(?:\s+Expiration Time:\s+(.+))?$/u;
+    /^(\S+) wants you to sign in with your Solana account:\s+(\S{32,44})\s+([\s\S]+?)\s+URI:\s+(\S+)\s+Version:\s+(\d+)\s+Chain ID:\s+(\d+)\s+Nonce:\s+(\w+)\s+Issued At:\s+(\S+)(?:\s+Expiration Time:\s+(\S+))?$/u;
 
   const match = decodedMessage.match(regex);
 
