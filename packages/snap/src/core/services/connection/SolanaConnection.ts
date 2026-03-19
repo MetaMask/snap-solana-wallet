@@ -80,12 +80,17 @@ export class SolanaConnection {
    * @param address - The address of the account.
    * @param caip2Id - The CAIP-2 ID of the network.
    * @param config - The config for the fetchJsonParsedAccount function.
+   * @param options - Additional options.
+   * @param options.skipCache - When true, bypasses the cache and always fetches
+   * from the RPC. Use this when the result gates a non-idempotent operation
+   * (e.g. deciding whether to include a Create ATA instruction).
    * @returns The JSON-parsed account.
    */
   public async fetchJsonParsedAccount<TData extends object>(
     address: string,
     caip2Id: Network,
     config?: FetchAccountConfig,
+    options?: { skipCache?: boolean },
   ): Promise<MaybeAccount<TData, Address> | MaybeEncodedAccount<Address>> {
     /**
      * Defines the base uncached function for fetching a JSON-parsed account.
@@ -102,6 +107,12 @@ export class SolanaConnection {
       const rpc = this.getRpc(_caip2Id);
       return fetchJsonParsedAccount(rpc, asAddress(_address), _config);
     };
+
+    if (options?.skipCache) {
+      return internal(address, caip2Id, config) as Promise<
+        MaybeAccount<TData, Address> | MaybeEncodedAccount<Address>
+      >;
+    }
 
     // Create a cached version of the function
     const cached = useCache<
