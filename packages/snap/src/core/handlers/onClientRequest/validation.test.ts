@@ -209,7 +209,6 @@ describe('validation', () => {
     });
 
     it('throws for an address with invalid Base58 characters', () => {
-      // Ethereum addresses use chars outside Base58 (0, x), so the regex fails
       expect(() =>
         parseCardMessage(
           toBase64(
@@ -218,7 +217,7 @@ describe('validation', () => {
             }),
           ),
         ),
-      ).toThrow('Invalid card message format');
+      ).toThrow('Invalid Solana address in card message');
     });
 
     it('throws for invalid URI', () => {
