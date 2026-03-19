@@ -125,7 +125,9 @@ export class ApproveTokenService {
     // Convert UI amount to raw token amount and check ATA existence in parallel
     const [rawAmount, ownerAtaAccount] = await Promise.all([
       this.#tokenHelper.uiAmountToAmountForMint(mint, network, amount),
-      this.#connection.fetchJsonParsedAccount(ownerATA, network),
+      this.#connection.fetchJsonParsedAccount(ownerATA, network, undefined, {
+        skipCache: true,
+      }),
     ]);
 
     let ataExists = false;
