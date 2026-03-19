@@ -148,7 +148,7 @@ describe('SignatureMonitor', () => {
   });
 
   describe('#handleSignatureNotification', () => {
-    it('when the tx is processed, it saves the transaction, tracks an event in analytics, and unsubscribes', async () => {
+    it('when the tx is processed, it saves the transaction and unsubscribes', async () => {
       const mockNotification = {} as unknown as SignatureNotification;
       const mockSubscription = {
         id: 'subscription-id-123',
@@ -182,10 +182,7 @@ describe('SignatureMonitor', () => {
 
       expect(
         mockAnalyticsService.trackEventTransactionSubmitted,
-      ).toHaveBeenCalledWith(mockAccount, signature, {
-        origin,
-        scope: network,
-      });
+      ).not.toHaveBeenCalled();
 
       expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
         mockSubscription.id,

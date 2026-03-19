@@ -180,22 +180,11 @@ export class SignatureMonitor {
         );
       }
 
-      switch (commitment) {
-        case 'processed':
-          await this.#transactionsService.save(transaction);
-          await this.#analyticsService.trackEventTransactionSubmitted(
-            account,
-            signature,
-            {
-              scope: network,
-              origin,
-            },
-          );
+      await this.#transactionsService.save(transaction);
 
-          break;
+      switch (commitment) {
         case 'confirmed':
         case 'finalized':
-          await this.#transactionsService.save(transaction);
           await this.#analyticsService.trackEventTransactionFinalized(
             account,
             transaction,

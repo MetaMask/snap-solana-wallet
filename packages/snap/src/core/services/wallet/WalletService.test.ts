@@ -11,6 +11,7 @@ import {
 } from '../../test/mocks/solana-keyring-accounts';
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
 import logger from '../../utils/logger';
+import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { SolanaConnection } from '../connection';
 import { createMockConnection } from '../mocks/mockConnection';
 import { MOCK_EXECUTION_SCENARIOS } from '../signer/mocks/scenarios';
@@ -39,6 +40,7 @@ describe('WalletService', () => {
   let mockConnection: SolanaConnection;
   let mockSigner: Signer;
   let mockSignatureMonitor: SignatureMonitor;
+  let mockAnalyticsService: AnalyticsService;
   let service: WalletService;
   const mockAccounts = [...MOCK_SOLANA_KEYRING_ACCOUNTS];
   let onCommitmentReachedCallback: (params: any) => Promise<void>;
@@ -63,10 +65,15 @@ describe('WalletService', () => {
       },
     );
 
+    mockAnalyticsService = {
+      trackEventTransactionSubmitted: jest.fn(),
+    } as unknown as AnalyticsService;
+
     service = new WalletService(
       mockConnection,
       mockSigner,
       mockSignatureMonitor,
+      mockAnalyticsService,
       logger,
     );
 
@@ -284,6 +291,22 @@ describe('WalletService', () => {
             scope,
             'https://metamask.io',
           );
+        });
+
+        it('emits Transaction Submitted event after broadcasting', async () => {
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            'https://metamask.io',
+          );
+
+          expect(
+            mockAnalyticsService.trackEventTransactionSubmitted,
+          ).toHaveBeenCalledWith(fromAccount, signature, {
+            scope,
+            origin: 'https://metamask.io',
+          });
         });
       });
 
