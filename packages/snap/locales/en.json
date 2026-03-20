@@ -130,6 +130,9 @@
     "confirmation.account": {
       "message": "Account"
     },
+    "confirmation.recipient": {
+      "message": "Recipient"
+    },
     "confirmation.network": {
       "message": "Network"
     },
