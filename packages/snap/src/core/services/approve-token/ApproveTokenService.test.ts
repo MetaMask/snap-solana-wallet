@@ -1,6 +1,7 @@
-/* eslint-disable no-restricted-globals */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable no-restricted-globals */
+import { COMPUTE_BUDGET_PROGRAM_ADDRESS } from '@solana-program/compute-budget';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { address as asAddress } from '@solana/kit';
 
@@ -82,6 +83,8 @@ describe('ApproveTokenService', () => {
     mockConnection.fetchJsonParsedAccount.mockResolvedValue({
       exists: false,
     } as any);
+
+    jest.clearAllMocks();
   });
 
   describe('buildApprovalTransactionMessage', () => {
@@ -110,7 +113,44 @@ describe('ApproveTokenService', () => {
       // Verify the transaction message structure
       expect(transactionMessage).toHaveProperty('version', 0);
       expect(transactionMessage).toHaveProperty('instructions');
-      expect(transactionMessage.instructions).toHaveLength(4); // 2 compute budget + 1 create ATA + 1 approve
+      expect(transactionMessage.instructions).toHaveLength(4); // SetComputeUnitPrice + Create ATA + Approve + SetComputeUnitLimit
+    });
+
+    it('builds instructions in the correct order: SetComputeUnitPrice, Create, Approve, SetComputeUnitLimit', async () => {
+      const SET_COMPUTE_UNIT_PRICE_DISCRIMINANT = 3;
+      const SET_COMPUTE_UNIT_LIMIT_DISCRIMINANT = 2;
+
+      const { instructions } = await service.buildApprovalTransactionMessage({
+        account: MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        mint: mockMint,
+        delegate: mockDelegate,
+        amount: '100.50',
+        network: Network.Mainnet,
+      });
+
+      expect(instructions).toHaveLength(4);
+      // First: SetComputeUnitPrice
+      expect(instructions[0].programAddress).toBe(
+        COMPUTE_BUDGET_PROGRAM_ADDRESS,
+      );
+      expect(instructions[0].data?.[0]).toBe(
+        SET_COMPUTE_UNIT_PRICE_DISCRIMINANT,
+      );
+      // Second: Create ATA (token program)
+      expect(instructions[1]?.programAddress).not.toBe(
+        COMPUTE_BUDGET_PROGRAM_ADDRESS,
+      );
+      // Third: Approve (token program)
+      expect(instructions[2]?.programAddress).not.toBe(
+        COMPUTE_BUDGET_PROGRAM_ADDRESS,
+      );
+      // Last: SetComputeUnitLimit
+      expect(instructions[3]?.programAddress).toBe(
+        COMPUTE_BUDGET_PROGRAM_ADDRESS,
+      );
+      expect(instructions[3]?.data?.[0]).toBe(
+        SET_COMPUTE_UNIT_LIMIT_DISCRIMINANT,
+      );
     });
 
     it('omits the Create ATA instruction when the ATA already exists', async () => {
@@ -131,7 +171,7 @@ describe('ApproveTokenService', () => {
 
       expect(transactionMessage).toHaveProperty('version', 0);
       expect(transactionMessage).toHaveProperty('instructions');
-      expect(transactionMessage.instructions).toHaveLength(3); // 2 compute budget + 1 approve (no create ATA)
+      expect(transactionMessage.instructions).toHaveLength(3); // SetComputeUnitPrice + Approve + SetComputeUnitLimit (no Create ATA)
     });
 
     it('fetches mint info to get token program', async () => {

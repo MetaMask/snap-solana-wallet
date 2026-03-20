@@ -23,7 +23,6 @@ import {
   createKeyPairSignerFromPrivateKeyBytes,
   createTransactionMessage,
   pipe,
-  prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
 } from '@solana/kit';
@@ -123,10 +122,7 @@ export class ApproveTokenService {
       })
     )[0];
 
-    // Convert UI amount to raw token amount and check ATA existence in parallel.
-    // skipCache is required because this result gates a non-idempotent Create
-    // instruction; stale `exists: false` from the 1-min cache would cause the
-    // transaction to fail on-chain if the ATA was created since the last fetch.
+    // Convert UI amount to raw token amount and check ATA existence in parallel
     const [rawAmount, ownerAtaAccount] = await Promise.all([
       this.#tokenHelper.uiAmountToAmountForMint(mint, network, amount),
       this.#connection.fetchJsonParsedAccount(ownerATA, network, undefined, {
@@ -180,25 +176,21 @@ export class ApproveTokenService {
       }),
     );
 
-    // Build the transaction message
-    const transactionMessage = pipe(
+    // Build the transaction message with instructions in order:
+    // SetComputeUnitPrice, Create (if needed), Approve, SetComputeUnitLimit
+    const allInstructions: IInstruction[] = [
+      getSetComputeUnitPriceInstruction({
+        microLamports: this.#computeUnitPriceMicroLamportsPerComputeUnit,
+      }),
+      ...instructions,
+      getSetComputeUnitLimitInstruction({ units: this.#computeUnitLimit }),
+    ];
+
+    return pipe(
       createTransactionMessage({ version: 0 }),
       (tx) => setTransactionMessageFeePayer(signer.address, tx),
       (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
-      (tx) => appendTransactionMessageInstructions(instructions, tx),
+      (tx) => appendTransactionMessageInstructions(allInstructions, tx),
     );
-
-    // Add compute budget instructions
-    const budgetedTransactionMessage = prependTransactionMessageInstructions(
-      [
-        getSetComputeUnitLimitInstruction({ units: this.#computeUnitLimit }),
-        getSetComputeUnitPriceInstruction({
-          microLamports: this.#computeUnitPriceMicroLamportsPerComputeUnit,
-        }),
-      ],
-      transactionMessage,
-    );
-
-    return budgetedTransactionMessage;
   }
 }

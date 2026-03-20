@@ -222,7 +222,7 @@ export const SignRewardsMessageRequestStruct = object({
 /**
  * Utility function to decode and parse a card message.
  * The card message follows a SIWS (Sign-In with Solana) style format:
- * `{domain} wants you to sign in with your Solana account: {address} {statement} URI: {uri} Version: {version} Chain ID: {chainId} Nonce: {nonce} Issued At: {issuedAt} Expiration Time: {expirationTime}`
+ * `{domain} wants you to sign in with your Solana account: {address} {statement} URI: {uri} Version: {version} Chain ID: {chainId} Nonce: {nonce} Issued At: {issuedAt} [Expiration Time: {expirationTime}]`
  *
  * @param base64Message - The base64-encoded card message.
  * @returns Object containing the parsed components.
@@ -237,7 +237,7 @@ export function parseCardMessage(base64Message: string): {
   chainId: string;
   nonce: string;
   issuedAt: string;
-  expirationTime: string;
+  expirationTime?: string;
 } {
   // Decode the message from base64 to utf8
   const decodedMessage = pipe(
@@ -246,16 +246,18 @@ export function parseCardMessage(base64Message: string): {
     getUtf8Codec().decode, // From uint8Array to utf8
   );
 
-  // Parse the message using regex
+  // Normalize whitespace (newline-separated and space-separated formats both supported)
   // Note: Nonce accepts alphanumeric characters to support various partner formats
+  // Note: Expiration Time is optional
+  const normalizedMessage = decodedMessage.replaceAll(/\s+/gu, ' ').trim();
   const regex =
-    /^(.+) wants you to sign in with your Solana account: ([1-9A-HJ-NP-Za-km-z]{32,44}) (.+) URI: (.+) Version: (\d+) Chain ID: (\d+) Nonce: ([a-zA-Z0-9]+) Issued At: (.+) Expiration Time: (.+)$/u;
+    /^(\S+) wants you to sign in with your Solana account: (\S{32,44}) (.+?) URI: (\S+) Version: (\d+) Chain ID: (\d+) Nonce: (\w+) Issued At: (\S+)(?: Expiration Time: (\S+))?$/u;
 
-  const match = decodedMessage.match(regex);
+  const match = regex.exec(normalizedMessage);
 
   if (!match) {
     throw new Error(
-      'Invalid card message format. Expected format: "{domain} wants you to sign in with your Solana account: {address} {statement} URI: {uri} Version: {version} Chain ID: {chainId} Nonce: {nonce} Issued At: {issuedAt} Expiration Time: {expirationTime}"',
+      'Invalid card message format. Expected format: "{domain} wants you to sign in with your Solana account: {address} {statement} URI: {uri} Version: {version} Chain ID: {chainId} Nonce: {nonce} Issued At: {issuedAt} [Expiration Time: {expirationTime}]"',
     );
   }
 
@@ -263,14 +265,14 @@ export function parseCardMessage(base64Message: string): {
     ,
     domain,
     addressPart,
-    statement,
+    ,
     uri,
     version,
     chainId,
     nonce,
     issuedAt,
     expirationTime,
-  ] = match as [
+  ] = match as unknown as [
     string,
     string,
     string,
@@ -280,8 +282,15 @@ export function parseCardMessage(base64Message: string): {
     string,
     string,
     string,
-    string,
+    string | undefined,
   ];
+
+  // Re-extract the statement from the original decoded message to preserve internal whitespace
+  const addressIdx = decodedMessage.indexOf(addressPart);
+  const uriMarkerIdx = decodedMessage.indexOf('URI:');
+  const statement = decodedMessage
+    .slice(addressIdx + addressPart.length, uriMarkerIdx)
+    .trim();
 
   // Validate domain
   if (!domain || domain.trim() === '') {
@@ -309,10 +318,12 @@ export function parseCardMessage(base64Message: string): {
     throw new Error('Invalid Issued At date in card message');
   }
 
-  // Validate expirationTime is a valid ISO 8601 date
-  const expirationTimeDate = new Date(expirationTime);
-  if (isNaN(expirationTimeDate.getTime())) {
-    throw new Error('Invalid Expiration Time date in card message');
+  // Validate expirationTime is a valid ISO 8601 date (if present)
+  if (expirationTime !== undefined) {
+    const expirationTimeDate = new Date(expirationTime);
+    if (isNaN(expirationTimeDate.getTime())) {
+      throw new Error('Invalid Expiration Time date in card message');
+    }
   }
 
   return {
@@ -324,7 +335,7 @@ export function parseCardMessage(base64Message: string): {
     chainId,
     nonce,
     issuedAt,
-    expirationTime,
+    ...(expirationTime !== undefined && { expirationTime }),
   };
 }
 
