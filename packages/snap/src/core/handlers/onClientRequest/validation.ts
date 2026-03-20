@@ -287,8 +287,7 @@ export function parseCardMessage(base64Message: string): {
 
   // Re-extract the statement from the original decoded message to preserve internal whitespace
   const addressIdx = decodedMessage.indexOf(addressPart);
-  const uriMarkerMatch = /\s+URI:\s+/u.exec(decodedMessage);
-  const uriMarkerIdx = uriMarkerMatch?.index ?? -1;
+  const uriMarkerIdx = decodedMessage.indexOf('URI:');
   const statement = decodedMessage
     .slice(addressIdx + addressPart.length, uriMarkerIdx)
     .trim();
