@@ -3368,6 +3368,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/abi-utils@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@metamask/abi-utils@npm:3.0.0"
+  dependencies:
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.0.1
+  checksum: 5ac03df29bbb6cb34073e84022f8c53782c46de2817abf057ad4efc841921cee5b9dba8958b22373191fbf111e81b59bbb22d715020e032e06d6a922d59e37cc
+  languageName: node
+  linkType: hard
+
 "@metamask/approval-controller@npm:^8.0.0":
   version: 8.0.0
   resolution: "@metamask/approval-controller@npm:8.0.0"
@@ -3530,6 +3540,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/eth-sig-util@npm:^8.2.0":
+  version: 8.2.0
+  resolution: "@metamask/eth-sig-util@npm:8.2.0"
+  dependencies:
+    "@ethereumjs/rlp": ^4.0.1
+    "@ethereumjs/util": ^8.1.0
+    "@metamask/abi-utils": ^3.0.0
+    "@metamask/utils": ^11.0.1
+    "@scure/base": ~1.1.3
+    ethereum-cryptography: ^2.1.2
+    tweetnacl: ^1.0.3
+  checksum: 273e8bd3578a2395d888e0e7a2a8310311e320dd1d77b81035b1e5b21c432296ef144abd8f2e7ee3147ff82e660941e9671c080c0a6883017e2946523a09dcf4
+  languageName: node
+  linkType: hard
+
 "@metamask/ethjs-unit@npm:^0.3.0":
   version: 0.3.0
   resolution: "@metamask/ethjs-unit@npm:0.3.0"
@@ -3605,27 +3630,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^21.1.0":
-  version: 21.1.0
-  resolution: "@metamask/keyring-api@npm:21.1.0"
+"@metamask/keyring-api@npm:^21.1.0, @metamask/keyring-api@npm:^21.3.0":
+  version: 21.6.0
+  resolution: "@metamask/keyring-api@npm:21.6.0"
   dependencies:
-    "@metamask/keyring-utils": ^3.1.0
+    "@ethereumjs/tx": ^5.4.0
+    "@metamask/eth-sig-util": ^8.2.0
+    "@metamask/keyring-utils": ^3.2.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.1.0
+    "@types/uuid": ^9.0.8
+    async-mutex: ^0.5.0
     bitcoin-address-validation: ^2.2.3
-  checksum: f11a3ed9f6210e81b220c1240bc7d426a9190329d0319987e1d0295bbe2492cf66a50354025e088355a147f6c5be5ba4d059fd2b3a057ce25b04ae3b74ba31f9
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-api@npm:^21.3.0":
-  version: 21.3.0
-  resolution: "@metamask/keyring-api@npm:21.3.0"
-  dependencies:
-    "@metamask/keyring-utils": ^3.1.0
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.1.0
-    bitcoin-address-validation: ^2.2.3
-  checksum: eff1aecb1e9086f60f00095705b6dd9b3ac6e86ddcd846a4a30d0f5d97721286b065160d3550079152187c866a6f4cb5f49f908745ed5edbc2a22dac8906d2f9
+    uuid: ^9.0.1
+  checksum: 6d42bfee7b73c36b7b4b8f9a3f7e7578b91a6a6dab611e442109610acebb7b0340fca07765638544a6ced822308dacdee8e2961ebdf9fe90f5f46cde8a2e693f
   languageName: node
   linkType: hard
 
@@ -3642,18 +3660,6 @@ __metadata:
     "@metamask/keyring-api": ^21.5.0
     "@metamask/providers": ^19.0.0
   checksum: a119d846435650fe82569cf737feedffe1d39bd690531fe08f133f6bb9b3d65b252c42af5461be54d1f1f53f349a472564e116ea883b48a274ff0bb26e602d91
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-utils@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "@metamask/keyring-utils@npm:3.1.0"
-  dependencies:
-    "@ethereumjs/tx": ^5.4.0
-    "@metamask/superstruct": ^3.1.0
-    "@metamask/utils": ^11.1.0
-    bitcoin-address-validation: ^2.2.3
-  checksum: 93ebd440ff7e4a28a829d0e7a7c2d38c27cf3b329d156a5e45cab1f0cd0400731abe017a0adcc9c366f2840678a989fdb385b66b1ac9fb3dc3642d1571691db7
   languageName: node
   linkType: hard
 
@@ -7008,6 +7014,13 @@ __metadata:
   version: 0.0.33
   resolution: "@types/tmp@npm:0.0.33"
   checksum: b6963af74092bd56a1a9a7936a1a6de45ddbd5e774f9fc904f16b7e2ada79da8a769e0c5b9df083064b8080bb260c4973ba4307640b7b7a75ed1c47bda8c4110
+  languageName: node
+  linkType: hard
+
+"@types/uuid@npm:^9.0.8":
+  version: 9.0.8
+  resolution: "@types/uuid@npm:9.0.8"
+  checksum: b8c60b7ba8250356b5088302583d1704a4e1a13558d143c549c408bf8920535602ffc12394ede77f8a8083511b023704bc66d1345792714002bfa261b17c5275
   languageName: node
   linkType: hard
 
@@ -23090,6 +23103,13 @@ __metadata:
   dependencies:
     safe-buffer: "npm:^5.0.1"
   checksum: 05f6510358f8afc62a057b8b692f05d70c1782b70db86d6a1e0d5e28a32389e52fa6e7707b6c5ecccacc031462e4bc35af85ecfe4bbc341767917b7cf6965711
+  languageName: node
+  linkType: hard
+
+"tweetnacl@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "tweetnacl@npm:1.0.3"
+  checksum: e4a57cac188f0c53f24c7a33279e223618a2bfb5fea426231991652a13247bea06b081fd745d71291fcae0f4428d29beba1b984b1f1ce6f66b06a6d1ab90645c
   languageName: node
   linkType: hard
 
