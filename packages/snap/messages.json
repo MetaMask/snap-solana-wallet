@@ -42,6 +42,7 @@
   "send.transaction-failure.title": "Transaction failed",
   "send.transaction-failure.subtitle": "Unable to send {amount} {tokenSymbol}",
   "confirmation.account": "Account",
+  "confirmation.recipient": "Recipient",
   "confirmation.network": "Network",
   "confirmation.estimatedChanges": "Estimated changes",
   "confirmation.estimatedChanges.send": "You send",

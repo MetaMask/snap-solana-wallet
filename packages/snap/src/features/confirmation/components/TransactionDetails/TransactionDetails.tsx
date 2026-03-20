@@ -12,7 +12,7 @@ import {
 
 import { Domain } from '../../../../core/components/Domain/Domain';
 import type { Network } from '../../../../core/constants/solana';
-import { Networks } from '../../../../core/constants/solana';
+import { METAMASK_ORIGIN, Networks } from '../../../../core/constants/solana';
 import type { FetchStatus, Preferences } from '../../../../core/types/snap';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';
 import { formatCrypto } from '../../../../core/utils/formatCrypto';
@@ -24,6 +24,8 @@ import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 type TransactionDetailsProps = {
   accountAddress: string | null;
   accountDomain: string | null;
+  destinationAddress: string | null;
+  destinationDomain: string | null;
   scope: Network;
   feeInSol: string | null;
   nativePrice: number | null;
@@ -37,6 +39,8 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
   origin,
   accountAddress,
   accountDomain,
+  destinationAddress,
+  destinationDomain,
   scope,
   feeInSol,
   nativePrice,
@@ -46,7 +50,9 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
 }) => {
   const { currency, locale } = preferences;
   const translate = i18n(locale);
-  const originHostname = origin ? parseOrigin(origin) : null;
+  const isMetaMaskOrigin = origin === METAMASK_ORIGIN;
+  const originHostname =
+    origin && !isMetaMaskOrigin ? parseOrigin(origin) : null;
 
   const pricesFetching = fetchingPricesStatus === 'fetching';
   const pricesError = fetchingPricesStatus === 'error';
@@ -94,6 +100,30 @@ export const TransactionDetails: SnapComponent<TransactionDetailsProps> = ({
           />
         ) : null}
       </Box>
+      {destinationAddress ? (
+        <Box>
+          <Box>{null}</Box>
+          <Box alignment="space-between" direction="horizontal">
+            <Text fontWeight="medium" color="alternative">
+              {translate('confirmation.recipient')}
+            </Text>
+            {destinationDomain ? (
+              <Domain
+                domain={destinationDomain}
+                scope={scope}
+                address={destinationAddress}
+              />
+            ) : (
+              <Address
+                address={addressToCaip10(scope, destinationAddress)}
+                truncate
+                displayName
+                avatar
+              />
+            )}
+          </Box>
+        </Box>
+      ) : null}
       <Box>{null}</Box>
       <Box alignment="space-between" direction="horizontal">
         <Text fontWeight="medium" color="alternative">
