@@ -9,12 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.7.4]
 
-### Uncategorized
+### Changed
 
-- fix: emit Transaction Submitted event at broadcast time ([#598](https://github.com/MetaMask/snap-solana-wallet/pull/598))
-- feat(card): adjust Card-related methods ([#594](https://github.com/MetaMask/snap-solana-wallet/pull/594))
-- Fix: solana transaction confirmation screen issues ([#595](https://github.com/MetaMask/snap-solana-wallet/pull/595))
-- feat/approve card amount to use create ([#593](https://github.com/MetaMask/snap-solana-wallet/pull/593))
+- Replace card amount approval method to be indexable by our provider Baanx ([#593](https://github.com/MetaMask/snap-solana-wallet/pull/593))
+- Implement card amount approval method expiration validation ([#594](https://github.com/MetaMask/snap-solana-wallet/pull/594))
+
+### Fixed
+
+- Emit missing "Transaction Submitted" event at broadcast time ([#598](https://github.com/MetaMask/snap-solana-wallet/pull/598))
+- Solana transaction confirmation screen issues ([#595](https://github.com/MetaMask/snap-solana-wallet/pull/595))
+  - Display recipient address on confirmation screen
+  - Hide "Request from MetaMask" for user-initiated transactions
+  - Fix "You receive" flash during loading
 
 ## [2.7.3]
 
