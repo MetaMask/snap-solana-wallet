@@ -220,6 +220,7 @@ const walletService = new WalletService(
   connection,
   signer,
   signatureMonitor,
+  analyticsService,
   logger,
 );
 

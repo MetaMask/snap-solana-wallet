@@ -27,6 +27,7 @@ import { getSolanaExplorerUrl } from '../../utils/getSolanaExplorerUrl';
 import type { ILogger } from '../../utils/logger';
 import logger, { createPrefixedLogger } from '../../utils/logger';
 import { Base58Struct, Base64Struct } from '../../validation/structs';
+import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { SolanaConnection } from '../connection';
 import type { Signer } from '../signer/Signer';
 import type { SignatureMonitor } from '../subscriptions';
@@ -54,17 +55,21 @@ export class WalletService {
 
   readonly #signatureMonitor: SignatureMonitor;
 
+  readonly #analyticsService: AnalyticsService;
+
   readonly #logger: ILogger;
 
   constructor(
     connection: SolanaConnection,
     signer: Signer,
     signatureMonitor: SignatureMonitor,
+    analyticsService: AnalyticsService,
     _logger = logger,
   ) {
     this.#connection = connection;
     this.#signer = signer;
     this.#signatureMonitor = signatureMonitor;
+    this.#analyticsService = analyticsService;
     this.#logger = createPrefixedLogger(_logger, '[👛 WalletService]');
   }
 
@@ -287,6 +292,12 @@ export class WalletService {
     await sendTransactionWithoutConfirming(
       partiallySignedTransaction,
       sendConfig,
+    );
+
+    await this.#analyticsService.trackEventTransactionSubmitted(
+      account,
+      signature,
+      { scope, origin },
     );
 
     await this.#signatureMonitor.monitor(
