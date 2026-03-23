@@ -134,7 +134,7 @@ describe('deriveSolanaKeypair', () => {
 });
 
 describe('deriveSolanaKeypairFromCoinTypeNode', () => {
-  async function getCoinTypeNode() {
+  const getCoinTypeNode = async () => {
     return await SLIP10Node.fromDerivationPath({
       derivationPath: [
         MOCK_SEED_PHRASE_BYTES,
@@ -146,27 +146,30 @@ describe('deriveSolanaKeypairFromCoinTypeNode', () => {
   }
 
   it('derives the same private keys as deriveSolanaKeypair for indices 0-4', async () => {
-    const coinTypeNode = (await getCoinTypeNode()).toJSON();
+    const coinTypeNode = await getCoinTypeNode();
 
     const results = await Promise.all(
-      [0, 1, 2, 3, 4].map((accountIndex) =>
-        deriveSolanaKeypairFromCoinTypeNode({ coinTypeNode, accountIndex }),
-      ),
+      [0, 1, 2, 3, 4].map(async (accountIndex) => {
+        return deriveSolanaKeypairFromCoinTypeNode({
+          coinTypeNode,
+          accountIndex,
+        });
+      }),
     );
 
-    expect(results[0]!.privateKeyBytes).toStrictEqual(
+    expect(results[0]?.privateKeyBytes).toStrictEqual(
       MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
     );
-    expect(results[1]!.privateKeyBytes).toStrictEqual(
+    expect(results[1]?.privateKeyBytes).toStrictEqual(
       MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES,
     );
-    expect(results[2]!.privateKeyBytes).toStrictEqual(
+    expect(results[2]?.privateKeyBytes).toStrictEqual(
       MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES,
     );
-    expect(results[3]!.privateKeyBytes).toStrictEqual(
+    expect(results[3]?.privateKeyBytes).toStrictEqual(
       MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES,
     );
-    expect(results[4]!.privateKeyBytes).toStrictEqual(
+    expect(results[4]?.privateKeyBytes).toStrictEqual(
       MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
     );
   });
@@ -179,7 +182,7 @@ describe('deriveSolanaKeypairFromCoinTypeNode', () => {
       }),
     } as any);
 
-    const coinTypeNode = (await getCoinTypeNode()).toJSON();
+    const coinTypeNode = await getCoinTypeNode();
 
     await expect(
       deriveSolanaKeypairFromCoinTypeNode({ coinTypeNode, accountIndex: 0 }),
