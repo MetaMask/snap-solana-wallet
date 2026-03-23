@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
+import { SLIP10Node } from '@metamask/key-tree';
 import type {
   CreateAccountOptions,
   DiscoveredAccount,
@@ -78,7 +79,6 @@ import {
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
 import {
-  CreateAccountsRequestStruct,
   DiscoverAccountsRequestStruct,
   SolanaKeyringRequestStruct,
 } from './structs';
@@ -100,7 +100,7 @@ export class SolanaKeyring implements Keyring {
 
   readonly #traceName: string = 'Create Solana Account';
 
-  #totalDerivation = 0;
+  readonly #traceNameBatch: string = 'Create Solana Account Batch';
 
   constructor({
     state,
@@ -232,46 +232,28 @@ export class SolanaKeyring implements Keyring {
     entropySource,
     derivationPath,
     index,
-    accountNameSuggestion,
-    remainingOptions = {},
-    precomputedPublicKeyBytes,
+    publicKeyBytes,
   }: {
     id: string;
     entropySource: EntropySourceId;
     derivationPath: `m/${string}`;
     index: number;
     accountNameSuggestion?: string;
-    remainingOptions?: Record<string, Json>;
-    precomputedPublicKeyBytes?: Uint8Array;
-  }): Promise<{
-    solanaKeyringAccount: SolanaKeyringAccount;
-    keyringAccount: KeyringAccount;
-  }> {
-    // Derive keypair
-    const tick = Date.now();
-    const { publicKeyBytes } = precomputedPublicKeyBytes
-      ? { publicKeyBytes: precomputedPublicKeyBytes }
-      : await deriveSolanaKeypair({ entropySource, derivationPath });
-    const tock = Date.now();
-    console.log(`metamask:perf:solana Keypair derivation ("${derivationPath}") took ${tock - tick}ms`);
-    this.#totalDerivation += tock - tick;
-
-    // Get account address
-    const accountAddress = getAddressDecoder().decode(
+    publicKeyBytes: Uint8Array;
+  }): Promise<SolanaKeyringAccount> {
+    const address = getAddressDecoder().decode(
       publicKeyBytes.slice(1),
     );
 
-    // Build Solana keyring account
-    const solanaKeyringAccount: SolanaKeyringAccount = {
+    return {
       id,
       entropySource,
       derivationPath,
       index,
       type: SolAccountType.DataAccount,
-      address: accountAddress,
+      address,
       scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
       options: {
-        ...remainingOptions,
         entropySource,
         derivationPath,
         index,
@@ -283,12 +265,6 @@ export class SolanaKeyring implements Keyring {
         SolMethod.SignIn,
       ],
     };
-
-    // Convert to strict KeyringAccount
-    const keyringAccount: KeyringAccount =
-      asStrictKeyringAccount(solanaKeyringAccount);
-
-    return { solanaKeyringAccount, keyringAccount };
   }
 
   async createAccount(
@@ -302,7 +278,6 @@ export class SolanaKeyring implements Keyring {
     const id = globalThis.crypto.randomUUID();
 
     try {
-      this.#totalDerivation = 0;
       await startTrace(this.#traceName);
 
       const accounts = await this.#listAccounts();
@@ -337,30 +312,32 @@ export class SolanaKeyring implements Keyring {
 
       // Filter out our special properties from options
       const {
-        importedAccount,
         accountNameSuggestion,
         metamask: metamaskOptions,
-        ...remainingOptions
       } = options ?? {};
 
-      const { solanaKeyringAccount, keyringAccount } =
+      const { publicKeyBytes } = await deriveSolanaKeypair({
+        entropySource,
+        derivationPath,
+      });
+
+      const solanaKeyringAccount =
         await this.#buildKeyringAccount({
           id,
           entropySource,
           derivationPath,
           index,
-          accountNameSuggestion,
-          remainingOptions,
+          publicKeyBytes,
         });
 
+      // Convert to strict KeyringAccount
+      const keyringAccount = asStrictKeyringAccount(solanaKeyringAccount);
+
       // Save the account in the snap state
-      const tick = Date.now();
       await this.#state.setKey(
         `keyringAccounts.${solanaKeyringAccount.id}`,
         solanaKeyringAccount,
       );
-      const tock = Date.now();
-      console.log(`metamask:perf:solana Saving account (${index}) to state took ${tock - tick}ms`);
 
       // Inform the client about the new account
       await this.emitEvent(KeyringEvent.AccountCreated, {
@@ -412,23 +389,18 @@ export class SolanaKeyring implements Keyring {
         `${AccountCreationType.Bip44DeriveIndexRange}`,
       ]);
 
-      this.#totalDerivation = 0;
-      await startTrace('Create Solana Accounts Batch');
+      await startTrace(this.#traceNameBatch);
 
       // Get entropy source
       const entropySource =
         options.entropySource ?? (await this.#getDefaultEntropySource());
 
-      // List existing accounts
-      const existingAccounts = await this.#listAccounts();
-      const accountsForEntropySource = existingAccounts.filter(
-        (account) => account.entropySource === entropySource,
-      );
-
       // Map existing accounts by group index
-      const existingAccountsMap = new Map<number, SolanaKeyringAccount>();
-      for (const account of accountsForEntropySource) {
-        existingAccountsMap.set(account.index, account);
+      const allAccounts = new Map<number, SolanaKeyringAccount>();
+      for (const account of await this.#listAccounts()) {
+        if (account.entropySource === entropySource) {
+          allAccounts.set(account.index, account);
+        }
       }
 
       // Create a range of group indexes to create accounts for
@@ -442,17 +414,18 @@ export class SolanaKeyring implements Keyring {
       }
 
       // Get coin-type node once (optimization: 1 snap API call for N accounts)
-      const coinTypeNode = await getBip32Entropy({
+      const coinTypeNodeJson = await getBip32Entropy({
         entropySource,
         path: ['m', "44'", "501'"],
         curve: 'ed25519',
       });
+      const coinTypeNode = await SLIP10Node.fromJSON(coinTypeNodeJson);
 
       // Create new accounts in memory, then flush all to state in one call
       let createdCount = 0;
       const newAccounts: Record<string, SolanaKeyringAccount> = {};
       for (let groupIndex = range.from; groupIndex <= range.to; groupIndex++) {
-        if (!existingAccountsMap.has(groupIndex)) {
+        if (!allAccounts.has(groupIndex)) {
           const id = globalThis.crypto.randomUUID();
           const derivationPath = this.#getDefaultDerivationPath(groupIndex);
 
@@ -463,38 +436,38 @@ export class SolanaKeyring implements Keyring {
               accountIndex: groupIndex,
             });
 
-          const { solanaKeyringAccount } = await this.#buildKeyringAccount({
+          const solanaKeyringAccount = await this.#buildKeyringAccount({
             id,
             entropySource,
             derivationPath,
             index: groupIndex,
-            accountNameSuggestion: `Solana Account ${groupIndex + 1}`,
-            remainingOptions: {},
-            precomputedPublicKeyBytes: publicKeyBytes,
+            publicKeyBytes,
           });
 
+          // Keep track of the new account in our local map to be able to return the full list
+          // of accounts at the end, sorted by group index.
+          allAccounts.set(groupIndex, solanaKeyringAccount);
+
+          // Save the account in the snap state (defer actual saving until the end of the
+          // loop to minimize state writes).
           newAccounts[id] = solanaKeyringAccount;
-          existingAccountsMap.set(groupIndex, solanaKeyringAccount);
+
           createdCount += 1;
         }
       }
 
       // Single state write for all new accounts
-      const tick = Date.now();
       await this.#state.update((state) => ({
         ...state,
         keyringAccounts: { ...state.keyringAccounts, ...newAccounts },
       }));
-      const tock = Date.now();
-      console.log(`metamask:perf:solana Saving ${createdCount} accounts to state took ${tock - tick}ms`);
-      console.log(`metamask:perf:solana Derivation (total) took ${this.#totalDerivation}ms`);
 
-      await endTrace('Create Solana Accounts Batch');
+      await endTrace(this.#traceNameBatch);
 
       // Assemble final result: all accounts sorted by group index
       const result: KeyringAccount[] = [];
       for (let groupIndex = range.from; groupIndex <= range.to; groupIndex++) {
-        const account = existingAccountsMap.get(groupIndex);
+        const account = allAccounts.get(groupIndex);
         if (account) {
           result.push(asStrictKeyringAccount(account));
         }

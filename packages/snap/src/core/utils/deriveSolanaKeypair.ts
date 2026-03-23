@@ -79,13 +79,14 @@ export async function deriveSolanaKeypairFromCoinTypeNode({
   coinTypeNode,
   accountIndex,
 }: {
-  coinTypeNode: JsonSLIP10Node;
+  coinTypeNode: SLIP10Node;
   accountIndex: number;
 }): Promise<{ privateKeyBytes: Uint8Array; publicKeyBytes: Uint8Array }> {
-  const node = await SLIP10Node.fromJSON(coinTypeNode);
-  const derived = await node.derive([
-    `slip10:${accountIndex}'` as SLIP10PathNode,
-    `slip10:0'` as SLIP10PathNode,
+  // We use m/44'/501'/${accountIndex}'/0' as the derivation path. So now need to derive
+  // the account index + the change index (0) from the coin type node.
+  const derived = await coinTypeNode.derive([
+    `slip10:${accountIndex}'`,
+    `slip10:0'`,
   ]);
 
   if (!derived.privateKeyBytes || !derived.publicKeyBytes) {
