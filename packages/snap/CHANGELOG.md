@@ -7,16 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.7.3]
+## [2.7.4]
+
+### Changed
+
+- Replace card amount approval method to be indexable by our provider Baanx ([#593](https://github.com/MetaMask/snap-solana-wallet/pull/593))
+- Implement card amount approval method expiration validation ([#594](https://github.com/MetaMask/snap-solana-wallet/pull/594))
 
 ### Fixed
 
-- Make sure an interface exists when accessing its context ([#586](https://github.com/MetaMask/snap-solana-wallet/pull/586))
+- Solana transaction confirmation screen issues ([#595](https://github.com/MetaMask/snap-solana-wallet/pull/595))
+  - Display recipient address on confirmation screen
+  - Hide "Request from MetaMask" for user-initiated transactions
+  - Fix "You receive" flash during loading
+- Emit missing "Transaction Submitted" event at broadcast time ([#598](https://github.com/MetaMask/snap-solana-wallet/pull/598))
+
+## [2.7.3]
 
 ### Changed
 
 - Increase compute unit limit for transactions that handle approval of card amounts ([#587](https://github.com/MetaMask/snap-solana-wallet/pull/587))
 - Remove convertion layer for images displayed in Snaps UI ([#577](https://github.com/MetaMask/snap-solana-wallet/pull/577))
+
+### Fixed
+
+- Make sure an interface exists when accessing its context ([#586](https://github.com/MetaMask/snap-solana-wallet/pull/586))
 
 ## [2.7.2]
 
@@ -1056,7 +1071,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.3...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.4...HEAD
+[2.7.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.3...v2.7.4
 [2.7.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.2...v2.7.3
 [2.7.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.1...v2.7.2
 [2.7.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.0...v2.7.1
