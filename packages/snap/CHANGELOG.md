@@ -16,11 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Emit missing "Transaction Submitted" event at broadcast time ([#598](https://github.com/MetaMask/snap-solana-wallet/pull/598))
 - Solana transaction confirmation screen issues ([#595](https://github.com/MetaMask/snap-solana-wallet/pull/595))
   - Display recipient address on confirmation screen
   - Hide "Request from MetaMask" for user-initiated transactions
   - Fix "You receive" flash during loading
+- Emit missing "Transaction Submitted" event at broadcast time ([#598](https://github.com/MetaMask/snap-solana-wallet/pull/598))
 
 ## [2.7.3]
 
