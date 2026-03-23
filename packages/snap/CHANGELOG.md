@@ -7,16 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.4]
+
+### Uncategorized
+
+- fix: emit Transaction Submitted event at broadcast time ([#598](https://github.com/MetaMask/snap-solana-wallet/pull/598))
+- feat(card): adjust Card-related methods ([#594](https://github.com/MetaMask/snap-solana-wallet/pull/594))
+- Fix: solana transaction confirmation screen issues ([#595](https://github.com/MetaMask/snap-solana-wallet/pull/595))
+- feat/approve card amount to use create ([#593](https://github.com/MetaMask/snap-solana-wallet/pull/593))
+
 ## [2.7.3]
-
-### Fixed
-
-- Make sure an interface exists when accessing its context ([#586](https://github.com/MetaMask/snap-solana-wallet/pull/586))
 
 ### Changed
 
 - Increase compute unit limit for transactions that handle approval of card amounts ([#587](https://github.com/MetaMask/snap-solana-wallet/pull/587))
 - Remove convertion layer for images displayed in Snaps UI ([#577](https://github.com/MetaMask/snap-solana-wallet/pull/577))
+
+### Fixed
+
+- Make sure an interface exists when accessing its context ([#586](https://github.com/MetaMask/snap-solana-wallet/pull/586))
 
 ## [2.7.2]
 
@@ -1056,7 +1065,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.3...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.4...HEAD
+[2.7.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.3...v2.7.4
 [2.7.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.2...v2.7.3
 [2.7.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.1...v2.7.2
 [2.7.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.0...v2.7.1
