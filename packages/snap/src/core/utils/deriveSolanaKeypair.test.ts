@@ -175,14 +175,12 @@ describe('deriveSolanaKeypairFromCoinTypeNode', () => {
   });
 
   it('throws an error when the derived node has no private key', async () => {
-    jest.spyOn(SLIP10Node, 'fromJSON').mockResolvedValue({
+    const coinTypeNode = {
       derive: jest.fn().mockResolvedValue({
         privateKeyBytes: undefined,
         publicKeyBytes: undefined,
       }),
-    } as any);
-
-    const coinTypeNode = await getCoinTypeNode();
+    } as unknown as SLIP10Node;
 
     await expect(
       deriveSolanaKeypairFromCoinTypeNode({ coinTypeNode, accountIndex: 0 }),
