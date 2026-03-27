@@ -1,5 +1,8 @@
-import type { JsonSLIP10Node, SLIP10PathNode } from '@metamask/key-tree';
-import { SLIP10Node } from '@metamask/key-tree';
+import type {
+  JsonSLIP10Node,
+  SLIP10PathNode,
+  SLIP10Node,
+} from '@metamask/key-tree';
 import type { EntropySourceId } from '@metamask/keyring-api';
 import { assert } from '@metamask/superstruct';
 import { hexToBytes } from '@metamask/utils';

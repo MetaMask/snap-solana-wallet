@@ -143,7 +143,7 @@ describe('deriveSolanaKeypairFromCoinTypeNode', () => {
       ],
       curve: 'ed25519',
     });
-  }
+  };
 
   it('derives the same private keys as deriveSolanaKeypair for indices 0-4', async () => {
     const coinTypeNode = await getCoinTypeNode();
