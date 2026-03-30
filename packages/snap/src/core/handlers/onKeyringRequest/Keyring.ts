@@ -457,9 +457,9 @@ export class SolanaKeyring implements Keyring {
       }
 
       // Single state write for all new accounts
-      await this.#state.update((state) => ({
-        ...state,
-        keyringAccounts: { ...state.keyringAccounts, ...newAccounts },
+      await this.#state.setKeyWith<Record<string, SolanaKeyringAccount>>('keyringAccounts', (accounts) => ({
+        ...accounts,
+        ...newAccounts,
       }));
 
       await endTrace(this.#traceNameBatch);

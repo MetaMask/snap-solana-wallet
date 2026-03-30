@@ -19,6 +19,7 @@ jest.mock('./snapContext', () => ({
   state: {
     getKey: jest.fn().mockResolvedValue(Date.now()),
     setKey: jest.fn(),
+    setKeyWith: jest.fn(),
   },
 }));
 

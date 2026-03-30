@@ -203,6 +203,40 @@ describe('State', () => {
     });
   });
 
+  describe('setKeyWith', () => {
+    it('reads the current value, applies the updater, and writes the result', async () => {
+      snap.request.mockResolvedValueOnce({ alice: 10 }); // getState (read)
+
+      await state.setKeyWith<Record<string, number>>('scores', (current) => ({
+        ...current,
+        bob: 20,
+      }));
+
+      expect(snap.request).toHaveBeenNthCalledWith(1, {
+        method: 'snap_getState',
+        params: { key: 'scores', encrypted: false },
+      });
+      expect(snap.request).toHaveBeenNthCalledWith(2, {
+        method: 'snap_setState',
+        params: {
+          key: 'scores',
+          value: { alice: 10, bob: 20 },
+          encrypted: false,
+        },
+      });
+    });
+
+    it('passes undefined to the updater when the key does not exist', async () => {
+      snap.request.mockResolvedValueOnce(null); // getState returns null → key absent
+
+      const updater = jest.fn().mockReturnValue({ bob: 20 });
+
+      await state.setKeyWith('scores', updater);
+
+      expect(updater).toHaveBeenCalledWith(undefined);
+    });
+  });
+
   describe('update', () => {
     it('updates the state', async () => {
       await state.update((currentState) => ({
