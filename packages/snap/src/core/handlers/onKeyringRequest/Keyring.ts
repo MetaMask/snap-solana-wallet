@@ -227,7 +227,7 @@ export class SolanaKeyring implements Keyring {
     return defaultEntropySource.id;
   }
 
-  async #buildKeyringAccount({
+  #buildKeyringAccount({
     id,
     entropySource,
     derivationPath,
@@ -240,7 +240,7 @@ export class SolanaKeyring implements Keyring {
     index: number;
     accountNameSuggestion?: string;
     publicKeyBytes: Uint8Array;
-  }): Promise<SolanaKeyringAccount> {
+  }): SolanaKeyringAccount {
     const address = getAddressDecoder().decode(
       publicKeyBytes.slice(1),
     );
@@ -322,7 +322,7 @@ export class SolanaKeyring implements Keyring {
       });
 
       const solanaKeyringAccount =
-        await this.#buildKeyringAccount({
+        this.#buildKeyringAccount({
           id,
           entropySource,
           derivationPath,
@@ -395,9 +395,15 @@ export class SolanaKeyring implements Keyring {
       const entropySource =
         options.entropySource ?? (await this.#getDefaultEntropySource());
 
-      // Map existing accounts by group index
+      // Build an index-keyed map of existing accounts for this entropy source.
+      // Reads the raw record directly instead of going through #listAccounts(),
+      // which would additionally sort the entire blob — unnecessary here.
+      const keyringAccounts =
+        (await this.#state.getKey<UnencryptedStateValue['keyringAccounts']>(
+          'keyringAccounts',
+        )) ?? {};
       const allAccounts = new Map<number, SolanaKeyringAccount>();
-      for (const account of await this.#listAccounts()) {
+      for (const account of Object.values(keyringAccounts)) {
         if (account.entropySource === entropySource) {
           allAccounts.set(account.index, account);
         }
@@ -421,22 +427,29 @@ export class SolanaKeyring implements Keyring {
       });
       const coinTypeNode = await SLIP10Node.fromJSON(coinTypeNodeJson);
 
-      // Create new accounts in memory, then flush all to state in one call
-      let createdCount = 0;
+      // Derive all new accounts in parallel, then flush to state in one call.
+      // key-tree's .derive() uses crypto.subtle internally (yields to the event
+      // loop), so running them concurrently lets those yields overlap.
       const newAccounts: Record<string, SolanaKeyringAccount> = {};
+      const indicesToCreate: number[] = [];
       for (let groupIndex = range.from; groupIndex <= range.to; groupIndex++) {
         if (!allAccounts.has(groupIndex)) {
+          indicesToCreate.push(groupIndex);
+        }
+      }
+
+      await Promise.all(
+        indicesToCreate.map(async (groupIndex) => {
           const id = globalThis.crypto.randomUUID();
           const derivationPath = this.#getDefaultDerivationPath(groupIndex);
 
-          // Derive keypair locally using key-tree (no additional snap API call)
           const { publicKeyBytes } =
             await deriveSolanaKeypairFromCoinTypeNode({
               coinTypeNode,
               accountIndex: groupIndex,
             });
 
-          const solanaKeyringAccount = await this.#buildKeyringAccount({
+          const solanaKeyringAccount = this.#buildKeyringAccount({
             id,
             entropySource,
             derivationPath,
@@ -444,17 +457,10 @@ export class SolanaKeyring implements Keyring {
             publicKeyBytes,
           });
 
-          // Keep track of the new account in our local map to be able to return the full list
-          // of accounts at the end, sorted by group index.
           allAccounts.set(groupIndex, solanaKeyringAccount);
-
-          // Save the account in the snap state (defer actual saving until the end of the
-          // loop to minimize state writes).
           newAccounts[id] = solanaKeyringAccount;
-
-          createdCount += 1;
-        }
-      }
+        }),
+      );
 
       // Single state write for all new accounts
       await this.#state.setKeyWith<Record<string, SolanaKeyringAccount>>('keyringAccounts', (accounts) => ({
@@ -474,7 +480,7 @@ export class SolanaKeyring implements Keyring {
       }
 
       this.#logger.info(
-        `Created ${createdCount} new accounts, returned ${result.length} total accounts`,
+        `Created ${Object.keys(newAccounts).length} new accounts, returned ${result.length} total accounts`,
       );
 
       return result;
