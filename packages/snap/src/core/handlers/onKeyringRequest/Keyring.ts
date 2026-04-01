@@ -83,6 +83,11 @@ import {
   SolanaKeyringRequestStruct,
 } from './structs';
 
+/**
+ * A Solana address decoder that we can reuse across the class to avoid instantiating multiple decoders.
+ */
+const decoder = getAddressDecoder();
+
 export class SolanaKeyring implements Keyring {
   readonly #state: IStateManager<UnencryptedStateValue>;
 
@@ -241,7 +246,7 @@ export class SolanaKeyring implements Keyring {
     accountNameSuggestion?: string;
     publicKeyBytes: Uint8Array;
   }): SolanaKeyringAccount {
-    const address = getAddressDecoder().decode(
+    const address = decoder.decode(
       publicKeyBytes.slice(1),
     );
 
@@ -829,7 +834,7 @@ export class SolanaKeyring implements Keyring {
         entropySource,
         derivationPath,
       });
-      const address = getAddressDecoder().decode(publicKeyBytes.slice(1));
+      const address = decoder.decode(publicKeyBytes.slice(1));
 
       const activityChecksPromises = [];
 
