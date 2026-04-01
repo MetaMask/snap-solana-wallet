@@ -227,7 +227,7 @@ export class SolanaKeyring implements Keyring {
     return defaultEntropySource.id;
   }
 
-  async #buildKeyringAccount({
+  #buildKeyringAccount({
     id,
     entropySource,
     derivationPath,
@@ -240,7 +240,7 @@ export class SolanaKeyring implements Keyring {
     index: number;
     accountNameSuggestion?: string;
     publicKeyBytes: Uint8Array;
-  }): Promise<SolanaKeyringAccount> {
+  }): SolanaKeyringAccount {
     const address = getAddressDecoder().decode(
       publicKeyBytes.slice(1),
     );
@@ -322,7 +322,7 @@ export class SolanaKeyring implements Keyring {
       });
 
       const solanaKeyringAccount =
-        await this.#buildKeyringAccount({
+        this.#buildKeyringAccount({
           id,
           entropySource,
           derivationPath,
@@ -436,7 +436,7 @@ export class SolanaKeyring implements Keyring {
               accountIndex: groupIndex,
             });
 
-          const solanaKeyringAccount = await this.#buildKeyringAccount({
+          const solanaKeyringAccount = this.#buildKeyringAccount({
             id,
             entropySource,
             derivationPath,
