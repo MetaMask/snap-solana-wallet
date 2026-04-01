@@ -40,7 +40,6 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",
-    "@metamask/account-api": "^1.0.1",
     "@metamask/auto-changelog": "4.0.0",
     "@metamask/key-tree": "9.1.2",
     "@metamask/keyring-api": "^22.0.0",

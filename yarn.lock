@@ -3368,17 +3368,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-api@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@metamask/account-api@npm:1.0.1"
-  dependencies:
-    "@metamask/keyring-api": ^22.0.0
-    "@metamask/keyring-utils": ^3.2.0
-    uuid: ^9.0.1
-  checksum: f57c746f32358c04f2f1a5eee343b0358793991dd90fa053d89d72141799683858a115e556c10c125797061b8461bef28d5b4b5a0f6ca86d7e3a5d97f7101d56
-  languageName: node
-  linkType: hard
-
 "@metamask/approval-controller@npm:^8.0.0":
   version: 8.0.0
   resolution: "@metamask/approval-controller@npm:8.0.0"
@@ -4073,7 +4062,6 @@ __metadata:
   resolution: "@metamask/solana-wallet-snap@workspace:packages/snap"
   dependencies:
     "@jest/globals": ^29.5.0
-    "@metamask/account-api": ^1.0.1
     "@metamask/auto-changelog": 4.0.0
     "@metamask/key-tree": 9.1.2
     "@metamask/keyring-api": ^22.0.0
