@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0]
+
+### Added
+
+- Add support for `keyring_createAccounts` method to enable batch account creation ([#599](https://github.com/MetaMask/snap-solana-wallet/pull/599))
+
 ## [2.7.4]
 
 ### Changed
@@ -1071,7 +1077,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.4...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.8.0...HEAD
+[2.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.4...v2.8.0
 [2.7.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.3...v2.7.4
 [2.7.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.2...v2.7.3
 [2.7.2]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.1...v2.7.2
