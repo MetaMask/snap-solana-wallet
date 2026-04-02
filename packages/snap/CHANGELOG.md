@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- feat: add `keyring_createAccounts` (multiple accounts) support ([#599](https://github.com/MetaMask/snap-solana-wallet/pull/599))
+- Add support for `keyring_createAccounts` method to enable batch account creation ([#599](https://github.com/MetaMask/snap-solana-wallet/pull/599))
 
 ## [2.7.4]
 
