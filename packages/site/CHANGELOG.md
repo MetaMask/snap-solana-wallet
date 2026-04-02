@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0]
+
+### Uncategorized
+
+- feat: add `keyring_createAccounts` (multiple accounts) support ([#599](https://github.com/MetaMask/snap-solana-wallet/pull/599))
+
 ## [2.7.1]
 
 ### Fixed
@@ -247,7 +253,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add chakra for easier dx on site ([#53](https://github.com/MetaMask/snap-solana-wallet/pull/53))
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.1...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.8.0...HEAD
+[2.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.1...v2.8.0
 [2.7.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.0...v2.7.1
 [2.7.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.6...v2.7.0
 [2.4.6]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.4.4...v2.4.6
