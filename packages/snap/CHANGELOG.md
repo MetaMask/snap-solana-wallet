@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.8.0]
 
-### Uncategorized
+### Added
 
 - feat: add `keyring_createAccounts` (multiple accounts) support ([#599](https://github.com/MetaMask/snap-solana-wallet/pull/599))
 
