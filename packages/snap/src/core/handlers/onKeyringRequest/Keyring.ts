@@ -243,7 +243,6 @@ export class SolanaKeyring implements Keyring {
     entropySource: EntropySourceId;
     derivationPath: `m/${string}`;
     index: number;
-    accountNameSuggestion?: string;
     publicKeyBytes: Uint8Array;
   }): SolanaKeyringAccount {
     const address = decoder.decode(
