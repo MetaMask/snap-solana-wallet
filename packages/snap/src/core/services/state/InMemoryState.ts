@@ -31,6 +31,16 @@ export class InMemoryState<TStateValue extends Record<string, Serializable>>
     set(this.#state, key, value); // Use lodash to set the value using a json path
   }
 
+  async setKeyWith<TValue extends Serializable>(
+    key: string,
+    updater: (currentValue: TValue | undefined) => TValue,
+  ): Promise<void> {
+    const oldValue = get(this.#state, key) as TValue | undefined;
+    const newValue = updater(oldValue);
+
+    set(this.#state, key, newValue);
+  }
+
   async update(
     callback: (state: TStateValue) => TStateValue,
   ): Promise<TStateValue> {

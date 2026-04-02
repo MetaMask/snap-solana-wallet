@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "VwTyNRX0BAi64nG1bAxHAzIahlvWsicj8me3hg9R1Ug=",
+    "shasum": "GwsRT283HDCkRCgmO6eFqVXQxMjCeB2UgH0K6gBdrKk=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",

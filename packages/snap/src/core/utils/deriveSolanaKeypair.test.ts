@@ -9,7 +9,10 @@ import {
   MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
 } from '../test/mocks/solana-keyring-accounts';
-import { deriveSolanaKeypair } from './deriveSolanaKeypair';
+import {
+  deriveSolanaKeypair,
+  deriveSolanaKeypairFromCoinTypeNode,
+} from './deriveSolanaKeypair';
 import { getBip32Entropy } from './getBip32Entropy';
 
 /**
@@ -127,5 +130,60 @@ describe('deriveSolanaKeypair', () => {
         deriveSolanaKeypair({ derivationPath: `m/44'/501'/0'/0'` }),
       ).rejects.toThrow(errorMessage);
     });
+  });
+});
+
+describe('deriveSolanaKeypairFromCoinTypeNode', () => {
+  const getCoinTypeNode = async () => {
+    return await SLIP10Node.fromDerivationPath({
+      derivationPath: [
+        MOCK_SEED_PHRASE_BYTES,
+        `slip10:44'` as SLIP10PathNode,
+        `slip10:501'` as SLIP10PathNode,
+      ],
+      curve: 'ed25519',
+    });
+  };
+
+  it('derives the same private keys as deriveSolanaKeypair for indices 0-4', async () => {
+    const coinTypeNode = await getCoinTypeNode();
+
+    const results = await Promise.all(
+      [0, 1, 2, 3, 4].map(async (accountIndex) => {
+        return deriveSolanaKeypairFromCoinTypeNode({
+          coinTypeNode,
+          accountIndex,
+        });
+      }),
+    );
+
+    expect(results[0]?.privateKeyBytes).toStrictEqual(
+      MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+    );
+    expect(results[1]?.privateKeyBytes).toStrictEqual(
+      MOCK_SOLANA_KEYRING_ACCOUNT_1_PRIVATE_KEY_BYTES,
+    );
+    expect(results[2]?.privateKeyBytes).toStrictEqual(
+      MOCK_SOLANA_KEYRING_ACCOUNT_2_PRIVATE_KEY_BYTES,
+    );
+    expect(results[3]?.privateKeyBytes).toStrictEqual(
+      MOCK_SOLANA_KEYRING_ACCOUNT_3_PRIVATE_KEY_BYTES,
+    );
+    expect(results[4]?.privateKeyBytes).toStrictEqual(
+      MOCK_SOLANA_KEYRING_ACCOUNT_4_PRIVATE_KEY_BYTES,
+    );
+  });
+
+  it('throws an error when the derived node has no private key', async () => {
+    const coinTypeNode = {
+      derive: jest.fn().mockResolvedValue({
+        privateKeyBytes: undefined,
+        publicKeyBytes: undefined,
+      }),
+    } as unknown as SLIP10Node;
+
+    await expect(
+      deriveSolanaKeypairFromCoinTypeNode({ coinTypeNode, accountIndex: 0 }),
+    ).rejects.toThrow('Unable to derive private key');
   });
 });
