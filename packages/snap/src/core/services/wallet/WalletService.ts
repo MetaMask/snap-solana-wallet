@@ -8,6 +8,7 @@ import {
   assertTransactionIsFullySigned,
   createKeyPairSignerFromPrivateKeyBytes,
   createSignableMessage,
+  createSolanaRpcFromTransport,
   getBase58Codec,
   getBase58Decoder,
   getBase64Codec,
@@ -29,6 +30,7 @@ import logger, { createPrefixedLogger } from '../../utils/logger';
 import { Base58Struct, Base64Struct } from '../../validation/structs';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { SolanaConnection } from '../connection';
+import { createMainTransport } from '../connection/transport';
 import type { Signer } from '../signer/Signer';
 import type { SignatureMonitor } from '../subscriptions';
 import type {
@@ -260,7 +262,13 @@ export class WalletService {
 
     const signature = getSignatureFromTransaction(partiallySignedTransaction);
 
-    const rpc = this.#connection.getRpc(scope);
+    // eslint-disable-next-line no-restricted-globals -- injected at build time via snap.config.ts / .env
+    const sendTransactionRpcUrl = process.env.SEND_TRANSACTION_RPC_URL?.trim();
+    const rpc = sendTransactionRpcUrl
+      ? createSolanaRpcFromTransport(
+          createMainTransport([sendTransactionRpcUrl]),
+        )
+      : this.#connection.getRpc(scope);
 
     const sendTransactionWithoutConfirming =
       sendTransactionWithoutConfirmingFactory({

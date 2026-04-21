@@ -22,6 +22,8 @@ const environment = {
   SECURITY_ALERTS_API_BASE_URL: process.env.SECURITY_ALERTS_API_BASE_URL ?? '',
   NFT_API_BASE_URL: process.env.NFT_API_BASE_URL ?? '',
   LOCAL_API_BASE_URL: process.env.LOCAL_API_BASE_URL ?? '',
+  /** Optional override for sign-and-send only; when empty, {@link SolanaConnection} RPCs are used. */
+  SEND_TRANSACTION_RPC_URL: process.env.SEND_TRANSACTION_RPC_URL ?? '',
 };
 
 const config: SnapConfig = {
