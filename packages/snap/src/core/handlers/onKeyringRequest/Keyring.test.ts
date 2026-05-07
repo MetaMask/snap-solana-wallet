@@ -1012,5 +1012,18 @@ describe('SolanaKeyring', () => {
         ]),
       ).rejects.toThrow(InvalidParamsError);
     });
+
+    it('rejects if an account id is not part of existing accounts', async () => {
+      await expect(
+        keyring.setSelectedAccounts([
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          NON_EXISTENT_ACCOUNT_ID,
+        ]),
+      ).rejects.toThrow(InvalidParamsError);
+
+      expect(
+        mockKeyringAccountMonitor.setMonitoredAccounts,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

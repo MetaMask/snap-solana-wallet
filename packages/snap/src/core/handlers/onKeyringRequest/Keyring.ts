@@ -29,6 +29,7 @@ import {
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
+  InvalidParamsError,
   MethodNotFoundError,
   SnapError,
   UserRejectedRequestError,
@@ -875,6 +876,16 @@ export class SolanaKeyring implements Keyring {
    */
   async setSelectedAccounts(accountIds: string[]): Promise<void> {
     validateRequest(accountIds, array(UuidStruct));
+
+    const existingIds = new Set(
+      (await this.#listAccounts()).map((account) => account.id),
+    );
+    if (!accountIds.every((id) => existingIds.has(id))) {
+      // eslint-disable-next-line @typescript-eslint/no-throw-literal
+      throw new InvalidParamsError(
+        'Account IDs were not part of existing accounts.',
+      );
+    }
 
     await this.#keyringAccountMonitor.setMonitoredAccounts(accountIds);
   }
