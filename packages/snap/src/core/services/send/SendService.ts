@@ -131,6 +131,29 @@ export class SendService {
 
     const base64EncodedTransaction = fromTransactionToBase64String(transaction);
 
+    const approved = (await snap.request({
+      method: 'snap_confirmTransaction',
+      params: {
+        chainNamespace: 'solana',
+        chain: scope,
+        accountId: fromAccountId,
+        from: account.address,
+        to: toAddress,
+        value: isNativeSend
+          ? solToLamports(amount).toString()
+          : amount,
+        assetType: assetId,
+        assetSymbol: isNativeSend ? 'SOL' : 'TOKEN',
+        assetDecimals: isNativeSend ? 9 : 0,
+        origin: METAMASK_ORIGIN,
+      },
+    })) as boolean;
+
+    if (!approved) {
+      this.#logger.log('User rejected transaction via universal confirmation');
+      return { rejected: true };
+    }
+
     const keyringRequest: KeyringRequest = {
       id: globalThis.crypto.randomUUID(),
       scope,
