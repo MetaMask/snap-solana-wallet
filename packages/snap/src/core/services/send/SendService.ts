@@ -14,6 +14,7 @@ import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import type { Serializable } from '../../serialization/types';
 import { solToLamports } from '../../utils/conversion';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { toTokenUnits } from '../../utils/toTokenUnit';
 import type { AssetsService } from '../assets';
 import type { SolanaConnection } from '../connection';
 import type { RecipientClassifier } from './RecipientClassifier';
@@ -131,6 +132,20 @@ export class SendService {
 
     const base64EncodedTransaction = fromTransactionToBase64String(transaction);
 
+    const accountBalances = await this.#assetsService.findByAccount(account);
+    const assetEntry = accountBalances.find((a) => a.assetType === assetId);
+
+    const assetSymbol = assetEntry?.symbol ?? (isNativeSend ? 'SOL' : 'TOKEN');
+    const assetDecimals = assetEntry?.decimals ?? (isNativeSend ? 9 : 0);
+
+    const rawValue = isNativeSend
+      ? solToLamports(amount).toString()
+      : toTokenUnits(amount, assetDecimals).toString();
+
+    const sendFeeCalculator = new SendFeeCalculator(builder);
+    const feeRaw = sendFeeCalculator.getFee().toString();
+    const feeAssetType = Networks[scope].nativeToken.caip19Id;
+
     const approved = (await snap.request({
       method: 'snap_confirmTransaction',
       params: {
@@ -139,12 +154,12 @@ export class SendService {
         accountId: fromAccountId,
         from: account.address,
         to: toAddress,
-        value: isNativeSend
-          ? solToLamports(amount).toString()
-          : amount,
+        value: rawValue,
         assetType: assetId,
-        assetSymbol: isNativeSend ? 'SOL' : 'TOKEN',
-        assetDecimals: isNativeSend ? 9 : 0,
+        assetSymbol,
+        assetDecimals,
+        feeRaw,
+        feeAssetType,
         origin: METAMASK_ORIGIN,
       },
     })) as boolean;
