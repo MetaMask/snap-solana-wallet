@@ -19,13 +19,13 @@ import {
   SolMethod,
   SolScope,
   type Balance,
-  type Keyring,
   type KeyringAccount,
   type KeyringRequest,
   type KeyringResponse,
   type ResolvedAccountAddress,
   type Transaction,
 } from '@metamask/keyring-api';
+import type { ExportAccountOptions, ExportedAccount, Keyring } from '@metamask/keyring-api/v2'
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
@@ -34,10 +34,11 @@ import {
   SnapError,
   UserRejectedRequestError,
 } from '@metamask/snaps-sdk';
-import { array, assert, integer } from '@metamask/superstruct';
-import { type CaipChainId } from '@metamask/utils';
+import { array, assert, integer, union } from '@metamask/superstruct';
+import { assertStruct, bytesToHex, HexStruct, type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
+import bs58 from 'bs58';
 import { sortBy } from 'lodash';
 
 import {
@@ -69,7 +70,9 @@ import {
 } from '../../utils/interface';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import {
+  Base58Struct,
   DeleteAccountStruct,
+  ExportAccountRequestStruct,
   GetAccounBalancesResponseStruct,
   GetAccountBalancesStruct,
   GetAccountStruct,
@@ -154,17 +157,26 @@ export class SolanaKeyring implements Keyring {
 
   async getAccount(
     accountId: string,
-  ): Promise<KeyringAccount | undefined> {
+  ): Promise<KeyringAccount> {
     try {
       validateRequest({ accountId }, GetAccountStruct);
 
-      const account = await this.#getAccount(accountId);
+      const account = await this.getAccountOrThrow(accountId);
 
-      return account ? asStrictKeyringAccount(account) : undefined;
+      return asStrictKeyringAccount(account);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account');
       throw new SnapError(error);
     }
+  }
+
+
+  /**
+   * Gets all accounts from the state.
+   * @returns The accounts.
+   */
+  async getAccounts(): Promise<KeyringAccount[]> {
+    return (await this.#listAccounts()).map(asStrictKeyringAccount);
   }
 
   async getAccountOrThrow(accountId: string): Promise<SolanaKeyringAccount> {
@@ -888,5 +900,42 @@ export class SolanaKeyring implements Keyring {
     }
 
     await this.#keyringAccountMonitor.setMonitoredAccounts(accountIds);
+  }
+
+  /**
+   * Exports an account from the state.
+   * @param accountId - The id of the account to export.
+   * @param options - The options for the export.
+   * @returns The exported account.
+   */
+  async exportAccount(accountId: string, options: ExportAccountOptions): Promise<ExportedAccount> {
+    validateRequest({ accountId, options }, ExportAccountRequestStruct);
+
+    const account = await this.getAccountOrThrow(accountId);
+
+    const { privateKeyBytes, publicKeyBytes } = await deriveSolanaKeypair({
+      entropySource: account.entropySource,
+      derivationPath: account.derivationPath,
+    });
+
+    // Solana convention: 64-byte secret key = seed(32) || publicKey(32).
+    // publicKeyBytes is 33 bytes due to the SLIP-10 0x00 prefix; strip it.
+    const secretKey = new Uint8Array(64);
+
+    secretKey.set(privateKeyBytes, 0);
+    secretKey.set(publicKeyBytes.slice(1), 32);
+
+    const privateKey =
+      options.encoding === 'base58'
+        ? bs58.encode(secretKey)
+        : bytesToHex(secretKey); // returns 0x-prefixed hex
+
+    assertStruct(privateKey, union([Base58Struct, HexStruct]), 'Invalid private key encoding');
+
+    return {
+      type: 'private-key',
+      encoding: options.encoding,
+      privateKey,
+    };
   }
 }
