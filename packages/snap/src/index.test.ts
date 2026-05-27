@@ -5,10 +5,12 @@ import { onCronjob } from '.';
 import { handlers } from './core/handlers/onCronjob';
 import { ScheduleBackgroundEventMethod } from './core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
 
-jest.mock('@noble/ed25519', () => ({
-  getPublicKey: jest.fn(),
-  sign: jest.fn(),
-  verify: jest.fn(),
+// Avoid loading the ESM-only `@noble/ed25519` package and patching
+// `globalThis.crypto.subtle` from this test file. Tests here don't exercise
+// crypto, and a global patch would leak into other test suites under
+// `--runInBand` because `globalThis` is shared across files.
+jest.mock('./polyfills', () => ({
+  installPolyfills: jest.fn(),
 }));
 
 jest.mock('./snapContext', () => ({
