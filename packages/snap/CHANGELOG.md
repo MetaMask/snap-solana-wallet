@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added 
+
+- Implement keyring type and methods to V2 ([#xxx](https://github.com/MetaMask/snap-solana-wallet/pull/xxx))
+  - Implements `getAccounts` and `exportAccount`.
+  - Defines loosened keyring type that omits irrelevant properties from the keyring V2 type.
+
 ### Changed
 
 - Validate that account IDs passed to `keyring_setSelectedAccounts` belong to the snap, rejecting unknown IDs with `InvalidParamsError` ([#604](https://github.com/MetaMask/snap-solana-wallet/pull/604))
+- `getAccount` now throws on an invalid id instead of return `undefined` ([#xxx](https://github.com/MetaMask/snap-solana-wallet/pull/xxx))
+- Wrap all public keyring method errors in a single `SnapError` ([#xxx](https://github.com/MetaMask/snap-solana-wallet/pull/xxx))
 
 ## [2.8.0]
 
