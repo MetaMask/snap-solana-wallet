@@ -257,9 +257,9 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws if account is not found', async () => {
-      await expect(
-        keyring.getAccount(NON_EXISTENT_ACCOUNT_ID),
-      ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
+      await expect(keyring.getAccount(NON_EXISTENT_ACCOUNT_ID)).rejects.toThrow(
+        `Account "${NON_EXISTENT_ACCOUNT_ID}" not found`,
+      );
     });
 
     it('throws an error if state fails to be retrieved', async () => {
@@ -1097,7 +1097,10 @@ describe('SolanaKeyring', () => {
      */
     const expectedSecretKey = new Uint8Array(64);
     expectedSecretKey.set(MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES, 0);
-    expectedSecretKey.set(bs58.decode(MOCK_SOLANA_KEYRING_ACCOUNT_0.address), 32);
+    expectedSecretKey.set(
+      bs58.decode(MOCK_SOLANA_KEYRING_ACCOUNT_0.address),
+      32,
+    );
 
     it('exports the account private key as base58', async () => {
       const result = await keyring.exportAccount(
