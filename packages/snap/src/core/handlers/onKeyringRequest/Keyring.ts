@@ -165,8 +165,16 @@ export class SolanaKeyring implements Keyring {
 
       return sortBy(Object.values(keyringAccounts), ['entropySource', 'index']);
     } catch (error: any) {
-      this.#logger.error({ error }, 'Error listing accounts');
-      throw new Error('Error listing accounts');
+      // Note: we intentionally do not log here. The public callers
+      // (`listAccounts`, `createAccount`, etc.) wrap calls to this helper in
+      // their own try/catch with a function-level log call, so logging here
+      // would produce duplicate `'Error listing accounts'` entries on every
+      // failure. We still rewrite to a stable error message so existing
+      // consumers (and the `Error creating account: ...` prefix in
+      // `createAccount`) keep their current observable behavior. The
+      // original error is attached as `cause` to preserve the underlying
+      // stack/details for debugging.
+      throw new Error('Error listing accounts', { cause: error });
     }
   }
 
