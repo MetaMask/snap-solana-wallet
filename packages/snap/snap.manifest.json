@@ -7,7 +7,7 @@
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
   "source": {
-    "shasum": "AzXzPnYm37l2ijVy4ZM6GRu3DouI8hs75QHbfXJ/sBQ=",
+    "shasum": "JtyPmLWPs2T/Q2clTJkmKuKkZmdlZb8c876tkjrQvOE=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -30,13 +30,17 @@
       "allowedOrigins": ["https://portfolio.metamask.io"],
       "capabilities": {
         "scopes": [
-          "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", 
+          "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
           "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1"
         ],
         "privateKey": {
           "exportFormats": [
-            { "encoding": "base58" },
-            { "encoding": "hexadecimal" }
+            {
+              "encoding": "base58"
+            },
+            {
+              "encoding": "hexadecimal"
+            }
           ]
         },
         "bip44": {
@@ -92,6 +96,6 @@
     "snap_dialog": {},
     "snap_getPreferences": {}
   },
-  "platformVersion": "10.3.0",
+  "platformVersion": "11.1.1",
   "manifestVersion": "0.1"
 }

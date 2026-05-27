@@ -1,4 +1,5 @@
-import { CaipAssetTypeStruct, ExportAccountOptionsStruct, SolMethod } from '@metamask/keyring-api';
+import { CaipAssetTypeStruct, SolMethod } from '@metamask/keyring-api';
+import { ExportAccountOptionsStruct } from '@metamask/keyring-api/v2';
 import type { Struct } from '@metamask/superstruct';
 import {
   array,

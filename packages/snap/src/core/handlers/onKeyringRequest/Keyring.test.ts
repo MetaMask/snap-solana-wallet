@@ -4,10 +4,13 @@ import type { KeyringRequest } from '@metamask/keyring-api';
 import { SolMethod } from '@metamask/keyring-api';
 import {
   InvalidParamsError,
+  SnapError,
   type CaipAssetType,
   type JsonRpcRequest,
 } from '@metamask/snaps-sdk';
+import { bytesToHex } from '@metamask/utils';
 import { signature } from '@solana/kit';
+import bs58 from 'bs58';
 
 import type { AssetEntity } from '../../../entities';
 import { asStrictKeyringAccount } from '../../../entities';
@@ -36,6 +39,7 @@ import {
   MOCK_SEED_PHRASE_2_ENTROPY_SOURCE,
   MOCK_SEED_PHRASE_ENTROPY_SOURCE,
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
+  MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
   MOCK_SOLANA_KEYRING_ACCOUNT_2,
   MOCK_SOLANA_KEYRING_ACCOUNT_3,
@@ -252,9 +256,10 @@ describe('SolanaKeyring', () => {
       );
     });
 
-    it('returns undefined if account is not found', async () => {
-      const account = await keyring.getAccount(NON_EXISTENT_ACCOUNT_ID);
-      expect(account).toBeUndefined();
+    it('throws if account is not found', async () => {
+      await expect(
+        keyring.getAccount(NON_EXISTENT_ACCOUNT_ID),
+      ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
     });
 
     it('throws an error if state fails to be retrieved', async () => {
@@ -265,6 +270,63 @@ describe('SolanaKeyring', () => {
       await expect(
         keyring.getAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id),
       ).rejects.toThrow('State error');
+    });
+
+    it('wraps state errors in a single SnapError (no double-wrap)', async () => {
+      jest
+        .spyOn(mockState, 'getKey')
+        .mockRejectedValueOnce(new Error('State error'));
+      // SnapError's constructor copies the wrapped error's message verbatim,
+      // so a single SnapError and a SnapError-of-SnapError look identical at
+      // the message level. We instead detect double-wrapping via the log
+      // pattern: each wrap site logs 'Error getting account'.
+      const errorLogSpy = jest.spyOn(logger, 'error');
+
+      const caught = await keyring
+        .getAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id)
+        .catch((error: unknown) => error);
+
+      expect(caught).toBeInstanceOf(SnapError);
+      // The prefixed logger calls the underlying logger as
+      // (prefix, errorContext, message), so the human-readable message
+      // sits at index 2.
+      const errorLogCalls = errorLogSpy.mock.calls.filter(
+        (call) => call[2] === 'Error getting account',
+      );
+      expect(errorLogCalls).toHaveLength(1);
+    });
+  });
+
+  describe('getAccounts', () => {
+    it('returns all accounts from the state', async () => {
+      const accounts = await keyring.getAccounts();
+      expect(accounts).toHaveLength(MOCK_SOLANA_KEYRING_ACCOUNTS.length);
+      expect(accounts).toContainEqual(
+        asStrictKeyringAccount(MOCK_SOLANA_KEYRING_ACCOUNT_0),
+      );
+      expect(accounts).toContainEqual(
+        asStrictKeyringAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1),
+      );
+    });
+
+    it('returns an empty array if no accounts are found', async () => {
+      jest.spyOn(mockState, 'getKey').mockResolvedValueOnce({});
+
+      const accounts = await keyring.getAccounts();
+      expect(accounts).toStrictEqual([]);
+    });
+
+    it('throws a SnapError if state fails to be retrieved', async () => {
+      jest
+        .spyOn(mockState, 'getKey')
+        .mockRejectedValueOnce(new Error('State error'));
+
+      const caught = await keyring
+        .getAccounts()
+        .catch((error: unknown) => error);
+
+      expect(caught).toBeInstanceOf(SnapError);
+      expect((caught as SnapError).message).toBe('Error listing accounts');
     });
   });
 
@@ -611,10 +673,11 @@ describe('SolanaKeyring', () => {
 
       await keyring.deleteAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id);
 
-      const accountAfterDeletion = await keyring.getAccount(
-        MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
+      await expect(
+        keyring.getAccount(MOCK_SOLANA_KEYRING_ACCOUNT_1.id),
+      ).rejects.toThrow(
+        `Account "${MOCK_SOLANA_KEYRING_ACCOUNT_1.id}" not found`,
       );
-      expect(accountAfterDeletion).toBeUndefined();
     });
 
     it('throws an error if account provided is not a uuid', async () => {
@@ -1024,6 +1087,94 @@ describe('SolanaKeyring', () => {
       expect(
         mockKeyringAccountMonitor.setMonitoredAccounts,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('exportAccount', () => {
+    /**
+     * Solana wallets accept the 64-byte secret key (seed[32] || publicKey[32]).
+     * The publicKey is the base58-decoded account address.
+     */
+    const expectedSecretKey = new Uint8Array(64);
+    expectedSecretKey.set(MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES, 0);
+    expectedSecretKey.set(bs58.decode(MOCK_SOLANA_KEYRING_ACCOUNT_0.address), 32);
+
+    it('exports the account private key as base58', async () => {
+      const result = await keyring.exportAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        { type: 'private-key', encoding: 'base58' },
+      );
+
+      expect(result).toStrictEqual({
+        type: 'private-key',
+        encoding: 'base58',
+        privateKey: bs58.encode(expectedSecretKey),
+      });
+    });
+
+    it('exports the account private key as hexadecimal', async () => {
+      const result = await keyring.exportAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        { type: 'private-key', encoding: 'hexadecimal' },
+      );
+
+      expect(result).toStrictEqual({
+        type: 'private-key',
+        encoding: 'hexadecimal',
+        privateKey: bytesToHex(expectedSecretKey),
+      });
+    });
+
+    it('encodes the 64-byte secret key (seed || publicKey)', async () => {
+      const result = await keyring.exportAccount(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        { type: 'private-key', encoding: 'base58' },
+      );
+
+      const decoded = bs58.decode(result.privateKey);
+      expect(decoded).toHaveLength(64);
+      expect(decoded.slice(0, 32)).toStrictEqual(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0_PRIVATE_KEY_BYTES,
+      );
+      expect(decoded.slice(32)).toStrictEqual(
+        bs58.decode(MOCK_SOLANA_KEYRING_ACCOUNT_0.address),
+      );
+    });
+
+    it('throws if the account id is not a uuid', async () => {
+      await expect(
+        keyring.exportAccount('not-a-uuid', {
+          type: 'private-key',
+          encoding: 'base58',
+        }),
+      ).rejects.toThrow(/Expected a string matching/u);
+    });
+
+    it('throws if the account is not found', async () => {
+      await expect(
+        keyring.exportAccount(NON_EXISTENT_ACCOUNT_ID, {
+          type: 'private-key',
+          encoding: 'base58',
+        }),
+      ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
+    });
+
+    it('rejects an unsupported encoding', async () => {
+      await expect(
+        keyring.exportAccount(MOCK_SOLANA_KEYRING_ACCOUNT_0.id, {
+          type: 'private-key',
+          encoding: 'utf-8' as unknown as 'base58',
+        }),
+      ).rejects.toThrow(/Expected/u);
+    });
+
+    it('rejects an unsupported export type', async () => {
+      await expect(
+        keyring.exportAccount(MOCK_SOLANA_KEYRING_ACCOUNT_0.id, {
+          type: 'mnemonic' as unknown as 'private-key',
+          encoding: 'base58',
+        }),
+      ).rejects.toThrow(/Expected/u);
     });
   });
 });

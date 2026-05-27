@@ -25,7 +25,7 @@ import {
   type ResolvedAccountAddress,
   type Transaction,
 } from '@metamask/keyring-api';
-import type { ExportAccountOptions, ExportedAccount, Keyring } from '@metamask/keyring-api/v2'
+import type { ExportAccountOptions, ExportedAccount, Keyring as RawKeyring } from '@metamask/keyring-api/v2'
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
@@ -92,6 +92,16 @@ import {
  */
 const decoder = getAddressDecoder();
 
+/**
+ * A type that represents the Keyring API but without properties that are irrelevant for the Solana snap.
+ * 
+ * 1. type: This is relevant to the snap keyring initialized in the clients.
+ * 2. capabilities: This is defined in the snap manifest.
+ * 3. serialize: This is not relevant as keyring state is stored in the clients.
+ * 4. deserialize: This is not relevant as keyring state is stored in the clients.
+ */
+type Keyring = Omit<RawKeyring, 'type' | 'capabilities' | 'serialize' | 'deserialize' >;
+
 export class SolanaKeyring implements Keyring {
   readonly #state: IStateManager<UnencryptedStateValue>;
 
@@ -138,7 +148,12 @@ export class SolanaKeyring implements Keyring {
   }
 
   async listAccounts(): Promise<KeyringAccount[]> {
-    return (await this.#listAccounts()).map(asStrictKeyringAccount);
+    try {
+      return (await this.#listAccounts()).map(asStrictKeyringAccount);
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error listing accounts');
+      throw new SnapError(error);
+    }
   }
 
   async #listAccounts(): Promise<SolanaKeyringAccount[]> {
@@ -176,7 +191,12 @@ export class SolanaKeyring implements Keyring {
    * @returns The accounts.
    */
   async getAccounts(): Promise<KeyringAccount[]> {
-    return (await this.#listAccounts()).map(asStrictKeyringAccount);
+    try {
+      return (await this.#listAccounts()).map(asStrictKeyringAccount);
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error getting accounts');
+      throw new SnapError(error);
+    }
   }
 
   async getAccountOrThrow(accountId: string): Promise<SolanaKeyringAccount> {
@@ -191,16 +211,9 @@ export class SolanaKeyring implements Keyring {
   async #getAccount(
     accountId: string,
   ): Promise<SolanaKeyringAccount | undefined> {
-    try {
-      const account = await this.#state.getKey<SolanaKeyringAccount>(
-        `keyringAccounts.${accountId}`,
-      );
-
-      return account;
-    } catch (error: any) {
-      this.#logger.error({ error }, 'Error getting account');
-      throw new SnapError(error);
-    }
+    return this.#state.getKey<SolanaKeyringAccount>(
+      `keyringAccounts.${accountId}`,
+    );
   }
 
   #getLowestUnusedKeyringAccountIndex(
@@ -519,7 +532,7 @@ export class SolanaKeyring implements Keyring {
       await this.#deleteAccountFromState(accountId);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
-      throw error;
+      throw new SnapError(error);
     }
   }
 
@@ -549,7 +562,7 @@ export class SolanaKeyring implements Keyring {
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account assets');
-      throw error;
+      throw new SnapError(error);
     }
   }
 
@@ -592,7 +605,7 @@ export class SolanaKeyring implements Keyring {
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account balances');
-      throw error;
+      throw new SnapError(error);
     }
   }
 
@@ -777,7 +790,7 @@ export class SolanaKeyring implements Keyring {
       };
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account transactions');
-      throw error;
+      throw new SnapError(error);
     }
   }
 
@@ -878,7 +891,7 @@ export class SolanaKeyring implements Keyring {
       ];
     } catch (error: any) {
       this.#logger.error({ error }, 'Error discovering accounts');
-      throw error;
+      throw new SnapError(error);
     }
   }
 
@@ -909,33 +922,38 @@ export class SolanaKeyring implements Keyring {
    * @returns The exported account.
    */
   async exportAccount(accountId: string, options: ExportAccountOptions): Promise<ExportedAccount> {
-    validateRequest({ accountId, options }, ExportAccountRequestStruct);
+    try {
+      validateRequest({ accountId, options }, ExportAccountRequestStruct);
 
-    const account = await this.getAccountOrThrow(accountId);
+      const account = await this.getAccountOrThrow(accountId);
 
-    const { privateKeyBytes, publicKeyBytes } = await deriveSolanaKeypair({
-      entropySource: account.entropySource,
-      derivationPath: account.derivationPath,
-    });
+      const { privateKeyBytes, publicKeyBytes } = await deriveSolanaKeypair({
+        entropySource: account.entropySource,
+        derivationPath: account.derivationPath,
+      });
 
-    // Solana convention: 64-byte secret key = seed(32) || publicKey(32).
-    // publicKeyBytes is 33 bytes due to the SLIP-10 0x00 prefix; strip it.
-    const secretKey = new Uint8Array(64);
+      // Solana convention: 64-byte secret key = seed(32) || publicKey(32).
+      // publicKeyBytes is 33 bytes due to the SLIP-10 0x00 prefix; strip it.
+      const secretKey = new Uint8Array(64);
 
-    secretKey.set(privateKeyBytes, 0);
-    secretKey.set(publicKeyBytes.slice(1), 32);
+      secretKey.set(privateKeyBytes, 0);
+      secretKey.set(publicKeyBytes.slice(1), 32);
 
-    const privateKey =
-      options.encoding === 'base58'
-        ? bs58.encode(secretKey)
-        : bytesToHex(secretKey); // returns 0x-prefixed hex
+      const privateKey =
+        options.encoding === 'base58'
+          ? bs58.encode(secretKey)
+          : bytesToHex(secretKey); // returns 0x-prefixed hex
 
-    assertStruct(privateKey, union([Base58Struct, HexStruct]), 'Invalid private key encoding');
+      assertStruct(privateKey, union([Base58Struct, HexStruct]), 'Invalid private key encoding');
 
-    return {
-      type: 'private-key',
-      encoding: options.encoding,
-      privateKey,
-    };
+      return {
+        type: 'private-key',
+        encoding: options.encoding,
+        privateKey,
+      };
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error exporting account');
+      throw new SnapError(error);
+    }
   }
 }

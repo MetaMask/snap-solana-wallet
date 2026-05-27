@@ -1,5 +1,6 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
-import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
+import type { Keyring } from '@metamask/keyring-api/v2';
+import { handleKeyringRequest } from '@metamask/keyring-snap-sdk/v2';
 import type {
   Json,
   OnActiveHandler,
@@ -123,7 +124,8 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
   }
 
   const result = await withCatchAndThrowSnapError(async () =>
-    handleKeyringRequest(keyring, request),
+    // Casting as the solana snap keyring excludes certain v2 properties
+    handleKeyringRequest(keyring as unknown as Keyring, request),
   );
 
   return result ?? null;
