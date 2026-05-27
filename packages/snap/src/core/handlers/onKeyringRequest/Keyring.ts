@@ -188,15 +188,15 @@ export class SolanaKeyring implements Keyring {
 
   /**
    * Gets all accounts from the state.
+   *
+   * Delegates to {@link listAccounts} so that any future changes to the
+   * listing behavior (filtering, sorting, error handling) stay consistent
+   * across both keyring entry points.
+   *
    * @returns The accounts.
    */
   async getAccounts(): Promise<KeyringAccount[]> {
-    try {
-      return (await this.#listAccounts()).map(asStrictKeyringAccount);
-    } catch (error: any) {
-      this.#logger.error({ error }, 'Error getting accounts');
-      throw new SnapError(error);
-    }
+    return this.listAccounts();
   }
 
   async getAccountOrThrow(accountId: string): Promise<SolanaKeyringAccount> {
