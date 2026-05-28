@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Validate that account IDs passed to `keyring_setSelectedAccounts` belong to the snap, rejecting unknown IDs with `InvalidParamsError` ([#604](https://github.com/MetaMask/snap-solana-wallet/pull/604))
-- `getAccount` now throws on an invalid id instead of return `undefined` ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
+- **BREAKING:** `getAccount` now throws on an invalid id instead of returning `undefined` ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
 - Wrap all public keyring method errors in a single `SnapError` ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
 
 ## [2.8.0]

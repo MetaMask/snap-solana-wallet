@@ -25,7 +25,7 @@ import {
   type ResolvedAccountAddress,
   type Transaction,
 } from '@metamask/keyring-api';
-import type { ExportAccountOptions, ExportedAccount, Keyring as RawKeyring } from '@metamask/keyring-api/v2'
+import type { ExportAccountOptions, ExportedAccount, KeyringRpc } from '@metamask/keyring-api/v2';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
@@ -92,17 +92,7 @@ import {
  */
 const decoder = getAddressDecoder();
 
-/**
- * A type that represents the Keyring API but without properties that are irrelevant for the Solana snap.
- * 
- * 1. type: This is relevant to the snap keyring initialized in the clients.
- * 2. capabilities: This is defined in the snap manifest.
- * 3. serialize: This is not relevant as keyring state is stored in the clients.
- * 4. deserialize: This is not relevant as keyring state is stored in the clients.
- */
-type Keyring = Omit<RawKeyring, 'type' | 'capabilities' | 'serialize' | 'deserialize' >;
-
-export class SolanaKeyring implements Keyring {
+export class SolanaKeyring implements KeyringRpc {
   readonly #state: IStateManager<UnencryptedStateValue>;
 
   readonly #logger: ILogger;
@@ -929,7 +919,7 @@ export class SolanaKeyring implements Keyring {
    * @param options - The options for the export.
    * @returns The exported account.
    */
-  async exportAccount(accountId: string, options: ExportAccountOptions): Promise<ExportedAccount> {
+  async exportAccount(accountId: string, options?: ExportAccountOptions): Promise<ExportedAccount> {
     try {
       validateRequest({ accountId, options }, ExportAccountRequestStruct);
 
@@ -947,8 +937,9 @@ export class SolanaKeyring implements Keyring {
       secretKey.set(privateKeyBytes, 0);
       secretKey.set(publicKeyBytes.slice(1), 32);
 
+      const encoding = options?.encoding ?? 'base58';
       const privateKey =
-        options.encoding === 'base58'
+        encoding === 'base58'
           ? bs58.encode(secretKey)
           : bytesToHex(secretKey); // returns 0x-prefixed hex
 
@@ -956,7 +947,7 @@ export class SolanaKeyring implements Keyring {
 
       return {
         type: 'private-key',
-        encoding: options.encoding,
+        encoding,
         privateKey,
       };
     } catch (error: any) {

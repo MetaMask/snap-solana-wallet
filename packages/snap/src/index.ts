@@ -124,7 +124,9 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
   }
 
   const result = await withCatchAndThrowSnapError(async () =>
-    // Casting as the solana snap keyring excludes certain v2 properties
+    // TODO: `handleKeyringRequest` should accept `KeyringRpc` rather than the
+    // full v2 `Keyring` (which carries `type`/`capabilities`/`serialize`/
+    // `deserialize`). Drop this cast once the SDK is updated upstream.
     handleKeyringRequest(keyring as unknown as Keyring, request),
   );
 

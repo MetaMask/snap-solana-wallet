@@ -1,4 +1,5 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
+import { KeyringRpcMethod as KeyringRpcMethodV2 } from '@metamask/keyring-api/v2';
 
 import { ClientRequestMethod } from './core/handlers/onClientRequest';
 import {
@@ -18,6 +19,7 @@ const dappPermissions = isDev
   ? new Set([
       // Keyring methods
       KeyringRpcMethod.ListAccounts,
+      KeyringRpcMethodV2.GetAccounts,
       KeyringRpcMethod.GetAccount,
       KeyringRpcMethod.CreateAccount,
       KeyringRpcMethod.FilterAccountChains,
@@ -47,6 +49,7 @@ const dappPermissions = isDev
 const metamaskPermissions = new Set([
   // Keyring methods
   KeyringRpcMethod.ListAccounts,
+  KeyringRpcMethodV2.GetAccounts,
   KeyringRpcMethod.GetAccount,
   KeyringRpcMethod.CreateAccount,
   KeyringRpcMethod.CreateAccounts,
@@ -58,6 +61,7 @@ const metamaskPermissions = new Set([
   KeyringRpcMethod.ListAccountAssets,
   KeyringRpcMethod.ResolveAccountAddress,
   KeyringRpcMethod.SetSelectedAccounts,
+  KeyringRpcMethod.ExportAccount,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
   RpcRequestMethod.GetFeeForTransaction,
