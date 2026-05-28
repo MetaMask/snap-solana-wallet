@@ -177,7 +177,7 @@ export const ListAccountTransactionsStruct = object({
 });
 export const ExportAccountRequestStruct = object({
   accountId: UuidStruct,
-  options: ExportAccountOptionsStruct,
+  options: optional(ExportAccountOptionsStruct),
 });
 export const GetAccounBalancesResponseStruct = record(
   CaipAssetTypeStruct,
