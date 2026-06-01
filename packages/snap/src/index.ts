@@ -1,5 +1,4 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
-import type { Keyring } from '@metamask/keyring-api/v2';
 import { handleKeyringRequest } from '@metamask/keyring-snap-sdk/v2';
 import type {
   Json,
@@ -124,10 +123,7 @@ export const onKeyringRequest: OnKeyringRequestHandler = async ({
   }
 
   const result = await withCatchAndThrowSnapError(async () =>
-    // TODO: `handleKeyringRequest` should accept `KeyringRpc` rather than the
-    // full v2 `Keyring` (which carries `type`/`capabilities`/`serialize`/
-    // `deserialize`). Drop this cast once the SDK is updated upstream.
-    handleKeyringRequest(keyring as unknown as Keyring, request),
+    handleKeyringRequest(keyring, request),
   );
 
   return result ?? null;
