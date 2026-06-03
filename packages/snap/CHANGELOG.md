@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Validate that account IDs passed to `keyring_setSelectedAccounts` belong to the snap, rejecting unknown IDs with `InvalidParamsError` ([#604](https://github.com/MetaMask/snap-solana-wallet/pull/604))
 
+### Fixed
+
+- **BREAKING:** `signTransaction` and `signAllTransactions` now preserve the original `messageBytes` of a compiled `VersionedTransaction` verbatim and only append the account's signature (#[0000](https://github.com/MetaMask/snap-solana-wallet/pull/0000))
+  - Previously, an unsigned compiled transaction was silently decompiled and recompiled, which canonicalised the account order and remapped instruction account indices — breaking multi-party signing flows.
+
 ## [2.8.0]
 
 ### Added

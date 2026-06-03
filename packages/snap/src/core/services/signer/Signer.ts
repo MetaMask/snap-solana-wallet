@@ -95,29 +95,14 @@ export class Signer {
       );
     }
 
-    const isUnsigned = Object.values(
-      transactionMessageOrTransaction.signatures,
-    ).every((signature) => !signature);
-
-    // It's an unsigned transaction, grab the message from the transaction and apply the same logic as above.
-    if (isUnsigned) {
-      const { messageBytes } = transactionMessageOrTransaction;
-
-      const transactionMessageFromUnsignedTransaction =
-        await fromBytesToCompilableTransactionMessage(
-          messageBytes,
-          rpc,
-          config,
-        );
-
-      return this.#prepareAndPartiallySignTransactionMessage(
-        transactionMessageFromUnsignedTransaction,
-        account,
-        network,
-      );
-    }
-
-    // It's a partially signed transaction, so we cannot alter its content, and we add the account's signature.
+    // It's a compiled transaction (either unsigned or partially signed).
+    // Per the Wallet Standard `signTransaction` contract, we MUST NOT mutate
+    // the message bytes — only append the account's signature. Decompiling and
+    // recompiling here would canonicalise the account ordering and remap
+    // instruction account indices, breaking multi-party signing flows where
+    // a counterparty has already signed the original bytes
+    //
+    // See: https://consensyssoftware.atlassian.net/browse/WPN-1035
     return this.#partiallySignTransaction(
       transactionMessageOrTransaction,
       account,
