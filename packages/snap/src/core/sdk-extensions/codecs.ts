@@ -125,6 +125,35 @@ export const fromBase64StringToTransaction = async (
   pipe(base64String, getBase64Encoder().encode, getTransactionDecoder().decode);
 
 /**
+ * Decodes a base64 encoded compiled transaction message to a Transaction shape
+ * without changing the original message bytes.
+ *
+ * @param base64String - The base64 encoded compiled transaction message.
+ * @returns A transaction with null signature slots for all required signers.
+ */
+export const fromBase64StringCompiledMessageToTransaction = async (
+  base64String: Infer<typeof Base64Struct>,
+): Promise<Transaction> => {
+  const messageBytes = getBase64Encoder().encode(
+    base64String,
+  ) as TransactionMessageBytes;
+
+  const compiledTransactionMessage =
+    getCompiledTransactionMessageDecoder().decode(messageBytes);
+
+  const signerAccounts = compiledTransactionMessage.staticAccounts
+    .slice(0, compiledTransactionMessage.header.numSignerAccounts)
+    .map((address) => [address, null]);
+
+  const signatures = Object.fromEntries(signerAccounts);
+
+  return {
+    messageBytes,
+    signatures,
+  };
+};
+
+/**
  * Decodes a base64 string to a transaction or a compilable transaction message.
  *
  * @param base64String - The base64 string to decode.
@@ -140,4 +169,18 @@ export const fromUnknowBase64StringToTransactionOrTransactionMessage = async (
   PromiseAny<Transaction | CompilableTransactionMessage>([
     fromBase64StringToTransaction(base64String),
     fromBase64StringToCompilableTransactionMessage(base64String, rpc, config),
+  ]);
+
+/**
+ * Decodes a base64 string to a transaction.
+ *
+ * @param base64String - The base64 string to decode that represents either a transaction or a transaction message.
+ * @returns The decoded transaction.
+ */
+export const fromUnknowBase64StringToTransaction = async (
+  base64String: Infer<typeof Base64Struct>,
+): Promise<Transaction> =>
+  PromiseAny<Transaction>([
+    fromBase64StringToTransaction(base64String),
+    fromBase64StringCompiledMessageToTransaction(base64String),
   ]);

@@ -1,6 +1,6 @@
 import { SolMethod } from '@metamask/keyring-api';
 
-import { Network } from '../../constants/solana';
+import { METAMASK_ORIGIN, Network } from '../../constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -243,6 +243,40 @@ describe('WalletService', () => {
           });
         });
 
+        it('requests byte preservation for dapp origins', async () => {
+          await service.signTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            origin,
+          );
+
+          expect(mockSigner.partiallySignBase64String).toHaveBeenCalledWith(
+            transactionMessageBase64Encoded,
+            fromAccount,
+            scope,
+            undefined,
+            true,
+          );
+        });
+
+        it('does not request byte preservation for MetaMask origin', async () => {
+          await service.signTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            METAMASK_ORIGIN,
+          );
+
+          expect(mockSigner.partiallySignBase64String).toHaveBeenCalledWith(
+            transactionMessageBase64Encoded,
+            fromAccount,
+            scope,
+            undefined,
+            false,
+          );
+        });
+
         it('starts monitoring the transaction for commitment "confirmed"', async () => {
           await service.signTransaction(
             fromAccount,
@@ -273,6 +307,40 @@ describe('WalletService', () => {
           expect(result).toStrictEqual({
             signature,
           });
+        });
+
+        it('requests byte preservation for dapp origins', async () => {
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            origin,
+          );
+
+          expect(mockSigner.partiallySignBase64String).toHaveBeenCalledWith(
+            transactionMessageBase64Encoded,
+            fromAccount,
+            scope,
+            undefined,
+            true,
+          );
+        });
+
+        it('does not request byte preservation for MetaMask origin', async () => {
+          await service.signAndSendTransaction(
+            fromAccount,
+            transactionMessageBase64Encoded,
+            scope,
+            METAMASK_ORIGIN,
+          );
+
+          expect(mockSigner.partiallySignBase64String).toHaveBeenCalledWith(
+            transactionMessageBase64Encoded,
+            fromAccount,
+            scope,
+            undefined,
+            false,
+          );
         });
 
         it('starts monitoring the transaction for commitment "confirmed"', async () => {
