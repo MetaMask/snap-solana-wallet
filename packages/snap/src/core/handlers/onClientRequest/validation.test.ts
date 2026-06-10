@@ -306,7 +306,9 @@ describe('validation', () => {
 
     it('accepts a well-formed proof-of-ownership message', () => {
       const message = `metamask:proof-of-ownership:${nonce}:${validSolanaAddress}`;
-      expect(() => assert(message, ProofOfOwnershipMessageStruct)).not.toThrow();
+      expect(() =>
+        assert(message, ProofOfOwnershipMessageStruct),
+      ).not.toThrow();
       expect(is(message, ProofOfOwnershipMessageStruct)).toBe(true);
       expect(parseProofOfOwnershipMessage(message)).toStrictEqual({
         nonce,
@@ -318,9 +320,23 @@ describe('validation', () => {
       `metamask:proof-of-ownership:${nonce}:${validSolanaAddress}`,
       // Nonce with mixed alphanumerics + dashes/underscores (we don't constrain format).
       `metamask:proof-of-ownership:abc-DEF_123:${validSolanaAddress}`,
+      // Nonce containing colons (auth API treats nonces as opaque, addresses
+      // don't contain ':' so the parser splits on the LAST one).
+      `metamask:proof-of-ownership:ns:abc:123:${validSolanaAddress}`,
     ])('validates valid messages: "%s"', (message) => {
-      expect(() => assert(message, ProofOfOwnershipMessageStruct)).not.toThrow();
+      expect(() =>
+        assert(message, ProofOfOwnershipMessageStruct),
+      ).not.toThrow();
       expect(is(message, ProofOfOwnershipMessageStruct)).toBe(true);
+    });
+
+    it('preserves embedded colons in the nonce when parsing', () => {
+      const colonNonce = 'ns:abc:123';
+      const message = `metamask:proof-of-ownership:${colonNonce}:${validSolanaAddress}`;
+      expect(parseProofOfOwnershipMessage(message)).toStrictEqual({
+        nonce: colonNonce,
+        address: validSolanaAddress,
+      });
     });
 
     it.each([
@@ -329,15 +345,12 @@ describe('validation', () => {
       `Metamask:proof-of-ownership:${nonce}:${validSolanaAddress}`,
       `${nonce}:${validSolanaAddress}`,
       '',
-    ])(
-      'rejects messages without the expected prefix: "%s"',
-      (message) => {
-        expect(() => assert(message, ProofOfOwnershipMessageStruct)).toThrow(
-          'Message must start with "metamask:proof-of-ownership:"',
-        );
-        expect(is(message, ProofOfOwnershipMessageStruct)).toBe(false);
-      },
-    );
+    ])('rejects messages without the expected prefix: "%s"', (message) => {
+      expect(() => assert(message, ProofOfOwnershipMessageStruct)).toThrow(
+        'Message must start with "metamask:proof-of-ownership:"',
+      );
+      expect(is(message, ProofOfOwnershipMessageStruct)).toBe(false);
+    });
 
     it('rejects messages missing the address separator', () => {
       const message = `metamask:proof-of-ownership:${nonce}`;

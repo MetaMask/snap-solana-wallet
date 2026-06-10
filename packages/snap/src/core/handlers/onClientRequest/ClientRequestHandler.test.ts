@@ -653,8 +653,7 @@ describe('ClientRequestHandler', () => {
     const buildProofMessage = (
       proofNonce: string = nonce,
       proofAddress: string = address,
-    ): string =>
-      `metamask:proof-of-ownership:${proofNonce}:${proofAddress}`;
+    ): string => `metamask:proof-of-ownership:${proofNonce}:${proofAddress}`;
 
     const createRequest = (message?: string): JsonRpcRequest => ({
       jsonrpc: '2.0',
@@ -690,9 +689,7 @@ describe('ClientRequestHandler', () => {
     });
 
     it('throws if the message does not start with the proof prefix', async () => {
-      const invalidRequest = createRequest(
-        `rewards,${address},1736660000`,
-      );
+      const invalidRequest = createRequest(`rewards,${address},1736660000`);
 
       await expect(handler.handle(invalidRequest)).rejects.toThrow(
         'Message must start with',
@@ -717,9 +714,7 @@ describe('ClientRequestHandler', () => {
         buildProofMessage(nonce, otherAddress),
       );
 
-      await expect(
-        handler.handle(requestWithDifferentAddress),
-      ).rejects.toThrow(
+      await expect(handler.handle(requestWithDifferentAddress)).rejects.toThrow(
         `Address in proof-of-ownership message (${otherAddress}) does not match signing account address (${address})`,
       );
     });
