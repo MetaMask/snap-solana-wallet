@@ -643,6 +643,101 @@ describe('ClientRequestHandler', () => {
     });
   });
 
+  describe('signProofOfOwnership', () => {
+    const utf8ToBase64 = (utf8: string): string =>
+      pipe(utf8, getUtf8Codec().encode, getBase64Codec().decode);
+
+    const { id: accountId, address } = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+    const nonce = 'a1b2c3d4e5f6789012345678';
+
+    const buildProofMessage = (
+      proofNonce: string = nonce,
+      proofAddress: string = address,
+    ): string =>
+      `metamask:proof-of-ownership:${proofNonce}:${proofAddress}`;
+
+    const createRequest = (message?: string): JsonRpcRequest => ({
+      jsonrpc: '2.0',
+      id: 1,
+      method: ClientRequestMethod.SignProofOfOwnership,
+      params: {
+        accountId,
+        message: message ?? buildProofMessage(),
+      },
+    });
+
+    it('signs the proof message and returns the signature', async () => {
+      const signature =
+        '61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu';
+      const expectedBase64Message = utf8ToBase64(buildProofMessage());
+
+      jest
+        .spyOn(mockAccountsService, 'findById')
+        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+      jest.spyOn(mockWalletService, 'signMessage').mockResolvedValue({
+        signature,
+        signedMessage: expectedBase64Message,
+        signatureType: 'ed25519' as const,
+      });
+
+      const result = await handler.handle(createRequest());
+
+      expect(mockWalletService.signMessage).toHaveBeenCalledWith(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+        expectedBase64Message,
+      );
+      expect(result).toStrictEqual({ signature });
+    });
+
+    it('throws if the message does not start with the proof prefix', async () => {
+      const invalidRequest = createRequest(
+        `rewards,${address},1736660000`,
+      );
+
+      await expect(handler.handle(invalidRequest)).rejects.toThrow(
+        'Message must start with',
+      );
+    });
+
+    it('throws if the account is not found', async () => {
+      mockAccountsService.findById.mockResolvedValue(null);
+
+      await expect(handler.handle(createRequest())).rejects.toThrow(
+        'Account not found',
+      );
+    });
+
+    it('throws if the address in the message does not match the signing account', async () => {
+      mockAccountsService.findById.mockResolvedValue(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0,
+      );
+
+      const otherAddress = MOCK_SOLANA_KEYRING_ACCOUNT_1.address;
+      const requestWithDifferentAddress = createRequest(
+        buildProofMessage(nonce, otherAddress),
+      );
+
+      await expect(
+        handler.handle(requestWithDifferentAddress),
+      ).rejects.toThrow(
+        `Address in proof-of-ownership message (${otherAddress}) does not match signing account address (${address})`,
+      );
+    });
+
+    it('propagates errors from the wallet service', async () => {
+      jest
+        .spyOn(mockAccountsService, 'findById')
+        .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
+      jest
+        .spyOn(mockWalletService, 'signMessage')
+        .mockRejectedValue(new Error('signer unavailable'));
+
+      await expect(handler.handle(createRequest())).rejects.toThrow(
+        'signer unavailable',
+      );
+    });
+  });
+
   describe('signCardMessage', () => {
     // Helper function to convert a utf8 string to base64
     const utf8ToBase64 = (utf8: string): string =>

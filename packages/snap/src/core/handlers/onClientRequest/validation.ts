@@ -428,3 +428,89 @@ export const ComputeFeeResponseStruct = array(
 );
 
 export type ComputeFeeResponse = Infer<typeof ComputeFeeResponseStruct>;
+
+export const PROOF_OF_OWNERSHIP_MESSAGE_PREFIX = 'metamask:proof-of-ownership:';
+
+/**
+ * Utility function to parse a proof-of-ownership message, of format `'metamask:proof-of-ownership:{nonce}:{address}'`.
+ * Returns the parsed components or throws an error if invalid.
+ *
+ * @param message - The plaintext proof-of-ownership message.
+ * @returns Object containing the parsed nonce and address.
+ * @throws Error if the message format is invalid
+ */
+export function parseProofOfOwnershipMessage(message: string): {
+  nonce: string;
+  address: string;
+} {
+  if (!message.startsWith(PROOF_OF_OWNERSHIP_MESSAGE_PREFIX)) {
+    throw new Error(
+      `Message must start with "${PROOF_OF_OWNERSHIP_MESSAGE_PREFIX}"`,
+    );
+  }
+
+  const remainder = message.slice(PROOF_OF_OWNERSHIP_MESSAGE_PREFIX.length);
+  const separatorIdx = remainder.indexOf(':');
+  if (separatorIdx === -1) {
+    throw new Error(
+      'Message must follow the format "metamask:proof-of-ownership:{nonce}:{address}"',
+    );
+  }
+
+  const nonce = remainder.slice(0, separatorIdx);
+  const address = remainder.slice(separatorIdx + 1);
+
+  if (nonce === '') {
+    throw new Error(
+      'Proof-of-ownership message must contain a non-empty nonce',
+    );
+  }
+
+  if (!is(address, SolanaAddressStruct)) {
+    throw new Error('Invalid Solana address in proof-of-ownership message');
+  }
+
+  return { nonce, address };
+}
+
+/**
+ * Validates that a plaintext message follows the proof-of-ownership format:
+ * 'metamask:proof-of-ownership:{nonce}:{address}'
+ */
+export const ProofOfOwnershipMessageStruct = refine(
+  string(),
+  'ProofOfOwnershipMessage',
+  (value: string) => {
+    try {
+      parseProofOfOwnershipMessage(value);
+      return true;
+    } catch (error) {
+      return error instanceof Error
+        ? error.message
+        : 'Invalid proof-of-ownership message';
+    }
+  },
+);
+
+/**
+ * signProofOfOwnership request/response validation.
+ */
+export const SignProofOfOwnershipRequestParamsStruct = object({
+  accountId: UuidStruct,
+  message: ProofOfOwnershipMessageStruct,
+});
+
+export const SignProofOfOwnershipRequestStruct = object({
+  jsonrpc: JsonRpcVersionStruct,
+  id: JsonRpcIdStruct,
+  method: literal(ClientRequestMethod.SignProofOfOwnership),
+  params: SignProofOfOwnershipRequestParamsStruct,
+});
+
+export const SignProofOfOwnershipResponseStruct = object({
+  signature: Base58Struct,
+});
+
+export type SignProofOfOwnershipResponse = Infer<
+  typeof SignProofOfOwnershipResponseStruct
+>;
