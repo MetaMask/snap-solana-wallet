@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `signProofOfOwnership` client request method ([#611](https://github.com/MetaMask/snap-solana-wallet/pull/611))
+  - This method silently signs `metamask:proof-of-ownership:<nonce>:<address>` messages with the account's ed25519 key
+
 ### Changed
 
 - Validate that account IDs passed to `keyring_setSelectedAccounts` belong to the snap, rejecting unknown IDs with `InvalidParamsError` ([#604](https://github.com/MetaMask/snap-solana-wallet/pull/604))
