@@ -448,7 +448,8 @@ export class ClientRequestHandler {
   }
 
   /**
-   * Handles the signing of a proof-of-ownership message, of format `'metamask:proof-of-ownership:{nonce}:{address}'`.
+   * Handles the silent signing of a proof-of-ownership message, of format `'metamask:proof-of-ownership:{nonce}:{address}'`.
+   * Used by `@metamask/profile-metrics-controller` to prove wallet control of an address; no user prompt, gated to the `metamask` origin (see `metamaskPermissions`) and bound to the message prefix.
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the account is not found or if the address in the message doesn't match the signing account.
