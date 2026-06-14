@@ -42,6 +42,12 @@ Object.defineProperty(globalThis, 'crypto', {
   },
 });
 
+Object.defineProperty(globalThis, 'snap', {
+  value: {
+    request: jest.fn(),
+  },
+});
+
 jest.mock('@solana/kit', () => ({
   ...jest.requireActual('@solana/kit'),
   address: jest.requireActual('@solana/kit').address,
@@ -75,6 +81,7 @@ describe('SendService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(snap.request).mockResolvedValue(true);
 
     mockConnection = createMockConnection();
     mockCache = new InMemoryCache(mockLogger);
