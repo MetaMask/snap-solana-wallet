@@ -168,7 +168,7 @@ export class SendService {
           count: customCount,
         },
       },
-    } as never) as Promise<boolean>;
+    });
 
     const updateInterval = setInterval(() => {
       customCount += 1;
@@ -182,7 +182,7 @@ export class SendService {
               count: customCount,
             },
           },
-        } as never)
+        })
         .catch((error) => {
           this.#logger.warn(
             'Failed to update universal confirmation custom data',
