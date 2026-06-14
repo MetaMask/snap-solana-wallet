@@ -132,11 +132,16 @@ export class SendService {
 
     const base64EncodedTransaction = fromTransactionToBase64String(transaction);
 
-    const accountBalances = await this.#assetsService.findByAccount(account);
+    const accountBalances =
+      (await this.#assetsService.findByAccount(account)) ?? [];
     const assetEntry = accountBalances.find((a) => a.assetType === assetId);
 
-    const assetSymbol = assetEntry?.symbol ?? (isNativeSend ? 'SOL' : 'TOKEN');
-    const assetDecimals = assetEntry?.decimals ?? (isNativeSend ? 9 : 0);
+    const assetDecimals =
+      assetEntry && 'decimals' in assetEntry
+        ? assetEntry.decimals
+        : isNativeSend
+          ? 9
+          : 0;
 
     const rawValue = isNativeSend
       ? solToLamports(amount).toString()
@@ -144,25 +149,20 @@ export class SendService {
 
     const sendFeeCalculator = new SendFeeCalculator(builder);
     const feeRaw = sendFeeCalculator.getFee().toString();
-    const feeAssetType = Networks[scope].nativeToken.caip19Id;
 
     const approved = (await snap.request({
       method: 'snap_confirmTransaction',
       params: {
-        chainNamespace: 'solana',
-        chain: scope,
+        chainId: scope,
         accountId: fromAccountId,
-        from: account.address,
         to: toAddress,
-        value: rawValue,
-        assetType: assetId,
-        assetSymbol,
-        assetDecimals,
-        feeRaw,
-        feeAssetType,
-        origin: METAMASK_ORIGIN,
+        amount: rawValue,
+        ...(isNativeSend ? {} : { assetId }),
+        fee: {
+          amount: feeRaw,
+        },
       },
-    })) as boolean;
+    } as never)) as boolean;
 
     if (!approved) {
       this.#logger.log('User rejected transaction via universal confirmation');
