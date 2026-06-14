@@ -149,10 +149,13 @@ export class SendService {
 
     const sendFeeCalculator = new SendFeeCalculator(builder);
     const feeRaw = sendFeeCalculator.getFee().toString();
+    const confirmationId = globalThis.crypto.randomUUID();
+    let customCount = 0;
 
-    const approved = (await snap.request({
+    const confirmationPromise = snap.request({
       method: 'snap_confirmTransaction',
       params: {
+        id: confirmationId,
         chainId: scope,
         accountId: fromAccountId,
         to: toAddress,
@@ -161,8 +164,36 @@ export class SendService {
         fee: {
           amount: feeRaw,
         },
+        custom: {
+          count: customCount,
+        },
       },
-    } as never)) as boolean;
+    } as never) as Promise<boolean>;
+
+    const updateInterval = setInterval(() => {
+      customCount += 1;
+
+      void snap
+        .request({
+          method: 'snap_updateConfirmTransaction',
+          params: {
+            id: confirmationId,
+            custom: {
+              count: customCount,
+            },
+          },
+        } as never)
+        .catch((error) => {
+          this.#logger.warn(
+            'Failed to update universal confirmation custom data',
+            error,
+          );
+        });
+    }, 1000);
+
+    const approved = await confirmationPromise.finally(() => {
+      clearInterval(updateInterval);
+    });
 
     if (!approved) {
       this.#logger.log('User rejected transaction via universal confirmation');
