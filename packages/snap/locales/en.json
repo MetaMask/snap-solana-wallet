@@ -167,7 +167,7 @@
       "message": "Confirm"
     },
     "confirmation.signAndSendTransaction.title": {
-      "message": "CHEESE"
+      "message": "Transaction request"
     },
     "confirmation.signTransaction.title": {
       "message": "Signing request"
