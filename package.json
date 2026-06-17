@@ -70,7 +70,7 @@
     "@types/react": "18.2.4",
     "@types/react-dom": "18.2.4"
   },
-  "packageManager": "yarn@3.8.6",
+  "packageManager": "yarn@4.17.0",
   "engines": {
     "node": ">=20.17.0"
   },
