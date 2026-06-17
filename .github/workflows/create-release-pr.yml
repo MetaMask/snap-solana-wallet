@@ -41,11 +41,10 @@ jobs:
       contents: write
     needs: create-release-pr
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout and setup environment
+        uses: MetaMask/action-checkout-and-setup@v1
         with:
-          node-version-file: '.nvmrc'
+          is-high-risk-environment: false
       - name: Update Snap Version
         id: update-release-pr
         shell: bash
