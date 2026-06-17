@@ -665,16 +665,19 @@ describe('ClientRequestHandler', () => {
       },
     });
 
-    it('signs the proof message and returns the signature', async () => {
-      const signature =
-        '61Go4ycewVBbfpDSP6hSad567y3USmUHbfR19wC2PA8uHEFGtWPpjyZnLrfH2yKLYkG7ezwT7jdE95NsVKUe1JNu';
+    it('signs the proof message and returns the signature as 0x-prefixed hex', async () => {
+      // 64 bytes of 0x01 in base58 — the wallet-standard format
+      // `WalletService.signMessage` returns. The handler must transcode
+      // this to 0x-prefixed hex for the identity auth API.
+      const base58Signature =
+        '2AXDGYSE4f2sz7tvMMzyHvUfcoJmxudvdhBcmiUSo6ijwfYmfZYsKRxboQMPh3R4kUhXRVdtSXFXMheka4Rc4P2';
       const expectedBase64Message = utf8ToBase64(buildProofMessage());
 
       jest
         .spyOn(mockAccountsService, 'findById')
         .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0);
       jest.spyOn(mockWalletService, 'signMessage').mockResolvedValue({
-        signature,
+        signature: base58Signature,
         signedMessage: expectedBase64Message,
         signatureType: 'ed25519' as const,
       });
@@ -685,7 +688,7 @@ describe('ClientRequestHandler', () => {
         MOCK_SOLANA_KEYRING_ACCOUNT_0,
         expectedBase64Message,
       );
-      expect(result).toStrictEqual({ signature });
+      expect(result).toStrictEqual({ signature: `0x${'01'.repeat(64)}` });
     });
 
     it('throws if the message does not start with the proof prefix', async () => {

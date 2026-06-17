@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Return the `signProofOfOwnership` signature as 0x-prefixed hex instead of base58 ([#617](https://github.com/MetaMask/snap-solana-wallet/pull/617))
+
 ## [2.9.0]
 
 ### Added
