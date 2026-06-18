@@ -11,9 +11,9 @@ permissions:
 jobs:
   publish-preview:
     if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '@metamaskbot publish-preview') }}
-    uses: MetaMask/github-tools/.github/workflows/publish-preview.yml@mikesposito/snap-previews
+    uses: MetaMask/github-tools/.github/workflows/publish-preview.yml@v1
     with:
-      is-snap: true
+      rename-after-install-and-build: true
       environment: default-branch
       build-command: yarn workspace @metamask/solana-wallet-snap build
       docs-url: 'https://github.com/MetaMask/core/blob/main/docs/processes/preview-builds.md'
