@@ -4,7 +4,7 @@ on:
   workflow_call:
     secrets:
       NPM_TOKEN:
-        required: true
+        required: false
       SLACK_WEBHOOK_URL:
         required: true
       RPC_URL_MAINNET_LIST:
