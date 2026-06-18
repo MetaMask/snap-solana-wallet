@@ -16,6 +16,7 @@ import {
   CaipAssetTypeStruct,
   JsonRpcIdStruct,
   JsonRpcVersionStruct,
+  StrictHexStruct,
 } from '@metamask/utils';
 import { getBase64Codec, getUtf8Codec, pipe } from '@solana/kit';
 
@@ -508,7 +509,12 @@ export const SignProofOfOwnershipRequestStruct = object({
 });
 
 export const SignProofOfOwnershipResponseStruct = object({
-  signature: Base58Struct,
+  /**
+   * 0x-prefixed hex encoding of the 64-byte ed25519 signature.
+   * The identity auth API mandates this encoding for `solana` proofs of
+   * ownership.
+   */
+  signature: StrictHexStruct,
 });
 
 export type SignProofOfOwnershipResponse = Infer<

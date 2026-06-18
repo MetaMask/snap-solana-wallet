@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.1]
+
+### Fixed
+
+- Return the `signProofOfOwnership` signature as 0x-prefixed hex instead of base58 ([#617](https://github.com/MetaMask/snap-solana-wallet/pull/617))
+
 ## [2.9.0]
 
 ### Added
@@ -1088,7 +1094,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.1...HEAD
+[2.9.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.0...v2.9.1
 [2.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.4...v2.8.0
 [2.7.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.3...v2.7.4

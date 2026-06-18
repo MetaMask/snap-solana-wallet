@@ -6,9 +6,11 @@ import {
   MethodNotFoundError,
 } from '@metamask/snaps-sdk';
 import { assert, create } from '@metamask/superstruct';
+import { bytesToHex } from '@metamask/utils';
 import {
   address as asAddress,
   compileTransaction,
+  getBase58Codec,
   getBase64Codec,
   getUtf8Codec,
   pipe,
@@ -483,9 +485,13 @@ export class ClientRequestHandler {
       getBase64Codec().decode,
     );
 
-    const { signature } = await this.#walletService.signMessage(
-      account,
-      base64Message,
+    const { signature: base58Signature } =
+      await this.#walletService.signMessage(account, base64Message);
+
+    // Transcode the base58 signature to 0x-prefixed hex for the identity
+    // auth API; the dApp `signMessage` flow keeps its wallet-standard base58.
+    const signature = bytesToHex(
+      Uint8Array.from(getBase58Codec().encode(base58Signature)),
     );
 
     const result: SignProofOfOwnershipResponse = { signature };
