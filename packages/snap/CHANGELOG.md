@@ -9,12 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.9.1]
 
-### Uncategorized
-
-- Revert "2.9.1 (#620)" ([#620](https://github.com/MetaMask/snap-solana-wallet/pull/620))
-- 2.9.1 ([#620](https://github.com/MetaMask/snap-solana-wallet/pull/620))
-- chore: bump Yarn to 4.17.0 ([#614](https://github.com/MetaMask/snap-solana-wallet/pull/614))
-
 ### Fixed
 
 - Return the `signProofOfOwnership` signature as 0x-prefixed hex instead of base58 ([#617](https://github.com/MetaMask/snap-solana-wallet/pull/617))
