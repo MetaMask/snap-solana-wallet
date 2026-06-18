@@ -8,4 +8,5 @@ export enum ClientRequestMethod {
   SignRewardsMessage = 'signRewardsMessage',
   SignCardMessage = 'signCardMessage',
   ApproveCardAmount = 'approveCardAmount',
+  SignProofOfOwnership = 'signProofOfOwnership',
 }

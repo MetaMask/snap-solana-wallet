@@ -63,6 +63,7 @@ const metamaskPermissions = new Set([
   RpcRequestMethod.GetFeeForTransaction,
   // Client methods
   ClientRequestMethod.SignAndSendTransactionWithoutConfirmation,
+  ClientRequestMethod.SignProofOfOwnership,
 ]);
 
 const metamask = 'metamask';

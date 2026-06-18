@@ -6,7 +6,15 @@ import {
   MethodNotFoundError,
 } from '@metamask/snaps-sdk';
 import { assert, create } from '@metamask/superstruct';
-import { address as asAddress, compileTransaction } from '@solana/kit';
+import { bytesToHex } from '@metamask/utils';
+import {
+  address as asAddress,
+  compileTransaction,
+  getBase58Codec,
+  getBase64Codec,
+  getUtf8Codec,
+  pipe,
+} from '@solana/kit';
 
 import {
   METAMASK_ORIGIN,
@@ -32,12 +40,16 @@ import {
   OnAmountInputRequestStruct,
   OnConfirmSendRequestStruct,
   parseCardMessage,
+  parseProofOfOwnershipMessage,
   parseRewardsMessage,
   SignAndSendTransactionRequestStruct,
   type SignAndSendTransactionResponse,
   SignAndSendTransactionResponseStruct,
   SignAndSendTransactionWithoutConfirmationRequestStruct,
   SignCardMessageRequestStruct,
+  SignProofOfOwnershipRequestStruct,
+  type SignProofOfOwnershipResponse,
+  SignProofOfOwnershipResponseStruct,
   SignRewardsMessageRequestStruct,
   ValidationResponseStruct,
 } from './validation';
@@ -102,6 +114,8 @@ export class ClientRequestHandler {
         return this.#handleSignCardMessage(request);
       case ClientRequestMethod.ApproveCardAmount:
         return this.#handleApproveCardAmount(request);
+      case ClientRequestMethod.SignProofOfOwnership:
+        return this.#handleSignProofOfOwnership(request);
       default:
         throw new MethodNotFoundError() as Error;
     }
@@ -431,6 +445,58 @@ export class ClientRequestHandler {
     const result = { signature };
 
     assert(result, ApproveCardAmountResponseStruct);
+
+    return result;
+  }
+
+  /**
+   * Handles the silent signing of a proof-of-ownership message, of format `'metamask:proof-of-ownership:{nonce}:{address}'`.
+   * Used by `@metamask/profile-metrics-controller` to prove wallet control of an address; no user prompt, gated to the `metamask` origin (see `metamaskPermissions`) and bound to the message prefix.
+   * @param request - The JSON-RPC request containing the method and parameters.
+   * @returns The response to the JSON-RPC request.
+   * @throws {InvalidParamsError} If the account is not found or if the address in the message doesn't match the signing account.
+   */
+  async #handleSignProofOfOwnership(request: JsonRpcRequest): Promise<Json> {
+    assert(request, SignProofOfOwnershipRequestStruct);
+
+    const {
+      params: { accountId, message },
+    } = request;
+
+    const account = await this.#accountsService.findById(accountId);
+    if (!account) {
+      throw new InvalidParamsError(`Account not found: ${accountId}`) as Error;
+    }
+
+    // Parse the proof-of-ownership message to extract the address
+    const { address: messageAddress } = parseProofOfOwnershipMessage(message);
+
+    // Validate that the address in the message matches the signing account
+    if (messageAddress !== account.address) {
+      throw new InvalidParamsError(
+        `Address in proof-of-ownership message (${messageAddress}) does not match signing account address (${account.address})`,
+      ) as Error;
+    }
+
+    // `WalletService.signMessage` expects a base64-encoded message
+    const base64Message = pipe(
+      message,
+      getUtf8Codec().encode,
+      getBase64Codec().decode,
+    );
+
+    const { signature: base58Signature } =
+      await this.#walletService.signMessage(account, base64Message);
+
+    // Transcode the base58 signature to 0x-prefixed hex for the identity
+    // auth API; the dApp `signMessage` flow keeps its wallet-standard base58.
+    const signature = bytesToHex(
+      Uint8Array.from(getBase58Codec().encode(base58Signature)),
+    );
+
+    const result: SignProofOfOwnershipResponse = { signature };
+
+    assert(result, SignProofOfOwnershipResponseStruct);
 
     return result;
   }
