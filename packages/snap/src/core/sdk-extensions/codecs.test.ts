@@ -14,6 +14,7 @@ import {
   fromBytesToCompilableTransactionMessage,
   fromCompilableTransactionMessageToBase64String,
   fromTransactionToBase64String,
+  fromUnknowBase64StringToTransaction,
   fromUnknowBase64StringToTransactionOrTransactionMessage,
 } from './codecs';
 
@@ -84,6 +85,35 @@ describe('codecs', () => {
     describe(`fromBase64StringToTransaction | Scenario: ${name}`, () => {
       it('decodes a base64 string to a transaction', async () => {
         const result = await fromBase64StringToTransaction(
+          signedTransactionBase64Encoded,
+        );
+
+        const { lifetimeConstraint, ...rest } = signedTransaction;
+
+        expect(result).toStrictEqual(rest);
+      });
+    });
+
+    describe(`fromUnknowBase64StringToTransaction | Scenario: ${name}`, () => {
+      it('wraps bare compiled message bytes without changing the message bytes', async () => {
+        const transactionMessageBytes = pipe(
+          transactionMessage,
+          compileTransactionMessage,
+          getCompiledTransactionMessageEncoder().encode,
+        );
+
+        const result = await fromUnknowBase64StringToTransaction(
+          transactionMessageBase64Encoded,
+        );
+
+        expect(result.messageBytes).toStrictEqual(transactionMessageBytes);
+        expect(Object.values(result.signatures)).toStrictEqual(
+          Object.keys(result.signatures).map(() => null),
+        );
+      });
+
+      it('decodes a full transaction without changing the message bytes', async () => {
+        const result = await fromUnknowBase64StringToTransaction(
           signedTransactionBase64Encoded,
         );
 

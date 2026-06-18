@@ -18,7 +18,11 @@ import {
 } from '@solana/kit';
 
 import type { SolanaKeyringAccount } from '../../../entities';
-import type { Caip10Address, Network } from '../../constants/solana';
+import {
+  METAMASK_ORIGIN,
+  type Caip10Address,
+  type Network,
+} from '../../constants/solana';
 import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';
 import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import { addressToCaip10 } from '../../utils/addressToCaip10';
@@ -179,12 +183,17 @@ export class WalletService {
           }
         : undefined;
 
+    // For transactions coming from DApps, preserve the original message bytes.
+    // Mutating them would change the signing payload and break multisig flows.
+    const shouldPreserveMessageBytes = origin !== METAMASK_ORIGIN;
+
     const partiallySignedTransaction =
       await this.#signer.partiallySignBase64String(
         transaction,
         account,
         scope,
         config,
+        shouldPreserveMessageBytes,
       );
 
     const signedTransactionBase64 = fromTransactionToBase64String(
@@ -250,12 +259,17 @@ export class WalletService {
           }
         : undefined;
 
+    // For transactions coming from DApps, preserve the original message bytes.
+    // Mutating them would change the signing payload and break multisig flows.
+    const shouldPreserveMessageBytes = origin !== METAMASK_ORIGIN;
+
     const partiallySignedTransaction =
       await this.#signer.partiallySignBase64String(
         transactionMessageBase64Encoded,
         account,
         scope,
         signConfig,
+        shouldPreserveMessageBytes,
       );
 
     const signature = getSignatureFromTransaction(partiallySignedTransaction);

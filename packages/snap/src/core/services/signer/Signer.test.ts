@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 import {
+  getBase64Encoder,
   getSignatureFromTransaction,
   isTransactionMessageWithBlockhashLifetime,
 } from '@solana/kit';
@@ -120,6 +121,25 @@ describe('Signer', () => {
               transactionMessageAfterSigning,
             ),
           ).toBe(true);
+        });
+
+        it(`Scenario ${name}: preserves message bytes when requested`, async () => {
+          const originalMessageBytes = getBase64Encoder().encode(
+            transactionMessageBase64Encoded,
+          );
+
+          const result = await signer.partiallySignBase64String(
+            transactionMessageBase64Encoded,
+            fromAccount,
+            scope,
+            undefined,
+            true,
+          );
+
+          expect(result.messageBytes).toStrictEqual(originalMessageBytes);
+          expect(Object.values(result.signatures)).toStrictEqual([
+            expect.any(Uint8Array),
+          ]);
         });
       });
     });
