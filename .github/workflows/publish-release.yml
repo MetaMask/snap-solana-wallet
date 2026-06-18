@@ -37,6 +37,10 @@ on:
         required: true
       EXPLORER_BASE_URL:
         required: true
+
+permissions:
+  contents: read
+
 jobs:
   publish-release:
     permissions:
