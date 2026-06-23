@@ -4,6 +4,8 @@ import { getBase64Codec, getUtf8Codec, pipe } from '@solana/kit';
 import {
   CardMessageStruct,
   parseCardMessage,
+  parseProofOfOwnershipMessage,
+  ProofOfOwnershipMessageStruct,
   RewardsMessageStruct,
 } from './validation';
 
@@ -294,6 +296,90 @@ describe('validation', () => {
       'rejects non-string values: "%s"',
       (value) => {
         expect(is(value, CardMessageStruct)).toBe(false);
+      },
+    );
+  });
+
+  describe('ProofOfOwnershipMessageStruct / parseProofOfOwnershipMessage', () => {
+    const validSolanaAddress = '5F9jaU8pWmLJxCk3dHvC1e7d1sWQ9H2kgvA5g4TtK9hF';
+    const nonce = 'a1b2c3d4e5f6789012345678';
+
+    it('accepts a well-formed proof-of-ownership message', () => {
+      const message = `metamask:proof-of-ownership:${nonce}:${validSolanaAddress}`;
+      expect(() =>
+        assert(message, ProofOfOwnershipMessageStruct),
+      ).not.toThrow();
+      expect(is(message, ProofOfOwnershipMessageStruct)).toBe(true);
+      expect(parseProofOfOwnershipMessage(message)).toStrictEqual({
+        nonce,
+        address: validSolanaAddress,
+      });
+    });
+
+    it.each([
+      `metamask:proof-of-ownership:${nonce}:${validSolanaAddress}`,
+      // Nonce with mixed alphanumerics + dashes/underscores (we don't constrain format).
+      `metamask:proof-of-ownership:abc-DEF_123:${validSolanaAddress}`,
+      // Nonce containing colons (auth API treats nonces as opaque, addresses
+      // don't contain ':' so the parser splits on the LAST one).
+      `metamask:proof-of-ownership:ns:abc:123:${validSolanaAddress}`,
+    ])('validates valid messages: "%s"', (message) => {
+      expect(() =>
+        assert(message, ProofOfOwnershipMessageStruct),
+      ).not.toThrow();
+      expect(is(message, ProofOfOwnershipMessageStruct)).toBe(true);
+    });
+
+    it('preserves embedded colons in the nonce when parsing', () => {
+      const colonNonce = 'ns:abc:123';
+      const message = `metamask:proof-of-ownership:${colonNonce}:${validSolanaAddress}`;
+      expect(parseProofOfOwnershipMessage(message)).toStrictEqual({
+        nonce: colonNonce,
+        address: validSolanaAddress,
+      });
+    });
+
+    it.each([
+      `rewards,${validSolanaAddress},123`,
+      `metamask:proof:${nonce}:${validSolanaAddress}`,
+      `Metamask:proof-of-ownership:${nonce}:${validSolanaAddress}`,
+      `${nonce}:${validSolanaAddress}`,
+      '',
+    ])('rejects messages without the expected prefix: "%s"', (message) => {
+      expect(() => assert(message, ProofOfOwnershipMessageStruct)).toThrow(
+        'Message must start with "metamask:proof-of-ownership:"',
+      );
+      expect(is(message, ProofOfOwnershipMessageStruct)).toBe(false);
+    });
+
+    it('rejects messages missing the address separator', () => {
+      const message = `metamask:proof-of-ownership:${nonce}`;
+      expect(() => assert(message, ProofOfOwnershipMessageStruct)).toThrow(
+        'Message must follow the format',
+      );
+    });
+
+    it('rejects messages with an empty nonce', () => {
+      const message = `metamask:proof-of-ownership::${validSolanaAddress}`;
+      expect(() => assert(message, ProofOfOwnershipMessageStruct)).toThrow(
+        'non-empty nonce',
+      );
+    });
+
+    it.each([
+      `metamask:proof-of-ownership:${nonce}:`,
+      `metamask:proof-of-ownership:${nonce}:not-a-solana-address`,
+      `metamask:proof-of-ownership:${nonce}:0x1234567890abcdef1234567890abcdef12345678`,
+    ])('rejects invalid Solana addresses: "%s"', (message) => {
+      expect(() => assert(message, ProofOfOwnershipMessageStruct)).toThrow(
+        'Invalid Solana address in proof-of-ownership message',
+      );
+    });
+
+    it.each([123, null, undefined, {}, [], true])(
+      'rejects non-string values: "%s"',
+      (value) => {
+        expect(is(value, ProofOfOwnershipMessageStruct)).toBe(false);
       },
     );
   });

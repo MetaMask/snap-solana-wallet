@@ -1,0 +1,40 @@
+name: Publish Preview
+
+on:
+  issue_comment:
+    types: created
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  publish-preview:
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '@metamaskbot publish-preview') }}
+    uses: MetaMask/github-tools/.github/workflows/publish-preview.yml@v1
+    with:
+      rename-after-install-and-build: true
+      environment: default-branch
+      build-command: yarn workspace @metamask/solana-wallet-snap build
+      docs-url: 'https://github.com/MetaMask/core/blob/main/docs/processes/preview-builds.md'
+    secrets:
+      PUBLISH_PREVIEW_NPM_TOKEN: ${{ secrets.PUBLISH_PREVIEW_NPM_TOKEN }}
+      BUILD_ENV: |
+        {
+          "ENVIRONMENT": "production",
+          "RPC_URL_MAINNET_LIST": "${{ secrets.RPC_URL_MAINNET_LIST }}",
+          "RPC_URL_DEVNET_LIST": "${{ secrets.RPC_URL_DEVNET_LIST }}",
+          "RPC_URL_TESTNET_LIST": "${{ secrets.RPC_URL_TESTNET_LIST }}",
+          "RPC_URL_LOCALNET_LIST": "${{ secrets.RPC_URL_LOCALNET_LIST }}",
+          "RPC_WEB_SOCKET_URL_MAINNET": "${{ secrets.RPC_WEB_SOCKET_URL_MAINNET }}",
+          "RPC_WEB_SOCKET_URL_DEVNET": "${{ secrets.RPC_WEB_SOCKET_URL_DEVNET }}",
+          "RPC_WEB_SOCKET_URL_TESTNET": "${{ secrets.RPC_WEB_SOCKET_URL_TESTNET }}",
+          "RPC_WEB_SOCKET_URL_LOCALNET": "${{ secrets.RPC_WEB_SOCKET_URL_LOCALNET }}",
+          "EXPLORER_BASE_URL": "${{ secrets.EXPLORER_BASE_URL }}",
+          "PRICE_API_BASE_URL": "${{ secrets.PRICE_API_BASE_URL }}",
+          "LOCAL_API_BASE_URL": "${{ secrets.LOCAL_API_BASE_URL }}",
+          "TOKEN_API_BASE_URL": "${{ secrets.TOKEN_API_BASE_URL }}",
+          "STATIC_API_BASE_URL": "${{ secrets.STATIC_API_BASE_URL }}",
+          "SECURITY_ALERTS_API_BASE_URL": "${{ secrets.SECURITY_ALERTS_API_BASE_URL }}",
+          "NFT_API_BASE_URL": "${{ secrets.NFT_API_BASE_URL }}"
+        }

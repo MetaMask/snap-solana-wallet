@@ -13,6 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implements `getAccounts` and `exportAccount`.
   - Defines loosened keyring type that omits irrelevant properties from the keyring V2 type.
 
+## [2.9.1]
+
+### Fixed
+
+- Return the `signProofOfOwnership` signature as 0x-prefixed hex instead of base58 ([#617](https://github.com/MetaMask/snap-solana-wallet/pull/617))
+
+## [2.9.0]
+
+### Added
+
+- Add `signProofOfOwnership` client request method ([#611](https://github.com/MetaMask/snap-solana-wallet/pull/611))
+  - This method silently signs `metamask:proof-of-ownership:<nonce>:<address>` messages with the account's ed25519 key
+
 ### Changed
 
 - Validate that account IDs passed to `keyring_setSelectedAccounts` belong to the snap, rejecting unknown IDs with `InvalidParamsError` ([#604](https://github.com/MetaMask/snap-solana-wallet/pull/604))
@@ -1089,7 +1102,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.8.0...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.1...HEAD
+[2.9.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.0...v2.9.1
+[2.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.4...v2.8.0
 [2.7.4]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.3...v2.7.4
 [2.7.3]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.2...v2.7.3

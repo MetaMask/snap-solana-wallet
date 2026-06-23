@@ -74,9 +74,7 @@ jobs:
         with:
           is-high-risk-environment: false
       - run: yarn --immutable --immutable-cache || yarn install
-      - run: |
-          npm rebuild --verbose sharp
-          yarn build
+      - run: yarn workspace @metamask/solana-wallet-snap build
 
   lint:
     name: Lint
