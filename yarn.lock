@@ -4194,7 +4194,7 @@ __metadata:
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:11.4.0"
     "@noble/ed25519": "npm:2.1.0"
-    "@solana-name-service/sns-sdk-kit": "npm:beta"
+    "@solana-name-service/sns-sdk-kit": "npm:0.9.0-beta"
     "@solana-program/compute-budget": "npm:0.7.0"
     "@solana-program/system": "npm:0.7.0"
     "@solana-program/token": "npm:0.5.1"
@@ -5442,7 +5442,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solana-name-service/sns-sdk-kit@npm:beta":
+"@solana-name-service/sns-sdk-kit@npm:0.9.0-beta":
   version: 0.9.0-beta
   resolution: "@solana-name-service/sns-sdk-kit@npm:0.9.0-beta"
   dependencies:
