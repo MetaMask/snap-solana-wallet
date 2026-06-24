@@ -99,7 +99,7 @@ export class TransactionScanService {
 
         const hasSecurityAlert = Boolean(
           scan.validation?.type &&
-          scan.validation.type !== SecurityAlertResponse.Benign,
+            scan.validation.type !== SecurityAlertResponse.Benign,
         );
 
         const analyticsPromises = [
