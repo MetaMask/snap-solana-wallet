@@ -49,10 +49,7 @@ describe('NameResolutionService', () => {
       );
 
       expect(mockConnection.getRpc).toHaveBeenCalledWith(mockNetwork);
-      expect(resolveDomain).toHaveBeenCalledWith({
-        rpc: mockRpc,
-        domain: mockDomain,
-      });
+      expect(resolveDomain).toHaveBeenCalledWith(mockRpc, mockDomain);
       expect(result).toBe(mockAddress);
     });
 
@@ -67,10 +64,7 @@ describe('NameResolutionService', () => {
       await nameResolutionService.resolveDomain(mockNetwork, mockDomain);
 
       expect(resolveDomain).toHaveBeenCalledTimes(1);
-      expect(resolveDomain).toHaveBeenCalledWith({
-        rpc: mockRpc,
-        domain: mockDomain,
-      });
+      expect(resolveDomain).toHaveBeenCalledWith(mockRpc, mockDomain);
     });
 
     it('works with different networks', async () => {
@@ -95,10 +89,7 @@ describe('NameResolutionService', () => {
 
       for (const domain of domains) {
         await nameResolutionService.resolveDomain(mockNetwork, domain);
-        expect(resolveDomain).toHaveBeenCalledWith({
-          rpc: mockRpc,
-          domain,
-        });
+        expect(resolveDomain).toHaveBeenCalledWith(mockRpc, domain);
       }
     });
   });
@@ -122,10 +113,7 @@ describe('NameResolutionService', () => {
       );
 
       expect(mockConnection.getRpc).toHaveBeenCalledWith(mockNetwork);
-      expect(getPrimaryDomain).toHaveBeenCalledWith({
-        rpc: mockRpc,
-        walletAddress: mockAddress,
-      });
+      expect(getPrimaryDomain).toHaveBeenCalledWith(mockRpc, mockAddress);
       expect(result).toBe(`${mockDomain}.sol`);
     });
 
@@ -140,10 +128,7 @@ describe('NameResolutionService', () => {
       await nameResolutionService.resolveAddress(mockNetwork, mockAddress);
 
       expect(getPrimaryDomain).toHaveBeenCalledTimes(1);
-      expect(getPrimaryDomain).toHaveBeenCalledWith({
-        rpc: mockRpc,
-        walletAddress: mockAddress,
-      });
+      expect(getPrimaryDomain).toHaveBeenCalledWith(mockRpc, mockAddress);
     });
 
     it('works with different networks', async () => {

@@ -23,7 +23,7 @@ export class NameResolutionService {
 
   async resolveDomain(scope: Network, domain: string): Promise<Address> {
     const connection = this.#connection.getRpc(scope);
-    return resolveDomain({ rpc: connection, domain });
+    return resolveDomain(connection, domain);
   }
 
   async resolveAddress(
@@ -32,10 +32,10 @@ export class NameResolutionService {
   ): Promise<string | null> {
     try {
       const connection = this.#connection.getRpc(scope);
-      const primaryDomain = await getPrimaryDomain({
-        rpc: connection,
-        walletAddress: asAddress(address),
-      });
+      const primaryDomain = await getPrimaryDomain(
+        connection,
+        asAddress(address),
+      );
 
       return `${primaryDomain.domainName}.sol`;
     } catch (error) {
