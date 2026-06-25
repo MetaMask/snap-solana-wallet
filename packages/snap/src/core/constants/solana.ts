@@ -8,6 +8,7 @@ export const MICRO_LAMPORTS_PER_LAMPORTS = 1_000_000n;
 export const LAMPORTS_PER_SOL = 1_000_000_000;
 export const DEFAULT_NETWORK_BLOCK_EXPLORER_URL = 'https://solscan.io';
 export const METAMASK_ORIGIN = 'metamask';
+export const WALLET_CONNECT_ORIGIN = 'wallet-connect';
 export const METAMASK_ORIGIN_URL = 'https://metamask.io';
 
 /**
@@ -181,3 +182,12 @@ export const Networks = {
 } as const;
 
 export type Caip10Address = `${Network}:${string}`;
+
+/**
+ * Map of known non-URL origins to their human-readable display labels.
+ * Keys are compared case-insensitively against the raw origin string.
+ */
+export const KNOWN_ORIGIN_LABELS: Record<string, string> = {
+  [METAMASK_ORIGIN]: 'MetaMask',
+  [WALLET_CONNECT_ORIGIN]: 'WalletConnect',
+};

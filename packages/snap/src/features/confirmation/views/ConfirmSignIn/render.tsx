@@ -8,6 +8,7 @@ import {
   getPreferences,
   showDialog,
 } from '../../../../core/utils/interface';
+import { isKnownOrigin } from '../../../../core/utils/parseOrigin';
 import type { SolanaKeyringAccount } from '../../../../entities';
 import { nameResolutionService } from '../../../../snapContext';
 import type { ConfirmSignInProps } from './ConfirmSignIn';
@@ -31,6 +32,10 @@ export async function render(
     scope,
     origin,
   } = request;
+
+  if (isKnownOrigin(origin)) {
+    throw new Error('Sign-in requests require a dapp URL origin.');
+  }
 
   const [preferences, accountDomain] = await Promise.all([
     getPreferences(),

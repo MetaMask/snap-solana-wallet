@@ -58,6 +58,7 @@ export class TransactionScanService {
     options?: string[];
     account?: SolanaKeyringAccount;
   }): Promise<TransactionScanResult | null> {
+    // The origin could be METAMASK_ORIGIN_URL, WALLET_CONNECT_ORIGIN or any valid URL.
     try {
       const result = await this.#securityAlertsApiClient.scanTransactions({
         method,

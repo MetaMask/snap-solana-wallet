@@ -1,14 +1,18 @@
-import { METAMASK_ORIGIN } from '../constants/solana';
-import { parseOrigin } from './parseOrigin';
+import { isKnownOrigin, parseOrigin } from './parseOrigin';
 
 describe('parseOrigin', () => {
-  describe('when origin is MetaMask', () => {
-    it('returns "MetaMask" for metamask origin', () => {
-      expect(parseOrigin(METAMASK_ORIGIN)).toBe('MetaMask');
+  describe('when origin is a known origin', () => {
+    it('returns the MetaMask label for the metamask origin', () => {
+      expect(parseOrigin('metamask')).toBe('MetaMask');
     });
 
-    it('returns "MetaMask" for exact string match', () => {
-      expect(parseOrigin('metamask')).toBe('MetaMask');
+    it('returns the WalletConnect label for the wallet-connect origin', () => {
+      expect(parseOrigin('wallet-connect')).toBe('WalletConnect');
+    });
+
+    it('matches known origins case-insensitively', () => {
+      expect(parseOrigin('MetaMask')).toBe('MetaMask');
+      expect(parseOrigin('Wallet-Connect')).toBe('WalletConnect');
     });
   });
 
@@ -70,15 +74,25 @@ describe('parseOrigin', () => {
   });
 
   describe('edge cases', () => {
-    it('throws an error for URLs without protocol', () => {
-      expect(() => parseOrigin('//example.com')).toThrow('Invalid URL');
-      expect(() => parseOrigin('//www.example.com')).toThrow('Invalid URL');
+    it('throws for URLs without protocol', () => {
+      expect(() => parseOrigin('//example.com')).toThrow(
+        'Invalid origin: //example.com. Must be a valid URL or a known origin.',
+      );
+      expect(() => parseOrigin('//www.example.com')).toThrow(
+        'Invalid origin: //www.example.com. Must be a valid URL or a known origin.',
+      );
     });
 
-    it('handles URLs with custom protocols', () => {
-      expect(parseOrigin('ftp://example.com')).toBe('example.com');
-      expect(parseOrigin('ws://example.com')).toBe('example.com');
-      expect(parseOrigin('wss://example.com')).toBe('example.com');
+    it('throws for non-HTTP URLs', () => {
+      expect(() => parseOrigin('ftp://example.com')).toThrow(
+        'Invalid origin: ftp://example.com. Must be a valid URL or a known origin.',
+      );
+      expect(() => parseOrigin('ws://example.com')).toThrow(
+        'Invalid origin: ws://example.com. Must be a valid URL or a known origin.',
+      );
+      expect(() => parseOrigin('wss://example.com')).toThrow(
+        'Invalid origin: wss://example.com. Must be a valid URL or a known origin.',
+      );
     });
 
     it('handles complex subdomains', () => {
@@ -92,15 +106,37 @@ describe('parseOrigin', () => {
   });
 
   describe('error handling', () => {
-    it('throws error for invalid URLs', () => {
-      expect(() => parseOrigin('not-a-url')).toThrow('Invalid URL');
-      expect(() => parseOrigin('http://')).toThrow('Invalid URL');
-      expect(() => parseOrigin('https://')).toThrow('Invalid URL');
-      expect(() => parseOrigin('')).toThrow('Invalid URL');
+    it('throws for invalid URLs', () => {
+      expect(() => parseOrigin('not-a-url')).toThrow(
+        'Invalid origin: not-a-url. Must be a valid URL or a known origin.',
+      );
+      expect(() => parseOrigin('http://')).toThrow(
+        'Invalid origin: http://. Must be a valid URL or a known origin.',
+      );
+      expect(() => parseOrigin('https://')).toThrow(
+        'Invalid origin: https://. Must be a valid URL or a known origin.',
+      );
+      expect(() => parseOrigin('')).toThrow(
+        'Invalid origin: . Must be a valid URL or a known origin.',
+      );
     });
 
-    it('throws error for malformed URLs', () => {
-      expect(() => parseOrigin('http://:8080')).toThrow('Invalid URL');
+    it('throws for malformed URLs', () => {
+      expect(() => parseOrigin('http://:8080')).toThrow(
+        'Invalid origin: http://:8080. Must be a valid URL or a known origin.',
+      );
     });
+  });
+});
+
+describe('isKnownOrigin', () => {
+  it('returns true for the WalletConnect origin', () => {
+    expect(isKnownOrigin('wallet-connect')).toBe(true);
+  });
+
+  it('returns false for other origins', () => {
+    expect(isKnownOrigin('https://example.com')).toBe(false);
+    expect(isKnownOrigin('metamask')).toBe(false);
+    expect(isKnownOrigin(undefined)).toBe(false);
   });
 });
