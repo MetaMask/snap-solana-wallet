@@ -914,7 +914,9 @@ export class SolanaKeyring implements KeyringRpc {
   }
 
   /**
-   * Exports an account from the state.
+   * Exports an account from the state. This is used to export the private key of an account.
+   * This method is only triggered by the client when the user requests to export the private key of an account.
+   * 
    * @param accountId - The id of the account to export.
    * @param options - The options for the export.
    * @returns The exported account.
