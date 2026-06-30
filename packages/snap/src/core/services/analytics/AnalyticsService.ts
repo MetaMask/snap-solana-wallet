@@ -4,6 +4,7 @@ import type { Json } from '@metamask/utils';
 
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { Network, TransactionMetadata } from '../../constants/solana';
+import { trackError } from '../../utils/errors';
 import type { ILogger } from '../../utils/logger';
 import logger, { createPrefixedLogger } from '../../utils/logger';
 import type {
@@ -38,6 +39,7 @@ export class AnalyticsService {
         },
       });
     } catch (error) {
+      await trackError(error);
       this.#logger.warn('Error tracking event', {
         error,
         event,

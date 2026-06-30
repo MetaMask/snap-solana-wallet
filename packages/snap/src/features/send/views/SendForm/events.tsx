@@ -10,6 +10,7 @@ import {
   lamportsToSol,
   solToLamports,
 } from '../../../../core/utils/conversion';
+import { trackError } from '../../../../core/utils/errors';
 import { i18n } from '../../../../core/utils/i18n';
 import {
   resolveInterface,
@@ -485,7 +486,10 @@ async function onSendButtonClick({
     priceApiClient
       .getMultipleSpotPrices(context.assets, context.preferences.currency)
       .then((prices) => prices)
-      .catch(() => null),
+      .catch(async (error) => {
+        await trackError(error);
+        return null;
+      }),
   ]);
 
   updatedContext.fromDomain = fromDomain;

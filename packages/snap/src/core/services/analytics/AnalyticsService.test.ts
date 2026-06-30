@@ -4,8 +4,13 @@ import type { Transaction } from '@metamask/keyring-api';
 
 import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import { trackError } from '../../utils/errors';
 import { ScanStatus, SecurityAlertResponse } from '../transaction-scan/types';
 import { AnalyticsService } from './AnalyticsService';
+
+jest.mock('../../utils/errors', () => ({
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
+}));
 
 const mockSnapRequest = jest.fn();
 const snap = {
@@ -52,6 +57,18 @@ describe('AnalyticsService', () => {
           },
         },
       });
+    });
+
+    it('tracks analytics failures', async () => {
+      const error = new Error('Tracking failed');
+      mockSnapRequest.mockRejectedValueOnce(error);
+
+      await analyticsService.trackEventTransactionAdded(
+        mockAccount,
+        mockMetadata,
+      );
+
+      expect(trackError).toHaveBeenCalledWith(error);
     });
   });
 

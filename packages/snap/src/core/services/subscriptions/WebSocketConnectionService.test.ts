@@ -1,9 +1,10 @@
 import type { WebSocketConnection } from '../../../entities';
 import { EventEmitter } from '../../../infrastructure';
 import { Network } from '../../constants/solana';
+import { trackError } from '../../utils/errors';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
-import type { Config, NetworkConfig } from '../config/ConfigProvider';
+import type { NetworkConfig } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
 import { InMemoryState } from '../state/InMemoryState';
 import type { IStateManager } from '../state/IStateManager';
@@ -13,6 +14,10 @@ import {
 } from '../state/State';
 import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
 import { WebSocketConnectionService } from './WebSocketConnectionService';
+
+jest.mock('../../utils/errors', () => ({
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
+}));
 
 const mockWebSocketUrl = 'wss://some-mock-url.com/ws/v3/some-id';
 const mockConnectionId = 'mock-connection-id';
@@ -523,11 +528,12 @@ describe('WebSocketConnectionService', () => {
       it('handles cancellation errors gracefully', async () => {
         const existingEventId = 'existing-event-id';
         const newEventId = 'new-event-id';
+        const error = new Error('Cancel failed');
 
         jest.spyOn(mockState, 'getKey').mockResolvedValueOnce(existingEventId);
         jest
           .spyOn(snap, 'request')
-          .mockRejectedValueOnce(new Error('Cancel failed'))
+          .mockRejectedValueOnce(error)
           .mockResolvedValueOnce(newEventId);
         jest.spyOn(mockState, 'setKey').mockResolvedValue(undefined);
 
@@ -541,6 +547,7 @@ describe('WebSocketConnectionService', () => {
             request: { method: 'closeWebSocketConnections' },
           },
         });
+        expect(trackError).toHaveBeenCalledWith(error);
       });
     });
 

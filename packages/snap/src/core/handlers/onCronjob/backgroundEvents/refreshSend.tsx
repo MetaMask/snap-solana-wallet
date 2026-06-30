@@ -5,6 +5,7 @@ import { Send } from '../../../../features/send/Send';
 import type { SendContext } from '../../../../features/send/types';
 import { assetsService, priceApiClient, state } from '../../../../snapContext';
 import type { UnencryptedStateValue } from '../../../services/state/State';
+import { trackError } from '../../../utils/errors';
 import {
   getInterfaceContext,
   getPreferences,
@@ -89,6 +90,7 @@ export const refreshSend: OnCronjobHandler = async () => {
       params: { duration: 'PT30S', request: { method: 'refreshSend' } },
     });
   } catch (error) {
+    await trackError(error);
     logger.warn({ error }, `Could not refresh send interface`);
   }
 };

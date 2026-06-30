@@ -17,6 +17,7 @@ import {
   VsCurrencyParamStruct,
   type FiatTicker,
 } from '../../clients/price-api/types';
+import { trackError } from '../../utils/errors';
 import { isFiat } from '../../utils/isFiat';
 import { type ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
@@ -373,7 +374,8 @@ export class TokenPricesService {
           response,
         }))
         // Gracefully handle individual errors to avoid breaking the entire operation
-        .catch((error) => {
+        .catch(async (error) => {
+          await trackError(error);
           this.#logger.warn(
             `Error fetching historical prices for ${from} to ${to} with time period ${timePeriod}. Returning null object.`,
             error,

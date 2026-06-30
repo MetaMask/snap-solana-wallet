@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { type Transaction } from '@metamask/keyring-api';
 import { address as asAddress } from '@solana/kit';
+import type { NativeAsset } from 'src/entities';
 
-import { Network } from '../../constants/solana';
+import { KnownCaip19Id, Network } from '../../constants/solana';
 import {
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
 } from '../../test/mocks/solana-keyring-accounts';
 import { MOCK_GET_SIGNATURES_FOR_ADDRESS } from '../../test/mocks/transactions';
 import { ADDRESS_1_TRANSACTION_1_DATA } from '../../test/mocks/transactions-data/address-1/transaction-1';
+import { trackError } from '../../utils/errors';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService } from '../assets/AssetsService';
 import type { SolanaConnection } from '../connection/SolanaConnection';
@@ -17,6 +19,10 @@ import { createMockConnection } from '../mocks/mockConnection';
 import type { TransactionMapper } from './TransactionMapper';
 import type { TransactionsRepository } from './TransactionsRepository';
 import { TransactionsService } from './TransactionsService';
+
+jest.mock('../../utils/errors', () => ({
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
+}));
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   emitSnapKeyringEvent: jest.fn(),
@@ -33,6 +39,7 @@ describe('TransactionsService', () => {
   beforeEach(() => {
     mockTransactionsRepository = {
       findByAccountId: jest.fn(),
+      getAll: jest.fn(),
       saveMany: jest.fn(),
     } as unknown as TransactionsRepository;
 
@@ -159,6 +166,42 @@ describe('TransactionsService', () => {
         mockTransaction01,
         mockTransaction10,
       ]);
+    });
+  });
+
+  describe('fetchAssetsTransactions', () => {
+    it('tracks transaction fetch errors and continues', async () => {
+      const asset = {
+        assetType: KnownCaip19Id.SolMainnet,
+        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        network: Network.Mainnet,
+        address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        symbol: 'SOL',
+        decimals: 9,
+        rawAmount: '1',
+        uiAmount: '1',
+      } as NativeAsset;
+      const error = new Error('RPC failed');
+
+      jest
+        .spyOn(mockAccountsService, 'getAll')
+        .mockResolvedValue([MOCK_SOLANA_KEYRING_ACCOUNT_0]);
+      jest.spyOn(mockAssetsService, 'getAssetsMetadata').mockResolvedValue({});
+      jest.spyOn(mockTransactionsRepository, 'getAll').mockResolvedValue([]);
+      jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
+        getSignaturesForAddress: jest.fn().mockReturnValue({
+          send: jest
+            .fn()
+            .mockResolvedValue([MOCK_GET_SIGNATURES_FOR_ADDRESS[0]]),
+        }),
+        getTransaction: jest.fn().mockReturnValue({
+          send: jest.fn().mockRejectedValue(error),
+        }),
+      } as any);
+
+      expect(await service.fetchAssetsTransactions([asset])).toStrictEqual([]);
+      expect(trackError).toHaveBeenCalledTimes(1);
+      expect(trackError).toHaveBeenCalledWith(error);
     });
   });
 
