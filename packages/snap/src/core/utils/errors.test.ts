@@ -40,9 +40,12 @@ describe('errors', () => {
           }),
         },
       });
-      expect(mockLogger.warn).toHaveBeenCalledWith('Failed track error', {
-        error: trackingError,
-      });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        {
+          error: trackingError,
+        },
+        'Failed to track error',
+      );
     });
 
     it('tracks errors', async () => {

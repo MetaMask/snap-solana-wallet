@@ -54,7 +54,7 @@ export function validateResponse<Params, TStruct extends Struct<any>>(
     assert(response, struct);
   } catch (error) {
     throw new SnapError('Invalid Response', {
-      data: { cause: getJsonError(error as Error) },
+      data: { cause: getJsonError(error) },
     });
   }
 }

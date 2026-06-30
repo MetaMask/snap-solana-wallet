@@ -62,7 +62,7 @@ export const trackError = async (
       },
     });
   } catch (trackingError) {
-    logger.warn('Failed track error', { error: trackingError });
+    logger.warn({ error: trackingError }, 'Failed to track error');
     return undefined;
   }
 };
