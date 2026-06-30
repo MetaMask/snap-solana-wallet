@@ -35,7 +35,9 @@ export function parseOrigin(origin: string) {
  * @returns Whether the origin is a known origin.
  */
 export function isKnownOrigin(origin: string | undefined): boolean {
-  return [...Object.keys(KNOWN_ORIGIN_LABELS)].includes(origin?.toLowerCase() ?? '');
+  return [...Object.keys(KNOWN_ORIGIN_LABELS)].includes(
+    origin?.toLowerCase() ?? '',
+  );
 }
 
 /**

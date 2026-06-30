@@ -306,6 +306,7 @@ describe('AssetsService', () => {
     });
 
     // With isIncremental = false, we do emit events, even when no assets changed
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('does not emit events when no assets changed', async () => {
       jest
         .spyOn(mockAssetsRepository, 'getAll')
@@ -399,6 +400,7 @@ describe('AssetsService', () => {
     });
 
     // With isIncremental = false, we do emit events, even when no assets changed
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('does not incorrectly mark assets as new when they are already in the saved state', async () => {
       // Mock that the asset already exists in saved state
       jest

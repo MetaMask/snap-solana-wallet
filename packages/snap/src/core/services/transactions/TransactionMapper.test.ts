@@ -1052,6 +1052,7 @@ describe('TransactionMapper', () => {
     // We end this transaction with more of all assets than we started with meaning
     // we think it's a receive transaction but it's not, it's actually a Swap.
     // https://solscan.io/tx/2m8z8uPZyoZwQpissDbhSfW5XDTFmpc7cSFithc5e1w8iCwFcvVkxHeaVhgFSdgUPb5cebbKGjuu48JMLPjfEATr
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('maps swaps - #6 SOL -> USDC', async () => {
       jest
         .spyOn(mockTokenHelper, 'amountToUiAmountForMint')
@@ -1121,6 +1122,7 @@ describe('TransactionMapper', () => {
       });
     });
 
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('maps swaps - #7 SOL -> OBRIC', async () => {
       jest
         .spyOn(mockTokenHelper, 'amountToUiAmountForMint')
