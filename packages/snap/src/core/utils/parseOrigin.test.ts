@@ -132,11 +132,11 @@ describe('parseOrigin', () => {
 describe('isKnownOrigin', () => {
   it('returns true for the WalletConnect origin', () => {
     expect(isKnownOrigin('wallet-connect')).toBe(true);
+    expect(isKnownOrigin('metamask')).toBe(true);
   });
 
   it('returns false for other origins', () => {
     expect(isKnownOrigin('https://example.com')).toBe(false);
-    expect(isKnownOrigin('metamask')).toBe(false);
     expect(isKnownOrigin(undefined)).toBe(false);
   });
 });
