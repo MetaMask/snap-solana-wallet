@@ -7,6 +7,7 @@ import {
   METAMASK_ORIGIN_URL,
   type Network,
 } from '../../constants/solana';
+import { trackError } from '../../utils/errors';
 import type { ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { TransactionScanResult, TransactionScanValidation } from './types';
@@ -143,6 +144,7 @@ export class TransactionScanService {
       // Logo URLs are passed directly to Image component - no conversion needed
       return scan;
     } catch (error) {
+      await trackError(error);
       this.#logger.error(error);
 
       if (account) {

@@ -60,6 +60,7 @@ import {
   deriveSolanaKeypair,
   deriveSolanaKeypairFromCoinTypeNode,
 } from '../../utils/deriveSolanaKeypair';
+import { trackError } from '../../utils/errors';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import { getLowestUnusedIndex } from '../../utils/getLowestUnusedIndex';
 import {
@@ -802,6 +803,7 @@ export class SolanaKeyring implements Keyring {
 
       return { address: caip10Address };
     } catch (error: any) {
+      await trackError(error);
       this.#logger.error({ error }, 'Error resolving account address');
       return null;
     }

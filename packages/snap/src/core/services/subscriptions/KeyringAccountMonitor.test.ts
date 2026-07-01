@@ -15,6 +15,7 @@ import type {
 } from '../../../entities';
 import { KnownCaip19Id, Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
+import { trackError } from '../../utils/errors';
 import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AssetsService, TokenHelper } from '../assets';
@@ -23,6 +24,10 @@ import { mockLogger } from '../mocks/logger';
 import type { TransactionsService } from '../transactions';
 import { KeyringAccountMonitor } from './KeyringAccountMonitor';
 import type { SubscriptionService } from './SubscriptionService';
+
+jest.mock('../../utils/errors', () => ({
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
+}));
 
 describe('KeyringAccountMonitor', () => {
   let keyringAccountMonitor: KeyringAccountMonitor;
@@ -501,6 +506,21 @@ describe('KeyringAccountMonitor', () => {
         jest
           .spyOn(mockTokenHelper, 'amountToUiAmountForMint')
           .mockResolvedValue('123.456789');
+      });
+
+      it('tracks ui amount fallback errors and keeps the raw value', async () => {
+        const error = new Error('Conversion failed');
+
+        jest
+          .spyOn(mockTokenHelper, 'amountToUiAmountForMint')
+          .mockRejectedValue(error);
+
+        await keyringAccountMonitor.setMonitoredAccounts([account.id]);
+
+        const handler = programNotificationHandlers[0]!;
+        await handler(mockNotification, mockSubscription);
+
+        expect(trackError).toHaveBeenCalledWith(error);
       });
 
       it('saves the new balance of the token asset and the transaction that caused it', async () => {

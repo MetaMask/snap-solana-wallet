@@ -4,6 +4,7 @@ import { Network, Networks } from '../../../../core/constants/solana';
 import { FeeCalculator } from '../../../../core/fees';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import { lamportsToSol } from '../../../../core/utils/conversion';
+import { trackError } from '../../../../core/utils/errors';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
   createInterface,
@@ -87,16 +88,18 @@ export async function render(
     connection.getRpc(context.scope),
     context.transaction,
   )
-    .then((instructions) => {
+    .then(async (instructions) => {
       context.advanced.instructions = instructions;
 
       try {
         context.destinationAddress = extractDestinationAddress(instructions);
-      } catch {
+      } catch (error) {
+        await trackError(error);
         context.destinationAddress = null;
       }
     })
-    .catch((error) => {
+    .catch(async (error) => {
+      await trackError(error);
       logger.error(error);
       context.advanced.instructions = [];
     });
@@ -147,7 +150,8 @@ export async function render(
         .then((domain) => {
           updatedContext1.destinationDomain = domain;
         })
-        .catch(() => {
+        .catch(async (error) => {
+          await trackError(error);
           updatedContext1.destinationDomain = null;
         })
     : Promise.resolve();
@@ -161,7 +165,8 @@ export async function render(
           updatedContext1.tokenPrices = prices;
           updatedContext1.tokenPricesFetchStatus = 'fetched';
         })
-        .catch(() => {
+        .catch(async (error) => {
+          await trackError(error);
           updatedContext1.tokenPricesFetchStatus = 'error';
         })
     : Promise.resolve().then(() => {
@@ -175,7 +180,8 @@ export async function render(
   try {
     const { totalFee } = FeeCalculator.calculateFee(context.transaction);
     feeEstimatedInSol = lamportsToSol(totalFee).toString();
-  } catch {
+  } catch (error) {
+    await trackError(error);
     feeEstimatedInSol = null;
   }
   updatedContext1.feeEstimatedInSol = feeEstimatedInSol;
@@ -218,7 +224,8 @@ export async function render(
         updatedContext2.scan = scan;
         updatedContext2.scanFetchStatus = scan ? 'fetched' : 'error';
       })
-      .catch(() => {
+      .catch(async (error) => {
+        await trackError(error);
         updatedContext2.scan = null;
         updatedContext2.scanFetchStatus = 'error';
       });

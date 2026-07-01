@@ -6,9 +6,14 @@ import { MOCK_SPOT_PRICES } from '../../clients/price-api/mocks/spot-prices';
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
 import type { SpotPrice } from '../../clients/price-api/types';
 import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
+import { trackError } from '../../utils/errors';
 import { ConfigProvider } from '../config';
 import { mockLogger } from '../mocks/logger';
 import { TokenPricesService } from './TokenPrices';
+
+jest.mock('../../utils/errors', () => ({
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
+}));
 
 describe('TokenPricesService', () => {
   /* Crypto */
@@ -501,6 +506,18 @@ describe('TokenPricesService', () => {
         updateTime: expect.any(Number),
         expirationTime: expect.any(Number),
       });
+    });
+
+    it('tracks historical price fetch failures', async () => {
+      const error = new Error('History failed');
+
+      jest
+        .spyOn(mockPriceApiClient, 'getHistoricalPrices')
+        .mockRejectedValueOnce(error);
+
+      await tokenPricesService.getHistoricalPrice(BTC, USD);
+
+      expect(trackError).toHaveBeenCalledWith(error);
     });
   });
 });

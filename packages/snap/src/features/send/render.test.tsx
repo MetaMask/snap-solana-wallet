@@ -29,11 +29,24 @@ import { EXPECTED_NATIVE_SOL_TRANSFER_DATA } from '../../core/test/mocks/transac
 import { TEST_ORIGIN } from '../../core/test/utils';
 import type { Preferences } from '../../core/types/snap';
 import { buildUrl } from '../../core/utils/buildUrl';
-import { configProvider } from '../../snapContext';
-import { DEFAULT_SEND_CONTEXT } from './render';
+import { trackError } from '../../core/utils/errors';
+import {
+  accountsService,
+  assetsService,
+  configProvider,
+  connection,
+  priceApiClient,
+  state,
+} from '../../snapContext';
+import { DEFAULT_SEND_CONTEXT, renderSend } from './render';
 import { Send } from './Send';
 import { type SendContext, SendCurrencyType, SendFormNames } from './types';
 import { TransactionConfirmationNames } from './views/TransactionConfirmation/TransactionConfirmation';
+
+jest.mock('../../core/utils/errors', () => ({
+  ...jest.requireActual('../../core/utils/errors'),
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
+}));
 
 const solanaKeyringAccounts = [
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
@@ -470,5 +483,144 @@ describe('Send', () => {
       message: expect.stringMatching(/At path: account/u),
       stack: expect.any(String),
     });
+  });
+});
+
+describe('Send tracking', () => {
+  const setupTest = () => {
+    const originalAssetsGetAll = assetsService.getAll;
+    const originalAssetsGetAssetsMetadata = assetsService.getAssetsMetadata;
+    const originalAccountsGetAll = accountsService.getAll;
+    const originalConnectionGetRpc = connection.getRpc;
+    const originalPriceGetMultipleSpotPrices =
+      priceApiClient.getMultipleSpotPrices;
+    const originalStateGetKey = state.getKey;
+    const originalStateSetKey = state.setKey;
+
+    const mockedTrackError = jest.mocked(trackError);
+    mockedTrackError.mockClear();
+
+    const snapRequest = jest
+      .fn()
+      .mockImplementation(async ({ method }: any) => {
+        if (method === 'snap_getPreferences') {
+          return Promise.resolve({
+            locale: 'en',
+            currency: 'usd',
+            useExternalPricingData: true,
+          });
+        }
+
+        if (method === 'snap_createInterface') {
+          return Promise.resolve('interface-id');
+        }
+
+        if (method === 'snap_updateInterface') {
+          return Promise.resolve(undefined);
+        }
+
+        if (method === 'snap_dialog') {
+          return Promise.resolve('dialog-result');
+        }
+
+        if (method === 'snap_scheduleBackgroundEvent') {
+          return Promise.resolve(undefined);
+        }
+
+        throw new Error(`Unexpected snap.request call: ${method}`);
+      });
+
+    assetsService.getAll = jest.fn().mockResolvedValue([
+      {
+        assetType: KnownCaip19Id.SolMainnet,
+        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        network: Network.Mainnet,
+        address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        symbol: 'SOL',
+        decimals: 9,
+        rawAmount: '1',
+        uiAmount: '1',
+      },
+    ]);
+    assetsService.getAssetsMetadata = jest.fn();
+    accountsService.getAll = jest
+      .fn()
+      .mockResolvedValue([MOCK_SOLANA_KEYRING_ACCOUNT_0]);
+    const rentExemptionSend = jest.fn();
+    connection.getRpc = jest.fn().mockReturnValue({
+      getMinimumBalanceForRentExemption: jest.fn().mockReturnValue({
+        send: rentExemptionSend,
+      }),
+    });
+    priceApiClient.getMultipleSpotPrices = jest.fn();
+    state.getKey = jest.fn().mockResolvedValue(undefined);
+    state.setKey = jest.fn().mockResolvedValue(undefined);
+
+    (globalThis as any).snap = {
+      request: snapRequest,
+    };
+
+    return {
+      trackError: mockedTrackError,
+      assetsService,
+      connection,
+      priceApiClient,
+      cleanup: () => {
+        assetsService.getAll = originalAssetsGetAll;
+        assetsService.getAssetsMetadata = originalAssetsGetAssetsMetadata;
+        accountsService.getAll = originalAccountsGetAll;
+        connection.getRpc = originalConnectionGetRpc;
+        priceApiClient.getMultipleSpotPrices =
+          originalPriceGetMultipleSpotPrices;
+        state.getKey = originalStateGetKey;
+        state.setKey = originalStateSetKey;
+      },
+    };
+  };
+
+  it('tracks initialization fetch failures', async () => {
+    const {
+      trackError: trackErrorMock,
+      assetsService: assetsServiceMock,
+      connection: connectionMock,
+      priceApiClient: priceApiClientMock,
+      cleanup,
+    } = setupTest();
+
+    try {
+      const metadataError = new Error('Metadata failed');
+      const pricesError = new Error('Prices failed');
+      const rentError = new Error('Rent failed');
+
+      jest
+        .mocked(assetsServiceMock.getAssetsMetadata)
+        .mockRejectedValue(metadataError);
+      jest
+        .mocked(priceApiClientMock.getMultipleSpotPrices)
+        .mockRejectedValue(pricesError);
+      jest.mocked(connectionMock.getRpc).mockReturnValue({
+        getMinimumBalanceForRentExemption: jest.fn().mockReturnValue({
+          send: jest.fn().mockRejectedValue(rentError),
+        }),
+      } as any);
+
+      await expect(
+        renderSend({
+          request: {
+            params: {
+              scope: Network.Mainnet,
+              account: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+            },
+          },
+        } as any),
+      ).resolves.toBe('dialog-result');
+
+      expect(trackErrorMock).toHaveBeenCalledWith(metadataError);
+      expect(trackErrorMock).toHaveBeenCalledWith(pricesError);
+      expect(trackErrorMock).toHaveBeenCalledWith(rentError);
+      expect(trackErrorMock).toBeCalledTimes(3);
+    } finally {
+      cleanup();
+    }
   });
 });

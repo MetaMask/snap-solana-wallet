@@ -46,6 +46,7 @@ import {
   MOCK_SOLANA_SEED_PHRASE_2_KEYRING_ACCOUNT_1,
 } from '../../test/mocks/solana-keyring-accounts';
 import { getBip32EntropyMock } from '../../test/mocks/utils/getBip32Entropy';
+import { trackError } from '../../utils/errors';
 import { getBip32Entropy } from '../../utils/getBip32Entropy';
 import logger from '../../utils/logger';
 import { SolanaKeyring } from './Keyring';
@@ -57,6 +58,10 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 
 jest.mock('../../utils/getBip32Entropy', () => ({
   getBip32Entropy: getBip32EntropyMock,
+}));
+
+jest.mock('../../utils/errors', () => ({
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
 }));
 
 const NON_EXISTENT_ACCOUNT_ID = '123e4567-e89b-12d3-a456-426614174009';
@@ -738,13 +743,15 @@ describe('SolanaKeyring', () => {
     it('returns null when an error occurs', async () => {
       const mockScope = Network.Localnet;
       const mockRequest = {
-        method: 'someMethod',
-        params: [],
+        id: 1,
+        jsonrpc: '2.0',
+        ...MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST,
       } as unknown as JsonRpcRequest;
+      const error = new Error('Something went wrong');
 
       jest
         .spyOn(mockWalletService, 'resolveAccountAddress')
-        .mockRejectedValue(new Error('Something went wrong'));
+        .mockRejectedValue(error);
 
       const result = await keyring.resolveAccountAddress(
         mockScope,
@@ -752,6 +759,7 @@ describe('SolanaKeyring', () => {
       );
 
       expect(result).toBeNull();
+      expect(trackError).toHaveBeenCalledWith(error);
     });
   });
 

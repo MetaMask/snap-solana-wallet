@@ -5,6 +5,7 @@ import { assert } from '@metamask/superstruct';
 import { KnownCaip19Id, Network, Networks } from '../../core/constants/solana';
 import type { UnencryptedStateValue } from '../../core/services/state/State';
 import { lamportsToSol } from '../../core/utils/conversion';
+import { trackError } from '../../core/utils/errors';
 import {
   createInterface,
   getPreferences,
@@ -124,7 +125,10 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
         imageUrl: null,
       };
     })
-    .catch(() => null);
+    .catch(async (error) => {
+      await trackError(error);
+      return null;
+    });
 
   let tokenPricesPromise;
 
@@ -138,7 +142,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
         };
         context.tokenPricesFetchStatus = 'fetched';
       })
-      .catch(() => {
+      .catch(async (error) => {
+        await trackError(error);
         context.tokenPricesFetchStatus = 'error';
       });
   } else {
@@ -153,7 +158,8 @@ export const renderSend: OnRpcRequestHandler = async ({ request }) => {
       context.minimumBalanceForRentExemptionSol =
         lamportsToSol(balance).toString();
     })
-    .catch(() => {
+    .catch(async (error) => {
+      await trackError(error);
       // Do nothing, the value set on default context will be used.
     });
 
