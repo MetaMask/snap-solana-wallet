@@ -92,6 +92,8 @@ import {
  */
 const decoder = getAddressDecoder();
 
+const SUPPORTED_SCOPES = [SolScope.Mainnet] as const;
+
 export class SolanaKeyring implements KeyringRpc {
   readonly #state: IStateManager<UnencryptedStateValue>;
 
