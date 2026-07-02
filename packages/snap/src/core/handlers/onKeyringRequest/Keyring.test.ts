@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 /* eslint-disable jest/prefer-strict-equal */
 import type { KeyringRequest } from '@metamask/keyring-api';
-import { SolMethod } from '@metamask/keyring-api';
+import { AccountCreationType, SolMethod } from '@metamask/keyring-api';
 import {
   InvalidParamsError,
   SnapError,
@@ -996,43 +996,37 @@ describe('SolanaKeyring', () => {
     });
   });
 
-  describe('discoverAccounts', () => {
-    it('returns an empty array if there is no activity on any of the scopes', async () => {
-      mockTransactionsService.fetchLatestSignatures
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+  describe('createAccounts (bip44:discover)', () => {
+    it('returns an empty array and creates nothing when there is no on-chain activity', async () => {
+      mockTransactionsService.fetchLatestSignatures.mockResolvedValueOnce([]);
 
-      const result = await keyring.discoverAccounts(
-        [Network.Mainnet, Network.Devnet],
-        'test',
-        0,
-      );
+      const result = await keyring.createAccounts({
+        type: AccountCreationType.Bip44Discover,
+        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+        groupIndex: 10,
+      });
 
       expect(result).toStrictEqual([]);
+      // SUPPORTED_SCOPES currently declares a single scope (Mainnet).
+      expect(
+        mockTransactionsService.fetchLatestSignatures,
+      ).toHaveBeenCalledTimes(1);
     });
 
-    it('returns the discovered accounts when there is activity in any of the scopes', async () => {
-      mockTransactionsService.fetchLatestSignatures
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([
-          signature(
-            '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
-          ),
-        ]);
-
-      const result = await keyring.discoverAccounts(
-        [Network.Mainnet, Network.Devnet],
-        'test',
-        3,
-      );
-
-      expect(result).toStrictEqual([
-        {
-          type: 'bip44',
-          scopes: [Network.Mainnet, Network.Devnet],
-          derivationPath: `m/44'/501'/3'/0'`,
-        },
+    it('creates and returns the account when there is on-chain activity', async () => {
+      mockTransactionsService.fetchLatestSignatures.mockResolvedValueOnce([
+        signature(
+          '2qfNzGs15dt999rt1AUJ7D1oPQaukMPPmHR2u5ZmDo4cVtr1Pr2Dax4Jo7ryTpM8jxjtXLi5NHy4uyr68MVh5my6',
+        ),
       ]);
+
+      const result = await keyring.createAccounts({
+        type: AccountCreationType.Bip44Discover,
+        entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+        groupIndex: 10,
+      });
+
+      expect(result).toHaveLength(1);
     });
 
     it('throws an error if there is an error fetching transactions', async () => {
@@ -1041,17 +1035,12 @@ describe('SolanaKeyring', () => {
       );
 
       await expect(
-        keyring.discoverAccounts([Network.Mainnet], 'test', 0),
+        keyring.createAccounts({
+          type: AccountCreationType.Bip44Discover,
+          entropySource: MOCK_SEED_PHRASE_ENTROPY_SOURCE,
+          groupIndex: 10,
+        }),
       ).rejects.toThrow('Network error');
-    });
-
-    it('throws an error if no scopes are provided', async () => {
-      await expect(keyring.discoverAccounts([], 'test', 0)).rejects.toThrow(
-        'At path: scopes -- Expected a nonempty array but received an empty one',
-      );
-      expect(
-        mockTransactionsService.fetchLatestSignatures,
-      ).not.toHaveBeenCalled();
     });
   });
 

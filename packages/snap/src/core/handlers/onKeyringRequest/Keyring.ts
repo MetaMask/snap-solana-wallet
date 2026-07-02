@@ -4,7 +4,6 @@
 import { SLIP10Node } from '@metamask/key-tree';
 import type {
   CreateAccountOptions,
-  DiscoveredAccount,
   EntropySourceId,
   KeyringEventPayload,
   MetaMaskOptions,
@@ -45,8 +44,7 @@ import {
   asStrictKeyringAccount,
   type SolanaKeyringAccount,
 } from '../../../entities';
-import type { Network } from '../../constants/solana';
-import { SolanaCaip19Tokens } from '../../constants/solana';
+import { Network, SolanaCaip19Tokens } from '../../constants/solana';
 import type {
   AssetsService,
   KeyringAccountMonitor,
@@ -82,17 +80,14 @@ import {
   UuidStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
-import {
-  DiscoverAccountsRequestStruct,
-  SolanaKeyringRequestStruct,
-} from './structs';
+import { SolanaKeyringRequestStruct } from './structs';
 
 /**
  * A Solana address decoder that we can reuse across the class to avoid instantiating multiple decoders.
  */
 const decoder = getAddressDecoder();
 
-const SUPPORTED_SCOPES = [SolScope.Mainnet] as const;
+const SUPPORTED_SCOPES = [Network.Mainnet] as const;
 
 export class SolanaKeyring implements KeyringRpc {
   readonly #state: IStateManager<UnencryptedStateValue>;
@@ -417,6 +412,7 @@ export class SolanaKeyring implements KeyringRpc {
       assertCreateAccountOptionIsSupported(options, [
         `${AccountCreationType.Bip44DeriveIndex}`,
         `${AccountCreationType.Bip44DeriveIndexRange}`,
+        `${AccountCreationType.Bip44Discover}`,
       ]);
 
       await startTrace(this.#traceNameBatch);
@@ -424,6 +420,17 @@ export class SolanaKeyring implements KeyringRpc {
       // Get entropy source
       const entropySource =
         options.entropySource ?? (await this.#getDefaultEntropySource());
+
+      // For discovery, only create the account if it has on-chain activity. No
+      // activity means we've reached the end of the discoverable accounts, so we
+      // return nothing and the client stops discovering.
+      if (
+        options.type === AccountCreationType.Bip44Discover &&
+        !(await this.#hasOnChainActivity(entropySource, options.groupIndex))
+      ) {
+        await endTrace(this.#traceNameBatch);
+        return [];
+      }
 
       // Map existing accounts by group index
       const allAccounts = new Map<number, SolanaKeyringAccount>();
@@ -435,12 +442,12 @@ export class SolanaKeyring implements KeyringRpc {
 
       // Create a range of group indexes to create accounts for
       let range;
-      if (options.type === AccountCreationType.Bip44DeriveIndex) {
-        // Ranges are inclusive here, so to create an account for a specific index, the from and to values
-        // are the same.
-        range = { from: options.groupIndex, to: options.groupIndex };
-      } else {
+      if (options.type === AccountCreationType.Bip44DeriveIndexRange) {
         range = options.range;
+      } else {
+        // Bip44DeriveIndex | Bip44Discover — a single group index. Ranges are
+        // inclusive, so `from` and `to` are the same.
+        range = { from: options.groupIndex, to: options.groupIndex };
       }
 
       // Get coin-type node once (optimization: 1 snap API call for N accounts)
@@ -833,66 +840,40 @@ export class SolanaKeyring implements KeyringRpc {
   }
 
   /**
-   * Checks if a Solana account has activity on the given scopes. The Solana account
-   * is derived using the BIP-44 derivation path `m/44'/501'/${groupIndex}'/0'`, applied
-   * to the SRP referenced by the entropy source.
+   * Checks whether the account at the given BIP-44 group index has any on-chain
+   * activity across the supported scopes. Drives `bip44:discover` account
+   * creation in {@link createAccounts}.
    *
-   * @param scopes - The scopes to discover the accounts for.
+   * The account is derived using the BIP-44 derivation path
+   * `m/44'/501'/${groupIndex}'/0'`, applied to the SRP referenced by the entropy
+   * source.
+   *
    * @param entropySource - The entropy source aka Recovery Phrase.
-   * @param groupIndex - The group index to use for the account discovery.
-   * @returns The discovered accounts.
+   * @param groupIndex - The group index to check for on-chain activity.
+   * @returns `true` if the derived address has at least one signature on any
+   * supported scope, `false` otherwise.
    */
-  async discoverAccounts(
-    scopes: CaipChainId[],
+  async #hasOnChainActivity(
     entropySource: EntropySourceId,
     groupIndex: number,
-  ): Promise<DiscoveredAccount[]> {
-    try {
-      assert(
-        { scopes, entropySource, groupIndex },
-        DiscoverAccountsRequestStruct,
-      );
+  ): Promise<boolean> {
+    const derivationPath = this.#getDefaultDerivationPath(groupIndex);
 
-      const derivationPath = this.#getDefaultDerivationPath(groupIndex);
+    const { publicKeyBytes } = await deriveSolanaKeypair({
+      entropySource,
+      derivationPath,
+    });
+    const address = decoder.decode(publicKeyBytes.slice(1));
 
-      const { publicKeyBytes } = await deriveSolanaKeypair({
-        entropySource,
-        derivationPath,
-      });
-      const address = decoder.decode(publicKeyBytes.slice(1));
+    const scopeSignatures = await Promise.all(
+      SUPPORTED_SCOPES.map(async (scope) =>
+        this.#transactionsService.fetchLatestSignatures(scope, address, {
+          limit: 1,
+        }),
+      ),
+    );
 
-      const activityChecksPromises = [];
-
-      for (const scope of scopes) {
-        activityChecksPromises.push(
-          this.#transactionsService.fetchLatestSignatures(
-            scope as Network,
-            address,
-            { limit: 1 },
-          ),
-        );
-      }
-
-      const scopeSignatures = await Promise.all(activityChecksPromises);
-      const hasActivity = scopeSignatures.some(
-        (signatures) => signatures.length > 0,
-      );
-
-      if (!hasActivity) {
-        return [];
-      }
-
-      return [
-        {
-          type: 'bip44',
-          scopes,
-          derivationPath,
-        },
-      ];
-    } catch (error: any) {
-      this.#logger.error({ error }, 'Error discovering accounts');
-      throw new SnapError(error);
-    }
+    return scopeSignatures.some((signatures) => signatures.length > 0);
   }
 
   /**
