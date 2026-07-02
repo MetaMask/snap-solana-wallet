@@ -40,11 +40,13 @@ import { address as asAddress, getAddressDecoder } from '@solana/kit';
 import bs58 from 'bs58';
 import { sortBy } from 'lodash';
 
+import snapManifest from '../../../../snap.manifest.json';
 import {
   asStrictKeyringAccount,
   type SolanaKeyringAccount,
 } from '../../../entities';
-import { Network, SolanaCaip19Tokens } from '../../constants/solana';
+import { SolanaCaip19Tokens } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
 import type {
   AssetsService,
   KeyringAccountMonitor,
@@ -88,7 +90,9 @@ import { SolanaKeyringRequestStruct } from './structs';
  */
 const decoder = getAddressDecoder();
 
-const SUPPORTED_SCOPES = [Network.Mainnet] as const;
+const SUPPORTED_SCOPES =
+  snapManifest.initialPermissions['endowment:keyring'].capabilities
+    .scopes as readonly Network[];
 
 export class SolanaKeyring implements KeyringRpc {
   readonly #state: IStateManager<UnencryptedStateValue>;
