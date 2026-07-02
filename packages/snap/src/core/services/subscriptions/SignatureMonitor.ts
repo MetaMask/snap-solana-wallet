@@ -11,6 +11,7 @@ import {
   type SubscriptionRequest,
 } from '../../../entities';
 import type { Network } from '../../constants/solana';
+import { trackError } from '../../utils/errors';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
@@ -198,6 +199,7 @@ export class SignatureMonitor {
           this.#logger.warn(`⚠️ Commitment ${commitment} not supported`);
       }
     } catch (error) {
+      await trackError(error);
       this.#logger.error('Error handling signature notification', error);
     } finally {
       // Always unsubscribe and clean up, regardless of success or failure

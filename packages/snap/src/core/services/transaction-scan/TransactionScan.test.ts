@@ -3,10 +3,15 @@ import type { SecurityAlertsApiClient } from '../../clients/security-alerts-api/
 import type { SecurityAlertSimulationValidationResponse } from '../../clients/security-alerts-api/types';
 import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import { trackError } from '../../utils/errors';
 import type { ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import { TransactionScanService } from './TransactionScan';
 import { ScanStatus, SecurityAlertResponse } from './types';
+
+jest.mock('../../utils/errors', () => ({
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
+}));
 
 describe('TransactionScan', () => {
   let transactionScanService: TransactionScanService;
@@ -57,9 +62,10 @@ describe('TransactionScan', () => {
     });
 
     it('returns null if the scan fails', async () => {
+      const error = new Error('Scan failed');
       jest
         .spyOn(mockSecurityAlertsApiClient, 'scanTransactions')
-        .mockRejectedValue(new Error('Scan failed'));
+        .mockRejectedValue(error);
 
       const result = await transactionScanService.scanTransaction({
         method: 'method',
@@ -70,6 +76,7 @@ describe('TransactionScan', () => {
       });
 
       expect(result).toBeNull();
+      expect(trackError).toHaveBeenCalledWith(error);
     });
 
     it('tracks security scan completion when account is provided', async () => {

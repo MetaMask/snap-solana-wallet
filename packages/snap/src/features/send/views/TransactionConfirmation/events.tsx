@@ -1,5 +1,6 @@
 import { METAMASK_ORIGIN } from '../../../../core/constants/solana';
 import { ScheduleBackgroundEventMethod } from '../../../../core/handlers/onCronjob/backgroundEvents/ScheduleBackgroundEventMethod';
+import { trackError } from '../../../../core/utils/errors';
 import {
   resolveInterface,
   SEND_FORM_INTERFACE_NAME,
@@ -149,6 +150,7 @@ async function onConfirmButtonClick({
 
     signature = response.signature;
   } catch (error) {
+    await trackError(error);
     logger.error({ error }, 'Error submitting request');
   }
 

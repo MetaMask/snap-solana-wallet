@@ -15,6 +15,7 @@ import type {
 } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import { SolanaCaip19Tokens } from '../../constants/solana';
+import { trackError } from '../../utils/errors';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
@@ -390,7 +391,8 @@ export class KeyringAccountMonitor {
      */
     const uiAmount = await this.#tokenHelper
       .amountToUiAmountForMint(mint, network, lamports(BigInt(amount)))
-      .catch((error) => {
+      .catch(async (error) => {
+        await trackError(error);
         this.#logger.error('Error converting amount to uiAmount', error);
         return uiAmountString;
       });

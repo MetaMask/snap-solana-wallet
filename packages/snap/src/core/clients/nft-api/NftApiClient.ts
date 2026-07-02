@@ -7,6 +7,7 @@ import { useCache } from '../../caching/useCache';
 import type { Serializable } from '../../serialization/types';
 import type { ConfigProvider } from '../../services/config';
 import { buildUrl } from '../../utils/buildUrl';
+import { trackError } from '../../utils/errors';
 import type { ILogger } from '../../utils/logger';
 import logger from '../../utils/logger';
 import { UrlStruct } from '../../validation/structs';
@@ -202,6 +203,7 @@ export class NftApiClient {
 
       return mappedData;
     } catch (error) {
+      await trackError(error);
       return null;
     }
   }

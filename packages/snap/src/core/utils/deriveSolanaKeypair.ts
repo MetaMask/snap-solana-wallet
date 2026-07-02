@@ -60,6 +60,8 @@ export async function deriveSolanaKeypair({
       publicKeyBytes: hexToBytes(node.publicKey),
     };
   } catch (error: any) {
+    // Log the error for debugging purposes, but rethrow it to be handled/tracked by the caller.
+
     logger.error({ error }, 'Error deriving keypair');
     throw new Error(error);
   }

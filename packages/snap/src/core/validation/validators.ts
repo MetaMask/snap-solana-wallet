@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-throw-literal */
 import {
+  getJsonError,
   InvalidParamsError,
   SnapError,
   UnauthorizedError,
@@ -52,6 +53,8 @@ export function validateResponse<Params, TStruct extends Struct<any>>(
   try {
     assert(response, struct);
   } catch (error) {
-    throw new SnapError('Invalid Response') as unknown as Error;
+    throw new SnapError('Invalid Response', {
+      data: { cause: getJsonError(error) },
+    });
   }
 }

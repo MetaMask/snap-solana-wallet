@@ -19,9 +19,14 @@ import { EXPECTED_SWAP_TRUMP_TO_JUP_DATA } from '../../test/mocks/transactions-d
 import { EXPECTED_SWAP_USDC_TO_COBIE_DATA } from '../../test/mocks/transactions-data/swap-usdc-to-cobie';
 import { EXPECTED_SWAP_USDC_TO_JUP_DATA } from '../../test/mocks/transactions-data/swap-usdc-to-jup';
 import type { SolanaTransaction } from '../../types/solana';
+import { trackError } from '../../utils/errors';
 import logger from '../../utils/logger';
 import type { AssetsService, TokenHelper } from '../assets';
 import { TransactionMapper } from './TransactionMapper';
+
+jest.mock('../../utils/errors', () => ({
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
+}));
 
 describe('TransactionMapper', () => {
   let transactionMapper: TransactionMapper;
@@ -277,6 +282,30 @@ describe('TransactionMapper', () => {
           },
         ],
       });
+    });
+
+    it('tracks mapping errors', async () => {
+      const invalidTransaction = {
+        ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
+        transaction: {
+          ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction,
+          signatures: [],
+        },
+      } as unknown as SolanaTransaction;
+
+      expect(
+        await transactionMapper.mapRpcTransaction(
+          invalidTransaction,
+          mockAccount,
+          Network.Mainnet,
+        ),
+      ).toBeNull();
+
+      expect(trackError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Transaction ID is required',
+        }),
+      );
     });
 
     it('maps SPL token transfers - as a sender', async () => {
