@@ -24,7 +24,7 @@ import {
   type ResolvedAccountAddress,
   type Transaction,
 } from '@metamask/keyring-api';
-import type { ExportAccountOptions, ExportedAccount, KeyringRpc } from '@metamask/keyring-api/v2';
+import type { ExportAccountOptions, ExportedAccount, KeyringSnapRpc } from '@metamask/keyring-api/v2';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
@@ -94,7 +94,7 @@ const SUPPORTED_SCOPES =
   snapManifest.initialPermissions['endowment:keyring'].capabilities
     .scopes as readonly Network[];
 
-export class SolanaKeyring implements KeyringRpc {
+export class SolanaKeyring implements KeyringSnapRpc {
   readonly #state: IStateManager<UnencryptedStateValue>;
 
   readonly #logger: ILogger;
