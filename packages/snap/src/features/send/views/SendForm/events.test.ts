@@ -1,5 +1,6 @@
 import { lamports } from '@solana/kit';
 import BigNumber from 'bignumber.js';
+import type { Preferences } from 'src/core/types/snap';
 
 import {
   KnownCaip19Id,
@@ -17,18 +18,19 @@ import { eventHandlers } from './events';
 
 jest.mock('../../../../core/utils/interface');
 
-describe('SendForm events', () => {
-  const mockId = 'test-id';
-  const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
-  const mockToAddress = 'destination-address';
-  const mockBalanceInSol = '1.5'; // 1.5 SOL
-  const mockSolPrice = '20'; // $20 per SOL
-  const mockBaseFeeInLamports = lamports(5000n); // 0.000005 SOL
-  const mockPriorityFeeInLamports = lamports(4n); //  Integer(450 * 10000n / MICRO_LAMPORTS_PER_LAMPORTS)
-  const mockMinimumBalanceForRentExemptionSol = '0.002';
-  const mockMinimumBalanceForRentExemptionLamports = solToLamports(
-    mockMinimumBalanceForRentExemptionSol,
-  );
+const mockId = 'test-id';
+const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNT_0;
+const mockToAddress = 'destination-address';
+const mockBalanceInSol = '1.5'; // 1.5 SOL
+const mockSolPrice = '20'; // $20 per SOL
+const mockBaseFeeInLamports = lamports(5000n); // 0.000005 SOL
+const mockPriorityFeeInLamports = lamports(4n); //  Integer(450 * 10000n / MICRO_LAMPORTS_PER_LAMPORTS)
+const mockMinimumBalanceForRentExemptionSol = '0.002';
+const mockMinimumBalanceForRentExemptionLamports = solToLamports(
+  mockMinimumBalanceForRentExemptionSol,
+);
+
+const setupTest = (overrides: Partial<SendContext> = {}): SendContext => {
   const baseContext: SendContext = {
     fromAccountId: mockAccount.id,
     toAddress: mockToAddress,
@@ -104,12 +106,27 @@ describe('SendForm events', () => {
     loading: true,
   };
 
+  return {
+    ...baseContext,
+    ...overrides,
+    accounts: overrides.accounts ?? baseContext.accounts,
+    assets: overrides.assets ?? baseContext.assets,
+    balances: overrides.balances ?? baseContext.balances,
+    preferences: {
+      ...baseContext.preferences,
+      ...overrides.preferences,
+    },
+    tokenPrices: overrides.tokenPrices ?? baseContext.tokenPrices,
+    validation: overrides.validation ?? baseContext.validation,
+  };
+};
+
+describe('SendForm events', () => {
   describe('onSwapCurrencyButtonClick', () => {
     it('swaps the currency type', async () => {
-      const context: SendContext = {
-        ...baseContext,
+      const context = setupTest({
         currencyType: SendCurrencyType.TOKEN,
-      };
+      });
 
       await eventHandlers[SendFormNames.SwapCurrencyButton]({
         id: mockId,
@@ -120,11 +137,10 @@ describe('SendForm events', () => {
     });
 
     it('does not update the amount if it is empty', async () => {
-      const context: SendContext = {
-        ...baseContext,
+      const context = setupTest({
         currencyType: SendCurrencyType.TOKEN,
         amount: '',
-      };
+      });
 
       await eventHandlers[SendFormNames.SwapCurrencyButton]({
         id: mockId,
@@ -135,11 +151,10 @@ describe('SendForm events', () => {
     });
 
     it('updates the amount if it is not empty', async () => {
-      const context: SendContext = {
-        ...baseContext,
+      const context = setupTest({
         currencyType: SendCurrencyType.TOKEN,
         amount: '1',
-      };
+      });
 
       await eventHandlers[SendFormNames.SwapCurrencyButton]({
         id: mockId,
@@ -162,10 +177,9 @@ describe('SendForm events', () => {
     });
 
     it('calculates max amount in SOL correctly', async () => {
-      const context: SendContext = {
-        ...baseContext,
+      const context = setupTest({
         currencyType: SendCurrencyType.TOKEN,
-      };
+      });
 
       await eventHandlers[SendFormNames.MaxAmountButton]({
         id: mockId,
@@ -192,8 +206,7 @@ describe('SendForm events', () => {
     });
 
     it('calculates max amount in SOL correctly including rounding', async () => {
-      const context: SendContext = {
-        ...baseContext,
+      const context = setupTest({
         currencyType: SendCurrencyType.TOKEN,
         balances: {
           [mockAccount.id]: {
@@ -204,7 +217,7 @@ describe('SendForm events', () => {
           },
         },
         minimumBalanceForRentExemptionSol: '0.00089088',
-      };
+      });
 
       await eventHandlers[SendFormNames.MaxAmountButton]({
         id: mockId,
@@ -229,10 +242,9 @@ describe('SendForm events', () => {
     });
 
     it('calculates max amount in FIAT correctly', async () => {
-      const context = {
-        ...baseContext,
+      const context = setupTest({
         currencyType: SendCurrencyType.FIAT,
-      };
+      });
 
       await eventHandlers[SendFormNames.MaxAmountButton]({
         id: mockId,
@@ -258,5 +270,116 @@ describe('SendForm events', () => {
         }),
       );
     });
+  });
+});
+
+describe('SendForm event tracking', () => {
+  const setupTrackingTest = async () => {
+    const trackError = jest.fn().mockResolvedValue('tracked-error-id');
+    const updateInterfaceMock = jest.fn().mockResolvedValue(undefined);
+    const configProvider = {
+      get: jest.fn().mockReturnValue({
+        staticApi: {
+          baseUrl: 'https://static.example.com',
+        },
+      }),
+    };
+    const nameResolutionService = {
+      resolveAddress: jest.fn().mockResolvedValue(null),
+    };
+    const priceApiClient = {
+      getMultipleSpotPrices: jest.fn(),
+    };
+
+    jest.doMock('../../../../core/utils/errors', () => ({
+      trackError,
+    }));
+    jest.doMock('../../../../core/utils/interface', () => ({
+      resolveInterface: jest.fn(),
+      SEND_FORM_INTERFACE_NAME: 'send-form',
+      updateInterface: updateInterfaceMock,
+    }));
+    jest.doMock('../../Send', () => ({
+      Send: () => null,
+    }));
+    jest.doMock('../../../../snapContext', () => ({
+      configProvider,
+      keyring: {
+        getAccountOrThrow: jest
+          .fn()
+          .mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0),
+      },
+      nameResolutionService,
+      priceApiClient,
+      sendSolBuilder: {},
+      sendSplTokenBuilder: {},
+      state: {
+        deleteKey: jest.fn().mockResolvedValue(undefined),
+      },
+    }));
+
+    (globalThis as any).snap = {
+      request: jest.fn().mockResolvedValue(undefined),
+    };
+
+    let isolatedEventHandlers: typeof eventHandlers | undefined;
+    jest.isolateModules(() => {
+      ({ eventHandlers: isolatedEventHandlers } =
+        jest.requireActual('./events'));
+    });
+
+    if (!isolatedEventHandlers) {
+      throw new Error('Failed to load eventHandlers');
+    }
+
+    return {
+      eventHandlers: isolatedEventHandlers,
+      trackError,
+      priceApiClient,
+      updateInterfaceMock,
+    };
+  };
+
+  it('tracks token price failures before confirmation', async () => {
+    const {
+      eventHandlers: isolatedEventHandlers,
+      trackError,
+      priceApiClient,
+      updateInterfaceMock,
+    } = await setupTrackingTest();
+
+    const error = new Error('Spot prices failed');
+    const context = setupTest({
+      accounts: [MOCK_SOLANA_KEYRING_ACCOUNT_0],
+      scope: Network.Mainnet,
+      tokenCaipId: KnownCaip19Id.SolMainnet,
+      assets: [KnownCaip19Id.SolMainnet],
+      balances: {
+        [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: {
+          [KnownCaip19Id.SolMainnet]: {
+            amount: '2',
+            unit: 'SOL',
+          },
+        },
+      },
+      amount: '1',
+      toAddress: 'FDUGdV6bjhvw5gbirXCvqbTSWK9999kcrZcrHoCQzXJK',
+      feeEstimatedInSol: '0.000005',
+      tokenPrices: {},
+      preferences: {
+        currency: 'usd',
+        useExternalPricingData: true,
+      } as Preferences,
+      selectedTokenMetadata: null,
+    });
+
+    priceApiClient.getMultipleSpotPrices.mockRejectedValue(error);
+
+    await isolatedEventHandlers[SendFormNames.SendButton]({
+      id: 'interface-id',
+      context,
+    });
+
+    expect(trackError).toHaveBeenNthCalledWith(1, error);
   });
 });

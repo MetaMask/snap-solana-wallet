@@ -10,6 +10,7 @@ import type {
 } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
+import { trackError } from '../../utils/errors';
 import { getClientStatus } from '../../utils/interface';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
@@ -434,6 +435,7 @@ export class WebSocketConnectionService {
         eventId,
       );
     } catch (error) {
+      await trackError(error);
       this.#logger.warn(`Failed to cancel background event`, error);
     } finally {
       // Clear the state

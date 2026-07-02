@@ -9,15 +9,19 @@ import type {
 } from '../../../entities';
 import { Network } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNTS } from '../../test/mocks/solana-keyring-accounts';
+import { trackError } from '../../utils/errors';
 import type { AccountsService } from '../accounts';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
-import type { Config } from '../config/ConfigProvider';
 import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
 import type { TransactionsService } from '../transactions';
 import { SignatureMonitor } from './SignatureMonitor';
 import type { SubscriptionService } from './SubscriptionService';
+
+jest.mock('../../utils/errors', () => ({
+  trackError: jest.fn().mockResolvedValue('tracked-error-id'),
+}));
 
 describe('SignatureMonitor', () => {
   let signatureMonitor: SignatureMonitor;
@@ -225,6 +229,39 @@ describe('SignatureMonitor', () => {
         scope: network,
       });
 
+      expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
+        mockSubscription.id,
+      );
+    });
+
+    it('tracks notification handling errors and still unsubscribes', async () => {
+      const error = new Error('Save failed');
+      const mockNotification = {} as unknown as SignatureNotification;
+      const mockSubscription = {
+        id: 'subscription-id-123',
+        method: 'signatureSubscribe',
+        network: Network.Mainnet,
+        params: [signature, { commitment, enableReceivedNotification: false }],
+        metadata: {
+          accountId,
+          origin,
+        },
+      } as unknown as Subscription;
+
+      jest.spyOn(mockTransactionsService, 'save').mockRejectedValue(error);
+
+      await signatureMonitor.monitor(
+        signature,
+        accountId,
+        'confirmed',
+        network,
+        origin,
+      );
+
+      const handler = notificationHandlers[0]!;
+      await handler(mockNotification, mockSubscription);
+
+      expect(trackError).toHaveBeenCalledWith(error);
       expect(mockSubscriptionService.unsubscribe).toHaveBeenCalledWith(
         mockSubscription.id,
       );

@@ -22,6 +22,7 @@ import {
 } from '../../constants/solana';
 import type { SolanaTransaction } from '../../types/solana';
 import { lamportsToSol } from '../../utils/conversion';
+import { trackError } from '../../utils/errors';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AssetMetadata } from '../assets/types';
@@ -174,6 +175,7 @@ export class TransactionMapper {
         ],
       };
     } catch (error) {
+      await trackError(error);
       this.#logger.warn(error, 'Error mapping transaction');
       return null;
     }

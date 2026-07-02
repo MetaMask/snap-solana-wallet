@@ -8,6 +8,7 @@ import type { AssetEntity } from '../../../entities';
 import type { SolanaKeyringAccount } from '../../../entities/keyring-account';
 import { type Network } from '../../constants/solana';
 import type { SolanaTransaction } from '../../types/solana';
+import { trackError } from '../../utils/errors';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsService } from '../accounts';
@@ -193,6 +194,7 @@ export class TransactionsService {
           asset,
         };
       } catch (error) {
+        await trackError(error);
         return null;
       }
     };

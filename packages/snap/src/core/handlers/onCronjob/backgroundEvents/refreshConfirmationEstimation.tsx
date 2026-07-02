@@ -5,6 +5,7 @@ import type { ConfirmTransactionRequestContext } from '../../../../features/conf
 import { state, transactionScanService } from '../../../../snapContext';
 import { serialize } from '../../../serialization/serialize';
 import type { UnencryptedStateValue } from '../../../services/state/State';
+import { trackError } from '../../../utils/errors';
 import {
   CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME,
   getInterfaceContext,
@@ -125,6 +126,8 @@ export const refreshConfirmationEstimation: OnCronjobHandler = async () => {
       },
     });
   } catch (error) {
+    await trackError(error);
+
     // Check if context exists in case the UI was closed, nothing to rollback
     const fetchedInterfaceContext =
       await getInterfaceContext<ConfirmTransactionRequestContext>(

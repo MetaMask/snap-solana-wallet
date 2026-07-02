@@ -267,3 +267,148 @@ describe('render', () => {
     });
   });
 });
+
+describe('render tracking', () => {
+  const setupTest = async () => {
+    const trackError = jest.fn().mockResolvedValue('tracked-error-id');
+    const calculateFee = jest.fn().mockReturnValue({
+      totalFee: 5000n,
+    });
+    const createInterface = jest.fn().mockResolvedValue('interface-id');
+    const getPreferences = jest.fn().mockResolvedValue({
+      locale: 'en',
+      currency: 'usd',
+      useExternalPricingData: true,
+      useSecurityAlerts: true,
+      simulateOnChainActions: true,
+    });
+    const showDialog = jest.fn().mockResolvedValue('dialog-result');
+    const updateInterface = jest.fn().mockResolvedValue(undefined);
+    const extractInstructionsFromUnknownBase64String = jest
+      .fn()
+      .mockResolvedValue([{}]);
+    const extractDestinationAddress = jest.fn();
+    const nameResolutionService = {
+      resolveAddress: jest.fn().mockResolvedValue(null),
+    };
+    const priceApiClient = {
+      getMultipleSpotPrices: jest.fn(),
+    };
+    const transactionScanService = {
+      scanTransaction: jest.fn(),
+    };
+    const state = {
+      setKey: jest.fn().mockResolvedValue(undefined),
+    };
+
+    jest.doMock('../../../../core/utils/errors', () => ({
+      trackError,
+    }));
+    jest.doMock('../../../../core/fees', () => ({
+      FeeCalculator: {
+        calculateFee,
+      },
+    }));
+    jest.doMock('../../../../core/utils/interface', () => ({
+      CONFIRM_SIGN_AND_SEND_TRANSACTION_INTERFACE_NAME:
+        'confirmation-interface',
+      createInterface,
+      getPreferences,
+      showDialog,
+      updateInterface,
+    }));
+    jest.doMock('./ConfirmTransactionRequest', () => ({
+      ConfirmTransactionRequest: () => null,
+    }));
+    jest.doMock('../../../../entities', () => ({
+      extractInstructionsFromUnknownBase64String,
+    }));
+    jest.doMock('../../utils/extractDestinationAddress', () => ({
+      extractDestinationAddress,
+    }));
+    jest.doMock('../../../../snapContext', () => ({
+      connection: {
+        getRpc: jest.fn().mockReturnValue({}),
+      },
+      nameResolutionService,
+      priceApiClient,
+      state,
+      transactionScanService,
+    }));
+
+    (globalThis as any).snap = {
+      request: jest.fn().mockResolvedValue(undefined),
+    };
+
+    let render:
+      | ((
+          incomingContext: ConfirmTransactionRequestContext,
+        ) => Promise<unknown>)
+      | undefined;
+    jest.isolateModules(() => {
+      ({ render } = jest.requireActual('./render'));
+    });
+
+    if (!render) {
+      throw new Error('Failed to load render');
+    }
+
+    return {
+      render,
+      trackError,
+      calculateFee,
+      extractDestinationAddress,
+      nameResolutionService,
+      priceApiClient,
+      transactionScanService,
+    };
+  };
+
+  it('tracks confirmation fallbacks', async () => {
+    const {
+      render,
+      trackError,
+      calculateFee,
+      extractDestinationAddress,
+      nameResolutionService,
+      priceApiClient,
+      transactionScanService,
+    } = await setupTest();
+
+    const destinationExtractError = new Error('Destination failed');
+    const destinationDomainError = new Error('Domain failed');
+    const pricesError = new Error('Prices failed');
+    const feeError = new Error('Fee failed');
+    const scanError = new Error('Scan failed');
+
+    extractDestinationAddress.mockImplementation(() => {
+      throw destinationExtractError;
+    });
+    nameResolutionService.resolveAddress
+      .mockResolvedValueOnce(null)
+      .mockRejectedValueOnce(destinationDomainError);
+    priceApiClient.getMultipleSpotPrices.mockRejectedValue(pricesError);
+    calculateFee.mockImplementation(() => {
+      throw feeError;
+    });
+    transactionScanService.scanTransaction.mockRejectedValue(scanError);
+
+    await expect(
+      render({
+        method: SolMethod.SignAndSendTransaction,
+        scope: Network.Mainnet,
+        transaction: 'transaction',
+        account: {
+          address: 'BLw3RweJmfbTapJRgnPRvd962YDjFYAnVGd1p5hmZ5tP',
+        },
+        origin: 'https://metamask.io',
+      } as unknown as ConfirmTransactionRequestContext),
+    ).resolves.toBe('dialog-result');
+
+    expect(trackError).toHaveBeenCalledWith(destinationExtractError);
+    expect(trackError).toHaveBeenCalledWith(pricesError);
+    expect(trackError).toHaveBeenCalledWith(feeError);
+    expect(trackError).toHaveBeenCalledWith(scanError);
+    expect(trackError).toHaveBeenCalledTimes(4);
+  });
+});

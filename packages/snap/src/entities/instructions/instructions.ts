@@ -165,6 +165,7 @@ import type {
   SolanaInstruction,
   SolanaTransaction,
 } from '../../core/types/solana';
+import { trackError } from '../../core/utils/errors';
 import type { Base64Struct } from '../../core/validation/structs';
 import {
   identifySecp256Instruction,
@@ -591,6 +592,9 @@ export const parseInstruction = (
       parsed,
     };
   } catch (error) {
+    /* eslint-disable-next-line no-void */
+    void trackError(error);
+
     return {
       type: 'Unknown',
       encoded,
