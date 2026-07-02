@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added 
+### Added
 
 - Implement keyring type and methods to V2 ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
   - Implements `getAccounts` and `exportAccount`.
   - Defines loosened keyring type that omits irrelevant properties from the keyring V2 type.
+
+### Changed
+
+- Bump `@metamask/keyring-api` to `^23.4.0` and `@metamask/keyring-snap-sdk` to `^9.1.0` ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
 
 ## [2.9.1]
 
