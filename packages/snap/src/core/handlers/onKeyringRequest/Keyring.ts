@@ -518,7 +518,7 @@ export class SolanaKeyring implements KeyringRpc {
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating accounts batch');
-      throw new Error(`Error creating accounts: ${error.message}`);
+      throw new SnapError(error);
     }
   }
 
