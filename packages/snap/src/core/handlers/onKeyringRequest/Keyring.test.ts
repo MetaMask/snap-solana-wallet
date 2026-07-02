@@ -189,13 +189,13 @@ describe('SolanaKeyring', () => {
     });
   });
 
-  describe('listAccountAssets', () => {
+  describe('getAccountAssets', () => {
     it('calls the assets service', async () => {
       jest
         .spyOn(mockAssetsService, 'findByAccount')
         .mockResolvedValue(MOCK_ASSET_ENTITIES);
 
-      const result = await keyring.listAccountAssets(
+      const result = await keyring.getAccountAssets(
         MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       );
 
@@ -212,7 +212,7 @@ describe('SolanaKeyring', () => {
         { ...MOCK_ASSET_ENTITY_2, rawAmount: '0' }, // Token asset with zero balance
       ]);
 
-      const result = await keyring.listAccountAssets(
+      const result = await keyring.getAccountAssets(
         MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       );
 
@@ -225,7 +225,7 @@ describe('SolanaKeyring', () => {
         { ...MOCK_ASSET_ENTITY_1, rawAmount: '0' }, // Token asset with zero balance
       ]);
 
-      const result = await keyring.listAccountAssets(
+      const result = await keyring.getAccountAssets(
         MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       );
 
@@ -233,14 +233,14 @@ describe('SolanaKeyring', () => {
     });
 
     it('throws and error if the account provided is not a uuid', async () => {
-      await expect(
-        keyring.listAccountAssets('non-existent-id'),
-      ).rejects.toThrow(/Expected a string matching/u);
+      await expect(keyring.getAccountAssets('non-existent-id')).rejects.toThrow(
+        /Expected a string matching/u,
+      );
     });
 
     it('throws an error if account is not found', async () => {
       await expect(
-        keyring.listAccountAssets(NON_EXISTENT_ACCOUNT_ID),
+        keyring.getAccountAssets(NON_EXISTENT_ACCOUNT_ID),
       ).rejects.toThrow(`Account "${NON_EXISTENT_ACCOUNT_ID}" not found`);
     });
   });

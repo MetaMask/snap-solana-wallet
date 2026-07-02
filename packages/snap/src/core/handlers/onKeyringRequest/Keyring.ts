@@ -553,7 +553,7 @@ export class SolanaKeyring implements KeyringRpc {
    * @param accountId - The id of the account.
    * @returns CAIP-19 assets ids.
    */
-  async listAccountAssets(accountId: string): Promise<CaipAssetType[]> {
+  async getAccountAssets(accountId: string): Promise<CaipAssetType[]> {
     try {
       validateRequest({ accountId }, ListAccountAssetsStruct);
 
@@ -757,7 +757,7 @@ export class SolanaKeyring implements KeyringRpc {
    * @param pagination.next - The next signature to fetch from.
    * @returns The transactions for the given account.
    */
-  async listAccountTransactions(
+  async getAccountTransactions(
     accountId: string,
     pagination: Pagination,
   ): Promise<{
