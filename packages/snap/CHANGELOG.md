@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.10.0]
 
-### Uncategorized
+### Changed
 
-- chore: track suppressed WPN-1513 ([#624](https://github.com/MetaMask/snap-solana-wallet/pull/624))
+- Track suppressed errors ([#624](https://github.com/MetaMask/snap-solana-wallet/pull/624))
 
 ## [2.9.1]
 
