@@ -8,7 +8,6 @@ import {
   type CaipAssetType,
   type JsonRpcRequest,
 } from '@metamask/snaps-sdk';
-import { bytesToHex } from '@metamask/utils';
 import { signature } from '@solana/kit';
 import bs58 from 'bs58';
 
@@ -1112,19 +1111,6 @@ describe('SolanaKeyring', () => {
       });
     });
 
-    it('exports the account private key as hexadecimal', async () => {
-      const result = await keyring.exportAccount(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        { type: 'private-key', encoding: 'hexadecimal' },
-      );
-
-      expect(result).toStrictEqual({
-        type: 'private-key',
-        encoding: 'hexadecimal',
-        privateKey: bytesToHex(expectedSecretKey),
-      });
-    });
-
     it('encodes the 64-byte secret key (seed || publicKey)', async () => {
       const result = await keyring.exportAccount(
         MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
@@ -1166,6 +1152,15 @@ describe('SolanaKeyring', () => {
           encoding: 'utf-8' as unknown as 'base58',
         }),
       ).rejects.toThrow(/Expected/u);
+    });
+
+    it('rejects hexadecimal export encoding', async () => {
+      await expect(
+        keyring.exportAccount(MOCK_SOLANA_KEYRING_ACCOUNT_0.id, {
+          type: 'private-key',
+          encoding: 'hexadecimal',
+        }),
+      ).rejects.toThrow('Only base58 private key export is supported');
     });
 
     it('rejects an unsupported export type', async () => {

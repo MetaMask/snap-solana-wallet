@@ -33,8 +33,8 @@ import {
   SnapError,
   UserRejectedRequestError,
 } from '@metamask/snaps-sdk';
-import { array, assert, integer, is, union } from '@metamask/superstruct';
-import { bytesToHex, HexStruct, type CaipChainId } from '@metamask/utils';
+import { array, assert, integer, is } from '@metamask/superstruct';
+import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
 import bs58 from 'bs58';
@@ -929,16 +929,17 @@ export class SolanaKeyring implements KeyringSnapRpc {
       secretKey.set(publicKeyBytes.slice(1), 32);
 
       const encoding = options?.encoding ?? 'base58';
-      const privateKey =
-        encoding === 'base58'
-          ? bs58.encode(secretKey)
-          : bytesToHex(secretKey); // returns 0x-prefixed hex
+      if (encoding !== 'base58') {
+        throw new Error('Only base58 private key export is supported');
+      }
+
+      const privateKey = bs58.encode(secretKey);
 
       // SECURITY: Use a boolean `is` check rather than an asserting validator
       // here. A `StructError` thrown on failure would embed the offending value
       // — the private key itself — in its message, leaking it into logs and to
       // the caller. `is` returns a boolean, so we throw a value-free message.
-      if (!is(privateKey, union([Base58Struct, HexStruct]))) {
+      if (!is(privateKey, Base58Struct)) {
         throw new Error('Derived private key failed encoding validation');
       }
 
