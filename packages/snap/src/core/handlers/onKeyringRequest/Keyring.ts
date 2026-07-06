@@ -5,14 +5,11 @@ import { SLIP10Node } from '@metamask/key-tree';
 import type {
   CreateAccountOptions,
   EntropySourceId,
-  KeyringEventPayload,
-  MetaMaskOptions,
   Pagination,
 } from '@metamask/keyring-api';
 import {
   AccountCreationType,
   assertCreateAccountOptionIsSupported,
-  KeyringEvent,
   ListAccountAssetsResponseStruct,
   SolAccountType,
   SolMethod,
@@ -25,7 +22,6 @@ import {
   type Transaction,
 } from '@metamask/keyring-api';
 import type { ExportAccountOptions, ExportedAccount, KeyringSnapRpc } from '@metamask/keyring-api/v2';
-import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
   InvalidParamsError,
@@ -139,15 +135,6 @@ export class SolanaKeyring implements KeyringSnapRpc {
     this.#keyringAccountMonitor = keyringAccountMonitor;
   }
 
-  async listAccounts(): Promise<KeyringAccount[]> {
-    try {
-      return (await this.#listAccounts()).map(asStrictKeyringAccount);
-    } catch (error: any) {
-      this.#logger.error({ error }, 'Error listing accounts');
-      throw new SnapError(error);
-    }
-  }
-
   async #listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
       const keyringAccounts =
@@ -158,12 +145,11 @@ export class SolanaKeyring implements KeyringSnapRpc {
       return sortBy(Object.values(keyringAccounts), ['entropySource', 'index']);
     } catch (error: any) {
       // Note: we intentionally do not log here. The public callers
-      // (`listAccounts`, `createAccount`, etc.) wrap calls to this helper in
+      // (`getAccounts`, `createAccounts`, etc.) wrap calls to this helper in
       // their own try/catch with a function-level log call, so logging here
       // would produce duplicate `'Error listing accounts'` entries on every
       // failure. We still rewrite to a stable error message so existing
-      // consumers (and the `Error creating account: ...` prefix in
-      // `createAccount`) keep their current observable behavior. The
+      // consumers keep their current observable behavior. The
       // original error is attached as `cause` to preserve the underlying
       // stack/details for debugging.
       throw new Error('Error listing accounts', { cause: error });
@@ -189,14 +175,15 @@ export class SolanaKeyring implements KeyringSnapRpc {
   /**
    * Gets all accounts from the state.
    *
-   * Delegates to {@link listAccounts} so that any future changes to the
-   * listing behavior (filtering, sorting, error handling) stay consistent
-   * across both keyring entry points.
-   *
    * @returns The accounts.
    */
   async getAccounts(): Promise<KeyringAccount[]> {
-    return this.listAccounts();
+    try {
+      return (await this.#listAccounts()).map(asStrictKeyringAccount);
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error listing accounts');
+      throw new SnapError(error);
+    }
   }
 
   async getAccountOrThrow(accountId: string): Promise<SolanaKeyringAccount> {
@@ -295,121 +282,6 @@ export class SolanaKeyring implements KeyringSnapRpc {
         SolMethod.SignIn,
       ],
     };
-  }
-
-  async createAccount(
-    options?: {
-      entropySource?: EntropySourceId;
-      derivationPath?: `m/${string}`;
-      accountNameSuggestion?: string;
-      [key: string]: Json | undefined;
-    } & MetaMaskOptions,
-  ): Promise<KeyringAccount> {
-    const id = globalThis.crypto.randomUUID();
-
-    try {
-      await startTrace(this.#traceName);
-
-      const accounts = await this.#listAccounts();
-
-      const entropySource =
-        options?.entropySource ?? (await this.#getDefaultEntropySource());
-
-      const index = options?.derivationPath
-        ? this.#getIndexFromDerivationPath(options.derivationPath)
-        : this.#getLowestUnusedKeyringAccountIndex(accounts, entropySource);
-
-      const derivationPath = options?.derivationPath
-        ? options.derivationPath
-        : this.#getDefaultDerivationPath(index);
-
-      /**
-       * Now that we have the `entropySource` and `derivationPath` ready,
-       * we need to make sure that they do not correspond to an existing account already.
-       */
-      const sameAccount = accounts.find(
-        (account) =>
-          account.derivationPath === derivationPath &&
-          account.entropySource === entropySource,
-      );
-
-      if (sameAccount) {
-        this.#logger.warn(
-          'An account already exists with the same derivation path and entropy source. Skipping account creation.',
-        );
-        return asStrictKeyringAccount(sameAccount);
-      }
-
-      // Filter out our special properties from options
-      const {
-        accountNameSuggestion,
-        metamask: metamaskOptions,
-      } = options ?? {};
-
-      const { publicKeyBytes } = await deriveSolanaKeypair({
-        entropySource,
-        derivationPath,
-      });
-
-      const solanaKeyringAccount =
-        this.#buildKeyringAccount({
-          id,
-          entropySource,
-          derivationPath,
-          index,
-          publicKeyBytes,
-        });
-
-      // Convert to strict KeyringAccount
-      const keyringAccount = asStrictKeyringAccount(solanaKeyringAccount);
-
-      // Save the account in the snap state
-      await this.#state.setKey(
-        `keyringAccounts.${solanaKeyringAccount.id}`,
-        solanaKeyringAccount,
-      );
-
-      // Inform the client about the new account
-      await this.emitEvent(KeyringEvent.AccountCreated, {
-        /**
-         * We can't pass the `keyringAccount` object because it contains the index
-         * and the snaps sdk does not allow extra properties.
-         */
-        account: keyringAccount,
-        accountNameSuggestion:
-          accountNameSuggestion ?? `Solana Account ${index + 1}`,
-        displayAccountNameSuggestion: !accountNameSuggestion,
-        /**
-         * Skip account creation confirmation dialogs to make it look like a native
-         * account creation flow.
-         */
-        displayConfirmation: false,
-        /**
-         * Internal options to MetaMask that includes a correlation ID. We need
-         * to also emit this ID to the Snap keyring.
-         */
-        ...(metamaskOptions
-          ? {
-              metamask: metamaskOptions,
-            }
-          : {}),
-      }).catch(async (error: any) => {
-        // Rollback the saving of the account in the snap state to ensure data consistency between the snap and the client
-        this.#logger.warn(
-          'Could not inform the client about the account creation. Rolling back the account creation operation.',
-          { error },
-        );
-        await this.#deleteAccountFromState(id);
-        throw error;
-      });
-
-      await endTrace(this.#traceName);
-
-      return keyringAccount;
-    } catch (error: any) {
-      this.#logger.error({ error }, 'Error creating account');
-      throw new Error(`Error creating account: ${error.message}`);
-    }
   }
 
   async createAccounts(options: CreateAccountOptions): Promise<KeyringAccount[]> {
@@ -538,9 +410,6 @@ export class SolanaKeyring implements KeyringSnapRpc {
     try {
       validateRequest({ accountId }, DeleteAccountStruct);
 
-      await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
-
-      // If we successfully deleted the account on the extension, we can proceed with cleaning up
       await this.#deleteAccountFromState(accountId);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
@@ -619,24 +488,6 @@ export class SolanaKeyring implements KeyringSnapRpc {
       this.#logger.error({ error }, 'Error getting account balances');
       throw new SnapError(error);
     }
-  }
-
-  async emitEvent(
-    event: KeyringEvent,
-    data: KeyringEventPayload<KeyringEvent>,
-  ): Promise<void> {
-    await emitSnapKeyringEvent(snap, event, data);
-  }
-
-  async filterAccountChains(
-    accountId: string,
-    chains: string[],
-  ): Promise<string[]> {
-    throw new Error(`Implement me! ${accountId} ${chains.toString()}`);
-  }
-
-  async updateAccount(account: KeyringAccount): Promise<void> {
-    throw new Error(`Implement me! ${JSON.stringify(account)}`);
   }
 
   async submitRequest(request: KeyringRequest): Promise<KeyringResponse> {
