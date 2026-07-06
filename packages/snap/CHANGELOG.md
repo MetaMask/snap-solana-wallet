@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removes `createAccount` (superseded by `createAccounts`), `listAccounts` (superseded by `getAccounts`), `updateAccount`, and `filterAccountChains`.
   - Stops emitting the `AccountCreated` and `AccountDeleted` keyring events; account lifecycle is now driven by the V2 client via `createAccounts`/`deleteAccount` return values.
 
+## [2.10.0]
+
+### Changed
+
+- Track suppressed errors ([#624](https://github.com/MetaMask/snap-solana-wallet/pull/624))
+
 ## [2.9.1]
 
 ### Fixed
@@ -1112,7 +1118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.1...HEAD
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.10.0...HEAD
+[2.10.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.1...v2.10.0
 [2.9.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.0...v2.9.1
 [2.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.7.4...v2.8.0
