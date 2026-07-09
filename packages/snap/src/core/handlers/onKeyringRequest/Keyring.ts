@@ -17,12 +17,11 @@ import {
   type Balance,
   type KeyringAccount,
   type KeyringRequest,
-  type KeyringResponse,
   type ResolvedAccountAddress,
   type Transaction,
 } from '@metamask/keyring-api';
 import type { ExportAccountOptions, ExportedAccount, KeyringSnapRpc } from '@metamask/keyring-api/v2';
-import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
+import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
   InvalidParamsError,
   MethodNotFoundError,
@@ -51,7 +50,13 @@ import type {
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { IStateManager } from '../../services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../services/state/State';
-import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
+import {
+  type SolanaSignAndSendTransactionResponse,
+  type SolanaSignInResponse,
+  type SolanaSignMessageResponse,
+  type SolanaSignTransactionResponse,
+  SolanaWalletRequestStruct,
+} from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
 import {
   deriveSolanaKeypair,
@@ -89,6 +94,12 @@ const decoder = getAddressDecoder();
 const SUPPORTED_SCOPES =
   snapManifest.initialPermissions['endowment:keyring'].capabilities
     .scopes as readonly Network[];
+
+type SubmitRequestResult =
+  | SolanaSignAndSendTransactionResponse
+  | SolanaSignTransactionResponse
+  | SolanaSignMessageResponse
+  | SolanaSignInResponse;
 
 export class SolanaKeyring implements KeyringSnapRpc {
   readonly #state: IStateManager<UnencryptedStateValue>;
@@ -490,11 +501,13 @@ export class SolanaKeyring implements KeyringSnapRpc {
     }
   }
 
-  async submitRequest(request: KeyringRequest): Promise<KeyringResponse> {
-    return { pending: false, result: await this.#handleSubmitRequest(request) };
+  async submitRequest(request: KeyringRequest): Promise<SubmitRequestResult> {
+    return await this.#handleSubmitRequest(request);
   }
 
-  async #handleSubmitRequest(request: KeyringRequest): Promise<Json> {
+  async #handleSubmitRequest(
+    request: KeyringRequest,
+  ): Promise<SubmitRequestResult> {
     assert(request, SolanaKeyringRequestStruct);
 
     const {
