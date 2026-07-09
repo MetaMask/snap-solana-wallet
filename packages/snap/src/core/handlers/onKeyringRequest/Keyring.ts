@@ -214,33 +214,8 @@ export class SolanaKeyring implements KeyringSnapRpc {
     );
   }
 
-  #getLowestUnusedKeyringAccountIndex(
-    accounts: SolanaKeyringAccount[],
-    entropySource: EntropySourceId,
-  ): number {
-    const accountsFilteredByEntropySourceId = accounts.filter(
-      (account) => account.entropySource === entropySource,
-    );
-
-    return getLowestUnusedIndex(accountsFilteredByEntropySourceId);
-  }
-
   #getDefaultDerivationPath(index: number): `m/${string}` {
     return `m/44'/501'/${index}'/0'`;
-  }
-
-  #getIndexFromDerivationPath(derivationPath: `m/${string}`): number {
-    const levels = derivationPath.split('/');
-    const indexLevel = levels[3];
-
-    if (!indexLevel) {
-      throw new Error('Invalid derivation path');
-    }
-
-    const index = parseInt(indexLevel.replace("'", ''), 10);
-    assert(index, integer());
-
-    return index;
   }
 
   async #getDefaultEntropySource(): Promise<EntropySourceId> {
