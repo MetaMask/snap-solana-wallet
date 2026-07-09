@@ -800,8 +800,9 @@ export class SolanaKeyring implements KeyringSnapRpc {
         privateKey,
       };
     } catch (error: any) {
-      this.#logger.error({ error }, 'Error exporting account');
-      throw new SnapError(error);
+      const errorMsg = 'Error exporting account'
+      this.#logger.error(errorMsg);
+      throw new SnapError(errorMsg);
     }
   }
 }
