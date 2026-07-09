@@ -750,11 +750,16 @@ export class SolanaKeyring implements KeyringSnapRpc {
    * @returns The exported account.
    */
   async exportAccount(accountId: string, options?: ExportAccountOptions): Promise<ExportedAccount> {
+    validateRequest({ accountId, options }, ExportAccountRequestStruct);
+
+    const account = await this.getAccountOrThrow(accountId);
+
+    const encoding = options?.encoding ?? 'base58';
+    if (encoding !== 'base58') {
+      throw new Error('Only base58 private key export is supported');
+    }
+
     try {
-      validateRequest({ accountId, options }, ExportAccountRequestStruct);
-
-      const account = await this.getAccountOrThrow(accountId);
-
       const { privateKeyBytes, publicKeyBytes } = await deriveSolanaKeypair({
         entropySource: account.entropySource,
         derivationPath: account.derivationPath,
@@ -766,11 +771,6 @@ export class SolanaKeyring implements KeyringSnapRpc {
 
       secretKey.set(privateKeyBytes, 0);
       secretKey.set(publicKeyBytes.slice(1), 32);
-
-      const encoding = options?.encoding ?? 'base58';
-      if (encoding !== 'base58') {
-        throw new Error('Only base58 private key export is supported');
-      }
 
       const privateKey = bs58.encode(secretKey);
 
