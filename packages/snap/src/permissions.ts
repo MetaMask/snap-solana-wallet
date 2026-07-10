@@ -17,7 +17,7 @@ const allowedOrigins = isDev ? ['http://localhost:3000'] : prodOrigins;
 
 const dappPermissions = isDev
   ? new Set([
-      // Keyring methods
+      // Keyring v2 methods
       KeyringSnapRpcMethod.GetAccounts,
       KeyringSnapRpcMethod.GetAccount,
       KeyringSnapRpcMethod.DeleteAccount,
@@ -26,6 +26,14 @@ const dappPermissions = isDev
       KeyringSnapRpcMethod.GetAccountTransactions,
       KeyringSnapRpcMethod.GetAccountAssets,
       KeyringSnapRpcMethod.SetSelectedAccounts,
+      // Keyring v1 methods kept for backwards compatibility — callers using
+      // old method names are still accepted by the permission layer.
+      KeyringRpcMethod.ListAccounts,
+      KeyringRpcMethod.CreateAccount,
+      KeyringRpcMethod.FilterAccountChains,
+      KeyringRpcMethod.DiscoverAccounts,
+      KeyringRpcMethod.ListAccountTransactions,
+      KeyringRpcMethod.ListAccountAssets,
       // RPC methods
       RpcRequestMethod.StartSendTransactionFlow,
       RpcRequestMethod.GetFeeForTransaction,
@@ -43,7 +51,7 @@ const dappPermissions = isDev
   : new Set([]);
 
 const metamaskPermissions = new Set([
-  // Keyring methods
+  // Keyring v2 methods
   KeyringSnapRpcMethod.GetAccounts,
   KeyringSnapRpcMethod.GetAccount,
   KeyringSnapRpcMethod.CreateAccounts,
@@ -55,6 +63,13 @@ const metamaskPermissions = new Set([
   KeyringSnapRpcMethod.ResolveAccountAddress,
   KeyringSnapRpcMethod.SetSelectedAccounts,
   KeyringSnapRpcMethod.ExportAccount,
+  // Keyring v1 methods kept for backwards compatibility — callers using
+  // old method names are still accepted by the permission layer.
+  KeyringRpcMethod.ListAccounts,
+  KeyringRpcMethod.CreateAccount,
+  KeyringRpcMethod.DiscoverAccounts,
+  KeyringRpcMethod.ListAccountTransactions,
+  KeyringRpcMethod.ListAccountAssets,
   // RPC methods
   RpcRequestMethod.StartSendTransactionFlow,
   RpcRequestMethod.GetFeeForTransaction,
