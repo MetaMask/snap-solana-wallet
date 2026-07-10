@@ -477,12 +477,6 @@ export class SolanaKeyring implements KeyringSnapRpc {
   }
 
   async submitRequest(request: KeyringRequest): Promise<SubmitRequestResult> {
-    return await this.#handleSubmitRequest(request);
-  }
-
-  async #handleSubmitRequest(
-    request: KeyringRequest,
-  ): Promise<SubmitRequestResult> {
     assert(request, SolanaKeyringRequestStruct);
 
     const {
