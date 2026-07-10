@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Bump `@metamask/keyring-api` to `^23.4.0` and `@metamask/keyring-snap-sdk` to `^9.1.0` ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
+- Bump `@metamask/keyring-api` to `^23.5.0` and `@metamask/keyring-snap-sdk` to `^9.2.0` ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
 
 ### Removed
 
