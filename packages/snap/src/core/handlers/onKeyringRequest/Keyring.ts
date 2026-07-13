@@ -4,48 +4,44 @@
 import { SLIP10Node } from '@metamask/key-tree';
 import type {
   CreateAccountOptions,
-  DiscoveredAccount,
   EntropySourceId,
-  KeyringEventPayload,
-  MetaMaskOptions,
   Pagination,
 } from '@metamask/keyring-api';
 import {
   AccountCreationType,
   assertCreateAccountOptionIsSupported,
-  KeyringEvent,
   ListAccountAssetsResponseStruct,
   SolAccountType,
   SolMethod,
   SolScope,
   type Balance,
-  type Keyring,
   type KeyringAccount,
   type KeyringRequest,
-  type KeyringResponse,
   type ResolvedAccountAddress,
   type Transaction,
 } from '@metamask/keyring-api';
-import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
-import type { CaipAssetType, Json, JsonRpcRequest } from '@metamask/snaps-sdk';
+import type { ExportAccountOptions, ExportedAccount, KeyringSnapRpc } from '@metamask/keyring-api/v2';
+import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
   InvalidParamsError,
   MethodNotFoundError,
   SnapError,
   UserRejectedRequestError,
 } from '@metamask/snaps-sdk';
-import { array, assert, integer } from '@metamask/superstruct';
+import { array, assert, integer, is } from '@metamask/superstruct';
 import { type CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
+import bs58 from 'bs58';
 import { sortBy } from 'lodash';
 
+import snapManifest from '../../../../snap.manifest.json';
 import {
   asStrictKeyringAccount,
   type SolanaKeyringAccount,
 } from '../../../entities';
-import type { Network } from '../../constants/solana';
 import { SolanaCaip19Tokens } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
 import type {
   AssetsService,
   KeyringAccountMonitor,
@@ -54,7 +50,13 @@ import type {
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { IStateManager } from '../../services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../services/state/State';
-import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
+import {
+  type SolanaSignAndSendTransactionResponse,
+  type SolanaSignInResponse,
+  type SolanaSignMessageResponse,
+  type SolanaSignTransactionResponse,
+  SolanaWalletRequestStruct,
+} from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
 import {
   deriveSolanaKeypair,
@@ -70,7 +72,9 @@ import {
 } from '../../utils/interface';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import {
+  Base58Struct,
   DeleteAccountStruct,
+  ExportAccountRequestStruct,
   GetAccounBalancesResponseStruct,
   GetAccountBalancesStruct,
   GetAccountStruct,
@@ -80,17 +84,24 @@ import {
   UuidStruct,
 } from '../../validation/structs';
 import { validateRequest, validateResponse } from '../../validation/validators';
-import {
-  DiscoverAccountsRequestStruct,
-  SolanaKeyringRequestStruct,
-} from './structs';
+import { SolanaKeyringRequestStruct } from './structs';
 
 /**
  * A Solana address decoder that we can reuse across the class to avoid instantiating multiple decoders.
  */
 const decoder = getAddressDecoder();
 
-export class SolanaKeyring implements Keyring {
+const SUPPORTED_SCOPES =
+  snapManifest.initialPermissions['endowment:keyring'].capabilities
+    .scopes as readonly Network[];
+
+type SubmitRequestResult =
+  | SolanaSignAndSendTransactionResponse
+  | SolanaSignTransactionResponse
+  | SolanaSignMessageResponse
+  | SolanaSignInResponse;
+
+export class SolanaKeyring implements KeyringSnapRpc {
   readonly #state: IStateManager<UnencryptedStateValue>;
 
   readonly #logger: ILogger;
@@ -135,10 +146,6 @@ export class SolanaKeyring implements Keyring {
     this.#keyringAccountMonitor = keyringAccountMonitor;
   }
 
-  async listAccounts(): Promise<KeyringAccount[]> {
-    return (await this.#listAccounts()).map(asStrictKeyringAccount);
-  }
-
   async #listAccounts(): Promise<SolanaKeyringAccount[]> {
     try {
       const keyringAccounts =
@@ -148,22 +155,44 @@ export class SolanaKeyring implements Keyring {
 
       return sortBy(Object.values(keyringAccounts), ['entropySource', 'index']);
     } catch (error: any) {
-      this.#logger.error({ error }, 'Error listing accounts');
-      throw new Error('Error listing accounts');
+      // Note: we intentionally do not log here. The public callers
+      // (`getAccounts`, `createAccounts`, etc.) wrap calls to this helper in
+      // their own try/catch with a function-level log call, so logging here
+      // would produce duplicate `'Error listing accounts'` entries on every
+      // failure. We still rewrite to a stable error message so existing
+      // consumers keep their current observable behavior. The
+      // original error is attached as `cause` to preserve the underlying
+      // stack/details for debugging.
+      throw new Error('Error listing accounts', { cause: error });
     }
   }
 
   async getAccount(
     accountId: string,
-  ): Promise<KeyringAccount | undefined> {
+  ): Promise<KeyringAccount> {
     try {
       validateRequest({ accountId }, GetAccountStruct);
 
-      const account = await this.#getAccount(accountId);
+      const account = await this.getAccountOrThrow(accountId);
 
-      return account ? asStrictKeyringAccount(account) : undefined;
+      return asStrictKeyringAccount(account);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account');
+      throw new SnapError(error);
+    }
+  }
+
+
+  /**
+   * Gets all accounts from the state.
+   *
+   * @returns The accounts.
+   */
+  async getAccounts(): Promise<KeyringAccount[]> {
+    try {
+      return (await this.#listAccounts()).map(asStrictKeyringAccount);
+    } catch (error: any) {
+      this.#logger.error({ error }, 'Error listing accounts');
       throw new SnapError(error);
     }
   }
@@ -180,45 +209,13 @@ export class SolanaKeyring implements Keyring {
   async #getAccount(
     accountId: string,
   ): Promise<SolanaKeyringAccount | undefined> {
-    try {
-      const account = await this.#state.getKey<SolanaKeyringAccount>(
-        `keyringAccounts.${accountId}`,
-      );
-
-      return account;
-    } catch (error: any) {
-      this.#logger.error({ error }, 'Error getting account');
-      throw new SnapError(error);
-    }
-  }
-
-  #getLowestUnusedKeyringAccountIndex(
-    accounts: SolanaKeyringAccount[],
-    entropySource: EntropySourceId,
-  ): number {
-    const accountsFilteredByEntropySourceId = accounts.filter(
-      (account) => account.entropySource === entropySource,
+    return this.#state.getKey<SolanaKeyringAccount>(
+      `keyringAccounts.${accountId}`,
     );
-
-    return getLowestUnusedIndex(accountsFilteredByEntropySourceId);
   }
 
   #getDefaultDerivationPath(index: number): `m/${string}` {
     return `m/44'/501'/${index}'/0'`;
-  }
-
-  #getIndexFromDerivationPath(derivationPath: `m/${string}`): number {
-    const levels = derivationPath.split('/');
-    const indexLevel = levels[3];
-
-    if (!indexLevel) {
-      throw new Error('Invalid derivation path');
-    }
-
-    const index = parseInt(indexLevel.replace("'", ''), 10);
-    assert(index, integer());
-
-    return index;
   }
 
   async #getDefaultEntropySource(): Promise<EntropySourceId> {
@@ -273,126 +270,12 @@ export class SolanaKeyring implements Keyring {
     };
   }
 
-  async createAccount(
-    options?: {
-      entropySource?: EntropySourceId;
-      derivationPath?: `m/${string}`;
-      accountNameSuggestion?: string;
-      [key: string]: Json | undefined;
-    } & MetaMaskOptions,
-  ): Promise<KeyringAccount> {
-    const id = globalThis.crypto.randomUUID();
-
-    try {
-      await startTrace(this.#traceName);
-
-      const accounts = await this.#listAccounts();
-
-      const entropySource =
-        options?.entropySource ?? (await this.#getDefaultEntropySource());
-
-      const index = options?.derivationPath
-        ? this.#getIndexFromDerivationPath(options.derivationPath)
-        : this.#getLowestUnusedKeyringAccountIndex(accounts, entropySource);
-
-      const derivationPath = options?.derivationPath
-        ? options.derivationPath
-        : this.#getDefaultDerivationPath(index);
-
-      /**
-       * Now that we have the `entropySource` and `derivationPath` ready,
-       * we need to make sure that they do not correspond to an existing account already.
-       */
-      const sameAccount = accounts.find(
-        (account) =>
-          account.derivationPath === derivationPath &&
-          account.entropySource === entropySource,
-      );
-
-      if (sameAccount) {
-        this.#logger.warn(
-          'An account already exists with the same derivation path and entropy source. Skipping account creation.',
-        );
-        return asStrictKeyringAccount(sameAccount);
-      }
-
-      // Filter out our special properties from options
-      const {
-        accountNameSuggestion,
-        metamask: metamaskOptions,
-      } = options ?? {};
-
-      const { publicKeyBytes } = await deriveSolanaKeypair({
-        entropySource,
-        derivationPath,
-      });
-
-      const solanaKeyringAccount =
-        this.#buildKeyringAccount({
-          id,
-          entropySource,
-          derivationPath,
-          index,
-          publicKeyBytes,
-        });
-
-      // Convert to strict KeyringAccount
-      const keyringAccount = asStrictKeyringAccount(solanaKeyringAccount);
-
-      // Save the account in the snap state
-      await this.#state.setKey(
-        `keyringAccounts.${solanaKeyringAccount.id}`,
-        solanaKeyringAccount,
-      );
-
-      // Inform the client about the new account
-      await this.emitEvent(KeyringEvent.AccountCreated, {
-        /**
-         * We can't pass the `keyringAccount` object because it contains the index
-         * and the snaps sdk does not allow extra properties.
-         */
-        account: keyringAccount,
-        accountNameSuggestion:
-          accountNameSuggestion ?? `Solana Account ${index + 1}`,
-        displayAccountNameSuggestion: !accountNameSuggestion,
-        /**
-         * Skip account creation confirmation dialogs to make it look like a native
-         * account creation flow.
-         */
-        displayConfirmation: false,
-        /**
-         * Internal options to MetaMask that includes a correlation ID. We need
-         * to also emit this ID to the Snap keyring.
-         */
-        ...(metamaskOptions
-          ? {
-              metamask: metamaskOptions,
-            }
-          : {}),
-      }).catch(async (error: any) => {
-        // Rollback the saving of the account in the snap state to ensure data consistency between the snap and the client
-        this.#logger.warn(
-          'Could not inform the client about the account creation. Rolling back the account creation operation.',
-          { error },
-        );
-        await this.#deleteAccountFromState(id);
-        throw error;
-      });
-
-      await endTrace(this.#traceName);
-
-      return keyringAccount;
-    } catch (error: any) {
-      this.#logger.error({ error }, 'Error creating account');
-      throw new Error(`Error creating account: ${error.message}`);
-    }
-  }
-
   async createAccounts(options: CreateAccountOptions): Promise<KeyringAccount[]> {
     try {
       assertCreateAccountOptionIsSupported(options, [
         `${AccountCreationType.Bip44DeriveIndex}`,
         `${AccountCreationType.Bip44DeriveIndexRange}`,
+        `${AccountCreationType.Bip44Discover}`,
       ]);
 
       await startTrace(this.#traceNameBatch);
@@ -400,6 +283,17 @@ export class SolanaKeyring implements Keyring {
       // Get entropy source
       const entropySource =
         options.entropySource ?? (await this.#getDefaultEntropySource());
+
+      // For discovery, only create the account if it has on-chain activity. No
+      // activity means we've reached the end of the discoverable accounts, so we
+      // return nothing and the client stops discovering.
+      if (
+        options.type === AccountCreationType.Bip44Discover &&
+        !(await this.#hasOnChainActivity(entropySource, options.groupIndex))
+      ) {
+        await endTrace(this.#traceNameBatch);
+        return [];
+      }
 
       // Map existing accounts by group index
       const allAccounts = new Map<number, SolanaKeyringAccount>();
@@ -411,12 +305,12 @@ export class SolanaKeyring implements Keyring {
 
       // Create a range of group indexes to create accounts for
       let range;
-      if (options.type === AccountCreationType.Bip44DeriveIndex) {
-        // Ranges are inclusive here, so to create an account for a specific index, the from and to values
-        // are the same.
-        range = { from: options.groupIndex, to: options.groupIndex };
-      } else {
+      if (options.type === AccountCreationType.Bip44DeriveIndexRange) {
         range = options.range;
+      } else {
+        // Bip44DeriveIndex | Bip44Discover — a single group index. Ranges are
+        // inclusive, so `from` and `to` are the same.
+        range = { from: options.groupIndex, to: options.groupIndex };
       }
 
       // Get coin-type node once (optimization: 1 snap API call for N accounts)
@@ -486,7 +380,7 @@ export class SolanaKeyring implements Keyring {
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error creating accounts batch');
-      throw new Error(`Error creating accounts: ${error.message}`);
+      throw new SnapError(error);
     }
   }
 
@@ -502,13 +396,10 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, DeleteAccountStruct);
 
-      await this.emitEvent(KeyringEvent.AccountDeleted, { id: accountId });
-
-      // If we successfully deleted the account on the extension, we can proceed with cleaning up
       await this.#deleteAccountFromState(accountId);
     } catch (error: any) {
       this.#logger.error({ error }, 'Error deleting account');
-      throw error;
+      throw new SnapError(error);
     }
   }
 
@@ -517,7 +408,7 @@ export class SolanaKeyring implements Keyring {
    * @param accountId - The id of the account.
    * @returns CAIP-19 assets ids.
    */
-  async listAccountAssets(accountId: string): Promise<CaipAssetType[]> {
+  async getAccountAssets(accountId: string): Promise<CaipAssetType[]> {
     try {
       validateRequest({ accountId }, ListAccountAssetsStruct);
 
@@ -538,7 +429,7 @@ export class SolanaKeyring implements Keyring {
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account assets');
-      throw error;
+      throw new SnapError(error);
     }
   }
 
@@ -581,33 +472,11 @@ export class SolanaKeyring implements Keyring {
       return result;
     } catch (error: any) {
       this.#logger.error({ error }, 'Error getting account balances');
-      throw error;
+      throw new SnapError(error);
     }
   }
 
-  async emitEvent(
-    event: KeyringEvent,
-    data: KeyringEventPayload<KeyringEvent>,
-  ): Promise<void> {
-    await emitSnapKeyringEvent(snap, event, data);
-  }
-
-  async filterAccountChains(
-    accountId: string,
-    chains: string[],
-  ): Promise<string[]> {
-    throw new Error(`Implement me! ${accountId} ${chains.toString()}`);
-  }
-
-  async updateAccount(account: KeyringAccount): Promise<void> {
-    throw new Error(`Implement me! ${JSON.stringify(account)}`);
-  }
-
-  async submitRequest(request: KeyringRequest): Promise<KeyringResponse> {
-    return { pending: false, result: await this.#handleSubmitRequest(request) };
-  }
-
-  async #handleSubmitRequest(request: KeyringRequest): Promise<Json> {
+  async submitRequest(request: KeyringRequest): Promise<SubmitRequestResult> {
     assert(request, SolanaKeyringRequestStruct);
 
     const {
@@ -721,7 +590,7 @@ export class SolanaKeyring implements Keyring {
    * @param pagination.next - The next signature to fetch from.
    * @returns The transactions for the given account.
    */
-  async listAccountTransactions(
+  async getAccountTransactions(
     accountId: string,
     pagination: Pagination,
   ): Promise<{
@@ -766,7 +635,7 @@ export class SolanaKeyring implements Keyring {
       };
     } catch (error: any) {
       this.#logger.error({ error }, 'Error listing account transactions');
-      throw error;
+      throw new SnapError(error);
     }
   }
 
@@ -810,66 +679,40 @@ export class SolanaKeyring implements Keyring {
   }
 
   /**
-   * Checks if a Solana account has activity on the given scopes. The Solana account
-   * is derived using the BIP-44 derivation path `m/44'/501'/${groupIndex}'/0'`, applied
-   * to the SRP referenced by the entropy source.
+   * Checks whether the account at the given BIP-44 group index has any on-chain
+   * activity across the supported scopes. Drives `bip44:discover` account
+   * creation in {@link createAccounts}.
    *
-   * @param scopes - The scopes to discover the accounts for.
+   * The account is derived using the BIP-44 derivation path
+   * `m/44'/501'/${groupIndex}'/0'`, applied to the SRP referenced by the entropy
+   * source.
+   *
    * @param entropySource - The entropy source aka Recovery Phrase.
-   * @param groupIndex - The group index to use for the account discovery.
-   * @returns The discovered accounts.
+   * @param groupIndex - The group index to check for on-chain activity.
+   * @returns `true` if the derived address has at least one signature on any
+   * supported scope, `false` otherwise.
    */
-  async discoverAccounts(
-    scopes: CaipChainId[],
+  async #hasOnChainActivity(
     entropySource: EntropySourceId,
     groupIndex: number,
-  ): Promise<DiscoveredAccount[]> {
-    try {
-      assert(
-        { scopes, entropySource, groupIndex },
-        DiscoverAccountsRequestStruct,
-      );
+  ): Promise<boolean> {
+    const derivationPath = this.#getDefaultDerivationPath(groupIndex);
 
-      const derivationPath = this.#getDefaultDerivationPath(groupIndex);
+    const { publicKeyBytes } = await deriveSolanaKeypair({
+      entropySource,
+      derivationPath,
+    });
+    const address = decoder.decode(publicKeyBytes.slice(1));
 
-      const { publicKeyBytes } = await deriveSolanaKeypair({
-        entropySource,
-        derivationPath,
-      });
-      const address = decoder.decode(publicKeyBytes.slice(1));
+    const scopeSignatures = await Promise.all(
+      SUPPORTED_SCOPES.map(async (scope) =>
+        this.#transactionsService.fetchLatestSignatures(scope, address, {
+          limit: 1,
+        }),
+      ),
+    );
 
-      const activityChecksPromises = [];
-
-      for (const scope of scopes) {
-        activityChecksPromises.push(
-          this.#transactionsService.fetchLatestSignatures(
-            scope as Network,
-            address,
-            { limit: 1 },
-          ),
-        );
-      }
-
-      const scopeSignatures = await Promise.all(activityChecksPromises);
-      const hasActivity = scopeSignatures.some(
-        (signatures) => signatures.length > 0,
-      );
-
-      if (!hasActivity) {
-        return [];
-      }
-
-      return [
-        {
-          type: 'bip44',
-          scopes,
-          derivationPath,
-        },
-      ];
-    } catch (error: any) {
-      this.#logger.error({ error }, 'Error discovering accounts');
-      throw error;
-    }
+    return scopeSignatures.some((signatures) => signatures.length > 0);
   }
 
   /**
@@ -890,5 +733,58 @@ export class SolanaKeyring implements Keyring {
     }
 
     await this.#keyringAccountMonitor.setMonitoredAccounts(accountIds);
+  }
+
+  /**
+   * Exports an account from the state. This is used to export the private key of an account.
+   * This method is only triggered by the client when the user requests to export the private key of an account.
+   * 
+   * @param accountId - The id of the account to export.
+   * @param options - The options for the export.
+   * @returns The exported account.
+   */
+  async exportAccount(accountId: string, options?: ExportAccountOptions): Promise<ExportedAccount> {
+    validateRequest({ accountId, options }, ExportAccountRequestStruct);
+
+    const account = await this.getAccountOrThrow(accountId);
+
+    const encoding = options?.encoding ?? 'base58';
+    if (encoding !== 'base58') {
+      throw new Error('Only base58 private key export is supported');
+    }
+
+    try {
+      const { privateKeyBytes, publicKeyBytes } = await deriveSolanaKeypair({
+        entropySource: account.entropySource,
+        derivationPath: account.derivationPath,
+      });
+
+      // Solana convention: 64-byte secret key = seed(32) || publicKey(32).
+      // publicKeyBytes is 33 bytes due to the SLIP-10 0x00 prefix; strip it.
+      const secretKey = new Uint8Array(64);
+
+      secretKey.set(privateKeyBytes, 0);
+      secretKey.set(publicKeyBytes.slice(1), 32);
+
+      const privateKey = bs58.encode(secretKey);
+
+      // SECURITY: Use a boolean `is` check rather than an asserting validator
+      // here. A `StructError` thrown on failure would embed the offending value
+      // — the private key itself — in its message, leaking it into logs and to
+      // the caller. `is` returns a boolean, so we throw a value-free message.
+      if (!is(privateKey, Base58Struct)) {
+        throw new Error('Derived private key failed encoding validation');
+      }
+
+      return {
+        type: 'private-key',
+        encoding,
+        privateKey,
+      };
+    } catch (error: any) {
+      const errorMsg = 'Error exporting account'
+      this.#logger.error(errorMsg);
+      throw new SnapError(errorMsg);
+    }
   }
 }

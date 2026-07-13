@@ -1,4 +1,5 @@
 import { CaipAssetTypeStruct, SolMethod } from '@metamask/keyring-api';
+import { ExportAccountOptionsStruct } from '@metamask/keyring-api/v2';
 import type { Struct } from '@metamask/superstruct';
 import {
   array,
@@ -174,7 +175,10 @@ export const ListAccountTransactionsStruct = object({
     next: optional(nullable(string())),
   }),
 });
-
+export const ExportAccountRequestStruct = object({
+  accountId: UuidStruct,
+  options: optional(ExportAccountOptionsStruct),
+});
 export const GetAccounBalancesResponseStruct = record(
   CaipAssetTypeStruct,
   object({

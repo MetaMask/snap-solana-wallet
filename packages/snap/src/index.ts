@@ -1,5 +1,5 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
-import { handleKeyringRequest } from '@metamask/keyring-snap-sdk';
+import { handleKeyringRequest } from '@metamask/keyring-snap-sdk/v2';
 import type {
   Json,
   OnActiveHandler,
