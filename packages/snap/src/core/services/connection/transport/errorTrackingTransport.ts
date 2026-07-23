@@ -1,6 +1,7 @@
 import { getJsonError } from '@metamask/snaps-sdk';
 import { isJsonRpcError, isJsonRpcFailure } from '@metamask/utils';
-import { isSolanaError, type RpcTransport } from '@solana/kit';
+import { isSolanaError } from '@solana/kit';
+import type { RpcTransport } from '@solana/kit';
 
 import { noOpLogger } from '../../../utils/logger';
 

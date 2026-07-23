@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { type Transaction } from '@metamask/keyring-api';
+import type { Transaction } from '@metamask/keyring-api';
 import { address as asAddress } from '@solana/kit';
 import type { NativeAsset } from 'src/entities';
 

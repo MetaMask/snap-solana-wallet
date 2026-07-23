@@ -2,6 +2,7 @@ import BigNumber from 'bignumber.js';
 
 /**
  * Converts a human-readable token amount to raw token units.
+ *
  * @param amount - The amount in token (e.g., "0.1").
  * @param decimals - The number of decimals the token has (e.g., 6 for USDC).
  * @returns The amount in raw units.

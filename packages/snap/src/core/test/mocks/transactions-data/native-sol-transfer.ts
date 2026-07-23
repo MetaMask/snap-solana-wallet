@@ -33,7 +33,7 @@ export const EXPECTED_NATIVE_SOL_TRANSFER_DATA: SolanaTransaction = {
     rewards: [],
     status: { Ok: null },
   },
-  slot: 353101424n as Slot,
+  slot: 353101424n,
   transaction: {
     message: {
       accountKeys: [

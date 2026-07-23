@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { Rpc, SimulateTransactionApi } from '@solana/kit';
 import {
   address,

@@ -1,4 +1,5 @@
-import { KeyringEvent, type Transaction } from '@metamask/keyring-api';
+import { KeyringEvent } from '@metamask/keyring-api';
+import type { Transaction } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type { Address, Commitment, Signature, Slot } from '@solana/kit';
 import { address as asAddress, signature as asSignature } from '@solana/kit';
@@ -6,10 +7,11 @@ import { get, groupBy } from 'lodash';
 
 import type { AssetEntity } from '../../../entities';
 import type { SolanaKeyringAccount } from '../../../entities/keyring-account';
-import { type Network } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
 import type { SolanaTransaction } from '../../types/solana';
 import { trackError } from '../../utils/errors';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsService } from '../accounts';
 import type { AssetsService } from '../assets/AssetsService';

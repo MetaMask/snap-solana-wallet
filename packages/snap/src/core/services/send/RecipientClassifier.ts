@@ -6,7 +6,8 @@ import { assertAccountExists } from '@solana/kit';
 import { get } from 'lodash';
 
 import type { Network } from '../../constants/solana';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 
 export type RecipientClassification =

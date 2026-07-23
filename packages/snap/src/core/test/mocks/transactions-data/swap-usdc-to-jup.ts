@@ -291,7 +291,7 @@ export const EXPECTED_SWAP_USDC_TO_JUP_DATA: SolanaTransaction = {
     rewards: [],
     status: { Ok: null },
   },
-  slot: 327561062n as Slot,
+  slot: 327561062n,
   transaction: {
     message: {
       accountKeys: [

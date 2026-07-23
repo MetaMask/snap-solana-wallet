@@ -1,10 +1,5 @@
-import {
-  type Dispatch,
-  type SetStateAction,
-  createContext,
-  useContext,
-  useState,
-} from 'react';
+import { createContext, useContext, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 
 import { Network } from '../../../snap/src/core/constants/solana';
 

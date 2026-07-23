@@ -22,7 +22,8 @@ import { tokenToFiat } from '../../../../core/utils/tokenToFiat';
 import { AmountInput } from '../../components/AmountInput/AmountInput';
 import { ToAddressField } from '../../components/ToAddressField/ToAddressField';
 import { getSelectedTokenPrice } from '../../selectors';
-import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
+import { SendCurrencyType, SendFormNames } from '../../types';
+import type { SendContext } from '../../types';
 
 type SendFormProps = {
   context: SendContext;

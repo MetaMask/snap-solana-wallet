@@ -307,7 +307,7 @@ describe('PriceApiClient', () => {
       await expect(
         client.getMultipleSpotPrices(
           [KnownCaip19Id.SolLocalnet],
-          'INVALID<script>alert(1)</script>' as VsCurrencyParam,
+          'INVALID<script>alert(1)</script>',
         ),
       ).rejects.toThrow(/Expected/u);
     });
@@ -337,7 +337,7 @@ describe('PriceApiClient', () => {
       await expect(
         client.getMultipleSpotPrices(
           [KnownCaip19Id.SolLocalnet],
-          'usd\x00\x1F' as VsCurrencyParam,
+          'usd\x00\x1F',
         ),
       ).rejects.toThrow(/Expected/u);
     });

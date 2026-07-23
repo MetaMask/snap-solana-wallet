@@ -1,7 +1,8 @@
 import type { Balance } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
 
-import { Networks, type Network } from '../../../core/constants/solana';
+import { Networks } from '../../../core/constants/solana';
+import type { Network } from '../../../core/constants/solana';
 import type { AccountId } from '../../../core/services/state/State';
 import type { AssetEntity } from '../../../entities';
 

@@ -1,5 +1,6 @@
 import { Flex } from '@chakra-ui/react';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect } from 'react';
+import type { ReactNode } from 'react';
 
 import { Card, InstallFlaskButton } from '../components';
 import { NetworkSelector } from '../components/NetworkSelector/NetworkSelector';

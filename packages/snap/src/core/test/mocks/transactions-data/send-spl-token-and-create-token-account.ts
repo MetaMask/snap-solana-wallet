@@ -214,5 +214,5 @@ export const EXPECTED_SEND_SPL_TOKEN_AND_CREATE_TOKEN_ACCOUNT_DATA: SolanaTransa
         '4G24SgaZ3gU92HAB8xwSVg6WXS7NcGtUpHMnQ5RTwBw9bG5x8y6co5TzqqPXbExovY2NAuPjE9393TCHFZVhS8K9',
       ] as Base58EncodedBytes[],
     },
-    version: 0 as TransactionVersion,
+    version: 0,
   };

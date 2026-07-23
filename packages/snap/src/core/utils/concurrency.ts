@@ -41,7 +41,6 @@ export class CancellationError extends Error {
 export const withCancellable = <ReturnType>(
   fn: (...args: any[]) => Promise<ReturnType>,
 ): ((...args: any[]) => CancellablePromise<ReturnType>) => {
-  // eslint-disable-next-line @typescript-eslint/promise-function-async
   return (...args) => {
     const abortController = new AbortController();
 

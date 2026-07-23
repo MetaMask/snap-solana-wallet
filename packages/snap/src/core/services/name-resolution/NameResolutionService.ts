@@ -10,9 +10,9 @@ import type { ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection/SolanaConnection';
 
 export class NameResolutionService {
-  #connection: SolanaConnection;
+  readonly #connection: SolanaConnection;
 
-  #logger: ILogger;
+  readonly #logger: ILogger;
 
   tld = '.sol';
 

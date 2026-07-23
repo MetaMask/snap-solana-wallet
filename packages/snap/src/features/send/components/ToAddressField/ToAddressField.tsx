@@ -10,7 +10,8 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 
 import type { FetchStatus } from '../../../../core/types/snap';
-import { i18n, type Locale } from '../../../../core/utils/i18n';
+import { i18n } from '../../../../core/utils/i18n';
+import type { Locale } from '../../../../core/utils/i18n';
 import { SendFormNames } from '../../types';
 
 type ToAddressFieldProps = {

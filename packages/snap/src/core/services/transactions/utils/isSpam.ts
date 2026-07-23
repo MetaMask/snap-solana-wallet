@@ -57,6 +57,7 @@ const isSolAmountLowerThanThreshold: SpamDetector = (
 
 /**
  * Evaluates the legitimacy of a transaction based on various detectors.
+ *
  * @param transaction - The transaction to evaluate.
  * @param account - The account associated with the transaction.
  * @returns True if the transaction is spam, false if it's legitimate.

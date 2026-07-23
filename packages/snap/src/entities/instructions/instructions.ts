@@ -1,4 +1,4 @@
-import { type Infer } from '@metamask/superstruct';
+import type { Infer } from '@metamask/superstruct';
 import {
   COMPUTE_BUDGET_PROGRAM_ADDRESS,
   ComputeBudgetInstruction,
@@ -154,8 +154,9 @@ import {
   Token2022Instruction,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '@solana-program/token-2022';
+import { getBase58Codec } from '@solana/kit';
 import type { Rpc, SolanaRpcApi } from '@solana/kit';
-import { getBase58Codec, type IInstruction } from '@solana/kit';
+import type { IInstruction } from '@solana/kit';
 
 import {
   fromBytesToCompilableTransactionMessage,
@@ -177,6 +178,7 @@ import {
 
 /**
  * Truncates the instruction data to 12 characters.
+ *
  * @param data - The instruction data to truncate.
  * @returns The truncated instruction data.
  */
@@ -636,6 +638,7 @@ export const extractInstructionsFromUnknownBase64String = async (
 
 /**
  * Converts a SolanaInstruction to an IInstruction that we can parse with `parseInstruction`
+ *
  * @param instruction - The Solana instruction to convert.
  * @param transactionData - The full transaction data.
  * @returns The IInstruction.

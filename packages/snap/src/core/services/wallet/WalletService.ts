@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SolMethod } from '@metamask/keyring-api';
 import type { Infer } from '@metamask/superstruct';
 import { assert, instance, object } from '@metamask/superstruct';
@@ -31,6 +30,12 @@ import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { SolanaConnection } from '../connection';
 import type { Signer } from '../signer/Signer';
 import type { SignatureMonitor } from '../subscriptions';
+import {
+  SolanaSignAndSendTransactionResponseStruct,
+  SolanaSignInResponseStruct,
+  SolanaSignMessageResponseStruct,
+  SolanaSignTransactionResponseStruct,
+} from './structs';
 import type {
   SolanaSignAndSendTransactionOptions,
   SolanaSignAndSendTransactionResponse,
@@ -38,14 +43,10 @@ import type {
   SolanaSignTransactionOptions,
   SolanaWalletRequest,
 } from './structs';
-import {
-  SolanaSignAndSendTransactionResponseStruct,
-  type SolanaSignInResponse,
-  SolanaSignInResponseStruct,
-  type SolanaSignMessageResponse,
-  SolanaSignMessageResponseStruct,
-  type SolanaSignTransactionResponse,
-  SolanaSignTransactionResponseStruct,
+import type {
+  SolanaSignInResponse,
+  SolanaSignMessageResponse,
+  SolanaSignTransactionResponse,
 } from './structs';
 
 export class WalletService {

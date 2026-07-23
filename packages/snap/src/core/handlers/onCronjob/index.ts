@@ -1,4 +1,4 @@
-import { type OnCronjobHandler } from '@metamask/snaps-sdk';
+import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
 import { handlers as backgroundEventHandlers } from './backgroundEvents';
 import type { ScheduleBackgroundEventMethod } from './backgroundEvents/ScheduleBackgroundEventMethod';

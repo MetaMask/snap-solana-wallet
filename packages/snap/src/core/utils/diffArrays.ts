@@ -6,6 +6,7 @@ type DiffResult<Type> = {
 
 /**
  * Computes the difference between two arrays.
+ *
  * @param array1 - The first array.
  * @param array2 - The second array.
  * @returns An object containing the added and deleted elements.

@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-  address,
-  blockhash,
-  type CompilableTransactionMessage,
-} from '@solana/kit';
+import { address, blockhash } from '@solana/kit';
+import type { CompilableTransactionMessage } from '@solana/kit';
 
 import { Network } from '../../../constants/solana';
 import {

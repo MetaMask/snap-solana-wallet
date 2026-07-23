@@ -1,4 +1,4 @@
-import { type OnNameLookupHandler } from '@metamask/snaps-sdk';
+import type { OnNameLookupHandler } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
 import { nameResolutionService } from '../../../snapContext';

@@ -3,16 +3,17 @@ import { Duration } from '@metamask/utils';
 import { signature as asSignature } from '@solana/kit';
 import { get } from 'lodash';
 
-import {
-  CommitmentStruct,
-  type Commitment,
-  type SignatureNotification,
-  type Subscription,
-  type SubscriptionRequest,
+import { CommitmentStruct } from '../../../entities';
+import type {
+  Commitment,
+  SignatureNotification,
+  Subscription,
+  SubscriptionRequest,
 } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import { trackError } from '../../utils/errors';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import type { AccountsService } from '../accounts/AccountsService';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
@@ -287,6 +288,7 @@ export class SignatureMonitor {
 
   /**
    * Fetches the status of a signature from the RPC API.
+   *
    * @see https://docs.solana.com/developing/clients/jsonrpc-api#gettransaction
    * @param signature - The signature to fetch the status of.
    * @param network - The network to fetch the status from.

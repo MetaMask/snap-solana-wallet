@@ -28,7 +28,8 @@ import {
 } from '../../../../snapContext';
 import { getBalance, getIsNativeToken } from '../../selectors';
 import { Send } from '../../Send';
-import { SendCurrencyType, SendFormNames, type SendContext } from '../../types';
+import { SendCurrencyType, SendFormNames } from '../../types';
+import type { SendContext } from '../../types';
 import { buildTransactionMessageAndUpdateInterface } from '../../utils/buildTransactionMessageAndUpdateInterface';
 import { isSolanaDomain } from '../../utils/isSolanaDomain';
 import { sendFieldsAreValid, validateField } from '../../validation/form';
@@ -91,6 +92,7 @@ async function onSourceAccountSelectorValueChange({
 
 /**
  * Handles the change event for the amount input.
+ *
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  * @param params.event - The change event.
@@ -212,6 +214,7 @@ async function onAssetSelectorValueChange({
 
 /**
  * Handles the click event for the swap currency button.
+ *
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  * @param params.context - The send context.
@@ -258,6 +261,7 @@ async function onSwapCurrencyButtonClick({
 
 /**
  * Handles the click event for the max amount button.
+ *
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  * @param params.context - The send context.
@@ -342,6 +346,7 @@ async function onMaxAmountButtonClick({
 
 /**
  * Handles the change event for the destination account input.
+ *
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  * @param params.event - The change event.
@@ -412,6 +417,7 @@ async function onDestinationAccountInputValueChange({
 
 /**
  * Handles the click event for the clear button.
+ *
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  * @param params.context - The send context.
@@ -438,6 +444,7 @@ async function onClearButtonClick({
 
 /**
  * Handles the click event for the cancel button.
+ *
  * @param params - The parameters for the function.
  * @param params.id - The id of the interface.
  */

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable no-restricted-globals */
+
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { array, assert } from '@metamask/superstruct';
 import { CaipAssetTypeStruct } from '@metamask/utils';

@@ -27,6 +27,7 @@ export class TokenHelper {
    * If no extension is present, the conversion is a simple decimal shift.
    *
    * Based on the implementation from @solana-labs token-2022.
+   *
    * @see https://github.com/solana-program/token-2022/blob/rust-legacy%40v0.17.0/clients/js/src/amountToUiAmount.ts#L329
    * @param mintAddress - The mint address.
    * @param network - The network to fetch the mint account from.
@@ -45,6 +46,7 @@ export class TokenHelper {
   /**
    * Reverse operation of {@link uiAmountToAmountForMint}.
    * Instead of re-implementing the logic, we use a mathematical trick to find the multiplier.
+   *
    * @param mintAddress - The mint address.
    * @param network - The network to fetch the mint account from.
    * @param amount - The amount in lamports to convert.
@@ -62,6 +64,7 @@ export class TokenHelper {
   /**
    * Internal method that works with a mint account directly.
    * Converts a UI amount to the raw amount in lamports for a given mint account.
+   *
    * @param mintAccount - The mint account.
    * @param uiAmount - The UI amount.
    * @returns The amount in lamports as a Lamports type.
@@ -146,6 +149,7 @@ export class TokenHelper {
   /**
    * Internal method that works with a mint account directly.
    * Converts an amount in lamports to a UI amount for a given mint account.
+   *
    * @param mintAccount - The mint account.
    * @param amount - The amount in lamports.
    * @returns The UI amount as a string.

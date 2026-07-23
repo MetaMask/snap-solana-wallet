@@ -1,9 +1,6 @@
+import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
 import type { ResolveAccountAddressRequest } from '@metamask/keyring-api';
-import {
-  KeyringRpcMethod,
-  SolMethod,
-  type KeyringRequest,
-} from '@metamask/keyring-api';
+import type { KeyringRequest } from '@metamask/keyring-api';
 import type { JsonRpcRequest } from '@metamask/utils';
 
 import { Network } from '../../constants/solana';

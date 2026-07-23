@@ -9,11 +9,12 @@ import {
   Row,
   Section,
   Text,
-  type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
+import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 
 import { Domain } from '../../../../core/components/Domain/Domain';
-import { Networks, type Network } from '../../../../core/constants/solana';
+import { Networks } from '../../../../core/constants/solana';
+import type { Network } from '../../../../core/constants/solana';
 import { SOL_IMAGE_SVG } from '../../../../core/test/mocks/solana-image-svg';
 import type { Preferences } from '../../../../core/types/snap';
 import { addressToCaip10 } from '../../../../core/utils/addressToCaip10';

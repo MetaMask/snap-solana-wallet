@@ -1,7 +1,8 @@
 import { assert } from '@metamask/utils';
 
 import type { Serializable } from '../serialization/types';
-import { createPrefixedLogger, type ILogger } from '../utils/logger';
+import { createPrefixedLogger } from '../utils/logger';
+import type { ILogger } from '../utils/logger';
 import type { ICache } from './ICache';
 import type { CacheEntry } from './types';
 
@@ -12,7 +13,7 @@ import type { CacheEntry } from './types';
  * - This cache is not persistent and will be lost when the process is restarted.
  */
 export class InMemoryCache implements ICache<Serializable> {
-  #cache: Map<string, CacheEntry> = new Map();
+  readonly #cache: Map<string, CacheEntry> = new Map();
 
   public readonly logger: ILogger;
 

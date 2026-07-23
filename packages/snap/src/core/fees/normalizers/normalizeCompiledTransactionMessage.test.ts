@@ -1,4 +1,5 @@
-import { address, type CompiledTransactionMessage } from '@solana/kit';
+import { address } from '@solana/kit';
+import type { CompiledTransactionMessage } from '@solana/kit';
 
 import { normalizeCompiledTransactionMessage } from './normalizeCompiledTransactionMessage';
 

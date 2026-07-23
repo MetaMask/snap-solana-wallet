@@ -2,6 +2,7 @@ import BigNumber from 'bignumber.js';
 
 /**
  * Converts raw token units to human-readable format.
+ *
  * @param amount - The amount in raw units.
  * @param decimals - The number of decimals the token has.
  * @returns The amount in human-readable format.

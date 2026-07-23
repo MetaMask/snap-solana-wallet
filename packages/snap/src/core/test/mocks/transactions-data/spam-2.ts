@@ -14,7 +14,6 @@ export const EXPECTED_SPAM_TRANSACTION_DATA_2: SolanaTransaction = {
     // eslint-disable-next-line id-denylist
     err: {
       InsufficientFundsForRent: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         account_index: 2,
       },
     },
@@ -120,7 +119,6 @@ export const EXPECTED_SPAM_TRANSACTION_DATA_2: SolanaTransaction = {
     status: {
       Err: {
         InsufficientFundsForRent: {
-          // eslint-disable-next-line id-denylist, @typescript-eslint/naming-convention
           account_index: 2,
         },
       },

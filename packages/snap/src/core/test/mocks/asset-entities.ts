@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { FungibleAssetMetadata } from '@metamask/snaps-sdk';
 
 import type { AssetEntity, NativeAsset, TokenAsset } from '../../../entities';

@@ -32,7 +32,7 @@ describe('SignatureMonitor', () => {
   let mockConnection: SolanaConnection;
   let mockConfigProvider: ConfigProvider;
 
-  const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNTS[0]!;
+  const mockAccount = MOCK_SOLANA_KEYRING_ACCOUNTS[0];
 
   const signature =
     '4s3KAUEZ9N5uwKurHNApnCSXVd6UxPD4VuHFtjcdT4WyXk5g5ZuscqqyJCjgssm81rL2BbjhJULHwBoe5jbNx5yS';

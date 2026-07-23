@@ -6,6 +6,7 @@
 export type ICache<TValue> = {
   /**
    * Retrieves a value from the cache by key.
+   *
    * @param key - The key to retrieve
    * @returns The value if found, undefined if not found
    */
@@ -15,6 +16,7 @@ export type ICache<TValue> = {
    * Stores a value in the cache with an optional TTL.
    * - If a value is undefined, it will not be stored in the cache.
    * - If a value is null, it will be stored in the cache.
+   *
    * @param key - The key to store the value under
    * @param value - The value to store
    * @param ttlMilliseconds - Optional time-to-live in milliseconds. If not provided, the value will not expire.
@@ -24,6 +26,7 @@ export type ICache<TValue> = {
 
   /**
    * Removes a value from the cache.
+   *
    * @param key - The key to remove
    * @returns true if the key was found and removed, false otherwise
    */
@@ -36,6 +39,7 @@ export type ICache<TValue> = {
 
   /**
    * Checks if a key exists in the cache.
+   *
    * @param key - The key to check
    * @returns true if the key exists, false otherwise
    */
@@ -43,18 +47,21 @@ export type ICache<TValue> = {
 
   /**
    * Returns all keys currently in the cache.
+   *
    * @returns Array of keys
    */
   keys(): Promise<string[]>;
 
   /**
    * Returns the number of items in the cache.
+   *
    * @returns The number of items
    */
   size(): Promise<number>;
 
   /**
    * Retrieves a value from the cache without affecting its TTL or last accessed time.
+   *
    * @param key - The key to peek at
    * @returns The value if found, undefined if not found
    */
@@ -62,6 +69,7 @@ export type ICache<TValue> = {
 
   /**
    * Retrieves multiple values from the cache in a single operation.
+   *
    * @param keys - Array of keys to retrieve
    * @returns Object mapping keys to their values (or undefined if not found)
    */
@@ -71,6 +79,7 @@ export type ICache<TValue> = {
    * Stores multiple values in the cache in a single operation.
    * - If a value is undefined, it will not be stored in the cache.
    * - If a value is null, it will be stored in the cache.
+   *
    * @param entries - Array of entries to store, each with key, value, and optional TTL (if not provided, the value will not expire)
    * @throws Error if any entry's ttlMilliseconds is not a number, is negative, or is greater than 2^53 - 1
    */
@@ -80,6 +89,7 @@ export type ICache<TValue> = {
 
   /**
    * Removes multiple values from the cache.
+   *
    * @param keys - Array of keys to remove
    * @returns An object mapping each key to a boolean indicating whether it was found and removed
    */

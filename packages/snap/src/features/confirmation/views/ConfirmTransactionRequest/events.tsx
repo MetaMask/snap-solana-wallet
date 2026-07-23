@@ -5,7 +5,7 @@ import {
 } from '../../../../core/utils/interface';
 import { state } from '../../../../snapContext';
 import { ConfirmTransactionRequest } from './ConfirmTransactionRequest';
-import { type ConfirmTransactionRequestContext } from './types';
+import type { ConfirmTransactionRequestContext } from './types';
 
 /**
  * Handles the click event for the show advanced button.

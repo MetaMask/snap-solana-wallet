@@ -1,7 +1,12 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import { assert } from '@metamask/superstruct';
 import { Duration } from '@metamask/utils';
-import { fetchMint, type Mint } from '@solana-program/token-2022';
+import { fetchMint } from '@solana-program/token-2022';
+import type { Mint } from '@solana-program/token-2022';
+import {
+  address as asAddress,
+  createSolanaRpcFromTransport,
+  fetchJsonParsedAccount,
+} from '@solana/kit';
 import type {
   Account,
   Address,
@@ -10,13 +15,7 @@ import type {
   MaybeAccount,
   MaybeEncodedAccount,
 } from '@solana/kit';
-import {
-  address as asAddress,
-  createSolanaRpcFromTransport,
-  fetchJsonParsedAccount,
-  type Rpc,
-  type SolanaRpcApi,
-} from '@solana/kit';
+import type { Rpc, SolanaRpcApi } from '@solana/kit';
 
 import type { ICache } from '../../caching/ICache';
 import { useCache } from '../../caching/useCache';
@@ -131,6 +130,7 @@ export class SolanaConnection {
    * Returns the mint account for the given address and network.
    *
    * It's a wrapper around the fetchMint function that caches the result for 1 minute.
+   *
    * @param address - The address of the mint.
    * @param caip2Id - The CAIP-2 ID of the network.
    * @param config - The config for the fetchMint function.

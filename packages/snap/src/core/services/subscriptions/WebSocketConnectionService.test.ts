@@ -8,10 +8,8 @@ import type { NetworkConfig } from '../config/ConfigProvider';
 import { mockLogger } from '../mocks/logger';
 import { InMemoryState } from '../state/InMemoryState';
 import type { IStateManager } from '../state/IStateManager';
-import {
-  DEFAULT_UNENCRYPTED_STATE,
-  type UnencryptedStateValue,
-} from '../state/State';
+import { DEFAULT_UNENCRYPTED_STATE } from '../state/State';
+import type { UnencryptedStateValue } from '../state/State';
 import type { WebSocketConnectionRepository } from './WebSocketConnectionRepository';
 import { WebSocketConnectionService } from './WebSocketConnectionService';
 

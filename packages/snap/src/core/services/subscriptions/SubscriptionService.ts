@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { WebSocketEvent } from '@metamask/snaps-sdk';
+import { isJsonRpcFailure } from '@metamask/utils';
 import type { JsonRpcFailure } from '@metamask/utils';
-import { isJsonRpcFailure, type JsonRpcRequest } from '@metamask/utils';
+import type { JsonRpcRequest } from '@metamask/utils';
 
 import type {
   Notification,
@@ -16,7 +17,8 @@ import type {
 import { subscribeMethodToUnsubscribeMethod } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import { SUPPORTED_NETWORKS } from '../config/ConfigProvider';
 import { parseWebSocketMessage } from './parseWebSocketMessage';
 import type { SubscriptionRepository } from './SubscriptionRepository';
@@ -88,6 +90,7 @@ export class SubscriptionService {
 
   /**
    * Registers a handler for whenever a WebSocket notification is received for a given method and network.
+   *
    * @param method - The method to register the handler for.
    * @param network - The network to register the handler for.
    * @param handler - The unified handler that receives notification and subscription.
@@ -113,6 +116,7 @@ export class SubscriptionService {
   /**
    * Registers a handler for whenever the connection is re-established.
    * Simply re-exposes the method `onConnectionRecovery` from the connection service.
+   *
    * @param network - The network to register the handler for.
    * @param handler - The handler to register.
    */
@@ -309,6 +313,7 @@ export class SubscriptionService {
 
   /**
    * Sends a message to the WebSocket connection.
+   *
    * @param connectionId - The ID of the connection to send the message to.
    * @param message - The message to send.
    * @returns A promise that resolves when the message is sent.
@@ -330,6 +335,7 @@ export class SubscriptionService {
 
   /**
    * Checks if the message is a subscription confirmation.
+   *
    * @param message - The message to check.
    * @returns True if the message is a subscription confirmation, false otherwise.
    */
@@ -347,6 +353,7 @@ export class SubscriptionService {
 
   /**
    * Checks if the message is a unsubscription confirmation.
+   *
    * @param message - The message to check.
    * @returns True if the message is a unsubscription confirmation, false otherwise.
    */
@@ -475,6 +482,7 @@ export class SubscriptionService {
    * Generates a deterministic ID for a subscription request.
    * This allows for idempotent subscriptions: same request -> same ID.
    * It also avoids duplicate subscriptions.
+   *
    * @param request - The subscription request.
    * @returns The ID of the subscription.
    */
@@ -506,6 +514,7 @@ export class SubscriptionService {
   /**
    * Recursively sorts object keys at all levels to ensure deterministic serialization.
    * This guarantees that identical objects always produce identical JSON strings.
+   *
    * @param obj - The object to stringify deterministically.
    * @returns A deterministic JSON string representation.
    */
@@ -558,6 +567,7 @@ export class SubscriptionService {
 
   /**
    * Re-subscribes to all subscriptions for the given network.
+   *
    * @param network - The network to re-subscribe to.
    */
   async #reSubscribe(network: Network): Promise<void> {

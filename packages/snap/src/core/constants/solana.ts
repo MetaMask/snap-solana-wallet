@@ -1,6 +1,5 @@
 import { define, pattern, string } from '@metamask/superstruct';
 
-/* eslint-disable no-restricted-globals */
 export const SOL_SYMBOL = 'SOL';
 export const SOL_IMAGE_URL =
   'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png';
@@ -12,6 +11,7 @@ export const METAMASK_ORIGIN_URL = 'https://metamask.io';
 
 /**
  * Solana CAIP-2 Networks
+ *
  * @see https://namespaces.chainagnostic.org/solana/caip2
  */
 export enum Network {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import type { Transaction } from '@metamask/keyring-api';
 import type { Address, Signature } from '@solana/kit';
 import type { MutexInterface } from 'async-mutex';
@@ -126,12 +126,12 @@ class StateLock {
  * - It  merges the default state with the underlying snap state to ensure that we always have default values,
  * letting us avoid a ton of null checks everywhere.
  */
-export class State<TStateValue extends Record<string, Serializable>>
-  implements IStateManager<TStateValue>
-{
-  #lock = new StateLock();
+export class State<
+  TStateValue extends Record<string, Serializable>,
+> implements IStateManager<TStateValue> {
+  readonly #lock = new StateLock();
 
-  #config: StateConfig<TStateValue>;
+  readonly #config: StateConfig<TStateValue>;
 
   constructor(eventEmitter: EventEmitter, config: StateConfig<TStateValue>) {
     this.#config = config;

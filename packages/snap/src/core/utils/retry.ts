@@ -1,6 +1,7 @@
 /**
  * Retry the passed promise until it resolves, retrying with a delay
  * between attempts until the maximum number of attempts is reached.
+ *
  * @param fn - The promise to retry.
  * @param options - The options for the promise.
  * @param options.maxAttempts - The maximum number of attempts.

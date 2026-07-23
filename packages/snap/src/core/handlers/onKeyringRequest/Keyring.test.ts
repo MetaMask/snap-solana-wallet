@@ -1,13 +1,9 @@
 /* eslint-disable no-restricted-globals */
-/* eslint-disable jest/prefer-strict-equal */
+
 import type { KeyringRequest } from '@metamask/keyring-api';
 import { AccountCreationType, SolMethod } from '@metamask/keyring-api';
-import {
-  InvalidParamsError,
-  SnapError,
-  type CaipAssetType,
-  type JsonRpcRequest,
-} from '@metamask/snaps-sdk';
+import { InvalidParamsError, SnapError } from '@metamask/snaps-sdk';
+import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { signature } from '@solana/kit';
 import bs58 from 'bs58';
 
@@ -22,10 +18,8 @@ import type {
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import { InMemoryState } from '../../services/state/InMemoryState';
 import type { IStateManager } from '../../services/state/IStateManager';
-import {
-  DEFAULT_UNENCRYPTED_STATE,
-  type UnencryptedStateValue,
-} from '../../services/state/State';
+import { DEFAULT_UNENCRYPTED_STATE } from '../../services/state/State';
+import type { UnencryptedStateValue } from '../../services/state/State';
 import { MOCK_SIGN_AND_SEND_TRANSACTION_REQUEST } from '../../services/wallet/mocks';
 import type { WalletService } from '../../services/wallet/WalletService';
 import {

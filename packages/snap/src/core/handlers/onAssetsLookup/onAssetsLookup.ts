@@ -1,5 +1,5 @@
 import type { CaipAssetType, FungibleAssetMetadata } from '@metamask/snaps-sdk';
-import { type OnAssetsLookupHandler } from '@metamask/snaps-sdk';
+import type { OnAssetsLookupHandler } from '@metamask/snaps-sdk';
 import { parseCaipAssetType } from '@metamask/utils';
 
 import { assetsService } from '../../../snapContext';

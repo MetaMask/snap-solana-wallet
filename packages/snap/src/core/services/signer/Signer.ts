@@ -14,7 +14,7 @@ import {
   pipe,
 } from '@solana/kit';
 
-import { type SolanaKeyringAccount } from '../../../entities';
+import type { SolanaKeyringAccount } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import type { DecompileTransactionMessageFetchingLookupTablesConfig } from '../../sdk-extensions/codecs';
 import {
@@ -30,7 +30,8 @@ import {
   setTransactionMessageLifetimeUsingBlockhashIfMissing,
 } from '../../sdk-extensions/transaction-messages';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import type { Base64Struct } from '../../validation/structs';
 import type { SolanaConnection } from '../connection';
 

@@ -1,5 +1,6 @@
 import { KeyringRpcMethod } from '@metamask/keyring-api';
 import { handleKeyringRequest } from '@metamask/keyring-snap-sdk/v2';
+import { MethodNotFoundError } from '@metamask/snaps-sdk';
 import type {
   Json,
   OnActiveHandler,
@@ -19,10 +20,7 @@ import type {
   OnUserInputHandler,
   OnWebSocketEventHandler,
 } from '@metamask/snaps-sdk';
-import {
-  MethodNotFoundError,
-  type OnRpcRequestHandler,
-} from '@metamask/snaps-sdk';
+import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert, enums } from '@metamask/superstruct';
 import BigNumber from 'bignumber.js';
 

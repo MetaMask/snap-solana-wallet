@@ -1,12 +1,5 @@
-import {
-  Banner,
-  Box,
-  Icon,
-  Link,
-  Text,
-  type BannerProps,
-  type SnapComponent,
-} from '@metamask/snaps-sdk/jsx';
+import { Banner, Box, Icon, Link, Text } from '@metamask/snaps-sdk/jsx';
+import type { BannerProps, SnapComponent } from '@metamask/snaps-sdk/jsx';
 
 import type {
   TransactionScanError,

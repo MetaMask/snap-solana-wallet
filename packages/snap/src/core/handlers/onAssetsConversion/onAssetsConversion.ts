@@ -1,4 +1,4 @@
-import { type OnAssetsConversionHandler } from '@metamask/snaps-sdk';
+import type { OnAssetsConversionHandler } from '@metamask/snaps-sdk';
 
 import { tokenPricesService } from '../../../snapContext';
 import logger from '../../utils/logger';

@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button, Card, Flex, Heading } from '@chakra-ui/react';
-import { KeyringRpcMethod, type KeyringAccount } from '@metamask/keyring-api';
+import { KeyringRpcMethod } from '@metamask/keyring-api';
+import type { KeyringAccount } from '@metamask/keyring-api';
 import { useEffect, useState } from 'react';
 
 import { TestDappRpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';

@@ -1,9 +1,5 @@
-import {
-  Box,
-  Section,
-  Text,
-  type SnapComponent,
-} from '@metamask/snaps-sdk/jsx';
+import { Box, Section, Text } from '@metamask/snaps-sdk/jsx';
+import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 
 import type {
   TransactionScanEstimatedChanges,

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   Button,
   IconButton,
@@ -7,12 +6,8 @@ import {
   Portal,
   Table,
 } from '@chakra-ui/react';
-import {
-  KeyringRpcMethod,
-  SolMethod,
-  type Balance,
-  type KeyringAccount,
-} from '@metamask/keyring-api';
+import { KeyringRpcMethod, SolMethod } from '@metamask/keyring-api';
+import type { Balance, KeyringAccount } from '@metamask/keyring-api';
 import { address as asAddress } from '@solana/kit';
 import { Link as RouterLink } from 'gatsby';
 import { useEffect, useState } from 'react';

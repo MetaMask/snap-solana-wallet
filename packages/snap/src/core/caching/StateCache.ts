@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { assert } from '@metamask/utils';
 
 import type { Serializable } from '../serialization/types';
@@ -72,7 +70,7 @@ export type StateValue = {
  * ```
  */
 export class StateCache implements ICache<Serializable | undefined> {
-  #state: IStateManager<StateValue>;
+  readonly #state: IStateManager<StateValue>;
 
   public readonly prefix: CachePrefix;
 

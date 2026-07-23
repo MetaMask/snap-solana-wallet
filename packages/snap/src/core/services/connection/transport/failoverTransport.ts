@@ -1,4 +1,4 @@
-import { type RpcTransport } from '@solana/kit';
+import type { RpcTransport } from '@solana/kit';
 
 import { noOpLogger } from '../../../utils/logger';
 

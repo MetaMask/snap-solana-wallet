@@ -1,10 +1,5 @@
-import {
-  Box,
-  Button,
-  Heading,
-  Icon,
-  type SnapComponent,
-} from '@metamask/snaps-sdk/jsx';
+import { Box, Button, Heading, Icon } from '@metamask/snaps-sdk/jsx';
+import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 
 type NavigationProps = {
   title: string;

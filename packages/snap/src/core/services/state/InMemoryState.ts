@@ -6,9 +6,9 @@ import type { IStateManager } from './IStateManager';
 /**
  * A simple implementation of the `IStateManager` interface that relies on an in memory state that can be used for testing purposes.
  */
-export class InMemoryState<TStateValue extends Record<string, Serializable>>
-  implements IStateManager<TStateValue>
-{
+export class InMemoryState<
+  TStateValue extends Record<string, Serializable>,
+> implements IStateManager<TStateValue> {
   #state: TStateValue;
 
   constructor(initialState: TStateValue) {

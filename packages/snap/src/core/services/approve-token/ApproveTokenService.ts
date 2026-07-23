@@ -30,7 +30,8 @@ import {
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { Network } from '../../constants/solana';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import type { TokenHelper } from '../assets/TokenHelper';
 import type { SolanaConnection } from '../connection';
 

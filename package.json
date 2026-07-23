@@ -7,78 +7,80 @@
   "bugs": {
     "url": "https://github.com/MetaMask/snap-solana-wallet/issues"
   },
+  "license": "(MIT-0 OR Apache-2.0)",
+  "author": "",
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/snap-solana-wallet.git"
   },
-  "license": "(MIT-0 OR Apache-2.0)",
-  "author": "",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
     "build": "yarn workspaces foreach --parallel --topological --verbose run build",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
-    "lint:eslint": "eslint . --cache --ext js,jsx,ts,tsx",
-    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
-    "lint:misc": "prettier '**/*.md' '!**/CHANGELOG.md' '**/*.yml' --ignore-path .gitignore",
+    "lint:eslint": "eslint . --cache",
+    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc",
+    "lint:misc": "oxfmt --ignore-path .gitignore",
     "prepare": "husky",
-    "prettier:check": "prettier --check 'packages/**/*.{ts,json,js,tsx}'",
-    "prettier:fix": "prettier --write 'packages/**/*.{ts,json,js,tsx}'",
     "start": "yarn workspaces foreach --parallel --interlaced --verbose run start",
     "test": "yarn workspace @metamask/solana-wallet-snap run test --detectOpenHandles",
     "test:watch": "yarn workspace @metamask/solana-wallet-snap run test:watch"
-  },
-  "lint-staged": {
-    "*": [
-      "yarn prettier:fix",
-      "yarn lint:fix"
-    ]
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
     "@lavamoat/allow-scripts": "^3.3.0",
     "@lavamoat/preinstall-always-fail": "^2.1.0",
-    "@metamask/eslint-config": "^12.2.0",
-    "@metamask/eslint-config-jest": "^12.1.0",
-    "@metamask/eslint-config-nodejs": "^12.1.0",
-    "@metamask/eslint-config-typescript": "^12.1.0",
-    "@metamask/utils": "^10.0.0",
-    "@types/jest": "^27.5.2",
+    "@metamask/eslint-config": "^15.0.0",
+    "@metamask/eslint-config-browser": "^15.0.0",
+    "@metamask/eslint-config-jest": "^15.0.0",
+    "@metamask/eslint-config-nodejs": "^15.0.0",
+    "@metamask/eslint-config-typescript": "^15.0.0",
+    "@metamask/utils": "^11.9.0",
+    "@types/jest": "^29.5.14",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
-    "@typescript-eslint/eslint-plugin": "^5.42.1",
-    "@typescript-eslint/parser": "^5.42.1",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
     "babel-plugin-styled-components": "^2.1.4",
-    "eslint": "^8.45.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-import": "~2.26.0",
-    "eslint-plugin-jest": "^27.1.5",
-    "eslint-plugin-jsdoc": "^41.1.2",
-    "eslint-plugin-n": "^15.7.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "eslint-plugin-promise": "^6.1.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "eslint-plugin-import-x": "^4.3.0",
+    "eslint-plugin-jest": "^28.8.3",
+    "eslint-plugin-jsdoc": "^50.2.4",
+    "eslint-plugin-n": "^17.10.3",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-promise": "^7.1.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
+    "oxfmt": "^0.45.0",
     "prettier": "^3.5.3",
     "prettier-plugin-packagejson": "^2.2.11",
-    "typescript": "^5.6.3"
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.48.0"
   },
   "resolutions": {
     "@metamask/snaps-sdk": "^11.1.1",
     "@types/react": "18.2.4",
     "@types/react-dom": "18.2.4"
   },
-  "packageManager": "yarn@4.17.0",
+  "lint-staged": {
+    "*": [
+      "yarn lint:fix"
+    ]
+  },
   "engines": {
     "node": ">=20.17.0"
   },
+  "packageManager": "yarn@4.17.1",
   "lavamoat": {
     "allowScripts": {
       "@lavamoat/preinstall-always-fail": false,
       "sharp": true,
-      "@commitlint/cli>@commitlint/load>ts-node>@swc/core": false
+      "@commitlint/cli>@commitlint/load>ts-node>@swc/core": false,
+      "eslint-plugin-import-x>unrs-resolver": false
     }
   }
 }

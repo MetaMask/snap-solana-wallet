@@ -7,6 +7,7 @@ type DiffResult = {
 
 /**
  * Computes the differences between two objects.
+ *
  * @param object1 - The first object to compare.
  * @param object2 - The second object to compare.
  * @returns The differences between the two objects.

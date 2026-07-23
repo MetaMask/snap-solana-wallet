@@ -1,5 +1,5 @@
 import type { JsonRpcRequest } from '@metamask/snaps-sdk';
-import { type OnRpcRequestHandler } from '@metamask/snaps-sdk';
+import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 
 import { renderSend } from '../../../features/send/render';
 import {

@@ -1,5 +1,6 @@
 import { Button, Text as ChakraText, Flex, Table } from '@chakra-ui/react';
-import { KeyringRpcMethod, type KeyringAccount } from '@metamask/keyring-api';
+import { KeyringRpcMethod } from '@metamask/keyring-api';
+import type { KeyringAccount } from '@metamask/keyring-api';
 import { useEffect, useState } from 'react';
 
 import { useInvokeKeyring } from '../../hooks/useInvokeKeyring';

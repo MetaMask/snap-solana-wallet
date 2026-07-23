@@ -300,5 +300,5 @@ export const EXPECTED_SPAM_TRANSACTION_DATA: SolanaTransaction = {
       '5LUArY58kJQLtdrc1A42rcr3qJRTmuZdK8aPC9Beme9PuKom5qNPkxyBhsz6JDHrRff428doMLb77fdbw1C7uwYD',
     ] as Base58EncodedBytes[],
   },
-  version: 'legacy' as TransactionVersion,
+  version: 'legacy',
 };

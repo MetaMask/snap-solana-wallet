@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-restricted-globals */
 import bs58 from 'bs58';
 

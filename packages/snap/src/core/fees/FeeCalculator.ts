@@ -166,6 +166,7 @@ export class FeeCalculator {
 
   /**
    * Calculates the base fee from the total signatures count.
+   *
    * @param totalSignaturesCount - Total signatures count.
    * @returns Base fee in lamports.
    */
@@ -207,6 +208,7 @@ export class FeeCalculator {
 
   /**
    * Calculates the priority fee for a transaction.
+   *
    * @param computeUnitLimit - Compute unit limit.
    * @param getComputeUnitPriceMicroLamportsPerComputeUnit - Compute unit price.
    * @returns Priority fee in lamports.
@@ -232,6 +234,7 @@ export class FeeCalculator {
 
   /**
    * Counts all signature types in the transaction.
+   *
    * @param normalizedInput - Normalized input.
    * @returns Object with counts of each signature type.
    */
@@ -280,6 +283,7 @@ export class FeeCalculator {
 
   /**
    * Normalizes the various input types to a common format.
+   *
    * @param input - Transaction message or transaction data.
    * @returns Normalized input.
    */
@@ -289,7 +293,7 @@ export class FeeCalculator {
     }
 
     if (this.#isBase64EncodedTransactionMessage(input)) {
-      return normalizeBase64EncodedTransactionMessage(input as string);
+      return normalizeBase64EncodedTransactionMessage(input);
     }
 
     if (this.#isCompiledTransactionMessage(input)) {

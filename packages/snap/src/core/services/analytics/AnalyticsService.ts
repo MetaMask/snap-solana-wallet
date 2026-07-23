@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { Transaction } from '@metamask/keyring-api';
 import type { Json } from '@metamask/utils';
 

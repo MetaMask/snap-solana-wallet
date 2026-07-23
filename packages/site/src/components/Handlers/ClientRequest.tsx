@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button, Card, Flex } from '@chakra-ui/react';
 import type { KeyringAccount } from '@metamask/keyring-api';
 import { KeyringRpcMethod } from '@metamask/keyring-api';
@@ -41,7 +40,6 @@ export const ClientRequest = () => {
     });
 
     showSuccessToast(
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `Successfully signed the rewards message! Signature: ${(response as any).signature}`,
     );
   };

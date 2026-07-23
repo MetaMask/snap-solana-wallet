@@ -15,6 +15,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 /**
  * Gets a user-friendly message from a transaction scan error.
+ *
  * @param error - The error of the transaction scan.
  * @param preferences - The user preferences containing locale information.
  * @returns A user-friendly error message, or the original error code if no mapping exists.

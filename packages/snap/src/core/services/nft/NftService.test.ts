@@ -2,7 +2,6 @@ import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
 import { NftService } from './NftService';
 
-// eslint-disable-next-line jest/no-disabled-tests
 describe.skip('NftService', () => {
   let service: NftService;
   let mockConnection: SolanaConnection;

@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable no-restricted-globals */
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-require-imports */
+
 import type { Mint } from '@solana-program/token-2022';
+/* eslint-disable @typescript-eslint/no-require-imports */
+import { address, lamports } from '@solana/kit';
 import type { Account } from '@solana/kit';
-import { address, lamports, type Address } from '@solana/kit';
+import type { Address } from '@solana/kit';
 import { cloneDeep } from 'lodash';
 
 import type { RecipientClassifier } from '..';
