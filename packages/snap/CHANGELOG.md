@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING:** Reconcile snap package with monorepo template ([#628](https://github.com/MetaMask/snap-solana-wallet/pull/628))
+  - Require Node.js `>=20`
+
 ## [3.0.0]
 
 ### Added
@@ -17,8 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **BREAKING:** Reconcile snap package with monorepo template ([#628](https://github.com/MetaMask/snap-solana-wallet/pull/628))
-  - Require Node.js `>=20`
 - Bump `@metamask/keyring-api` to `^23.5.0` and `@metamask/keyring-snap-sdk` to `^9.2.0` ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
 
 ### Removed
