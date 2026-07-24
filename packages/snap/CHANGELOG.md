@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.0]
+
 ### Added
 
 - Implement keyring type and methods to V2 ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
