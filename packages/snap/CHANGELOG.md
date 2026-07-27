@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING:** Reconcile snap package with monorepo template ([#628](https://github.com/MetaMask/snap-solana-wallet/pull/628))
+  - Require Node.js `>=20`
+
 ## [3.0.0]
 
 ### Added
