@@ -20,7 +20,7 @@
   },
   "scripts": {
     "allow-scripts": "yarn workspace root allow-scripts",
-    "build": "yarn locale:build && mm-snap build && yarn build-preinstalled-snap",
+    "build": "mm-snap build && yarn locale:build && yarn build-preinstalled-snap",
     "build-preinstalled-snap": "node scripts/build-preinstalled-snap.js",
     "build:clean": "yarn clean && yarn build",
     "clean": "rimraf dist",
