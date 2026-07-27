@@ -1,4 +1,4 @@
-import { address as asAddress } from '@solana/kit';
+import { address as asAddress, lamports } from '@solana/kit';
 
 import { KnownCaip19Id, Network, Networks } from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
@@ -27,6 +27,46 @@ import { TransactionMapper } from './TransactionMapper';
 jest.mock('../../utils/errors', () => ({
   trackError: jest.fn().mockResolvedValue('tracked-error-id'),
 }));
+
+type WithTransactionMapperCallback<ReturnValue> = (payload: {
+  transactionMapper: TransactionMapper;
+  mockTokenHelper: jest.Mocked<Pick<TokenHelper, 'amountToUiAmountForMint'>>;
+  mockAssetsService: jest.Mocked<Pick<AssetsService, 'getAssetsMetadata'>>;
+}) => Promise<ReturnValue> | ReturnValue;
+
+/**
+ * Wraps tests by creating a fresh TransactionMapper and fresh mocks.
+ *
+ * @param testFunction - The test body receiving the TransactionMapper and relevant mocks.
+ * @returns The return value of the callback.
+ */
+async function withTransactionMapper<ReturnValue>(
+  testFunction: WithTransactionMapperCallback<ReturnValue>,
+): Promise<ReturnValue> {
+  const mockTokenHelper: jest.Mocked<
+    Pick<TokenHelper, 'amountToUiAmountForMint'>
+  > = {
+    amountToUiAmountForMint: jest.fn().mockResolvedValue('1'),
+  };
+
+  const mockAssetsService: jest.Mocked<
+    Pick<AssetsService, 'getAssetsMetadata'>
+  > = {
+    getAssetsMetadata: jest.fn().mockResolvedValue({}),
+  };
+
+  const transactionMapper = new TransactionMapper(
+    mockTokenHelper as unknown as TokenHelper,
+    mockAssetsService as unknown as AssetsService,
+    logger,
+  );
+
+  return await testFunction({
+    transactionMapper,
+    mockTokenHelper,
+    mockAssetsService,
+  });
+}
 
 describe('TransactionMapper', () => {
   let transactionMapper: TransactionMapper;
@@ -214,6 +254,142 @@ describe('TransactionMapper', () => {
       });
     });
 
+    it.each([
+      {
+        description: 'less than',
+        receivedLamports: 1n,
+        expectedAmount: '0.000000001',
+      },
+      {
+        description: 'equal to',
+        receivedLamports: 5000n,
+        expectedAmount: '0.000005',
+      },
+      {
+        description: 'greater than',
+        receivedLamports: 10000n,
+        expectedAmount: '0.00001',
+      },
+    ])(
+      'maps incoming native SOL for the fee payer when the received amount is $description the transaction fee',
+      async ({ receivedLamports, expectedAmount }) => {
+        await withTransactionMapper(
+          async ({ transactionMapper: freshTransactionMapper }) => {
+            const feeLamports = 5000n;
+            const feePayerPreBalance = 1000000n;
+            const counterpartyPreBalance = receivedLamports;
+            const [feePayerAddress, counterpartyAddress] =
+              EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction.message.accountKeys;
+
+            const result = await freshTransactionMapper.mapRpcTransaction(
+              {
+                ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
+                meta: {
+                  ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.meta,
+                  // eslint-disable-next-line id-denylist
+                  err: null,
+                  fee: lamports(feeLamports),
+                  preBalances: [
+                    lamports(feePayerPreBalance),
+                    lamports(counterpartyPreBalance),
+                    lamports(1n),
+                  ],
+                  postBalances: [
+                    lamports(
+                      feePayerPreBalance - feeLamports + receivedLamports,
+                    ),
+                    lamports(0n),
+                    lamports(1n),
+                  ],
+                },
+                transaction: {
+                  ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction,
+                  message: {
+                    ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction.message,
+                    instructions: [],
+                  },
+                },
+              },
+              mockAccount,
+              Network.Mainnet,
+            );
+
+            expect(result).toMatchObject({
+              type: 'receive',
+              from: [
+                {
+                  address: counterpartyAddress,
+                  asset: {
+                    amount: expectedAmount,
+                    fungible: true,
+                    type: Networks[Network.Mainnet].nativeToken.caip19Id,
+                    unit: Networks[Network.Mainnet].nativeToken.symbol,
+                  },
+                },
+              ],
+              to: [
+                {
+                  address: feePayerAddress,
+                  asset: {
+                    amount: expectedAmount,
+                    fungible: true,
+                    type: Networks[Network.Mainnet].nativeToken.caip19Id,
+                    unit: Networks[Network.Mainnet].nativeToken.symbol,
+                  },
+                },
+              ],
+            });
+          },
+        );
+      },
+    );
+
+    it('does not treat a transaction-fee-only SOL balance decrease as a native SOL transfer', async () => {
+      await withTransactionMapper(
+        async ({ transactionMapper: freshTransactionMapper }) => {
+          const feeLamports = 5000n;
+          const feePayerPreBalance = 1000000n;
+
+          const result = await freshTransactionMapper.mapRpcTransaction(
+            {
+              ...EXPECTED_NATIVE_SOL_TRANSFER_DATA,
+              meta: {
+                ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.meta,
+                // eslint-disable-next-line id-denylist
+                err: null,
+                fee: lamports(feeLamports),
+                preBalances: [
+                  lamports(feePayerPreBalance),
+                  lamports(0n),
+                  lamports(1n),
+                ],
+                postBalances: [
+                  lamports(feePayerPreBalance - feeLamports),
+                  lamports(0n),
+                  lamports(1n),
+                ],
+              },
+              transaction: {
+                ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction,
+                message: {
+                  ...EXPECTED_NATIVE_SOL_TRANSFER_DATA.transaction.message,
+                  instructions: [],
+                },
+              },
+            },
+            mockAccount,
+            Network.Mainnet,
+          );
+
+          expect(result).toMatchObject({
+            type: 'unknown',
+            from: [],
+            to: [],
+          });
+        },
+      );
+    });
+
     it('maps native SOL transfers - failure', async () => {
       const result = await transactionMapper.mapRpcTransaction(
         {
@@ -367,6 +543,98 @@ describe('TransactionMapper', () => {
         ],
       });
     });
+
+    it.each([
+      {
+        description: 'less than',
+        receivedLamports: 1n,
+        expectedAmount: '0.000000001',
+      },
+      {
+        description: 'equal to',
+        receivedLamports: 5000n,
+        expectedAmount: '0.000005',
+      },
+      {
+        description: 'greater than',
+        receivedLamports: 10000n,
+        expectedAmount: '0.00001',
+      },
+    ])(
+      'classifies an SPL token to native SOL transaction as a swap when incoming SOL is $description the transaction fee',
+      async ({ receivedLamports, expectedAmount }) => {
+        await withTransactionMapper(
+          async ({
+            mockTokenHelper: freshMockTokenHelper,
+            transactionMapper: freshTransactionMapper,
+          }) => {
+            freshMockTokenHelper.amountToUiAmountForMint.mockResolvedValue(
+              '0.01',
+            );
+
+            const feeLamports = 5000n;
+            const feePayerPreBalance = 1000000n;
+            const counterpartyPreBalance = 2039280n;
+            const [feePayerAddress] =
+              EXPECTED_SEND_USDC_TRANSFER_DATA.transaction.message.accountKeys;
+
+            const result = await freshTransactionMapper.mapRpcTransaction(
+              {
+                ...EXPECTED_SEND_USDC_TRANSFER_DATA,
+                meta: {
+                  ...EXPECTED_SEND_USDC_TRANSFER_DATA.meta,
+                  // eslint-disable-next-line id-denylist
+                  err: null,
+                  fee: lamports(feeLamports),
+                  preBalances: [
+                    lamports(feePayerPreBalance),
+                    lamports(counterpartyPreBalance),
+                    lamports(2039280n),
+                    lamports(934087680n),
+                  ],
+                  postBalances: [
+                    lamports(
+                      feePayerPreBalance - feeLamports + receivedLamports,
+                    ),
+                    lamports(counterpartyPreBalance - receivedLamports),
+                    lamports(2039280n),
+                    lamports(934087680n),
+                  ],
+                },
+              },
+              mockAccount,
+              Network.Devnet,
+            );
+
+            expect(result).toMatchObject({
+              type: 'swap',
+              from: [
+                {
+                  address: feePayerAddress,
+                  asset: {
+                    amount: '0.01',
+                    fungible: true,
+                    type: `${Network.Devnet}/token:4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
+                    unit: '',
+                  },
+                },
+              ],
+              to: [
+                {
+                  address: feePayerAddress,
+                  asset: {
+                    amount: expectedAmount,
+                    fungible: true,
+                    type: Networks[Network.Devnet].nativeToken.caip19Id,
+                    unit: Networks[Network.Devnet].nativeToken.symbol,
+                  },
+                },
+              ],
+            });
+          },
+        );
+      },
+    );
 
     it('maps SPL token transfers - as a sender to self', async () => {
       const result = await transactionMapper.mapRpcTransaction(
@@ -726,15 +994,15 @@ describe('TransactionMapper', () => {
               amount: '0.01',
             },
           },
-          {
-            address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
-            asset: {
-              amount: '0.000000008',
-              fungible: true,
-              type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-              unit: 'SOL',
-            },
-          },
+          // {
+          //   address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+          //   asset: {
+          //     amount: '0.000000008',
+          //     fungible: true,
+          //     type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          //     unit: 'SOL',
+          //   },
+          // },
         ],
         to: [
           {
@@ -744,6 +1012,15 @@ describe('TransactionMapper', () => {
               type: `${Network.Mainnet}/token:HaMv3cdfDW6357yjpDur6kb6w52BUPJrMJpR76tjpump`,
               unit: '',
               amount: '2583.728601',
+            },
+          },
+          {
+            address: 'DtMUkCoeyzs35B6EpQQxPyyog6TRwXxV1W1Acp8nWBNa',
+            asset: {
+              amount: '0.000000008',
+              fungible: true,
+              type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+              unit: 'SOL',
             },
           },
         ],

@@ -363,10 +363,9 @@ export class TransactionMapper {
       const amount = balanceDiffSol.absoluteValue().toString();
 
       /**
-       * If the pre-balance is greater than the post-balance, it means that the account
-       * has lost SOL, so it's a sender.
+       * If the balance diff (preBalance-postBalance-fee) is positive, it means that the account is a sender.
        */
-      if (preBalance.isGreaterThan(postBalance)) {
+      if (balanceDiffSol.isPositive()) {
         from.push({
           address,
           asset: {
@@ -379,10 +378,9 @@ export class TransactionMapper {
       }
 
       /**
-       * If the pre-balance is less than the post-balance, it means that the account
-       * has gained SOL, so it's a receiver.
+       * If the balance diff (preBalance-postBalance-fee) is negative, it means that the account is a receiver.
        */
-      if (preBalance.isLessThan(postBalance)) {
+      if (balanceDiffSol.isNegative()) {
         to.push({
           address,
           asset: {
