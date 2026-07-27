@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { address as asAddress } from '@solana/kit';
 
 import { Network } from '../../../constants/solana';

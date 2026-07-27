@@ -105,7 +105,7 @@ describe('validation', () => {
       `rewards,${validSolanaAddress},123.456`, // Decimal timestamp
     ])('rejects messages with invalid timestamps: "%s"', (utf8Message) => {
       const message = toBase64(utf8Message);
-      // eslint-disable-next-line jest/require-to-throw-message
+
       expect(() => assert(message, RewardsMessageStruct)).toThrow(
         'Invalid timestamp',
       );

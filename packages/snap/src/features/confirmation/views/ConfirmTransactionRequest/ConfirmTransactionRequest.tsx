@@ -13,7 +13,7 @@ import { EstimatedChanges } from '../../components/EstimatedChanges/EstimatedCha
 import { TransactionAlert } from '../../components/TransactionAlert';
 import { TransactionDetails } from '../../components/TransactionDetails/TransactionDetails';
 import { ConfirmSignAndSendTransactionFormNames } from './events';
-import { type ConfirmTransactionRequestContext } from './types';
+import type { ConfirmTransactionRequestContext } from './types';
 
 export const ConfirmTransactionRequest = ({
   context,

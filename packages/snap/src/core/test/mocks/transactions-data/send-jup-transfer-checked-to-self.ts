@@ -132,5 +132,5 @@ export const EXPECTED_SEND_JUP_TRANSFER_CHECKED_DATA: SolanaTransaction = {
       '4zvFGpqjihSXgHdw6ymHA8hVfyHURNPwASz4FS4c9wADCMSooojx8k42EUuhoDiGGM73SixUcNXafgnuM5dnKHfH',
     ] as Base58EncodedBytes[],
   },
-  version: 'legacy' as TransactionVersion,
+  version: 'legacy',
 };

@@ -1,12 +1,4 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/prefer-reduce-type-parameter */
 import { SLIP10Node } from '@metamask/key-tree';
-import type {
-  CreateAccountOptions,
-  EntropySourceId,
-  Pagination,
-} from '@metamask/keyring-api';
 import {
   AccountCreationType,
   assertCreateAccountOptionIsSupported,
@@ -14,13 +6,24 @@ import {
   SolAccountType,
   SolMethod,
   SolScope,
-  type Balance,
-  type KeyringAccount,
-  type KeyringRequest,
-  type ResolvedAccountAddress,
-  type Transaction,
 } from '@metamask/keyring-api';
-import type { ExportAccountOptions, ExportedAccount, KeyringSnapRpc } from '@metamask/keyring-api/v2';
+import type {
+  CreateAccountOptions,
+  EntropySourceId,
+  Pagination,
+} from '@metamask/keyring-api';
+import type {
+  Balance,
+  KeyringAccount,
+  KeyringRequest,
+  ResolvedAccountAddress,
+  Transaction,
+} from '@metamask/keyring-api';
+import type {
+  ExportAccountOptions,
+  ExportedAccount,
+  KeyringSnapRpc,
+} from '@metamask/keyring-api/v2';
 import type { CaipAssetType, JsonRpcRequest } from '@metamask/snaps-sdk';
 import {
   InvalidParamsError,
@@ -29,17 +32,15 @@ import {
   UserRejectedRequestError,
 } from '@metamask/snaps-sdk';
 import { array, assert, integer, is } from '@metamask/superstruct';
-import { type CaipChainId } from '@metamask/utils';
+import type { CaipChainId } from '@metamask/utils';
 import type { Signature } from '@solana/kit';
 import { address as asAddress, getAddressDecoder } from '@solana/kit';
 import bs58 from 'bs58';
 import { sortBy } from 'lodash';
 
 import snapManifest from '../../../../snap.manifest.json';
-import {
-  asStrictKeyringAccount,
-  type SolanaKeyringAccount,
-} from '../../../entities';
+import { asStrictKeyringAccount } from '../../../entities';
+import type { SolanaKeyringAccount } from '../../../entities';
 import { SolanaCaip19Tokens } from '../../constants/solana';
 import type { Network } from '../../constants/solana';
 import type {
@@ -50,12 +51,12 @@ import type {
 import type { ConfirmationHandler } from '../../services/confirmation/ConfirmationHandler';
 import type { IStateManager } from '../../services/state/IStateManager';
 import type { UnencryptedStateValue } from '../../services/state/State';
-import {
-  type SolanaSignAndSendTransactionResponse,
-  type SolanaSignInResponse,
-  type SolanaSignMessageResponse,
-  type SolanaSignTransactionResponse,
-  SolanaWalletRequestStruct,
+import { SolanaWalletRequestStruct } from '../../services/wallet/structs';
+import type {
+  SolanaSignAndSendTransactionResponse,
+  SolanaSignInResponse,
+  SolanaSignMessageResponse,
+  SolanaSignTransactionResponse,
 } from '../../services/wallet/structs';
 import type { WalletService } from '../../services/wallet/WalletService';
 import {
@@ -70,7 +71,8 @@ import {
   listEntropySources,
   startTrace,
 } from '../../utils/interface';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import {
   Base58Struct,
   DeleteAccountStruct,
@@ -91,9 +93,8 @@ import { SolanaKeyringRequestStruct } from './structs';
  */
 const decoder = getAddressDecoder();
 
-const SUPPORTED_SCOPES =
-  snapManifest.initialPermissions['endowment:keyring'].capabilities
-    .scopes as readonly Network[];
+const SUPPORTED_SCOPES = snapManifest.initialPermissions['endowment:keyring']
+  .capabilities.scopes as readonly Network[];
 
 type SubmitRequestResult =
   | SolanaSignAndSendTransactionResponse
@@ -167,9 +168,7 @@ export class SolanaKeyring implements KeyringSnapRpc {
     }
   }
 
-  async getAccount(
-    accountId: string,
-  ): Promise<KeyringAccount> {
+  async getAccount(accountId: string): Promise<KeyringAccount> {
     try {
       validateRequest({ accountId }, GetAccountStruct);
 
@@ -181,7 +180,6 @@ export class SolanaKeyring implements KeyringSnapRpc {
       throw new SnapError(error);
     }
   }
-
 
   /**
    * Gets all accounts from the state.
@@ -244,9 +242,7 @@ export class SolanaKeyring implements KeyringSnapRpc {
     index: number;
     publicKeyBytes: Uint8Array;
   }): SolanaKeyringAccount {
-    const address = decoder.decode(
-      publicKeyBytes.slice(1),
-    );
+    const address = decoder.decode(publicKeyBytes.slice(1));
 
     return {
       id,
@@ -270,7 +266,9 @@ export class SolanaKeyring implements KeyringSnapRpc {
     };
   }
 
-  async createAccounts(options: CreateAccountOptions): Promise<KeyringAccount[]> {
+  async createAccounts(
+    options: CreateAccountOptions,
+  ): Promise<KeyringAccount[]> {
     try {
       assertCreateAccountOptionIsSupported(options, [
         `${AccountCreationType.Bip44DeriveIndex}`,
@@ -330,11 +328,10 @@ export class SolanaKeyring implements KeyringSnapRpc {
           const derivationPath = this.#getDefaultDerivationPath(groupIndex);
 
           // Derive keypair locally using key-tree (no additional snap API call)
-          const { publicKeyBytes } =
-            await deriveSolanaKeypairFromCoinTypeNode({
-              coinTypeNode,
-              accountIndex: groupIndex,
-            });
+          const { publicKeyBytes } = await deriveSolanaKeypairFromCoinTypeNode({
+            coinTypeNode,
+            accountIndex: groupIndex,
+          });
 
           const solanaKeyringAccount = this.#buildKeyringAccount({
             id,
@@ -357,10 +354,13 @@ export class SolanaKeyring implements KeyringSnapRpc {
       }
 
       // Single state write for all new accounts
-      await this.#state.setKeyWith<Record<string, SolanaKeyringAccount>>('keyringAccounts', (accounts) => ({
-        ...accounts,
-        ...newAccounts,
-      }));
+      await this.#state.setKeyWith<Record<string, SolanaKeyringAccount>>(
+        'keyringAccounts',
+        (accounts) => ({
+          ...accounts,
+          ...newAccounts,
+        }),
+      );
 
       await endTrace(this.#traceNameBatch);
 
@@ -405,6 +405,7 @@ export class SolanaKeyring implements KeyringSnapRpc {
 
   /**
    * Returns the list of assets for the given account in all Solana networks.
+   *
    * @param accountId - The id of the account.
    * @returns CAIP-19 assets ids.
    */
@@ -435,6 +436,7 @@ export class SolanaKeyring implements KeyringSnapRpc {
 
   /**
    * Returns the balances and metadata of the given account for the given assets.
+   *
    * @param accountId - The id of the account.
    * @param assets - The assets to get the balances for (CAIP-19 ids).
    * @returns The balances and metadata of the account for the given assets.
@@ -584,6 +586,7 @@ export class SolanaKeyring implements KeyringSnapRpc {
 
   /**
    * Bootstrap the transactions for the given account.
+   *
    * @param accountId - The id of the account.
    * @param pagination - The pagination options.
    * @param pagination.limit - The limit of the transactions to fetch.
@@ -717,6 +720,7 @@ export class SolanaKeyring implements KeyringSnapRpc {
 
   /**
    * Endpoint that the client can use to inform the snap that certain accounts are selected.
+   *
    * @param accountIds - The ids of the accounts to set as selected.
    */
   async setSelectedAccounts(accountIds: string[]): Promise<void> {
@@ -726,7 +730,6 @@ export class SolanaKeyring implements KeyringSnapRpc {
       (await this.#listAccounts()).map((account) => account.id),
     );
     if (!accountIds.every((id) => existingIds.has(id))) {
-      // eslint-disable-next-line @typescript-eslint/no-throw-literal
       throw new InvalidParamsError(
         'Account IDs were not part of existing accounts.',
       );
@@ -738,12 +741,15 @@ export class SolanaKeyring implements KeyringSnapRpc {
   /**
    * Exports an account from the state. This is used to export the private key of an account.
    * This method is only triggered by the client when the user requests to export the private key of an account.
-   * 
+   *
    * @param accountId - The id of the account to export.
    * @param options - The options for the export.
    * @returns The exported account.
    */
-  async exportAccount(accountId: string, options?: ExportAccountOptions): Promise<ExportedAccount> {
+  async exportAccount(
+    accountId: string,
+    options?: ExportAccountOptions,
+  ): Promise<ExportedAccount> {
     validateRequest({ accountId, options }, ExportAccountRequestStruct);
 
     const account = await this.getAccountOrThrow(accountId);
@@ -782,7 +788,7 @@ export class SolanaKeyring implements KeyringSnapRpc {
         privateKey,
       };
     } catch (error: any) {
-      const errorMsg = 'Error exporting account'
+      const errorMsg = 'Error exporting account';
       this.#logger.error(errorMsg);
       throw new SnapError(errorMsg);
     }

@@ -1,8 +1,5 @@
-import {
-  getCompiledTransactionMessageDecoder,
-  pipe,
-  type Transaction as KitTransaction,
-} from '@solana/kit';
+import { getCompiledTransactionMessageDecoder, pipe } from '@solana/kit';
+import type { Transaction as KitTransaction } from '@solana/kit';
 
 import { normalizeCompiledTransactionMessage } from './normalizeCompiledTransactionMessage';
 import type { NormalizedInput } from './types';

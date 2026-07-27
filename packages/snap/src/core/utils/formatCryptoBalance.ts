@@ -61,9 +61,7 @@ export function formatCryptoBalance(
     if (bignumberAmount.abs().lt(1)) {
       return new Intl.NumberFormat(localeCode, {
         maximumSignificantDigits: MAX_SIGNIFICANT_DECIMAL_PLACES,
-      } as Intl.NumberFormatOptions).format(
-        Number(bignumberAmount.toFixed(DEFAULT_PRECISION ?? 0)),
-      );
+      }).format(Number(bignumberAmount.toFixed(DEFAULT_PRECISION ?? 0)));
     }
 
     // Preserve all digits left of the decimal point.
@@ -81,7 +79,7 @@ export function formatCryptoBalance(
 
     const formattedAmount = new Intl.NumberFormat(locale, {
       maximumFractionDigits,
-    } as Intl.NumberFormatOptions).format(
+    }).format(
       // string is valid parameter for format function
       // for some reason it gives TS issue
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/format#number

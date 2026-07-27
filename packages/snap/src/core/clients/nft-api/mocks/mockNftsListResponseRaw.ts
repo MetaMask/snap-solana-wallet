@@ -1,6 +1,5 @@
 import type { NftApiBalanceType, PaginatedResponse } from '../types';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 export const MOCK_NFTS_LIST_RESPONSE_RAW: PaginatedResponse<NftApiBalanceType> =
   {
     cursor: '78f58ef3ed72f146b24e2eebde142a2f',

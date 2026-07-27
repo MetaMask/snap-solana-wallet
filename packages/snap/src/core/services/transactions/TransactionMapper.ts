@@ -2,24 +2,21 @@ import type { Transaction } from '@metamask/keyring-api';
 import { TransactionStatus, TransactionType } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
 import { SYSTEM_PROGRAM_ADDRESS } from '@solana-program/system';
-import { address as asAddress, lamports, type Address } from '@solana/kit';
+import { address as asAddress, lamports } from '@solana/kit';
+import type { Address } from '@solana/kit';
 import BigNumber from 'bignumber.js';
 import bs58 from 'bs58';
 import { get } from 'lodash';
 
 import type { AssetsService, TokenHelper } from '..';
-import {
-  parseInstruction,
-  toIInstruction,
-  type InstructionParseResult,
-  type InstructionParseSuccess,
-  type SolanaKeyringAccount,
+import { parseInstruction, toIInstruction } from '../../../entities';
+import type {
+  InstructionParseResult,
+  InstructionParseSuccess,
+  SolanaKeyringAccount,
 } from '../../../entities';
-import {
-  LAMPORTS_PER_SOL,
-  Networks,
-  type Network,
-} from '../../constants/solana';
+import { LAMPORTS_PER_SOL, Networks } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
 import type { SolanaTransaction } from '../../types/solana';
 import { lamportsToSol } from '../../utils/conversion';
 import { trackError } from '../../utils/errors';
@@ -46,6 +43,7 @@ export class TransactionMapper {
 
   /**
    * Maps RPC transaction data to a standardized format.
+   *
    * @param transactionData - The raw transaction data from the RPC response.
    * @param account - The account associated with the transaction.
    * @param scope - The network scope (e.g., Mainnet, Devnet).
@@ -161,7 +159,7 @@ export class TransactionMapper {
         id,
         account: accountId,
         timestamp,
-        chain: scope as `${string}:${string}`,
+        chain: scope,
         status,
         type,
         from,
@@ -183,6 +181,7 @@ export class TransactionMapper {
 
   /**
    * Evaluates the status of a transaction based on the transaction data.
+   *
    * @param transactionData - The transaction data.
    * @returns The status of the transaction.
    */
@@ -202,6 +201,7 @@ export class TransactionMapper {
 
   /**
    * Evaluates the type of transaction based on the address and the from and to items.
+   *
    * @param params - The options object.
    * @param params.address - The address of the user.
    * @param params.from - The from items.
@@ -275,6 +275,7 @@ export class TransactionMapper {
 
   /**
    * Parses native SOL token transfers from a transaction using its balance changes.
+   *
    * @param options0 - The options object.
    * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
    * @param options0.transactionData - The raw transaction data containing balance changes.
@@ -415,6 +416,7 @@ export class TransactionMapper {
 
   /**
    * Parses native SOL token transfers from a transaction using its instructions.
+   *
    * @param options0 - The options object.
    * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
    * @param options0.transactionData - The raw transaction data containing balance changes.
@@ -617,6 +619,7 @@ export class TransactionMapper {
 
   /**
    * Parses SPL token transfers from a transaction data object.
+   *
    * @param options0 - The options object.
    * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
    * @param options0.transactionData - The raw transaction data containing token balance changes.
@@ -739,6 +742,7 @@ export class TransactionMapper {
 
   /**
    * Parses SPL token transfers where the sender and receiver are the same address.
+   *
    * @param options0 - The options object.
    * @param options0.scope - The network scope (e.g., Mainnet, Devnet).
    * @param options0.transactionData - The raw transaction data containing token balance changes.
@@ -825,6 +829,7 @@ export class TransactionMapper {
 
   /**
    * Parses transaction fees from RPC transaction data.
+   *
    * @param params - The options object.
    * @param params.scope - The network scope (e.g., Mainnet, Devnet).
    * @param params.transactionData - The raw transaction data containing fee information.
@@ -870,6 +875,7 @@ export class TransactionMapper {
 
   /**
    * Parses the total fee from transaction data.
+   *
    * @param transactionData - The raw transaction data.
    * @returns The total fee in lamports.
    */
@@ -883,6 +889,7 @@ export class TransactionMapper {
 
   /**
    * Calculates the base fee for a transaction.
+   *
    * @param transactionData - The raw transaction data.
    * @returns The base fee in lamports.
    */
@@ -899,21 +906,21 @@ export class TransactionMapper {
    * So two movements like this:
    * ```
    * [{
-   *   address: '0x1',
-   *   asset: {
-   *     amount: '50',
-   *     fungible: true,
-   *     type: 'solana:1',
-   *     unit: 'SOL',
-   *   },
+   * address: '0x1',
+   * asset: {
+   * amount: '50',
+   * fungible: true,
+   * type: 'solana:1',
+   * unit: 'SOL',
+   * },
    * }, {
-   *   address: '0x1',
-   *   asset: {
-   *     amount: '150',
-   *     fungible: true,
-   *     type: 'solana:1',
-   *     unit: 'SOL',
-   *   },
+   * address: '0x1',
+   * asset: {
+   * amount: '150',
+   * fungible: true,
+   * type: 'solana:1',
+   * unit: 'SOL',
+   * },
    * }]
    * ```
    *
@@ -921,15 +928,16 @@ export class TransactionMapper {
    *
    * ```
    * [{
-   *   address: '0x1',
-   *   asset: {
-   *     amount: '200',
-   *     fungible: true,
-   *     type: 'solana:1',
-   *     unit: 'SOL',
-   *   },
+   * address: '0x1',
+   * asset: {
+   * amount: '200',
+   * fungible: true,
+   * type: 'solana:1',
+   * unit: 'SOL',
+   * },
    * }]
    * ```
+   *
    * @param movements - The movements to aggregate.
    * @returns The aggregated movements.
    */
@@ -970,6 +978,7 @@ export class TransactionMapper {
 
   /**
    * Decodes the amount from the instruction data.
+   *
    * @param data - The instruction data.
    * @returns The amount.
    */
@@ -988,6 +997,7 @@ export class TransactionMapper {
 
   /**
    * Decodes the amount from the instruction data.
+   *
    * @param data - The instruction data.
    * @returns The amount.
    */
@@ -1008,6 +1018,7 @@ export class TransactionMapper {
 
   /**
    * Checks if an instruction is a self transfer.
+   *
    * @param instruction - The instruction to check.
    * @returns True if the instruction is a self transfer, false otherwise.
    */

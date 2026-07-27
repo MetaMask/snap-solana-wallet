@@ -1,6 +1,5 @@
 import { Duration } from '@metamask/utils';
 
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { MOCK_HISTORICAL_PRICES } from '../../clients/price-api/mocks/historical-prices';
 import { MOCK_SPOT_PRICES } from '../../clients/price-api/mocks/spot-prices';
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
@@ -9,6 +8,7 @@ import { MOCK_EXCHANGE_RATES } from '../../test/mocks/price-api/exchange-rates';
 import { trackError } from '../../utils/errors';
 import { ConfigProvider } from '../config';
 import { mockLogger } from '../mocks/logger';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TokenPricesService } from './TokenPrices';
 
 jest.mock('../../utils/errors', () => ({

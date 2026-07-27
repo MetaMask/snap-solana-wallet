@@ -1,4 +1,4 @@
-import { type RpcTransport } from '@solana/kit';
+import type { RpcTransport } from '@solana/kit';
 
 import { noOpLogger } from '../../../utils/logger';
 import { sleep } from '../../../utils/sleep';
@@ -12,6 +12,7 @@ const MAX_RETRY_DELAY_MS = 1500;
 
 /**
  * Calculate the delay for a given attempt.
+ *
  * @param attempt - The attempt number.
  * @returns The delay in milliseconds.
  */
@@ -26,6 +27,7 @@ function calculateRetryDelay(attempt: number): number {
 /**
  * Creates a retrying transport that will retry up to MAX_ATTEMPTS times before failing.
  * It wraps the provided base transport and adds the retry logic.
+ *
  * @param baseTransport - The base transport to wrap.
  * @returns The retrying transport.
  */

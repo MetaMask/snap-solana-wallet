@@ -28,7 +28,6 @@ export function install() {
    * Override `SubtleCrypto#generateKey`
    */
   Object.defineProperty(subtle, 'generateKey', {
-    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['generateKey']>) => {
       const algorithm = args[0];
 
@@ -46,7 +45,6 @@ export function install() {
    * Override `SubtleCrypto#exportKey`
    */
   Object.defineProperty(subtle, 'exportKey', {
-    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['exportKey']>) => {
       const key = args[1];
 
@@ -64,7 +62,6 @@ export function install() {
    * Override `SubtleCrypto#sign`
    */
   Object.defineProperty(subtle, 'sign', {
-    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['sign']>) => {
       const [algorithm, key] = args;
 
@@ -85,7 +82,6 @@ export function install() {
    * Override `SubtleCrypto#verify`
    */
   Object.defineProperty(subtle, 'verify', {
-    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['verify']>) => {
       const [algorithm, key] = args;
 
@@ -106,7 +102,6 @@ export function install() {
    * Override `SubtleCrypto#importKey`
    */
   Object.defineProperty(subtle, 'importKey', {
-    /* eslint-disable-next-line no-restricted-globals */
     value: async (...args: Parameters<SubtleCrypto['importKey']>) => {
       const algorithm = args[2];
 

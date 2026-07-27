@@ -2,7 +2,8 @@ import BigNumber from 'bignumber.js';
 
 import { Networks } from '../../core/constants/solana';
 import QUESTION_MARK_SVG from '../../core/img/question-mark.svg';
-import { SendCurrencyType, type SendContext } from './types';
+import { SendCurrencyType } from './types';
+import type { SendContext } from './types';
 
 /**
  * Register here selectors that return data derived from the context.

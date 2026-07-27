@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { TransactionType, type Transaction } from '@metamask/keyring-api';
+import { TransactionType } from '@metamask/keyring-api';
+import type { Transaction } from '@metamask/keyring-api';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import type { Address } from '@solana/kit';
 import { signature } from '@solana/kit';

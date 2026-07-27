@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable no-restricted-globals */
 import type { Mint } from '@solana-program/token-2022';
 import type { Account, Address } from '@solana/kit';
 import { lamports } from '@solana/kit';

@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import { SYSTEM_PROGRAM_ADDRESS } from '@solana-program/system';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import type { Mint } from '@solana-program/token-2022';
 import type { Account, Address, GetLatestBlockhashApi } from '@solana/kit';
-import { address, blockhash, lamports, type GetBalanceApi } from '@solana/kit';
+import type { GetBalanceApi } from '@solana/kit';
+import { address, blockhash, lamports } from '@solana/kit';
 
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
 

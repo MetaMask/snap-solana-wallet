@@ -360,7 +360,7 @@ export const EXPECTED_SWAP_FAILED_TRANSACTION_DATA: SolanaTransaction = {
     rewards: [],
     status: { Err: { InstructionError: [2, { Custom: 6001 }] } },
   },
-  slot: 326686187n as Slot,
+  slot: 326686187n,
   transaction: {
     message: {
       accountKeys: [
@@ -423,5 +423,5 @@ export const EXPECTED_SWAP_FAILED_TRANSACTION_DATA: SolanaTransaction = {
       '58FymkjJUeSFGeEdaUQZbhHP5tdwwvbRR8BfKfuEgfYznqDqsApRBk8LCtiKny9EjQZBNi5NxGvLjR6F3gY6rxn1',
     ] as Base58EncodedBytes[],
   },
-  version: 0 as TransactionVersion,
+  version: 0,
 };

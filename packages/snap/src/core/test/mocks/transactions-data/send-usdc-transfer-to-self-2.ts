@@ -1,9 +1,10 @@
+import { address, blockhash, lamports } from '@solana/kit';
 import type {
   Base58EncodedBytes,
   StringifiedBigInt,
   StringifiedNumber,
 } from '@solana/kit';
-import { address, blockhash, lamports, type UnixTimestamp } from '@solana/kit';
+import type { UnixTimestamp } from '@solana/kit';
 
 import type { SolanaTransaction } from '../../../types/solana';
 

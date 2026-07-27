@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 /**
  * A simple logger utility that provides methods for logging messages at different levels.
  * For now, it's just a wrapper around console.

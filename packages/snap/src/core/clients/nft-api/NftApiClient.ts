@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable no-restricted-globals */
+
 import { assert } from '@metamask/superstruct';
 
 import type { ICache } from '../../caching/ICache';

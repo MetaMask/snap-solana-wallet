@@ -1,5 +1,6 @@
 import type { FungibleAssetMetadata } from '@metamask/snaps-sdk';
-import { array, assert, type Infer } from '@metamask/superstruct';
+import { array, assert } from '@metamask/superstruct';
+import type { Infer } from '@metamask/superstruct';
 import { CaipAssetTypeStruct, parseCaipAssetType } from '@metamask/utils';
 
 import type { TokenCaipAssetType } from '../../constants/solana';

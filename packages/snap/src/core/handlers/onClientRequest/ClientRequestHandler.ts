@@ -1,10 +1,6 @@
 import { FeeType } from '@metamask/keyring-api';
-import {
-  InvalidParamsError,
-  type Json,
-  type JsonRpcRequest,
-  MethodNotFoundError,
-} from '@metamask/snaps-sdk';
+import { InvalidParamsError, MethodNotFoundError } from '@metamask/snaps-sdk';
+import type { Json, JsonRpcRequest } from '@metamask/snaps-sdk';
 import { assert, create } from '@metamask/superstruct';
 import { bytesToHex } from '@metamask/utils';
 import {
@@ -16,11 +12,8 @@ import {
   pipe,
 } from '@solana/kit';
 
-import {
-  METAMASK_ORIGIN,
-  Networks,
-  type Network,
-} from '../../constants/solana';
+import { METAMASK_ORIGIN, Networks } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
 import { FeeCalculator } from '../../fees';
 import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import type { AccountsService, ApproveTokenService } from '../../services';
@@ -28,13 +21,13 @@ import type { SendService } from '../../services/send/SendService';
 import type { OnAddressInputRequest } from '../../services/send/types';
 import type { WalletService } from '../../services/wallet/WalletService';
 import { lamportsToSol } from '../../utils/conversion';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import { ClientRequestMethod } from './types';
 import {
   ApproveCardAmountRequestStruct,
   ApproveCardAmountResponseStruct,
   ComputeFeeRequestStruct,
-  type ComputeFeeResponse,
   ComputeFeeResponseStruct,
   OnAddressInputRequestStruct,
   OnAmountInputRequestStruct,
@@ -43,15 +36,18 @@ import {
   parseProofOfOwnershipMessage,
   parseRewardsMessage,
   SignAndSendTransactionRequestStruct,
-  type SignAndSendTransactionResponse,
   SignAndSendTransactionResponseStruct,
   SignAndSendTransactionWithoutConfirmationRequestStruct,
   SignCardMessageRequestStruct,
   SignProofOfOwnershipRequestStruct,
-  type SignProofOfOwnershipResponse,
   SignProofOfOwnershipResponseStruct,
   SignRewardsMessageRequestStruct,
   ValidationResponseStruct,
+} from './validation';
+import type {
+  ComputeFeeResponse,
+  SignAndSendTransactionResponse,
+  SignProofOfOwnershipResponse,
 } from './validation';
 
 export class ClientRequestHandler {
@@ -123,6 +119,7 @@ export class ClientRequestHandler {
 
   /**
    * Handles signing and sending a transaction without confirmation.
+   *
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the params are invalid.
@@ -204,6 +201,7 @@ export class ClientRequestHandler {
 
   /**
    * Handles the confirmation of a send transaction.
+   *
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the params are invalid.
@@ -223,6 +221,7 @@ export class ClientRequestHandler {
 
   /**
    * Handles the computation of a fee for a transaction.
+   *
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the params are invalid.
@@ -273,6 +272,7 @@ export class ClientRequestHandler {
 
   /**
    * Handles the input of an address.
+   *
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the params are invalid.
@@ -299,6 +299,7 @@ export class ClientRequestHandler {
 
   /**
    * Handles the input of an amount.
+   *
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the params are invalid.
@@ -321,6 +322,7 @@ export class ClientRequestHandler {
 
   /**
    * Handles the signing of a rewards message, of format `'rewards,{address},{timestamp}'` base64 encoded.
+   *
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the account is not found or if the address in the message doesn't match the signing account.
@@ -354,6 +356,7 @@ export class ClientRequestHandler {
 
   /**
    * Handles the signing of a card message in SIWS (Sign-In with Solana) format.
+   *
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the account is not found or if the address in the message doesn't match the signing account.
@@ -418,7 +421,7 @@ export class ClientRequestHandler {
       throw new InvalidParamsError(`Account not found: ${accountId}`) as Error;
     }
 
-    const network = scope as Network;
+    const network = scope;
 
     // Build the approval transaction message using the service
     const transactionMessage =
@@ -452,6 +455,7 @@ export class ClientRequestHandler {
   /**
    * Handles the silent signing of a proof-of-ownership message, of format `'metamask:proof-of-ownership:{nonce}:{address}'`.
    * Used by `@metamask/profile-metrics-controller` to prove wallet control of an address; no user prompt, gated to the `metamask` origin (see `metamaskPermissions`) and bound to the message prefix.
+   *
    * @param request - The JSON-RPC request containing the method and parameters.
    * @returns The response to the JSON-RPC request.
    * @throws {InvalidParamsError} If the account is not found or if the address in the message doesn't match the signing account.

@@ -1,5 +1,5 @@
 /* eslint-disable no-void */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import type { Serializable } from '../serialization/types';
 import logger from '../utils/logger';
 import type { ICache } from './ICache';

@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/check-indentation */
 import { assert, number, string } from '@metamask/superstruct';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
@@ -17,7 +16,8 @@ import type { Network } from '../../constants/solana';
 import { SolanaCaip19Tokens } from '../../constants/solana';
 import { trackError } from '../../utils/errors';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
@@ -111,6 +111,7 @@ export class KeyringAccountMonitor {
    * Sets the monitored accounts. It will:
    * - stop monitoring accounts currently monitored that are not in the list.
    * - and start monitoring accounts that are in the list that are not currently monitored.
+   *
    * @param accountIds - The ids of the accounts to set as monitored.
    */
   async setMonitoredAccounts(accountIds: string[]): Promise<void> {
@@ -157,6 +158,7 @@ export class KeyringAccountMonitor {
 
   /**
    * Batch monitors the native and token assets for a single account across all active networks.
+   *
    * @param accounts - The accounts to monitor the assets for.
    * @param networks - The networks to monitor the assets for.
    */
@@ -209,6 +211,7 @@ export class KeyringAccountMonitor {
 
   /**
    * Batch stops monitoring the passed accounts.
+   *
    * @param accounts - The accounts to stop monitoring.
    * @param subscriptions - The subscriptions to stop monitoring.
    */
@@ -242,6 +245,7 @@ export class KeyringAccountMonitor {
 
   /**
    * Monitors the native asset (SOL) for the given account in the given network.
+   *
    * @param account - The account to monitor the native asset for.
    * @param network - The network to monitor the native asset for.
    */
@@ -293,7 +297,7 @@ export class KeyringAccountMonitor {
               },
             },
           ],
-        } as any,
+        },
       ],
     });
   }

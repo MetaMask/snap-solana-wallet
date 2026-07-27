@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import {
   Button,
   Text as ChakraText,
@@ -8,11 +7,11 @@ import {
   Link,
   Table,
 } from '@chakra-ui/react';
-import {
-  KeyringRpcMethod,
-  type Balance,
-  type KeyringAccount,
-  type Transaction,
+import { KeyringRpcMethod } from '@metamask/keyring-api';
+import type {
+  Balance,
+  KeyringAccount,
+  Transaction,
 } from '@metamask/keyring-api';
 import { useEffect, useMemo, useRef, useState } from 'react';
 

@@ -1,4 +1,5 @@
-import { TransactionStatus, type Transaction } from '@metamask/keyring-api';
+import { TransactionStatus } from '@metamask/keyring-api';
+import type { Transaction } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
 
 import {

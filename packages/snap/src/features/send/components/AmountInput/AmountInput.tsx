@@ -1,14 +1,8 @@
-import {
-  Box,
-  Button,
-  Field,
-  Icon,
-  Input,
-  Text,
-  type SnapComponent,
-} from '@metamask/snaps-sdk/jsx';
+import { Box, Button, Field, Icon, Input, Text } from '@metamask/snaps-sdk/jsx';
+import type { SnapComponent } from '@metamask/snaps-sdk/jsx';
 
-import { i18n, type Locale } from '../../../../core/utils/i18n';
+import { i18n } from '../../../../core/utils/i18n';
+import type { Locale } from '../../../../core/utils/i18n';
 import { SendCurrencyType, SendFormNames } from '../../types';
 
 type AmountInputProps = {

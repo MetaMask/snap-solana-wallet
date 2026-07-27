@@ -16,7 +16,8 @@ import {
   sendSplTokenBuilder,
 } from '../../../snapContext';
 import { DEFAULT_SEND_CONTEXT } from '../render';
-import { SendCurrencyType, type SendContext } from '../types';
+import { SendCurrencyType } from '../types';
+import type { SendContext } from '../types';
 import { sendFieldsAreValid } from '../validation/form';
 import { buildTransactionMessageAndUpdateInterface_INTERNAL } from './buildTransactionMessageAndUpdateInterface';
 

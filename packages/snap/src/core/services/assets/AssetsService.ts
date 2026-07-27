@@ -1,10 +1,10 @@
 /* eslint-disable jsdoc/require-returns */
-/* eslint-disable jsdoc/check-indentation */
-import {
-  KeyringEvent,
-  type AccountAssetListUpdatedEvent,
-  type AccountBalancesUpdatedEvent,
-  type Balance,
+
+import { KeyringEvent } from '@metamask/keyring-api';
+import type {
+  AccountAssetListUpdatedEvent,
+  AccountBalancesUpdatedEvent,
+  Balance,
 } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import type {
@@ -43,7 +43,8 @@ import type { TokenAccountInfoWithJsonData } from '../../sdk-extensions/rpc-api'
 import type { Serializable } from '../../serialization/types';
 import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';

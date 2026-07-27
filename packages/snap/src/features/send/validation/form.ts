@@ -5,11 +5,8 @@ import type {
   ValidationFunction,
 } from '../../../core/types/form';
 import { solToLamports } from '../../../core/utils/conversion';
-import {
-  i18n,
-  type Locale,
-  type LocalizedMessage,
-} from '../../../core/utils/i18n';
+import { i18n } from '../../../core/utils/i18n';
+import type { Locale, LocalizedMessage } from '../../../core/utils/i18n';
 import {
   getBalance,
   getIsNativeToken,
@@ -105,7 +102,7 @@ export const addressOrDomain: ValidationFunction = (
       if (isSolanaDomain(value)) {
         return null;
       }
-      // eslint-disable-next-line no-new
+
       addressValidator(value);
       return null;
     } catch {
@@ -129,7 +126,6 @@ export const address: ValidationFunction = (
 
   return (value: string) => {
     try {
-      // eslint-disable-next-line no-new
       addressValidator(value);
       return null;
     } catch {

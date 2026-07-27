@@ -708,8 +708,8 @@ export const RPC_RESPONSE_SWAP_TRUMP_TO_JUP_DATA = {
       status: {
         Ok: null,
       },
-    } as SolanaTransaction['meta'],
-    slot: 338521977n as Slot,
+    },
+    slot: 338521977n,
     transaction: {
       message: {
         accountKeys: [
@@ -828,7 +828,7 @@ export const RPC_RESPONSE_SWAP_TRUMP_TO_JUP_DATA = {
         '4VhDRLUK5QDZ6kgN9PCeEoztUraCibwYA3XaLZUKhfwWxqeN96Qg7Ep4w2j5C1VtggbuU6dqkGczGC537byu9hG3' as Base58EncodedBytes,
       ],
     },
-    version: 0 as TransactionVersion,
+    version: 0,
   } as SolanaTransaction,
   id: 1,
 };

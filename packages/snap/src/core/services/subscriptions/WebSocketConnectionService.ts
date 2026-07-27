@@ -12,7 +12,8 @@ import type { EventEmitter } from '../../../infrastructure';
 import type { Network } from '../../constants/solana';
 import { trackError } from '../../utils/errors';
 import { getClientStatus } from '../../utils/interface';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
 import type { ConfigProvider } from '../config';
 import type { IStateManager } from '../state/IStateManager';
@@ -151,6 +152,7 @@ export class WebSocketConnectionService {
   /**
    * Idempotently opens a WebSocket connection for the given network.
    * If a connection already exists for the network, this method does nothing.
+   *
    * @param network - The network for which to open a connection.
    * @returns A promise that resolves when the connection is established or already exists.
    */
@@ -198,6 +200,7 @@ export class WebSocketConnectionService {
 
   /**
    * Registers a handler to be called when connection is recovered.
+   *
    * @param network - The network to register the handler for.
    * @param handler - The handler function to register.
    */
@@ -216,6 +219,7 @@ export class WebSocketConnectionService {
 
   /**
    * Gets the connection ID for the specified network.
+   *
    * @param network - The network to get the connection ID for.
    * @returns The connection ID, or null if no connection exists for the network.
    */
@@ -226,6 +230,7 @@ export class WebSocketConnectionService {
 
   /**
    * Gets the connection for the specified ID.
+   *
    * @param id - The ID of the connection to get.
    * @returns The connection, or null if no connection exists for the ID.
    */

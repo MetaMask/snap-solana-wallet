@@ -7,6 +7,7 @@ import { createRetryingTransport } from './retryingTransport';
 
 /**
  * A functional programming utility to iterate over an array and apply a function to each item.
+ *
  * @param callback - The function to apply to each item.
  * @returns An array of the results of applying the function to each item.
  */

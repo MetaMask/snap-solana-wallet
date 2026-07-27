@@ -555,5 +555,5 @@ export const EXPECTED_SWAP_A16Z_USDT_SOL_DATA: SolanaTransaction = {
       'JiqYGkWcYu8GxPZsMdXDnA8tkZvHnHVmNuKr4JYBErm4rgQWssdHCkbe8MzwwNGndyvyNYaaY5vvMhUMPNiQX9u',
     ] as Base58EncodedBytes[],
   },
-  version: 0 as TransactionVersion,
+  version: 0,
 };

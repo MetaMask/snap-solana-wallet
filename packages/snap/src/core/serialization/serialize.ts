@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { Json } from '@metamask/snaps-sdk';
 import { getBase64Codec } from '@solana/kit';
 import BigNumber from 'bignumber.js';

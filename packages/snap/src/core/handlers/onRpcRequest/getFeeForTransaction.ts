@@ -1,4 +1,5 @@
-import { InternalError, type OnRpcRequestHandler } from '@metamask/snaps-sdk';
+import { InternalError } from '@metamask/snaps-sdk';
+import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { assert } from '@metamask/superstruct';
 
 import { FeeCalculator } from '../../fees/FeeCalculator';
@@ -10,6 +11,7 @@ import {
 
 /**
  * Handles the computation of a fee for a transaction.
+ *
  * @param args - The arguments for the request.
  * @param args.request - The request object.
  * @returns The response to the JSON-RPC request.

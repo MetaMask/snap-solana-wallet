@@ -3,6 +3,7 @@
     "esModuleInterop": true,
     "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "lib": ["ES2023", "DOM"],
     "module": "CommonJS",
     "moduleResolution": "node",

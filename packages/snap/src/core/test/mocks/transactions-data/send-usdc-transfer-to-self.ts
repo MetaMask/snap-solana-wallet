@@ -121,5 +121,5 @@ export const EXPECTED_SEND_USDC_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
       'fFSAjDzu7CdhzVUUC7DMKf7xuuVn8cZ8njPnpjkTBMHo4Y43SZto2GDuy123yKDoTieihPfDHvBpysE7Eh9aPmH',
     ] as Base58EncodedBytes[],
   },
-  version: 0 as TransactionVersion,
+  version: 0,
 };

@@ -553,5 +553,5 @@ export const EXPECTED_SWAP_USDC_TO_COBIE_DATA: SolanaTransaction = {
       '2pfnv4drhnitfzCFKxiRoJMzFQpG7wZ9mpRQVk7xm5TQ27g6FZH95HVF6KgwQBS872yGtyhuq57jXXS1y29ub11',
     ] as Base58EncodedBytes[],
   },
-  version: 0 as TransactionVersion,
+  version: 0,
 };

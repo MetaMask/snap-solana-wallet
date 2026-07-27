@@ -20,7 +20,7 @@ import {
 } from '../../../snapContext';
 import { getTokenAmount } from '../selectors';
 import { Send } from '../Send';
-import { type SendContext } from '../types';
+import type { SendContext } from '../types';
 import { sendFieldsAreValid } from '../validation/form';
 
 /**

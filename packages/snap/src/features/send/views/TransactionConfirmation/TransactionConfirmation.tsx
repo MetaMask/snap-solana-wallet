@@ -12,7 +12,7 @@ import {
   getSelectedTokenPrice,
   getTokenAmount,
 } from '../../selectors';
-import { type SendContext } from '../../types';
+import type { SendContext } from '../../types';
 
 export enum TransactionConfirmationNames {
   BackButton = 'transaction-confirmation-back-button',

@@ -1,12 +1,6 @@
+import { address, blockhash, lamports } from '@solana/kit';
 import type { StringifiedBigInt, StringifiedNumber } from '@solana/kit';
-import {
-  address,
-  blockhash,
-  lamports,
-  type Base58EncodedBytes,
-  type Lamports,
-  type UnixTimestamp,
-} from '@solana/kit';
+import type { Base58EncodedBytes, Lamports, UnixTimestamp } from '@solana/kit';
 
 import type { SolanaTransaction } from '../../../types/solana';
 
@@ -425,7 +419,6 @@ export const EXPECTED_FAILED_SWAP_DATA: SolanaTransaction = {
     ],
     rewards: [],
     status: {
-      // eslint-disable-next-line id-denylist
       Err: {
         InstructionError: [
           6,

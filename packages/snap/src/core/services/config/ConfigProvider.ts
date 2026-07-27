@@ -112,7 +112,7 @@ export type Config = {
  * const network = configProvider.getNetworkBy('caip2Id', 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
  */
 export class ConfigProvider {
-  #config: Config;
+  readonly #config: Config;
 
   #activeNetworks: Network[];
 

@@ -136,11 +136,7 @@ describe('deriveSolanaKeypair', () => {
 describe('deriveSolanaKeypairFromCoinTypeNode', () => {
   const getCoinTypeNode = async () => {
     return await SLIP10Node.fromDerivationPath({
-      derivationPath: [
-        MOCK_SEED_PHRASE_BYTES,
-        `slip10:44'` as SLIP10PathNode,
-        `slip10:501'` as SLIP10PathNode,
-      ],
+      derivationPath: [MOCK_SEED_PHRASE_BYTES, `slip10:44'`, `slip10:501'`],
       curve: 'ed25519',
     });
   };

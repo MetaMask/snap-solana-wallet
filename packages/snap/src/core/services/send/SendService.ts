@@ -13,18 +13,19 @@ import type { SolanaKeyring } from '../../handlers/onKeyringRequest/Keyring';
 import { fromTransactionToBase64String } from '../../sdk-extensions/codecs';
 import type { Serializable } from '../../serialization/types';
 import { solToLamports } from '../../utils/conversion';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import type { AssetsService } from '../assets';
 import type { SolanaConnection } from '../connection';
 import type { RecipientClassifier } from './RecipientClassifier';
 import { SendFeeCalculator } from './SendFeeCalculator';
 import type { SendSolBuilder } from './SendSolBuilder';
 import type { SendSplTokenBuilder } from './SendSplTokenBuilder';
-import {
-  SendErrorCodes,
-  type OnAmountInputRequest,
-  type OnConfirmSendRequest,
-  type ValidationResponse,
+import { SendErrorCodes } from './types';
+import type {
+  OnAmountInputRequest,
+  OnConfirmSendRequest,
+  ValidationResponse,
 } from './types';
 
 export class SendService {

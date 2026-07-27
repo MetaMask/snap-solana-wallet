@@ -19,6 +19,7 @@ export class WebSocketConnectionRepository {
 
   /**
    * Gets all connections.
+   *
    * @returns All connections.
    */
   async getAll(): Promise<WebSocketConnection[]> {
@@ -35,6 +36,7 @@ export class WebSocketConnectionRepository {
 
   /**
    * Gets the connection for the specified ID.
+   *
    * @param id - The ID of the connection to get.
    * @returns The connection, or null if no connection exists for the ID.
    */
@@ -47,6 +49,7 @@ export class WebSocketConnectionRepository {
 
   /**
    * Finds the connection for the specified network.
+   *
    * @param network - The network to find the connection for.
    * @returns The connection, or null if no connection exists for the network.
    */
@@ -61,6 +64,7 @@ export class WebSocketConnectionRepository {
 
   /**
    * Creates a new connection to the specified URL.
+   *
    * @param connection - The connection to create, without the `id` field.
    * @returns The connection ID.
    */
@@ -85,6 +89,7 @@ export class WebSocketConnectionRepository {
 
   /**
    * Closes the connection with the specified ID.
+   *
    * @param id - The ID of the connection to close.
    */
   async delete(id: string) {
@@ -96,6 +101,7 @@ export class WebSocketConnectionRepository {
 
   /**
    * Gets the network for the specified connection ID.
+   *
    * @param webSocketUrl - The WebSocket URL to get the network for.
    * @returns The network.
    */

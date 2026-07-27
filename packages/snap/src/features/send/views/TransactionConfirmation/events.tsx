@@ -9,7 +9,7 @@ import {
 import logger from '../../../../core/utils/logger';
 import { keyring, state, walletService } from '../../../../snapContext';
 import { Send } from '../../Send';
-import { type SendContext } from '../../types';
+import type { SendContext } from '../../types';
 import { TransactionConfirmationNames } from './TransactionConfirmation';
 
 /**

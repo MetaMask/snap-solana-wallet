@@ -115,7 +115,7 @@ export const ADDRESS_1_TRANSACTION_1_DATA: SolanaTransaction = {
     rewards: [],
     status: { Ok: null },
   },
-  slot: 354529792n as Slot,
+  slot: 354529792n,
   transaction: {
     message: {
       accountKeys: [

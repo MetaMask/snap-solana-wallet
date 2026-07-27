@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import { CaipAssetTypeStruct, type CaipAssetType } from '@metamask/keyring-api';
+import { CaipAssetTypeStruct } from '@metamask/keyring-api';
+import type { CaipAssetType } from '@metamask/keyring-api';
 import type {
   AssetConversion,
   FungibleAssetMarketData,
@@ -11,15 +11,15 @@ import BigNumber from 'bignumber.js';
 import { pick } from 'lodash';
 
 import type { PriceApiClient } from '../../clients/price-api/PriceApiClient';
-import type { SpotPrice } from '../../clients/price-api/types';
 import {
   GET_HISTORICAL_PRICES_RESPONSE_NULL_OBJECT,
   VsCurrencyParamStruct,
-  type FiatTicker,
 } from '../../clients/price-api/types';
+import type { SpotPrice } from '../../clients/price-api/types';
+import type { FiatTicker } from '../../clients/price-api/types';
 import { trackError } from '../../utils/errors';
 import { isFiat } from '../../utils/isFiat';
-import { type ILogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
 import type { HistoricalPrice } from './types';
 

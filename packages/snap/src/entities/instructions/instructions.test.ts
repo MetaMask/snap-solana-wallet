@@ -1,4 +1,5 @@
-import { address, type Rpc, type SolanaRpcApi } from '@solana/kit';
+import { address } from '@solana/kit';
+import type { Rpc, SolanaRpcApi } from '@solana/kit';
 
 import { MOCK_EXECUTION_SCENARIO_SEND_SPL_TOKEN } from '../../core/services/signer/mocks/scenarios/sendSplToken';
 import { trackError } from '../../core/utils/errors';
@@ -134,7 +135,7 @@ describe('extractInstructionsFromBase64String', () => {
       programAddress: address('11111111111111111111111111111112'),
       accounts: [],
       data: new Uint8Array([1, 2, 3]),
-    } as any);
+    });
 
     expect(result).toStrictEqual({
       type: 'Unknown',

@@ -1,6 +1,5 @@
 import type { TransactionScanResult } from '../transaction-scan/types';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 export const MOCK_SECURITY_ALERTS_API_SCAN_TRANSACTIONS_RESPONSE = {
   encoding: 'base58',
   status: 'SUCCESS',

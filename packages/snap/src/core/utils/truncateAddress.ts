@@ -1,5 +1,6 @@
 /**
  * Truncates an address to show the first 6 and last 4 characters, separated by ellipses.
+ *
  * @param address - The address to truncate.
  * @returns The truncated address.
  */

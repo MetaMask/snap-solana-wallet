@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button, Card, Text as ChakraText, Flex } from '@chakra-ui/react';
 
 import { TestDappRpcRequestMethod } from '../../../../snap/src/core/handlers/onRpcRequest/types';

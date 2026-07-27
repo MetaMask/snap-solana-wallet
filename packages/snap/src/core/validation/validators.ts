@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-throw-literal */
 import {
   getJsonError,
   InvalidParamsError,

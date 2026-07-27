@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 import type { Json } from '@metamask/utils';
 import express from 'express';
 

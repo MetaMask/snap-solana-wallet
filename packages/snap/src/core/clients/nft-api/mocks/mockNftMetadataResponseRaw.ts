@@ -1,6 +1,5 @@
 import type { NftApiItemType } from '../types';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 export const MOCK_NFT_METADATA_RESPONSE_RAW: NftApiItemType = {
   address: '8d35QSkuPezKSgrj4hnQqyWscgp9aVNi4ARaccrk5DAK',
   token_id: null,

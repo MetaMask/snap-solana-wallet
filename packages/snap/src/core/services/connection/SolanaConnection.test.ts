@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable no-restricted-globals */
-/* eslint-disable @typescript-eslint/naming-convention */
 
 import { fetchJsonParsedAccount } from '@solana/kit';
 

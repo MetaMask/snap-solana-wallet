@@ -28,9 +28,11 @@ const englishLocale = Object.assign(
 
 // Write en locale file
 try {
+  // Trailing newline keeps oxfmt / lint:misc happy and avoids shasum drift
+  // after `locale:build` (locales are included in the snap checksum).
   writeFileSync(
     join(__dirname, '../locales/en.json'),
-    JSON.stringify(englishLocale, null, 2),
+    `${JSON.stringify(englishLocale, null, 2)}\n`,
   );
   console.log('🌍 EN locale populated ✅');
 } catch (error) {

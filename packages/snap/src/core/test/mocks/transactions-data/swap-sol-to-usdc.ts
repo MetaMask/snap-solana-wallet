@@ -1,10 +1,11 @@
+import { address, blockhash, lamports } from '@solana/kit';
 import type {
   Base58EncodedBytes,
   Slot,
   StringifiedBigInt,
   StringifiedNumber,
 } from '@solana/kit';
-import { address, blockhash, lamports, type UnixTimestamp } from '@solana/kit';
+import type { UnixTimestamp } from '@solana/kit';
 
 import type { SolanaTransaction } from '../../../types/solana';
 
@@ -236,7 +237,7 @@ export const EXPECTED_SWAP_SOL_TO_USDC_DATA: SolanaTransaction = {
       Ok: null,
     },
   },
-  slot: 343286989n as Slot,
+  slot: 343286989n,
   transaction: {
     message: {
       accountKeys: [

@@ -1,10 +1,9 @@
-import {
-  blockhash,
-  lamports,
-  type Address,
-  type Base58EncodedBytes,
-  type TransactionVersion,
-  type UnixTimestamp,
+import { blockhash, lamports } from '@solana/kit';
+import type {
+  Address,
+  Base58EncodedBytes,
+  TransactionVersion,
+  UnixTimestamp,
 } from '@solana/kit';
 
 import type { SolanaTransaction } from '../../../types/solana';
@@ -82,5 +81,5 @@ export const EXPECTED_NATIVE_SOL_TRANSFER_TO_SELF_DATA: SolanaTransaction = {
       '4Ccb8PaSob6JjsyDnoFJfUpJZDJHTwcjnK7MxiyVeMtPSsBGKuaMHEVL1VsXTKWS4w26tAhbc3T78aNELjfN8Zwb',
     ] as Base58EncodedBytes[],
   },
-  version: 0 as TransactionVersion,
+  version: 0,
 };

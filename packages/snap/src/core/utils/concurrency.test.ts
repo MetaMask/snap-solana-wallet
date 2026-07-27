@@ -84,7 +84,7 @@ describe('concurrency', () => {
       const cancellable = withCancellable(mockFn);
 
       // Create cancellable promises directly
-      // eslint-disable-next-line @typescript-eslint/promise-function-async
+
       const promises = delays.map((delay) =>
         cancellable(delay),
       ) as CancellablePromise<string>[];

@@ -1,4 +1,4 @@
-import { type OnCronjobHandler } from '@metamask/snaps-sdk';
+import type { OnCronjobHandler } from '@metamask/snaps-sdk';
 
 import type { CronjobMethod } from './CronjobMethod';
 

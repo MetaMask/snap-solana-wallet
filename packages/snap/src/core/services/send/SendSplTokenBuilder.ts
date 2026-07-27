@@ -13,7 +13,6 @@ import {
   getTransferCheckedInstruction as getTransferCheckedInstruction2022,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from '@solana-program/token-2022';
-import type { CompilableTransactionMessage, IInstruction } from '@solana/kit';
 import {
   appendTransactionMessageInstructions,
   createKeyPairSignerFromPrivateKeyBytes,
@@ -22,12 +21,14 @@ import {
   prependTransactionMessageInstructions,
   setTransactionMessageFeePayer,
   setTransactionMessageLifetimeUsingBlockhash,
-  type Address,
 } from '@solana/kit';
+import type { CompilableTransactionMessage, IInstruction } from '@solana/kit';
+import type { Address } from '@solana/kit';
 
 import type { TokenHelper } from '..';
 import { deriveSolanaKeypair } from '../../utils/deriveSolanaKeypair';
-import { createPrefixedLogger, type ILogger } from '../../utils/logger';
+import { createPrefixedLogger } from '../../utils/logger';
+import type { ILogger } from '../../utils/logger';
 import type { SolanaConnection } from '../connection';
 import {
   RecipientTokenAccountMintMismatchError,

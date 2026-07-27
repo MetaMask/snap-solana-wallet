@@ -1,4 +1,5 @@
-import { InvalidParamsError, type JsonRpcRequest } from '@metamask/snaps-sdk';
+import { InvalidParamsError } from '@metamask/snaps-sdk';
+import type { JsonRpcRequest } from '@metamask/snaps-sdk';
 import { getBase64Codec, getUtf8Codec, pipe } from '@solana/kit';
 
 import { KnownCaip19Id, Network } from '../../constants/solana';
@@ -91,7 +92,7 @@ describe('ClientRequestHandler', () => {
         const request: JsonRpcRequest = {
           jsonrpc: '2.0',
           id: 1,
-          method: 'unsupported_method' as ClientRequestMethod,
+          method: 'unsupported_method',
           params: [],
         };
 
@@ -183,7 +184,7 @@ describe('ClientRequestHandler', () => {
         const invalidRequest: JsonRpcRequest = {
           jsonrpc: '2.0',
           id: 1,
-          method: 'invalid_method' as ClientRequestMethod,
+          method: 'invalid_method',
           params: [],
         };
 

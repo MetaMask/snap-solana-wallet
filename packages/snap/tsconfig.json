@@ -6,7 +6,7 @@
     "jsxImportSource": "@metamask/snaps-sdk",
     "module": "preserve",
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
+    "resolveJsonModule": true
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": ["**/*.ts", "**/*.tsx", "locales/*.json"]
 }

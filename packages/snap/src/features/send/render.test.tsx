@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { getMockAccount, installSnap } from '@metamask/snaps-jest';
 
@@ -40,7 +39,8 @@ import {
 } from '../../snapContext';
 import { DEFAULT_SEND_CONTEXT, renderSend } from './render';
 import { Send } from './Send';
-import { type SendContext, SendCurrencyType, SendFormNames } from './types';
+import { SendCurrencyType, SendFormNames } from './types';
+import type { SendContext } from './types';
 import { TransactionConfirmationNames } from './views/TransactionConfirmation/TransactionConfirmation';
 
 jest.mock('../../core/utils/errors', () => ({
@@ -327,8 +327,7 @@ describe('Send', () => {
 
     mockResolvedResult({
       method: 'getTokenAccountsByOwner',
-      result:
-        MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result as any,
+      result: MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE.result,
     });
 
     mockResolvedResult({
@@ -530,31 +529,44 @@ describe('Send tracking', () => {
         throw new Error(`Unexpected snap.request call: ${method}`);
       });
 
-    assetsService.getAll = jest.fn().mockResolvedValue([
-      {
-        assetType: KnownCaip19Id.SolMainnet,
-        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        network: Network.Mainnet,
-        address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
-        symbol: 'SOL',
-        decimals: 9,
-        rawAmount: '1',
-        uiAmount: '1',
-      },
-    ]);
-    assetsService.getAssetsMetadata = jest.fn();
-    accountsService.getAll = jest
-      .fn()
+    jest
+      .spyOn(assetsService, 'getAll')
+      .mockImplementation()
+      .mockResolvedValue([
+        {
+          assetType: KnownCaip19Id.SolMainnet,
+          keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          network: Network.Mainnet,
+          address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+          symbol: 'SOL',
+          decimals: 9,
+          rawAmount: '1',
+          uiAmount: '1',
+        },
+      ]);
+    jest.spyOn(assetsService, 'getAssetsMetadata').mockImplementation();
+    jest
+      .spyOn(accountsService, 'getAll')
+      .mockImplementation()
       .mockResolvedValue([MOCK_SOLANA_KEYRING_ACCOUNT_0]);
     const rentExemptionSend = jest.fn();
-    connection.getRpc = jest.fn().mockReturnValue({
-      getMinimumBalanceForRentExemption: jest.fn().mockReturnValue({
-        send: rentExemptionSend,
-      }),
-    });
-    priceApiClient.getMultipleSpotPrices = jest.fn();
-    state.getKey = jest.fn().mockResolvedValue(undefined);
-    state.setKey = jest.fn().mockResolvedValue(undefined);
+    jest
+      .spyOn(connection, 'getRpc')
+      .mockImplementation()
+      .mockReturnValue({
+        getMinimumBalanceForRentExemption: jest.fn().mockReturnValue({
+          send: rentExemptionSend,
+        }),
+      } as never);
+    jest.spyOn(priceApiClient, 'getMultipleSpotPrices').mockImplementation();
+    jest
+      .spyOn(state, 'getKey')
+      .mockImplementation()
+      .mockResolvedValue(undefined);
+    jest
+      .spyOn(state, 'setKey')
+      .mockImplementation()
+      .mockResolvedValue(undefined);
 
     (globalThis as any).snap = {
       request: snapRequest,
@@ -618,7 +630,7 @@ describe('Send tracking', () => {
       expect(trackErrorMock).toHaveBeenCalledWith(metadataError);
       expect(trackErrorMock).toHaveBeenCalledWith(pricesError);
       expect(trackErrorMock).toHaveBeenCalledWith(rentError);
-      expect(trackErrorMock).toBeCalledTimes(3);
+      expect(trackErrorMock).toHaveBeenCalledTimes(3);
     } finally {
       cleanup();
     }

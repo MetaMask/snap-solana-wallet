@@ -30,6 +30,7 @@ import { Base58Struct, Base64Struct } from '../../validation/structs';
  * Unfortunately the structs cannot be derived automatically from the types, so we need to manually define them.
  *
  * This will be used to validate incoming JSON-RPC requests that follow the Solana Wallet Standard.
+ *
  * @see https://github.com/anza-xyz/wallet-standard/tree/master/packages/core/features/src
  */
 
@@ -256,6 +257,7 @@ export type SolanaSignInResponse = Infer<typeof SolanaSignInResponseStruct>;
 
 /**
  * Validates that a JsonRpcRequest is a valid Solana request.
+ *
  * @see https://github.com/MetaMask/accounts/blob/main/packages/keyring-api/docs/sol-methods.md
  */
 export const SolanaWalletRequestStruct = union([

@@ -6,6 +6,7 @@ import { address, getStructCodec, getU8Codec } from '@solana/kit';
  *
  * Unfortunately, Solana doesn't provide a JS/TS client for secp256k1 and secp256r1 programs, unlike other programs,
  * for instance:
+ *
  * @see https://github.com/solana-program/token-2022/blob/main/clients/js/src/generated/instructions/createAssociatedToken.ts
  * @see https://github.com/solana-program/compute-budget/blob/main/clients/js/src/generated/instructions/setComputeUnitLimit.ts
  *

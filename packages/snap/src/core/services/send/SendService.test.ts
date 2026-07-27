@@ -26,11 +26,8 @@ import type { RecipientClassifier } from './RecipientClassifier';
 import { SendService } from './SendService';
 import type { SendSolBuilder } from './SendSolBuilder';
 import type { SendSplTokenBuilder } from './SendSplTokenBuilder';
-import {
-  SendErrorCodes,
-  type OnAmountInputRequest,
-  type OnConfirmSendRequest,
-} from './types';
+import { SendErrorCodes } from './types';
+import type { OnAmountInputRequest, OnConfirmSendRequest } from './types';
 
 // Mock dependencies
 jest.mock('../../sdk-extensions/codecs');

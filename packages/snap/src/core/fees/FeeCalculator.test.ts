@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/check-indentation */
 import type { Base58EncodedBytes, Transaction } from '@solana/kit';
 
 import { MOCK_EXECUTION_SCENARIO_SEND_SOL } from '../services/signer/mocks/scenarios/sendSol';

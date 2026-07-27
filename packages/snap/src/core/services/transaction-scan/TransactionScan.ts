@@ -1,12 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { SolanaKeyringAccount } from '../../../entities';
 import type { SecurityAlertsApiClient } from '../../clients/security-alerts-api/SecurityAlertsApiClient';
 import type { SecurityAlertSimulationValidationResponse } from '../../clients/security-alerts-api/types';
-import {
-  METAMASK_ORIGIN,
-  METAMASK_ORIGIN_URL,
-  type Network,
-} from '../../constants/solana';
+import { METAMASK_ORIGIN, METAMASK_ORIGIN_URL } from '../../constants/solana';
+import type { Network } from '../../constants/solana';
 import { trackError } from '../../utils/errors';
 import type { ILogger } from '../../utils/logger';
 import type { AnalyticsService } from '../analytics/AnalyticsService';
@@ -32,6 +28,7 @@ export class TransactionScanService {
 
   /**
    * Scans a transaction.
+   *
    * @param params - The parameters for the function.
    * @param params.method - The method of the transaction.
    * @param params.accountAddress - The address of the account.
@@ -100,7 +97,7 @@ export class TransactionScanService {
 
         const hasSecurityAlert = Boolean(
           scan.validation?.type &&
-            scan.validation.type !== SecurityAlertResponse.Benign,
+          scan.validation.type !== SecurityAlertResponse.Benign,
         );
 
         const analyticsPromises = [

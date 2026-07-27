@@ -93,7 +93,7 @@ export async function exportKey(format: KeyFormat | string, key: CryptoKey) {
       const base = {
         crv: 'Ed25519',
         ext: key.extractable,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
         key_ops: key.usages,
         kty: 'OKP',
       };

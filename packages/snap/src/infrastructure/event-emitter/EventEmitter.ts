@@ -1,4 +1,5 @@
-import { createPrefixedLogger, type ILogger } from '../../core/utils/logger';
+import { createPrefixedLogger } from '../../core/utils/logger';
+import type { ILogger } from '../../core/utils/logger';
 
 type Listener = (data?: any) => Promise<void>;
 
@@ -26,6 +27,7 @@ export class EventEmitter {
 
   /**
    * Registers a listener for an event.
+   *
    * @param event - The event to listen to.
    * @param listener - The listener to call when the event is emitted.
    */
@@ -41,6 +43,7 @@ export class EventEmitter {
 
   /**
    * Removes a listener for an event.
+   *
    * @param event - The event to remove the listener for.
    * @param listener - The listener to remove.
    */
@@ -62,6 +65,7 @@ export class EventEmitter {
    * Emits an event synchronously, and waits for all listeners to complete.
    * The event is emitted to all listeners, and the function returns when all listeners have completed.
    * Because of how the snaps platform works, we MUST await for all listeners to complete, otherwise the snap execution will stop.
+   *
    * @param event - The event to emit.
    * @param data - The data to pass to the listeners.
    */
@@ -79,6 +83,7 @@ export class EventEmitter {
 
   /**
    * Removes all listeners for an event.
+   *
    * @param event - The event to remove the listeners for. If not provided, all listeners will be removed.
    */
   removeAllListeners(event?: string) {
@@ -93,6 +98,7 @@ export class EventEmitter {
 
   /**
    * Returns the number of listeners for an event.
+   *
    * @param event - The event to get the listener count for.
    * @returns The number of listeners for the event.
    */
@@ -103,6 +109,7 @@ export class EventEmitter {
 
   /**
    * Returns the names of all events that have listeners.
+   *
    * @returns The names of all events that have listeners.
    */
   eventNames(): string[] {

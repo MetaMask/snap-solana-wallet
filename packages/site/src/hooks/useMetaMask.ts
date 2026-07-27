@@ -7,6 +7,7 @@ import { useRequest } from './useRequest';
 
 /**
  * A Hook to retrieve useful data from MetaMask.
+ *
  * @returns The informations.
  */
 export const useMetaMask = () => {
