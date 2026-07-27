@@ -38,7 +38,7 @@
     "@metamask/eslint-config-nodejs": "^15.0.0",
     "@metamask/eslint-config-typescript": "^15.0.0",
     "@metamask/utils": "^11.9.0",
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^30.0.0",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@typescript-eslint/eslint-plugin": "^8.48.0",
@@ -62,6 +62,7 @@
     "typescript-eslint": "^8.48.0"
   },
   "resolutions": {
+    "@metamask/snaps-execution-environments": "11.2.0",
     "@metamask/snaps-sdk": "^11.1.1",
     "@types/react": "18.2.4",
     "@types/react-dom": "18.2.4"
@@ -80,7 +81,8 @@
       "@lavamoat/preinstall-always-fail": false,
       "sharp": true,
       "@commitlint/cli>@commitlint/load>ts-node>@swc/core": false,
-      "eslint-plugin-import-x>unrs-resolver": false
+      "eslint-plugin-import-x>unrs-resolver": false,
+      "jest>@jest/core>jest-resolve>unrs-resolver": false
     }
   }
 }
