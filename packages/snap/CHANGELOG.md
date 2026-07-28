@@ -9,12 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.0.0]
 
-### Uncategorized
-
-- Align tooling with internal-snaps monorepo ([#627](https://github.com/MetaMask/snap-solana-wallet/pull/627))
-
 ### Changed
 
+- Align tooling with internal-snaps monorepo ([#627](https://github.com/MetaMask/snap-solana-wallet/pull/627))
 - **BREAKING:** Reconcile snap package with monorepo template ([#628](https://github.com/MetaMask/snap-solana-wallet/pull/628))
   - Require Node.js `>=20`
 
