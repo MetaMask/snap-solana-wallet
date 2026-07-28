@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0]
+
 ### Changed
 
+- Align tooling with internal-snaps monorepo ([#627](https://github.com/MetaMask/snap-solana-wallet/pull/627))
 - **BREAKING:** Reconcile snap package with monorepo template ([#628](https://github.com/MetaMask/snap-solana-wallet/pull/628))
   - Require Node.js `>=20`
 
@@ -29,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING:** Remove v1-only keyring methods now that the Snap speaks the keyring V2 protocol ([#606](https://github.com/MetaMask/snap-solana-wallet/pull/606))
   - Removes `createAccount` (superseded by `createAccounts`), `listAccounts` (superseded by `getAccounts`), `updateAccount`, and `filterAccountChains`.
   - Stops emitting the `AccountCreated` and `AccountDeleted` keyring events; account lifecycle is now driven by the V2 client via `createAccounts`/`deleteAccount` return values.
+
+## [2.11.0] [DEPRECATED]
 
 ## [2.10.0]
 
@@ -1125,8 +1130,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sonarcloud to github workflow ([#25](https://github.com/MetaMask/snap-solana-wallet/pull/25))
 - Snap setup
 
-[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v3.0.0...HEAD
-[3.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.10.0...v3.0.0
+[Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v3.0.0...v4.0.0
+[3.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.11.0...v3.0.0
+[2.11.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.1...v2.10.0
 [2.9.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.0...v2.9.1
 [2.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.8.0...v2.9.0
