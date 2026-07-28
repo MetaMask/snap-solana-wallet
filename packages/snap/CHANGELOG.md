@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removes `createAccount` (superseded by `createAccounts`), `listAccounts` (superseded by `getAccounts`), `updateAccount`, and `filterAccountChains`.
   - Stops emitting the `AccountCreated` and `AccountDeleted` keyring events; account lifecycle is now driven by the V2 client via `createAccounts`/`deleteAccount` return values.
 
+## [2.11.0] [DEPRECATED]
+
 ## [2.10.0]
 
 ### Changed
