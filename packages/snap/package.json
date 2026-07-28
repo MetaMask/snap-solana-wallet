@@ -1,6 +1,6 @@
 {
   "name": "@metamask/solana-wallet-snap",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "A Solana wallet Snap.",
   "keywords": [
     "MetaMask",
