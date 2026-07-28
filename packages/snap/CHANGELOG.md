@@ -1132,7 +1132,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/snap-solana-wallet/compare/v4.0.0...HEAD
 [4.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v3.0.0...v4.0.0
-[3.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.10.0...v3.0.0
+[3.0.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.11.0...v3.0.0
+[2.11.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.1...v2.10.0
 [2.9.1]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.9.0...v2.9.1
 [2.9.0]: https://github.com/MetaMask/snap-solana-wallet/compare/v2.8.0...v2.9.0
