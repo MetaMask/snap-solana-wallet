@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
-- chore: align tooling with internal-snaps monorepo ([#627](https://github.com/MetaMask/snap-solana-wallet/pull/627))
+- Align tooling with internal-snaps monorepo ([#627](https://github.com/MetaMask/snap-solana-wallet/pull/627))
 
 ### Changed
 
