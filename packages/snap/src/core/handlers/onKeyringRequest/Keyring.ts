@@ -520,9 +520,10 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId }, ListAccountAssetsStruct);
 
-      const account = await this.getAccountOrThrow(accountId);
+      await this.getAccountOrThrow(accountId);
 
-      const assetEntities = await this.#assetsService.findByAccount(account);
+      const assetEntities =
+        await this.#assetsService.getAccountAssets(accountId);
 
       const result = assetEntities
         // Remove token assets with zero balance
@@ -554,10 +555,12 @@ export class SolanaKeyring implements Keyring {
     try {
       validateRequest({ accountId, assets }, GetAccountBalancesStruct);
 
-      const account = await this.getAccountOrThrow(accountId);
+      await this.getAccountOrThrow(accountId);
 
-      const assetsToUse = (await this.#assetsService.findByAccount(account))
-        .filter((asset) => assets.includes(asset.assetType))
+      const assetsToUse = (
+        await this.#assetsService.getAccountAssetsByIDs(accountId, assets)
+      )
+        .filter((asset): asset is NonNullable<typeof asset> => asset !== null)
         // Remove token assets with zero balance
         .filter(
           (asset) =>

@@ -99,9 +99,8 @@ describe('SolanaKeyring', () => {
     });
 
     mockAssetsService = {
-      fetch: jest.fn().mockResolvedValue(MOCK_ASSET_ENTITIES),
-      saveMany: jest.fn(),
-      findByAccount: jest.fn(),
+      getAccountAssets: jest.fn(),
+      getAccountAssetsByIDs: jest.fn(),
       getNativeAssetTypes: jest
         .fn()
         .mockReturnValue([KnownCaip19Id.SolMainnet]),
@@ -183,7 +182,7 @@ describe('SolanaKeyring', () => {
   describe('listAccountAssets', () => {
     it('calls the assets service', async () => {
       jest
-        .spyOn(mockAssetsService, 'findByAccount')
+        .spyOn(mockAssetsService, 'getAccountAssets')
         .mockResolvedValue(MOCK_ASSET_ENTITIES);
 
       const result = await keyring.listAccountAssets(
@@ -198,7 +197,7 @@ describe('SolanaKeyring', () => {
     });
 
     it('removes token assets with zero balance', async () => {
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+      jest.spyOn(mockAssetsService, 'getAccountAssets').mockResolvedValue([
         MOCK_ASSET_ENTITY_1, // Token asset with non-zero balance
         { ...MOCK_ASSET_ENTITY_2, rawAmount: '0' }, // Token asset with zero balance
       ]);
@@ -211,7 +210,7 @@ describe('SolanaKeyring', () => {
     });
 
     it('keeps the native asset even if it has zero balance', async () => {
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+      jest.spyOn(mockAssetsService, 'getAccountAssets').mockResolvedValue([
         { ...MOCK_ASSET_ENTITY_0, rawAmount: '0' }, // Native asset with zero balance
         { ...MOCK_ASSET_ENTITY_1, rawAmount: '0' }, // Token asset with zero balance
       ]);
@@ -659,7 +658,7 @@ describe('SolanaKeyring', () => {
       } as unknown as AssetEntity;
 
       jest
-        .spyOn(mockAssetsService, 'findByAccount')
+        .spyOn(mockAssetsService, 'getAccountAssetsByIDs')
         .mockResolvedValue([invalidAsset]);
 
       await expect(
@@ -670,7 +669,7 @@ describe('SolanaKeyring', () => {
     });
 
     it('removes token assets with zero balance', async () => {
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+      jest.spyOn(mockAssetsService, 'getAccountAssetsByIDs').mockResolvedValue([
         MOCK_ASSET_ENTITY_1, // Token asset with non-zero balance
         { ...MOCK_ASSET_ENTITY_2, rawAmount: '0' }, // Token asset with zero balance
       ]);
@@ -689,7 +688,7 @@ describe('SolanaKeyring', () => {
     });
 
     it('keeps the native asset even if it has zero balance', async () => {
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+      jest.spyOn(mockAssetsService, 'getAccountAssetsByIDs').mockResolvedValue([
         { ...MOCK_ASSET_ENTITY_0, rawAmount: '0' }, // Native asset with zero balance
         { ...MOCK_ASSET_ENTITY_1, rawAmount: '0' }, // Token asset with zero balance
       ]);
