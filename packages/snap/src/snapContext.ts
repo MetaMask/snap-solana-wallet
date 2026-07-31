@@ -1,3 +1,5 @@
+import { getMessenger } from '@metamask/snaps-sdk';
+
 import type { ICache } from './core/caching/ICache';
 import { InMemoryCache } from './core/caching/InMemoryCache';
 import { StateCache } from './core/caching/StateCache';
@@ -15,6 +17,7 @@ import {
   ApproveTokenService,
   AssetsRepository,
   AssetsService,
+  CoreAssetsAdapter,
   SnapAssetsAdapter,
   KeyringAccountMonitor,
   MonitoredAccountsInitializer,
@@ -47,6 +50,7 @@ import { TransactionScanService } from './core/services/transaction-scan/Transac
 import { WalletService } from './core/services/wallet/WalletService';
 import logger, { noOpLogger } from './core/utils/logger';
 import { EventEmitter } from './infrastructure';
+import type { CoreMessenger } from './types/core-messenger';
 
 /**
  * Initializes all the services using dependency injection.
@@ -160,10 +164,14 @@ const snapAssetsAdapter = new SnapAssetsAdapter({
   nftApiClient,
 });
 
+const coreMessenger = getMessenger<CoreMessenger>();
+const coreAssetsAdapter = new CoreAssetsAdapter(coreMessenger);
+
 const assetsService = new AssetsService({
   logger,
   configProvider,
   snapAssetsAdapter,
+  coreAssetsAdapter,
   tokenApiClient,
   tokenPricesService,
   nftApiClient,

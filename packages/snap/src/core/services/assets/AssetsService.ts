@@ -20,6 +20,7 @@ import type { Caip10Address } from '../../constants/solana';
 import { createPrefixedLogger, type ILogger } from '../../utils/logger';
 import type { ConfigProvider } from '../config';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
+import type { CoreAssetsAdapter } from './adapters/CoreAssetsAdapter';
 import { SnapAssetsAdapter } from './adapters/SnapAssetsAdapter';
 import type { AssetMetadata, NonFungibleAssetMetadata } from './types';
 
@@ -29,6 +30,9 @@ export class AssetsService {
   readonly #configProvider: ConfigProvider;
 
   readonly #snapAdapter: SnapAssetsAdapter;
+
+  /** Reserved for migration routing in a follow-up PR; not used for reads yet. */
+  readonly #coreAssetsAdapter: CoreAssetsAdapter;
 
   readonly #tokenPricesService: TokenPricesService;
 
@@ -40,6 +44,7 @@ export class AssetsService {
     logger,
     configProvider,
     snapAssetsAdapter,
+    coreAssetsAdapter,
     tokenApiClient,
     tokenPricesService,
     nftApiClient,
@@ -47,6 +52,7 @@ export class AssetsService {
     logger: ILogger;
     configProvider: ConfigProvider;
     snapAssetsAdapter: SnapAssetsAdapter;
+    coreAssetsAdapter: CoreAssetsAdapter;
     tokenApiClient: TokenApiClient;
     tokenPricesService: TokenPricesService;
     nftApiClient: NftApiClient;
@@ -54,6 +60,7 @@ export class AssetsService {
     this.#logger = createPrefixedLogger(logger, '[🪙 AssetsService]');
     this.#configProvider = configProvider;
     this.#snapAdapter = snapAssetsAdapter;
+    this.#coreAssetsAdapter = coreAssetsAdapter;
     this.#tokenApiClient = tokenApiClient;
     this.#tokenPricesService = tokenPricesService;
     this.#nftApiClient = nftApiClient;

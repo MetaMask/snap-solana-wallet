@@ -73,8 +73,11 @@
     "snap_manageAccounts": {},
     "snap_manageState": {},
     "snap_dialog": {},
-    "snap_getPreferences": {}
+    "snap_getPreferences": {},
+    "endowment:messenger": {
+      "actions": ["AssetsController:getAsset", "AssetsController:getAssets"]
+    }
   },
-  "platformVersion": "10.3.0",
+  "platformVersion": "11.2.0",
   "manifestVersion": "0.1"
 }
