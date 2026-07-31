@@ -1,3 +1,5 @@
+import { getMessenger } from '@metamask/snaps-sdk';
+
 import type { ICache } from './core/caching/ICache';
 import { InMemoryCache } from './core/caching/InMemoryCache';
 import { StateCache } from './core/caching/StateCache';
@@ -13,8 +15,8 @@ import {
   AccountsService,
   AccountsSynchronizer,
   ApproveTokenService,
-  AssetsRepository,
   AssetsService,
+  CoreAssetsAdapter,
   KeyringAccountMonitor,
   MonitoredAccountsInitializer,
   RecipientClassifier,
@@ -46,6 +48,7 @@ import { TransactionScanService } from './core/services/transaction-scan/Transac
 import { WalletService } from './core/services/wallet/WalletService';
 import logger, { noOpLogger } from './core/utils/logger';
 import { EventEmitter } from './infrastructure';
+import type { CoreMessenger } from './types/core-messenger';
 
 /**
  * Initializes all the services using dependency injection.
@@ -143,20 +146,20 @@ const tokenPricesService = new TokenPricesService({
 });
 const nameResolutionService = new NameResolutionService(connection, logger);
 
-const assetsRepository = new AssetsRepository(state);
+const accountsRepository = new AccountsRepository(state);
+const accountsService = new AccountsService(accountsRepository);
+
+const coreMessenger = getMessenger<CoreMessenger>();
+const coreAssetsAdapter = new CoreAssetsAdapter(coreMessenger);
 const assetsService = new AssetsService({
-  connection,
   logger,
   configProvider,
-  assetsRepository,
+  coreAssetsAdapter,
+  accountsService,
   tokenApiClient,
-  cache: inMemoryCache,
   tokenPricesService,
   nftApiClient,
 });
-
-const accountsRepository = new AccountsRepository(state);
-const accountsService = new AccountsService(accountsRepository);
 
 const transactionsRepository = new TransactionsRepository(state);
 const transactionMapper = new TransactionMapper(
