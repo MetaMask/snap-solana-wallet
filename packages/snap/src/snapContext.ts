@@ -172,6 +172,7 @@ const assetsService = new AssetsService({
   configProvider,
   snapAssetsAdapter,
   coreAssetsAdapter,
+  accountsService,
   tokenApiClient,
   tokenPricesService,
   nftApiClient,
