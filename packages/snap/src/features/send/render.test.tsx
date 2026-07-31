@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { getMockAccount, installSnap } from '@metamask/snaps-jest';
+import type { Json } from '@metamask/utils';
 
 import type { SpotPrices } from '../../core/clients/price-api/types';
 import {
@@ -35,6 +36,13 @@ import { Send } from './Send';
 import { type SendContext, SendCurrencyType, SendFormNames } from './types';
 import { TransactionConfirmationNames } from './views/TransactionConfirmation/TransactionConfirmation';
 
+const TEST_TOKEN_MINT_1 = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const TEST_TOKEN_MINT_2 = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
+const TEST_TOKEN_ASSET_1 =
+  `solana:123456789abcdef/token:${TEST_TOKEN_MINT_1}` as const;
+const TEST_TOKEN_ASSET_2 =
+  `solana:123456789abcdef/token:${TEST_TOKEN_MINT_2}` as const;
+
 const solanaKeyringAccounts = [
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -46,11 +54,11 @@ const solanaAccountBalances: Record<string, { amount: string; unit: string }> =
       amount: '0.123456789',
       unit: SOL_SYMBOL,
     },
-    'solana:123456789abcdef/token:address1': {
+    [TEST_TOKEN_ASSET_1]: {
       amount: '0.123456789',
       unit: '',
     },
-    'solana:123456789abcdef/token:address2': {
+    [TEST_TOKEN_ASSET_2]: {
       amount: '0.123456789',
       unit: '',
     },
@@ -83,7 +91,7 @@ const mockSpotPrices: SpotPrices = {
     holderCount: null,
     isMutable: null,
   },
-  'solana:123456789abcdef/token:address1': {
+  [TEST_TOKEN_ASSET_1]: {
     id: 'euro-coin',
     price: 200,
     marketCap: 142095635.08509836,
@@ -109,7 +117,7 @@ const mockSpotPrices: SpotPrices = {
     holderCount: null,
     isMutable: null,
   },
-  'solana:123456789abcdef/token:address2': {
+  [TEST_TOKEN_ASSET_2]: {
     id: 'usd-coin',
     price: 200,
     marketCap: 55688170578.59265,
@@ -146,14 +154,19 @@ const mockContext: SendContext = {
   tokenCaipId: KnownCaip19Id.SolLocalnet,
   assets: [
     KnownCaip19Id.SolLocalnet,
-    'solana:123456789abcdef/token:address1',
-    'solana:123456789abcdef/token:address2',
+    TEST_TOKEN_ASSET_1,
+    TEST_TOKEN_ASSET_2,
   ],
   balances: {
     [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
     [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
   },
   tokenPrices: mockSpotPrices,
+  tokenPricesFetchStatus: 'fetched',
+  preferences: {
+    ...DEFAULT_SEND_CONTEXT.preferences,
+    useExternalPricingData: false,
+  },
   loading: false,
 };
 
@@ -197,15 +210,16 @@ describe('Send', () => {
           entropySource: 'alternative',
         },
       },
+      tokenPrices: mockSpotPrices as Json,
     };
 
-    const mockPreferences: Preferences = {
-      locale: 'en',
-      currency: 'usd',
-      hideBalances: false,
-      useSecurityAlerts: true,
-      useExternalPricingData: true,
-      simulateOnChainActions: true,
+const mockPreferences: Preferences = {
+  locale: 'en',
+  currency: 'usd',
+  hideBalances: false,
+  useSecurityAlerts: true,
+  useExternalPricingData: false,
+  simulateOnChainActions: true,
       useTokenDetection: true,
       batchCheckBalances: true,
       displayNftMedia: true,
@@ -219,12 +233,14 @@ describe('Send', () => {
         unencryptedState: initialState,
         accounts: [
           getMockAccount({
+            id: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
             address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
             selected: true,
             assets: Object.keys(solanaAccountBalances) as CaipAssetType[],
             scopes: [Network.Localnet],
           }),
           getMockAccount({
+            id: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
             address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
             selected: false,
             assets: Object.keys(solanaAccountBalances) as CaipAssetType[],
@@ -236,11 +252,11 @@ describe('Send', () => {
             symbol: 'SOL',
             name: 'Solana',
           },
-          'solana:123456789abcdef/token:address1': {
+          [TEST_TOKEN_ASSET_1]: {
             symbol: 'EURO-COIN',
             name: 'Euro Coin',
           },
-          'solana:123456789abcdef/token:address2': {
+          [TEST_TOKEN_ASSET_2]: {
             symbol: 'USDC',
             name: 'USDC',
           },

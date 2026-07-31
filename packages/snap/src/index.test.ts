@@ -7,6 +7,7 @@ import { ScheduleBackgroundEventMethod } from './core/handlers/onCronjob/backgro
 
 jest.mock('@noble/ed25519', () => ({
   getPublicKey: jest.fn(),
+  getPublicKeyAsync: jest.fn(),
   sign: jest.fn(),
   verify: jest.fn(),
 }));
