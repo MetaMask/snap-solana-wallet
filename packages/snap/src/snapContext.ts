@@ -204,10 +204,8 @@ const signatureMonitor = new SignatureMonitor(
 const keyringAccountMonitor = new KeyringAccountMonitor(
   subscriptionService,
   accountsService,
-  assetsService,
   transactionsService,
   accountsSynchronizer,
-  tokenHelper,
   configProvider,
   logger,
 );
