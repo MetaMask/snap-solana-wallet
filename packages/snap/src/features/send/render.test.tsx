@@ -213,13 +213,13 @@ describe('Send', () => {
       tokenPrices: mockSpotPrices as Json,
     };
 
-const mockPreferences: Preferences = {
-  locale: 'en',
-  currency: 'usd',
-  hideBalances: false,
-  useSecurityAlerts: true,
-  useExternalPricingData: false,
-  simulateOnChainActions: true,
+    const mockPreferences: Preferences = {
+      locale: 'en',
+      currency: 'usd',
+      hideBalances: false,
+      useSecurityAlerts: true,
+      useExternalPricingData: false,
+      simulateOnChainActions: true,
       useTokenDetection: true,
       batchCheckBalances: true,
       displayNftMedia: true,
