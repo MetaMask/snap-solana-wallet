@@ -19,6 +19,7 @@ import {
   SOLANA_MOCK_TOKEN_METADATA,
 } from '../../test/mocks/asset-entities';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
+import type { AccountsService } from '../accounts/AccountsService';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import { mockLogger } from '../mocks/logger';
@@ -37,6 +38,7 @@ describe('AssetsService', () => {
   let mockConnection: SolanaConnection;
   let mockConfigProvider: ConfigProvider;
   let mockAssetsRepository: AssetsRepository;
+  let mockAccountsService: AccountsService;
   let mockTokenApiClient: TokenApiClient;
   let mockTokenPricesService: TokenPricesService;
   let mockNftApiClient: NftApiClient;
@@ -83,11 +85,16 @@ describe('AssetsService', () => {
       saveMany: jest.fn(),
     } as unknown as AssetsRepository;
 
+    mockAccountsService = {
+      findById: jest.fn().mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0),
+    } as unknown as AccountsService;
+
     assetsService = new AssetsService({
       connection: mockConnection,
       logger: mockLogger,
       configProvider: mockConfigProvider,
       assetsRepository: mockAssetsRepository,
+      accountsService: mockAccountsService,
       tokenApiClient: mockTokenApiClient,
       tokenPricesService: mockTokenPricesService,
       cache: mockCache,
@@ -601,6 +608,83 @@ describe('AssetsService', () => {
 
       const assets = await assetsService.findByAccount(
         MOCK_SOLANA_KEYRING_ACCOUNT_0,
+      );
+
+      expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);
+    });
+  });
+
+  describe('getAccountAssetByID', () => {
+    it('returns the matching asset when present', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+        .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
+
+      const asset = await assetsService.getAccountAssetByID(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        MOCK_ASSET_ENTITY_1.assetType,
+      );
+
+      expect(asset).toStrictEqual(MOCK_ASSET_ENTITY_1);
+    });
+
+    it('returns null when the asset is missing', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+        .mockResolvedValueOnce([]);
+
+      const asset = await assetsService.getAccountAssetByID(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        MOCK_ASSET_ENTITY_1.assetType,
+      );
+
+      expect(asset).toBeNull();
+    });
+  });
+
+  describe('getAccountAssetsByIDs', () => {
+    it('returns a record keyed by asset ID', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+        .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
+
+      const assets = await assetsService.getAccountAssetsByIDs(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        [MOCK_ASSET_ENTITY_0.assetType, MOCK_ASSET_ENTITY_1.assetType],
+      );
+
+      expect(assets).toStrictEqual({
+        [MOCK_ASSET_ENTITY_0.assetType]: MOCK_ASSET_ENTITY_0,
+        [MOCK_ASSET_ENTITY_1.assetType]: MOCK_ASSET_ENTITY_1,
+      });
+    });
+
+    it('returns null entries for missing assets', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+        .mockResolvedValueOnce([MOCK_ASSET_ENTITY_0]);
+
+      const assets = await assetsService.getAccountAssetsByIDs(
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        [MOCK_ASSET_ENTITY_0.assetType, MOCK_ASSET_ENTITY_1.assetType],
+      );
+
+      expect(assets).toStrictEqual({
+        [MOCK_ASSET_ENTITY_0.assetType]: MOCK_ASSET_ENTITY_0,
+        [MOCK_ASSET_ENTITY_1.assetType]: null,
+      });
+    });
+  });
+
+  describe('getAccountAssetsByScope', () => {
+    it('filters account assets to the requested scope', async () => {
+      jest
+        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+        .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
+
+      const assets = await assetsService.getAccountAssetsByScope(
+        Network.Mainnet,
+        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
       );
 
       expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);
