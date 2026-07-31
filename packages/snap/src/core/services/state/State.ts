@@ -6,11 +6,7 @@ import type { MutexInterface } from 'async-mutex';
 import { Mutex } from 'async-mutex';
 import { omit, unset } from 'lodash';
 
-import type {
-  AssetEntity,
-  SolanaKeyringAccount,
-  Subscription,
-} from '../../../entities';
+import type { SolanaKeyringAccount, Subscription } from '../../../entities';
 import type { EventEmitter } from '../../../infrastructure';
 import type { SpotPrices } from '../../clients/price-api/types';
 import { deserialize } from '../../serialization/deserialize';
@@ -28,7 +24,6 @@ export type UnencryptedStateValue = {
   // we need to store the exhaustive list of signatures (including spam)
   // to keep track of the transactions per account. The field transactions above only stores non-spam transactions, which break the refreshAccounts cronjob logic.
   signatures: Record<Address, Signature[]>;
-  assetEntities: Record<AccountId, AssetEntity[]>;
   tokenPrices: SpotPrices;
   subscriptions: Record<string, Subscription>;
   webSocketConnections: {
@@ -41,7 +36,6 @@ export const DEFAULT_UNENCRYPTED_STATE: UnencryptedStateValue = {
   mapInterfaceNameToId: {},
   transactions: {},
   signatures: {},
-  assetEntities: {},
   tokenPrices: {},
   subscriptions: {},
   webSocketConnections: {
@@ -143,7 +137,7 @@ export class State<TStateValue extends Record<string, Serializable>>
 
   async #migrateState() {
     await this.update((state) => {
-      return omit(state as any, ['assets']);
+      return omit(state as any, ['assets', 'assetEntities']);
     });
   }
 
