@@ -28,6 +28,7 @@ import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/m
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import type { AssetsRepository } from './AssetsRepository';
 import { AssetsService } from './AssetsService';
+import { SnapAssetsAdapter } from './adapters/SnapAssetsAdapter';
 
 jest.mock('@metamask/keyring-snap-sdk', () => ({
   emitSnapKeyringEvent: jest.fn(),
@@ -35,6 +36,7 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
 
 describe('AssetsService', () => {
   let assetsService: AssetsService;
+  let snapAssetsAdapter: SnapAssetsAdapter;
   let mockConnection: SolanaConnection;
   let mockConfigProvider: ConfigProvider;
   let mockAssetsRepository: AssetsRepository;
@@ -89,15 +91,23 @@ describe('AssetsService', () => {
       findById: jest.fn().mockResolvedValue(MOCK_SOLANA_KEYRING_ACCOUNT_0),
     } as unknown as AccountsService;
 
-    assetsService = new AssetsService({
+    snapAssetsAdapter = new SnapAssetsAdapter({
       connection: mockConnection,
       logger: mockLogger,
       configProvider: mockConfigProvider,
       assetsRepository: mockAssetsRepository,
       accountsService: mockAccountsService,
       tokenApiClient: mockTokenApiClient,
-      tokenPricesService: mockTokenPricesService,
       cache: mockCache,
+      nftApiClient: mockNftApiClient,
+    });
+
+    assetsService = new AssetsService({
+      logger: mockLogger,
+      configProvider: mockConfigProvider,
+      snapAssetsAdapter,
+      tokenApiClient: mockTokenApiClient,
+      tokenPricesService: mockTokenPricesService,
       nftApiClient: mockNftApiClient,
     });
   });
