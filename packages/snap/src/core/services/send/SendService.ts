@@ -214,7 +214,7 @@ export class SendService {
       params: { value, accountId, assetId },
     } = request;
 
-    const account = await this.#keyring.getAccountOrThrow(accountId);
+    await this.#keyring.getAccountOrThrow(accountId);
 
     const { chainId } = parseCaipAssetType(assetId);
 
@@ -224,15 +224,11 @@ export class SendService {
 
     const isNativeToken = assetId === nativeAssetType;
 
-    const accountBalances = await this.#assetsService.findByAccount(account);
-
-    const assetEntry = accountBalances.find(
-      (asset) => asset.assetType === assetId,
-    );
-
-    const nativeAsset = accountBalances.find(
-      (asset) => asset.assetType === nativeAssetType,
-    );
+    const [assetEntry, nativeAsset] =
+      await this.#assetsService.getAccountAssetsByIDs(accountId, [
+        assetId,
+        nativeAssetType,
+      ]);
 
     if (!assetEntry) {
       throw new Error(

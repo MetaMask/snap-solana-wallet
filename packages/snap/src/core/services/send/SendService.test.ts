@@ -111,7 +111,7 @@ describe('SendService', () => {
     } as unknown as SendSplTokenBuilder;
 
     mockAssetsService = {
-      findByAccount: jest.fn(),
+      getAccountAssetsByIDs: jest.fn(),
     } as unknown as AssetsService;
 
     (fromTransactionToBase64String as jest.Mock).mockReturnValue(
@@ -292,10 +292,18 @@ describe('SendService', () => {
       },
     ];
 
-    beforeEach(() => {
+    const mockGetAccountAssetsByIDs = (balances: AssetEntity[]) => {
       jest
-        .spyOn(mockAssetsService, 'findByAccount')
-        .mockResolvedValue(mockAssetBalances);
+        .spyOn(mockAssetsService, 'getAccountAssetsByIDs')
+        .mockImplementation(async (_accountId, assetIds) =>
+          assetIds.map(
+            (id) => balances.find((asset) => asset.assetType === id) ?? null,
+          ),
+        );
+    };
+
+    beforeEach(() => {
+      mockGetAccountAssetsByIDs(mockAssetBalances);
 
       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
         getMinimumBalanceForRentExemption: jest.fn().mockReturnValue({
@@ -328,7 +336,7 @@ describe('SendService', () => {
     });
 
     it('rejects when asset balance not found', async () => {
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([]);
+      mockGetAccountAssetsByIDs([]);
 
       await expect(sendService.onAmountInput(mockRequest)).rejects.toThrow(
         `Balance not found for asset ${mockRequest.params.assetId} and account ${mockAccount.id}`,
@@ -341,7 +349,7 @@ describe('SendService', () => {
         params: { ...mockRequest.params, value: '0.000001' },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+      mockGetAccountAssetsByIDs([
         {
           assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
           uiAmount: '0.00001',
@@ -400,7 +408,7 @@ describe('SendService', () => {
         },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+      mockGetAccountAssetsByIDs([
         {
           assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
           uiAmount: '0.1',
@@ -438,7 +446,7 @@ describe('SendService', () => {
         params: { ...mockRequest.params, value: '0.1' },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+      mockGetAccountAssetsByIDs([
         {
           assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
           uiAmount: '0',
@@ -468,7 +476,7 @@ describe('SendService', () => {
         },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+      mockGetAccountAssetsByIDs([
         {
           assetType: KnownCaip19Id.UsdcMainnet,
           uiAmount: '100.0',
@@ -509,7 +517,7 @@ describe('SendService', () => {
         },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
+      mockGetAccountAssetsByIDs([
         {
           assetType: KnownCaip19Id.UsdcMainnet,
           uiAmount: '100.0',
@@ -552,7 +560,9 @@ describe('SendService', () => {
 
     it('handles errors if balances are not found', async () => {
       const error = new Error('Failed to fetch balances');
-      jest.spyOn(mockAssetsService, 'findByAccount').mockRejectedValue(error);
+      jest
+        .spyOn(mockAssetsService, 'getAccountAssetsByIDs')
+        .mockRejectedValue(error);
 
       await expect(sendService.onAmountInput(mockRequest)).rejects.toThrow(
         'Failed to fetch balances',
