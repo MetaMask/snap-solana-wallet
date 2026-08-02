@@ -108,7 +108,7 @@ describe('SendService', () => {
     } as unknown as SendSplTokenBuilder;
 
     mockAssetsService = {
-      findByAccount: jest.fn(),
+      getAccountAssetsByIDs: jest.fn(),
     } as unknown as AssetsService;
 
     (fromTransactionToBase64String as jest.Mock).mockReturnValue(
@@ -291,8 +291,16 @@ describe('SendService', () => {
 
     beforeEach(() => {
       jest
-        .spyOn(mockAssetsService, 'findByAccount')
-        .mockResolvedValue(mockAssetBalances);
+        .spyOn(mockAssetsService, 'getAccountAssetsByIDs')
+        .mockImplementation(async (_accountId, assetIds) =>
+          Object.fromEntries(
+            assetIds.map((assetId) => [
+              assetId,
+              mockAssetBalances.find((asset) => asset.assetType === assetId) ??
+                null,
+            ]),
+          ),
+        );
 
       jest.spyOn(mockConnection, 'getRpc').mockReturnValue({
         getMinimumBalanceForRentExemption: jest.fn().mockReturnValue({
@@ -325,7 +333,10 @@ describe('SendService', () => {
     });
 
     it('rejects when asset balance not found', async () => {
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([]);
+      jest.spyOn(mockAssetsService, 'getAccountAssetsByIDs').mockResolvedValue({
+        [mockRequest.params.assetId]: null,
+        [Networks[Network.Mainnet].nativeToken.caip19Id]: null,
+      });
 
       await expect(sendService.onAmountInput(mockRequest)).rejects.toThrow(
         `Balance not found for asset ${mockRequest.params.assetId} and account ${mockAccount.id}`,
@@ -338,8 +349,8 @@ describe('SendService', () => {
         params: { ...mockRequest.params, value: '0.000001' },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
-        {
+      jest.spyOn(mockAssetsService, 'getAccountAssetsByIDs').mockResolvedValue({
+        [Networks[Network.Mainnet].nativeToken.caip19Id]: {
           assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
           uiAmount: '0.00001',
           keyringAccountId: mockAccount.id,
@@ -349,7 +360,17 @@ describe('SendService', () => {
           decimals: Networks[Network.Mainnet].nativeToken.decimals,
           rawAmount: '999999999999999999',
         },
-      ]);
+        [mockRequest.params.assetId]: {
+          assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
+          uiAmount: '0.00001',
+          keyringAccountId: mockAccount.id,
+          network: Network.Mainnet,
+          address: mockAccount.address,
+          symbol: Networks[Network.Mainnet].nativeToken.symbol,
+          decimals: Networks[Network.Mainnet].nativeToken.decimals,
+          rawAmount: '999999999999999999',
+        },
+      });
 
       const result = await sendService.onAmountInput(lowBalanceRequest);
 
@@ -397,8 +418,8 @@ describe('SendService', () => {
         },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
-        {
+      jest.spyOn(mockAssetsService, 'getAccountAssetsByIDs').mockResolvedValue({
+        [Networks[Network.Mainnet].nativeToken.caip19Id]: {
           assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
           uiAmount: '0.1',
           keyringAccountId: mockAccount.id,
@@ -408,7 +429,7 @@ describe('SendService', () => {
           decimals: Networks[Network.Mainnet].nativeToken.decimals,
           rawAmount: '10000000000',
         },
-        {
+        [KnownCaip19Id.UsdcMainnet]: {
           assetType: KnownCaip19Id.UsdcMainnet,
           uiAmount: '0.001',
           keyringAccountId: mockAccount.id,
@@ -419,7 +440,7 @@ describe('SendService', () => {
           decimals: 6,
           rawAmount: '1000000',
         },
-      ]);
+      });
 
       const result = await sendService.onAmountInput(zeroBalanceRequest);
 
@@ -435,8 +456,8 @@ describe('SendService', () => {
         params: { ...mockRequest.params, value: '0.1' },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
-        {
+      jest.spyOn(mockAssetsService, 'getAccountAssetsByIDs').mockResolvedValue({
+        [Networks[Network.Mainnet].nativeToken.caip19Id]: {
           assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
           uiAmount: '0',
           keyringAccountId: mockAccount.id,
@@ -446,7 +467,17 @@ describe('SendService', () => {
           decimals: Networks[Network.Mainnet].nativeToken.decimals,
           rawAmount: '0',
         },
-      ]);
+        [mockRequest.params.assetId]: {
+          assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
+          uiAmount: '0',
+          keyringAccountId: mockAccount.id,
+          network: Network.Mainnet,
+          address: mockAccount.address,
+          symbol: Networks[Network.Mainnet].nativeToken.symbol,
+          decimals: Networks[Network.Mainnet].nativeToken.decimals,
+          rawAmount: '0',
+        },
+      });
 
       const result = await sendService.onAmountInput(zeroSolRequest);
 
@@ -465,8 +496,8 @@ describe('SendService', () => {
         },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
-        {
+      jest.spyOn(mockAssetsService, 'getAccountAssetsByIDs').mockResolvedValue({
+        [KnownCaip19Id.UsdcMainnet]: {
           assetType: KnownCaip19Id.UsdcMainnet,
           uiAmount: '100.0',
           keyringAccountId: mockAccount.id,
@@ -477,7 +508,7 @@ describe('SendService', () => {
           decimals: 6,
           rawAmount: '100000000000',
         },
-        {
+        [Networks[Network.Mainnet].nativeToken.caip19Id]: {
           assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
           uiAmount: '1.0',
           keyringAccountId: mockAccount.id,
@@ -487,7 +518,7 @@ describe('SendService', () => {
           decimals: Networks[Network.Mainnet].nativeToken.decimals,
           rawAmount: '10000000000',
         },
-      ]);
+      });
 
       const result = await sendService.onAmountInput(tokenRequest);
 
@@ -506,8 +537,8 @@ describe('SendService', () => {
         },
       };
 
-      jest.spyOn(mockAssetsService, 'findByAccount').mockResolvedValue([
-        {
+      jest.spyOn(mockAssetsService, 'getAccountAssetsByIDs').mockResolvedValue({
+        [KnownCaip19Id.UsdcMainnet]: {
           assetType: KnownCaip19Id.UsdcMainnet,
           uiAmount: '100.0',
           keyringAccountId: mockAccount.id,
@@ -518,7 +549,7 @@ describe('SendService', () => {
           decimals: 6,
           rawAmount: '100000000000',
         },
-        {
+        [Networks[Network.Mainnet].nativeToken.caip19Id]: {
           assetType: Networks[Network.Mainnet].nativeToken.caip19Id,
           uiAmount: '0.0001',
           keyringAccountId: mockAccount.id,
@@ -528,7 +559,7 @@ describe('SendService', () => {
           decimals: Networks[Network.Mainnet].nativeToken.decimals,
           rawAmount: '10000000000',
         },
-      ]);
+      });
 
       const result = await sendService.onAmountInput(tokenRequest);
 
@@ -549,7 +580,9 @@ describe('SendService', () => {
 
     it('handles errors if balances are not found', async () => {
       const error = new Error('Failed to fetch balances');
-      jest.spyOn(mockAssetsService, 'findByAccount').mockRejectedValue(error);
+      jest
+        .spyOn(mockAssetsService, 'getAccountAssetsByIDs')
+        .mockRejectedValue(error);
 
       await expect(sendService.onAmountInput(mockRequest)).rejects.toThrow(
         'Failed to fetch balances',
