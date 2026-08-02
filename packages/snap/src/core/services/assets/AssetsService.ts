@@ -11,7 +11,7 @@ import type {
   FungibleAssetMarketData,
   FungibleAssetMetadata,
 } from '@metamask/snaps-sdk';
-import type { CaipAssetType } from '@metamask/utils';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { Duration, parseCaipAssetType } from '@metamask/utils';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
@@ -46,6 +46,7 @@ import { getNetworkFromToken } from '../../utils/getNetworkFromToken';
 import { createPrefixedLogger } from '../../utils/logger';
 import type { ILogger } from '../../utils/logger';
 import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
+import type { AccountsService } from '../accounts/AccountsService';
 import type { ConfigProvider } from '../config';
 import type { SolanaConnection } from '../connection';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
@@ -71,6 +72,8 @@ export class AssetsService {
 
   readonly #assetsRepository: AssetsRepository;
 
+  readonly #accountsService: AccountsService;
+
   readonly #tokenPricesService: TokenPricesService;
 
   readonly #tokenApiClient: TokenApiClient;
@@ -88,6 +91,7 @@ export class AssetsService {
     logger,
     configProvider,
     assetsRepository,
+    accountsService,
     tokenApiClient,
     tokenPricesService,
     cache,
@@ -97,6 +101,7 @@ export class AssetsService {
     logger: ILogger;
     configProvider: ConfigProvider;
     assetsRepository: AssetsRepository;
+    accountsService: AccountsService;
     tokenApiClient: TokenApiClient;
     tokenPricesService: TokenPricesService;
     cache: ICache<Serializable>;
@@ -106,6 +111,7 @@ export class AssetsService {
     this.#connection = connection;
     this.#configProvider = configProvider;
     this.#assetsRepository = assetsRepository;
+    this.#accountsService = accountsService;
     this.#tokenApiClient = tokenApiClient;
     this.#tokenPricesService = tokenPricesService;
     this.#cache = cache;
@@ -638,6 +644,94 @@ export class AssetsService {
 
   async getAll(): Promise<AssetEntity[]> {
     return this.#assetsRepository.getAll();
+  }
+
+  /**
+   * Returns a single account asset by CAIP-19 ID, or `null` if missing.
+   *
+   * @param accountId - Keyring account ID.
+   * @param assetId - CAIP-19 asset ID.
+   */
+  async getAccountAssetByID(
+    accountId: string,
+    assetId: string,
+  ): Promise<AssetEntity | null> {
+    const { chainId } = parseCaipAssetType(assetId as CaipAssetType);
+
+    const assets = await this.getAccountAssetsByScope(chainId, accountId);
+
+    return assets.find((asset) => asset.assetType === assetId) ?? null;
+  }
+
+  /**
+   * Returns account assets for the given CAIP-19 IDs, keyed by asset ID.
+   * Missing assets are `null`.
+   *
+   * @param accountId - Keyring account ID.
+   * @param assetIds - CAIP-19 asset IDs to resolve.
+   */
+  async getAccountAssetsByIDs(
+    accountId: string,
+    assetIds: string[],
+  ): Promise<Record<string, AssetEntity | null>> {
+    if (assetIds.length === 0) {
+      return {};
+    }
+
+    const account = await this.#accountsService.findById(accountId);
+
+    if (!account) {
+      return Object.fromEntries(assetIds.map((assetId) => [assetId, null]));
+    }
+
+    const accountAssets = await this.findByAccount(account);
+
+    return Object.fromEntries(
+      assetIds.map((assetId) => [
+        assetId,
+        accountAssets.find((asset) => asset.assetType === assetId) ?? null,
+      ]),
+    );
+  }
+
+  /**
+   * Returns controller-backed assets for an account on the given Solana scope.
+   *
+   * @param scope - CAIP-2 chain ID to filter results.
+   * @param accountId - Keyring account ID.
+   */
+  async getAccountAssetsByScope(
+    scope: CaipChainId,
+    accountId: string,
+  ): Promise<AssetEntity[]> {
+    const account = await this.#accountsService.findById(accountId);
+
+    if (!account) {
+      return [];
+    }
+
+    const accountAssets = await this.findByAccount(account);
+
+    return accountAssets.filter((asset) => asset.assetType.startsWith(scope));
+  }
+
+  /**
+   * Returns assets for an account across all active Solana networks.
+   *
+   * @param accountId - Keyring account ID.
+   */
+  async getAccountAssetsForAllActiveScopes(
+    accountId: string,
+  ): Promise<AssetEntity[]> {
+    const activeNetworks = await this.#configProvider.getActiveNetworks();
+
+    const assetsByScope = await Promise.all(
+      activeNetworks.map((network) =>
+        this.getAccountAssetsByScope(network, accountId),
+      ),
+    );
+
+    return assetsByScope.flat();
   }
 
   async findByAccount(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
