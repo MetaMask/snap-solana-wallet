@@ -24,6 +24,7 @@ import { mockLogger } from '../mocks/logger';
 import { createMockConnection } from '../mocks/mockConnection';
 import { MOCK_SOLANA_RPC_GET_TOKEN_ACCOUNTS_BY_OWNER_RESPONSE } from '../mocks/mockSolanaRpcResponses';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
+import type { CoreAssetsAdapter } from './adapters/CoreAssetsAdapter';
 import { SnapAssetsAdapter } from './adapters/SnapAssetsAdapter';
 import type { AssetsRepository } from './AssetsRepository';
 import { AssetsService } from './AssetsService';
@@ -43,6 +44,7 @@ describe('AssetsService', () => {
   let mockTokenPricesService: TokenPricesService;
   let mockNftApiClient: NftApiClient;
   let mockCache: ICache<Serializable>;
+  let mockCoreAssetsAdapter: CoreAssetsAdapter;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -100,10 +102,17 @@ describe('AssetsService', () => {
       nftApiClient: mockNftApiClient,
     });
 
+    mockCoreAssetsAdapter = {
+      getAccountAssetByID: jest.fn(),
+      getAccountAssetsByIDs: jest.fn(),
+      getAccountAssetsByScope: jest.fn(),
+    } as unknown as CoreAssetsAdapter;
+
     assetsService = new AssetsService({
       logger: mockLogger,
       configProvider: mockConfigProvider,
       snapAssetsAdapter,
+      coreAssetsAdapter: mockCoreAssetsAdapter,
       tokenApiClient: mockTokenApiClient,
       tokenPricesService: mockTokenPricesService,
       nftApiClient: mockNftApiClient,
