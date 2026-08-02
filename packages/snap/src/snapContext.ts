@@ -1,3 +1,12 @@
+import { ASSETS_PROVIDER_NAME } from '@metamask-previews/snap-networks-utils';
+import type {
+  AssetsControllerGetAccountAssetByIDAction,
+  AssetsControllerGetAccountAssetsByIDsAction,
+  AssetsControllerGetAccountAssetsByScopeAction,
+} from '@metamask/assets-controller';
+import type { Messenger } from '@metamask/messenger';
+import { getMessenger } from '@metamask/snaps-sdk';
+
 import type { ICache } from './core/caching/ICache';
 import { InMemoryCache } from './core/caching/InMemoryCache';
 import { StateCache } from './core/caching/StateCache';
@@ -16,6 +25,7 @@ import {
   SnapAssetsAdapter,
   AssetsRepository,
   AssetsService,
+  CoreAssetsAdapter,
   KeyringAccountMonitor,
   MonitoredAccountsInitializer,
   RecipientClassifier,
@@ -160,10 +170,21 @@ const snapAssetsAdapter = new SnapAssetsAdapter({
   nftApiClient,
 });
 
+type CoreAssetsMessenger = Messenger<
+  typeof ASSETS_PROVIDER_NAME,
+  | AssetsControllerGetAccountAssetByIDAction
+  | AssetsControllerGetAccountAssetsByIDsAction
+  | AssetsControllerGetAccountAssetsByScopeAction
+>;
+
+const coreMessenger = getMessenger<CoreAssetsMessenger>();
+const coreAssetsAdapter = new CoreAssetsAdapter(coreMessenger);
+
 const assetsService = new AssetsService({
   logger,
   configProvider,
   snapAssetsAdapter,
+  coreAssetsAdapter,
   tokenApiClient,
   tokenPricesService,
   nftApiClient,
