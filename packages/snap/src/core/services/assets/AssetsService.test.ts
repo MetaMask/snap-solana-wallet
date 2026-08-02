@@ -1,7 +1,13 @@
+import {
+  SNAPS_ASSETS_MIGRATION_FLAG_KEYS,
+  SnapsAssetsMigrationStage,
+} from '@metamask/assets-controller';
 import { KeyringEvent } from '@metamask/keyring-api';
 import { emitSnapKeyringEvent } from '@metamask/keyring-snap-sdk';
 import { cloneDeep } from 'lodash';
 
+import type { AssetEntity } from '../../../entities';
+import type { CoreMessengerCaller } from '../../../types/core-messenger';
 import type { ICache } from '../../caching/ICache';
 import { InMemoryCache } from '../../caching/InMemoryCache';
 import { MOCK_NFTS_LIST_RESPONSE_MAPPED } from '../../clients/nft-api/mocks/mockNftsListResponseMapped';
@@ -33,6 +39,19 @@ jest.mock('@metamask/keyring-snap-sdk', () => ({
   emitSnapKeyringEvent: jest.fn(),
 }));
 
+const SOLANA_FLAG_KEY = SNAPS_ASSETS_MIGRATION_FLAG_KEYS.solana;
+
+function createMessengerCallMock(
+  getState: () => unknown,
+): (method: string, ...args: unknown[]) => Promise<unknown> {
+  return async (method: string) => {
+    if (method === 'RemoteFeatureFlagController:getState') {
+      return getState();
+    }
+    return undefined;
+  };
+}
+
 describe('AssetsService', () => {
   let assetsService: AssetsService;
   let snapAssetsAdapter: SnapAssetsAdapter;
@@ -45,9 +64,13 @@ describe('AssetsService', () => {
   let mockNftApiClient: NftApiClient;
   let mockCache: ICache<Serializable>;
   let mockCoreAssetsAdapter: CoreAssetsAdapter;
+  let migrationStage: SnapsAssetsMigrationStage;
+  let mockCoreMessenger: CoreMessengerCaller;
+  let setMigrationStage: (stage: SnapsAssetsMigrationStage) => void;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    migrationStage = SnapsAssetsMigrationStage.Off;
     mockConnection = createMockConnection();
 
     mockConfigProvider = {
@@ -104,15 +127,31 @@ describe('AssetsService', () => {
 
     mockCoreAssetsAdapter = {
       getAccountAssetByID: jest.fn(),
-      getAccountAssetsByIDs: jest.fn(),
       getAccountAssetsByScope: jest.fn(),
+      getAccountAssetsByIDs: jest.fn(),
     } as unknown as CoreAssetsAdapter;
+
+    setMigrationStage = (stage: SnapsAssetsMigrationStage) => {
+      migrationStage = stage;
+    };
+
+    mockCoreMessenger = {
+      call: jest.fn().mockImplementation(
+        createMessengerCallMock(() => ({
+          remoteFeatureFlags: {
+            [SOLANA_FLAG_KEY]: { stage: migrationStage },
+          },
+        })),
+      ),
+    };
 
     assetsService = new AssetsService({
       logger: mockLogger,
       configProvider: mockConfigProvider,
       snapAssetsAdapter,
       coreAssetsAdapter: mockCoreAssetsAdapter,
+      coreMessenger: mockCoreMessenger,
+      accountsService: mockAccountsService,
       tokenApiClient: mockTokenApiClient,
       tokenPricesService: mockTokenPricesService,
       nftApiClient: mockNftApiClient,
@@ -631,80 +670,221 @@ describe('AssetsService', () => {
     });
   });
 
-  describe('getAccountAssetByID', () => {
-    it('returns the matching asset when present', async () => {
-      jest
-        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
-        .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
-
-      const asset = await assetsService.getAccountAssetByID(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        MOCK_ASSET_ENTITY_1.assetType,
+  describe('assets migration routing', () => {
+    beforeEach(() => {
+      setMigrationStage(
+        SnapsAssetsMigrationStage.ReadAssetsControllerWithoutFallback,
       );
-
-      expect(asset).toStrictEqual(MOCK_ASSET_ENTITY_1);
     });
 
-    it('returns null when the asset is missing', async () => {
-      jest
-        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
-        .mockResolvedValueOnce([]);
+    describe('getAccountAssetByID', () => {
+      it('routes fungible assets through CoreAssetsAdapter', async () => {
+        jest
+          .spyOn(mockCoreAssetsAdapter, 'getAccountAssetByID')
+          .mockResolvedValueOnce(MOCK_ASSET_ENTITY_1);
 
-      const asset = await assetsService.getAccountAssetByID(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        MOCK_ASSET_ENTITY_1.assetType,
-      );
+        const asset = await assetsService.getAccountAssetByID(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          MOCK_ASSET_ENTITY_1.assetType,
+        );
 
-      expect(asset).toBeNull();
-    });
-  });
+        expect(mockCoreAssetsAdapter.getAccountAssetByID).toHaveBeenCalledWith(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          MOCK_ASSET_ENTITY_1.assetType,
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        );
+        expect(asset).toStrictEqual(MOCK_ASSET_ENTITY_1);
+      });
 
-  describe('getAccountAssetsByIDs', () => {
-    it('returns a record keyed by asset ID', async () => {
-      jest
-        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
-        .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
+      it('routes NFT assets through SnapAssetsAdapter', async () => {
+        const nftAssetType =
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/nft:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+        const snapSpy = jest
+          .spyOn(snapAssetsAdapter, 'getAccountAssetByID')
+          .mockResolvedValueOnce(null);
 
-      const assets = await assetsService.getAccountAssetsByIDs(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        [MOCK_ASSET_ENTITY_0.assetType, MOCK_ASSET_ENTITY_1.assetType],
-      );
+        await assetsService.getAccountAssetByID(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          nftAssetType,
+        );
 
-      expect(assets).toStrictEqual({
-        [MOCK_ASSET_ENTITY_0.assetType]: MOCK_ASSET_ENTITY_0,
-        [MOCK_ASSET_ENTITY_1.assetType]: MOCK_ASSET_ENTITY_1,
+        expect(snapSpy).toHaveBeenCalledWith(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          nftAssetType,
+        );
+        expect(
+          mockCoreAssetsAdapter.getAccountAssetByID,
+        ).not.toHaveBeenCalled();
+      });
+
+      it('returns null when the fungible asset is missing from Core', async () => {
+        jest
+          .spyOn(mockCoreAssetsAdapter, 'getAccountAssetByID')
+          .mockResolvedValueOnce(null);
+
+        const asset = await assetsService.getAccountAssetByID(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          MOCK_ASSET_ENTITY_1.assetType,
+        );
+
+        expect(asset).toBeNull();
+      });
+
+      it('routes fungible assets through SnapAssetsAdapter when stage is Off', async () => {
+        setMigrationStage(SnapsAssetsMigrationStage.Off);
+        jest
+          .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+          .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
+
+        const asset = await assetsService.getAccountAssetByID(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          MOCK_ASSET_ENTITY_1.assetType,
+        );
+
+        expect(
+          mockCoreAssetsAdapter.getAccountAssetByID,
+        ).not.toHaveBeenCalled();
+        expect(asset).toStrictEqual(MOCK_ASSET_ENTITY_1);
+      });
+
+      it('falls back to SnapAssetsAdapter when Core read fails in WithFallback stage', async () => {
+        setMigrationStage(
+          SnapsAssetsMigrationStage.ReadAssetsControllerWithFallback,
+        );
+        jest
+          .spyOn(mockCoreAssetsAdapter, 'getAccountAssetByID')
+          .mockRejectedValueOnce(new Error('Core unavailable'));
+        jest
+          .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
+          .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
+
+        const asset = await assetsService.getAccountAssetByID(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          MOCK_ASSET_ENTITY_1.assetType,
+        );
+
+        expect(asset).toStrictEqual(MOCK_ASSET_ENTITY_1);
       });
     });
 
-    it('returns null entries for missing assets', async () => {
-      jest
-        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
-        .mockResolvedValueOnce([MOCK_ASSET_ENTITY_0]);
+    describe('getAccountAssetsByIDs', () => {
+      it('routes fungible and NFT asset IDs to the correct adapters', async () => {
+        const nftAssetType =
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/nft:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
-      const assets = await assetsService.getAccountAssetsByIDs(
-        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-        [MOCK_ASSET_ENTITY_0.assetType, MOCK_ASSET_ENTITY_1.assetType],
-      );
+        jest
+          .spyOn(mockCoreAssetsAdapter, 'getAccountAssetsByIDs')
+          .mockResolvedValueOnce({
+            [MOCK_ASSET_ENTITY_0.assetType]: MOCK_ASSET_ENTITY_0,
+          });
+        jest
+          .spyOn(snapAssetsAdapter, 'getAccountAssetsByIDs')
+          .mockResolvedValueOnce({
+            [nftAssetType]: null,
+          });
 
-      expect(assets).toStrictEqual({
-        [MOCK_ASSET_ENTITY_0.assetType]: MOCK_ASSET_ENTITY_0,
-        [MOCK_ASSET_ENTITY_1.assetType]: null,
+        const assets = await assetsService.getAccountAssetsByIDs(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          [MOCK_ASSET_ENTITY_0.assetType, nftAssetType],
+        );
+
+        expect(
+          mockCoreAssetsAdapter.getAccountAssetsByIDs,
+        ).toHaveBeenCalledWith(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          [MOCK_ASSET_ENTITY_0.assetType],
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        );
+        expect(snapAssetsAdapter.getAccountAssetsByIDs).toHaveBeenCalledWith(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          [nftAssetType],
+        );
+        expect(assets).toStrictEqual({
+          [MOCK_ASSET_ENTITY_0.assetType]: MOCK_ASSET_ENTITY_0,
+          [nftAssetType]: null,
+        });
       });
     });
-  });
 
-  describe('getAccountAssetsByScope', () => {
-    it('filters account assets to the requested scope', async () => {
-      jest
-        .spyOn(mockAssetsRepository, 'findByKeyringAccountId')
-        .mockResolvedValueOnce(MOCK_ASSET_ENTITIES);
+    describe('getAccountAssetsByScope', () => {
+      it('merges fungible Core assets with Snap-owned NFT assets for the scope', async () => {
+        const nftAssetType =
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/nft:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+        const nftAsset = {
+          assetType: nftAssetType,
+          keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          network: Network.Mainnet,
+          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          pubkey: '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
+          symbol: 'NFT',
+          decimals: 0,
+          rawAmount: '1',
+          uiAmount: '1',
+        } as AssetEntity;
 
-      const assets = await assetsService.getAccountAssetsByScope(
-        Network.Mainnet,
-        MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-      );
+        jest
+          .spyOn(mockCoreAssetsAdapter, 'getAccountAssetsByScope')
+          .mockResolvedValueOnce([MOCK_ASSET_ENTITY_0, MOCK_ASSET_ENTITY_1]);
+        jest
+          .spyOn(snapAssetsAdapter, 'getAccountAssetsByScope')
+          .mockResolvedValueOnce([MOCK_ASSET_ENTITY_2, nftAsset]);
 
-      expect(assets).toStrictEqual(MOCK_ASSET_ENTITIES);
+        const assets = await assetsService.getAccountAssetsByScope(
+          Network.Mainnet,
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        );
+
+        expect(
+          mockCoreAssetsAdapter.getAccountAssetsByScope,
+        ).toHaveBeenCalledWith(
+          Network.Mainnet,
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        );
+        expect(assets).toStrictEqual([
+          MOCK_ASSET_ENTITY_0,
+          MOCK_ASSET_ENTITY_1,
+          nftAsset,
+        ]);
+      });
+    });
+
+    describe('getAccountAssetsForAllActiveScopes', () => {
+      it('merges fungible Core assets with Snap-owned NFT assets across active scopes', async () => {
+        const nftAssetType =
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/nft:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+        const nftAsset = {
+          assetType: nftAssetType,
+          keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          network: Network.Mainnet,
+          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          pubkey: '9wt9PfjPD3JCy5r7o4K1cTGiuTG7fq2pQhdDCdQALKjg',
+          symbol: 'NFT',
+          decimals: 0,
+          rawAmount: '1',
+          uiAmount: '1',
+        } as AssetEntity;
+
+        jest
+          .spyOn(mockCoreAssetsAdapter, 'getAccountAssetsByScope')
+          .mockResolvedValueOnce([MOCK_ASSET_ENTITY_0]);
+        jest
+          .spyOn(snapAssetsAdapter, 'getAccountAssetsByScope')
+          .mockResolvedValueOnce([MOCK_ASSET_ENTITY_1, nftAsset]);
+
+        const assets = await assetsService.getAccountAssetsForAllActiveScopes(
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        );
+
+        expect(
+          mockCoreAssetsAdapter.getAccountAssetsByScope,
+        ).toHaveBeenCalledWith(
+          Network.Mainnet,
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+          MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        );
+        expect(assets).toStrictEqual([MOCK_ASSET_ENTITY_0, nftAsset]);
+      });
     });
   });
 });

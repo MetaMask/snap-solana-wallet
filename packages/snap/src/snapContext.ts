@@ -57,6 +57,7 @@ import { TransactionScanService } from './core/services/transaction-scan/Transac
 import { WalletService } from './core/services/wallet/WalletService';
 import logger, { noOpLogger } from './core/utils/logger';
 import { EventEmitter } from './infrastructure';
+import type { CoreMessenger } from './types/core-messenger';
 
 /**
  * Initializes all the services using dependency injection.
@@ -177,14 +178,18 @@ type CoreAssetsMessenger = Messenger<
   | AssetsControllerGetAccountAssetsByScopeAction
 >;
 
-const coreMessenger = getMessenger<CoreAssetsMessenger>();
-const coreAssetsAdapter = new CoreAssetsAdapter(coreMessenger);
+const coreAssetsMessenger = getMessenger<CoreAssetsMessenger>();
+const coreAssetsAdapter = new CoreAssetsAdapter(coreAssetsMessenger);
+
+const featureFlagMessenger = getMessenger<CoreMessenger>();
 
 const assetsService = new AssetsService({
   logger,
   configProvider,
   snapAssetsAdapter,
   coreAssetsAdapter,
+  coreMessenger: featureFlagMessenger,
+  accountsService,
   tokenApiClient,
   tokenPricesService,
   nftApiClient,
@@ -233,10 +238,8 @@ const signatureMonitor = new SignatureMonitor(
 const keyringAccountMonitor = new KeyringAccountMonitor(
   subscriptionService,
   accountsService,
-  assetsService,
   transactionsService,
   accountsSynchronizer,
-  tokenHelper,
   configProvider,
   logger,
 );

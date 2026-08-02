@@ -29,6 +29,7 @@ import { TEST_ORIGIN } from '../../core/test/utils';
 import type { Preferences } from '../../core/types/snap';
 import { buildUrl } from '../../core/utils/buildUrl';
 import { trackError } from '../../core/utils/errors';
+import type { AssetEntity } from '../../entities';
 import {
   accountsService,
   assetsService,
@@ -529,21 +530,27 @@ describe('Send tracking', () => {
         throw new Error(`Unexpected snap.request call: ${method}`);
       });
 
+    const mockSendAssets: AssetEntity[] = [
+      {
+        assetType: KnownCaip19Id.SolMainnet,
+        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        network: Network.Mainnet,
+        address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        symbol: 'SOL',
+        decimals: 9,
+        rawAmount: '1',
+        uiAmount: '1',
+      },
+    ];
+
     jest
       .spyOn(assetsService, 'getAll')
       .mockImplementation()
-      .mockResolvedValue([
-        {
-          assetType: KnownCaip19Id.SolMainnet,
-          keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-          network: Network.Mainnet,
-          address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
-          symbol: 'SOL',
-          decimals: 9,
-          rawAmount: '1',
-          uiAmount: '1',
-        },
-      ]);
+      .mockResolvedValue(mockSendAssets);
+    jest
+      .spyOn(assetsService, 'getAccountAssetsByScope')
+      .mockImplementation()
+      .mockResolvedValue(mockSendAssets);
     jest.spyOn(assetsService, 'getAssetsMetadata').mockImplementation();
     jest
       .spyOn(accountsService, 'getAll')
