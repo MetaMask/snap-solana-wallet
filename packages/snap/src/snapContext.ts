@@ -13,6 +13,7 @@ import {
   AccountsService,
   AccountsSynchronizer,
   ApproveTokenService,
+  SnapAssetsAdapter,
   AssetsRepository,
   AssetsService,
   KeyringAccountMonitor,
@@ -148,7 +149,7 @@ const assetsRepository = new AssetsRepository(state);
 const accountsRepository = new AccountsRepository(state);
 const accountsService = new AccountsService(accountsRepository);
 
-const assetsService = new AssetsService({
+const snapAssetsAdapter = new SnapAssetsAdapter({
   connection,
   logger,
   configProvider,
@@ -156,6 +157,14 @@ const assetsService = new AssetsService({
   accountsService,
   tokenApiClient,
   cache: inMemoryCache,
+  nftApiClient,
+});
+
+const assetsService = new AssetsService({
+  logger,
+  configProvider,
+  snapAssetsAdapter,
+  tokenApiClient,
   tokenPricesService,
   nftApiClient,
 });
