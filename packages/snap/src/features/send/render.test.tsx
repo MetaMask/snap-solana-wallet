@@ -1,5 +1,6 @@
 import type { CaipAssetType } from '@metamask/keyring-api';
 import { getMockAccount, installSnap } from '@metamask/snaps-jest';
+import type { Json } from '@metamask/utils';
 
 import type { SpotPrices } from '../../core/clients/price-api/types';
 import {
@@ -29,6 +30,7 @@ import { TEST_ORIGIN } from '../../core/test/utils';
 import type { Preferences } from '../../core/types/snap';
 import { buildUrl } from '../../core/utils/buildUrl';
 import { trackError } from '../../core/utils/errors';
+import type { AssetEntity } from '../../entities';
 import {
   accountsService,
   assetsService,
@@ -48,6 +50,13 @@ jest.mock('../../core/utils/errors', () => ({
   trackError: jest.fn().mockResolvedValue('tracked-error-id'),
 }));
 
+const TEST_TOKEN_MINT_1 = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const TEST_TOKEN_MINT_2 = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
+const TEST_TOKEN_ASSET_1 =
+  'solana:123456789abcdef/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as const;
+const TEST_TOKEN_ASSET_2 =
+  'solana:123456789abcdef/token:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' as const;
+
 const solanaKeyringAccounts = [
   MOCK_SOLANA_KEYRING_ACCOUNT_0,
   MOCK_SOLANA_KEYRING_ACCOUNT_1,
@@ -59,14 +68,16 @@ const solanaAccountBalances: Record<string, { amount: string; unit: string }> =
       amount: '0.123456789',
       unit: SOL_SYMBOL,
     },
-    'solana:123456789abcdef/token:address1': {
-      amount: '0.123456789',
-      unit: '',
-    },
-    'solana:123456789abcdef/token:address2': {
-      amount: '0.123456789',
-      unit: '',
-    },
+    'solana:123456789abcdef/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
+      {
+        amount: '0.123456789',
+        unit: '',
+      },
+    'solana:123456789abcdef/token:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB':
+      {
+        amount: '0.123456789',
+        unit: '',
+      },
   };
 
 const mockSpotPrices: SpotPrices = {
@@ -96,7 +107,7 @@ const mockSpotPrices: SpotPrices = {
     holderCount: null,
     isMutable: null,
   },
-  'solana:123456789abcdef/token:address1': {
+  'solana:123456789abcdef/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': {
     id: 'euro-coin',
     price: 200,
     marketCap: 142095635.08509836,
@@ -122,7 +133,7 @@ const mockSpotPrices: SpotPrices = {
     holderCount: null,
     isMutable: null,
   },
-  'solana:123456789abcdef/token:address2': {
+  'solana:123456789abcdef/token:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB': {
     id: 'usd-coin',
     price: 200,
     marketCap: 55688170578.59265,
@@ -159,14 +170,19 @@ const mockContext: SendContext = {
   tokenCaipId: KnownCaip19Id.SolLocalnet,
   assets: [
     KnownCaip19Id.SolLocalnet,
-    'solana:123456789abcdef/token:address1',
-    'solana:123456789abcdef/token:address2',
+    'solana:123456789abcdef/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    'solana:123456789abcdef/token:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
   ],
   balances: {
     [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: solanaAccountBalances,
     [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: solanaAccountBalances,
   },
   tokenPrices: mockSpotPrices,
+  tokenPricesFetchStatus: 'fetched',
+  preferences: {
+    ...DEFAULT_SEND_CONTEXT.preferences,
+    useExternalPricingData: false,
+  },
   loading: false,
 };
 
@@ -211,22 +227,24 @@ describe('Send', () => {
         uiAmount: '0.123456789',
       },
       {
-        assetType: 'solana:123456789abcdef/token:address1',
+        assetType:
+          'solana:123456789abcdef/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
         network: Network.Localnet,
         symbol: 'EURO-COIN',
-        mint: 'address1',
+        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         pubkey: 'pubkey1',
         decimals: 6,
         rawAmount: '123456789',
         uiAmount: '123.456789',
       },
       {
-        assetType: 'solana:123456789abcdef/token:address2',
+        assetType:
+          'solana:123456789abcdef/token:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
         keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
         network: Network.Localnet,
         symbol: 'USDC',
-        mint: 'address2',
+        mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
         pubkey: 'pubkey2',
         decimals: 6,
         rawAmount: '123456789',
@@ -245,6 +263,7 @@ describe('Send', () => {
           entropySource: 'alternative',
         },
       },
+      tokenPrices: mockSpotPrices as Json,
       assetEntities: {
         [MOCK_SOLANA_KEYRING_ACCOUNT_0.id]: mockAssetEntities,
         [MOCK_SOLANA_KEYRING_ACCOUNT_1.id]: mockAssetEntities,
@@ -256,7 +275,7 @@ describe('Send', () => {
       currency: 'usd',
       hideBalances: false,
       useSecurityAlerts: true,
-      useExternalPricingData: true,
+      useExternalPricingData: false,
       simulateOnChainActions: true,
       useTokenDetection: true,
       batchCheckBalances: true,
@@ -271,12 +290,14 @@ describe('Send', () => {
         unencryptedState: initialState,
         accounts: [
           getMockAccount({
+            id: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
             address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
             selected: true,
             assets: Object.keys(solanaAccountBalances) as CaipAssetType[],
             scopes: [Network.Localnet],
           }),
           getMockAccount({
+            id: MOCK_SOLANA_KEYRING_ACCOUNT_1.id,
             address: MOCK_SOLANA_KEYRING_ACCOUNT_1.address,
             selected: false,
             assets: Object.keys(solanaAccountBalances) as CaipAssetType[],
@@ -288,14 +309,16 @@ describe('Send', () => {
             symbol: 'SOL',
             name: 'Solana',
           },
-          'solana:123456789abcdef/token:address1': {
-            symbol: 'EURO-COIN',
-            name: 'Euro Coin',
-          },
-          'solana:123456789abcdef/token:address2': {
-            symbol: 'USDC',
-            name: 'USDC',
-          },
+          'solana:123456789abcdef/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
+            {
+              symbol: 'EURO-COIN',
+              name: 'Euro Coin',
+            },
+          'solana:123456789abcdef/token:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB':
+            {
+              symbol: 'USDC',
+              name: 'USDC',
+            },
         },
       },
     });
@@ -529,21 +552,27 @@ describe('Send tracking', () => {
         throw new Error(`Unexpected snap.request call: ${method}`);
       });
 
+    const mockSendAssets: AssetEntity[] = [
+      {
+        assetType: KnownCaip19Id.SolMainnet,
+        keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
+        network: Network.Mainnet,
+        address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
+        symbol: 'SOL',
+        decimals: 9,
+        rawAmount: '1',
+        uiAmount: '1',
+      },
+    ];
+
     jest
       .spyOn(assetsService, 'getAll')
       .mockImplementation()
-      .mockResolvedValue([
-        {
-          assetType: KnownCaip19Id.SolMainnet,
-          keyringAccountId: MOCK_SOLANA_KEYRING_ACCOUNT_0.id,
-          network: Network.Mainnet,
-          address: MOCK_SOLANA_KEYRING_ACCOUNT_0.address,
-          symbol: 'SOL',
-          decimals: 9,
-          rawAmount: '1',
-          uiAmount: '1',
-        },
-      ]);
+      .mockResolvedValue(mockSendAssets);
+    jest
+      .spyOn(assetsService, 'getAccountAssetsByScope')
+      .mockImplementation()
+      .mockResolvedValue(mockSendAssets);
     jest.spyOn(assetsService, 'getAssetsMetadata').mockImplementation();
     jest
       .spyOn(accountsService, 'getAll')
