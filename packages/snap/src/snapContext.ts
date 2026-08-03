@@ -22,8 +22,6 @@ import {
   AccountsService,
   AccountsSynchronizer,
   ApproveTokenService,
-  SnapAssetsAdapter,
-  AssetsRepository,
   AssetsService,
   CoreAssetsAdapter,
   KeyringAccountMonitor,
@@ -154,21 +152,8 @@ const tokenPricesService = new TokenPricesService({
 });
 const nameResolutionService = new NameResolutionService(connection, logger);
 
-const assetsRepository = new AssetsRepository(state);
-
 const accountsRepository = new AccountsRepository(state);
 const accountsService = new AccountsService(accountsRepository);
-
-const snapAssetsAdapter = new SnapAssetsAdapter({
-  connection,
-  logger,
-  configProvider,
-  assetsRepository,
-  accountsService,
-  tokenApiClient,
-  cache: inMemoryCache,
-  nftApiClient,
-});
 
 type CoreAssetsMessenger = Messenger<
   typeof ASSETS_PROVIDER_NAME,
@@ -183,7 +168,6 @@ const coreAssetsAdapter = new CoreAssetsAdapter(coreAssetsMessenger);
 const assetsService = new AssetsService({
   logger,
   configProvider,
-  snapAssetsAdapter,
   coreAssetsAdapter,
   accountsService,
   tokenApiClient,

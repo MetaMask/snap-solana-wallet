@@ -4,11 +4,10 @@ import { DEFAULT_SEND_CONTEXT } from '../../../../features/send/render';
 import { Send } from '../../../../features/send/Send';
 import type { SendContext } from '../../../../features/send/types';
 import {
+  accountsService,
   assetsService,
-  configProvider,
   priceApiClient,
   state,
-  accountsService,
 } from '../../../../snapContext';
 import type { UnencryptedStateValue } from '../../../services/state/State';
 import { trackError } from '../../../utils/errors';
@@ -25,10 +24,9 @@ export const refreshSend: OnCronjobHandler = async () => {
 
   logger.info(`Background event triggered`);
 
-  const [accounts, activeNetworks, mapInterfaceNameToId, preferences] =
+  const [keyringAccounts, mapInterfaceNameToId, preferences] =
     await Promise.all([
       accountsService.getAll(),
-      configProvider.getActiveNetworks(),
       state.getKey<UnencryptedStateValue['mapInterfaceNameToId']>(
         'mapInterfaceNameToId',
       ),
@@ -37,10 +35,8 @@ export const refreshSend: OnCronjobHandler = async () => {
 
   const assets = (
     await Promise.all(
-      accounts.flatMap((account) =>
-        activeNetworks.map((network) =>
-          assetsService.getAccountAssetsByScope(network, account.id),
-        ),
+      keyringAccounts.map((account) =>
+        assetsService.getAccountAssetsForAllActiveScopes(account.id),
       ),
     )
   ).flat();
