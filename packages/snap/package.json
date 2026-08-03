@@ -57,7 +57,6 @@
     "@metamask/keyring-api": "^23.5.0",
     "@metamask/keyring-snap-sdk": "^9.2.0",
     "@metamask/messenger": "^2.0.0",
-    "@metamask/remote-feature-flag-controller": "5.0.0",
     "@metamask/snaps-cli": "^8.4.1",
     "@metamask/snaps-jest": "^10.2.0",
     "@metamask/snaps-sdk": "^11.2.0",

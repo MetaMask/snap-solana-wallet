@@ -107,9 +107,4 @@ export function registerCoreAssetsControllerHandlers(
       return result;
     },
   );
-
-  controllerMessenger.registerActionHandler(
-    'RemoteFeatureFlagController:getState',
-    () => ({ remoteFeatureFlags: {} }),
-  );
 }

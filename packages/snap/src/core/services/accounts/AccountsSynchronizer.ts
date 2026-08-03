@@ -33,21 +33,9 @@ export class AccountsSynchronizer {
 
     const assets = (
       await Promise.allSettled(
-        accountsToSync.map(async (account) => {
-          if (
-            await this.#assetsService.shouldTrackSnapAssetsForAccount(
-              account.id,
-            )
-          ) {
-            const fetchedAssets = await this.#assetsService.fetch(account);
-            await this.#assetsService.saveMany(fetchedAssets);
-            return fetchedAssets;
-          }
-
-          return this.#assetsService.getAccountAssetsForAllActiveScopes(
-            account.id,
-          );
-        }),
+        accountsToSync.map(async (account) =>
+          this.#assetsService.getAccountAssetsForAllActiveScopes(account.id),
+        ),
       )
     )
       .map((item) => (item.status === 'fulfilled' ? item.value : []))
