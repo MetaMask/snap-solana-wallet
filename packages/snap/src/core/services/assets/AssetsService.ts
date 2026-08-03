@@ -192,8 +192,8 @@ export class AssetsService {
     };
   }
 
-  async fetch(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
-    return this.#snapAdapter.fetch(account);
+  async fetch(_account: SolanaKeyringAccount): Promise<AssetEntity[]> {
+    return [];
   }
 
   async fetchAssetsMarketData(
@@ -211,12 +211,12 @@ export class AssetsService {
     return marketData;
   }
 
-  async save(asset: AssetEntity): Promise<void> {
-    await this.saveMany([asset]);
+  async save(_asset: AssetEntity): Promise<void> {
+    // Fungible assets are tracked by Core; Snap persistence is disabled.
   }
 
-  async saveMany(assets: AssetEntity[]): Promise<void> {
-    return this.#snapAdapter.saveMany(assets);
+  async saveMany(_assets: AssetEntity[]): Promise<void> {
+    // Fungible assets are tracked by Core; Snap persistence is disabled.
   }
 
   static hasChanged(asset: AssetEntity, assetsLookup: AssetEntity[]): boolean {

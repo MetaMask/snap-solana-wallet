@@ -1,8 +1,8 @@
-import { assert, number, string } from '@metamask/superstruct';
+import { assert, string } from '@metamask/superstruct';
 import { TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { TOKEN_2022_PROGRAM_ADDRESS } from '@solana-program/token-2022';
 import type { Base58EncodedBytes } from '@solana/kit';
-import { address as asAddress, lamports } from '@solana/kit';
+import { address as asAddress } from '@solana/kit';
 import { get, uniq } from 'lodash';
 
 import type { SubscriptionService } from '.';
@@ -13,15 +13,10 @@ import type {
   Subscription,
 } from '../../../entities';
 import type { Network } from '../../constants/solana';
-import { SolanaCaip19Tokens } from '../../constants/solana';
-import { trackError } from '../../utils/errors';
-import { fromTokenUnits } from '../../utils/fromTokenUnit';
 import { createPrefixedLogger } from '../../utils/logger';
 import type { ILogger } from '../../utils/logger';
-import { tokenAddressToCaip19 } from '../../utils/tokenAddressToCaip19';
 import type { AccountsSynchronizer } from '../accounts';
 import type { AccountsService } from '../accounts/AccountsService';
-import type { AssetsService, TokenHelper } from '../assets';
 import type { ConfigProvider } from '../config';
 import { SUPPORTED_NETWORKS } from '../config/ConfigProvider';
 import type { TransactionsService } from '../transactions';
@@ -34,7 +29,6 @@ import { isSpam } from '../transactions/utils/isSpam';
  * - It gets updates when the balance of token assets change by subscribing to each RPC token account.
  *
  * On each update:
- * - It saves the new balance. Under the hood, AssetsService also notifies the extension.
  * - It fetches the transaction that caused the native asset or token asset to change and saves it. Under the hood, TransactionsService also notifies the extension.
  */
 export class KeyringAccountMonitor {
@@ -42,13 +36,9 @@ export class KeyringAccountMonitor {
 
   readonly #accountService: AccountsService;
 
-  readonly #assetsService: AssetsService;
-
   readonly #transactionsService: TransactionsService;
 
   readonly #accountsSynchronizer: AccountsSynchronizer;
-
-  readonly #tokenHelper: TokenHelper;
 
   readonly #configProvider: ConfigProvider;
 
@@ -62,19 +52,15 @@ export class KeyringAccountMonitor {
   constructor(
     subscriptionService: SubscriptionService,
     accountService: AccountsService,
-    assetsService: AssetsService,
     transactionsService: TransactionsService,
     accountsSynchronizer: AccountsSynchronizer,
-    tokenHelper: TokenHelper,
     configProvider: ConfigProvider,
     logger: ILogger,
   ) {
     this.#subscriptionService = subscriptionService;
     this.#accountService = accountService;
-    this.#assetsService = assetsService;
     this.#transactionsService = transactionsService;
     this.#accountsSynchronizer = accountsSynchronizer;
-    this.#tokenHelper = tokenHelper;
     this.#configProvider = configProvider;
     this.#logger = createPrefixedLogger(logger, '[🗝️ KeyringAccountMonitor]');
 
@@ -322,25 +308,7 @@ export class KeyringAccountMonitor {
       throw new Error(`No keyring account found for address: ${address}`);
     }
 
-    // Handle the notification with clean data
-    const { lamports: accountLamports } = notification.params.result.value;
-    assert(accountLamports, number());
-
-    const decimals = 9;
-
-    await Promise.all([
-      this.#assetsService.save({
-        assetType: `${network}/${SolanaCaip19Tokens.SOL}`,
-        keyringAccountId: keyringAccount.id,
-        network,
-        address,
-        symbol: 'SOL',
-        decimals,
-        rawAmount: accountLamports.toString(),
-        uiAmount: fromTokenUnits(accountLamports, decimals),
-      }),
-      this.#saveCausingTransaction(keyringAccount, network, address),
-    ]);
+    await this.#saveCausingTransaction(keyringAccount, network, address);
   }
 
   async #handleProgramNotification(
@@ -367,60 +335,15 @@ export class KeyringAccountMonitor {
     const { owner } = notification.params.result.value.account.data.parsed.info;
     assert(owner, string());
 
-    const { mint } = notification.params.result.value.account.data.parsed.info;
-    assert(mint, string());
-
-    const { amount, decimals, uiAmountString } =
-      notification.params.result.value.account.data.parsed.info.tokenAmount;
-    assert(amount, string());
-    assert(decimals, number());
-    assert(uiAmountString, string());
-
     const { pubkey } = notification.params.result.value;
     assert(pubkey, string());
-
-    const assetType = tokenAddressToCaip19(network, mint);
 
     const keyringAccount = await this.#accountService.findByAddress(owner);
     if (!keyringAccount) {
       throw new Error(`No keyring account found with address: ${owner}`);
     }
 
-    /**
-     * WARNING: This is to compensate for the fact that the notification returned by Infura's programSubscribe
-     * includes a uiAmount/uiAmountString that does not take into account the mint's multiplier (if any).
-     * In theory, it should; because the regular Solana RPC (wss://api.mainnet-beta.solana.com) does.
-     *
-     * So this needs to be removed once Infura fixes their programSubscribe notification.
-     */
-    const uiAmount = await this.#tokenHelper
-      .amountToUiAmountForMint(mint, network, lamports(BigInt(amount)))
-      .catch(async (error) => {
-        await trackError(error);
-        this.#logger.error('Error converting amount to uiAmount', error);
-        return uiAmountString;
-      });
-
-    const metadata = (await this.#assetsService.getAssetsMetadata([assetType]))[
-      assetType
-    ];
-
-    await Promise.all([
-      // Update the balance of the token asset
-      this.#assetsService.save({
-        assetType,
-        keyringAccountId: keyringAccount.id,
-        network,
-        mint,
-        pubkey,
-        symbol: metadata?.symbol ?? 'UNKNOWN',
-        decimals,
-        rawAmount: amount,
-        uiAmount,
-      }),
-      // Fetch and save the transaction that caused the token asset change.
-      this.#saveCausingTransaction(keyringAccount, network, pubkey),
-    ]);
+    await this.#saveCausingTransaction(keyringAccount, network, pubkey);
   }
 
   /**

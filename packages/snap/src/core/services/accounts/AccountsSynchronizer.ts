@@ -34,14 +34,12 @@ export class AccountsSynchronizer {
     const assets = (
       await Promise.allSettled(
         accountsToSync.map(async (account) =>
-          this.#assetsService.fetch(account),
+          this.#assetsService.getAccountAssetsForAllActiveScopes(account.id),
         ),
       )
     )
       .map((item) => (item.status === 'fulfilled' ? item.value : []))
       .flat();
-
-    await this.#assetsService.saveMany(assets);
 
     const transactions =
       await this.#transactionsService.fetchAssetsTransactions(assets, {

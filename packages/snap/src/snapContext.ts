@@ -177,8 +177,8 @@ type CoreAssetsMessenger = Messenger<
   | AssetsControllerGetAccountAssetsByScopeAction
 >;
 
-const coreMessenger = getMessenger<CoreAssetsMessenger>();
-const coreAssetsAdapter = new CoreAssetsAdapter(coreMessenger);
+const coreAssetsMessenger = getMessenger<CoreAssetsMessenger>();
+const coreAssetsAdapter = new CoreAssetsAdapter(coreAssetsMessenger);
 
 const assetsService = new AssetsService({
   logger,
@@ -234,10 +234,8 @@ const signatureMonitor = new SignatureMonitor(
 const keyringAccountMonitor = new KeyringAccountMonitor(
   subscriptionService,
   accountsService,
-  assetsService,
   transactionsService,
   accountsSynchronizer,
-  tokenHelper,
   configProvider,
   logger,
 );
