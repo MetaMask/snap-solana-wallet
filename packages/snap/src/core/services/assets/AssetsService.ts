@@ -5,7 +5,7 @@ import type {
 import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { parseCaipAssetType } from '@metamask/utils';
 
-import type { AssetEntity, SolanaKeyringAccount } from '../../../entities';
+import type { AssetEntity } from '../../../entities';
 import type { NftApiClient } from '../../clients/nft-api/NftApiClient';
 import type { TokenApiClient } from '../../clients/token-api-client/TokenApiClient';
 import type {
@@ -21,16 +21,12 @@ import type { AccountsService } from '../accounts/AccountsService';
 import type { ConfigProvider } from '../config';
 import type { TokenPricesService } from '../token-prices/TokenPrices';
 import type { CoreAssetsAdapter } from './adapters/CoreAssetsAdapter';
-import { SnapAssetsAdapter } from './adapters/SnapAssetsAdapter';
-import { isSnapOwnedAsset } from './snapOwnedAssets';
 import type { AssetMetadata, NonFungibleAssetMetadata } from './types';
 
 export class AssetsService {
   readonly #logger: ILogger;
 
   readonly #configProvider: ConfigProvider;
-
-  readonly #snapAdapter: SnapAssetsAdapter;
 
   readonly #coreAssetsAdapter: CoreAssetsAdapter;
 
@@ -45,7 +41,6 @@ export class AssetsService {
   constructor({
     logger,
     configProvider,
-    snapAssetsAdapter,
     coreAssetsAdapter,
     accountsService,
     tokenApiClient,
@@ -54,7 +49,6 @@ export class AssetsService {
   }: {
     logger: ILogger;
     configProvider: ConfigProvider;
-    snapAssetsAdapter: SnapAssetsAdapter;
     coreAssetsAdapter: CoreAssetsAdapter;
     accountsService: AccountsService;
     tokenApiClient: TokenApiClient;
@@ -63,7 +57,6 @@ export class AssetsService {
   }) {
     this.#logger = createPrefixedLogger(logger, '[🪙 AssetsService]');
     this.#configProvider = configProvider;
-    this.#snapAdapter = snapAssetsAdapter;
     this.#coreAssetsAdapter = coreAssetsAdapter;
     this.#accountsService = accountsService;
     this.#tokenApiClient = tokenApiClient;
@@ -192,10 +185,6 @@ export class AssetsService {
     };
   }
 
-  async fetch(_account: SolanaKeyringAccount): Promise<AssetEntity[]> {
-    return [];
-  }
-
   async fetchAssetsMarketData(
     assets: {
       asset: CaipAssetType;
@@ -211,30 +200,10 @@ export class AssetsService {
     return marketData;
   }
 
-  async save(_asset: AssetEntity): Promise<void> {
-    // Fungible assets are tracked by Core; Snap persistence is disabled.
-  }
-
-  async saveMany(_assets: AssetEntity[]): Promise<void> {
-    // Fungible assets are tracked by Core; Snap persistence is disabled.
-  }
-
-  static hasChanged(asset: AssetEntity, assetsLookup: AssetEntity[]): boolean {
-    return SnapAssetsAdapter.hasChanged(asset, assetsLookup);
-  }
-
-  async getAll(): Promise<AssetEntity[]> {
-    return this.#snapAdapter.getAll();
-  }
-
   async getAccountAssetByID(
     accountId: string,
     assetId: CaipAssetType,
   ): Promise<AssetEntity | null> {
-    if (isSnapOwnedAsset(assetId)) {
-      return this.#snapAdapter.getAccountAssetByID(accountId, assetId);
-    }
-
     const account = await this.#accountsService.findById(accountId);
     if (!account) {
       return null;
@@ -260,25 +229,11 @@ export class AssetsService {
       return Object.fromEntries(assetIds.map((assetId) => [assetId, null]));
     }
 
-    const snapOwnedIds = assetIds.filter(isSnapOwnedAsset);
-    const fungibleIds = assetIds.filter(
-      (assetId) => !isSnapOwnedAsset(assetId),
+    return this.#coreAssetsAdapter.getAccountAssetsByIDs(
+      accountId,
+      assetIds,
+      account.address,
     );
-
-    const [fungibleResults, snapResults] = await Promise.all([
-      fungibleIds.length > 0
-        ? this.#coreAssetsAdapter.getAccountAssetsByIDs(
-            accountId,
-            fungibleIds,
-            account.address,
-          )
-        : Promise.resolve({}),
-      snapOwnedIds.length > 0
-        ? this.#snapAdapter.getAccountAssetsByIDs(accountId, snapOwnedIds)
-        : Promise.resolve({}),
-    ]);
-
-    return { ...snapResults, ...fungibleResults };
   }
 
   async getAccountAssetsByScope(
@@ -290,20 +245,11 @@ export class AssetsService {
       return [];
     }
 
-    const [fungibleAssets, snapAssets] = await Promise.all([
-      this.#coreAssetsAdapter.getAccountAssetsByScope(
-        scope,
-        accountId,
-        account.address,
-      ),
-      this.#snapAdapter.getAccountAssetsByScope(scope, accountId),
-    ]);
-
-    const nftAssets = snapAssets.filter((asset) =>
-      isSnapOwnedAsset(asset.assetType),
+    return this.#coreAssetsAdapter.getAccountAssetsByScope(
+      scope,
+      accountId,
+      account.address,
     );
-
-    return [...fungibleAssets, ...nftAssets];
   }
 
   async getAccountAssetsForAllActiveScopes(
@@ -319,7 +265,7 @@ export class AssetsService {
       account.scopes.includes(chainId),
     );
 
-    const fungibleByScope = await Promise.all(
+    const assetsByScope = await Promise.all(
       relevantChainIds.map((scope) =>
         this.#coreAssetsAdapter.getAccountAssetsByScope(
           scope,
@@ -328,16 +274,7 @@ export class AssetsService {
         ),
       ),
     );
-    const snapAssets =
-      await this.#snapAdapter.getAccountAssetsForAllActiveScopes(accountId);
-    const nftAssets = snapAssets.filter((asset) =>
-      isSnapOwnedAsset(asset.assetType),
-    );
 
-    return [...fungibleByScope.flat(), ...nftAssets];
-  }
-
-  async findByAccount(account: SolanaKeyringAccount): Promise<AssetEntity[]> {
-    return this.#snapAdapter.findByAccount(account);
+    return assetsByScope.flat();
   }
 }

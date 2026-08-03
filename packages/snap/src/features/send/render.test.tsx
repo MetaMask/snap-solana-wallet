@@ -510,7 +510,8 @@ describe('Send', () => {
 
 describe('Send tracking', () => {
   const setupTest = () => {
-    const originalAssetsGetAll = assetsService.getAll;
+    const originalAssetsGetAccountAssetsByScope =
+      assetsService.getAccountAssetsByScope;
     const originalAssetsGetAssetsMetadata = assetsService.getAssetsMetadata;
     const originalAccountsGetAll = accountsService.getAll;
     const originalConnectionGetRpc = connection.getRpc;
@@ -566,10 +567,6 @@ describe('Send tracking', () => {
     ];
 
     jest
-      .spyOn(assetsService, 'getAll')
-      .mockImplementation()
-      .mockResolvedValue(mockSendAssets);
-    jest
       .spyOn(assetsService, 'getAccountAssetsByScope')
       .mockImplementation()
       .mockResolvedValue(mockSendAssets);
@@ -607,7 +604,8 @@ describe('Send tracking', () => {
       connection,
       priceApiClient,
       cleanup: () => {
-        assetsService.getAll = originalAssetsGetAll;
+        assetsService.getAccountAssetsByScope =
+          originalAssetsGetAccountAssetsByScope;
         assetsService.getAssetsMetadata = originalAssetsGetAssetsMetadata;
         accountsService.getAll = originalAccountsGetAll;
         connection.getRpc = originalConnectionGetRpc;

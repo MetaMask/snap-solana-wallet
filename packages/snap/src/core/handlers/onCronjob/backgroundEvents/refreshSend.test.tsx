@@ -43,7 +43,7 @@ jest.mock('../../../../snapContext', () => ({
     getAll: jest.fn(),
   },
   assetsService: {
-    getAccountAssetsByScope: jest.fn(),
+    getAccountAssetsForAllActiveScopes: jest.fn(),
   },
   configProvider: {
     getActiveNetworks: jest.fn(),
@@ -68,7 +68,9 @@ const setupTest = () => {
   (configProvider.getActiveNetworks as jest.Mock).mockResolvedValue([
     'solana:mainnet',
   ]);
-  (assetsService.getAccountAssetsByScope as jest.Mock).mockResolvedValue([
+  (
+    assetsService.getAccountAssetsForAllActiveScopes as jest.Mock
+  ).mockResolvedValue([
     {
       assetType: KnownCaip19Id.SolMainnet,
     },
