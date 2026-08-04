@@ -1,6 +1,10 @@
 import type { SecurityAlertsApiClient } from '../../clients/security-alerts-api/SecurityAlertsApiClient';
 import type { SecurityAlertSimulationValidationResponse } from '../../clients/security-alerts-api/types';
-import { Network } from '../../constants/solana';
+import {
+  METAMASK_ORIGIN_URL,
+  Network,
+  WALLET_CONNECT_ORIGIN,
+} from '../../constants/solana';
 import { MOCK_SOLANA_KEYRING_ACCOUNT_0 } from '../../test/mocks/solana-keyring-accounts';
 import { trackError } from '../../utils/errors';
 import type { ILogger } from '../../utils/logger';
@@ -58,6 +62,49 @@ describe('TransactionScan', () => {
       expect(result).toMatchObject({
         status: 'SUCCESS',
       });
+    });
+
+    it('passes the MetaMask URL to the client for the internal MetaMask origin', async () => {
+      const scanTransactionsSpy = jest
+        .spyOn(mockSecurityAlertsApiClient, 'scanTransactions')
+        .mockResolvedValue({
+          status: 'SUCCESS',
+        } as SecurityAlertSimulationValidationResponse);
+
+      await transactionScanService.scanTransaction({
+        method: 'method',
+        accountAddress: 'accountAddress',
+        transaction: 'transaction',
+        scope: Network.Mainnet,
+        origin: 'metamask',
+      });
+
+      expect(scanTransactionsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ origin: METAMASK_ORIGIN_URL }),
+      );
+    });
+
+    it('passes the WalletConnect origin to the client', async () => {
+      const scanTransactionsSpy = jest
+        .spyOn(mockSecurityAlertsApiClient, 'scanTransactions')
+        .mockResolvedValue({
+          status: 'SUCCESS',
+        } as SecurityAlertSimulationValidationResponse);
+
+      const result = await transactionScanService.scanTransaction({
+        method: 'method',
+        accountAddress: 'accountAddress',
+        transaction: 'transaction',
+        scope: Network.Mainnet,
+        origin: WALLET_CONNECT_ORIGIN,
+      });
+
+      expect(result).toMatchObject({
+        status: 'SUCCESS',
+      });
+      expect(scanTransactionsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ origin: WALLET_CONNECT_ORIGIN }),
+      );
     });
 
     it('returns null if the scan fails', async () => {
